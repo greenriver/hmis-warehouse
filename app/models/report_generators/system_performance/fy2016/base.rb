@@ -9,7 +9,7 @@ module ReportGenerators::SystemPerformance::Fy2016
       if @report.options['data_source_id'].present?
         scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
       end
-      if @report.options['coc_code']
+      if @report.options['coc_code'].present?
         scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
       end
 

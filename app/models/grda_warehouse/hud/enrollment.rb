@@ -123,7 +123,11 @@ module GrdaWarehouse::Hud
     has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id], inverse_of: :enrollment
     has_many :services, class_name: GrdaWarehouse::Hud::Service.name, foreign_key: ['ProjectEntryID', 'data_source_id'], primary_key: ['ProjectEntryID', 'data_source_id'], inverse_of: :enrollment
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :enrollment
-    has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, **hud_one(EnrollmentCoc), inverse_of: :enrollment
+    has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, **hud_one(EnrollmentCoc)
+    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
+    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
+    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
+    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :enrollment
     belongs_to :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :enrollment_group_id, :project_id], foreign_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
 

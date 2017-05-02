@@ -1,6 +1,8 @@
 module ReportGenerators::DataQuality::Fy2016
   class Base
+    ADULT = 18
     include ArelHelper
+    attr_reader :all_clients
 
     def add_filters scope:
       if @report.options['project_id'].present?
@@ -9,7 +11,7 @@ module ReportGenerators::DataQuality::Fy2016
       if @report.options['data_source_id'].present?
         scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
       end
-      if @report.options['coc_code']
+      if @report.options['coc_code'].present?
         scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
       end
       if @report.options['project_type'].delete_if(&:blank?).any?
@@ -31,16 +33,6 @@ module ReportGenerators::DataQuality::Fy2016
       nf( 'COALESCE', [ pt[:act_as_project_type], st[:project_type] ] ).as('project_type').to_sql
     end
 
-    # def replace_project_type_with_overlay(headers)
-    #   headers.map do |v| 
-    #     if v == :project_type
-    #       act_as_project_overlay 
-    #     else
-    #       v 
-    #     end
-    #   end
-    # end
-
     def all_client_scope
       client_scope = GrdaWarehouse::ServiceHistory.entry.
         open_between(start_date: @report.options['report_start'],
@@ -48,6 +40,66 @@ module ReportGenerators::DataQuality::Fy2016
         joins(:client)
 
       add_filters(scope: client_scope)
+    end
+
+    def calculate_leavers
+      # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
+      # is not active in any of the relevant projects as of the [report end date].
+      # 2. The client must be an adult to be included.
+      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :data_source_id, :project_tracking_method, :project_name, :RelationshipToHoH, :household_id]
+
+      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+        ongoing(on_date: @report.options['report_end'])
+
+      client_id_scope = add_filters(scope: client_id_scope)
+
+      leavers_scope = GrdaWarehouse::ServiceHistory.entry.
+        ended_between(start_date: @report.options['report_start'], 
+          end_date: @report.options['report_end'].to_date + 1.days).
+        where.not(
+          client_id: client_id_scope.
+            select(:client_id).
+            distinct
+        ).
+        joins(:client, :enrollment)
+        
+      leavers_scope = add_filters(scope: leavers_scope)
+
+      leavers = leavers_scope.
+        order(client_id: :asc, first_date_in_program: :asc).
+        pluck(*columns).map do |row|
+          Hash[columns.zip(row)]
+        end.group_by do |row|
+          row[:client_id]
+        end.map do |id,enrollments| 
+          # We only care about the last enrollment
+          [id, enrollments.last]
+        end.to_h
+    end
+
+    def calculate_stayers
+      # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
+      # Page 24 of 41
+      # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
+      # 3. The client must be an adult to be included in this measure.
+      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :data_source_id, :project_tracking_method, :project_name, :RelationshipToHoH, :household_id]
+
+      stayers_scope = GrdaWarehouse::ServiceHistory.entry.
+        ongoing(on_date: @report.options['report_end']).
+        joins(:client, :enrollment)
+
+      stayers_scope = add_filters(scope: stayers_scope)
+
+      stayers = stayers_scope.
+        order(client_id: :asc, first_date_in_program: :asc).
+        pluck(*columns).map do |row|
+          Hash[columns.zip(row)]
+        end.group_by do |row|
+          row[:client_id]
+        end.map do |id,enrollments| 
+          # We only care about the last enrollment
+          [id, enrollments.last]
+        end.to_h
     end
 
     def start_report(report)
@@ -88,6 +140,22 @@ module ReportGenerators::DataQuality::Fy2016
       count ||= @all_clients.size
     end
 
+    def setup_age_categories
+      clients_with_ages = @all_clients.map do |id, enrollments|
+        [id, enrollments.last[:age]]
+      end
+      @adults = clients_with_ages.select do |_, age|
+        age >= ADULT if age.present?
+      end
+      @children = clients_with_ages.select do |_, age|
+        age < ADULT if age.present?
+      end
+      @unknown = clients_with_ages.select do |_, age|
+        age.blank?
+      end
+    end
+
+
     # create
     # [{
     #   <client_id>: {
@@ -117,21 +185,23 @@ module ReportGenerators::DataQuality::Fy2016
           }
         ]
       end.to_h
-      # @households ||= {}.tap do |h|
-
-      #   columns = [:client_id, :age, :head_of_household_id, :household_id, :RelationshipToHoH]
-      #   @all_clients.each do |id, enrollments|
-      #     enrollment = enrollments.last
-      #     h[id] = GrdaWarehouse::ServiceHistory.entry.
-      #       where(household_id: enrollment[:household_id],
-      #         first_date_in_program: enrollment[:first_date_in_program], project_id: enrollment[:project_id]).
-      #       joins(:client, :enrollment).
-      #       pluck(*columns).map do |row|
-      #         Hash[columns.zip(row)]
-      #       end
-      #   end
-      # end
       @households
+    end
+
+    def adult_heads
+      households.select do |id, household|
+        household[:household].select do |member|
+          member[:age].present? && member[:age] >= ADULT && member[:RelationshipToHoH] == 1
+        end.any?
+      end
+    end
+
+    def other_heads
+      households.select do |id, household|
+        household[:household].select do |member|
+          (member[:age].present? && member[:age] < ADULT || member[:age].blank?) && member[:RelationshipToHoH] == 1
+        end.any?
+      end
     end
 
     def client_disabled?(enrollment:)

@@ -7,16 +7,17 @@ module ReportGenerators::DataQuality::Fy2016
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_clients = fetch_all_clients()
-        setup_age_categories()
-        update_report_progress(percent: 25)
-        @clients_with_issues = Set.new
-        add_veteran_answers()
-        add_entry_date_answers()
-        add_head_of_household_answers()
-        add_location_answers()
-        update_report_progress(percent: 30)
-        add_disabling_condition_answers()
-
+        if @all_clients.any?
+          setup_age_categories()
+          update_report_progress(percent: 25)
+          @clients_with_issues = Set.new
+          add_veteran_answers()
+          add_entry_date_answers()
+          add_head_of_household_answers()
+          add_location_answers()
+          update_report_progress(percent: 30)
+          add_disabling_condition_answers()
+        end
         finish_report()
       else
         Rails.logger.info 'No Report Queued'
@@ -34,7 +35,6 @@ module ReportGenerators::DataQuality::Fy2016
         data_source_id: :data_source_id, 
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
-        VeteranStatus: :VeteranStatus,
         project_name: :project_name,
         RelationshipToHoH: :RelationshipToHoH,
         household_id: :household_id,
@@ -181,7 +181,8 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q3_c5][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
+      # Only count against heads of household
+      @answers[:q3_c5][:value] = ((counted.size.to_f / (adult_heads.count + other_heads.count)) * 100).round(2)
     end
 
     def add_disabling_condition_answers
@@ -225,8 +226,15 @@ module ReportGenerators::DataQuality::Fy2016
     def household_members(enrollment)
       @all_households ||= households.values.map{|m| m[:household]}.
         index_by do |enrollments|
-          []
-      [
+          enrollment = enrollments.first
+          [
+            enrollment[:data_source_id], 
+            enrollment[:project_id], 
+            enrollment[:household_id], 
+            enrollment[:first_date_in_program],
+          ]
+        end
+      @all_households[
         [
           enrollment[:data_source_id], 
           enrollment[:project_id], 
@@ -234,21 +242,6 @@ module ReportGenerators::DataQuality::Fy2016
           enrollment[:first_date_in_program],
         ]
       ]
-    end
-
-    def setup_age_categories
-      clients_with_ages = @all_clients.map do |id, enrollments|
-        [id, enrollments.last[:age]]
-      end
-      @adults = clients_with_ages.select do |_, age|
-        age >= ADULT if age.present?
-      end
-      @children = clients_with_ages.select do |_, age|
-        age < ADULT if age.present?
-      end
-      @unknown = clients_with_ages.select do |_, age|
-        age.blank?
-      end
     end
 
     def setup_questions

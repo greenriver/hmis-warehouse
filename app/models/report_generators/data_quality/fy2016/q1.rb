@@ -7,19 +7,20 @@ module ReportGenerators::DataQuality::Fy2016
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_clients = fetch_all_clients()
-        add_total_clients_served()
-        setup_age_categories()
-        update_report_progress(percent: 25)
-        add_age_answers()
-        @leavers = calculate_leavers()
-        update_report_progress(percent: 50)
-        @stayers = calculate_stayers()
-        add_leaver_answers()
-        add_stayer_answers()
-        add_veteran_answer()
-        add_chronic_answers()
-        add_youth_answers()
-
+        if @all_clients.any?
+          add_total_clients_served()
+          setup_age_categories()
+          update_report_progress(percent: 25)
+          add_age_answers()
+          @leavers = calculate_leavers()
+          update_report_progress(percent: 50)
+          @stayers = calculate_stayers()
+          add_leaver_answers()
+          add_stayer_answers()
+          add_veteran_answer()
+          add_chronic_answers()
+          add_youth_answers()
+        end
         finish_report()
       else
         Rails.logger.info 'No Report Queued'
@@ -56,21 +57,6 @@ module ReportGenerators::DataQuality::Fy2016
         end.group_by do |row|
           row[:client_id]
         end
-    end
-
-    def setup_age_categories
-      clients_with_ages = @all_clients.map do |id, enrollments|
-        [id, enrollments.last[:age]]
-      end
-      @adults = clients_with_ages.select do |_, age|
-        age >= ADULT if age.present?
-      end
-      @children = clients_with_ages.select do |_, age|
-        age < ADULT if age.present?
-      end
-      @unknown = clients_with_ages.select do |_, age|
-        age.blank?
-      end
     end
 
     def add_total_clients_served
@@ -193,7 +179,7 @@ module ReportGenerators::DataQuality::Fy2016
           enrollment = enrollments.last
           [
             enrollment[:client_id],
-            HUD.no_yes_reasons_for_missing_data(enrollment[:VeternStatus]),
+            HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age], 
           ]
         end
@@ -201,28 +187,27 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def add_chronic_answers
-      disabled_clients = Set.new
-      living_situation_qualifies = Set.new
-      length_of_homelessness_qualifies = Set.new
-      episodes_and_months_qualifies = Set.new
+      disabled_clients = Hash.new
+      living_situation_qualifies = Hash.new
+      episodes_and_months_qualifies = Hash.new
 
       @all_clients.each do |id, enrollments|
         enrollment = enrollments.last
 
-        disabled_clients << {id => enrollment} if client_disabled?(enrollment: enrollment)
+        disabled_clients[id] = enrollment if client_disabled?(enrollment: enrollment)
         
-        living_situation_qualifies << {id => enrollment} if living_situation_is_homeless(enrollment: enrollment)
+        living_situation_qualifies[id] = enrollment if living_situation_is_homeless(enrollment: enrollment)
 
-        episodes_and_months_qualifies << {id => enrollment} if four_or_more_episodes_and_12_months_or_365_days?(enrollment: enrollment)
+        episodes_and_months_qualifies[id] = enrollment if four_or_more_episodes_and_12_months_or_365_days?(enrollment: enrollment)
       end
-      chronic = disabled_clients & living_situation_qualifies & episodes_and_months_qualifies
-
+      chronic_ids = disabled_clients.keys & living_situation_qualifies.keys & episodes_and_months_qualifies.keys
+      chronic = disabled_clients.select{|k,_| chronic_ids.include?(k)}
       @answers[:q1_b11][:value] = chronic.size
       @support[:q1_b11][:support] = add_support(
         headers: ['Client ID', 'Age', 'Project Name', 'Entry', 'Exit'], 
-        data: chronic.map do |(id, enrollment)|
+        data: chronic.map do |id, enrollment|
           [
-            id,
+            enrollment[:client_id],
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -259,15 +244,15 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      parenting_youth = youth_households.select do |_, household|
+      parenting_youth = youth_households.select do |id, household|
         household[:household].select do |member|
           member[:age].present? && member[:age] < ADULT && member[:RelationshipToHoH] == 2
-        end
+        end.any?
       end
 
       @answers[:q1_b13][:value] = parenting_youth.size
       @support[:q1_b13][:support] = add_support(
-        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size'], 
+        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size', 'Composition'], 
         data: youth_households.map do |id, household|
           member = household[:household].first
           [
@@ -275,25 +260,15 @@ module ReportGenerators::DataQuality::Fy2016
             member[:age],
             member[:household_id],
             household[:household].first[:household_id],
+            household[:household].size,
             household[:household].
-              map{|m| m[:client_id]}.join(', '), 
-            household[:household].size
+              map{|m| m[:client_id]}.join(', '),
           ]
         end
       )
     end
 
     def add_household_head_answers
-      adult_heads = households.select do |id, household|
-        household[:household].select do |member|
-          member[:age].present? && member[:age] >= ADULT && member[:RelationshipToHoH] == 1
-        end.any?
-      end
-      other_heads = households.select do |id, household|
-        household[:household].select do |member|
-          (member[:age].present? && member[:age] < ADULT || member[:age].blank?) && member[:RelationshipToHoH] == 1
-        end.any?
-      end
       @answers[:q1_b14][:value] = adult_heads.size
       @support[:q1_b14][:support] = add_support(
         headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
@@ -349,66 +324,6 @@ module ReportGenerators::DataQuality::Fy2016
           [enrollment[:client_id], enrollment[:RelationshipToHoH], enrollment[:stay_length]]
         end
       )
-    end
-
-    def calculate_leavers
-      # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
-      # is not active in any of the relevant projects as of the [report end date].
-      # 2. The client must be an adult to be included.
-      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :data_source_id, :project_tracking_method, :project_name, :RelationshipToHoH, :household_id]
-
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
-        ongoing(on_date: @report.options['report_end'])
-
-      client_id_scope = add_filters(scope: client_id_scope)
-
-      leavers_scope = GrdaWarehouse::ServiceHistory.entry.
-        ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.days).
-        where.not(
-          client_id: client_id_scope.
-            select(:client_id).
-            distinct
-        ).
-        joins(:client, :enrollment)
-        
-      leavers_scope = add_filters(scope: leavers_scope)
-
-      leavers = leavers_scope.
-        order(client_id: :asc, first_date_in_program: :asc).
-        pluck(*columns).map do |row|
-          Hash[columns.zip(row)]
-        end.group_by do |row|
-          row[:client_id]
-        end.map do |id,enrollments| 
-          # We only care about the last enrollment
-          [id, enrollments.last]
-        end.to_h
-    end
-
-    def calculate_stayers
-      # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
-      # Page 24 of 41
-      # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
-      # 3. The client must be an adult to be included in this measure.
-      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :data_source_id, :project_tracking_method, :project_name, :RelationshipToHoH, :household_id]
-
-      stayers_scope = GrdaWarehouse::ServiceHistory.entry.
-        ongoing(on_date: @report.options['report_end']).
-        joins(:client, :enrollment)
-
-      stayers_scope = add_filters(scope: stayers_scope)
-
-      stayers = stayers_scope.
-        order(client_id: :asc, first_date_in_program: :asc).
-        pluck(*columns).map do |row|
-          Hash[columns.zip(row)]
-        end.group_by do |row|
-          row[:client_id]
-        end.map do |id,enrollments| 
-          # We only care about the last enrollment
-          [id, enrollments.last]
-        end.to_h
     end
 
     def setup_questions

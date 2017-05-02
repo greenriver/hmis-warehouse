@@ -6,15 +6,17 @@ module ReportGenerators::DataQuality::Fy2016
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_clients = fetch_all_clients()
-        update_report_progress(percent: 75)
-        @clients_with_issues = Set.new
-        add_name_answers()
-        add_ssn_answers()
-        add_dob_answers()
-        add_race_answers()
-        add_ethnicity_answers()
-        add_gender_answers()
-        add_summary_info()
+        if @all_clients.any?
+          update_report_progress(percent: 75)
+          @clients_with_issues = Set.new
+          add_name_answers()
+          add_ssn_answers()
+          add_dob_answers()
+          add_race_answers()
+          add_ethnicity_answers()
+          add_gender_answers()
+          add_summary_info()
+        end
 
         finish_report()
       else
