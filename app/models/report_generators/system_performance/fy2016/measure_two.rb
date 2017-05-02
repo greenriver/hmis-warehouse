@@ -51,17 +51,17 @@ module ReportGenerators::SystemPerformance::Fy2016
         project_types = SO + ES + TH + SH + PH 
         look_back_until =  LOOKBACK_STOP_DATE.to_date >= (@report.options['report_start'].to_date - 730.days) ? LOOKBACK_STOP_DATE : (@report.options['report_start'].to_date - 730.days).strftime('%Y-%m-%d')
         look_forward_until = (@report.options['report_end'].to_date - 730.days).strftime('%Y-%m-%d')
-        headers = [
-          :client_id, 
-          :destination, 
-          :date, 
-          :first_date_in_program, 
-          :last_date_in_program, 
-          :project_type, 
-          :project_id,
-          :project_name,
-        ]
-        sh_columns = replace_project_type_with_overlay(headers)
+
+        columns = {
+          client_id: :client_id, 
+          destination: :destination,
+          date: :date,
+          first_date_in_program: :first_date_in_program,
+          last_date_in_program: :last_date_in_program,
+          project_type: act_as_project_overlay, 
+          project_id: :project_id,
+          project_name: :project_name,
+        }
         sh = GrdaWarehouse::ServiceHistory.arel_table
         project_exit_scope = GrdaWarehouse::ServiceHistory.exit.
         hud_project_type(project_types).
@@ -76,9 +76,9 @@ module ReportGenerators::SystemPerformance::Fy2016
         project_exits_universe = project_exit_scope.
         order(client_id: :asc).
         order(last_date_in_program: :asc).
-        select(*sh_columns).
-        pluck(*sh_columns).map do |row|
-          Hash[headers.zip(row)]
+        select(*columns.values).
+        pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
         end
         
 
@@ -166,8 +166,8 @@ module ReportGenerators::SystemPerformance::Fy2016
 
           client_entries_all = client_scope.
             order(date: :asc).
-            pluck(*sh_columns).map do |row|
-              Hash[headers.zip(row)]
+            pluck(*columns.values).map do |row|
+              Hash[columns.keys.zip(row)]
             end
           
           # Build a useful universe of entries

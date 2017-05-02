@@ -38,7 +38,7 @@ module Reports::DataQuality::Fy2016
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
       display_string << "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}" if options['project_id'].present?
-      display_string << "; Project Types: #{options['project_type'].map{|m| HUD.project_type(m.to_i) if m.present?}.compact.join(', ')}" if options['project_type'].present?
+      display_string << "; Project Types: #{options['project_type'].map{|m| HUD.project_type(m.to_i) if m.present?}.compact.join(', ')}" if options['project_type'].present? && options['project_type'].delete_if(&:blank?).any?
       display_string
     end
   end

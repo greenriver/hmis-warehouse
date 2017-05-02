@@ -56,8 +56,10 @@ module ReportGenerators::SystemPerformance::Fy2016
         #   where [date] >= '#{@report.options['report_start']}'
         #     and ([date] < '#{@report.options['report_end']}' or ([date] <= '#{@report.options['report_end']}' and record_type = 'bed_night'))
         # "
-        headers = [:client_id, :project_type]
-        columns = replace_project_type_with_overlay(headers)
+        columns = {
+          client_id: :client_id, 
+          project_type: act_as_project_overlay, 
+        }
         client_scope = GrdaWarehouse::ServiceHistory.service.
           joins(:project).
           service_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'])
@@ -65,9 +67,9 @@ module ReportGenerators::SystemPerformance::Fy2016
         client_scope = add_filters(scope: client_scope)
         
         clients = client_scope.
-          select(*columns).distinct.
-          pluck(*columns).map do |row|
-            Hash[headers.zip(row)]
+          select(*columns.values).distinct.
+          pluck(*columns.values).map do |row|
+            Hash[columns.keys.zip(row)]
           end
         
 

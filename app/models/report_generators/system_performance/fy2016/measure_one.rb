@@ -203,8 +203,12 @@ module ReportGenerators::SystemPerformance::Fy2016
 
     private
       def calculate_days_homeless id, project_types, stop_project_types, include_pre_entry=false
-        headers = [:date, :project_type, :first_date_in_program, :DateToStreetESSH]
-        columns = replace_project_type_with_overlay(headers)
+        columns = {
+          date: :date, 
+          project_type: act_as_project_overlay, 
+          first_date_in_program: :first_date_in_program,
+          DateToStreetESSH: :DateToStreetESSH,
+        }
         #Rails.logger.info "Calculating Days Homelesss for: #{id}"
         # Load all bed nights
         all_night_scope = GrdaWarehouse::ServiceHistory.
@@ -217,8 +221,8 @@ module ReportGenerators::SystemPerformance::Fy2016
 
         all_nights = all_night_scope.
           order(date: :asc).
-          pluck(*columns).map do |row|
-            Hash[headers.zip(row)]
+          pluck(*columns.values).map do |row|
+            Hash[columns.keys.zip(row)]
           end
         if include_pre_entry
           # Add fake records for every day between DateToStreetESSH and first_date_in_program.

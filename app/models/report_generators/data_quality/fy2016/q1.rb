@@ -17,8 +17,9 @@ module ReportGenerators::DataQuality::Fy2016
         add_leaver_answers()
         add_stayer_answers()
         add_veteran_answer()
-
+        add_chronic_answers()
         add_youth_answers()
+
         finish_report()
       else
         Rails.logger.info 'No Report Queued'
@@ -26,14 +27,32 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_all_clients
-      headers = [:client_id, :age, :project_type, :VeteranStatus, :enrollment_group_id, :project_id, :data_source_id]
-      columns = replace_project_type_with_overlay(headers)
+      columns = {
+        client_id: :client_id, 
+        age: :age, 
+        project_type: act_as_project_overlay, 
+        VeteranStatus: :VeteranStatus, 
+        enrollment_group_id: :enrollment_group_id,
+        project_id: :project_id,
+        project_name: :project_name,
+        data_source_id: :data_source_id, 
+        RelationshipToHoH: :RelationshipToHoH,
+        DisablingCondition: :DisablingCondition,
+        ResidencePrior: :ResidencePrior,
+        PreviousStreetESSH: :PreviousStreetESSH,
+        DateToStreetESSH: :DateToStreetESSH,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        TimesHomelessPastThreeYears: :TimesHomelessPastThreeYears,
+        MonthsHomelessPastThreeYears: :MonthsHomelessPastThreeYears,
+      }
       
       all_client_scope.
+        joins(:project, :enrollment).
         order(date: :asc).
-        pluck(*columns).
+        pluck(*columns.values).
         map do |row|
-          Hash[headers.zip(row)]
+          Hash[columns.keys.zip(row)]
         end.group_by do |row|
           row[:client_id]
         end
@@ -167,14 +186,47 @@ module ReportGenerators::DataQuality::Fy2016
         enrollments.last[:VeteranStatus].to_i == 1
       end
       @answers[:q1_b10][:value] = veterans.size
-      headers = ['Client ID', 'Age']
+      headers = ['Client ID', 'Veteran Status', 'Age']
       @support[:q1_b10][:support] = add_support(
         headers: headers, 
         data: veterans.map do |_, enrollments|
           enrollment = enrollments.last
           [
-            enrollment[:client_id], 
+            enrollment[:client_id],
+            HUD.no_yes_reasons_for_missing_data(enrollment[:VeternStatus]),
             enrollment[:age], 
+          ]
+        end
+      )
+    end
+
+    def add_chronic_answers
+      disabled_clients = Set.new
+      living_situation_qualifies = Set.new
+      length_of_homelessness_qualifies = Set.new
+      episodes_and_months_qualifies = Set.new
+
+      @all_clients.each do |id, enrollments|
+        enrollment = enrollments.last
+
+        disabled_clients << {id => enrollment} if client_disabled?(enrollment: enrollment)
+        
+        living_situation_qualifies << {id => enrollment} if living_situation_is_homeless(enrollment: enrollment)
+
+        episodes_and_months_qualifies << {id => enrollment} if four_or_more_episodes_and_12_months_or_365_days?(enrollment: enrollment)
+      end
+      chronic = disabled_clients & living_situation_qualifies & episodes_and_months_qualifies
+
+      @answers[:q1_b11][:value] = chronic.size
+      @support[:q1_b11][:support] = add_support(
+        headers: ['Client ID', 'Age', 'Project Name', 'Entry', 'Exit'], 
+        data: chronic.map do |(id, enrollment)|
+          [
+            id,
+            enrollment[:age],
+            enrollment[:project_name],
+            enrollment[:first_date_in_program],
+            enrollment[:last_date_in_program],
           ]
         end
       )
@@ -186,58 +238,87 @@ module ReportGenerators::DataQuality::Fy2016
     # age < 18 and RelationshipToHoH = 2
     def add_youth_answers
       youth_households = households.select do |_, household|
-        household.select do |member|
+        household[:household].select do |member|
           member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
-        end.any?
+        end.count == household[:household].count
       end
 
       @answers[:q1_b12][:value] = youth_households.size
       @support[:q1_b12][:support] = add_support(
-        headers: ['Client ID', 'Members', 'Size'], 
+        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size'], 
         data: youth_households.map do |id, household|
-          [id, household.map{|m| m[:client_id]}.join(', '), household.size]
+          member = household[:household].first
+          [
+            id,
+            member[:age],
+            member[:household_id],
+            household[:household].first[:household_id],
+            household[:household].
+              map{|m| m[:client_id]}.join(', '), 
+            household[:household].size
+          ]
         end
       )
       parenting_youth = youth_households.select do |_, household|
-        household.select do |member|
-          member[:age].present? && member[:age] < ADULT && member[:RelationshipToHoH] ==2
+        household[:household].select do |member|
+          member[:age].present? && member[:age] < ADULT && member[:RelationshipToHoH] == 2
         end
       end
 
       @answers[:q1_b13][:value] = parenting_youth.size
       @support[:q1_b13][:support] = add_support(
-        headers: ['Client ID', 'Members', 'Size'], 
+        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size'], 
         data: youth_households.map do |id, household|
-          [id, household.map{|m| m[:client_id]}.join(', '), household.size]
+          member = household[:household].first
+          [
+            id,
+            member[:age],
+            member[:household_id],
+            household[:household].first[:household_id],
+            household[:household].
+              map{|m| m[:client_id]}.join(', '), 
+            household[:household].size
+          ]
         end
       )
-
     end
 
     def add_household_head_answers
       adult_heads = households.select do |id, household|
-        household.select do |member|
+        household[:household].select do |member|
           member[:age].present? && member[:age] >= ADULT && member[:RelationshipToHoH] == 1
         end.any?
       end
       other_heads = households.select do |id, household|
-        household.select do |member|
+        household[:household].select do |member|
           (member[:age].present? && member[:age] < ADULT || member[:age].blank?) && member[:RelationshipToHoH] == 1
         end.any?
       end
       @answers[:q1_b14][:value] = adult_heads.size
       @support[:q1_b14][:support] = add_support(
-        headers: ['Client ID', 'Members', 'Size'], 
+        headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
         data: adult_heads.map do |id, household|
-          [id, household.map{|m| m[:client_id]}.join(', '), household.size]
+          [
+            id,
+            household[:household].first[:household_id],
+            household[:household].
+              map{|m| m[:client_id]}.join(', '), 
+            household[:household].size
+          ]
         end
       )
 
       @answers[:q1_b15][:value] = other_heads.size
       @support[:q1_b14][:support] = add_support(
-        headers: ['Client ID', 'Members', 'Size'], 
+        headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
         data: other_heads.map do |id, household|
-          [id, household.map{|m| m[:client_id]}.join(', '), household.size]
+          [
+            id,
+            household[:household].first[:household_id],
+            household[:household].
+              map{|m| m[:client_id]}.join(', '), 
+            household[:household].size
+          ]
         end
       )
 
@@ -268,24 +349,6 @@ module ReportGenerators::DataQuality::Fy2016
           [enrollment[:client_id], enrollment[:RelationshipToHoH], enrollment[:stay_length]]
         end
       )
-    end
-
-    def households
-      @households ||= {}.tap do |h|
-
-        columns = [:client_id, :age, :head_of_household_id, :household_id, :RelationshipToHoH]
-        @all_clients.each do |id, enrollments|
-          enrollment = enrollments.last
-          h[id] = GrdaWarehouse::ServiceHistory.entry.
-            where(household_id: enrollment[:household_id],
-              first_date_in_program: enrollment[:first_date_in_program], project_id: enrollment[:project_id]).
-            joins(:client, :enrollment).
-            pluck(*columns).map do |row|
-              Hash[columns.zip(row)]
-            end
-        end
-      end
-
     end
 
     def calculate_leavers

@@ -73,7 +73,17 @@ module ReportGenerators::SystemPerformance::Fy2016
 
     def measure_6_a_and_b
       headers = [:client_id, :destination, :date, :first_date_in_program, :last_date_in_program, :project_type, :project_id, :data_source_id, :project_name]
-      sh_columns = replace_project_type_with_overlay(headers)
+      columns = {
+        client_id: :client_id, 
+        destination: :destination,
+        date: :date,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        project_type: act_as_project_overlay, 
+        project_id: :project_id,
+        data_source_id: :data_source_id,
+        project_name: :project_name,
+      }
 
       project_types = TH + SH + PH 
       look_back_until = LOOKBACK_STOP_DATE.to_date >= (@report.options['report_start'].to_date - 730.days) ? LOOKBACK_STOP_DATE : (@report.options['report_start'].to_date - 730.days)
@@ -91,8 +101,8 @@ module ReportGenerators::SystemPerformance::Fy2016
 
       project_exits_universe = project_exits_scope.
         order(client_id: :asc, last_date_in_program: :asc).
-        pluck(*sh_columns).map do |row|
-          Hash[headers.zip(row)]
+        pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
         end
       project_exits_to_ph = {}
       project_exists_from = {so: [], es: [], th: [], sh: [], ph: []}
@@ -176,8 +186,8 @@ module ReportGenerators::SystemPerformance::Fy2016
         
         client_entries_all = client_entries_scope.
           order(date: :asc).
-          pluck(*sh_columns).map do |row|
-            Hash[headers.zip(row)]
+          pluck(*columns.values).map do |row|
+            Hash[columns.keys.zip(row)]
           end
         # Build a useful universe of entries
         # Make note of project type each day, PH will take priority over TH which is > else

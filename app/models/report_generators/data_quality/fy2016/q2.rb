@@ -185,7 +185,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
       missing = @all_clients.select do |id, enrollments|
         enrollment = enrollments.last
-        (enrollment[:RaceNone].blank? || enrollment[:RaceNone].to_i == 99) && ! counted.include?(id)
+        enrollment[:RaceNone].to_i == 99 && ! counted.include?(id)
       end
       counted += missing.keys
       @clients_with_issues += missing.keys
@@ -288,35 +288,35 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_all_clients
-      headers = [
-        :client_id, 
-        :age, 
-        :project_type, 
-        :VeteranStatus, 
-        :enrollment_group_id, 
-        :project_id, 
-        :data_source_id, 
-        :NameDataQuality, 
-        :FirstName, 
-        :LastName, 
-        :SSN, 
-        :SSNDataQuality,
-        :DOB,
-        :DOBDataQuality,
-        :DateCreated,
-        :first_date_in_program,
-        :last_date_in_program,
-        :Ethnicity,
-        :Gender,
-        :RaceNone,
-      ]
-      columns = replace_project_type_with_overlay(headers)
-            
+      columns = {
+        client_id: :client_id, 
+        age: :age, 
+        project_type: act_as_project_overlay, 
+        VeteranStatus: :VeteranStatus, 
+        enrollment_group_id: :enrollment_group_id, 
+        project_id: :project_id, 
+        data_source_id: :data_source_id,
+        NameDataQuality: :NameDataQuality,
+        FirstName: :FirstName, 
+        LastName: :LastName, 
+        SSN: :SSN, 
+        SSNDataQuality: :SSNDataQuality,
+        DOB: :DOB,
+        DOBDataQuality: :DOBDataQuality,
+        DateCreated: "#{GrdaWarehouse::Hud::Enrollment.quoted_table_name}.DateCreated",
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        Ethnicity: :Ethnicity,
+        Gender: :Gender,
+        RaceNone: :RaceNone,
+      }
+                  
       all_client_scope.
+        joins(:project, :enrollment).
         order(date: :asc).
-        pluck(*columns).
+        pluck(*columns.values).
         map do |row|
-          Hash[headers.zip(row)]
+          Hash[columns.keys.zip(row)]
         end.group_by do |row|
           row[:client_id]
         end
