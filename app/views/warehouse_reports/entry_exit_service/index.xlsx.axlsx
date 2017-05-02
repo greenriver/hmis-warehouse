@@ -1,0 +1,26 @@
+data_sources = GrdaWarehouse::DataSource.importable.index_by(&:id)
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Entry=Exit=Service") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(['Personal ID','First Name', 'Last Name', 'Entry Date', 'Exit Date',  'Date of Service', 'Project', 'Project ID', 'Project Type', 'Record Type', 'Data Source'], :style => title)
+  @enrollments.each do |client|
+    uuid = if data_sources[client['data_source_id']].munged_personal_id 
+      GrdaWarehouse::Hud::Client.uuid client['PersonalID']
+    else
+      client['PersonalID']
+    end
+    sheet.add_row [
+      uuid, 
+      client['FirstName'], 
+      client['LastName'],
+      client['EntyDate'],
+      client['ExitDate'],
+      client['DateProvided'],
+      client['ProjectName'],
+      client['ProjectID'],
+      client['ProjectType'],
+      client['RecordType'],
+      data_sources[client['data_source_id']].name
+    ]
+  end
+end

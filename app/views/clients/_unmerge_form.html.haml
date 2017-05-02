@@ -1,0 +1,53 @@
+:css
+  .popover {
+    max-width: 480px;
+  }
+%h3 Data Sources
+%p
+  Data for this record comes from the following data sources. Use this forms to split clients into their own seperate records or merge in data from a differnet client record.
+.row
+  .col-sm-12
+    - if @client.source_clients.count > 1
+      - input_id = "grda_warehouse_hud_client[unmerge][]"
+      = simple_form_for @client, url: unmerge_client_path do |f|
+        :ruby
+          source_clients = @client.source_clients.preload(
+            :data_source,
+            warehouse_client_source: {
+              client_match: {
+                source_client: :data_source,
+                destination_client: :data_source,
+              }
+            }
+          ).order('warehouse_clients.updated_at asc')
+          reviewers = User.where(id: source_clients.flat_map{|c| c.warehouse_client_source.reviewd_by.to_i}.uniq).index_by(&:id)
+        %table.table
+          %thead
+            %th
+            %th Data Source
+            %th Personal ID
+            %th Name
+            %th DOB
+            %th SSN
+            %th Merged
+            %th Merged By
+            %th
+          - source_clients.each do |c|
+            %tr
+              %td= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
+              %td= c.data_source.short_name
+              %td= c.uuid
+              %td= c.full_name
+              %td= c.DOB
+              %td= ssn c.SSN
+              %td= c.warehouse_client_source.reviewed_at
+              %td
+                - if (user = reviewers[c.warehouse_client_source.reviewd_by.to_i])
+                  = user.name
+                - if (match = c.warehouse_client_source.client_match)
+                  %br
+                  %button.btn.btn-xs{type: :button, data: {toggle: :popover, trigger: 'click', html: 'true', placement: :left, content: h(client_match_scorecard(match))}}
+                    Match Details
+
+        .form-actions
+        = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}"

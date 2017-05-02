@@ -1,0 +1,15 @@
+%h2 Clients
+%p= page_entries_info(@clients, entry_name: 'Client')
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Client
+      %th Entry Date
+      %th Exit Date
+  %tbody
+    - @clients.each do |service|
+      %tr
+        %td= link_to service.client.name, client_path(service.client)
+        %td= service.first_date_in_program
+        %td= service.last_date_in_program
+%p= paginate @clients

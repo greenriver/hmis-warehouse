@@ -1,0 +1,10 @@
+%table.table.table-condensed
+  %thead
+    %tr
+      %th ID
+      %th Name
+  %tbody
+    - clients.each do |client|
+      %tr
+        %td= client[:id]
+        %td= link_to "#{client[:FirstName]} #{client[:LastName]}", client_path(client[:id])

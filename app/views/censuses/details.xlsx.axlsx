@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Census Details') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'Project', 'Data Source', 'Date'], :style => title)
+  @clients.each do |client|
+    sheet.add_row [client['client_id'], client['FirstName'], client['LastName'], client['ProjectName'], client['short_name'], @date ] 
+  end
+end

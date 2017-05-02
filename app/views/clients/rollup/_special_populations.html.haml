@@ -1,0 +1,41 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  ct = GrdaWarehouse::Hud::Client.arel_table
+  ht = GrdaWarehouse::Hud::HealthAndDv.arel_table
+  spesh = @client.
+    source_enrollment_health_and_dvs.
+    preload( enrollment: :client ).
+    select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:ProjectEntryID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID] ).
+    order(et[:EntryDate].desc).
+    distinct
+- if spesh.any?
+  %table.table
+    %colgroup
+      %col(style="width:0")
+      %col
+      %col
+      %col
+      %col
+      %col
+      %col
+    %thead
+      %tr
+        %th
+        %th Program Entry Date
+        %th Veteran Status
+        %th Disabling Condition
+        %th Domestic Violence
+        %th Pregnancy Status
+        %th Due Date
+    %tbody
+      - spesh.each do |h|
+        %tr
+          %td.id-sqr{ 'data-id' => h.enrollment.client.id }
+          %td.date-cell= l h.enrollment.EntryDate
+          %td= hud_1_8 h.enrollment.client.VeteranStatus
+          %td= hud_1_8 h.enrollment.DisablingCondition
+          %td= hud_1_8 h.DomesticViolenceVictim
+          %td= hud_1_8 h.PregnancyStatus
+          %td= hud_1_8 h.DueDate
+- else
+  No special populations on file

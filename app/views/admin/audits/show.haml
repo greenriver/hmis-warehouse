@@ -1,0 +1,26 @@
+= render 'breadcrumbs'
+- title = "#{@user.name} Audit Log"
+- content_for :title do
+  = title
+%h1= title
+
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Action
+            %th Item
+            %th Method
+            %th Date
+            %th IP Address
+        %tbody
+          - @activity_log.each do |i|
+            - title = i.title || i.controller_name
+            %tr
+              %td= i.action_name
+              %td= link_to title, i.path
+              %td= i.method
+              %td= i.created_at
+              %td= i.ip_address

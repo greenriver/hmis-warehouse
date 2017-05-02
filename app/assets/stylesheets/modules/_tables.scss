@@ -1,0 +1,26 @@
+.table-utilities {
+  @media (max-width: $screen-sm-max) { 
+    @include margin(12px null 24px);
+  }
+}
+// .table > thead > tr > th, 
+// .table > thead > tr > td, 
+// .table > tbody > tr > th, 
+// .table > tbody > tr > td, 
+// .table > tfoot > tr > th, 
+// .table > tfoot > tr > td {
+//   line-height: 1.1;
+// }
+.table__init-cap-header th {
+  text-transform: capitalize;
+}
+th[class^="sort-"] {
+  background-color: $cas-red-green;
+}
+.table__full-width {
+  width: 100%;
+}
+.table-responsive span[class^="icon-"],
+.table-responsive span[class*="icon-"] {
+  font-size: rem(12);
+}

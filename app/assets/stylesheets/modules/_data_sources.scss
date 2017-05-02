@@ -1,0 +1,26 @@
+[class^='ds'] {
+  display: inline-block;
+  font-size: 0.75rem;
+  text-decoration: none;
+  padding: 0.2em 0.5em; 
+  background-color: $gray-065;
+  color: white;
+  min-width: 4.2em;
+  text-align: center;
+}
+.ds-bphc
+{
+  background-color: $bphc;
+}
+.ds-dnd
+{
+  background-color: $dnd;
+}
+.ds-ma
+{
+  background-color: $ma-state;
+}
+.ds-nechv
+{
+  background-color: $nechv;
+}

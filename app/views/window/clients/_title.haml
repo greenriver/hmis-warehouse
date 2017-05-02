@@ -1,0 +1,12 @@
+- title = @client.full_name
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+  - if false
+    .col-sm-4.text-right
+      = link_to window_client_print_index_path(@client), class: 'btn btn-primary btn-muted btn-sm' do
+        %span.icon-printer
+        Print
+      %br
+      %span.description All tabs will print

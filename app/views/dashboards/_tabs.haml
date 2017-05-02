@@ -1,0 +1,21 @@
+%ul.nav.nav-tabs{role: :tablist}
+  - active_class = ''
+  - if active == 'census'
+    - active_class = 'active'
+  %li{role: :presentation, class: active_class}
+    - tab_title = 'Nightly Census'
+    = link_to tab_title, censuses_path, role: :tab, aria: {controls: tab_title}
+  - if false
+    - active_class = ''
+    - if active == 'clients'
+      - active_class = 'active'
+    %li{role: :presentation, class: active_class}
+      - tab_title = 'Client'
+      = link_to tab_title, dashboards_clients_path, role: :tab, aria: {controls: tab_title}
+  - active_class = ''
+  - if active == 'veteran'
+    - active_class = 'active'
+  %li{role: :presentation, class: active_class}
+    - tab_title = 'Veteran'
+    = link_to tab_title, dashboards_veterans_path, role: :tab, aria: {controls: tab_title}
+  

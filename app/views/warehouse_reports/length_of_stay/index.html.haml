@@ -1,0 +1,131 @@
+- title = "Currently enrolled clients with length of stay"
+- content_for :title, title
+%h1= title
+
+.well
+  Calculate the length of stay in days for clients in the respective programs whose enrollment
+  periods overlap the interval in question. Days prior to the beginning of the interval are included but not
+  those after. Only those days are included for which there is a record of the client receiving service from
+  the program.
+
+.jFormContainer
+  = render 'form'
+
+
+:css
+  .length-table td:not(:first-child), .length-table th:not(:first-child) {
+    text-align: right;
+  }
+  .loading-cell {
+    text-align: center;
+  }
+
+%h3.jOrganizationTitle(style="display:none;")
+%table.table.table-condensed.table-hover.length-table
+  %thead
+    %tr
+      %th Program
+      - @headers.each_with_index do |header, i|
+        %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { toggle: 'tooltip', title: 'days in program' } if header == 'average' ) }
+          = header
+  %tbody
+
+%canvas{ width: 800, height: 0 }
+
+= content_for :page_js do
+  :javascript
+    $('select').select2({ placeholder: 'Organization' });
+    (function(){
+      var headers = #{@headers.to_json};
+      var chartKeys = #{( @headers - %w(average) ).to_json};
+      function makeChart(data) {
+        var anyNonZero = !!data.find(function(d){
+          return chartKeys.find(function(k){ return d[1][k] > 0 });
+        });
+        if (anyNonZero) {
+          var colors = App.util.colorList({ n: data.length, interleave: true });
+          var dataSets = $.map(data,function(d){
+            return {
+              label: d[0],
+              backgroundColor: colors.shift(),
+              data: $.map(chartKeys, function(k){ return d[1][k]; })
+            }
+          });
+          var $chart = $('canvas');
+          // organizations vary widely in their number of programs, so we need to adjust the height
+          // of the chart accordingly
+          $chart.attr('height', 200 + Math.round( dataSets.length / 15) * 50 );
+          new Chart($chart,{
+            type: 'bar',
+            data: {
+              labels: chartKeys,
+              datasets: dataSets
+            }
+          });
+        }
+      }
+      var $replacementCanvas = $('canvas').clone();
+      var spoilt = false;
+      var $jfc = $('.jFormContainer');
+      var init = function() {
+        $('#new_mo').submit(function(e){
+          e.preventDefault();
+          $('canvas').replaceWith($replacementCanvas.clone());
+          var $t = $(this), $table = $('.length-table').children('tbody'), $orgName = $('.jOrganizationTitle');
+          $orgName.hide(100);
+          var orgName = $t.find('select option:selected').text();
+          $table.empty();
+          $table.append("<tr><td class='loading-cell' colspan=#{ @headers.length + 1 }>Loading</td></tr>");
+          var addDot = function() {
+            var $c = $('.length-table .loading-cell');
+            if ($c.length) {
+              $('.loading-cell').append(' .');
+              setTimeout( addDot, 1000);
+            }
+          };
+          addDot();
+          var formData = $t.serialize(), $p = $.get($t.attr('action'), formData);
+          $p.done(function(data){
+            if (spoilt) {
+              spoilt = false;
+              $jfc.html(data.form);
+              $jfc.find('[data-toggle=tooltip]').tooltip();
+              init();
+            }
+            $orgName.text(orgName).show(200);
+            $table.empty();
+            var table = data.table;
+            for (var i = 0; i < table.length; i++) {
+              var key = table[i][0], hash = table[i][1];
+              var $tr = $('<tr><td/></tr>');
+              $tr.find('td').text(key);
+              for (var j = 0; j < headers.length; j++) {
+                var $td = $('<td/>').text(hash[headers[j]]);
+                if (j % 2 === 0) {
+                  $td.addClass('lightest-gray');
+                }
+                $tr.append($td);
+              }
+              $table.append($tr);
+            }
+            makeChart(table);
+            // fix download link
+            var $link = $('.jXls'), href = $link.attr('href');
+            href = href.replace(/(\?.*)?$/, '?' + formData);
+            $link.attr('href', href);
+          });
+          $p.fail(function(xhr,status, message){
+            $table.empty();
+            if (xhr.status === 400) {
+              $jfc.html(xhr.responseText);
+              $jfc.find('[data-toggle=tooltip]').tooltip();
+              spoilt = true;
+              init();
+            } else {
+              alert(message);
+            }
+          });
+        });
+      };
+      init();
+    })();

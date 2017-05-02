@@ -1,0 +1,30 @@
+- home_phones = @client.source_clients.map(&:home_phone).reject(&:blank?).compact.uniq
+- cell_phones = @client.source_clients.map(&:cell_phone).reject(&:blank?).compact.uniq
+- emails = @client.source_clients.map(&:email).compact.reject(&:blank?).uniq
+- work_phones = @client.source_clients.map(&:work_phone).compact.reject(&:blank?).uniq
+- if (home_phones + cell_phones + emails + work_phones).present?
+  %table.table
+    %tbody
+      %tr
+        - if emails.any?
+          %td 
+            Email:
+            %strong
+              = emails.join(', ') 
+        - if cell_phones.any?
+          %td
+            Cell Phone:
+            %strong
+              = cell_phones.join(', ')
+        - if home_phones.any?
+          %td
+            Home Phone:
+            %strong
+              = home_phones.join(', ')
+        - if work_phones.any?
+          %td
+            Work Phone:
+            %strong
+              = work_phones.join(', ')  
+- else
+  No contact information on file

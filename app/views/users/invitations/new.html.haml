@@ -1,0 +1,12 @@
+%h2
+  = t "devise.invitations.new.header"
+=simple_form_for resource, as: resource_name, url: invitation_path(resource_name), html: { method: :post} do |f| 
+  = devise_error_messages! 
+  = f.input :first_name, required: true
+  = f.input :last_name, required: true
+  - resource.class.invite_key_fields.each do |field| 
+    = f.input field
+  .form--checkbox-groups
+    %h3 Roles for Access Permissions
+    = f.association :roles, as: :check_boxes, label_method: :role_name
+  = f.button :submit, t("devise.invitations.new.submit_button")

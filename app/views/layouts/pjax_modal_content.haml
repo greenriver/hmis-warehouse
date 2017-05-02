@@ -1,0 +1,15 @@
+.modal-header
+  %button.close.pull-right(aria-label="Close" pjax-modal-close type="button")
+    %span.icon-cross(aria-hidden="true")
+  %h4.modal-title(data-pjax-modal-title)
+    = yield :modal_title
+.modal-body.clearfix
+  %div(data-pjax-modal-body)
+    = yield
+  %div(data-pjax-modal-loading style="display: none;")
+    Loading&hellip;
+- if content_for?(:modal_footer)
+  .modal-footer(data-pjax-modal-footer)
+    = yield :modal_footer
+
+= yield :page_js

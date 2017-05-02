@@ -1,0 +1,33 @@
+- prev = @client.source_enrollments.any_address.preload(:client).sort_by(&:EntryDate).reverse.group_by{ |e| e.EntryDate.year }
+- if prev.present?
+  %table.table
+    %thead
+      %tr
+        %th Program Entry Year
+        %th
+        %th{ data: { field: 'LastPermanentCity' } } Primary City
+        %th{ data: { field: 'LastPermanentState' } } State
+        %th{ data: { field: 'LastPermanentZIP' } } Last Permanenent Zip
+        %th Label
+    %tbody
+      - labels = ('A'..'Z').to_a
+      - seen   = {}
+      - prev.each do |year, enrollments|
+        - enrollments = enrollments.uniq(&:address)
+        - enrollment  = enrollments.first
+        %tr
+          %td{ rowspan: enrollments.size }= year
+          %td.id-sqr{ 'data-id' => enrollment.client.id }
+          %td= enrollment.LastPermanentCity
+          %td= enrollment.LastPermanentState
+          %td= enrollment.LastPermanentZIP.try(:rjust, 5, '0')
+          %td= seen[enrollment.address] ||= labels.shift
+        - enrollments[1..-1].each do |enrollment|
+          %tr
+            %td.id-sqr{ 'data-id' => enrollment.client.id }
+            %td= enrollment.LastPermanentCity
+            %td= enrollment.LastPermanentState
+            %td= enrollment.LastPermanentZIP.try(:rjust, 5, '0')
+            %td= seen[enrollment.address] ||= labels.shift
+- else
+  No previous addresses

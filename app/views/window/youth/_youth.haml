@@ -1,0 +1,27 @@
+- if @client.signed_consent_form_fully?
+  :ruby
+    youth_questions = [
+      'A-13. How long have you been homeless?', 
+      'A-15. Were you ever incarcerated?',
+      'A-16. Do you ever use drugs or alcohol?',
+      'A-17. Have you left home due to family violence?',
+      'A-18. Have you run away from home or foster care?',
+      'A-19. Have you been asked to leave home by your parents?',
+    ]
+  %table.table
+    %thead
+      %tr
+        %th{style: 'width: 50%;'} Question
+        %th Answer
+        %th.nobr Date collected
+    %tbody
+      - @client.source_hmis_forms.each do |assessment|
+        - assessment[:answers]['sections'].each do |section|
+          - section['questions'].each do |q|
+            - if q['answer'].present? && youth_questions.include?(q['question'])
+              %tr.q
+                %td= q['question']
+                %td
+                  %strong
+                    = q['answer'] 
+                %td= assessment[:collected_at].to_date

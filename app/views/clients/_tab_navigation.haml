@@ -1,0 +1,14 @@
+:ruby
+  tabs = [
+    [ :show, 'Client Dashboard' ],
+    [ :edit, 'Merge' ],
+    [ :history, 'Client History' ],
+  ]
+%ul.nav.nav-tabs
+  - tabs.each do |action, text|
+    - if action_name == action.to_s
+      %li.active.active-tab{role: 'presentation'}
+        %a{href: '#'} 
+          = text
+    - else
+      %li= link_to text, action: action

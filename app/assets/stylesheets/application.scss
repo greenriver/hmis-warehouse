@@ -1,0 +1,99 @@
+/*
+*= require select2
+*= require select2-bootstrap
+*= require bootstrap-datepicker3
+*= require leaflet
+*/
+
+@import 'bootstrap-custom';
+@import "font-awesome-sprockets";
+@import "font-awesome";
+@import "vis";
+@import "helpers/mixins";
+// @import "base/grid_framework";
+@import "base/typography";
+@import "base/buttons";
+@import "base/forms";
+@import "base/modals";
+@import "base/navs";
+@import "modules/header";
+@import "modules/footer";
+@import "modules/tables";
+@import "modules/site_menu";
+@import "vendor/icomoon.css";
+@import "helpers/helper_classes";
+@import "modules/report_results";
+@import "modules/warehouse_reports";
+@import "modules/client";
+@import "modules/window";
+@import "modules/census";
+@import "modules/data_sources";
+@import "modules/reports";
+
+$light-body-text: lighten(#404040, 40%);
+
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+main {
+  flex: 1 0 auto;
+}
+.utility {
+  min-height: 60px;
+  padding: 8px 0;
+  @media (max-width: $screen-sm-min) {
+    margin-top: 40px;
+  }
+}
+.crumbs a {
+  margin-right: 12px;
+}
+.alert {
+  z-index: $zIndex-3--notice;
+  @include open-sans-medium;
+}
+.alert a {
+  color: #fff;
+}
+.alert a:hover,
+.alert a:focus {
+  text-decoration: none;
+}
+.action-row {
+  padding-bottom: 12px;
+}
+.add-another {
+  margin-top: 24px;
+  margin-bottom: 36px;
+  text-align: right;
+}
+.how-to-popover:focus {
+  outline: none;
+}
+.popover ol {
+  padding-left: 0 !important;
+  -webkit-padding-start: 10px !important;
+}
+.home-intro {
+  @include poppins-normal;
+  font-size: 1.2em;
+  margin-bottom: 40px;
+  @media (min-width: $screen-sm-min) {
+    width: 80%;
+    margin: 60px auto 0;
+  }
+}
+.explain { /* to mark elements whose function was not clear from the mock */
+  color: red;
+}
+.date-cell {
+  text-align: center;
+}
+.num-cell {
+  text-align: right;
+}
+.light {
+  color: $light-body-text;
+}

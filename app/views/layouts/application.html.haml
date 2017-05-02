@@ -1,0 +1,62 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    - if enable_responsive?
+      %meta{:name=>"viewport", :content=>"width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"}
+    %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
+    %title= [(strip_tags content_for(:title)).presence, 'Boston DND Warehouse'].compact.join(' :: ')
+    %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
+    = stylesheet_link_tag 'application', media: 'all'
+    = stylesheet_link_tag 'print', media: 'print'
+    = render 'layouts/favicon'
+    = csrf_meta_tags
+
+  %body{class: body_classes}
+    %header
+      .container{class: container_classes}
+        .row
+          .col-xs-10
+            .site-name
+              .site-title
+                = link_to root_path do
+                  = 'Boston DND Warehouse'
+                  - unless Rails.env.production?
+                    %span{style: 'font-size:12px;'}= "[#{Rails.env}]"
+            .tagline
+              Ending Veteran & Chronic Homelessness in Boston
+          .col-xs-2
+            - if user_signed_in?
+              = render 'layouts/site_menu'
+            - else
+              .user-state
+                = link_to(new_user_session_path, :class => 'user-state--link') do
+                  Sign In
+                  %span.icon-enter
+
+    %main
+      .container{class: container_classes}
+        .row
+          .col-xs-12
+            .utility
+              = render :partial => "utility"
+        - if content_for? :modal_title
+          %h4
+            = yield :modal_title
+        = yield
+        - if content_for? :modal_footer
+          .row
+            = yield :modal_footer
+    %footer
+      .container{class: container_classes}
+        %p.text-center
+          = render 'layouts/boston_seal'
+          The Boston DND Warehouse is operated by the
+          %br
+          Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.
+
+    = render 'pjax_modal_frame'
+    = javascript_include_tag 'application'
+
+    = yield :page_js

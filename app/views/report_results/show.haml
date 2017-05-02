@@ -1,0 +1,57 @@
+= content_for :crumbs do
+  = link_to report_report_results_path(@report) do
+    = "« #{ReportResult.model_name.human.pluralize} for #{@report.name}"
+
+%h1= "#{ReportResult.model_name.human.pluralize} for #{@report.name}"
+.row
+  .col-sm-8
+    %dl
+      - if @report.has_project_option?
+        - p_id, ds_id = JSON.parse(@result.options['project'])
+        - project = GrdaWarehouse::Hud::Project.joins(:data_source).where(ProjectID: p_id, data_source_id: ds_id).first
+        %dt Limited to Project:
+        %dd
+          = link_to project.ProjectName, project_path(project)
+      - if @report.has_data_source_option?
+        - ds_id = @result.options['data_source'].to_i
+        - ds = GrdaWarehouse::DataSource.find(ds_id)
+        %dt Limited to Data Source:
+        %dd= link_to ds.name, data_source_path(ds)
+      - if @report.has_date_range_options?
+        %dt Report Start:
+        %dd= @result.options['report_start'].to_date
+        %dt Report End:
+        %dd= @result.options['report_end'].to_date
+      - if @report.has_options?
+        %dt= @report.title_for_options
+        %dd= @report.value_for_options @result.options
+      %dt Started:
+      %dd= @result.created_at
+      %dt Runtime:
+      %dd= @result.completed_in
+      %dt Progress
+      %dl= @result.last_run_status
+  .col-sm-4
+    - if @result.results.present? && @result.download_type.present?
+      = link_to({format: @result.download_type},{class: 'btn btn-primary'}) do
+        %span.icon-download2
+        Download
+        = @result.download_type.upcase
+- if @result.job_status.present?
+  .alert.alert-danger
+    = @result.job_status
+- if @result.validations.present?
+  - error_count = @result.validations.map{|section, errs| errs.size}.sum
+  - if error_count > 0
+    .row
+      .col-sm-12
+        %h2 Validation Errors
+        - @result.validations.each do |section, errs|
+          %h3= section
+          %ul
+            - errs.each do |group, notes|
+              %li= notes
+
+- if @result.results.present?
+  %dt Results
+  %dl{class: 'report-result--results'}= render @result

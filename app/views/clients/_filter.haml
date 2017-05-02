@@ -1,0 +1,81 @@
+- if @active_filter
+  - filter_class = 'client__filter-active'
+- else
+  - filter_class = 'client__filter'
+.btn-group{class: filter_class}
+  %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
+    Filter
+    %span.caret
+  .dropdown-menu.dropdown-menu-right.options
+    %p Limit clients by dates served
+    = form_tag(nil, method: "get") do
+      -# preserve sort and search for filtering
+      - if params[:sort] 
+        = hidden_field_tag :sort, params[:sort]
+      - if params[:direction] 
+        = hidden_field_tag :direction, params[:direction]
+      - if params[:q] 
+        = hidden_field_tag :q, params[:q]
+      .row
+        .col-xs-5
+          .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
+            %input.form-control{name: :start_date, type: :date, value: @start_date}
+            %span.input-group-addon.icon-calendar
+        .col-xs-1{style: 'padding-top: 5px;'}
+          to
+        .col-xs-5
+          .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
+            %input.form-control{name: :end_date, type: :date, value: @end_date}
+            %span.input-group-addon.icon-calendar
+      .row
+        .col-xs-10
+          %p
+            %select{name: :data_source_id}
+              %option{value: ''} Filter by Data Source
+              - GrdaWarehouse::DataSource.importable.each do |ds|
+                - selected = @data_source_id == ds.id
+                %option{value: ds.id, selected: selected}= ds.name
+      .row
+        .col-xs-10
+          .checkbox
+            %label{for: :data_sharing}
+              %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing} 
+              Fully signed data sharing agreement
+      .row
+        .col-xs-6
+          %p
+            %button.btn.btn-primary.icon-filter{type: :submit}
+              Filter
+        .col-xs-6.text-right
+          %p= link_to ' Clear Filters', clients_path, class: 'btn btn-secondary icon-cross'
+= content_for :page_js do
+  :javascript
+    $('select').select2();
+    (function($) {
+      var filter_class = '.#{filter_class}'
+      function toggle_clickable(e) {
+        if($(e.target).closest(filter_class).length == 0 ) {
+          $(filter_class).data('closeable', true);
+        }
+      }
+      $(filter_class).on('hide.bs.dropdown', function (e) {
+        var closable = $(this).data('closeable');
+        if(closable) {
+          $('body').off('click', toggle_clickable);
+        }
+        return closable;
+      });
+      $(filter_class).on('show.bs.dropdown', function (e) {
+        $(this).data('closeable', false);
+        // Make clicking outside of the menu close the menu
+        $('body').on('click', toggle_clickable);
+      });
+      $(filter_class).on('click', '*', function(e) {
+        var $target = $(e.target);
+        var closeable = $target.parent().data('closeable');
+        if($target.hasClass('dropdown-toggle') && closeable == false) {
+          $target.parent().data('closeable', true);
+        }
+      });
+    })(jQuery);
+    

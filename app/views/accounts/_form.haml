@@ -1,0 +1,16 @@
+.row
+  .col-sm-8
+    = simple_form_for @user, url: account_path do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :first_name, required: true
+        = f.input :last_name, required: true
+        = f.input :email, as: :email, required: true
+        - if @user.unconfirmed_email
+          .alert.alert-info A request has been made to change the email address to #{@user.unconfirmed_email}. Please follow the link sent to this address confirm this new address.
+        = f.input :current_password, required: true, hint: 'Current password is required for any update to your account'
+        = f.input :password, label: 'New password'
+        = f.input :password_confirmation
+
+      .form-actions
+        = f.button :submit, value: 'Update Account'

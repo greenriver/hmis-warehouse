@@ -1,0 +1,79 @@
+.help-block {
+  @include margin(0 0 8px 0);
+}
+.requirement-warning {
+  color: $brand-danger;
+  @include open-sans-medium;
+  @include padding($padding-base-vertical 0);
+}
+.form-actions {
+  clear: both;
+  @include margin(10px null);
+}
+label {
+  color: $gray-070;
+  @include open-sans-medium;
+}
+.button-row {
+  margin-bottom: 24px;
+}
+.form-group {
+  margin-bottom: 30px;
+}
+.form-group__indented-01 {
+  @include margin(10px null 10px 40px);
+}
+.form-group__indented-02 {
+  @include margin(null null null 20px);
+}
+.form--checkbox-groups {
+  margin-bottom: 30px;
+}
+.form--checkbox-groups .form-group {
+  margin-bottom: 0;
+}
+.radio .form-group__indented-01 label,
+.checkbox .form-group__indented-01 label {
+  padding-left: 0;
+}
+.has-error {
+  @include form-control-validation($cas-red, $cas-red, $cas-red);
+}
+.error .form-control {
+  border-color: $cas-red;
+}
+.errors,
+.error label,
+.error-block {
+  color: $cas-red;
+  @include open-sans-medium;
+}
+.form-group .form-group {
+  margin-bottom: 6px;
+}
+.contact-on-match--item {
+  padding-right: 12px;
+}
+.contact-on-match--icon-link {
+  color: $text-color;
+}
+.contact-on-match--icon-link:hover,
+.contact-on-match--icon-link:focus {
+  text-decoration: none;
+  color: darken($text-color, 15);
+}
+.selected-contact {
+  margin: 10px;
+}
+.selected-contact--remove-link:hover,
+.selected-contact--remove-link:focus {
+  text-decoration: none;
+}
+.input__button-size {
+  padding: 6px 12px;
+  border: 1px solid $gray-030;
+  vertical-align: bottom;
+}
+.input__width-80 {
+  width: 80px;
+}

@@ -1,0 +1,88 @@
+// From medium and below: Sign In disappears
+// From 
+
+header {
+  // @include linear-gradient(#859CB7, #485F7A);
+  // @include linear-gradient($cob-sg-blue-004, $cob-sg-charles-blue);
+  background-color: $cob-sg-blue-003;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50);
+  height: 59px;
+}
+.site-name {
+  background-color: #fff;
+  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.30);
+  position: absolute;
+  top: 0;
+  padding: 8px 10px 0;
+  z-index: $zIndex-2--site-name;
+  width: 228px;
+  // @media (min-width: $screen-sm-min) {
+  //   width: 228px;
+  // }
+}
+.site-title {
+  margin: 0 0 10px;
+  @include montserrat-bold;
+  text-transform: uppercase;
+  font-size: $font-size-h2;
+  line-height: 1.0555;
+  @media (min-width: $screen-sm-min) {
+    font-size: 1.9rem;
+  }
+}
+.site-title a {
+  color: $cob-sg-charles-blue;
+}
+.site-title a:hover,
+.site-title a:focus {
+  text-decoration: none;
+  color: lighten($cob-sg-charles-blue, 15);
+}
+.tagline {
+  display: none;
+  @media (min-width: $screen-sm-min) {
+    display: block;
+    color: #fff;
+    @include montserrat-normal;
+    text-transform: uppercase;
+    font-size: rem(16);
+    line-height: 1.1;
+    padding-top: 14px;
+    @include margin(null null null 243px);
+  }
+  @media (min-width: $screen-md-min) {
+    padding-top: 28px;
+  }
+  @media (min-width: $screen-lg-min) {
+    font-size: rem(19);
+    margin-right: 0;
+  }
+}
+.utility {
+  @media (min-width: $screen-sm-min) {
+    @include margin(null null null 243px);
+  }
+}
+.auth-support-links {
+  margin-top: 24px;
+}
+.user-state {
+  width: 60px;
+  height: 59px;
+  background-color: $cob-sg-charles-blue;
+  float: right;
+  padding-top: 8px;
+}
+.user-state--link {
+  @include open-sans-medium;
+  text-transform: uppercase;
+  text-align: center;
+  color: #fff;
+  display: inline-block;
+  width: 100%;
+}
+.user-state--link:hover,
+.user-state--link:focus {
+  color: $gray-030;
+  text-decoration: none;
+}

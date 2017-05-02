@@ -1,0 +1,24 @@
+- title = "Service History for #{@client.name}"
+- content_for :title, title
+= render 'breadcrumbs'
+%h1= title
+= render 'tab_navigation'
+.row
+  .col-sm-12.all-service-dates
+    #client-history
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      queue_name = 'get_months';
+      months = #{@client.months_served.reverse.to_json}
+      $.each(months, function(m) {
+        $(document).queue(queue_name, function() {
+          $.get('#{month_of_service_client_path}', months[m], function(data) {
+            $('#client-history').append(data);
+            $(document).dequeue(queue_name);  
+          });
+        });
+      });
+      $(document).dequeue(queue_name);
+    })(jQuery);

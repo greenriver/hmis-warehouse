@@ -1,0 +1,30 @@
+%h1
+  Clients Who Have Enrollments before 
+  = @date
+= simple_form_for :really_old_enrollments, url: warehouse_reports_really_old_enrollments_path, html: {method: :get} do |f|
+  .row
+    .col-sm-3
+      .input-group.date{'data-provide' => 'datepicker'}
+        = f.input_field :date, name: :date, class: 'form-control', value: @date 
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+%br
+.warehouse-reports__really_old_enrollments
+  %p= page_entries_info @clients
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Enrollment Date
+        %th Data Source
+    %tbody
+      - st = GrdaWarehouse::Hud::Enrollment.arel_table
+      - @clients.each do |client|
+        %tr
+          %td= link_to client.LastName.tr(' ', '⎵'), client_path(client)
+          %td= link_to client.FirstName.tr(' ', '⎵'), client_path(client)
+          %td= client.source_enrollments.where( st[:EntryDate].lt @date ).map{|m| "#{m.EntryDate} at #{m.try(:project).try(:name)}"}.join(', ')
+          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+%p= paginate @clients

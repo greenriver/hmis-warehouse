@@ -1,0 +1,31 @@
+- if @client.source_hmis_forms.any?
+  - assessments = @client.source_hmis_forms.sort.group_by(&:assessment_type)
+  %table.table
+    %thead
+      %tr
+        %th Assessment Type
+        %th Collection Date
+        %th Location
+        %th Staff
+        %th.zero-width
+    %tbody
+      - any_buttons = assessments.values.any?(&:many?)
+      - assessments.each_with_index do |(type, (form, *rest)), i|
+        - cz = "assessment_type_#{i}"
+        %tr{ class: ( 'assessment__new-type' if any_buttons )}
+          %td= form.assessment_type
+          %td= form.collected_at.to_date
+          %td= form.collection_location
+          %td= form.staff
+          %td.zero-width
+            - if rest.any?
+              %a.btn.btn-secondary.btn-xs.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+                %span.icon-plus
+        - rest.each do |form|
+          %tr{ class: cz, style: 'display:none;' }
+            %td= form.assessment_type
+            %td= form.collected_at.to_date
+            %td= form.collection_location
+            %td= form.staff
+- else
+  No assessments on file

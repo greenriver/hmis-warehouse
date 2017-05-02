@@ -1,0 +1,18 @@
+%h3 Potential Matches
+%p 
+  This section allows you to merge a client into 
+  = "#{@client.name}."
+  If a potential client is the combination of merged clients, you can choose to merge with the client set, or with an individual client.
+- if @potential_matches.any?
+  .row
+  .col-sm-12
+    = simple_form_for @client, url: merge_client_path do |f|
+      - @potential_matches.each do |k,clients|
+        %h4
+          = k.to_s.humanize.titlecase
+        = render 'match_results', f: f, clients: clients
+      .form-actions
+        = f.button :submit, "Merge into #{@client.FirstName} #{@client.LastName}"
+- else
+  %p No potential matches found
+  

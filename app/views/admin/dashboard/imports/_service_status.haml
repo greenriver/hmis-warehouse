@@ -1,0 +1,39 @@
+%h3
+  = link_to 'Service History Generation Status', service_history_logs_path
+%table.table.table-condensed
+  %tr
+    %th
+      Clients no service histories
+      %em (others may need updates)
+    %td
+      = number_with_delimiter @service_histories_to_add
+- unless @service_history
+  %p
+    %em No service history found.
+- else
+  %table.table.table-condensed
+    %tr
+      %th
+        Started On
+      %td
+        = @service_history.started_at
+    %tr
+      %th
+        Completed In
+      %td
+        = @service_history.import_time
+    %tr
+      %th
+        Clients added
+      %td
+        = number_with_delimiter @service_history.to_add
+    %tr
+      %th
+        Clients updated
+      %td
+        = number_with_delimiter @service_history.to_update
+    %tr
+      %th
+        Client histories cleaned
+      %td
+        = @service_history.to_delete

@@ -1,0 +1,41 @@
+wb = xlsx_package.workbook
+style = {
+  sz: 12,
+  b: true,
+  alignment: { horizontal: :center }
+}
+wb.add_worksheet name: 'Organization and Time' do |sheet|
+  org = GrdaWarehouse::Hud::Organization.find @mo.org
+  title = sheet.styles.add_style **style
+  sheet.add_row [ 'Organization Name', 'OrganizationID', 'Data Source', 'Year', 'Month' ], style: title
+  sheet.add_row [ org.name, org.OrganizationID, org.data_source.name, @mo.year, @mo.month ]
+end
+wb.add_worksheet name: 'Bed Utilization' do |sheet|
+  title = sheet.styles.add_style **style
+  headers = [
+    'Program Name', 'Project Type', 'ProgramID', 'Capacity',
+    'Persons (avg)', '% Capacity (avg)',
+    'Persons (1st)', '% Capacity (1st)',
+    'Persons (15th)', '% Capacity (15th)',
+    'Persons (last)', '% Capacity (last)'
+  ]
+  sheet.add_row headers, style: title
+  @projects_with_counts.each do |_,projects|
+    values = []
+    project = projects.first
+    projects_by_date = projects.index_by(&:date)
+    values << project.name
+    values << ::HUD.project_type_brief(project.ProjectType)
+    values << project.ProjectID
+    values << relevant_inventory( project.inventories, @mo.range.end ).try(&:BedInventory)
+    i = avg_info project, projects_by_date, @mo.range
+    values << i[:persons]
+    values << i[:percent_capacity]
+    [ :first, :ides, :last ].each do |k|
+      i = info project, projects_by_date, @mo.send(k)
+      values << i[:persons]
+      values << i[:percent_capacity]
+    end
+    sheet.add_row values
+  end
+end

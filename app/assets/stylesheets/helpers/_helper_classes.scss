@@ -1,0 +1,46 @@
+.deleted, [data-deleted] {
+  text-decoration: line-through;
+}
+.margin-left-01 {
+  margin-left: .5rem;
+}
+.margin-left-02 {
+  margin-left: 1rem;
+}
+.margin-bottom-00 {
+  margin-bottom: 0;
+}
+.margin-bottom-01 {
+  margin-bottom: 6px;
+}
+.margin-bottom-02 {
+  margin-bottom: 12px;
+}
+.margin-bottom-03 {
+  margin-bottom: 18px;
+}
+.margin-top-01 {
+  margin-top: 6px;
+}
+.margin-top-02 {
+  margin-top: 12px;
+}
+.margin-top-03 {
+  margin-top: 18px;
+}
+[class^="icon-"], 
+[class*=" icon-"] {
+  vertical-align: middle;
+}
+.img-shadowed {
+  -webkit-box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+  -moz-box-shadow:    2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+  box-shadow:         2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+}
+.display-block {
+  display: block;
+}
+.nobr
+{
+  white-space: nowrap;
+}

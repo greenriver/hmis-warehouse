@@ -1,0 +1,45 @@
+= #debug @result.results
+= form_for :report_result, url: report_report_result_path, method: :patch do |f|
+  - @result.results.each_slice(2) do |slice|
+    .row
+      - slice.each do |k, section|
+        .col-sm-6
+          .table-responsive
+            %table.table.table-condensed.table-hover
+              %tr
+                %th.report-result__section-header{colspan: 2}= k
+                %th.report-result__section-header Original value if changed
+              - section.each  do |label, value|
+              - changed = @result.original_results.try(:[], k).try(:[], label).to_i != @result.results[k][label].to_i
+              - changed_class = 'report-result__changed' if changed
+                %tr{class: changed_class}
+                  - label_text = label.gsub('_', ' ')
+                  %th
+                    .text-right  
+                      - if @result.support[k][label].present?
+                        %a.launch-modal{href: '#', data: {toggle: :modal, target: "##{k}-#{label}-support"}}
+                          = label_text
+                      - else
+                        = label_text
+                  %td
+                    = f.text_field "results[#{k}][#{label}]", value: value, size: 6
+                  %td
+                    - if changed
+                      = @result.original_results.try(:[], k).try(:[], label)
+  .text-right
+    = f.submit value: 'Save Report', class: 'btn btn-primary'
+
+-# Supporting modals
+.report-result__support
+  - @result.results.each do |category, section|
+    - section.each do |label, value|
+      - if @result.support[category][label].present?
+        = render 'report_results/ahar/support', category: category, label: label, support: @result.support[category][label]
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.launch-modal').on('click', function(e){ e.preventDefault();});
+    })(jQuery);
+
+  

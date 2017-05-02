@@ -1,0 +1,9 @@
+- case @error
+- when ActionView::Template::Error
+  %em A server error has prevented the loading of this data:
+  .alert.alert-danger
+    = @error.message
+- else
+  %em A server error has prevented the loading of this data:
+  .alert.alert-danger
+    = @error.message

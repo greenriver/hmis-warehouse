@@ -1,0 +1,29 @@
+- title = @client.full_name
+- content_for :title, title
+
+%h1= title
+= render 'window/clients/client_summary', title: title
+
+= render 'window/clients/rollups'
+= render 'window/health/health'
+= render 'window/youth/youth'
+
+#print-modal.modal(role="dialog")
+  .modal-dialog(role="document")
+    .modal-content
+      .modal-header
+        %h4.modal-title Preparing for Print
+      .modal-body.clearfix
+        %div= "Please wait while we fetch all of #{@client.full_name}'s data."
+
+= content_for :page_js do
+  :javascript
+    // hide the content until it's ready
+    $('#print-modal').modal();
+
+    // make sure we've loaded all of the roll-ups before we present a print dialog
+    $(document).ajaxStop(function() {
+      $('#print-modal').modal('hide');
+      window.print();
+    });
+    

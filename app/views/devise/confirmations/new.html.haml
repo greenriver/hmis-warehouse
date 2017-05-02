@@ -1,0 +1,11 @@
+%h1 Resend Confirmation Instructions
+.row
+  .col-sm-6
+    = simple_form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }, wrapper: :vertical_form_hint_first) do |f|
+      = f.error_notification
+      = f.full_error :confirmation_token
+      .form-inputs
+        = f.input :email, required: true, autofocus: true
+      .form-actions
+        = f.button :submit, "Resend confirmation instructions"
+= render "devise/shared/links"

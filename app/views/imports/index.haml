@@ -1,0 +1,30 @@
+.row
+  .col-sm-8
+    %h1= GrdaWarehouse::ImportLog.model_name.human.pluralize
+  .col-sm-4
+    - if false
+      .pull-right
+        = link_to new_import_path, class: 'btn btn-primary pull-right' do 
+          %span.icon-plus
+          Import HUD CSV
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Source
+            %th Imported On
+            %th Completed In
+          %tbody
+            - @imports.each do |import|
+              %tr
+                %td
+                  = link_to import.data_source.name, import_path(import)
+                %td
+                  = import.created_at
+                %td
+                  = import.import_time
+               
+
+%p= paginate @imports

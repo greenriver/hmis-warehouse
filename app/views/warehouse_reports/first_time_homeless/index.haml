@@ -1,0 +1,66 @@
+- title = 'First-Time Homeless'
+- content_for :title, title
+%h1= title
+%p
+  Clients who first received a residential service in the period from
+  = @range.start
+  to
+  = @range.end
+= simple_form_for :first_time_homeless, url: warehouse_reports_first_time_homeless_index_path, html: {method: :get, class: 'jFilter'} do |f|
+  .row
+    .col-sm-3
+      .input-group.date{data: {provide: :datepicker}}
+        = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      .input-group.date{data: {provide: :datepicker}}
+        = f.input :end, input_html: {value: @range.end, class: 'form-control jEnd'}, label: false
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      .input-group
+        = f.input :project_types, collection: ::HUD.project_types.invert, selected: @project_types, input_html: { multiple: true, data: {placeholder: "Limit by project type"}}, label: false
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+%br
+%h4 All Clients Added
+.row
+  .col-sm-10
+    .jCharts
+      %p.jLoading.text-center Loading...
+  .col-sm-2.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
+      Download Excel
+%p= page_entries_info @clients
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Last Name
+      %th First Name
+      %th Date of First Service
+      %th Project Type
+      %th Project
+      %th Organization
+      %th Data Source
+  %tbody
+    - @clients.each do |client|
+      %tr
+        %td
+          %nobr= link_to client.LastName, client_path(client)
+        %td
+          %nobr= link_to client.FirstName, client_path(client)
+        %td= client.first_service_history.date
+        %td= ::HUD.project_type(client.first_service_history.project_type)
+        %td= client.first_service_history.project_name
+        %td= client.first_service_history.organization.try(:OrganizationName)
+        %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+%p= paginate @clients
+
+- content_for :page_js do
+  :javascript
+    $('select').select2({placeholder: function(){
+      $(this).data('placeholder');
+    }});
+    (function($) {
+      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path()}');
+      chart.load();
+    })(jQuery);

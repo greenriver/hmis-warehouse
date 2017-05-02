@@ -1,0 +1,51 @@
+= render 'breadcrumbs'
+%h1= "#{@project.name} at #{@project.organization.name}"
+.row
+  .col-sm-8
+    %table.table.table-condensed.table-hover
+      %tr
+        %th Project Type
+        %td
+          = HUD.project_type @project.ProjectType
+          - if @project.act_as_project_type.present?
+            %br
+            %em
+              Acts as: 
+              = HUD.project_type @project.act_as_project_type
+            for HUD Reports
+      %tr
+        %th Tracking Method
+        %td= HUD.tracking_method(@project.TrackingMethod || 0)
+      %tr
+        %th PIT Count
+        %td= @project.PITCount
+      %tr
+        %th Target Population
+        %td= HUD.target_population @project.TargetPopulation
+      %tr
+        %th Continuum Project
+        %td= checkmark(@project.ContinuumProject == 1)
+  .col-sm-4
+    %h4 HMIS Info
+    %table.table.table-condensed.table-hover
+      %tr
+        %th Project ID
+        %td= @project.ProjectID
+      %tr
+        %th Organization ID
+        %td= @project.OrganizationID
+      %tr
+        %th Data Source
+        %td= @project.data_source.short_name
+= render 'census'
+= render 'funders', funders: @project.funders
+= render 'sites', sites: @project.sites
+= render 'inventories', inventories: @project.inventories
+= render 'clients'
+
+- content_for :page_js do
+  :javascript
+    (function($) {
+      census = new App.Census.CensusByProgram('#{date_range_censuses_path(project_id: @project.ProjectID, data_source_id: @project.data_source_id)}', 'Censuses::CensusByProgram', '#{Date.today - 1.year}', '#{Date.today - 1.day}');
+      census.load();
+    })(jQuery);

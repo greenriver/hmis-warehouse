@@ -1,0 +1,42 @@
+.warehouse-reports__other-reports
+  %h3 Other Reports
+  .row
+    .col-sm-4
+      = link_to warehouse_reports_chronic_index_path do
+        Potentially Chronic Clients
+      %br
+      Disabled clients who are currently homeless and have been in a project at least 12 of the last 36 months.
+    .col-sm-4
+      = link_to warehouse_reports_first_time_homeless_index_path do
+        First Time Homeless
+      %br
+      Clients who first used residential services within a given date range.
+    .col-sm-4
+      = link_to warehouse_reports_open_enrollments_no_service_index_path do
+        Open Bed-Night Enrollments with No Recent Service
+      %br
+      This report is a bit slow to load
+      
+  %br
+  .row
+    .col-sm-4
+      = link_to warehouse_reports_manage_cas_flags_path do
+        Manage CAS Flags
+      %br
+      Use this report to bulk update 
+      %strong available in cas, disability verification on file, and HAN release on file
+    .col-sm-4
+      = link_to warehouse_reports_client_in_project_during_date_range_index_path do
+        Clients in a project for a given date range
+      %br
+          
+    .col-sm-4
+      = link_to warehouse_reports_active_veterans_path do
+        Active Veterans for a given date range
+      %br
+  %br
+  .row
+    .col-sm-4
+      = link_to warehouse_reports_find_by_id_index_path do
+        Bulk Find Client Details by ID  
+

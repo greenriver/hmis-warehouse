@@ -1,0 +1,16 @@
+- content_for :title, WarehouseReport.model_name.human.pluralize
+%h1= content_for :title
+
+%ul.nav.nav-tabs{role: :tablist}
+  %li.active{role: :presentation}
+    %a{href: '#other-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Other Reports'}}
+      Other Reports
+  %li{role: :presentation}
+    %a{href: '#data-quality-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Data Quality Reports'}}
+      Data Quality
+.tab-content
+  #other-reports.tab-pane.active{role: :tabpanel}
+    = render 'other_reports'
+  #data-quality-reports.tab-pane{role: :tabpanel}
+    = render 'data_quality_reports'
+

@@ -1,0 +1,9 @@
+%h1 Dashboard
+.row
+  .col-sm-4
+    = render 'import_status'
+  .col-sm-4
+    = render 'match_status'
+  .col-sm-4
+    = render 'service_status'
+= link_to 'Debugging Dashboard', admin_dashboard_debug_index_path

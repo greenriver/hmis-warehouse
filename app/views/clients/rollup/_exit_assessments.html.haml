@@ -1,0 +1,43 @@
+%table.table
+  %colgroup
+    %col(style="width:0")
+    %col
+    %col
+    %col
+    %col(style="width:0")
+  %thead
+    %tr
+      %th
+      %th Exit Date
+      %th Caseworker
+      %th Destination
+      %th
+  %tbody
+    - oldentimes = Date.parse('1900-01-01')
+    - @client.self_and_sources.map{ |c| [ c, c.exit_assessments ] }.each do |client, assessments|
+      - assessments = assessments.select{ |a| a.answers.any? }
+      - next unless assessments.any?
+      - assessments = assessments.sort_by{ |a| a.created_date.try(:to_date) || oldentimes }.reverse
+      - date_for_assessment = assessments.map do |a|
+        - if a.created_date.present?
+          - capture do
+            = l a.created_date.to_date
+        - else
+          - capture do
+            %em no date available
+      - assessment_to_date = assessments.zip(date_for_assessment).to_h          
+      %tr
+        %td.id-sqr{ 'data-id' => ( client.id if client.source? ), rowspan: assessments.size }
+        - assessment = assessments.first
+        %td= assessment_to_date[assessment]
+        %td= assessment.staff.try(:name)
+        %td= assessment.exiting_to
+        %td
+          = link_to 'Form', assessment_client_path(assessment), class: 'btn btn-primary btn-xs', data: { loads_in_pjax_modal: true }
+      - assessments[1..-1].each do |assessment|
+        %tr
+          %td= assessment_to_date[assessment]
+          %td= assessment.staff.try(:name)
+          %td= assessment.exiting_to
+          %td
+            = link_to 'Form', assessment_client_path(assessment), class: 'btn btn-primary btn-xs', data: { loads_in_pjax_modal: true }

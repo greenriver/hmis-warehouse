@@ -1,0 +1,12 @@
+%a{href: '#', data: {toggle: 'modal', target: "\#modal-#{modal_slug}"}}
+  = total_errors
+.modal.fade{id: "modal-#{modal_slug}", role: 'dialog'}
+  .modal-dialog{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{data: {dismiss: 'modal'}}
+          &times
+        %h4 Import Errors
+      .modal-body
+        - errors.each do |e|
+          = render 'error_list', error: e

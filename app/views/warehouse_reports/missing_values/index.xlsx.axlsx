@@ -1,0 +1,30 @@
+wb = xlsx_package.workbook
+headers = @query.counts.keys
+values  = @query.counts.values.map{ |v| v[:total] }
+hs, vs = case @query.source
+when 'Data Source'
+  [ ['Data Source Name'], [@query.data_source] ]
+when 'All'
+  nil
+when 'Organization'
+  org = GrdaWarehouse::Hud::Organization.find @query.organization
+  [
+    ['Organization Name', 'OrganizationID', 'Data Source'],
+    [ org.name, org.OrganizationID, org.data_source.name ]
+  ]
+when 'Project'
+  proj = GrdaWarehouse::Hud::Project.find @query.project
+  [
+    ['Program Name', 'ProjectID', 'Data Source'],
+    [ proj.name, proj.ProgramID, proj.data_source.name ]
+  ]
+end
+if hs
+  hs.reverse.each{ |h| headers.unshift h }
+  vs.reverse.each{ |v| values.unshift v }
+end
+wb.add_worksheet name: 'Missing Fields' do |sheet|
+  title = sheet.styles.add_style sz: 12, b: true, alignment: { horizontal: :center }
+  sheet.add_row headers, style: title
+  sheet.add_row values
+end

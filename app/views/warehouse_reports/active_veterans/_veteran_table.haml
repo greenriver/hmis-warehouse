@@ -1,0 +1,47 @@
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th{rowspan: 2} ID
+      %th{rowspan: 2} Client
+      %th{rowspan: 2} First Date Served
+      %th{rowspan: 2} Days Served
+      %th{rowspan: 2} DOB
+      %th{rowspan: 2} SSN
+      %th{rowspan: 2} Veteran in
+      %th{colspan: 5} Enrollments open during date range
+    %tr
+      %th{style: 'width: 3em;'} Source
+      %th{style: 'width: 2em;'} Type
+      %th Project
+      %th{style: 'width: 8em;'} Entry
+      %th{style: 'width: 8em;'} Exit
+  %tbody
+    - @clients.each do |client|
+      -# next unless @enrollments[client.id].present? # Sometimes the service history is out of sync
+      - span = @enrollments[client.id].size+ 1
+      %tr
+        %td{rowspan: span}= client.id
+        %td{rowspan: span}= client.name
+        %td{rowspan: span}= client.processed_service_history.first_date_served
+        %td{rowspan: span}= client.processed_service_history.days_served
+        %td{rowspan: span}= date_format client.DOB
+        %td.nobr{rowspan: span}= ssn client.SSN
+        %td{rowspan: span}
+          - data_sources = client.source_clients.map do |m| 
+            - if m.VeteranStatus == 1
+              - GrdaWarehouse::DataSource.short_name(m.data_source_id)
+          - data_sources.uniq.compact.each do |ds|
+            %em{ class: "ds-#{ds.downcase}"}
+              = ds
+      - @enrollments[client.id].each do |enrollment|
+        - service_type_class = "client__service_type_#{enrollment[:project_type]}"
+        %tr
+          %td
+            %em{ class: "ds-#{enrollment['data_sources.short_name'].downcase}"}
+              = enrollment['data_sources.short_name']
+          %td
+            .enrollment__project_type{class: service_type_class}
+              %em.service-type__program-type= HUD::project_type_brief(enrollment[:project_type])
+          %td= enrollment[:project_name]
+          %td= enrollment[:first_date_in_program]
+          %td= enrollment[:last_date_in_program]

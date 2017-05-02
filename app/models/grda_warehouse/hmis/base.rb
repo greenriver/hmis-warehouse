@@ -1,0 +1,22 @@
+module GrdaWarehouse::HMIS
+  class Base < GrdaWarehouse::Hud::Base
+    PREFIX = 'hmis_'
+
+    # use for association table names with models in GrdaWarehouse::HMIS
+    def self.dub(name)
+      self.table_name = PREFIX + name
+    end
+
+    # unreliable connection to originating object
+    def source_object
+      (
+        @source_object ||= if respond_to?(:source_class)
+          source = source_class.constantize.find(source_id) rescue nil   # if we can't establish the source connection, just return nil
+          [source]
+        else
+          []
+        end
+      )[0]
+    end
+  end
+end

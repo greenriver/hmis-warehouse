@@ -1,0 +1,28 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th ID
+      %th Name
+      %th SSN
+      %th Age
+      %th Gender
+      %th Race
+      %th Ethnicity
+      %th Veteran Status
+  %tbody
+    - @client.source_clients.each do |client|
+      %tr
+        %td.id-sqr{ data: { id: client.id, always: 1 } }
+        %td= client.name
+        %td
+          - if can_view_full_ssn?
+            = ssn(client.SSN)
+          - else
+            = masked_ssn(client.SSN)
+        %td
+          - if client.DOB.present?
+            = "#{client.DOB} (#{client.age})"
+        %td= HUD::gender client.Gender
+        %td= client.race_fields.map{ |f| HUD::race f }.join ', '
+        %td= HUD::ethnicity client.Ethnicity
+        %td= HUD::no_yes_missing client.VeteranStatus

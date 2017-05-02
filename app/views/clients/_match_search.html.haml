@@ -1,0 +1,15 @@
+%h3 Search for a Match
+.row
+  .col-sm-12
+    = form_tag(nil, method: "get") do
+      .input-group{style: 'margin-bottom: 20px;'}
+        %input.form-control{name: 'q', autofocus: true, type: :text, placeholder: @prompt, value: @query || params[:q]}
+        %span.input-group-btn
+          %button.btn.btn-default{type: :submit} Search
+.row
+  .col-sm-12
+    - if @search_clients.present?
+      = simple_form_for @client, url: merge_client_path do |f|
+        = render 'match_results', f: f, clients: @search_clients
+        .form-actions
+          = f.button :submit, "Merge into #{@client.FirstName} #{@client.LastName}"

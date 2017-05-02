@@ -1,0 +1,31 @@
+= render partial: 'breadcrumbs'
+.row
+  .col-sm-12
+    %h1 Service History Generation Logs
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Started
+            %th Completed In
+            %th Clients added
+            %th Clients updated
+            %th Client histories cleaned
+          %tbody
+            - @service.each do |d|
+              %tr
+                %td
+                  = d.started_at
+                %td
+                  = d.import_time
+                %td
+                  = d.to_add
+                %td
+                  = d.to_update
+                %td
+                  = d.to_delete
+               
+
+%p= paginate @service

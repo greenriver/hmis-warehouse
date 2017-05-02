@@ -1,0 +1,10 @@
+%h2 Census
+.jCharts
+  %p.jLoading.text-center Loading...
+
+- content_for :page_js do
+  :javascript
+    (function($) {
+      census = new App.Census.CensusVeteran('#{date_range_censuses_path()}', 'Censuses::CensusVeteran', '#{@census_start_date}', '#{@census_end_date}', {disabled_datasets: ['Non-Veteran Count'], excluded_datasets: ['ph']});
+      census.load();
+    })(jQuery);

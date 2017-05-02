@@ -1,0 +1,69 @@
+- content_for :title,  "Census Details for #{@census_detail_name} #{@date}"
+%h1= content_for :title
+.row
+  .col-sm-8
+    - client_count = @clients.size
+    - if client_count > 0
+      .census__client-count
+        Total Clients:
+        = client_count
+      .census__yesterday-client-count
+        Change from previous day:
+        = client_count - @yesterday_client_count
+        = "(#{(((client_count - @yesterday_client_count)/@clients.size.to_f)*100).round(2)}%)"
+    - else
+      %p No clients found.
+    .census__last-year-counts
+      = "Average Client Count from #{@prior_year_averages[:year]}: #{@prior_year_averages[:ave_client_count]}"
+      - if @prior_year_averages[:ave_bed_inventory]
+        %br
+        = "Average Bed Inventory from #{@prior_year_averages[:year]}: #{@prior_year_averages[:ave_bed_inventory]}"
+      - if @prior_year_averages[:ave_seasonal_inventory]
+        %br
+        = "Average Seasonal Inventory from #{@prior_year_averages[:year]}: #{@prior_year_averages[:ave_seasonal_inventory]}"
+      - if @prior_year_averages[:ave_overflow_inventory]
+        %br
+        = "Average Overflow Inventory from #{@prior_year_averages[:year]}: #{@prior_year_averages[:ave_overflow_inventory]}"
+  .col-sm-4
+    .weather
+.row
+  .col-sm-8
+    %h4 Client List
+    %table.table.table-condensed.table-hover
+      %thead
+        %tr
+          %th
+          %th Last Name
+          %th First Name
+          %th Project
+          %th Data Source
+          -# %th Entry Dates
+      %tbody
+        - @clients.each_with_index do |entry, index|
+          %tr
+            %td
+              = index + 1
+            %td
+              = link_to entry['LastName'], client_path(id: entry['client_id'])
+            %td
+              = link_to entry['FirstName'], client_path(id: entry['client_id'])
+            %td
+              = entry['ProjectName']
+            %td
+              = entry['short_name']
+            -#%td= GrdaWarehouse::ServiceHistory.entry.where(client_id: entry['client_id'], project_id: entry['ProjectID'], last_date_in_program: nil).pluck(:date).join(', ')
+  .col-sm-4
+    .census__involved-projects
+      %h4 Involved Projects
+      %ul
+        - @involved_projects.each do |p|
+          %li
+            = link_to p.name, project_path(p)
+    .download
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
+        Download Excel
+- content_for :page_js do
+  :javascript
+    (function($) {
+      weather = new App.Weather.Base('#{@date}', '.weather');
+    })(jQuery);

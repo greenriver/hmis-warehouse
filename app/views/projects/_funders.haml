@@ -1,0 +1,16 @@
+%h2 Funding Sources
+- if funders.any?
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Source
+        %th Grant ID
+    %tbody
+      - funders.each do |f|
+        %tr
+          %td
+            = HUD.funding_source f.Funder.to_i
+          %td
+            = f.GrantID
+- else
+  %p.text-center No funding sources

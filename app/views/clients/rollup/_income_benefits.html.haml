@@ -1,0 +1,26 @@
+- incomes = @client.source_enrollment_income_benefits.any_benefits.preload( :enrollment, :client ).sort_by{ |b| b.enrollment.date }.reverse
+- if incomes.any?
+  %table.table
+    %colgroup
+      %col(style="width:0")
+      %col
+      %col
+      %col
+      %col(style="width:5em;")
+    %thead
+      %tr
+        %th
+        %th Program Entry Date
+        %th Source
+        %th Amounts
+        %th Total
+    %tbody
+      - incomes.each do |benefit|
+        %tr
+          %td.id-sqr{ 'data-id' => benefit.client.id }
+          %td= l benefit.enrollment.EntryDate
+          %td= benefit.sources.join ', '
+          %td= benefit.amounts.map(&:to_f).map{ |v| format( '$%.2f', v.round(2)) }.join ', '
+          %td.num-cell= format '$%.2f', benefit.amounts.compact.sum.round(2)
+- else
+  No income or benefits on file

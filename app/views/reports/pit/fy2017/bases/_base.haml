@@ -1,0 +1,7 @@
+= simple_form_for :report_result do |f|
+  = f.error_notification
+  = f.input :pit_date, input_html: {name: 'report_result[options][pit_date]', value: default_pit_date}, as: :date_picker, label: 'PIT date'
+  = f.input :chronic_date, input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date}, as: :date_picker
+  = f.button :button, class: 'btn btn-primary pull-right' do
+    %span.icon-plus
+    Queue Report Run

@@ -1,0 +1,33 @@
+- title = "Open Enrollments Lacking Service in the Past Month"
+- content_for :title, title
+%h1= title
+%p Empty "Most Recent Service" indicates enrollments with no days served.
+.row
+  .col-sm-7
+    %p= page_entries_info @entries
+    = paginate @entries
+  .col-sm-3
+    =# render 'sort', sort_options: @sort_options
+  .col-sm-2.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
+
+.warehouse-reports
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Client
+        %th Project
+        %th Entry Date
+        %th Most Recent Service
+      
+    %tbody
+      - @entries.each do |entry|
+        - client_name = "#{@clients[entry[:client_id]][:FirstName]} #{@clients[entry[:client_id]][:LastName]}"
+        %tr
+          %td= link_to client_name, client_path(entry[:client_id])
+          %td= link_to entry[:project_name], project_path(entry[:project_id])
+          %td= entry[:first_date_in_program]
+          %td= @max_dates[[entry[:data_source_id], entry[:project_id], entry[:enrollment_group_id], entry[:project_name], entry[:first_date_in_program], entry[:client_id]]]
+
+%p= paginate @entries

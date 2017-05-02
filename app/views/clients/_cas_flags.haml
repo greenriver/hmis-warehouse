@@ -1,0 +1,6 @@
+%h3 CAS Info
+= simple_form_for @client, url: client_path(@client)  do |f|
+  = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
+  = f.input :housing_assistance_network_released_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:housing_assistance_network_released_on], input_html: {checked: @client.housing_assistance_network_released_on.present?}
+  = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas]
+  = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'

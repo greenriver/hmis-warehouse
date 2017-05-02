@@ -1,0 +1,245 @@
+@mixin poppins {
+  font-family: 'Poppins', sans-serif;
+}
+@mixin poppins-light {
+  @include poppins;
+  font-style: normal;
+  font-weight: 300;
+}
+@mixin poppins-normal {
+  @include poppins;
+  font-style: normal;
+  font-weight: 400;
+}
+@mixin poppins-medium {
+  @include poppins;
+  font-style: normal;
+  font-weight: 500;
+}
+@mixin poppins-bold {
+  @include poppins;
+  font-style: normal;
+  font-weight: 700;
+}
+@mixin montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+@mixin montserrat-light {
+  @include montserrat;
+  font-style: normal;
+  font-weight: 300;
+}
+@mixin montserrat-normal {
+  @include montserrat;
+  font-style: normal;
+  font-weight: 400;
+}
+@mixin montserrat-medium {
+  @include montserrat;
+  font-style: normal;
+  font-weight: 500;
+}
+@mixin montserrat-bold {
+  @include montserrat;
+  font-style: normal;
+  font-weight: 700;
+}
+@mixin open-sans {
+  font-family: 'Open Sans', sans-serif;
+}
+@mixin open-sans-normal {
+  @include open-sans;
+  font-style: normal;
+  font-weight: 400;
+}
+@mixin open-sans-normal-italic {
+  @include open-sans;
+  font-style: italic;
+  font-weight: 400;
+}
+@mixin open-sans-medium {
+  @include open-sans;
+  font-style: normal;
+  font-weight: 600;
+}
+@mixin open-sans-bold {
+  @include open-sans;
+  font-style: normal;
+  font-weight: 700;
+}
+@mixin open-sans-condensed {
+  font-family: 'Open Sans Condensed', sans-serif;
+}
+@mixin open-sans-condensed-bold {
+  @include open-sans-condensed;
+  font-style: normal;
+  font-weight: 700;
+}
+@mixin lora {
+  font-family: 'Lora', serif;
+}
+@mixin lora-normal {
+  @include lora;
+  font-weight: 400;
+}
+@mixin lora-italic {
+  @include lora;
+  font-weight: 400;
+  font-style: italic;
+}
+
+@mixin vertical-align($position: relative) {
+  position: $position;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+@mixin no-transitions {
+  transition: none;
+  transition-property: none;
+}
+/* for bs2 to 3 compat, from vert menu so maybe not needed */
+@mixin content-box-sizing {
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing:    content-box;
+  box-sizing:         content-box;
+}
+
+// bourbon.io
+// Convert pixels to rems
+// eg. for a relational value of 12px write rem(12)
+// Assumes $em-base is the font-size of <html>
+@function strip-units($value) {
+  @return ($value / ($value * 0 + 1));
+}
+@function rem($pxval) {
+  @if not unitless($pxval) {
+    $pxval: strip-units($pxval);
+  }
+
+  $base: $em-base;
+  @if not unitless($base) {
+    $base: strip-units($base);
+  }
+  @return ($pxval / $base) * 1rem;
+}
+// Directional-property mixins are shorthands for writing properties shorthand but w/null values to skip a side
+@function collapse-directionals($vals) {
+  $output: null;
+
+  $a: nth($vals, 1);
+  $b: if(length($vals) < 2, $a, nth($vals, 2));
+  $c: if(length($vals) < 3, $a, nth($vals, 3));
+  $d: if(length($vals) < 2, $a, nth($vals, if(length($vals) < 4, 2, 4)));
+
+  @if $a == 0 { $a: 0; }
+  @if $b == 0 { $b: 0; }
+  @if $c == 0 { $c: 0; }
+  @if $d == 0 { $d: 0; }
+
+  @if $a == $b and $a == $c and $a == $d { $output: $a;          }
+  @else if $a == $c and $b == $d         { $output: $a $b;       }
+  @else if $b == $d                      { $output: $a $b $c;    }
+  @else                                  { $output: $a $b $c $d; }
+
+  @return $output;
+}
+
+@mixin directional-property($pre, $suf, $vals) {
+  // Property Names
+  $top:    $pre + "-top"    + if($suf, "-#{$suf}", "");
+  $bottom: $pre + "-bottom" + if($suf, "-#{$suf}", "");
+  $left:   $pre + "-left"   + if($suf, "-#{$suf}", "");
+  $right:  $pre + "-right"  + if($suf, "-#{$suf}", "");
+  $all:    $pre +             if($suf, "-#{$suf}", "");
+
+  $vals: collapse-directionals($vals);
+
+  @if contains-falsy($vals) {
+    @if nth($vals, 1) { #{$top}: nth($vals, 1); }
+
+    @if length($vals) == 1 {
+      @if nth($vals, 1) { #{$right}: nth($vals, 1); }
+    } @else {
+      @if nth($vals, 2) { #{$right}: nth($vals, 2); }
+    }
+
+    @if length($vals) == 2 {
+      @if nth($vals, 1) { #{$bottom}: nth($vals, 1); }
+      @if nth($vals, 2) { #{$left}:   nth($vals, 2); }
+    } @else if length($vals) == 3 {
+      @if nth($vals, 3) { #{$bottom}: nth($vals, 3); }
+      @if nth($vals, 2) { #{$left}:   nth($vals, 2); }
+    } @else if length($vals) == 4 {
+      @if nth($vals, 3) { #{$bottom}: nth($vals, 3); }
+      @if nth($vals, 4) { #{$left}:   nth($vals, 4); }
+    }
+  } @else {
+    #{$all}: $vals;
+  }
+}
+@mixin border-width($vals...) {
+  @include directional-property(border, width, $vals...);
+}
+@mixin padding($vals...) {
+  @include directional-property(padding, false, $vals...);
+}
+@mixin margin($vals...) {
+  @include directional-property(margin, false, $vals...);
+}
+
+// Truncates text and adds an ellipsis to represent overflow
+@mixin ellipsis($width: 100%) {
+  display: inline-block;
+  max-width: $width;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+// Gradient position is optional. Position can be a degree (90deg). Mixin supports up to 10 color-stops.
+// This mixin will output a fallback background-color: #first-color; declaration. A $fallback argument can be passed to change the fallback color.
+// examples:
+// @include linear-gradient(#1e5799, #2989d8);
+// @include linear-gradient(to top, #8fdce5, #3dc3d1);
+// @include linear-gradient(to top, #8fdce5, #3dc3d1, $fallback: red);
+// @include linear-gradient(50deg, #1e5799 0%, #2989d8 50%, #207cca 51%, #7db9e8 100%);
+@mixin linear-gradient($pos, $g1, $g2: null,
+                       $g3: null, $g4: null,
+                       $g5: null, $g6: null,
+                       $g7: null, $g8: null,
+                       $g9: null, $g10: null,
+                       $fallback: null) {
+  // Detect what type of value exists in $pos
+  $pos-type: type-of(nth($pos, 1));
+  $pos-spec: null;
+  $pos-degree: null;
+
+  // If $pos is missing from mixin, reassign vars and add default position
+  @if ($pos-type == color) or (nth($pos, 1) == "transparent")  {
+    $g10: $g9; $g9: $g8; $g8: $g7; $g7: $g6; $g6: $g5;
+    $g5: $g4; $g4: $g3; $g3: $g2; $g2: $g1; $g1: $pos;
+    $pos: null;
+  }
+
+  @if $pos {
+    $positions: _linear-positions-parser($pos);
+    $pos-degree: nth($positions, 1);
+    $pos-spec:   nth($positions, 2);
+  }
+
+  $full: $g1, $g2, $g3, $g4, $g5, $g6, $g7, $g8, $g9, $g10;
+
+  // Set $g1 as the default fallback color
+  $fallback-color: nth($g1, 1);
+
+  // If $fallback is a color use that color as the fallback color
+  @if (type-of($fallback) == color) or ($fallback == "transparent") {
+    $fallback-color: $fallback;
+  }
+
+  background-color: $fallback-color;
+  background-image: -webkit-linear-gradient($pos-degree $full); // Safari 5.1+, Chrome
+  background-image: unquote("linear-gradient(#{$pos-spec}#{$full})");
+}

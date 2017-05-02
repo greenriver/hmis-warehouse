@@ -1,0 +1,62 @@
+= render '/clients/breadcrumbs'
+- content_for :title, "Match Similar Clients"
+- content_for :page_js do
+  :javascript
+    jQuery(function($) {
+      $(document).on("ajax:success", function (e, data, status, xhr) {
+        var cards = $('.client-match[data-id='+data.id+']');
+        var rows = cards.closest('.merge-row');
+        cards.fadeOut(100, function() {
+          cards.remove();
+          rows.each(function() {
+            var row = $(this);
+            if (row.find('.client_match').length == 0) {
+              row.remove();
+            }
+          });
+        });
+
+        var candidate_badge = $('.badge[data-status=candidate]');
+        var result_badge = $('.badge[data-status='+data.status+']');
+        candidate_badge.html(parseInt(candidate_badge.html())-1);
+        result_badge.html(parseInt(result_badge.html())+1);
+      });
+      $(document).on("ajax:error", function (e, xhr, status, error) {
+        alert(error);
+      });
+    })
+:scss
+  .merge-row {
+    border-left: 2px solid #d2d2d2;
+    padding-left: 10px;
+    margin: 10px 0;
+    overflow: hidden;
+  }
+  .merge-card {
+    border: 1px solid #d2d2d2;
+    margin: 0 0.2em;
+    float: left;
+  }
+%h1= content_for :title
+%ul.nav.nav-tabs
+  - @possible_statuses.each do |label, status|
+    %li{class:('active' if status == @status)}
+      = link_to url_for(params.merge(status: status, page: nil)) do
+        = label
+        - if (count = @counts[status].to_i) > 0
+          %span.badge{data: {status: status}}= count
+- if @matches.empty?
+  %p There are no #{@status} client matches at this time.
+- @matches.group_by{|m| m.destination_client.destination_client}.each do |dest, matches|
+  .merge-row
+    %h4
+      = dest.full_name
+      = link_to client_path(dest.id) do
+        = "ID:#{dest.id}"
+      %span{style: 'font-weight: normal;'}
+      = "SSN: #{dest.SSN}"
+      = "DOB: #{dest.DOB}"
+    - matches.each do |match|
+      .merge-card
+        = render match
+= paginate @matches

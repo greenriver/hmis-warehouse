@@ -1,0 +1,32 @@
+%h2 Inventory
+- if inventories.count > 0
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Availability
+        %th Dates
+        %th Unit Inventory
+        %th Bed Inventory
+        %th HMIS Participating Beds
+        %th Child Bed Inventory
+        %th Veteran Bed Inventory
+        %th Youth Bed Inventory
+        %th Youth Age Group
+        
+    %tbody
+      - inventories.all.each do |inventory|
+        %tr
+          %td= HUD.availability inventory.Availability
+          %td
+            - if inventory.InventoryStartDate.present?
+              = "#{inventory.InventoryStartDate} - #{inventory.InventoryEndDate}"
+          %td= inventory.UnitInventory
+          %td= inventory.BedInventory
+          %td= inventory.HMISParticipatingBeds
+          %td= inventory.CHBedInventory
+          %td= inventory.VetBedInventory
+          %td= inventory.YouthBedInventory
+          %td= HUD.youth_age_group inventory.YouthAgeGroup
+          
+- else
+  %p.text-center No inventory

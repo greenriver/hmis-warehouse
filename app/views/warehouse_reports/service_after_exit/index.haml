@@ -1,0 +1,35 @@
+%h1 Clients with Services after Project Exit or Service before Entry
+%p Bold entry dates are after the service date, bold exit dates are before the service date.
+.warehouse-reports__service_after_exit
+=# debug @exits
+- if @exits.any?
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Entry Date
+        %th Exit Date
+        %th Date of Service
+        %th Project
+    %tbody
+      - @exits.sort_by{|m| [m['LastName'], m['FirstName']]}.each do |e|
+        %tr
+          %td= link_to e['LastName'], client_path(id: e['destination_id']) if e['destination_id'].present?
+          %td= link_to e['FirstName'], client_path(id: e['destination_id']) if e['destination_id'].present?
+          %td
+            - if e['EntryDate'] > e['DateProvided']
+              %strong
+                = e['EntryDate']
+            - else
+              = e['EntryDate']
+          %td
+            - if e['ExitDate'] < e['DateProvided']
+              %strong
+                = e['ExitDate']
+            - else
+              = e['ExitDate']
+          %td= e['DateProvided']
+          %td= link_to e['ProjectName'], project_path(id: e['ProjectID'])
+- else
+  %p None found.

@@ -1,0 +1,30 @@
+%h1 
+  Clients still in Emergency Shelters after
+  = @years
+  years
+= simple_form_for :clients, url: warehouse_reports_long_standing_clients_path, html: {method: :get} do |f|
+  %label{for: :years}
+    Years ago
+    = select_tag :years, options_for_select((3..15), @years), {value: @years}
+    = f.button :submit, value: 'Update View'
+
+.warehouse-reports__long-standing-clients
+  %p= page_entries_info @entries
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Enrollment Start
+        %th Project
+        %th Data Source
+    %tbody
+      - @entries.each do |entry|
+        - client = @clients[entry[:client_id]]
+        %tr
+          %td= link_to client.LastName, client_path(client)
+          %td= link_to client.FirstName, client_path(client)
+          %td= entry.first_date_in_program
+          %td= entry.project_name
+          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+%p= paginate @entries

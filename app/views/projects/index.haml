@@ -1,0 +1,57 @@
+.row
+  .col-sm-8
+    %h1= t '.title'
+    - @prompt = t '.search_prompt'
+.row
+  .col-md-6
+    = render 'search_form'
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      = simple_form_for :project, method: :get, url: projects_path do |f|
+        :ruby
+          filters = {
+            ProjectType: {
+              label: "Project Type", 
+              collection: HUD.project_type(1, false, false).invert,
+            },
+            OrganizationID: {
+              label: "Organization Name", 
+              collection: GrdaWarehouse::Hud::Organization.names,
+            },
+            data_source_id: {
+              label: "Data Source", 
+              collection: GrdaWarehouse::DataSource.names,
+            },
+          }
+        - selected = params[:project] || filters.keys.map{|m| [m, []]}.to_h
+        %table.table.table-condensed.table-hover
+          %thead
+            %tr
+              %th Name
+              - filters.each do |f_name, filter|
+                %th
+                  = f.select f_name, filter[:collection], {selected: selected[f_name]}, {class: 'form-control filter', multiple: true, data: {placeholder: filter[:label]}}
+              %th Site?
+              %th Inventory?
+            %tbody
+              - @projects.each do |p|
+                %tr
+                  %td
+                    = link_to p.name, project_path(p)
+                  %td
+                    = HUD.project_type p.ProjectType
+                  %td
+                    = p.organization.name
+                  %td
+                    = p.data_source.short_name
+                  %td
+                    = checkmark(p.sites.count > 0)
+                  %td
+                    = checkmark(p.inventories.count > 0)
+%p= paginate @projects
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var filters = new App.Filter.Controller($('.filter'));
+    })(jQuery);

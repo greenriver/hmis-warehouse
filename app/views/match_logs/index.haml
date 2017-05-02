@@ -1,0 +1,31 @@
+= render partial: 'breadcrumbs'
+.row
+  .col-sm-12
+    %h1 Automated Match History
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Started
+            %th Completed In
+            %th Unmatched clients
+            %th Clients matched
+            %th Clients created
+          %tbody
+            - @duplicates.each do |d|
+              %tr
+                %td
+                  = d.started_at
+                %td
+                  = d.import_time
+                %td
+                  = d.to_match
+                %td
+                  = d.matched
+                %td
+                  = d.new_created
+               
+
+%p= paginate @duplicates

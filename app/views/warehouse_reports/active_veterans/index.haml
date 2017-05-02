@@ -1,0 +1,20 @@
+- title = "Active Veterans"
+- content_for :title, title
+%h1= title
+.row
+  .col-sm-6
+    = render 'filter'
+  .col-sm-4
+    = render 'sort', sort_options: @sort_options
+  .col-sm-2.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
+
+=# debug @enrollments
+.warehouse-reports__active-veterans
+  .pagination
+    %p= page_entries_info @clients
+    %p= paginate @clients
+  = render 'veteran_table'
+                  
+%p= paginate @clients

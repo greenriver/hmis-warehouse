@@ -1,0 +1,40 @@
+#vsm-container {
+  display: none !important;
+}
+a[href]:after {
+  content: none;
+}
+header {
+  background: transparent;
+  box-shadow: none;
+}
+.site-name {
+  width: initial;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  position: relative;
+}
+.tagline {
+  color: #444;
+  margin-left: 0;
+  clear: both;
+  padding: 0;
+}
+footer {
+  min-height: initial;
+}
+
+.service-type
+{
+  border: 2px solid rgb(212, 208, 208);
+  border-radius: 2px;
+}
+.service-type__entry 
+{
+  border: 2px solid rgb(73, 95, 121);
+}
+.service-type__exit
+{
+  border: 2px solid rgb(119, 55, 71);
+}

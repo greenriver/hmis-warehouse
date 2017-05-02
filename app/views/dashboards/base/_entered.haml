@@ -1,0 +1,30 @@
+%h3 Unduplicated Clients
+.summary.text-center
+  .row
+    .col-sm-3
+      .big-block
+        .title
+          All
+        .body
+          = @enrollments_by_client.count
+    .col-sm-3
+      .big-block
+        .title
+          New clients
+        .body
+          = @enrollments[:new_clients].count
+    .col-sm-3
+      .big-block
+        .title
+          Recently seen
+        .body
+          = @enrollments[:seen_in_past_month].count
+    .col-sm-3
+      .big-block
+        .title
+          Returning
+        .body
+          = @enrollments[:not_seen_in_past_month].count
+%h3= "Enrollments in #{@start_date.to_time.strftime('%B')}"
+%canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_json, data: @data.to_json}}
+=# console

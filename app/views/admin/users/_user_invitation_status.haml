@@ -1,0 +1,11 @@
+- if user.invitation_status == :active
+  Active
+- elsif user.invitation_status == :pending_confirmation
+  Pending Confirmation.
+  %br
+  Invitation will expire on #{user.invitation_due_at.strftime "%m/%d/%Y"}
+  %br
+  = link_to "Resend Invitation", admin_user_resend_invitation_path(user), method: :post
+- elsif user.invitation_status == :invitation_expired
+  %i Invitation Expired.
+  = link_to "Re-create Invitation", admin_user_recreate_invitation_path(user), method: :post

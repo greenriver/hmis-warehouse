@@ -1,0 +1,98 @@
+button.close {
+  background-color: inherit;
+  border: 0;
+}
+.btn {
+  text-transform: uppercase;
+  @include open-sans-bold;
+}
+.btn-default {
+  color: $gray-060;
+}
+.btn-default:hover
+{
+  color: $gray-070;
+}
+.btn-default:active,
+.btn-default:focus,
+.btn-default:active:hover,
+.open > .btn-default.dropdown-toggle:focus
+{
+  background-color: $gray-050;
+  color: #FFF;
+}
+.open > .btn-default.dropdown-toggle
+{
+  background-color: $gray-050;
+  color: #FFF;
+}
+.btn-secondary {
+  background-color: $gray-030;
+  color: $text-color;
+  border-color: $gray-030;
+}
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: darken($gray-030, 10%);
+  border-color: darken($gray-030, 10%);
+  color: #000;
+}
+.btn-min-width-medium {
+  @media (min-width: $screen-xs-min) {
+    min-width: 165px;
+  }
+}
+.btn [class^="icon-"], 
+.btn [class*=" icon-"] {
+  font-size: rem(12);
+}
+.btn-label {
+  @include open-sans-condensed-bold;
+  text-transform: uppercase;
+  font-size: rem(14);
+  text-align: left;
+}
+.btn-label__primary {
+  color: darken($brand-primary, 10);
+}
+.buttons-row .btn {
+  margin-bottom: 4px;
+  margin-left: 4px;
+}
+.btn-no-border-radius {
+  border-radius: 0;
+}
+.btn-muted
+{
+  background-color: $cob-sg-blue-004;
+  border-color: $cob-sg-blue-004;
+}
+.btn-primary__reverse {
+  background-color: #fff;
+  color: $brand-primary;
+  border: 1px solid $gray-030;
+}
+.btn__number {
+  font-size: rem(26);
+  padding: 3px 12px;
+  line-height: 1;
+}
+.btn-rule-condition {
+  border: 1px solid $gray-040;
+  background-color: #fff;
+  border-radius: 0;
+  color: $gray-065;
+}
+.btn-rule-condition:hover,
+.btn-rule-condition:focus {
+  background-color: $brand-primary;
+  border-color: $brand-primary;
+  color: #fff;
+}
+.btn-rule-condition.active {
+  border-color: $brand-primary;
+  box-shadow: none;
+  background-color: $brand-primary;
+  color: #fff;
+}
+

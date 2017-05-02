@@ -1,0 +1,122 @@
+- title = 'Missing Fields in Reports'
+- content_for :title, title
+%h1= title
+
+= simple_form_for @query, as: :q, url: warehouse_reports_missing_values_path, html: { method: :get } do |f|
+  = f.error_notification
+  .form-group
+    .row
+      .col-sm-2
+        = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source' }
+      .col-sm-5
+        .hideable.datas
+          = f.input :data_source, collection: @query.all_sources[:data_sources]
+        .hideable.org
+          = f.input :organization, collection: @query.all_sources[:organizations]
+        .hideable.proj
+          = f.input :project, collection: @query.all_sources[:projects]
+    .row
+      .col-sm-12
+        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns' }
+    .row
+      .col-sm-10
+        = f.submit 'Count missing fields', class: 'btn btn-primary'
+        %a#clear-cols.btn.btn-default{ href: '#' } Clear
+        %a#client-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add all fields from the HUD Client table' } }
+          Client fields
+        %a#enrollment-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add all fields from the HUD Enrollment table' } }
+          Enrollment fields
+        %a#default-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add the fields chosen by default' } }
+          Default fields
+        %a#reset.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'reload the page to show the columns currently displayed' } }
+          Reset
+      .col-sm-2
+        = link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+          Download Excel
+
+- if @query.valid?
+  %canvas#counts{ width: 800, height: 200 }
+  %em(style="display:table;margin:0 auto;")
+    click on a bar to copy its field and value to the clipboard
+
+- content_for :page_js do
+  :javascript
+    // prep UI
+    $('#new_q select').select2();
+    var $ss = $('#source-source');
+    function hideHideable() {
+        $('.hideable:visible').addClass('hidden');
+        var v = $ss.val(), cz;
+        if ( v === 'Data Source' ) {
+          cz = 'datas';
+        } else if ( v === 'Organization') {
+          cz = 'org';
+        } else if ( v === 'Project' ) {
+          cz = 'proj';
+        }
+        $('.hideable.' + cz).removeClass('hidden');
+    }
+    hideHideable();
+    $ss.change(hideHideable);
+
+    // queue this as a separate event to improve layout speed
+    function doTheRest() {
+      // clear buttons etc.
+      var $columns = $('#columns');
+      $('#clear-cols').click(function(){$columns.val(null).trigger('change');});
+      function addField(fields) {
+        for (var i = 0; i < fields.length; i++) {
+          $columns.find('option[value=' + fields[i] + ']').prop('selected', true);
+        }
+        $columns.trigger('change');
+      }
+      $('#client-cols').click(function(){addField(#{@query.possible_client_columns.to_json});});
+      $('#enrollment-cols').click(function(){addField(#{@query.possible_enrollment_columns.to_json});});
+      $('#default-cols').click(function(){addField(#{@query.default_columns.to_json})});
+      $('#reset').click(function(){location.reload();});
+
+      // chart stuff
+      var data = #{@query.counts.to_a.to_json};
+      var labels = data.map(function(a){ return a[0]; });
+      var values = data.map(function(a){ return a[1].total; });
+      var $chart = $('#counts');
+      if ($chart.length) {
+        var chart = new Chart($chart,{
+          type: 'bar',
+          options: {
+            legend: {
+              display: false
+            },
+            tooltips: {
+              callbacks: {
+                label: function (tooltipItem) {
+                  var d = data[tooltipItem.index][1], type;
+                  var n = tooltipItem.yLabel;
+                  if (d.counts_present)
+                    type = 'present'
+                  else
+                    type = 'missing'
+                  return type + ': ' + n
+                }
+              }
+            },
+            onClick: function(e, ar) {
+              if (ar.length) {
+                var datum = data[ar[0]._index];
+                var text = datum[0] + ': ' + datum[1].total
+                App.util.copyToClipboard(text);
+              }
+            }
+          },
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'counts',
+              data: values,
+              backgroundColor: '#091f2f'
+            }]
+          }
+        });
+      }
+    }
+    setTimeout(doTheRest, 0);

@@ -1,0 +1,17 @@
+= render partial: 'report_results/breadcrumbs'
+%h1= @report_results_summary.name
+- if @results.any?
+  .row
+    .col-sm-8
+      %p Results included in this report summary include the following completed reports.
+      %ol
+      - @results.sort_by{|r| r.report.weight }.each do |m|
+        %li
+          = "#{m.report.name}, completed on #{m.updated_at}"
+    .col-sm-4
+      - if @report_results_summary.report_download_format.present?  
+        = link_to({format: @report_results_summary.report_download_format},{class: 'btn btn-primary'}) do
+          %span.icon-download2
+          Download CSV
+- else
+  %p= "No reports have finished for #{@report_results_summary.name}"

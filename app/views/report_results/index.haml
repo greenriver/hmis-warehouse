@@ -1,0 +1,49 @@
+= render partial: 'breadcrumbs'
+.row
+  .col-sm-8
+    %h1= "#{ReportResult.model_name.human.pluralize}: #{@report.name}"
+  .col-sm-4
+    = render 'queue_form'
+
+:ruby
+  columns = ['percent_complete', 'created_at']
+  directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
+  titles = {}
+  directions.each {| k,v | titles[k] = @results.human_attribute_name(k)}
+.row
+  .col-sm-8
+    %p= page_entries_info @results
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            - titles.each do | k, title |
+              %th
+                = sort_link(titles[k], k, directions)
+                %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
+            - if @report.has_options?
+              %th= @report.title_for_options
+            %th Completed in
+            %th Delete
+
+        %tbody
+          - @results.each do |result|
+            %tr
+              %td
+                - if result.job_status.present?
+                  = link_to 'Report Failed', report_report_result_path(@report, result)
+                - else
+                  = link_to result.last_run_status, report_report_result_path(@report, result)
+              %td= result.created_at
+              - if @report.has_options?
+                %td
+                  = result.value_for_options result.options
+              %td= result.completed_in
+              %td
+                = link_to report_report_result_path(@report, result),  method: :delete, data: {confirm: "Would you really like to delete this #{ReportResult.model_name.human}?"} do
+                  %span.icon-cross
+                  Delete
+
+%p= paginate @results, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}

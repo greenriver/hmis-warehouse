@@ -1,0 +1,34 @@
+.client__summary
+  - if @client.processed_service_history.present? && @client.chronic?
+    .alert.alert-warning.client__chronic
+      %span.icon-warning
+      = @client.full_name
+      is chronically homeless
+      .rollup{data: {partial: :chronic}}
+        %h3 Chronic Days
+  .row
+    .col-sm-4
+      %h3 Service Summary
+      - if @client.service_history.empty?
+        = "There is no service record for #{@client.name}"
+      - else
+        - if @client.date_of_last_service.present?
+          %ul
+            %li
+              = "Last seen #{time_ago_in_words(@client.date_of_last_service)} ago"
+            - if ( projects = @client.last_projects_served_by.select(&:present?) ).any?
+              %li= "Last seen at #{projects.to_sentence}"
+            %li
+              = "#{@client.days_of_service} of #{@client.total_days_of_service} days served between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
+        - else
+          %p None
+    .col-sm-4
+      %h3 Data Sharing Agreement
+      = @client.consent_form_status.presence ||'No consent forms on file'
+      .client__cas_flags
+        = render 'cas_flags'
+    .col-sm-4
+      .client__image
+        = image_tag image_client_path
+              
+                

@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Non-Alpha Names") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(['Personal ID','First Name', 'Last Name', 'Data Source'], :style => title)
+  @clients.each do |client|
+    sheet.add_row [client.uuid, client.FirstName, client.LastName, client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')]
+  end
+end

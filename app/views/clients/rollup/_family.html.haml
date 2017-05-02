@@ -1,0 +1,25 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th Name
+      %th Social Security Number
+      %th Age
+      %th Gender
+      %th Ethnicity/Race
+  %tbody
+    - @client.family_members.each do |client|
+      %tr
+        %td
+          = link_to client.name, client_path(client)
+        %td
+          - if can_view_full_ssn?
+            = ssn(client.SSN)
+          - else
+            = masked_ssn(client.SSN)
+        %td= client.age
+        %td
+          = HUD::gender client.Gender
+        %td
+          = HUD::ethnicity client.Ethnicity
+          \/
+          = client.race_fields.map{ |f| HUD::race f }.join ', '

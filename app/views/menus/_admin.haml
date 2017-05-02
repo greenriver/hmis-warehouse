@@ -1,0 +1,8 @@
+- if can_view_imports?
+  .vsm-group.vsm-group__group-a
+    = link_to admin_dashboard_imports_path, class: 'vsm-item-link' do
+      .vsm-item-link--description
+        = "Import Dashboard"
+    = link_to data_sources_path, class: 'vsm-item-link' do
+      .vsm-item-link--description
+        = GrdaWarehouse::DataSource.model_name.human.pluralize

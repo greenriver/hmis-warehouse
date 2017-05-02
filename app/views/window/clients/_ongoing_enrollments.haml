@@ -1,0 +1,16 @@
+%table.table
+  %thead
+    %tr
+      %th Entry
+      %th Program Name
+  %tbody
+    - enrollments = @client.service_history_entry.residential.ongoing
+    - if enrollments.any?
+      - enrollments.each do |e|
+        %tr
+          %td= e.first_date_in_program
+          %td= e.project_name
+    - else
+      %tr
+        %td(colspan="2" style="text-align:center")
+          %em No current enrollments

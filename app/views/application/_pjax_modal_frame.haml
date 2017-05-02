@@ -1,0 +1,10 @@
+#pjax-modal.modal.fade(data-pjax-modal tabindex="-1" role="dialog")
+  .modal-dialog(role="document")
+    .modal-content(data-pjax-modal-container)
+      .modal-header
+        %button.close.pull-right(aria-label="Close" pjax-modal-close type="button")
+          %span.icon-cross(aria-hidden="true")
+        %h4.modal-title(data-pjax-modal-title)
+      .modal-body.clearfix
+        %div(data-pjax-modal-loading)
+          Loading&hellip;

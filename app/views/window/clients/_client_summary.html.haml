@@ -1,0 +1,53 @@
+.client__summary
+  - if @client.processed_service_history.present? && @client.chronic?
+    .alert.alert-warning.client__chronic
+      %span.icon-warning
+      = @client.full_name
+      is chronically homeless
+  .row
+    .col-sm-4
+      %br
+      - if @client.date_of_first_service.present?
+        First Seen:
+        %strong=@client.date_of_first_service
+      %br
+      - if @client.date_of_last_service.present?
+        Last Seen:
+        %strong
+          = time_ago_in_words(@client.date_of_last_service)
+          ago
+        - if ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?
+          %br
+          Last Seen At:
+          %strong
+            = projects.to_sentence
+      %br
+      Veteran:
+      %strong
+        - if @client.source_clients.map(&:veteran?).include?(true)
+          Yes
+        - else
+          No
+      %br
+      Disabling Condition:
+      %strong
+        - if @client.source_enrollments.map(&:DisablingCondition).include?(1)
+          Yes
+        - else
+          No
+      - if @client.source_hmis_forms.triage.any?
+        %br
+        Preferred Language:
+        %strong
+          = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
+    .col-sm-4.client__data-sharing-agreement
+      %h3 Data Sharing Agreement
+      = @client.consent_form_status.presence ||'No consent forms on file'
+    .col-sm-4
+      .client__image
+        = image_tag image_client_path(@client)
+
+  
+  
+              
+                

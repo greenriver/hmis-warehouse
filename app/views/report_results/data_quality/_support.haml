@@ -1,0 +1,18 @@
+.modal.fade{id: "#{key}-support", role: :dialog}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{data: {dismiss: :modal}}
+          %span.icon-cross
+        .modal-title= "Supporting Data for #{section['title']}"
+        .modal-body
+          %table.table.table-condensed.table-hover
+            %thead
+              %tr
+                - support['headers'].each do |t|
+                  %th= t
+            %tbody
+              - support['counts'].each do |row|
+                %tr
+                  - row.each do |v|
+                    %td= v

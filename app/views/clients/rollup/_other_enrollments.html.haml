@@ -1,0 +1,1 @@
+= render 'enrollments', scope: @client.source_enrollments.non_residential.joins( project: :organization ).preload( :client, :exit, project: :organization ).order(EntryDate: :desc)

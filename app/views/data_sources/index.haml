@@ -1,0 +1,37 @@
+- content_for :title,  GrdaWarehouse::DataSource.model_name.human.pluralize
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    = link_to new_data_source_path, class: 'btn btn-primary' do
+      %span.icon-plus
+      Add Data Source
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Name
+            %th Short Name
+            %th Last Import Run
+            -# FIXME: too slow to calculate now
+              %th Data Span
+              - @data_spans_by_id = @data_sources.data_spans_by_id
+            %th
+        %tbody
+          - @data_sources.each do |data_source|
+            %tr
+              %td
+                = link_to data_source.name, data_source_path(data_source)
+              %td
+                = data_source.short_name
+              %td
+                = data_source.last_imported_at
+              -# %td
+                - if (data_span = @data_spans_by_id[data_source.id])
+                  = data_span.join(' - ')
+              %td
+                - unless data_source.has_data?
+                  = link_to data_source_path(data_source), method: :delete, data: {confirm: "Are you sure you want to delete the #{data_source.name} Data Source?"} do
+                    %span.icon-cross

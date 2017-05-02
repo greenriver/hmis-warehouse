@@ -1,0 +1,8 @@
+%p Paste client warehouse IDs in this box.  They can be separated by spaces, commas or returns.
+= simple_form_for :clients, url: search_warehouse_reports_find_by_id_index_path, html: {method: :post} do |f|
+  .row
+    .col-sm-12
+      = text_area :client, :id, rows: 8, cols: 20, style: 'width: 100%;', value: @ids.join(', ')
+  = f.button :submit, value: 'Show Details'
+  = f.button :button, name: :format, value: :xlsx do
+    Download Details

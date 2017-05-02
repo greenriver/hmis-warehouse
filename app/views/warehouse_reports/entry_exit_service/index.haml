@@ -1,0 +1,32 @@
+%h1 Clients with Single Day Enrollments with Services
+.warehouse-reports__entry_exit_service
+  .row
+    .col-sm-8
+    .col-sm-4
+      = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
+        Download Excel
+- if @enrollments.any?
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Entry Date
+        %th Exit Date
+        %th Date of Service
+        %th Project
+        %th Project Type
+        %th Record Type
+    %tbody
+      - @enrollments.sort_by{|m| [m['LastName'], m['FirstName']]}.each do |e|
+        %tr
+          %td= link_to e['LastName'], client_path(id: e['destination_id']) if e['destination_id'].present?
+          %td= link_to e['FirstName'], client_path(id: e['destination_id']) if e['destination_id'].present?
+          %td= e['EntryDate']
+          %td= e['ExitDate']
+          %td= e['DateProvided']
+          %td= link_to e['ProjectName'], project_path(id: e['ProjectID'])
+          %td= HUD.project_type e['ProjectType']
+          %td= HUD.record_type e['RecordType']
+- else
+  %p None found.

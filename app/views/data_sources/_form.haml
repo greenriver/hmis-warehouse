@@ -1,0 +1,15 @@
+= simple_form_for @data_source, url: data_sources_path do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :name, hint: 'Please provide the full name of this data sources.  Examples include: <strong>Boston Department of Neighborhood Development</strong> or <strong>New England Center and Home for Veterans</strong>'.html_safe
+
+    = f.input :short_name, input_html: {style: 'width: 10em;', maxlength: 15}, hint: 'A unique identifier for this data source.  Examples include: <strong>DND</strong> or <strong>NECHV</strong>'.html_safe
+
+    = f.input :munged_personal_id, as: :boolean, label: 'Does the Personal ID column contain a UUID?', hint: 'Checking this will add dashes to the Personal ID when displayed, converting 5011A79B04E34BB99D5A002A3E079C61 into 5011A79B-04E3-4BB9-9D5A-002A3E079C61.'
+
+    = f.input :source_type, as: :hidden, value: 'manual' 
+
+
+  .form-actions
+    = f.button :submit, class: 'btn btn-primary'

@@ -1,0 +1,10 @@
+%ul.import__errors
+  %li
+    = error['text']
+  %li
+    - if error['message'].empty?
+      = 'Unknown error'
+    - else
+      = error['message']
+  %li
+    = error['line']

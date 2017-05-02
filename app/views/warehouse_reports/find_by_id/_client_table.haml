@@ -1,0 +1,19 @@
+.warehouse-reports__chronic
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Warehouse ID
+        %th Last Name
+        %th First Name
+        %th SSN
+        %th DOB
+        %th Veteran Status
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td= client[:id]
+          %td= client[:FirstName]
+          %td= client[:LastName]
+          %td= ssn(client[:SSN])
+          %td= client[:DOB]
+          %td= HUD.no_yes_missing(client[:VeteranStatus])

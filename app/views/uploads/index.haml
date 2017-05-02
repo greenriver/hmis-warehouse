@@ -1,0 +1,31 @@
+= render 'breadcrumbs'
+.row
+  .col-sm-8
+    %h1= Upload.model_name.human.pluralize
+  .col-sm-4
+    - if can_upload_hud_zips?
+      .pull-right
+        = link_to new_data_source_upload_path, class: 'btn btn-primary pull-right' do 
+          %span.icon-plus
+          Upload HUD CSV
+
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Filename
+            %th Uploaded By
+            %th Uploaded On
+            %th Completed In
+          %tbody
+            - @uploads.each do |upload|
+              %tr
+                %td= upload.file.to_s.split('/').last
+                %td= upload.user.name
+                %td= upload.created_at
+                %td= upload.import_time
+               
+
+%p= paginate @uploads

@@ -1,0 +1,14 @@
+%p 
+  Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in the 5.0 or 5.1 format, and required to include the Export.csv file.  Generally the zip file will include all of the following:
+%ul
+  - GrdaWarehouse::Hud.models_by_hud_filename.keys.each do |f|
+    %li= f
+.row
+  .col-sm-8
+    = simple_form_for @upload, url: data_source_uploads_path(@data_source) do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :file, as: :file
+        = f.hidden_field :file_cache                
+      .form-actions
+        = f.button :submit, value: 'Upload Zip'

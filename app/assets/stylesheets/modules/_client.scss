@@ -1,0 +1,284 @@
+.all-service-dates .calendar-heading
+{
+  display: none;
+}
+.service-type__bed_night,
+.service-type__service,
+.service-type__entry,
+.service-type__exit
+{
+  background-color: $gray-020;
+  margin: 0.2em 0;
+  font-size: 0.7em;
+  display: inline-block;
+}
+.service-type__entry
+{
+  background-color: $cas-blue;
+  color: white;
+}
+.service-type__exit
+{
+  background-color: $cas-red;
+  color: white;
+}
+.service-type__program-type {
+  font-weight: bold;
+  font-size: 0.7em;
+  background-color: black;
+  color: white;
+  display: inline-block;
+  padding: 0.2em 0.4em;
+}
+.client__client_unique_id
+{
+  font-size: 0.8rem;
+}
+.client__calendar-date
+{
+  font-weight: bold;
+  background-color: $gray-015;
+  padding: 0.2em;
+}
+.client__month_of_service-table
+{
+  width: 100%;
+}
+.client__month_of_service-table td
+{
+  vertical-align: top;
+}
+.client__service_type_1 {
+  border-bottom: 1px solid #0074D9;
+  .service-type__program-type {
+    background-color: #0074D9;
+  }
+}
+.client__service_type_2 {
+  border-bottom: 1px solid #58B9FF;
+  .service-type__program-type {
+    background-color: #58B9FF;
+  }
+}
+.client__service_type_3 {
+  border-bottom: 1px solid #39CCCC;
+  .service-type__program-type {
+    background-color: #39CCCC;
+  }
+}
+.client__service_type_4 {
+  border-bottom: 1px solid #3D9970;
+  .service-type__program-type {
+    background-color: #3D9970;
+  }
+}
+.client__service_type_6 {
+  border-bottom: 1px solid #DBBA45;
+  .service-type__program-type {
+    background-color: #DBBA45;
+  }
+}
+.client__service_type_7 {
+  border-bottom: 1px solid #FF851B;
+  .service-type__program-type {
+    background-color: #FF851B;
+  }
+}
+.client__service_type_8 {
+  border-bottom: 1px solid #FF4136;
+  .service-type__program-type {
+    background-color: #FF4136;
+  }
+}
+.client__service_type_9 {
+  border-bottom: 1px solid #85144b;
+  .service-type__program-type {
+    background-color: #85144b;
+  }
+}
+.client__service_type_10 {
+  border-bottom: 1px solid #F012BE;
+  .service-type__program-type {
+    background-color: #F012BE;
+  }
+}
+.client__service_type_11 {
+  border-bottom: 1px solid #B10DC9;
+  .service-type__program-type {
+    background-color: #B10DC9;
+  }
+}
+.client__service_type_12 {
+  border-bottom: 1px solid #2ECC40;
+  .service-type__program-type {
+    background-color: #2ECC40;
+  }
+}
+.client__service_type_13 {
+  border-bottom: 1px solid #01FF70;
+  .service-type__program-type {
+    background-color: #01FF70;
+  }
+}
+.client__service_type_14 {
+  border-bottom: 1px solid #001f3f;
+  .service-type__program-type {
+    background-color: #001f3f;
+  }
+}
+.client__potential-match {
+  padding-left: 0;
+  li {
+    list-style-type: none;
+  }
+  .form-group {
+    margin-bottom: 0.2em;
+  }
+}
+#client__previous-addresses { height: 250px; }
+
+$client-match-action-row-height: 22px;
+.client-match {
+  position: relative;
+  padding: 0 0.5em;
+  padding-bottom: $client-match-action-row-height;
+  min-width: 420px;
+  .client-match--factors {
+    font-size: 12px;
+    width: 100%;
+    margin-bottom: 10px;
+    tr {
+      border-bottom: 1px solid #eee;
+    }
+    td,th {
+      vertical-align: top;
+      padding: 2px;
+    }
+  }
+  .client-match--actions {
+    position: absolute;
+    overflow: hidden;
+    padding: 0.5em;
+    bottom: 0;
+    left: 0;
+    font-size: $client-match-action-row-height/2;
+    line-height: $client-match-action-row-height/2;
+    height: $client-match-action-row-height;
+    width: 100%;
+    .btn {
+      border-radius: 0;
+    }
+  }
+}
+.client__image
+{
+  padding: 1em;
+}
+.client__image > img
+{
+  max-width: 250px;
+  max-height: 250px;
+}
+.clients__client 
+{
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+}
+
+.clients__client:nth-child(even)
+{
+  background-color: $gray-015;
+}
+.clients__client-name
+{
+  font-size: 1.2rem;
+  margin-bottom: 0.15rem;
+}
+.client__client-name
+{
+  margin-bottom: 0.15rem;
+}
+.client__filter .dropdown-menu.options,
+.client__filter-active .dropdown-menu.options
+{
+  width: 38em;
+  padding: 1em;
+}
+.client__sort .dropdown-menu.options
+{
+  width: 15em;
+  padding: 1em;
+}
+.client__sort ul
+{
+  list-style-type: none;
+  padding-left: 0.25em;
+}
+.client__filter-active .btn-default {
+  background-color: $brand-info;
+  color: white;
+}
+.client__assessment-question,
+.client__assessment-answer
+{
+  margin-left: 1em;
+  margin-right: 1em;
+}
+.client__assessment-question
+{
+  padding-bottom: 0.5em;
+  font-weight: bold;
+}
+.client__assessment-answer
+{
+  padding-bottom: 1.5em;
+  margin-left: 1em;
+}
+.client__assessment-section-heading
+{
+  border-bottom: 1px solid $gray-040;
+}
+.enrollment__project_type 
+{
+  display: inline-block;
+}
+.enrollment__new-episode
+{
+  border-bottom: 2px solid $cob-sg-optimistic-blue;
+}
+.assessment__new-type:not(:first-child) {
+  border-top: 2px solid $cob-sg-optimistic-blue;
+}
+.zero-width {
+  width: 0;
+}
+.rollup__square
+{
+  font-size: 0.7em;
+  color: white; 
+  padding: 0.2em 0.4em;
+  font-weight: bold;
+  cursor: pointer;
+}
+.client__chronic
+{
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.25em;
+}
+.clients__chronic
+{
+  background-color: $brand-warning;
+  padding: 0.5em;
+  margin: 0.5em;
+  margin-right: 0;
+  display: inline-block;
+  float: right;
+  clear: right;
+}
+.client__cas_flags .form-group,
+.client__cas_flags .checkbox
+{
+  margin-bottom: 0.25em;
+}

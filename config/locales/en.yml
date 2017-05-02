@@ -1,0 +1,446 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+
+en:
+  date:
+    formats:
+      default: "%m/%d/%Y"
+  datepicker:
+    dformat: '%b %e, %Y'
+  activerecord:
+    models:
+      report:
+        one: 'Report'
+        other: 'Reports'
+      report_results:
+        one: 'Results'
+        other: 'Results'
+      import:
+        one: 'Import'
+        other: 'Imports'
+      project:
+        one: 'Project'
+        other: 'Projects'
+    attributes:
+      hmis/client:
+        id: 'ID'
+        ssn: 'SSN'
+        date_of_birth: 'DOB'
+        hiv_aids: 'HIV aids'
+  activemodel:
+    models:
+      warehouse_report:
+        one: 'Report'
+        other: 'Reports'
+      missing_project:
+        one: 'Missing Project'
+        other: 'Missing Projects'
+  admin:
+    roles:
+      index:
+        title: 'Manage Roles'
+    users:
+      index:
+        title: 'Manage User Accounts'
+        search_prompt: 'Search user accounts...'
+  clients:
+    index:
+      title: 'Clients'
+      search_prompt: 'Search clients...'
+  projects:
+    index:
+      title: 'Projects'
+      search_prompt: 'Search projects...'
+  window:
+    clients:
+      index:
+        title: 'Clients'
+        search_prompt: 'Search clients...'
+  forms:
+    f_75:
+      AbuseandNeglectFamilymember_1489: Abuse and Neglect Family member
+      AbuseandNeglectYouth_1488: Abuse and Neglect Youth
+      Acourseoffurtherfollowuptreatmentorservices_1507: A course of further followup treatment
+        or services
+      ActiveMilitaryParentFamilymember_1493: Active Military Parent Family member
+      AddressDataQuality_1439: Address Data Quality
+      Adviceaboutandorreferraltoappropriatemainstreamassistanceprograms_1503: Advice about
+        and or referral to appropriate mainstream assistance programs
+      Afollowupmeetingorseriesofstaffyouthmeetingsorcontactshasbeenscheduled_1508: A followup
+        meeting or series of staff youth meetings or contacts has been scheduled
+      Age_1627: Age
+      AlcoholorotherdrugabuseFamilymember_1491: Alcohol or other drug abuse Family member
+      AlcoholorotherdrugabuseYouth_1490: Alcohol or other drug abuse Youth
+      AlimonyorSpousalSupportMonthlyAmount_1549: Alimony or Spousal Support Monthly Amount
+      Apackageofsuchthingsasmapsinformationaboutlocalsheltersandresources_1509: A package
+        of such things as maps information about local shelters and resources
+      Approximatedatestarted_3196: Approximate date started
+      Areyoucurrentlyfleeing_3200: Are you currently fleeing
+      Atwhatpointisthisdatabeingcollected_1425: At what point is this data being collected
+      AuditDate: Audit Date
+      Awrittentransitionalaftercareorfollowupplanoragreement_1502: A written transitional
+        aftercare or followup plan or agreement
+      ChildSupportMonthlyAmount_1547: Child Support Monthly Amount
+      Chooseoneresponsecategorytoindicatetheindividualororganizationthroughwhichtheclientwasadvisedab_1496: Choose
+        one response category to indicate the individual or organization through which the
+        client was advised
+      Chooseoneresponsecategorytoindicatewhetherfamilyreunificationwasachievedatprojectexit_1514: Choose
+        one response category to indicate whether family reunification was achieved at project
+        exit
+      ChoosethereasonwhytheclientisnotreceivingADAP_1617: Choose the reason why the client
+        is not receiving ADAP
+      City_1436: City
+      Clientssubsidyinformation_1624: Clients subsidy information
+      Clientssubsidyinformation_1625: Clients subsidy information
+      ContinuumCodeHUDassignedCoCCodesforthisProjectsLocation_1698: Continuum Code HUD assigned
+        CoC Codes for this Project's Location
+      ContinuumCodeHUDassignedCoCCodesforthisProjectsLocation_1698_DisplayStr: Continuum
+        Code HUD assigned CoC Codes for this Project's Location
+      DateofPATHStatusDetermination_2934: Date of PATH Status Determination
+      DateofRHYBCPStatusDetermination_1449: Date of RHYBCP Status Determination
+      DescribeOtherDisposition_1622: Describe Other Disposition
+      Determinetheresponsevaluethatbestdescribestheclientshousingcircumstancesfromprojectentrytoproje_1623: Determine
+        the response value that best describes the client's housing circumstances from project
+        entry to project exit
+      Didsomeoneaskorforcetheclienttohavesex_1500: Did someone ask or force the client to
+        have sex
+      Didsomeoneevermakeorpersuadetheclienttohavesexwithanyoneelseinexchangeforsomethingsuchasmoneyfo_3204: Did
+        someone ever make or persuade the client to have sex with anyone else in exchange
+        for something such as money
+      DidtheclientbecomeenrolledinPATH_1516: Did the client become enrolled in PATH
+      Didtheclientfeelforcedpressuredortrickedintocontinuingthisjob_3208: Did the client
+        feel forced, pressured, or tricked into continuing this job
+      Doestheclientcurrentlyhaveachronichealthcondition_1592: Does the client currently
+        have a chronic health condition
+      Doestheclientcurrentlyhaveadevelopmentaldisability_1588: Does the client currently
+        have a developmental disability
+      Doestheclientcurrentlyhaveadisablingcondition_1610: Does the client currently have
+        a disabling condition
+      Doestheclientcurrentlyhaveaphysicaldisability_1584: Does the client currently have
+        a physical disability
+      Doestheclientcurrentlyhavementalhealthproblem_1600: Does the client currently have
+        mental health problem
+      DoestheclienthaveaseriousmentalillnessSMIIfyeshowwasitconfirmed_1605: Does the client
+        have a serious mental illness (SMI)? If yes, how was it confirmed
+      Doestheclienthaveasubstanceabuseproblem_1606: Does the client have a substance abuse
+        problem
+      DraftSavedOn: Draft Saved On
+      Duetounavoidablecircumstancesorscarcitiesofappropriatehousingtheyouthmustbetransportedoraccompa_1505: Due
+        to unavoidable circumstances or scarcities of appropriate housing the youth must
+        be transported or accompanied
+      ESTrackingMethod_1701: ES Tracking Method
+      ESTrackingMethod_1701_DisplayStr: ES Tracking Method
+      EarnedIncomeMonthlyAmount_1523: Earned Income Monthly Amount
+      Exitcounseling_1506: Exit counseling
+      FYSBYouth_1450: FYSB Youth
+      FederalFunding_1699: Federal Funding
+      FederalFunding_1699_DisplayStr: Federal Funding
+      FormIdentifier: Form Identifier
+      GenderHUD_1629: Gender HUD
+      GeneralAssistanceGAMonthlyAmount_1541: General Assistance (GA) Monthly Amount
+      HUDassignedCoCcodefortheclientslocationPleaseentertheCoCcodefromthequestionaboveIftherearemulti_1428: HUD
+        assigned CoC code for the client's location. Please enter the CoC code from the
+        question above If there are multi
+      Hastheclientbeencontinuouslyhomelessforatleastoneyear_1440: Has the client been continuously
+        homeless fora tle a stoney ear
+      HastheclientconnectedtotheSOARprogram_1518: Has the client connected to the SOAR program
+      Hastheclienteverbeenafraidtoleaveorquitaworksituationduetofearsofviolenceorotherthreatsofharmto_3206: Has
+        the client ever been afraid to leave or quit a work situation due to fears of violence
+        or other threats of harm to
+      Hastheclienteverbeenpromisedworkwheretheworkorpaymentendedupbeingdifferentfromwhattheyexpected_3207: Has
+        the client ever been promised work where the work or payment ended up being different
+        from what they expected
+      Hastheclienteverreceivedanythinginexchangeforsexegmoneyfooddrugsshelter_3201: Has
+        the client ever received anything in exchange for sex eg money food drugs shelter
+      Hastheclienteverreceivedanythinginexchangeforsexinthelastthreemonths_3202: Has the
+        client ever received anything in exchange for sex in the last three months
+      Hastheclienthadanyjobsliketheseinthelast3months_3209: Has the client had any jobs
+        like these in the last 3 months
+      Hastheclientpreviouslybeentheresponsibilityofchildwelfareservicesorafostercareagency_1464: Has
+        the client previously been the responsibility of child welfare services or a foster
+        care agency
+      Hastheclientreceivedsomethinginexchangeforsexinthepast3months_1498: Has the client
+        received something in exchange for sex in the past 3 months
+      HealthIssuesFamilymember_1483: Health Issues Family member
+      HealthIssuesYouth_1482: Health Issues Youth
+      HouseholdDynamics_1471: Household Dynamics
+      HousingAssessmentDispositionatExit_1621: Housing Assessment Disposition at Exit
+      HousingIssuesFamilymember_1475: Housing Issues Family member
+      HousingIssuesYouth_1474: Housing Issues Youth
+      Howmanymonthswastheclientformerlyawardofchildwelfareorafostercareagency_1466: How
+        many months was the client formerly a ward of child welfare or a foster care agency
+      Howmanymonthswastheclientformerlyawardofhejuvenilejusticesystem_1469: How many months
+        was the client formerly a ward of he juvenile justice system
+      Howmanytimeshastheclientreceivedsomethinginexchangeforsexinthepast3months_1499: How
+        many times has the client received something in exchange for sex in the past 3
+        months
+      Howmanytimestheclienthasbeenhomelessinthepastthreeyears_1441: How many times the
+        client has been homeless in the past three years
+      Howmanyyearswastheclientformerlyawardofchildwelfareorafostercareagency_1465: How many
+        years was the client formerly a ward of child welfare or a foster care agency
+      Howmanyyearswastheclientformerlyawardofhejuvenilejusticesystem_1468: How many years
+        was the client formerly a ward of the juvenile justice system
+      Howwastheclientsmentalhealthproblemconfirmed_1604: How was the client's mental health
+        problem confirmed
+      Howwastheclientssubstanceabuseproblemconfirmed_6057: How was the client's substance
+        abuse problem confirmed
+      Howwastheinformationobtained_3215: How was the information obtained
+      Howwastheinformationobtained_3218: How was the information obtained
+      IfYesforEvermadepersuadedtohavesexinexchangeforsomethinghasitoccurredinthelastthreemonths_3205: If
+        Yes for Ever made persuaded to have sex in exchange for something has it occurred
+        in the last three months
+      IfYesforEverreceivedanythinginexchangeforsexhowmanytimes_3203: If Yes for Ever received
+        anything in exchange for sex how many times
+      Ifclientwasexpelledorotherwiseinvoluntarilydischargedfromprojectpleaseselectthemajorreason_1513: If
+        client was expelled or otherwise involuntarily discharged from project please select
+        the major reason
+      IfotherforTypeofResidencepleasespecifywhere_1432: If other for Type of Residence please
+        specify where
+      Iftheclientvoluntarilyleftearlywhatwasthemajorreason_1512: If the client voluntarily
+        left early what was the major reason
+      IncarceratedParentofYouth_1494: Incarcerated Parent of Youth
+      InsufficientIncometosupportyouthFamilymember_1492: Insufficient Income to support
+        youth Family member
+      Istheclientavictimsurvivorofdomesticviolence_1611: Is the client a victim survivor
+        of domestic violence
+      IstheclientcurrentlycoveredbyMEDICARE_1569: Is the client currently covered by MEDICARE
+      IstheclientcurrentlycoveredbyVeteransAdministrationVAmedicalservices_1573: Is the
+        client currently covered by Veterans Administration (VA) medical services
+      Istheclientcurrentlycoveredbyastatechildrenshealthinsuranceprogram_1571: Is the client
+        currently covered by a state children's health insurance program
+      Istheclientcurrentlycoveredbyemployerprovidedhealthinsurance_1575: Is the client currently
+        covered by employer provided health insurance
+      Istheclientcurrentlycoveredbyhealthinsurance_1566: Is the client currently covered
+        by health insurance
+      Istheclientcurrentlycoveredbyprivatepayhealthinsurance_1579: Is the client currently
+        covered by private pay health insurance
+      Istheclientcurrentlycoveredbystatehealthinsuranceforadults_1581: Is the client currently
+        covered by state health insurance for adults
+      Istheclientcurrentlyemployed_1455: Is the client currently employed
+      Istheclientcurrentlyinpermanenthousing_1429: Is the client currently in permanent
+        housing
+      Istheclientcurrentlypregnant_1461: Is the client currently pregnant
+      IstheclientcurrentlyreceivingGeneralAssistanceGA_1540: Is the client currently receiving
+        General Assistance (GA)
+      IstheclientcurrentlyreceivingSocialSecurityDisabilityIncomeSSDI_1528: Is the client
+        currently receiving Social Security Disability Income (SSDI)
+      IstheclientcurrentlyreceivingSupplementalSecurityIncomeSSI_1526: Is the client currently
+        receiving Supplemental Security Income (SSI)
+      IstheclientcurrentlyreceivingTemporaryAssistanceforNeedyFamiliesTANF_1538: Is the
+        client currently receiving Temporary Assistance for Needy Families (TANF)
+      IstheclientcurrentlyreceivingVANonServiceConnectedDisabilityPension_1532: Is the client
+        currently receiving VAN on Service Connected Disability Pension
+      IstheclientcurrentlyreceivingVAServiceConnectedDisabilityCompensation_1530: Is the
+        client currently receiving VA Service Connected Disability Compensation
+      Istheclientcurrentlyreceivingalimonyandotherspousalsupport_1548: Is the client currently
+        receiving alimony and other spousal support
+      Istheclientcurrentlyreceivingapensionorretirementincomefromaformerjob_1544: Is the
+        client currently receiving a pension or retirement income from a former job
+      Istheclientcurrentlyreceivingbenefitsfortemporaryrentalassistance_1562: Is the client
+        currently receiving benefits for temporary rental assistance
+      IstheclientcurrentlyreceivingbenefitsfromSection8publichousingorotherongoingrentalassistance_1561: Is
+        the client currently receiving benefits from Section 8 public housing or other ongoing
+        rental assistance
+      IstheclientcurrentlyreceivingbenefitsfromSupplementalNutritionAssistanceProgramSNAPpreviouslykn_1556: Is
+        the client currently receiving benefits from Supplemental Nutrition Assistance Program
+        (SNAP) previously kn...
+      IstheclientcurrentlyreceivingbenefitsfromTANFChildCareservices_1558: Is the client
+        currently receiving benefits from TANF Child Care services
+      IstheclientcurrentlyreceivingbenefitsfromTANFtransportationservices_1559: Is the client
+        currently receiving benefits from TANF transportation services
+      Istheclientcurrentlyreceivingbenefitsfromanyothersource_1563: Is the client currently
+        receiving benefits from any other source
+      IstheclientcurrentlyreceivingbenefitsfromotherTANFfundedservices_1560: Is the client
+        currently receiving benefits from other TANF funded services
+      IstheclientcurrentlyreceivingbenefitsfromtheSpecialSupplementalNutritionProgramforWomenInfantsa_1557: Is
+        the client currently receiving benefits from the Special Supplemental Nutrition
+        Program for Women Infants a
+      Istheclientcurrentlyreceivingchildsupport_1546: Is the client currently receiving
+        child support
+      Istheclientcurrentlyreceivingearnedincomeieemploymentincome_1522: Is the client currently
+        receiving earned income, i.e. employment income
+      Istheclientcurrentlyreceivingincomefromanyothersource_1550: Is the client currently
+        receiving income from any other source
+      Istheclientcurrentlyreceivingincomefromanysource_1521: Is the client currently receiving
+        income from any source
+      Istheclientcurrentlyreceivingnoncashbenefitsfromanysource_1555: Is the client currently
+        receiving non-cash benefits from any source
+      Istheclientcurrentlyreceivingprivatedisabilityinsurance_1534: Is the client currently
+        receiving private disability insurance
+      IstheclientcurrentlyreceivingretirementincomefromSocialSecurity_1542: Is the client
+        currently receiving retirement income from Social Security
+      Istheclientcurrentlyreceivingservicestreatmentforhisherdevelopmentaldisability_1591: Is
+        the client currently receiving services treatment for his/her developmental disability
+      Istheclientcurrentlyreceivingservicestreatmentforhisherphysicaldisability_1587: Is
+        the client currently receiving services treatment for his/her physical disability
+      Istheclientcurrentlyreceivingservicestreatmentfortheirchronichealthcondition_1595: Is
+        the client currently receiving services treatment for their chronic health condition
+      Istheclientcurrentlyreceivingservicestreatmentfortheirmentalhealthproblem_1603: Is
+        the client currently receiving services treatment for their mental health problem
+      Istheclientcurrentlyreceivingservicestreatmentfortheirsubstanceabuseproblem_1609: Is
+        the client currently receiving services treatment for their substance abuse problem
+      Istheclientcurrentlyreceivingunemploymentinsurance_1524: Is the client currently receiving
+        unemployment insurance
+      Istheclientcurrentlyreceivingworkerscompensation_1536: Is the client currently receiving
+        workers compensation
+      Isthecliententeringfromthestreetsanemergencyshelterorasafehaven_3194: Is the client
+        entering from the streets an emergency shelter or a safe haven
+      IstheclientsTcellCD4countavailable_3213: Is the client's T cell CD4 count available
+      Istheclientschronichealthconditionexpectedtobeoflongcontinuedandindefinitedurationandsubstantia_1593: Is
+        the client's chronic health condition expected to be of long continued and indefinite
+        duration and substantial
+      IstheclientscurrenthealthinsuranceobtainedthroughCOBRA_1577: Is the client's current
+        health insurance obtained through COBRA
+      Istheclientsdevelopmentaldisabilityexpectedtosubstantiallyimpairtheirabilitytoliveindependently_1589: Is
+        the client's developmental disability expected to substantially impair their ability
+        to live independently
+      Istheclientsmentalhealthproblemexpectedtobeoflongcontinuedandindefinitedurationandsubstantially_1601: Is
+        the client's mental health problem expected to be of long continued and indefinite
+        duration and substantially
+      Istheclientsphysicaldisabilityexpectedtobeoflongcontinuedandindefinitedurationandsubstantiallyi_1585: Is
+        the client's physical disability expected to be of long continued and indefinite
+        duration and substantially i
+      Istheclientssubstanceabuseproblemexpectedtobeoflongcontinuedandindefinitedurationandsubstantial_1607: Is
+        the client's substance abuse problem expected to be of long continued and indefinite
+        duration and substantial
+      Istheclientsviralloadinformationavailable_3216: Is the client's viral load information
+        available
+      Isthehouseholdcurrentlyresidingintheworsthousingsituation_1447: Is the household currently
+        residing in the worst housing situation
+      IstheredocumentationintheclientspaperfileorintheHMISoftheclientslengthofhomelessnesseitherconti_1444: Is
+        there documentation in the client's paper file or in the HMIS of the client's length
+        of homelessness either ...
+      Istheredocumentationoftheclientschronichealthconditionandseverityonfile_1594: Is there
+        documentation of the client's chronic health condition and severity on file
+      Istheredocumentationoftheclientsdevelopmentaldisabilityonfile_1590: Is there documentation
+        of the client's developmental disability on file
+      Istheredocumentationoftheclientsmentalhealthproblemandseverityonfile_1602: Is there
+        documentation of the client's mental health problem and severity on file
+      Istheredocumentationoftheclientssubstanceabuseproblemandseverityonfile_1608: Is there
+        documentation of the client's substance abuse problem and severity on file
+      Istheredocumentationofthedisabilityandseverityonfile_1586: Is there documentation
+        of the disability and severity on file
+      LengthofStayinPreviousPlace_1433: Length of Stay in Previous Place
+      MentalDisabilityFamilymember_1487: Mental Disability Family member
+      MentalDisabilityYouth_1486: Mental Disability Youth
+      MentalHealthIssuesFamilymember_1481: Mental Health Issues Family member
+      MentalHealthIssuesYouth_1480: Mental Health Issues Youth
+      MonthlyPensionorRetirementIncomeAmount_1545: Monthly Pension or Retirement Income
+        Amount
+      Numberoftimesapproachedbyoutreachpriortoenteringtheproject_1497: Number of times approached
+        by outreach prior to entering the project
+      OtherSourceMonthlyAmount_1551: Other Source Monthly Amount
+      Other_1510: Other
+      PhysicalDisabilityFamilymember_1485: Physical Disability Family member
+      PhysicalDisabilityYouth_1484: Physical Disability Youth
+      Placementinappropriatepermanentstablehousingnotashelter_1504: Placement inappropriate
+        permanent stable housing not a shelter
+      PleaseindicatethehouseholdsincomeasapercentageofareamedianincomeAMIaspublishedannuallybyHUD_1554: Please
+        indicate the households income as a percentage of area median income (AMI) as published
+        annually by HUD
+      Pleasespecifyotherincomesource_1552: Please specify other incomes our ce
+      Pleasespecifyothernoncashbenefitsource_1564: Please specify other non-cash benefits
+        our ce
+      Pleasespecifywheretheclientwentuponexit_1620: Please specify where the client went
+        upon exit
+      Pleasespecifywhoisincarcerated_1495: Please specify who is incarcerated
+      PrivateDisabilityInsuranceMonthlyAmount_1535: Private Disability Insurance Monthly
+        Amount
+      ProjectEntryDateThedatetheProjectEntryisrecordedshouldmatchthisdate_1426: Project
+        Entry Date The date the Project Entry is recorded should match this date
+      ProjectType_1700: Project Type
+      ProjectType_1700_DisplayStr: Project Type
+      Reasontheclientisnotcovered_1568: Reason the client is not covered
+      Reasontheclientisnotcovered_1570: Reason the client is not covered
+      Reasontheclientisnotcovered_1572: Reason the client is not covered
+      Reasontheclientisnotcovered_1574: Reason the client is not covered
+      Reasontheclientisnotcovered_1576: Reason the client is not covered
+      Reasontheclientisnotcovered_1578: Reason the client is not covered
+      Reasontheclientisnotcovered_1580: Reason the client is not covered
+      Reasontheclientisnotcovered_1582: Reason the client is not covered
+      RegardlessofwheretheystayedlastnightNumberoftimestheclienthasbeenonthestreetsinanEmergencyShelt_3197: Regardless
+        of where they stayed last night Number of times the client has been on the streets
+        in an Emergency Shelter
+      RemovedDate: Removed Date
+      ResponseCreatedDate: Response Created Date
+      RetirementIncomefromSocialSecurityMonthlyAmount_1543: Retirement Income from Social
+        Security Monthly Amount
+      SchoolorEducationalIssuesFamilymember_1477: School or Educational Issues Family member
+      SchoolorEducationalIssuesYouth_1476: School or Educational Issues Youth
+      SexualOrientationGenderIdentityFamilymember_1473: Sexual Orientation Gender Identity
+        Family member
+      SexualOrientationGenderIdentityYouth_1472: Sexual Orientation Gender Identity Youth
+      SocialSecurityDisabilityIncomeSSDIMonthlyAmount_1529: Social Security Disability Income
+        (SSDI) Monthly Amount
+      State_1437: State
+      StreetAddress_1435: Street Address
+      SupplementalSecurityIncomeSSIMonthlyAmount_1527: Supplemental Security Income (SSI)
+        Monthly Amount
+      TcellCount_3214: T cell Count
+      TemporaryAssistanceNeedyFamiliesMonthlyAmount_1539: Temporary Assistance Needy Families
+        Monthly Amount
+      Thenumberofmonthstheclienthasbeenhomelessinthepastthreeyears_1442: The number of months
+        the client has been homeless in the past three years
+      TotalMonthlyIncome_1553: Total Monthly Income
+      Totalnumberofmonthscontinuouslyhomelessimmediatelypriortoprojectentryforpartialmonthspleaseroun_1443: Total
+        number of months continuously homeless immediately prior to project entry for partial
+        months please round
+      TotalnumberofmonthshomelessonthestreetinanEmergencyShelteroraSafeHaveninthepastthreeyears_3198: Total
+        number of months homeless on the street in an Emergency Shelter or a Safe Haven
+        in the past three years
+      TypeofEmployment_1456: Type of Employment
+      UnemploymentFamilymember_1479: Unemployment Family member
+      UnemploymentInsuranceMonthlyAmount_1525: Unemployment Insurance Monthly Amount
+      UnemploymentYouth_1478: Unemployment Youth
+      VANonServiceConnectedDisabilityPensionMonthlyAmount_1533: VAN on Service Connected
+        Disability Pension Monthly Amount
+      VAServiceConnectedDisabilityCompensationMonthlyAmount_1531: VA Service Connected
+        Disability Compensation Monthly Amount
+      VeteranStatusHUD_1628: Veteran Status HUD
+      ViralLoad_3217: Viral Load
+      Wastheclientformerlytheresponsibilityofthejuvenilejusticesystem_1467: Was the client
+        formerly the responsibility of the juvenile justice system
+      Whatistheclientscurrenthousingstatus_1446: What is the client's current housing status
+      Whatistheclientsdentalhealthstatus_1459: What is the client's dental health status
+      Whatistheclientsgeneralhealthstatus_1458: What is the client's general health status
+      Whatistheclientsmentalhealthstatus_1460: What is the client's mental health status
+      Whatistheclientsprojectcompletionstatus_1511: What is the client's project completion status
+      Whatistheclientsrelationshiptotheheadofhousehold_1427: What is the client's relationship
+        to the head of household
+      Whatistheclientsschoolstatus_1454: What is the client's school status
+      Whatistheclientssexualorientation_1452: What is the client's sexual orientation
+      Whatisthereasonfornotprovidingservices_1451: What is the reason for not providing
+        services
+      Whatisthereasontheclientisnotemployed_1457: What is the reason the client is not employed
+      Whatisthereasontheclientwasnotenrolled_1517: What is the reason the client was not
+        enrolled
+      WhatwastheclientsHPScreeningScore_3210: What was the client's HP Screening Score
+      WhatwastheclientsVAMCStationNumber_3211: What was the client's VAMC Station Number
+      Whatwastheclientslastgradecompleted_1453: What was the client's last grade completed
+      Whatwastheclientsmoveindate_1430: What was the client's move-in date
+      Whatwastheclientsresidencepriortoprojectentry_1431: What was the client's residence
+        prior to project entry
+      Whendidtheclientslastepisodeofdomesticviolenceoccur_1612: When did the client's last
+        episode of domestic violence occur
+      Whenistheclientsduedate_1463: When is the client's due date
+      Wheredidtheclientgouponexit_1619: Where did the client go upon exit
+      WorkersCompensationMonthlyAmount_1537: Workers Compensation Monthly Amount
+      ZipCode_1438: Zip Code

@@ -1,0 +1,27 @@
+
+- services = @client.source_enrollment_services.bed_night.uniqueness_constraint.descending.preload( :client, :enrollment, project: :organization )
+- projects = services.map(&:project).compact.uniq.sort_by(&:organization_and_name).each_with_index.map{ |p, i| [ p, i ] }.to_h
+- if services.any?
+  %div(style="max-height:500px;overflow-y:auto;")
+    %table.table
+      %colgroup
+        %col(style="width:9em;")
+        %col
+      %thead
+        %tr
+          %th Date of Service
+          %th Locations
+      %tbody
+        - services.group_by{ |s| l(s.DateProvided) }.each do |date, services|
+          %tr
+            %td.date-cell= date
+            %td
+              - services.each do |service|
+                - project = service.project
+                .client__full-service-project
+                  %span.id-sqr.br{ 'data-id' => service.client.id }
+                  %span{ data: { toggle: 'tooltip', title: project.organization_and_name, project: projects[project] } }
+                    = project.name
+
+- else
+  No services on file

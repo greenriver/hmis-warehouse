@@ -1,0 +1,57 @@
+= #debug @result.results
+= form_for :report_result, url: report_report_result_path, method: :patch do |f|
+  %ul.nav.nav-tabs{role: :tablist}
+    - active = 'active'
+    - @result.results.each do |title, sections|
+      - if title == 'homeless_sub'
+        - display_title = "#{title.humanize}-population"
+      - else
+        - display_title = "#{title.humanize} population"
+      %li{role: :presentation, class: active}
+        %a{href: "\##{title}", role: :tab, data: {toggle: :tab}}= display_title
+      - active = ''
+  .tab-content
+    - active = 'active'
+    - @result.results.each do |title, sections|
+      .tab-pane{role: :tabpanel, class: active, id: title}
+        - active = ''
+        - sections.each do |section_title, section|
+          %h3= section_title.humanize
+          .table-responsive
+            %table.table.table-condensed.table-hover
+              %thead
+                %tr
+                  %th.report-result__section-header
+                    Question
+                  - _, breakdowns = section.first
+                  - breakdowns.keys.each do |k| 
+                    %th.report-result__section-header=k.upcase
+              %tbody
+                - section.each do |question, breakdowns|
+                  - question_slug = question.parameterize.underscore.to_sym
+                  %tr
+                    %td= question.humanize
+                    - breakdowns.each do |category, v|
+                      %td
+                        - if @result.support[title][section_title][question][category].is_a? Hash
+                          %a.launch-modal{href: '#', data: {toggle: :modal, target: "\##{section_title}-#{question_slug}-#{category}-support"}}
+                            = v
+                        - else
+                          = v
+
+-# Supporting modals
+.report-result__support
+  - @result.support.each do |title, sections|
+    - sections.each do |section_title, section|
+      - section.each do |question, breakdowns|
+        - breakdowns.each do |category, evidence|
+          - if evidence.is_a? Hash
+            = render 'report_results/pit/support', title: section_title, question: question, category: category, support: evidence
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.launch-modal').on('click', function(e){ e.preventDefault();});
+    })(jQuery);
+
+  

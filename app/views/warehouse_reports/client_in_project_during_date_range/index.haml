@@ -1,0 +1,36 @@
+%h1
+  Client's in a Project for a Given Date Range
+
+= simple_form_for :project, url: warehouse_reports_client_in_project_during_date_range_index_path, html: {method: :get} do |f|
+  .row
+    .col-sm-3
+      .input-group.start{'data-provide' => 'datepicker'}
+        = f.input_field :start, name: :start, class: 'form-control', value: @start 
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      .input-group.end{'data-provide' => 'datepicker'}
+        = f.input_field :end, name: :end, class: 'form-control', value: @end 
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      = f.input :id, label: false, as: :select, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering, selected: @project_id.to_s
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+.warehouse-reports__chronic
+  %p= page_entries_info @clients
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Data Source
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td= link_to client.LastName, client_path(client)
+          %td= link_to client.FirstName, client_path(client)
+          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+%p= paginate @clients
+
+= content_for :page_js do
+  :javascript
+    $('select').select2();

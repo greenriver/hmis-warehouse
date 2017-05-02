@@ -1,0 +1,92 @@
+- title = "Potentially Chronic Clients on #{@filter.date}"
+- content_for :title, title
+%h1= title
+= render 'filter'
+%p 
+  Clients are considered chronically homeless if they:
+  %ol
+    %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
+    %li are disabled
+    %li have been homeless in 12 of the last 36 months.
+    %li have had 4 or more episodes of homelessness if they haven't been continuously homeless for the last 12 months.
+    %li are not enrolled in a DMH project on the day specified
+  OR
+  %ol
+    %li are enrolled in a DMH project on the day specified
+    %li are disabled
+    %li have been homeless for 365 or more nights in the past three years
+    %li have been homeless in mainstream projects ES (1), SH (8) or SO (4) for 90 or more nights
+
+.warehouse-reports__chronic
+  .row
+    .col-sm-10
+      %h4 Chronic Clients
+      .jCharts
+        %p.jLoading.text-center Loading...
+    .col-sm-2.text-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+
+  .pagination
+    %p= page_entries_info @clients
+    %p= paginate @clients
+  - @clients.each do |client|
+    - chronic = client.chronics.find_by_date(@filter.date)
+    - source_clients = client.source_clients.preload(:data_source)
+    .warehouse-reports__client
+      .warehouse-reports__client-name
+        %h4
+          = link_to client.full_name, client_path(client)
+          Age:
+          =client.age
+      .row
+        .col-xs-3
+          %dl
+            %dt Homeless since
+            %dd= chronic.homeless_since
+            %dt Days Homeless in last three years
+            %dd= chronic.days_in_last_three_years
+            %dt Months Homeless in last three years
+            %dd= chronic.months_in_last_three_years
+            %dt Disability
+            %dd= client.source_disabilities.select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.map{|m| m.disability_type_text}.uniq.join('<br />').html_safe
+            - if chronic.dmh
+              %dt DMH Client?
+              %dd= checkmark(chronic.dmh)
+            - if client.veteran?
+              %dt Veteran?
+              %dd= checkmark(client.veteran?)
+            - if chronic.trigger.present?
+              %dt Chronic trigger
+              %dd= chronic.trigger 
+            - if so_enrolled = @so_clients.include?(client.id)
+              %dt Enrolled in SO
+              %dd= checkmark(so_enrolled)
+            %dt Data Source
+            %dd= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+        .col-xs-9
+          .rollup{data: {partial: :residential_enrollments, rollup_path: rollup_client_path(client), clients: source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name ] ] }.to_h.to_json, many_clients: source_clients.many?.to_json, high: client.source_clients.size + 1, client_id: client.id}, class: "jClientID-#{client.id}"}
+            %button.btn.btn-secondary.jLoadEnrollments
+              Load Residential Enrollment
+          -# client.service_history_entry_in_last_three_years.map{ |m| "#{m.project_name} from #{m.first_date_in_program} to #{m.last_date_in_program}"}.join('<br />').html_safe
+%p= paginate @clients
+
+-# load in al the bits of aggregate statistics via ajax
+= content_for :page_js do
+  :javascript
+    // add the chart
+    (function($) {
+      chart = new App.ChartsScatterByDate.Chronic('#{summary_warehouse_reports_chronic_index_path(params)}', '', '', '#{@filter.date}');
+      chart.load();
+
+      $('.jLoadEnrollments').on('click', function(e) {
+        e.preventDefault();
+        var rollupPath = $(this).closest('.rollup').data('rollupPath');
+        var clients = $(this).closest('.rollup').data('clients');
+        var manyClients = $(this).closest('.rollup').data('manyClients');
+        var high = $(this).closest('.rollup').data('high');
+        var clientID = $(this).closest('.rollup').data('clientId');
+        new App.Rollups.Loader($('.jClientID-' + clientID), rollupPath, manyClients, clients, high);
+        $(this).replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
+      });
+    })(jQuery);

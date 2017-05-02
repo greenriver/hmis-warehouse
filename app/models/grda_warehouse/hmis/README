@@ -1,0 +1,3 @@
+This directory contains classes used to bring in data from non-HUD homelessness management
+information systems. Table names in this directory should have the 'hmis.' prefix to
+prevent namespace collisions.

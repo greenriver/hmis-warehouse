@@ -1,0 +1,193 @@
+// less height on the links
+// get username out of the collapse menu
+
+.menu-link.menu-link {
+  color: #fff;
+  font-size: rem(16);
+  @include open-sans-medium;
+  text-transform: uppercase;
+  margin: 10px auto 0;
+  line-height: 1;
+  height: initial;
+}
+.open .menu-link.menu-link {
+  margin-top: 18px;
+}
+.menu-link .icon-menu {
+  font-size: rem(24);
+}
+.menu-link--word {
+  line-height: 1.2;
+}
+#vsm-container {
+  // @include font-din-normal;
+  width: 60px;
+  border-left: 1px solid #4A5359;
+  font-size: 14px;
+  font-weight: normal;
+  z-index: 1060;
+  background-color: darken($cas-blue, 12);
+  position: fixed;
+  right: 0;
+  top: 0;
+  overflow: hidden;
+  display: none;
+  @include content-box-sizing;
+}
+#vsm-container.open, 
+#vsm-container.outboard {
+  min-height: 400px;
+  height: 100%;
+}
+#vsm-container.open, 
+#vsm-container.pinned {
+  width: 185px;
+}
+.inboard.closed {
+  height: 59px;
+  background-color: transparent;
+  border-left: 0;
+}
+#vsm-container.transitions {
+  transition-property: width, background-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+.transitions .vsm-item-link--description {
+  transition-property: opacity;
+  transition: opacity 200ms linear;
+  transition-delay: 200ms;
+}
+.vsm-item-link--description {
+  visibility: hidden;
+  opacity: 0;
+  width: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  // overflow-x: hidden;
+  // white-space: nowrap;
+  // text-overflow: ellipsis;
+  text-align: right;
+  @include content-box-sizing;
+}
+.pinned .vsm-item-link--description, 
+.open .vsm-item-link--description {
+  width: 125px;
+  padding-left: 10px;
+  visibility: visible;
+  opacity: 1;
+}
+.vsm-item-link--description__collapse {
+  padding-top: 20px;
+}
+.vsm-item-link .menu-icon {
+  position: absolute;
+  right: 0;
+  display: block;
+  width: 60px;
+  text-align: center;
+  @include content-box-sizing;
+}
+
+.vsm-icon-gresb-circle:before {
+  position: relative;
+  right: 0.3em;
+}
+
+#vsm-container.open .show-open { display: block; }
+#vsm-container .show-open { display: none ; }
+#vsm-container.open .show-closed { display: none; }
+#vsm-container .show-closed { display: block; }
+
+$item-height: 40px;
+$tall-item-height: 66px;
+
+.vsm-group {
+  margin: 0 0 21px;
+}
+.open .vsm-group {
+  border-bottom: 1px solid $cas-blue;
+}
+.vsm-item-link {
+  height: $item-height;
+  line-height: 1.1;
+}
+#vsm-container.short .vsm-group {
+  margin: 0;
+}
+#vsm-container.short.open .vsm-group {
+  border-bottom: none;
+}
+
+.pinned .vsm-group-toggle .menu-icon {
+  display: none;
+}
+.pinned .vsm-group-toggle .vsm-item-link--description {
+  width: 150px;
+}
+.pinned .vsm-group-toggle .vsm-item-link {
+  cursor: default;
+}
+.pinned .vsm-group-toggle .vsm-item-link:hover {
+  color: #fff;
+}
+.vsm-group-toggle {
+  margin: 0 0 21px;
+  height: 59px;
+}
+// .open .vsm-group.vsm-group-toggle {
+//   margin-bottom: 21px;
+// }
+.vsm-item-link {
+  position: relative;
+  color: #fff;
+  display: block;
+  cursor: pointer;
+  &:hover,
+  &:focus {
+    color: $gray-030;
+  }
+}
+.vsm-group.vsm-group-account {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 185px;
+  @include content-box-sizing;
+}
+#vsm-container.inboard.closed {
+  .vsm-group.vsm-group-account {
+    display: none;
+  }
+}
+
+#jNavDropdownContent {
+  transition-property: max-height;
+  // transition time is to span entire max height delta.
+  // may appear faster than actual time to reach height.
+  transition-duration: 200ms;
+  transition-timing-function: linear;
+  padding: 20px 0;
+  background-color: #6b7984;
+  color: #fff;
+  a { @include no-transitions;  }
+  a, h3, h4, h5, h6 {
+    color: #fff;
+  }
+  position: fixed;
+  top: 70px;
+  left: 0;
+  overflow: hidden;
+  width: 100%;
+  max-height: 0;
+  visibility: hidden;
+  z-index: 1001;
+  @include content-box-sizing;
+}
+
+#jNavDropdownContent.open {
+  a { transition: .25s; }
+  max-height: 400px;
+  visibility: visible;
+}

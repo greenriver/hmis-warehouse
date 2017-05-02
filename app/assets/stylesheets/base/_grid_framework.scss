@@ -1,0 +1,52 @@
+// only some pages will be responsive 
+.container.non-responsive {
+  width: 970px !important;
+}
+.container.non-responsive .col-sm-1,
+.container.non-responsive .col-md-1 {
+  width: 8.33333333% !important;
+}
+.container.non-responsive .col-sm-2,
+.container.non-responsive .col-md-2 {
+  width: 16.66666667% !important;
+}
+.container.non-responsive .col-sm-3,
+.container.non-responsive .col-md-3 {
+  width: 25% !important;
+}
+.container.non-responsive .col-sm-4,
+.container.non-responsive .col-md-4 {
+  width: 33.33333333% !important;
+}
+.container.non-responsive .col-sm-5,
+.container.non-responsive .col-md-5 {
+  width: 41.66666667% !important;
+}
+.container.non-responsive .col-sm-6,
+.container.non-responsive .col-md-6 {
+  width: 50% !important;
+}
+.container.non-responsive .col-sm-7,
+.container.non-responsive .col-md-7 {
+  width: 58.33333333% !important;
+}
+.container.non-responsive .col-sm-8,
+.container.non-responsive .col-md-8 {
+  width: 66.66666667% !important;
+}
+.container.non-responsive .col-sm-9,
+.container.non-responsive .col-md-9 {
+  width: 75% !important;
+}
+.container.non-responsive .col-sm-10,
+.container.non-responsive .col-md-10 {
+  width: 83.33333333% !important;
+}
+.container.non-responsive .col-sm-11,
+.container.non-responsive .col-md-11 {
+  width: 91.66666667% !important;
+}
+.container.non-responsive .col-sm-12,
+.container.non-responsive .col-md-12 {
+  width: 100% !important;
+}

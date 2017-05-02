@@ -1,0 +1,12 @@
+- title = "HIC Exports"
+- content_for :title, title
+= render '/reports/breadcrumbs'
+%h1= title
+
+%p The following files will export files appropriate for upload at hudhdx.info.  They will only include projects of the following types: ES, TH, SH, PH (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services (no disability required for entry) and PH – Housing Only).
+
+%ul
+  %li= link_to 'Organization File', "#{reports_hic_organization_path}.csv"
+  %li= link_to 'Project File', "#{reports_hic_project_path}.csv"
+  %li= link_to 'Inventory File', "#{reports_hic_inventory_path}.csv"
+  %li= link_to 'Site File', "#{reports_hic_site_path}.csv"

@@ -1,0 +1,107 @@
+- title = "Bed utilization for #{@mo.organization_name rescue "[no organization]"}"
+- content_for :title, title
+= link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+  Download Excel
+%h1= title
+= simple_form_for @mo, as: :mo, url: warehouse_reports_bed_utilization_index_path, html: { method: :get } do |f|
+  = f.error_notification
+  .row
+    .col-sm-2
+      = f.input :month, collection: @mo.months, label: false, class: 'form-control'
+    .col-sm-2
+      = f.input :year, collection: @mo.years, label: false, class: 'form-control'
+    .col-sm-5
+      = f.input :org, collection: @mo.organizations, label: false, class: 'form-control'
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+%br
+
+:css
+  .bed-table td:not(:first-child) {
+    text-align: right;
+  }
+  .bed-table th:not(:first-child) {
+    text-align: center;
+  }
+  .warn-about-percent {
+    color: red;
+  }
+
+%table.table.table-condensed.table-hover.bed-table
+  %thead
+    %tr
+      %th{ colspan: 3 }
+      %th.lightest-gray{ colspan: 2 }
+        Average Daily
+      %th{ colspan: 2 }
+        1st of Month
+      %th.lightest-gray{ colspan: 2 }
+        15th of Month
+      %th{ colspan: 2 }
+        Last of Month
+    %tr
+      %th Program Name
+      %th Project Type
+      %th Capacity
+      %th.lightest-gray Persons
+      %th.lightest-gray % Capacity
+      %th Persons
+      %th % Capacity
+      %th.lightest-gray Persons
+      %th.lightest-gray % Capacity
+      %th Persons
+      %th % Capacity
+  %tbody
+    - totals = { prog: [], avg: [], first: [], ides: [], last: [] }
+    - @projects_with_counts.each do |_, projects|
+      - project = projects.first
+      - projects_by_date = projects.index_by(&:date)
+      %tr
+        %td
+          = project.name
+        %td
+          - p_type = ::HUD.project_type_brief(project.ProjectType)
+          - p_class = "client__service_type_#{p_type}"
+          %span{class: "client__service_type_#{project.ProjectType}"}
+            .enrollment__project_type{class: p_class}
+              %em.service-type__program-type= p_type
+        %td
+          = ri = relevant_inventory( project.inventories, @mo.range.end ).try(&:BedInventory)
+        - totals[:prog] << ri
+        - i = avg_info project, projects_by_date, @mo.range
+        - p, c = i[:persons], i[:percent_capacity]
+        - totals[:avg] << p
+        %td.lightest-gray= p
+        %td.lightest-gray= "#{c}%" if c
+        - [ :first, :ides, :last ].each_with_index do |k, idx|
+          - cz = 'lightest-gray' if idx % 2 == 1
+          - i = info project, projects_by_date, @mo.send(k)
+          - p, c = i[:persons], i[:percent_capacity]
+          - totals[k] << p
+          %td{ class: cz }= p
+          %td{ class: cz }= "#{c}%" if c
+    - if ( ar = totals[:prog] ).length > 0
+      %tr
+        %th(style="text-align:right;") Total
+        %td(style="text-align:right;" colspan=2)
+          - ar = ar.compact
+          - if ar.any?
+            = total = ar.sum
+        - [ :avg, :first, :ides, :last ].each_with_index do |k, idx|
+          - cz = 'lightest-gray' if idx % 2 == 0
+          - ar = totals[k]
+          - s1 = ar.sum
+          - s2 = ar.each_with_index.to_a.select{ |_,i| totals[:prog][i] }.map(&:first).sum   # second sum skips rows where we have no inventory
+          %td{ class: cz }= Integer === s1 ? s1 : s1.round(1)
+          %td{ class: cz }
+            - if total.to_f > 0
+              - s = ( s2.to_f / total * 100 ).round(1)
+              - if s1 == s2
+                = "#{s}%"
+              - else
+                %span.warn-about-percent= "#{s}%"
+
+= content_for :page_js do
+  :javascript
+    $('select').select2();
+    $('.warn-about-percent').tooltip({title: 'In calculating the percent rows were excluded for which there was no corresponding bed inventory.'});

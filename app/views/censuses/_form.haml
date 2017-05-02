@@ -1,0 +1,20 @@
+-# debug params
+= simple_form_for :nightly_census, url: censuses_path, html: {method: :get} do |f|
+  .row
+    .col-sm-3
+      = f.input :type, input_html: {name: :type}, collection: @types, label: 'Census Type', selected: @census.class.name, include_blank: false
+    .col-sm-3
+      %label{for: 'nightly_census[start_date]'}
+        From
+      .input-group.date{'data-provide' => 'datepicker'}
+        = f.input_field :start_date, name: :start_date, class: 'form-control', value: @start_date 
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      %label{for: 'nightly_census[end_date]'}
+        To
+      .input-group.date{'data-provide' => 'datepicker'}
+        = f.input_field :end_date, name: :end_date, class: 'form-control', value: @end_date 
+        %span.input-group-addon.icon-calendar
+    .col-sm-3
+      %br
+      = f.button :submit, value: 'Update View'

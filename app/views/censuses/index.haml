@@ -1,0 +1,16 @@
+- content_for :title, 'Nightly Census'
+%h1= content_for :title
+= render 'dashboards/tabs', active: 'census'
+.row
+  .col-sm-12
+    
+    = render partial: 'form'
+    .jCharts
+      %p.jLoading.text-center Loading...
+
+- content_for :page_js do
+  :javascript
+    (function($) {
+      census = new App.Census.#{@census.class.name.split('::').last}('#{date_range_censuses_path()}', '#{@census.class.name}', '#{@start_date}', '#{@end_date}');
+      census.load();
+    })(jQuery);

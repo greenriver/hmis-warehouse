@@ -1,0 +1,68 @@
+- title = "Client Dashboard for #{@client.full_name}"
+- content_for :title, title
+:css
+  .rollup {
+    margin: 1em 0 0 0;
+  }
+  .rollup-container:empty:after {
+    content: 'loading...';
+  }
+
+= render 'breadcrumbs'
+%h1= title
+.row
+  .col-sm-12
+    = render 'tab_navigation'
+
+= render 'client_summary'
+
+%hr
+.row
+  .col-sm-12
+    .rollup{data: {partial: :demographics}}
+      %h3 Demographics
+    -# This has been moved to the enrollments section
+    -# .rollup#family
+    -#   %h3 Family Members
+    .rollup{data: {partial: 'special-populations'}}
+      %h3 Special Populations
+    .rollup{data: {partial: :residential_enrollments}}
+      %h3 Residential Enrollments
+    .rollup{data: {partial: :other_enrollments}}
+      %h3 Other Enrollments
+.row
+  .col-sm-6
+    .rollup{data: {partial: :assessments}}
+      %h3 Assessments
+    .rollup{data: {partial: :contact_information}}
+      %h3 Contact Information
+    .rollup{data: {partial: :services}}
+      %h3 Services &mdash; Aggregated Bed Register
+  .col-sm-6
+    .rollup{data: {partial: 'case-manager'}}
+      %h3 Case Manager
+    .rollup{data: {partial: 'zip-map'}}
+      %h3 Zip Code of Last Permanent Address
+    .rollup{data: {partial: 'zip-details'}}
+      %h3 Zip Details
+    .rollup{data: {partial: 'income-benefits'}}
+      %h3 Income and Benefits
+    .rollup{data: {partial: 'services-full'}}
+      %h3 Services &mdash; Full Bed Register
+
+.row
+  .col-sm-12
+    .rollup{data: {partial: 'disability-types'}}
+      %h3 Disability Types
+#scratchpad
+
+-# load in al the bits of aggregate statistics via ajax
+= content_for :page_js do
+  - source_clients = @client.source_clients.preload(:data_source)
+  :javascript
+    var rollupPath = #{rollup_client_path(@client).to_json};
+    var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name ] ] }.to_h.to_json};
+    var manyClients = #{source_clients.many?.to_json};
+    var high = #{@client.source_clients.size + 1};
+    var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
+    rollups.collapsible('.jAssessmentTypeToggle');

@@ -1,0 +1,19 @@
+- question_slug = question.parameterize.underscore.to_sym
+.modal.fade{id: "#{title}-#{question_slug}-#{category}-support", role: :dialog}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{data: {dismiss: :modal}}
+          %span.icon-cross
+        .modal-title= "Supporting Data for #{title.humanize} #{question.humanize} #{category.upcase}"
+        .modal-body
+          %table.table.table-condensed.table-hover
+            %thead
+              %tr
+                - support['headers'].each do |t|
+                  %th= t
+            %tbody
+              - support['counts'].each do |row|
+                %tr
+                  - row.each do |v|
+                    %td= v

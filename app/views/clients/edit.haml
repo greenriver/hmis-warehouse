@@ -1,0 +1,16 @@
+- title = "Potential Duplicates for #{@client.name}"
+- content_for :title, title
+= render 'breadcrumbs'
+%h1= title
+.row
+  .col-sm-12
+    = render 'tab_navigation'
+
+- if @client.source_clients.size > 1
+  = render 'unmerge_form'
+%hr
+.row
+  .col-sm-6
+    = render 'match_search'
+  .col-sm-6
+    = render 'potential_matches'

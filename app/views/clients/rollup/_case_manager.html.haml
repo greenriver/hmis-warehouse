@@ -1,0 +1,18 @@
+- if @client.requires_api_update?
+  - @client.update_via_api
+- if @client.caseworkers.any?
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+        %th Phone
+        %th Type
+    %tbody
+      - @client.caseworkers.each do |caseworker|
+        %tr
+          %td= caseworker[:name]
+          %td= caseworker[:phone]
+          %td= caseworker[:title]
+- else
+  %p No caseworkers on file
+  

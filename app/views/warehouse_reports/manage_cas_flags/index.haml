@@ -1,0 +1,33 @@
+%h1 Manage CAS Flags
+.warehouse-reports__manage-cas-flags
+  %p This form can be used to bulk update the CAS flags on clients.  ID's should be listed one per line. If you remove an ID it will unflag that client for the specific flag.
+  %p 
+    Clients marked with 
+    %strong Active in CAS 
+    will be flagged available for matching in CAS. Those who exist in CAS but are not included in the
+    %strong Active in CAS
+    section below, will be marked inactive in CAS and won't be matched to further vacancies.  Any existing active matches will continue even if the client has been marked inactive.  Proposed matches for clients marked inactive will 
+    %strong not
+    proceed and will be removed when the currently active match involving related vacancies is next rebuilt due to a completed or canceled match.
+  = simple_form_for :cas_flags, url: bulk_update_warehouse_reports_manage_cas_flags_path do |f|
+    .row
+      .col-sm-4
+        %h3 Active in CAS
+        = f.input :sync_with_cas, as: :text, input_html: {value: @cas_active.map{|m| m[:id]}.join("\n"), rows: 20}
+        = render 'client_table', clients: @cas_active
+        
+      .col-sm-4
+        %h3 HAN Release on File
+        = f.input :housing_assistance_network_released_on, as: :text, input_html: { value: @han_release.map{|m| m[:id]}.join("\n"), rows: 20}
+        = render 'client_table', clients: @han_release
+      .col-sm-4
+        %h3 Disability Verification on File
+        = f.input :disability_verified_on, as: :text, input_html: {value: @disabled.map{|m| m[:id]}.join("\n"), rows: 20}
+        = render 'client_table', clients: @disabled
+    = f.submit class: 'btn btn-primary', value: 'Update CAS Flags'
+  
+    
+    
+    
+      
+  

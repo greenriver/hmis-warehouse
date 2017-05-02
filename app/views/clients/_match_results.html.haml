@@ -1,0 +1,43 @@
+- clients = clients.preload(:data_source, source_clients: [:data_source])
+- input_id = "grda_warehouse_hud_client[merge][]"
+- if clients.any?
+  %table.table.table-condensed.table-striped
+    %thead
+      %tr
+        %th{colspan: 2} Client
+        %th DOB
+        %th SSN
+    %tbody
+      - clients.each do |c|
+        %tr.client__potential-match
+          - client_name = "#{c.full_name}"
+          - sc_count = c.source_clients.count
+          - colspan = if sc_count == 1 then 2 else 4 end
+          - if sc_count == 1
+            - client_name = "#{client_name} in #{c.source_clients.first.data_source.short_name}"
+          %td{colspan: colspan}
+            = f.input :merge, label: false, as: :boolean, checked_value: c.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}, inline_label: link_to(client_name, client_path(c), target: "_blank")
+          - if sc_count == 1
+            %td
+              - if can_view_full_dob?
+                = c.DOB
+              - else
+                = c.age
+            %td
+              - if can_view_full_ssn?
+                = ssn(c.SSN)
+              - else
+                = masked_ssn(c.SSN)
+          - else
+            - c.source_clients.each do |sc|
+              %tr
+                %td{style: 'width: 2em;'}
+                %td.client__source-client
+                  = f.input :merge, label: false, as: :boolean, checked_value: sc.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}, inline_label: "#{sc.full_name} in #{sc.data_source.short_name}"
+                %td
+                  = sc.DOB
+                %td
+                  - if can_view_full_ssn?
+                    = ssn(sc.SSN)
+                  - else
+                    = masked_ssn(sc.SSN)

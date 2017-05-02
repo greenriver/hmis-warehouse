@@ -1,0 +1,19 @@
+%h1 Clients with Initial Entry Dates on Their DOB
+.warehouse-reports__missing-projects
+  %p
+    The following clients were born on the same day they entered homelessness.
+  %p= page_entries_info @clients
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Client
+        %th DOB
+        %th First Enrollment Date
+    %tbody
+      - @clients.each do |client|
+        - if client.DOB == client.source_enrollments.sort_by{|m| m[:EntryDate]}.first.EntryDate
+          %tr
+            %td= link_to client.name, client_path(client)
+            %td= client.DOB
+            %td= client.source_enrollments.sort_by{|m| m[:EntryDate]}.first.EntryDate
+%p= paginate @clients

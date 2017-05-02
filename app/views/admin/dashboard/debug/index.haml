@@ -1,0 +1,76 @@
+%h1 Debug Dashboard
+%p The following sections give a high level overview of the efficacy of the automated import and processing routines.
+.row
+  .col-sm-6
+    %h3 Are there any warehouse clients with missing destinations?
+    - if @missing_destinations == 0
+      %p Nope
+    - else 
+      %p
+        Yes: 
+        %strong
+          = @missing_destinations
+        %br
+        You should probably 
+        %code
+          delete from warehouse_clients where destination_id is not in (select id from client)
+  .col-sm-6
+    %h3 Are there any warehouse clients with missing sources?
+    - if @missing_sources == 0
+      %p Nope
+    - else 
+      %p 
+        Yes: 
+        %strong
+          = @missing_sources
+        %br
+        You should probably 
+        %code
+          delete from warehouse_clients where source_id not in (select id from client)
+        %br
+        or
+        %code
+          GrdaWarehouse::WarehouseClient.where.not(source_id: GrdaWarehouse::Hud::Client.select(:id)).delete_all
+.row
+  .col-sm-6
+    %h3 Are there any destination clients with missing warehouse_client records?
+    - if @missing_client_destinations == 0
+      %p Nope
+    - else 
+      %p 
+        Yes: 
+        %strong
+          = @missing_client_destinations
+        You should probably 
+        %code
+          update client set DateDeleted = GETDATE() where data_source_id = 4 and id not in (select destination_id from warehouse_clients) and DateDeleted is null
+        %br
+        or
+        %code
+          GrdaWarehouse::Hud::Client.destination.where.not(id: GrdaWarehouse::WarehouseClient.select(:destination_id)).destroy_all
+        which will take longer, but should obey paranoia.
+  .col-sm-6
+    %h3 Any truly duplicate source items?
+    %p These can be an indication of bad source data, OR a problem with the import routines.
+    - if @duplicate_source_items.empty?
+      %p Nope
+    - else 
+      %p
+        Yes: 
+        - @duplicate_source_items.each do |ds, tables|
+          %h4= ds
+          %ul
+            - tables.each do |table, data|
+              %li
+                = "#{table} duplicates:"
+                %strong
+                  = data[:errors]
+                %p 
+                  Investigate with:
+                %pre
+                  :plain
+                    select count(*) AS count_all, #{data[:primary_hud_key]}
+                    from #{table} 
+                    where data_source_id = #{data[:data_source_id]}
+                    group by #{data[:primary_hud_key]}
+                    having count(#{data[:primary_hud_key]}) > 1

@@ -1,0 +1,22 @@
+%h1 Client With Odd Characters in Their Names
+.warehouse-reports__missing-projects
+  .row
+    .col-sm-8
+      %p The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
+    .col-sm-4
+      = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
+        Download Excel
+  %p= page_entries_info @clients
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Data Source
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td= link_to client.LastName.gsub(' ', '⎵'), client_path(client)
+          %td= link_to client.FirstName.gsub(' ', '⎵'), client_path(client)
+          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+%p= paginate @clients
