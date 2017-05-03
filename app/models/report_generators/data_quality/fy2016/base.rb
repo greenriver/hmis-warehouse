@@ -42,78 +42,106 @@ module ReportGenerators::DataQuality::Fy2016
       add_filters(scope: client_scope)
     end
 
-    def calculate_leavers
-      # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
-      # is not active in any of the relevant projects as of the [report end date].
-      # 2. The client must be an adult to be included.
-      columns = [
-        :client_id, 
-        :first_date_in_program, 
-        :last_date_in_program, 
-        :project_id, 
-        :age, 
-        :DOB, 
-        :enrollment_group_id, 
-        :data_source_id, 
-        :project_tracking_method, 
-        :project_name, 
-        :RelationshipToHoH, 
-        :household_id,
-        :destination,
-      ]
+    def leavers
+      @leavers ||= begin
+        # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
+        # is not active in any of the relevant projects as of the [report end date].
+        # 2. The client must be an adult to be included.
+        columns = [
+          :client_id, 
+          :first_date_in_program, 
+          :last_date_in_program, 
+          :project_id, 
+          :age, 
+          :DOB, 
+          :enrollment_group_id, 
+          :data_source_id, 
+          :project_tracking_method, 
+          :project_name, 
+          :RelationshipToHoH, 
+          :household_id,
+          :destination,
+        ]
 
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
-        ongoing(on_date: @report.options['report_end'])
+        client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+          ongoing(on_date: @report.options['report_end'])
 
-      client_id_scope = add_filters(scope: client_id_scope)
+        client_id_scope = add_filters(scope: client_id_scope)
 
-      leavers_scope = GrdaWarehouse::ServiceHistory.entry.
-        ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.days).
-        where.not(
-          client_id: client_id_scope.
-            select(:client_id).
-            distinct
-        ).
-        joins(:client, :enrollment)
-        
-      leavers_scope = add_filters(scope: leavers_scope)
+        leavers_scope = GrdaWarehouse::ServiceHistory.entry.
+          ended_between(start_date: @report.options['report_start'], 
+            end_date: @report.options['report_end'].to_date + 1.days).
+          where.not(
+            client_id: client_id_scope.
+              select(:client_id).
+              distinct
+          ).
+          joins(:client, :enrollment)
+          
+        leavers_scope = add_filters(scope: leavers_scope)
 
-      leavers = leavers_scope.
-        order(client_id: :asc, first_date_in_program: :asc).
-        pluck(*columns).map do |row|
-          Hash[columns.zip(row)]
-        end.group_by do |row|
-          row[:client_id]
-        end.map do |id,enrollments| 
-          # We only care about the last enrollment
-          [id, enrollments.last]
-        end.to_h
+        leavers_scope.
+          order(client_id: :asc, first_date_in_program: :asc).
+          pluck(*columns).map do |row|
+            Hash[columns.zip(row)]
+          end.group_by do |row|
+            row[:client_id]
+          end.map do |id,enrollments| 
+            # We only care about the last enrollment
+            [id, enrollments.last]
+          end.to_h
+      end
     end
 
-    def calculate_stayers
-      # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
-      # Page 24 of 41
-      # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
-      # 3. The client must be an adult to be included in this measure.
-      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :data_source_id, :project_tracking_method, :project_name, :RelationshipToHoH, :household_id]
+    def stayers
+      stayers ||= begin
+        # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
+        # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
+        # 3. The client must be an adult to be included in this measure.
+        columns = [
+          :client_id, 
+          :first_date_in_program, 
+          :last_date_in_program, 
+          :project_id, 
+          :age, 
+          :DOB, 
+          :enrollment_group_id, 
+          :data_source_id, 
+          :project_tracking_method, 
+          :project_name, 
+          :RelationshipToHoH, 
+          :household_id,
+        ]
 
-      stayers_scope = GrdaWarehouse::ServiceHistory.entry.
-        ongoing(on_date: @report.options['report_end']).
-        joins(:client, :enrollment)
+        stayers_scope = GrdaWarehouse::ServiceHistory.entry.
+          ongoing(on_date: @report.options['report_end']).
+          joins(:client, :enrollment)
 
-      stayers_scope = add_filters(scope: stayers_scope)
+        stayers_scope = add_filters(scope: stayers_scope)
 
-      stayers = stayers_scope.
-        order(client_id: :asc, first_date_in_program: :asc).
-        pluck(*columns).map do |row|
-          Hash[columns.zip(row)]
-        end.group_by do |row|
-          row[:client_id]
-        end.map do |id,enrollments| 
-          # We only care about the last enrollment
-          [id, enrollments.last]
-        end.to_h
+        stayers_scope.
+          order(client_id: :asc, first_date_in_program: :asc).
+          pluck(*columns).map do |row|
+            Hash[columns.zip(row)]
+          end.group_by do |row|
+            row[:client_id]
+          end.map do |id,enrollments| 
+            # We only care about the last enrollment
+            [id, enrollments.last]
+          end.to_h
+      end
+    end
+
+    def adult_stayers
+      @adult_stayers ||= stayers.select do |_, enrollment|
+        enrollment[:age] >= ADULT if enrollment[:age].present?
+      end
+    end
+
+    def adult_heads_of_households_stayers
+      @adult_heads_of_households_stayers ||= adult_stayers.select do |_, enrollment|
+        enrollment[:RelationshipToHoH] == 1
+      end
     end
 
     def start_report(report)
@@ -215,6 +243,18 @@ module ReportGenerators::DataQuality::Fy2016
         household[:household].select do |member|
           (member[:age].present? && member[:age] < ADULT || member[:age].blank?) && member[:RelationshipToHoH] == 1
         end.any?
+      end
+    end
+
+    def adult_heads_of_households_leavers
+      @adult_head_leavers ||= adult_leavers.select do |_, enrollment|
+        enrollment[:RelationshipToHoH].to_i == 1
+      end
+    end
+
+    def adult_leavers
+      @adult_leavers ||= @leavers.select do |_, enrollment|
+        enrollment[:age] >= ADULT if enrollment[:age].present?
       end
     end
 

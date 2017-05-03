@@ -12,11 +12,9 @@ module ReportGenerators::DataQuality::Fy2016
           setup_age_categories()
           update_report_progress(percent: 25)
           add_age_answers()
-          @leavers = calculate_leavers()
-          update_report_progress(percent: 50)
-          @stayers = calculate_stayers()
           add_leaver_answers()
           add_stayer_answers()
+          update_report_progress(percent: 50)
           add_veteran_answer()
           add_chronic_answers()
           add_youth_answers()
@@ -81,21 +79,14 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def add_leaver_answers
-      @answers[:q1_b5][:value] = @leavers.size
-
-      adult_leavers = @leavers.select do |_, enrollment|
-        enrollment[:age] >= ADULT if enrollment[:age].present?
-      end
+      @answers[:q1_b5][:value] = leavers.size
       @answers[:q1_b6][:value] = adult_leavers.size
-      adult_heads_of_households = adult_leavers.select do |_, enrollment|
-        enrollment[:RelationshipToHoH].to_i == 1
-      end
-      @answers[:q1_b7][:value] = adult_heads_of_households.size
+      @answers[:q1_b7][:value] = adult_heads_of_households_leavers.size
 
       headers = ['Client ID', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
       @support[:q1_b5][:support] = add_support(
         headers: headers, 
-        data: @leavers.map do |_, enrollment|
+        data: leavers.map do |_, enrollment|
           [
             enrollment[:client_id], 
             enrollment[:age], 
@@ -119,7 +110,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
       @support[:q1_b7][:support] = add_support(
         headers: headers, 
-        data: adult_heads_of_households.map do |_, enrollment|
+        data: adult_heads_of_households_leavers.map do |_, enrollment|
           [
             enrollment[:client_id], 
             enrollment[:age], 
@@ -133,16 +124,13 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def add_stayer_answers
-      @answers[:q1_b8][:value] = @stayers.size
-      staying_adults = @stayers.select do |_, enrollment|
-        enrollment[:age] >= ADULT if enrollment[:age].present?
-      end
-      @answers[:q1_b9][:value] = staying_adults.size
+      @answers[:q1_b8][:value] = stayers.size
+      @answers[:q1_b9][:value] = adult_stayers.size
 
       headers = ['Client ID', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
       @support[:q1_b8][:support] = add_support(
         headers: headers, 
-        data: @stayers.map do |_, enrollment|
+        data: stayers.map do |_, enrollment|
           [
             enrollment[:client_id], 
             enrollment[:age], 
@@ -301,9 +289,7 @@ module ReportGenerators::DataQuality::Fy2016
 
     def add_lts_answers
       # Any stayer who is RelationshipToHoH == 1 or age > 18 and has a stay lenght of 365 days or more
-      lts = @stayers.select do |id, enrollment|
-          enrollment[:RelationshipToHoH] == 1 || enrollment[:age].present? && enrollment[:age] >= ADULT
-        end.
+      lts = adult_heads_of_households_stayers.
         map do |id, enrollment|
           enrollment[:stay_length] = GrdaWarehouse::ServiceHistory.service.
             where(
