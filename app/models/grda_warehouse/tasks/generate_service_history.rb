@@ -1261,11 +1261,6 @@ module GrdaWarehouse::Tasks
       else
         [Date.today, export_date, export_end].compact.min
       end
-      puts '______'
-      puts max_update_for_export(export: export).inspect
-      puts [Date.today, export_date, export_end].inspect
-      puts build_history_until.inspect
-
 
       head_of_household_id = personal_id_of_head_of_household_by_entry_id(enrollment)
       program_exit = exits_by_personal_id_and_entry_id(enrollment)
@@ -1334,10 +1329,6 @@ module GrdaWarehouse::Tasks
         e << day
 
         # Build service entries for every day within the enrollment
-        puts 'aaa'
-        puts build_history_until.inspect
-        puts 'bbb'
-        puts program_entry_date.inspect
         stay_length = (build_history_until - program_entry_date).to_i
         logger.info "Building #{stay_length} entries for #{default_day[:project_name]}"
         stay_length.times do |i|
