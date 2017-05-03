@@ -15,6 +15,8 @@ module ReportGenerators::DataQuality::Fy2016
           add_income_at_entry_answers()
           update_report_progress(percent: 50)
           add_income_at_exit_answers()
+          update_report_progress(percent: 75)
+          add_income_annual_update_answers()
         end
         finish_report()
       else
@@ -81,7 +83,7 @@ module ReportGenerators::DataQuality::Fy2016
     # are identified income sources.
     #   e. [data collection stage] for [income and sources] = 1 AND [income from any source] = 1 AND there are no identified income sources.
     def add_income_at_entry_answers
-      client_ids = adult_heads.keys
+      client_ids = (@adults.keys + other_heads.keys).uniq
       
       # This potentially contains more income records than we need
       # since we only care about the most recent enrollment 
@@ -106,7 +108,7 @@ module ReportGenerators::DataQuality::Fy2016
             enrollment[:enrollment_group_id], 
             enrollment[:project_id], 
             enrollment[:data_source_id]
-          ]]
+          ]].last
           if enrollment[:first_date_in_program] != income[:first_date_in_program]
             incorrect_date[id] = enrollment
           elsif [8,9,99,nil].include?(income[:IncomeFromAnySource])
@@ -154,7 +156,7 @@ module ReportGenerators::DataQuality::Fy2016
     #   c. [income from any source] = 0 AND there are identified income sources.
     #   d. [income from any source] = 1 AND there are no identified income sources.
     def add_income_at_exit_answers
-      client_ids = adult_heads_of_households.keys
+      client_ids = adult_leavers_and_heads_of_household_leavers.keys
       
       # This potentially contains more income records than we need
       # since we only care about the most recent enrollment 
@@ -179,7 +181,7 @@ module ReportGenerators::DataQuality::Fy2016
             enrollment[:enrollment_group_id], 
             enrollment[:project_id], 
             enrollment[:data_source_id]
-          ]]
+          ]].last
           if enrollment[:first_date_in_program] != income[:first_date_in_program]
             incorrect_date[id] = enrollment
           elsif [8,9,99,nil].include?(income[:IncomeFromAnySource])
@@ -218,7 +220,7 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q4_c5][:value] = ((poor_quality.size.to_f / (@adults.count + other_heads.count)) * 100).round(2)
+      @answers[:q4_c5][:value] = ((poor_quality.size.to_f / adult_leavers_and_heads_of_household_leavers.count) * 100).round(2)
     end
 
     # Column B Row 4 – count the number of adults and heads of household stayers active in the report date range in project stays of >= 365 days as of the [report end date] where any one of the following are true:
@@ -227,7 +229,80 @@ module ReportGenerators::DataQuality::Fy2016
     #   c. [information date] is within 30 days of the anniversary date AND [data collection stage] for [income and sources] = 5 AND [income from any source] = 0 AND there are identified income sources.
     #   d. [information date] is within 30 days of the anniversary date AND [data collection stage] for [income and sources] = 5 AND [income from any source] = 1 AND there are no identified income sources.
     def add_income_annual_update_answers
-      all_client_scope.includes(enrollment: :income_benefits_annual_update)
+      clients_with_enrollments = adult_stayers_and_heads_of_household_stayers.map do |id, enrollment|
+        enrollment[:stay_length] = stay_length(client_id: id, entry_date: enrollment[:first_date_in_program], exit_date: enrollment[:enrollment_group_id])
+        [id,enrollment]
+      end.to_h.select do |_,enrollment|
+        enrollment[:stay_length] >= 365
+      end
+
+      incomes = incomes_by_enrollment(client_ids: clients_with_enrollments.keys, stage: :annual)
+      binding.pry
+      missing = Hash.new
+      incorrect_date = Hash.new
+      incorrect_any_source = Hash.new
+      should_not_have_sources_but_does = Hash.new
+      should_have_sources_but_does_not = Hash.new
+      clients_with_enrollments.each do |id, enrollment|
+        if incomes[[
+          enrollment[:client_id], 
+          enrollment[:enrollment_group_id], 
+          enrollment[:project_id], 
+          enrollment[:data_source_id],
+        ]].blank?
+          missing[id] = enrollment
+        else
+          anniversary = anniversary_date(enrollment[:first_date_in_program])
+          anniversary_incomes = incomes[[
+            enrollment[:client_id], 
+            enrollment[:enrollment_group_id], 
+            enrollment[:project_id], 
+            enrollment[:data_source_id]
+          ]].select do |income|
+            (income[:InformationDate] - anniversary).abs > 30
+          end
+          if anniversary_incomes.empty?
+            incorrect_date[id] = enrollment
+          else
+            income = anniversary_incomes.last
+            if [8,9,99,nil].include?(income[:IncomeFromAnySource])
+              incorrect_any_source[id] = enrollment
+            else
+              if income[:IncomeFromAnySource] == 0
+                if income.values_at(*income_sources).compact.uniq != [nil]
+                  should_not_have_sources_but_does[id] = enrollment
+                end
+              elsif income[:IncomeFromAnySource] == 1
+                if income.values_at(*income_sources).compact.uniq == [nil]
+                  should_have_sources_but_does_not[id] = enrollment
+                end
+              end
+            end
+          end
+        end
+      end
+      @clients_with_issues += missing.keys
+      @clients_with_issues += incorrect_date.keys
+      @clients_with_issues += incorrect_any_source.keys
+      @clients_with_issues += should_not_have_sources_but_does.keys
+      @clients_with_issues += should_have_sources_but_does_not.keys
+      poor_quality = missing.merge(incorrect_date).
+        merge(incorrect_any_source).
+        merge(should_not_have_sources_but_does).
+        merge(should_have_sources_but_does_not)
+      @answers[:q4_b6][:value] = poor_quality.size
+      @support[:q4_b6][:support] = add_support(
+        headers: ['Client ID', 'Project', 'Entry', 'Exit'],
+        data: poor_quality.map do |id, enrollment|
+          [
+            id, 
+            enrollment[:project_name],
+            enrollment[:first_date_in_program],
+            enrollment[:last_date_in_program],
+          ]
+        end
+      )
+      @answers[:q4_c6][:value] = ((poor_quality.size.to_f / clients_with_enrollments.count) * 100).round(2)
     end
 
     def incomes_by_enrollment client_ids:, stage:
@@ -243,12 +318,13 @@ module ReportGenerators::DataQuality::Fy2016
             all_client_scope.
               joins(enrollment: stages[stage]).
               where(client_id: ids).
+              merge(GrdaWarehouse::Hud::IncomeBenefit.order(InformationDate: :asc)).
               pluck(*columns.values).map do |row|
                 Hash[columns.keys.zip(row)]
               end
           )
         end
-      end.index_by do |income|
+      end.group_by do |income|
         [
           income[:client_id], 
           income[:enrollment_group_id], 
@@ -268,6 +344,7 @@ module ReportGenerators::DataQuality::Fy2016
           first_date_in_program: :first_date_in_program,
           last_date_in_program: :last_date_in_program,
           project_name: :project_name,
+          InformationDate: :InformationDate,
           enrollment_group_id: :enrollment_group_id,
           IncomeFromAnySource: :IncomeFromAnySource,
         }.merge(income_source_columns)        

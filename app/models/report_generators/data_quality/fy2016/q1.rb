@@ -18,6 +18,8 @@ module ReportGenerators::DataQuality::Fy2016
           add_veteran_answer()
           add_chronic_answers()
           add_youth_answers()
+          add_household_head_answers()
+          add_lts_answers()
         end
         finish_report()
       else
@@ -81,7 +83,7 @@ module ReportGenerators::DataQuality::Fy2016
     def add_leaver_answers
       @answers[:q1_b5][:value] = leavers.size
       @answers[:q1_b6][:value] = adult_leavers.size
-      @answers[:q1_b7][:value] = adult_heads_of_households_leavers.size
+      @answers[:q1_b7][:value] = adult_leavers_and_heads_of_household_leavers.size
 
       headers = ['Client ID', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
       @support[:q1_b5][:support] = add_support(
@@ -110,7 +112,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
       @support[:q1_b7][:support] = add_support(
         headers: headers, 
-        data: adult_heads_of_households_leavers.map do |_, enrollment|
+        data: adult_leavers_and_heads_of_household_leavers.map do |_, enrollment|
           [
             enrollment[:client_id], 
             enrollment[:age], 
@@ -234,7 +236,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
       parenting_youth = youth_households.select do |id, household|
         household[:household].select do |member|
-          member[:age].present? && member[:age] < ADULT && member[:RelationshipToHoH] == 2
+          adult?(member[:age]) && child_in_household?(member[:RelationshipToHoH])
         end.any?
       end
 
@@ -289,25 +291,18 @@ module ReportGenerators::DataQuality::Fy2016
 
     def add_lts_answers
       # Any stayer who is RelationshipToHoH == 1 or age > 18 and has a stay lenght of 365 days or more
-      lts = adult_heads_of_households_stayers.
+      lts = adult_stayers_and_heads_of_household_stayers.
         map do |id, enrollment|
-          enrollment[:stay_length] = GrdaWarehouse::ServiceHistory.service.
-            where(
-              client_id: id, 
-              first_date_in_program: enrollment[:first_date_in_program],
-              enrollment_group_id: enrollment[:enrollment_group_id]
-            ).
-            select(:date).
-            distinct.
-            count
-        end.select do |enrollment|
+          enrollment[:stay_length] = stay_length(client_id: id, entry_date: enrollment[:first_date_in_program], exit_date: enrollment[:enrollment_group_id])
+          [id,enrollment]
+        end.to_h.select do |_,enrollment|
           enrollment[:stay_length] >= 365
         end
       @answers[:q1_b16][:value] = lts.size
       @support[:q1_b16][:support] = add_support(
         headers: ['Client ID', 'Relationship to Head of Household', 'Stay Length'],
-        data: lts.map do |enrollment|
-          [enrollment[:client_id], enrollment[:RelationshipToHoH], enrollment[:stay_length]]
+        data: lts.map do |id, enrollment|
+          [id, enrollment[:RelationshipToHoH], enrollment[:stay_length]]
         end
       )
     end

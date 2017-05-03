@@ -116,7 +116,7 @@ module ReportGenerators::DataQuality::Fy2016
       poor_quality = @all_clients.select do |id, enrollments|
         flag = false
         enrollment = enrollments.last
-        if ! (1..5).include?(enrollment[:RelationshipToHoH].to_i)
+        if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
           # we have a missing, or non-usable relationship
           flag = true
         else
@@ -159,11 +159,11 @@ module ReportGenerators::DataQuality::Fy2016
       poor_quality = @all_clients.select do |id, enrollments|
         flag = false
         enrollment = enrollments.last
-        if enrollment[:RelationshipToHoH] != 1
+        if ! head_of_household?(enrollment[:RelationshipToHoH])
           flag = false
         else
           # if the CoCCode doesn't match the approved pattern (including missing), flag it
-          flag = ! /^[a-zA-Z]{2}-[0-9]{3}$/.match(enrollment[:CoCCode]).present?
+          flag = ! valid_coc_code?(enrollment[:CoCCode])
         end
 
       end

@@ -134,14 +134,38 @@ module ReportGenerators::DataQuality::Fy2016
 
     def adult_stayers
       @adult_stayers ||= stayers.select do |_, enrollment|
-        enrollment[:age] >= ADULT if enrollment[:age].present?
+        adult?(enrollment[:age])
       end
     end
 
-    def adult_heads_of_households_stayers
-      @adult_heads_of_households_stayers ||= adult_stayers.select do |_, enrollment|
-        enrollment[:RelationshipToHoH] == 1
+    def adult_stayers_and_heads_of_household_stayers
+      @adult_stayers_and_heads_of_household_stayers ||= stayers.select do |_, enrollment|
+        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
+    end
+
+    def adult?(age)
+      age >= ADULT if age.present?
+    end
+
+    def child?(age)
+      age < ADULT if age.present?
+    end
+
+    def head_of_household?(relationship)
+      relationship.to_i == 1
+    end
+
+    def child_in_household?(relationship)
+      relationship.to_i == 2
+    end
+
+    def valid_household_relationship?(relationship)
+      (1..5).include?(relationship.to_i)
+    end
+
+    def valid_coc_code?(code)
+      /^[a-zA-Z]{2}-[0-9]{3}$/.match(code).present?
     end
 
     def start_report(report)
@@ -185,16 +209,23 @@ module ReportGenerators::DataQuality::Fy2016
     def setup_age_categories
       clients_with_ages = @all_clients.map do |id, enrollments|
         [id, enrollments.last[:age]]
-      end
+      end.to_h
       @adults = clients_with_ages.select do |_, age|
-        age >= ADULT if age.present?
+        adult?(age)
       end
       @children = clients_with_ages.select do |_, age|
-        age < ADULT if age.present?
+        child?(age)
       end
       @unknown = clients_with_ages.select do |_, age|
         age.blank?
       end
+    end
+
+    def anniversary_date(date)
+      date = date.to_date
+      end_date = @report.options['report_end'].to_date
+      anniversary_date = Date.new(end_date.year, date.month, date.day)
+      anniversary_date = if anniversary_date > end_date then anniversary_date - 1.year else anniversary_date end
     end
 
 
@@ -233,7 +264,7 @@ module ReportGenerators::DataQuality::Fy2016
     def adult_heads
       households.select do |id, household|
         household[:household].select do |member|
-          member[:age].present? && member[:age] >= ADULT && member[:RelationshipToHoH] == 1
+          adult?(member[:age]) && head_of_household?(member[:RelationshipToHoH])
         end.any?
       end
     end
@@ -241,21 +272,33 @@ module ReportGenerators::DataQuality::Fy2016
     def other_heads
       households.select do |id, household|
         household[:household].select do |member|
-          (member[:age].present? && member[:age] < ADULT || member[:age].blank?) && member[:RelationshipToHoH] == 1
+          ! adult?(member[:age]) && head_of_household?(member[:RelationshipToHoH])
         end.any?
       end
     end
 
-    def adult_heads_of_households_leavers
-      @adult_head_leavers ||= adult_leavers.select do |_, enrollment|
-        enrollment[:RelationshipToHoH].to_i == 1
+    def adult_leavers_and_heads_of_household_leavers
+      @adult_head_leavers ||= leavers.select do |_, enrollment|
+        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
     end
 
     def adult_leavers
       @adult_leavers ||= @leavers.select do |_, enrollment|
-        enrollment[:age] >= ADULT if enrollment[:age].present?
+        adult?(enrollment[:age])
       end
+    end
+
+    def stay_length(client_id:, entry_date:, exit_date:)
+      GrdaWarehouse::ServiceHistory.service.
+        where(
+          client_id: client_id, 
+          first_date_in_program: entry_date,
+          enrollment_group_id: exit_date
+        ).
+        select(:date).
+        distinct.
+        count
     end
 
     def client_disabled?(enrollment:)
