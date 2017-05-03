@@ -46,7 +46,21 @@ module ReportGenerators::DataQuality::Fy2016
       # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
       # is not active in any of the relevant projects as of the [report end date].
       # 2. The client must be an adult to be included.
-      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :data_source_id, :project_tracking_method, :project_name, :RelationshipToHoH, :household_id]
+      columns = [
+        :client_id, 
+        :first_date_in_program, 
+        :last_date_in_program, 
+        :project_id, 
+        :age, 
+        :DOB, 
+        :enrollment_group_id, 
+        :data_source_id, 
+        :project_tracking_method, 
+        :project_name, 
+        :RelationshipToHoH, 
+        :household_id,
+        :destination,
+      ]
 
       client_id_scope = GrdaWarehouse::ServiceHistory.entry.
         ongoing(on_date: @report.options['report_end'])
