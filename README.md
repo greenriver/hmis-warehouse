@@ -1,7 +1,7 @@
-# InDoor HMIS Warehouse
+# Boston HMIS Warehouse
 
 ## Introduction
-The InDoor HMIS Warehouse (Warehouse) project was initiated by the City of Boston's Department of Neighborhood Development office to coordinate data across various HMIS installations and supply de-duplicated client information to the [Boston CAS](https://github.com/greenriver/boston-cas).
+The HMIS Warehouse project was initiated by the City of Boston's Department of Neighborhood Development to gather data from across various HMIS installations, produce aggregated reports, and supply de-duplicated client information to the [Boston CAS](https://github.com/greenriver/boston-cas) system for Coordinated Access to housing.
 
 The Warehouse is capable if ingesting standard HUD HMIS CSV files as well as data via the Social Solutions ETO API.
 
@@ -25,7 +25,7 @@ A copy of the license is available in [LICENSE.md](https://github.com/greenriver
 
 The City of Boston made a conscientious choice to release this project into the open source under a GPL. Our goal is to promote this opportunity, allowing Boston's investment to assist other municipalities and organizations, and realize the vision of a tool under continuous, collaborative improvement helping communities nationwide.
 
-Looking ahead, we see the Warehouse codebase serving as a foundation for all communities that report the department of Housing and Urban Development or have a need to aggregate and de-duplicate homeless client data across various systems.  To our knowledge, this is the only open source, freely available implementation of many HUD reports.
+Looking ahead, we see the Warehouse codebase serving as a foundation for all communities that report to the department of Housing and Urban Development, or have a need to aggregate and de-duplicate homeless client data from across various systems.  To our knowledge, this is the only open source, freely available implementation of many HUD reports.
 
 ## Application Design
 
