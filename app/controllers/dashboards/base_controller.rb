@@ -50,8 +50,8 @@ module Dashboards
       raise NotImplementedError
     end
 
-    def _housed(all_exits_key:, all_exits_instance_key:)
-      @start_date = 3.years.ago.beginning_of_month.to_date
+    def _housed(all_exits_key:, all_exits_instance_key:, start_date: 3.years.ago.beginning_of_month.to_date)
+      @start_date = start_date
       @end_date = 1.month.ago.end_of_month.to_date
       sh = GrdaWarehouse::ServiceHistory.arel_table
       
@@ -212,9 +212,9 @@ module Dashboards
 
     private def exits_from_homelessness
       GrdaWarehouse::ServiceHistory.exit.
-        # where(
-        #   project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        # ).
+        where(
+          project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        ).
         where(client_id: client_source)
     end
 
@@ -233,7 +233,7 @@ module Dashboards
       ]
     end
 
-    private def active_clients range: range
+    private def active_clients range: 
       sort_column = "#{GrdaWarehouse::WarehouseClientsProcessed.quoted_table_name}.first_date_served"
       sort_direction = "asc"
       served_client_ids = homeless_service_history_source.
@@ -248,7 +248,7 @@ module Dashboards
         order("#{sort_column} #{sort_direction}")
     end
 
-    private def active_client_service_history clients: clients, range: range
+    private def active_client_service_history clients:, range: 
       homeless_service_history_source.entry.
         open_between(start_date: range.start, end_date: range.end + 1.day).
         includes(:enrollment).

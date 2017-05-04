@@ -3,7 +3,7 @@
     .col-sm-4
       .big-block
         .title
-          Exits to PH in the past 3 years
+          Exits to PH from homelessness
         .body
           = @ph_exits.map{|_,m| m[:data].sum}.sum
       
