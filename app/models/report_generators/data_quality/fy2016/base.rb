@@ -69,7 +69,7 @@ module ReportGenerators::DataQuality::Fy2016
         client_id_scope = add_filters(scope: client_id_scope)
 
         leavers_scope = GrdaWarehouse::ServiceHistory.entry.
-          ended_between(start_date: @report.options['report_start'] + 1.day, 
+          ended_between(start_date: @report.options['report_start'].to_date + 1.days, 
             end_date: @report.options['report_end'].to_date + 1.days).
           where.not(
             client_id: client_id_scope.
