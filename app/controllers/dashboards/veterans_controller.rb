@@ -16,7 +16,11 @@ module Dashboards
     def housed
       all_exits_key = 'housed-veteran-all-exits'
       all_exits_instance_key = 'housed-veterans-instance-all-exits'
-      _housed(all_exits_key: all_exits_key, all_exits_instance_key: all_exits_instance_key)
+      _housed(
+        all_exits_key: all_exits_key, 
+        all_exits_instance_key: all_exits_instance_key,
+        start_date: '2014-07-01'.to_date
+      )
       render layout: !request.xhr?
     end
 
