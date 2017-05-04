@@ -233,7 +233,7 @@ module Dashboards
       ]
     end
 
-    private def active_clients range: range
+    private def active_clients range: 
       sort_column = "#{GrdaWarehouse::WarehouseClientsProcessed.quoted_table_name}.first_date_served"
       sort_direction = "asc"
       served_client_ids = homeless_service_history_source.
@@ -248,7 +248,7 @@ module Dashboards
         order("#{sort_column} #{sort_direction}")
     end
 
-    private def active_client_service_history clients: clients, range: range
+    private def active_client_service_history clients:, range: 
       homeless_service_history_source.entry.
         open_between(start_date: range.start, end_date: range.end + 1.day).
         includes(:enrollment).
