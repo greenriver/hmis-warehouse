@@ -3,8 +3,9 @@ module ReportGenerators::SystemPerformance::Fy2016
   include ArelHelper
 
     def add_filters scope:
-      if @report.options['project_id'].present?
-        scope = scope.joins(:project).where(project: { id: @report.options['project_id'].to_i})
+      if @report.options['project_id'].delete_if(&:blank?).any?
+        project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
+        scope = scope.where(project: { id: project_ids})
       end
       if @report.options['data_source_id'].present?
         scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
