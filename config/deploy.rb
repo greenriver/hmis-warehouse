@@ -2,7 +2,7 @@
 lock '3.6.1'
 
 set :application, 'boston_hmis'
-set :repo_url, 'git@github.com:greenriver/boston-hmis.git'
+set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 
 server ENV['HOSTS'], user: ENV['USER'], roles: %w{app db web}
 # Default branch is :master
