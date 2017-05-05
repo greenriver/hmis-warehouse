@@ -152,12 +152,29 @@ module GrdaWarehouse::Hud
     scope :cas_active, -> do
       where(sync_with_cas: true)
     end
-    scope :han_release_on_file, -> do
-      where.not(housing_assistance_network_released_on: nil)
+    scope :full_housing_release_on_file, -> do
+      where(housing_release_status: 'Full HAN Release')
+    end
+    scope :limited_cas_release_on_file, -> do
+      where(housing_release_status: 'Limited CAS Release')
     end
     scope :verified_disability, -> do
       where.not(disability_verified_on: nil)
     end
+
+    scope :dmh_eligible, -> do
+      where.not(dmh_eligible: false)
+    end
+    scope :va_eligible, -> do
+      where.not(va_eligible: false)
+    end
+    scope :hues_eligible, -> do
+      where.not(hues_eligible: false)
+    end
+    scope :hiv_positive, -> do
+      where.not(hiv_positive: false)
+    end
+
     attr_accessor :merge
     attr_accessor :unmerge
 
@@ -216,6 +233,10 @@ module GrdaWarehouse::Hud
     def chronic?(on: nil)
       on ||= GrdaWarehouse::Chronic.most_recent_day
       chronics.where(date: on).present?
+    end
+
+    def ever_chronic?
+      chronics.any?
     end
     # family members, if any, as found by matching household_id in service history entries
     # individuals returned are sorted oldest to youngest
@@ -418,9 +439,22 @@ module GrdaWarehouse::Hud
     def self.cas_columns
       {
         disability_verified_on: 'Disability Verification on File', 
-        housing_assistance_network_released_on: 'HAN Release on File',
+        housing_release_status: 'Housing Release Status',
+        full_housing_release: 'Full HAN Release on File',
+        limited_cas_release: 'Limited CAS Release on File',
         sync_with_cas: 'Available in CAS',
+        dmh_eligible: 'DMH Eligible',
+        va_eligible: 'VA Eligible',
+        hues_eligible: 'HUES Eligible',
+        hiv_positive: 'HIV+'
       }
+    end
+
+    def self.housing_release_options
+      [
+       'Full HAN Release',
+       'Limited CAS Release',
+      ]
     end
 
     def invalidate_service_history

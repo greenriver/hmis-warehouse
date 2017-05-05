@@ -21,6 +21,13 @@
   .col-sm-12
     .rollup{data: {partial: :demographics}}
       %h3 Demographics
+    .row
+      .col-sm-6.client__cas_flags
+        = render 'cas_flags'
+      .col-sm-6
+        - if @client.processed_service_history.present? && @client.ever_chronic?
+          .rollup{data: {partial: :chronic}}
+            %h3 Chronic Days
     -# This has been moved to the enrollments section
     -# .rollup#family
     -#   %h3 Family Members

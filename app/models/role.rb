@@ -17,6 +17,8 @@ class Role < ActiveRecord::Base
       :can_edit_users,
       :can_view_full_ssn,
       :can_view_full_dob,
+      :can_view_hiv_status,
+      :can_view_dmh_status,
       :can_view_imports,
       :can_edit_roles,
       :can_view_projects,

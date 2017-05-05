@@ -43,13 +43,14 @@ class ClientsController < ApplicationController
     else
       nil
     end
-    update_params[:housing_assistance_network_released_on] = if update_params[:housing_assistance_network_released_on] == '1'
-      @client.housing_assistance_network_released_on || Time.now
+    if update_params[:housing_release_status].present?
+      update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
     else
-      nil
+      update_params[:housing_assistance_network_released_on] = nil
     end
     if @client.update(update_params)
       flash[:notice] = 'Client updated'
+      Cas::SyncToCasJob.perform_later
       redirect_to action: :show
     else
       flash[:notice] = 'Unable to update client'
@@ -252,6 +253,11 @@ class ClientsController < ApplicationController
         :disability_verified_on,
         :housing_assistance_network_released_on,
         :sync_with_cas,
+        :dmh_eligible,
+        :va_eligible,
+        :hues_eligible,
+        :hiv_positive,
+        :housing_release_status,
         merge: [], 
         unmerge: []
       )

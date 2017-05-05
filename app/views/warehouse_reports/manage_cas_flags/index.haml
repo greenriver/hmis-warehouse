@@ -9,22 +9,34 @@
     section below, will be marked inactive in CAS and won't be matched to further vacancies.  Any existing active matches will continue even if the client has been marked inactive.  Proposed matches for clients marked inactive will 
     %strong not
     proceed and will be removed when the currently active match involving related vacancies is next rebuilt due to a completed or canceled match.
+  .well
+    .dropdown
+      %button.btn.btn-default{data: {toggle: :dropdown}}
+        Choose flag to update
+        %span.caret
+      %ul.dropdown-menu
+        %li
+          - cas_flags.each do |slug, label|
+            %a{href: "?cas_flag=#{slug}"}
+              = label
+
   = simple_form_for :cas_flags, url: bulk_update_warehouse_reports_manage_cas_flags_path do |f|
     .row
       .col-sm-4
-        %h3 Active in CAS
-        = f.input :sync_with_cas, as: :text, input_html: {value: @cas_active.map{|m| m[:id]}.join("\n"), rows: 20}
-        = render 'client_table', clients: @cas_active
-        
-      .col-sm-4
-        %h3 HAN Release on File
-        = f.input :housing_assistance_network_released_on, as: :text, input_html: { value: @han_release.map{|m| m[:id]}.join("\n"), rows: 20}
-        = render 'client_table', clients: @han_release
-      .col-sm-4
-        %h3 Disability Verification on File
-        = f.input :disability_verified_on, as: :text, input_html: {value: @disabled.map{|m| m[:id]}.join("\n"), rows: 20}
-        = render 'client_table', clients: @disabled
-    = f.submit class: 'btn btn-primary', value: 'Update CAS Flags'
+        %h3= cas_flags[@flag]
+        - if housing_release_types.include?(@flag)
+          .alert.alert-info
+            %ul
+              %li You CANNOT use this form to remove a housing release, you must do that on the client dashboard.  
+              %li You CAN use this form to add a housing release or change from limited to full or full to limited.
+        = f.input @flag, as: :text, input_html: {value: @clients.map{|m| m[:id]}.join("\n"), rows: 20}, label: false
+        = f.input :flag, as: :hidden, input_html: {value: @flag}
+        = f.submit class: 'btn btn-primary', value: 'Update CAS Flags'
+      .col-sm-8
+        %h3= "Flagged Clients (#{@clients.size})"
+        = render 'client_table', clients: @clients  
+      
+    
   
     
     

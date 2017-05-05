@@ -25,6 +25,7 @@ module GrdaWarehouse::Tasks
           project_client_columns.map do |destination, source|
             project_client[destination] = client.send(source)
           end
+          project_client.needs_update = true
           project_client.save!
         end
       end
@@ -75,6 +76,11 @@ module GrdaWarehouse::Tasks
         disability_verified_on: :disability_verified_on,
         housing_assistance_network_released_on: :housing_assistance_network_released_on,
         sync_with_cas: :sync_with_cas,
+        dmh_eligible: :dmh_eligible,
+        va_eligible: :va_eligible,
+        hues_eligible: :hues_eligible,
+        hiv_positive: :hiv_positive,
+        housing_release_status: :housing_release_status,
       }
     end
   end

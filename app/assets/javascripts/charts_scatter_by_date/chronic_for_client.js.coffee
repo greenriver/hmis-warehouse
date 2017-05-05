@@ -4,7 +4,7 @@ class App.ChartsScatterByDate.ChronicForClient extends App.ChartsScatterByDate.B
   constructor: (@element, @url, @start_date, @end_date) ->
     @data = {}
     @charts = {}
-    @height = 30
+    @height = 100
     @width = 300
 
   load: ->

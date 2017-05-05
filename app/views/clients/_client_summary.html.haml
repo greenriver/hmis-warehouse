@@ -4,8 +4,6 @@
       %span.icon-warning
       = @client.full_name
       is chronically homeless
-      .rollup{data: {partial: :chronic}}
-        %h3 Chronic Days
   .row
     .col-sm-4
       %h3 Service Summary
@@ -25,8 +23,6 @@
     .col-sm-4
       %h3 Data Sharing Agreement
       = @client.consent_form_status.presence ||'No consent forms on file'
-      .client__cas_flags
-        = render 'cas_flags'
     .col-sm-4
       .client__image
         = image_tag image_client_path
