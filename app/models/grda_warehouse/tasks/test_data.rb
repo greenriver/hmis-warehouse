@@ -19,20 +19,21 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def initialize( n: 100, dir: 'tmp/testing', logger: BogusLogger.new, remove_old: true )
+    def initialize( n: 100, dir: 'tmp/test_data', logger: BogusLogger.new, remove_old: true )
       @n_clients  = n
       @dir        = dir
       @logger     = logger
       @remove_old = remove_old
+      @export_root_path = Rails.root.join.to_s << "/#{@dir}/"
     end
 
     def run!
-      if remove_old && File.exists?(dir)
-        logger.info "removing all data in #{dir}"
+      if remove_old && File.exists?(@export_root_path)
+        logger.info "removing all data in #{@export_root_path}"
         FileUtils.rmtree dir
       end
-      FileUtils.mkdir_p(dir) unless File.exists? dir
-      Dir.chdir dir
+      FileUtils.mkdir_p(@export_root_path) unless File.exists?(@export_root_path)
+      Dir.chdir(@export_root_path)
       connect_to_staging
       all_objects = {}
       data_source_ids = Set.new
@@ -61,11 +62,13 @@ module GrdaWarehouse::Tasks
       sources.each do |source|
         dump_data source, all_objects
       end
+      FileUtils.chdir(Rails.root.join.to_s)
       logger.info 'done'
     end
 
     def dump_sources(sources)
       raise 'no sources found' if sources.empty?
+      FileUtils.chdir(@export_root_path)
       sources << GrdaWarehouse::DataSource.destination.first
       CSV.open DATA_SOURCES, 'wb' do |csv|
         csv << cols = sources.all.first.class.column_names
@@ -76,15 +79,16 @@ module GrdaWarehouse::Tasks
     end
 
     def dump_data(source, all_objects)
+      FileUtils.chdir(@export_root_path)
       new_dir = "source-#{source.id}"
       logger.info "source #{source.name}"
       logger.info "files will be created in #{new_dir}"
-      Dir.mkdir new_dir unless File.exists? new_dir
-      Dir.chdir new_dir
+      FileUtils.mkdir_p(new_dir) unless File.directory?(new_dir)
+      FileUtils.chdir("#{@export_root_path}/#{new_dir}")
       all_objects.each do |model, hash|
         dump_table model, hash.values.select{ |e| e.data_source_id == source.id }.sort_by(&:id)
       end
-      Dir.chdir '..'
+      FileUtils.chdir(@export_root_path)
     end
 
     def file_map

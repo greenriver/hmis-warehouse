@@ -134,5 +134,5 @@ group :test do
 end
 
 group :development, :staging do
-  gem 'faker', require: false
+  gem 'faker', '>= 1.7.2', require: false
 end
