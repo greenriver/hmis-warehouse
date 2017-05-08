@@ -69,7 +69,7 @@ module ReportGenerators::DataQuality::Fy2016
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
-      @answers[:q2_e2][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e2][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_ssn_answers
@@ -116,7 +116,7 @@ module ReportGenerators::DataQuality::Fy2016
           [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:SSN]]
         end
       )
-      @answers[:q2_e3][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e3][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_dob_answers
@@ -163,7 +163,7 @@ module ReportGenerators::DataQuality::Fy2016
           [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:DOB]]
         end
       )
-      @answers[:q2_e4][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e4][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_race_answers
@@ -202,7 +202,7 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q2_e5][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e5][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_ethnicity_answers
@@ -241,7 +241,7 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q2_e6][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
       
     end
 
@@ -281,12 +281,12 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q2_e7][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e7][:value] = ((counted.size.to_f / all_client_count * 100)).round(2)
       
     end
 
     def add_summary_info
-      @answers[:q2_e8][:value] = (@clients_with_issues.size.to_f / all_client_count).round(2) * 100
+      @answers[:q2_e8][:value] = ((@clients_with_issues.size.to_f / all_client_count) * 100).round(2)
     end
 
     def fetch_all_clients

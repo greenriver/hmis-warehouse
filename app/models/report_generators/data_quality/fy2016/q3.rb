@@ -210,7 +210,7 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q3_c6][:value] = (counted.size.to_f / all_client_count).round(2) * 100
+      @answers[:q3_c6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2) 
     end
 
     def enrollments_overlap?(en_1, en_2)
