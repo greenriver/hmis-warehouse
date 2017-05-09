@@ -98,16 +98,37 @@ namespace :grda_warehouse do
       dnd_eto.save
 
       ma_eto = GrdaWarehouse::DataSource.where(name: 'State of MA').first_or_create
-      ma_eto.file_path = '/mnt/hmis/ma'
+      ma_eto.file_path = 'mnt/hmis/ma'
       ma_eto.source_type = 'samba'
       ma_eto.short_name = 'MA'
       ma_eto.munged_personal_id = true
       ma_eto.save
     elsif Rails.env.development?
       grda = GrdaWarehouse::DataSource.where(name: 'Green River').first_or_create
-      grda.file_path = '/var/hmis/grda'
+      grda.file_path = Rails.root.join.to_s << '/var/hmis/green_river'
       grda.source_type = 'samba'
       grda.short_name = 'GRDA'
+      grda.munged_personal_id = true
+      grda.save
+
+      grda = GrdaWarehouse::DataSource.where(name: 'Blue Mountain').first_or_create
+      grda.file_path = Rails.root.join.to_s << '/var/hmis/bm'
+      grda.source_type = 'samba'
+      grda.short_name = 'BM'
+      grda.munged_personal_id = true
+      grda.save
+
+      grda = GrdaWarehouse::DataSource.where(name: 'Black Lake').first_or_create
+      grda.file_path = Rails.root.join.to_s << '/var/hmis/bl'
+      grda.source_type = 'samba'
+      grda.short_name = 'BL'
+      grda.munged_personal_id = true
+      grda.save
+
+      grda = GrdaWarehouse::DataSource.where(name: 'Orange Peninsula').first_or_create
+      grda.file_path = Rails.root.join.to_s << '/var/hmis/op'
+      grda.source_type = 'samba'
+      grda.short_name = 'OP'
       grda.munged_personal_id = true
       grda.save
 
@@ -115,8 +136,31 @@ namespace :grda_warehouse do
       dnd_warehouse.short_name = 'Warehouse'
       dnd_warehouse.save
     end
+  end
 
+  desc "Import Many HUD CSVs for development"
+  task :import_dev_hud_csvs, [:environment, "log:info_to_stdout"] do
+    # loop over data sources, looking for sub directories, find the first one
+    # copy all files into the data source import path
+    # delete the folder, run samba import for that DS
+    GrdaWarehouse::DataSource.importable.each do |ds|
+      directories = Dir["#{ds.file_path}/*"].select{ |f| File.directory?(f)}
+      directories.each do |dir|
+        puts "Moving #{dir}/* to #{ds.file_path}"
+        Dir["#{dir}/*"].each do |f|
+          FileUtils.mv(f, ds.file_path) if File.extname(f) == '.csv'
+        end
+        puts "Removing #{dir}"
+        FileUtils.rmdir(dir)
+        puts "Importing #{ds.id}"
+        Importers::Samba.new(ds.id).run!
+      end
+    end
+  end
 
+  desc "Dump Many HUD CSVs from Production for Development"
+  task :dump_hud_csvs_for_dev, [:n] => [:environment] do |t, args|
+    GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500).run!
   end
 
   desc "Import HUD Zips from all Data Sources"
