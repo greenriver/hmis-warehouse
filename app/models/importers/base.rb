@@ -127,9 +127,11 @@ module Importers
     private def fetch_over_samba data_source
       attempts = 1 # samba can be finnicky and sometimes needs a few seconds to wake up, we'll give it five attempts with 2 * attempts seconds between
       while attempts < 5 
-        logger.info "Copying files to temporary location..."
         @import.zip = "/#{data_source.file_path.split('/').last}"
-        FileUtils.cp_r("#{data_source.file_path}/", extract_path.gsub(@import.zip, ''))
+        source_path = data_source.file_path
+        temporary_path = extract_path.gsub(@import.zip, '/')
+        logger.info "Copying files to temporary location... #{source_path} to #{temporary_path}"
+        FileUtils.cp_r(source_path, temporary_path)
         logger.info "... done Copying files"
         files = []
         Dir["#{extract_path}/*"].each do |f|
