@@ -144,7 +144,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
       @support[:q1_b9][:support] = add_support(
         headers: headers, 
-        data: staying_adults.map do |_, enrollment|
+        data: adult_stayers.map do |_, enrollment|
           [
             enrollment[:client_id], 
             enrollment[:age], 
