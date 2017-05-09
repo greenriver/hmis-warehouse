@@ -79,6 +79,7 @@ module GrdaWarehouse::Tasks
     #   3. perfect name matches
     private def check_for_obvious_match client_id
       client = GrdaWarehouse::Hud::Client.find(client_id.to_i)
+      
       ssn_matches = []
       if valid_social?(client.SSN)
         ssn_matches = check_social client.SSN
@@ -92,11 +93,20 @@ module GrdaWarehouse::Tasks
         name_matches = check_name client
       end
       all_matches = ssn_matches + birthdate_matches + name_matches
+      if Rails.env.development?
+        personal_id_matches = check_personal_ids(client.PersonalID)
+        all_matches += personal_id_matches
+      end
       obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
       if obvious_matches.any?
         return obvious_matches.first
       end
       return nil
+    end
+
+    private def check_personal_ids(personal_id)
+      return [] if personal_id.to_i.to_s == personal_id.to_s
+      client_destinations.where(PersonalID: personal_id).pluck(:id)
     end
 
     private def valid_social? ssn

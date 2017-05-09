@@ -53,6 +53,7 @@ module WarehouseReports
         end
         data = data.group_by(&:first).map do |project_id, rows|
           bins = rows.group_by do |*,count|
+            count = count.to_i
             if count <= 90
               '1 Day to 90 Days'
             elsif count <= 362
@@ -67,7 +68,7 @@ module WarehouseReports
           end
           bins = bins.map{ |k, rs| [ k, rs.size ] }.to_h
           @headers.each{ |h| bins[h] ||= 0 }
-          bins['average'] = ( rows.map(&:last).sum / rows.size.to_f ).round
+          bins['average'] = ( rows.map(&:last).map(&:to_i).sum / rows.size.to_f ).round
           [
             project_id,
             bins.slice(*@headers)

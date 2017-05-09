@@ -261,14 +261,26 @@ module GrdaWarehouse::Hud
       @households ||= begin
         hids = service_history_entry.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id).uniq
         if hids.any?
+          service_table = GrdaWarehouse::ServiceHistory.arel_table
+          client_table = GrdaWarehouse::Hud::Client.arel_table
+          columns = {
+            household_id: service_table[:household_id].as('household_id').to_sql, 
+            date: service_table[:date].as('date').to_sql, 
+            client_id: service_table[:client_id].as('client_id').to_sql, 
+            age: service_table[:age].as('age').to_sql, 
+            enrollment_group_id: service_table[:enrollment_group_id].as('enrollment_group_id').to_sql, 
+            FirstName: client_table[:FirstName].as('FirstName').to_sql, 
+            LastName: client_table[:LastName].as('LastName').to_sql, 
+            last_date_in_program: service_table[:last_date_in_program].as('last_date_in_program').to_sql,
+          }
           hh_where = hids.map{|hh_id, ds_id| "(household_id = '#{hh_id}' and #{GrdaWarehouse::ServiceHistory.quoted_table_name}.data_source_id = #{ds_id})"}.join(' or ')
-          sql = GrdaWarehouse::ServiceHistory.entry
+          entries = GrdaWarehouse::ServiceHistory.entry
             .joins(:client)
             .where(hh_where)
             .where.not(client_id: id )
-            .select(:household_id, :date, :client_id, :age, :enrollment_group_id, :FirstName, :LastName, :last_date_in_program)
-            .to_sql
-          entries = GrdaWarehouseBase.connection.raw_connection.execute(sql).each(as: :hash).uniq
+            .pluck(*columns.values).map do |row|
+              Hash[columns.keys.zip(row)]
+            end.uniq
           entries = entries.group_by{|m| [m['household_id'], m['date']]}
         end
       end
@@ -485,10 +497,10 @@ module GrdaWarehouse::Hud
     end
 
     def consent_form_status
-      @consent_form_status ||= source_hmis_clients.joins(:client)
-        .where.not(consent_form_status: nil)
-        .order('Client.DateUpdated desc')
-        .first.try(&:consent_form_status)
+      @consent_form_status ||= source_hmis_clients.joins(:client).
+        where.not(consent_form_status: nil).
+        merge(Client.order(DateUpdated: :desc)).
+        first.try(&:consent_form_status)
     end
     # Find the most-recently updated source_hmis_client with a non-null consent_form
     def signed_consent_form_fully?
@@ -652,12 +664,12 @@ module GrdaWarehouse::Hud
           .or(sa['LastName'].matches(query))
         if nicks.any?
           nicks_for_search = nicks.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
-          where = where.or(Arel.sql("LOWER(Client.FirstName) in (#{nicks_for_search})", ))
+          where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks_for_search))
         end
         if alt_names.present?
           alt_names_for_search = alt_names.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
-          where = where.or(Arel.sql("LOWER(Client.FirstName) in (#{alt_names_for_search})"))
-            .or(Arel.sql("LOWER(Client.LastName) in (#{alt_names_for_search})"))
+          where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(alt_names_for_search)).
+            or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
         end
       end
 
@@ -754,7 +766,10 @@ module GrdaWarehouse::Hud
 
           if nicks.any?
             nicks_for_search = nicks.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
-            similar_destinations = self.class.destination.where(Arel.sql("LOWER(Client.FirstName) in (#{nicks_for_search})")).where(c_arel['LastName'].matches("%#{self.LastName}%")).where.not(id: self.id)
+            similar_destinations = self.class.destination.where(
+              nv('LOWER', [Client.FirstName]).in(nicks_for_search)
+            ).where(c_arel['LastName'].matches("%#{self.LastName}%")).
+            where.not(id: self.id)
             m[:by_nickname] = similar_destinations if similar_destinations.any?
           end
           # Find anyone with similar sounding names
@@ -763,7 +778,13 @@ module GrdaWarehouse::Hud
           alt_names = alt_first_names + alt_last_names
           if alt_names.any?
             alt_names_for_search = alt_names.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
-            similar_destinations = self.class.destination.where(Arel.sql("(LOWER(Client.FirstName) in (#{alt_names_for_search}) and LOWER(Client.LastName) like '#{self.LastName}%') or (LOWER(Client.LastName) in (#{alt_names_for_search}) and LOWER(Client.FirstName) like '#{self.FirstName}%')")).where.not(id: self.id)
+            similar_destinations = self.class.destination.where(
+              nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
+                and(nf('LOWER', [c_arel[:LastName]]).matches('#{self.LastName}%')).
+              or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
+                and(nf('LOWER', [c_arel[:FirstName]]).matches('#{self.FirstName}%'))
+              )
+            ).where.not(id: self.id)
             m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
           end
           # Find anyone with similar sounding names
@@ -840,6 +861,13 @@ module GrdaWarehouse::Hud
         end
         # clean up the previous destination
         if prev_destination_client
+          
+          # move any CAS column data
+          previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns.merge!(previous_cas_columns){ |k, old, new| old.presence || new}
+          self.update(current_cas_columns)
+          self.save()
           prev_destination_client.invalidate_service_history
           prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
         end
@@ -867,6 +895,7 @@ module GrdaWarehouse::Hud
 
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope
+      conn = ActiveRecord::Base.connection
       exit_table = GrdaWarehouse::Hud::Exit.arel_table
       enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
       project_table = GrdaWarehouse::Hud::Project.arel_table
@@ -874,21 +903,21 @@ module GrdaWarehouse::Hud
       service_table = GrdaWarehouse::ServiceHistory.arel_table
       client_table = GrdaWarehouse::Hud::Client.arel_table
       columns = {
-        ProjectEntryID: "#{GrdaWarehouse::Hud::Enrollment.quoted_table_name}.ProjectEntryID",
-        EntryDate: "#{GrdaWarehouse::Hud::Enrollment.quoted_table_name}.EntryDate",
-        PersonalID: "#{GrdaWarehouse::Hud::Enrollment.quoted_table_name}.PersonalID",
-        ExitDate: "#{GrdaWarehouse::Hud::Exit.quoted_table_name}.ExitDate",
-        date: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.date",
-        project_type: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_type",
-        project_name: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_name",
-        project_tracking_method: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_tracking_method",
-        household_id: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.household_id",
-        record_type: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.record_type",
-        data_source_id: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.data_source_id",
-        OrganizationName: "#{GrdaWarehouse::Hud::Organization.quoted_table_name}.OrganizationName",
-        ProjectID: "#{GrdaWarehouse::Hud::Project.quoted_table_name}.ProjectID",
-        project_id: "#{GrdaWarehouse::Hud::Project.quoted_table_name}.id",
-        client_source_id: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.id",
+        ProjectEntryID: enrollment_table[:ProjectEntryID].as('ProjectEntryID').to_sql,
+        EntryDate: enrollment_table[:EntryDate].as('EntryDate').to_sql,
+        PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
+        ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
+        date: service_table[:date].as('date').to_sql,
+        project_type: service_table[:project_type].as('project_type').to_sql,
+        project_name: service_table[:project_name].as('project_name').to_sql,
+        project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
+        household_id: service_table[:household_id].as('household_id').to_sql,
+        record_type: service_table[:record_type].as('record_type').to_sql,
+        data_source_id: service_table[:data_source_id].as('data_source_id').to_sql,
+        OrganizationName: organization_table[:OrganizationName].as('OrganizationName').to_sql,
+        ProjectID: project_table[:ProjectID].as('ProjectID').to_sql,
+        project_id: project_table[:id].as('project_id').to_sql,
+        client_source_id: client_table[:id].as('client_source_id').to_sql,
       }
       exit_join = enrollment_table.join(exit_table, Arel::Nodes::OuterJoin).
         on(enrollment_table[:ProjectEntryID].eq(exit_table[:ProjectEntryID]).

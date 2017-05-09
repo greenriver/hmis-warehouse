@@ -1,6 +1,6 @@
 class CensusesController < ApplicationController
   before_action :require_can_view_censuses!
-
+  include ArelHelper
   # default view grouped by project
   def index
     # Whitelist census types
@@ -28,20 +28,20 @@ class CensusesController < ApplicationController
       project_type = params[:project_type].downcase.to_sym
       pt_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
       @census_detail_name = census.detail_name(project_type)
-      scope = service_history_scope.where(project_type: pt_codes)
+      scope = service_history_scope.joins(:client).where(project_type: pt_codes)
       sh_scope = scope.where(warehouse_client_service_history: {date: @date})
 
       base_project_scope = project_scope.joins(:service_history).distinct
 
       if params[:veteran].present?
-        @involved_projects = base_project_scope.merge(sh_scope.joins(:client).where(client: {VeteranStatus: 1}))
+        @involved_projects = base_project_scope.merge(sh_scope.joins(:client).where(Client: {VeteranStatus: 1}))
         if params[:veteran] == 'Veteran Count'
           @census_detail_name = "Veterans in #{@census_detail_name}"
-          scope = scope.joins(:client).where(client: {VeteranStatus: 1})
+          scope = scope.where(Client: {VeteranStatus: 1})
           @prior_year_averages = load_prior_year_averages_by_project_type(@date.year - 1, project_type, true)
         else
           @census_detail_name = "Non-Veterans in #{@census_detail_name}"
-          scope = scope.joins(:client).where.not(client: {VeteranStatus: 1})
+          scope = scope.where.not(Client: {VeteranStatus: 1})
           @prior_year_averages = load_prior_year_averages_by_project_type(@date.year - 1, project_type, false)
         end
       else
@@ -131,12 +131,18 @@ class CensusesController < ApplicationController
   end
 
   private def load_prior_year_averages_by_project_type year, project_type, veteran=nil
-    scope = census_by_year_project_type_scope.where(['year(date) = ?', year])
-      .where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
+    scope = census_by_year_project_type_scope
+    if census_by_year_project_type_scope.engine.postgres?
+      scope = scope.where(['extract(year from date) = ?', year])
+    else
+      scope = scope.where(['year(date) = ?', year])
+    end
+    scope = scope.
+      where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
     if veteran.present?
       scope = scope.where(veteran: veteran)
     end
-    client_count = scope.map{|m| m[:client_count]}.compact.reduce(0, :+)
+    client_count = scope.map{|m| m[:client_count].to_i}.compact.reduce(0, :+)
     ave_days_of_service_count = scope.map{|m| m[:date]}.uniq.size
 
     {}.tap do |m|

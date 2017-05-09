@@ -44,9 +44,16 @@ module Censuses
 
       def relation_as_report relation
         sql = relation.to_sql
-        Rails.logger.debug "#{self.class.name}#relation_as_report: #{sql}"
+        # Rails.logger.debug "#{self.class.name}#relation_as_report: #{sql}"
         if relation.engine.postgres?
-          relation.connection.raw_connection.exec(sql).to_a
+          result = relation.connection.select_all(sql)
+          result.map do |row|
+            Hash.new.tap do |hash|
+              result.columns.each_with_index.map do |name, idx| 
+                hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
+              end
+            end
+          end
         else
           relation.connection.raw_connection.execute(sql).each( as: :hash )
         end
@@ -72,8 +79,14 @@ module Censuses
 
       # project_ids can be a scope or an array of IDS
       def fetch_inventory start_date, end_date, project_ids
-        GrdaWarehouse::Hud::Inventory.where(ProjectID: project_ids).pluck(*inventory_columns)
-          .group_by{ |m| [m[inventory_columns.index(:data_source_id)], m[inventory_columns.index(:ProjectID)]] }
+        GrdaWarehouse::Hud::Inventory.where(ProjectID: project_ids).
+          pluck(*inventory_columns).
+          group_by do |m| 
+            [
+              m[inventory_columns.index(:data_source_id)], 
+              m[inventory_columns.index(:ProjectID)],
+            ]
+          end
       end
 
       def project_columns

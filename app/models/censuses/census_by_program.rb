@@ -9,7 +9,7 @@ module Censuses
       project_id_scope = project_id_scope.
         where(ProjectType: @project_types.values.flatten.uniq).
         where( at[:date].between start_date.to_date .. end_date.to_date )
-      inventory = fetch_inventory(start_date, end_date, project_id_scope)
+      inventory = fetch_inventory(start_date, end_date, project_id_scope.to_sql)
       @totals = {}
       @programs = {}
       services_by_program = service_days.group_by do |m|

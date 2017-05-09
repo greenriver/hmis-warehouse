@@ -31,7 +31,7 @@ module GrdaWarehouse::Tasks
         # make a map from identifying triplets of keys to projects
         Rails.logger.info 'finding relevant projects'
         projects = project_scope.uniq.all
-        projects = projects.index_by{ |p| [ p.data_source_id, p.ProjectID, p.OrganizationID ] }
+        projects = projects.index_by{ |p| [ p.data_source_id, p.ProjectID.to_s, p.OrganizationID.to_s ] }
         
         data_by_date = {}
         while start_date < Date.today
@@ -50,7 +50,7 @@ module GrdaWarehouse::Tasks
             yesterday = date - 1.day
             # yesterdata = data_by_date[yesterday] || []
             rows.each do |date,ds,pi,oi,gender,veteran,count|
-              key = [ds,pi,oi]
+              key = [ds.to_i,pi.to_s,oi.to_s]
               project = projects[key]
               unless project.present?
                 Rails.logger.warn "cannot find a project for the key (data_source_id, project_id, organization_id) #{key.inspect}"
@@ -58,7 +58,7 @@ module GrdaWarehouse::Tasks
               end
               bed_count = 0
               project.inventories.each do |inventory|
-                if inventory.start_date.nil? || inventory.start_date < yesterday && (inventory.end_date.nil? || inventory.end_date > date)
+                if inventory.start_date.nil? || inventory.start_date.to_date < yesterday && (inventory.end_date.nil? || inventory.end_date.to_date > date.to_date)
                   bed_count += inventory.beds || 0
                 end
               end
@@ -67,14 +67,14 @@ module GrdaWarehouse::Tasks
               # end || [0]
               # yesterdays_count = yr.last
               values << {
-                data_source_id:   ds,
+                data_source_id:   ds.to_i,
                 ProjectType:      project.ProjectType,
                 OrganizationID:   oi,
                 ProjectID:        pi,
                 date:             date,
-                veteran:          veteran == 1,
+                veteran:          veteran.to_i == 1,
                 gender:           gender,
-                client_count:     count,
+                client_count:     count.to_i,
                 # yesterdays_count: yesterdays_count,
                 bed_inventory:    bed_count
               }
@@ -122,9 +122,9 @@ module GrdaWarehouse::Tasks
               values << {
                 ProjectType:      pt,
                 date:             date,
-                veteran:          veteran == 1,
+                veteran:          veteran.to_i == 1,
                 gender:           gender,
-                client_count:     count,
+                client_count:     count.to_i,
                 # yesterdays_count: yesterdays_count,
               }
             end

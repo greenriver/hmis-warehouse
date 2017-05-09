@@ -55,7 +55,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       ).group(
         :data_source_id
       ).select(
-        "data_source_id, min(#{field}), max(#{field})"
+        "data_source_id, min(#{model.connection.quote_column_name(field)}), max(#{model.connection.quote_column_name(field)})"
       )
       model.connection.select_rows(scope.to_sql).each do |id, min, max|
         spans_by_id[id] ||= [nil, nil]

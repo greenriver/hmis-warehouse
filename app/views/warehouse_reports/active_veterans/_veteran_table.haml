@@ -37,8 +37,8 @@
         - service_type_class = "client__service_type_#{enrollment[:project_type]}"
         %tr
           %td
-            %em{ class: "ds-#{enrollment['data_sources.short_name'].downcase}"}
-              = enrollment['data_sources.short_name']
+            %em{ class: "ds-#{enrollment[:ds_short_name].downcase}"}
+              = enrollment[:ds_short_name]
           %td
             .enrollment__project_type{class: service_type_class}
               %em.service-type__program-type= HUD::project_type_brief(enrollment[:project_type])

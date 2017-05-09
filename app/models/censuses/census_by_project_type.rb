@@ -5,15 +5,24 @@ module Censuses
       service_days = fetch_service_days(start_date.to_date - 1.day, end_date, scope)
       {}.tap do |item|
         service_days_by_project_type = service_days.group_by do |s|
-          [s['date'], @project_types.select{ |k,v| v.include? s['project_type'] }.keys.first]
+          [s['date'].to_date, @project_types.select{ |k,v| v.include? s['project_type'].to_i }.keys.first]
         end
         service_days_by_project_type.each do |k,entries|
           date, project_type = k
+          date = date.to_date
+          project_type = project_type
           if date == start_date.to_date - 1.day
             next
           end
-          count = entries.map{ |m| m['count_all']}.reduce( :+ )
-          yesterday_count = service_days_by_project_type[[date - 1.day, project_type]].map{|m| m['count_all']}.compact.reduce( :+ )
+          count = entries.map{ |m| m['count_all'].to_i}.reduce( :+ )
+          yesterday_data = service_days_by_project_type[[date.to_date - 1.day, project_type]]
+          yesterday_count = if yesterday_data.present?
+              yesterday_data.map do|m| 
+                m['count_all'].to_i
+              end.compact.reduce( :+ )
+            else
+              0
+            end
           item[project_type] ||= {}
           item[project_type][:datasets] ||= []
           item[project_type][:datasets][0] ||= {
@@ -21,7 +30,7 @@ module Censuses
           }
           item[project_type][:title] ||= {}
           item[project_type][:title][:display] ||= true
-          item[project_type][:title][:text] ||= "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}" 
+          item[project_type][:title][:text] ||= GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type].to_s 
           item[project_type][:datasets][0][:data] ||= []
           item[project_type][:datasets][0][:data] << {x: date, y: count, yesterday: yesterday_count}
         end

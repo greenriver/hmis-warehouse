@@ -16,18 +16,7 @@ module WarehouseReports
         joins(:processed_service_history).
         where(id: @served_client_ids).
         order("#{sort_column} #{sort_direction}")
-      service_history_columns = [
-        :client_id, 
-        :project_id, 
-        :first_date_in_program, 
-        :last_date_in_program, 
-        :project_name, 
-        :project_type, 
-        :organization_id, 
-        :data_source_id,
-        'Enrollment.PersonalID',
-        'data_sources.short_name',
-      ]
+      
       respond_to do |format|
         format.html do
           @clients = @clients.page(params[:page]).per(50)
@@ -35,9 +24,9 @@ module WarehouseReports
             open_between(start_date: @range.start, end_date: @range.end + 1.day).
             includes(:enrollment).
             joins(:data_source).
-            where(client_id: @clients.map(&:id)).pluck(*service_history_columns).
+            where(client_id: @clients.map(&:id)).pluck(*service_history_columns.values).
             map do |row|
-              Hash[service_history_columns.zip(row)]
+              Hash[service_history_columns.keys.zip(row)]
             end.
             group_by{|m| m[:client_id]}
 
@@ -47,9 +36,9 @@ module WarehouseReports
             open_between(start_date: @range.start, end_date: @range.end + 1.day).
             includes(:enrollment).
             joins(:data_source).
-            where(client_id: @clients.map(&:id)).pluck(*service_history_columns).
+            where(client_id: @clients.map(&:id)).pluck(*service_history_columns.values).
             map do |row|
-              Hash[service_history_columns.zip(row)]
+              Hash[service_history_columns.keys.zip(row)]
             end.
             group_by{|m| m[:client_id]}
         end
@@ -62,6 +51,23 @@ module WarehouseReports
     end
     private def service_history_source
       GrdaWarehouse::ServiceHistory.where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort)
+    end
+
+    private def service_history_columns
+      enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
+      ds_table = GrdaWarehouse::DataSource.arel_table
+      service_history_columns = {
+        client_id: :client_id, 
+        project_id: :project_id, 
+        first_date_in_program: :first_date_in_program, 
+        last_date_in_program: :last_date_in_program, 
+        project_name: :project_name, 
+        project_type: :project_type, 
+        organization_id: :organization_id, 
+        data_source_id: :data_source_id,
+        PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
+        ds_short_name: ds_table[:short_name].as('short_name').to_sql,
+      }
     end
 
     private def sort_column

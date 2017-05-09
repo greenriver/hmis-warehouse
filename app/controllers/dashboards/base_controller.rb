@@ -219,6 +219,8 @@ module Dashboards
     end
 
     private def service_history_columns
+      enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
+      ds_table = GrdaWarehouse::DataSource.arel_table
       service_history_columns = [
         :client_id, 
         :project_id, 
@@ -228,8 +230,8 @@ module Dashboards
         :project_type, 
         :organization_id, 
         :data_source_id,
-        'Enrollment.PersonalID',
-        'data_sources.short_name',
+        enrollment_table[:PersonalID].as('PersonalID').to_sql,
+        ds_table[:short_name].as('short_name').to_sql,
       ]
     end
 

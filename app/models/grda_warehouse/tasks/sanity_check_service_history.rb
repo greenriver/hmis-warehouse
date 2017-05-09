@@ -1,6 +1,7 @@
 module GrdaWarehouse::Tasks
   class SanityCheckServiceHistory
     require 'ruby-progressbar'
+    include ArelHelper
     attr_accessor :logger, :send_notifications, :notifier_config
 
     def initialize(sample_size = 10, client_ids = [])
@@ -107,7 +108,7 @@ module GrdaWarehouse::Tasks
       service_history_source.entry.
         where(client_id: @destinations.keys).
         group(:client_id).
-        pluck(:client_id, 'COUNT(enrollment_group_id)').
+        pluck(:client_id, nf( 'COUNT', [sh_t[:enrollment_group_id]] ).to_sql).
       each do |id, enrollment_count|
         @destinations[id][:service_history][:enrollments] = enrollment_count
       end
@@ -117,7 +118,7 @@ module GrdaWarehouse::Tasks
       service_history_source.exit.
         where(client_id: @destinations.keys).
         group(:client_id).
-        pluck(:client_id, 'COUNT(enrollment_group_id)').
+        pluck(:client_id, nf( 'COUNT', [sh_t[:enrollment_group_id]] ).to_sql).
       each do |id, exit_count|
         @destinations[id][:service_history][:exits] = exit_count
       end
@@ -127,7 +128,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(:source_enrollments).
         where(id: @destinations.keys).
         group(:id).
-        pluck(:id, 'COUNT(ProjectEntryID)').
+        pluck(:id, nf( 'COUNT', [sh_t[:ProjectEntryID]] ).to_sql).
       each do |id, source_enrollment_count|
         @destinations[id][:source][:enrollments] = source_enrollment_count
       end
@@ -166,6 +167,10 @@ module GrdaWarehouse::Tasks
       each do |id, source_service_count|
         @destinations[id][:source][:service] = source_service_count
       end
+    end
+
+    def sh_t
+      service_history_source.arel_table
     end
 
     def client_source

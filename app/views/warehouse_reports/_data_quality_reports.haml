@@ -36,11 +36,6 @@
   %br
   .row
     .col-sm-4
-      = link_to warehouse_reports_service_after_exit_index_path do
-        Clients with service entries after the project exit
-      %br
-      All services should be performed within the Enrollment entry and exit dates, list those outside of that range.
-    .col-sm-4
       = link_to warehouse_reports_entry_exit_service_index_path do
         Clients with Single Day Enrollments with Services
       %br
@@ -49,7 +44,12 @@
       = link_to warehouse_reports_bed_utilization_index_path do
         Bed Utilization
       %br
-      Bed utilization within the programs of an organization.    
+      Bed utilization within the programs of an organization.
+    .col-sm-4
+      = link_to warehouse_reports_length_of_stay_index_path do
+        Currently enrolled clients with length of stay
+      %br
+      The length of stay per program of currently enrolled clients aggregated by time interval.
   %br
   .row
     .col-sm-4
@@ -58,8 +58,4 @@
       %br
       Find the frequency of missing values in HUD Client and Enrollment tables.
     .col-sm-4
-      = link_to warehouse_reports_length_of_stay_index_path do
-        Currently enrolled clients with length of stay
-      %br
-      The length of stay per program of currently enrolled clients aggregated by time interval.
     .col-sm-4

@@ -13,19 +13,41 @@ module WarehouseReports
 
       # Clients who have Service entries in a program which was previously exited
       subquery = services.joins( enrollment: :exit ).
-        select( st[:ProjectEntryID], st[:DateProvided].maximum.as('DateProvided') ).
+        select( st[:ProjectEntryID], st[:DateProvided].maximum.as(GrdaWarehouse::Hud::Service.connection.quote_column_name('DateProvided')) ).
         group(st[:ProjectEntryID])
-      final_condition = xt[:ExitDate].lt st[:DateProvided]
+      final_condition = xt[:ExitDate].lt(st[:DateProvided])
       sql = general_query( subquery, final_condition ).to_sql
-      @exits = GrdaWarehouseBase.connection.raw_connection.execute(sql).each(as: :hash)
+      @exits = if GrdaWarehouse::Hud::Service.all.engine.postgres?
+        result = GrdaWarehouseBase.connection.select_all(sql)
+        result.map do |row|
+          Hash.new.tap do |hash|
+            result.columns.each_with_index.map do |name, idx| 
+              hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
+            end
+          end
+        end
+      else
+        GrdaWarehouseBase.connection.raw_connection.execute(sql).each( as: :hash )
+      end
 
       # Clients who have Service entries in a program which hasn't started
       subquery = services.joins(:enrollment).
-        select( st[:ProjectEntryID], st[:DateProvided].minimum.as('DateProvided') ).
+        select( st[:ProjectEntryID], st[:DateProvided].minimum.as(GrdaWarehouse::Hud::Service.connection.quote_column_name('DateProvided')) ).
         group(st[:ProjectEntryID])
-      final_condition = et[:EntryDate].gt st[:DateProvided]
+      final_condition = et[:EntryDate].gt(st[:DateProvided])
       sql = general_query( subquery, final_condition ).to_sql
-      @exits += GrdaWarehouseBase.connection.raw_connection.execute(sql).each(as: :hash)
+      @exits += if GrdaWarehouse::Hud::Service.all.engine.postgres?
+        result = GrdaWarehouseBase.connection.select_all(sql)
+        result.map do |row|
+          Hash.new.tap do |hash|
+            result.columns.each_with_index.map do |name, idx| 
+              hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
+            end
+          end
+        end
+      else
+        GrdaWarehouseBase.connection.raw_connection.execute(sql).each( as: :hash )
+      end
     end
 
     private

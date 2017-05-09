@@ -56,7 +56,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :currently_homeless, -> (date: Date.today) do 
     # Limit currently homeless to ES, SH, SO since PSH and TH etc. are 
     # technically housed
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.values.flatten.uniq.sort
+    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
 
     entry.
       ongoing(on_date: date).

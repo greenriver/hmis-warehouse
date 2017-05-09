@@ -3,7 +3,7 @@ module Censuses
     def for_date_range start_date, end_date, scope: nil
       load_associated_records()
       service_days = fetch_service_days(start_date.to_date - 1.day, end_date, scope)
-
+      
       {}.tap do |item|
         service_days_by_project_type = service_days.group_by do |s|
           [s['date'], @project_types.select{ |k,v| v.include? s['project_type'] }.keys.first]
@@ -13,32 +13,32 @@ module Censuses
           if date == start_date.to_date - 1.day
             next
           end
-          veteran_count = entries.map do |m| 
-            if m['VeteranStatus']
+          veteran_count = entries.map do |m|
+            if m['veteran_status']
               m['count_all']
             end
-          end.compact.reduce( :+ )
+          end.compact.reduce( :+ ) || 0
           non_veteran_count = entries.map do |m| 
-            if ! m['VeteranStatus']
+            if ! m['veteran_status']
               m['count_all']
             end
-          end.compact.reduce( :+ )
+          end.compact.reduce( :+ ) || 0
 
           veteran_yesterday_count = if service_days_by_project_type[[date - 1.day, project_type]].present?
             service_days_by_project_type[[date - 1.day, project_type]].map do |m|
-              if m['VeteranStatus']
+              if m['veteran_status']
                 m['count_all']
               end
-            end.compact.reduce( :+ )
+            end.compact.reduce( :+ ) || 0
           else
             nil
           end
           non_veteran_yesterday_count = if service_days_by_project_type[[date - 1.day, project_type]].present?
             service_days_by_project_type[[date - 1.day, project_type]].map do |m|
-              if ! m['VeteranStatus']
+              if ! m['veteran_status']
                 m['count_all']
               end
-            end.compact.reduce( :+ )
+            end.compact.reduce( :+ ) || 0
           else
             nil
           end
@@ -76,7 +76,7 @@ module Censuses
         select(
           at[:date],
           at[:ProjectType].as('project_type'),
-          at[:veteran].as('VeteranStatus'),
+          at[:veteran].as('veteran_status'),
           at[:client_count].sum.as('count_all')
         ).
         order(date: :desc)

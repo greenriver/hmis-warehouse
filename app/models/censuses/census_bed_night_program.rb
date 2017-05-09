@@ -16,6 +16,7 @@ module Censuses
       services_by_program.each do |k, count_all|
         # make useful variables from the composite key
         date, ds_id, org_id, p_id = k
+        ds_id = ds_id.to_i
         # We fetched an extra day so we could get a count for yesterday on the first day, ignore it
         if date == start_date.to_date - 1.day
           next
@@ -52,9 +53,9 @@ module Censuses
           count = 0
           if inventory[[ds_id, p_id]].present?
             inventory[[ds_id, p_id]].each do |i|
-              inventory_start_date = i[inventory_columns.index(:InventoryStartDate)]
-              inventory_end_date = i[inventory_columns.index(:InventoryEndDate)]
-              if inventory_start_date.blank? || inventory_end_date.blank? || (date > inventory_start_date && date < inventory_end_date)
+              inventory_start_date = i[inventory_columns.index(:InventoryStartDate)].try(:to_date)
+              inventory_end_date = i[inventory_columns.index(:InventoryEndDate)].try(:to_date)
+              if inventory_start_date.blank? || inventory_end_date.blank? || (date.to_date > inventory_start_date && date.to_date < inventory_end_date)
                 count += i[inventory_columns.index(:BedInventory)] || 0
               end
             end
@@ -67,19 +68,19 @@ module Censuses
         @totals['all'] ||= {}
         @totals['all'][date] ||= {}
         @totals['all'][date]['count_all'] ||= 0
-        @totals['all'][date]['count_all'] += count_all
+        @totals['all'][date]['count_all'] += count_all.to_i
         @totals['all'][date]['yesterday'] ||= 0
-        @totals['all'][date]['yesterday'] += yesterdays_count
+        @totals['all'][date]['yesterday'] += yesterdays_count.to_i
         @totals['all'][date]['beds'] ||= 0
-        @totals['all'][date]['beds'] += inventory_count
+        @totals['all'][date]['beds'] += inventory_count.to_i
         @totals[ds_id] ||= {}
         @totals[ds_id][date] ||= {}
         @totals[ds_id][date]['count_all'] ||= 0
-        @totals[ds_id][date]['count_all'] += count_all
+        @totals[ds_id][date]['count_all'] += count_all.to_i
         @totals[ds_id][date]['yesterday'] ||= 0
-        @totals[ds_id][date]['yesterday'] += yesterdays_count
+        @totals[ds_id][date]['yesterday'] += yesterdays_count.to_i
         @totals[ds_id][date]['beds'] ||= 0
-        @totals[ds_id][date]['beds'] += inventory_count
+        @totals[ds_id][date]['beds'] += inventory_count.to_i
 
       end
       @totals.each do |ds_id, days|

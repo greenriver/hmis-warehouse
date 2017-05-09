@@ -31,7 +31,18 @@ module WarehouseReports
           pt[:ProjectType],
           st[:RecordType]
         ).distinct.to_sql
-      @enrollments = GrdaWarehouseBase.connection.raw_connection.execute(sql).each(as: :hash)
+      @enrollments = if GrdaWarehouse::Hud::Service.all.engine.postgres?
+        result = GrdaWarehouseBase.connection.select_all(sql)
+        result.map do |row|
+          Hash.new.tap do |hash|
+            result.columns.each_with_index.map do |name, idx| 
+              hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
+            end
+          end
+        end
+      else
+        GrdaWarehouseBase.connection.raw_connection.execute(sql).each( as: :hash )
+      end
       respond_to :html, :xlsx
     end
   end
