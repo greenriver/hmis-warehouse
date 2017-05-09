@@ -243,7 +243,7 @@ module ReportGenerators::DataQuality::Fy2016
       @answers[:q1_b13][:value] = parenting_youth.size
       @support[:q1_b13][:support] = add_support(
         headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size', 'Composition'], 
-        data: youth_households.map do |id, household|
+        data: parenting_youth.map do |id, household|
           member = household[:household].first
           [
             id,
