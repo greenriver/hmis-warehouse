@@ -31,8 +31,8 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
 
   def fake_patterns
     @fake_patterns ||= {
-      FirstName:  -> (value) { Faker::Name.first_name },
-      LastName: -> (value) { Faker::Name.last_name },
+      FirstName:  -> (value) { fake_name(type: :first) },
+      LastName: -> (value) { fake_name(type: :last) },
       SSN: -> (value) { fake_ssn(value) if value.present?},
       DOB: -> (value) {
         Faker::Date.between(70.years.ago, 1.years.ago) if value.present?
@@ -40,12 +40,12 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       PersonalID: -> (value) { SecureRandom.uuid.gsub('-', '') },
       UserID: -> (value) { Faker::Internet.user_name(5..8) },
       CoCCode: -> (value) { "#{Faker::Address.state_abbr}-#{Faker::Number.number(3)}" },
-      ProjectName: -> (value) { Faker::TwinPeaks.location },
-      OrganizationName: -> (value) { Faker::TwinPeaks.location },
-      OrganizationCommonName: -> (value) { Faker::TwinPeaks.location },
+      ProjectName: -> (value) { fake_location },
+      OrganizationName: -> (value) { fake_location },
+      OrganizationCommonName: -> (value) { fake_location },
       SourceContactEmail: -> (value) { Faker::Internet.safe_email},
-      SourceContactFirst: -> (value) { Faker::Name.first_name },
-      SourceContactLast: -> (value) { Faker::Name.last_name },
+      SourceContactFirst: -> (value) { fake_name(type: :first) },
+      SourceContactLast: -> (value) { fake_name(type: :last) },
       SourceContactPhone: -> (value) { Faker::PhoneNumber.cell_phone },
       Address: -> (value) { Faker::Address.street_address },
       City: -> (value) { Faker::Address.city },
@@ -57,6 +57,20 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
     }
   end
 
+  def fake_name(type:)
+    @fake_names ||= CSV.read(Rails.root.join.to_s << '/db/fake_data/names.csv').drop(1).uniq
+    case type
+    when :first
+      @fake_names.sample.last
+    when :last
+      @fake_names.sample.first
+    end
+  end
+
+  def fake_location
+    @fake_locations ||= CSV.read(Rails.root.join.to_s << '/db/fake_data/places.csv').drop(1).uniq
+    @fake_locations.sample.first
+  end
 
   # somewhat elaborate SSN faking to make the fake data look more like the real data
   def fake_ssn(value)

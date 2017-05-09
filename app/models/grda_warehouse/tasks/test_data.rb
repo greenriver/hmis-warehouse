@@ -20,7 +20,7 @@ module GrdaWarehouse::Tasks
     end
 
     def initialize( n: 100, dir: 'tmp/test_data', logger: BogusLogger.new, remove_old: true )
-      @n_clients  = n
+      @n_clients  = n.to_i
       @dir        = dir
       @logger     = logger
       @remove_old = remove_old
