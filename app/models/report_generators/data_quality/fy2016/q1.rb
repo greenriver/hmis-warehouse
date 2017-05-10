@@ -16,9 +16,13 @@ module ReportGenerators::DataQuality::Fy2016
           add_stayer_answers()
           update_report_progress(percent: 50)
           add_veteran_answer()
+          update_report_progress(percent: 55)
           add_chronic_answers()
+          update_report_progress(percent: 60)
           add_youth_answers()
+          update_report_progress(percent: 65)
           add_household_head_answers()
+          update_report_progress(percent: 80)
           add_lts_answers()
         end
         finish_report()
@@ -290,10 +294,10 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def add_lts_answers
-      # Any stayer who is RelationshipToHoH == 1 or age > 18 and has a stay lenght of 365 days or more
+      # Any stayer who is RelationshipToHoH == 1 or age > 18 and has a stay length of 365 days or more
       lts = adult_stayers_and_heads_of_household_stayers.
         map do |id, enrollment|
-          enrollment[:stay_length] = stay_length(client_id: id, entry_date: enrollment[:first_date_in_program], exit_date: enrollment[:enrollment_group_id])
+          enrollment[:stay_length] = stay_length_for_adult_hoh(client_id: id, entry_date: enrollment[:first_date_in_program], enrollment_group_id: enrollment[:enrollment_group_id])
           [id,enrollment]
         end.to_h.select do |_,enrollment|
           enrollment[:stay_length] >= 365
