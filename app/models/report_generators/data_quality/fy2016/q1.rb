@@ -214,7 +214,7 @@ module ReportGenerators::DataQuality::Fy2016
     def add_youth_answers
       youth_households = households.select do |_, household|
         # Only select each household once, when we hit the head
-        if head_of_household?(household.first[:RelationshipToHoH])
+        if head_of_household?(household[:household].first[:RelationshipToHoH])
           household[:household].select do |member|
             member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
           end.count == household[:household].count
