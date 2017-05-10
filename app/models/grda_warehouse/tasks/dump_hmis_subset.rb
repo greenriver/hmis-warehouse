@@ -28,7 +28,7 @@ module GrdaWarehouse::Tasks
       FileUtils.chdir(@dir) do 
         all_objects = {}
         data_source_ids = Set.new
-        @fake_data = GrdaWarehouse::FakeData.where(environment: Rails.env).first_or_create
+        @fake_data = GrdaWarehouse::FakeData.where(environment: @env).first_or_create
 
         source_clients.each do |client|
           walk_associations client, client_associations do |entity|

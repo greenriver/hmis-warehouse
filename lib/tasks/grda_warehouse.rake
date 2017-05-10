@@ -165,8 +165,8 @@ namespace :grda_warehouse do
   end
 
   desc "Dump Many HUD CSVs from Production for Development"
-  task :dump_hud_csvs_for_dev, [:n] => [:environment] do |t, args|
-    GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500).run!
+  task :dump_hud_csvs_for_dev, [:n,:env] => [:environment] do |t, args|
+    GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500, env: args.env || :development).run!
   end
 
   desc "Import HUD Zips from all Data Sources"
