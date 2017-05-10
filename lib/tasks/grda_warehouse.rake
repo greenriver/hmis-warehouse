@@ -9,6 +9,12 @@ namespace :grda_warehouse do
     ActiveRecord::Migrator.migrate("db/grda_warehouse/")
   end
 
+  desc "Create the GRDA warehouse"
+  task create: [:environment] do
+    db_conf = Rails.configuration.database_configuration
+    ActiveRecord::Base.connection.create_database "#{Rails.env}_grda_warehouse", db_conf["#{Rails.env}_grda_warehouse"]
+  end
+
 
   task defrag: [:environment] do
     puts "Finding fragmented indexes"

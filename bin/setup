@@ -9,22 +9,28 @@ Dir.chdir APP_ROOT do
   system "gem install bundler --conservative"
   system "bundle check || bundle install --without seven_zip"
 
-  unless File.exist?("config/database.yml")
-    puts "\n== Creating config/database.yml =="
-    system "cp config/database.yml.sample config/database.yml"
+  ymls = [
+    "config/database.yml",
+    "config/secrets.yml",
+    "config/eto_api.yml",
+    "config/exception_notifier.yml"
+    "config/mail_account.yml"
+    "config/weather.yml"
+  ]
+  ymls.each do |file|
+    unless File.exist?(file)
+      puts "\n== Creating #{file} =="
+      system "cp #{file}.sample #{file}"
+    end
   end
-  unless File.exist?("config/secrets.yml")
-    puts "\n== Creating config/secrets.yml =="
-    system "cp config/secrets.yml.sample config/secrets.yml"
-  end
-  unless File.exist?("config/eto_api.yml")
-    puts "\n== Creating config/eto_api.yml =="
-    system "cp config/api.yml.sample config/eto_api.yml"
-  end
-
-  puts "\n== Preparing database =="
+  
+  puts "\n== Preparing Database =="
   system "bin/rake db:create"
   system "bin/rake db:migrate"
+  puts "\n== Preparing Warehouse =="
+  system "bin/rake grda_warehouse:create"
+  system "bin/rake grda_warehouse:seed_data_sources"
+  puts "\n== Seeding Database =="
   system "bin/rake db:seed"
 
   puts "\n== Removing old logs and tempfiles =="
