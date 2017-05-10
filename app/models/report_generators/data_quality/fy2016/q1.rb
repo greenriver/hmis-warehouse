@@ -9,10 +9,13 @@ module ReportGenerators::DataQuality::Fy2016
         @all_clients = fetch_all_clients()
         if @all_clients.any?
           add_total_clients_served()
+          update_report_progress(percent: 10)
           setup_age_categories()
           update_report_progress(percent: 25)
           add_age_answers()
+          update_report_progress(percent: 30)
           add_leaver_answers()
+          update_report_progress(percent: 40)
           add_stayer_answers()
           update_report_progress(percent: 50)
           add_veteran_answer()
@@ -148,7 +151,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
       @support[:q1_b9][:support] = add_support(
         headers: headers, 
-        data: staying_adults.map do |_, enrollment|
+        data: adult_stayers.map do |_, enrollment|
           [
             enrollment[:client_id], 
             enrollment[:age], 
@@ -217,9 +220,12 @@ module ReportGenerators::DataQuality::Fy2016
     # age < 18 and RelationshipToHoH = 2
     def add_youth_answers
       youth_households = households.select do |_, household|
-        household[:household].select do |member|
-          member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
-        end.count == household[:household].count
+        # Only select each household once, when we hit the head
+        if head_of_household?(household[:household].first[:RelationshipToHoH])
+          household[:household].select do |member|
+            member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
+          end.count == household[:household].count
+        end
       end
 
       @answers[:q1_b12][:value] = youth_households.size
@@ -247,7 +253,7 @@ module ReportGenerators::DataQuality::Fy2016
       @answers[:q1_b13][:value] = parenting_youth.size
       @support[:q1_b13][:support] = add_support(
         headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size', 'Composition'], 
-        data: youth_households.map do |id, household|
+        data: parenting_youth.map do |id, household|
           member = household[:household].first
           [
             id,
@@ -278,7 +284,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
 
       @answers[:q1_b15][:value] = other_heads.size
-      @support[:q1_b14][:support] = add_support(
+      @support[:q1_b15][:support] = add_support(
         headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
         data: other_heads.map do |id, household|
           [
