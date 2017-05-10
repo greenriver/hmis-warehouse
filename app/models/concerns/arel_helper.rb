@@ -51,6 +51,10 @@ module ArelHelper
     def datepart(*args)
       self.class.datepart *args
     end
+
+    def checksum(*args)
+      self.class.checksum *args
+    end
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -138,6 +142,18 @@ module ArelHelper
         nf 'DATE_PART', [ type, d ]
       when 'SQLServer'
         nf 'DATEPART', [ lit(type), d ]
+      else
+        raise NotImplementedError
+      end
+    end
+
+    # to translate between SQL Server CHECKSUM and Postgresql MD5
+    def checksum(engine, fields)
+      case engine.connection.adapter_name
+      when 'PostgreSQL'
+        nf('md5', [nf('concat', fields)])
+      when 'SQLServer'
+        nf 'CHECKSUM', fields
       else
         raise NotImplementedError
       end

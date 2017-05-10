@@ -72,7 +72,7 @@ namespace :grda_warehouse do
 
   desc "Seed Data Sources"
   task seed_data_sources: [:environment] do
-    if Rails.env.production? || Rails.env.staging?
+    if Rails.env.production?
       dnd = GrdaWarehouse::DataSource.where(name: 'Boston Department of Neighborhood Development').first_or_create
       dnd.file_path = '/mnt/hmis/dnd'
       dnd.source_type = 'samba'
@@ -109,7 +109,7 @@ namespace :grda_warehouse do
       ma_eto.short_name = 'MA'
       ma_eto.munged_personal_id = true
       ma_eto.save
-    elsif Rails.env.development?
+    elsif Rails.env.development? || Rails.env.staging?
       grda = GrdaWarehouse::DataSource.where(name: 'Green River').first_or_create
       grda.file_path = Rails.root.join.to_s << '/var/hmis/green_river'
       grda.source_type = 'samba'
