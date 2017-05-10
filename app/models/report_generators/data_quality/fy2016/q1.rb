@@ -277,7 +277,7 @@ module ReportGenerators::DataQuality::Fy2016
       )
 
       @answers[:q1_b15][:value] = other_heads.size
-      @support[:q1_b14][:support] = add_support(
+      @support[:q1_b15][:support] = add_support(
         headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
         data: other_heads.map do |id, household|
           [
