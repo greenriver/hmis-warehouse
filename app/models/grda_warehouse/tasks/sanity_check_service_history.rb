@@ -95,7 +95,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(:source_clients).
         where(id: @destinations.keys).
         select(:id, source_client_table[:PersonalID], source_client_table[:data_source_id]).
-        pluck(:id, "#{source_client_table.name}.PersonalID", "#{source_client_table.name}.data_source_id").
+        pluck(:id, source_client_table[:PersonalID], source_client_table[:data_source_id]).
         group_by(&:first)
 
       @destinations.each do |id, _|
@@ -128,7 +128,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(:source_enrollments).
         where(id: @destinations.keys).
         group(:id).
-        pluck(:id, nf( 'COUNT', [sh_t[:ProjectEntryID]] ).to_sql).
+        pluck(:id, nf( 'COUNT', [enrollment_source.arel_table[:ProjectEntryID]] ).to_sql).
       each do |id, source_enrollment_count|
         @destinations[id][:source][:enrollments] = source_enrollment_count
       end
@@ -140,7 +140,10 @@ module GrdaWarehouse::Tasks
       client_source.joins(:source_exits).
         where(id: @destinations.keys).
         group(:id).
-        pluck(:id, 'COUNT(distinct [Exit].ProjectEntryID)').
+        pluck(
+          :id, 
+          nf('COUNT', [nf('DISTINCT', [exit_source.arel_table[:ProjectEntryID]])]).to_sql
+        ).
       each do |id, source_exit_count|
         @destinations[id][:source][:exits] = source_exit_count
       end
@@ -151,7 +154,10 @@ module GrdaWarehouse::Tasks
         where(client_id: @destinations.keys).
         where(project_tracking_method: 3).
         group(:client_id).
-        pluck(:client_id, 'COUNT(distinct checksum(date, enrollment_group_id))').
+        pluck(
+          :client_id, 
+          nf('COUNT', [nf('DISTINCT', [checksum(GrdaWarehouse::ServiceHistory, [sh_t[:enrollment_group_id], sh_t[:date]])])]).to_sql
+        ).
       each do |id, service_count|
         @destinations[id][:service_history][:service] = service_count
       end
@@ -160,10 +166,14 @@ module GrdaWarehouse::Tasks
     def load_source_service_counts
       # Sometimes we see a service record duplicated, make sure we don't count
       # the duplicates
+      st = GrdaWarehouse::Hud::Service.arel_table
       client_source.joins(source_services: :project).
-        where(id: @destinations.keys, project: {TrackingMethod: 3}).
+        where(id: @destinations.keys, Project: {TrackingMethod: 3}).
         group(:id).
-        pluck(:id, 'COUNT(distinct CHECKSUM([Services].DateProvided, [Services].ProjectEntryID))').
+        pluck(
+          :id,
+          nf('COUNT', [nf('DISTINCT', [checksum(GrdaWarehouse::Hud::Service, [st[:DateProvided], st[:ProjectEntryID]])])]).to_sql 
+        ).
       each do |id, source_service_count|
         @destinations[id][:source][:service] = source_service_count
       end

@@ -8,19 +8,25 @@
   min-width: 4.2em;
   text-align: center;
 }
-.ds-bphc
+// FIXME: The following should be stored on the data source
+// with a color picker and a random default set when seeded
+.ds-bphc,
+.ds-grda
 {
   background-color: $bphc;
 }
-.ds-dnd
+.ds-dnd,
+.ds-bm
 {
   background-color: $dnd;
 }
-.ds-ma
+.ds-ma,
+.ds-op
 {
   background-color: $ma-state;
 }
-.ds-nechv
+.ds-nechv,
+.ds-bl
 {
   background-color: $nechv;
 }

@@ -1,16 +1,17 @@
-# Current locations
+# Current production locations
 # NECHV - /mnt/hmis/nechv
 # BPHC - /mnt/hmis/bphc
 # DND - /mnt/hmis/dnd
 # MA - /mnt/hmis/ma
+# 
+# Staging & Development should use GrdaWarehouse::Tasks::DumpHmisSubset to generate 
+# fake data from production. Import locations for staging and development are within 
+# the local tmp directory
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
-require 'faker'
 require 'newrelic_rpm'
 # require 'temping'
-# Work around a faker bug: https://github.com/stympy/faker/issues/278
-I18n.reload!
 
 module Importers
   class Base
@@ -37,16 +38,6 @@ module Importers
       @data_sources   = data_sources
 
       @rm_files = false
-
-      # prepare for streaming in faker data on staging
-      # Use fake data files in development
-      @fake_it = false
-      if Rails.env == 'staging'
-        logger.info 'Using Fake Client Data'
-        setup_for_fake()
-      else
-        logger.info 'Using Real Client Data'
-      end
     end
 
     def run!
@@ -319,20 +310,6 @@ module Importers
       @to_update = []
     end
 
-    private def fake_client_info row
-      @fake_data.each do |column_name, bits|
-        import_value = row[bits[:index]]
-        if @fake_data[column_name][:values].key?(import_value)
-          row[bits[:index]] = @fake_data[column_name][:values][import_value]
-        else
-          fake_value = bits[:routine].call(import_value)
-          row[bits[:index]] = fake_value
-          @fake_data[column_name][:values][import_value] = fake_value
-        end
-      end
-      return row
-    end
-
     private def update_service_history
       return unless @changed_projects.any?
       logger.info "Updating Service Histories for #{@changed_projects.size} projects"
@@ -356,43 +333,6 @@ module Importers
       end
       logger.info "Deleted #{ids_to_delete.size} #{@klass}"
 
-    end
-
-    # somewhat elaborate SSN faking to make the fake data look more like the real data
-    def fake_ssn(value)
-      if SimilarityMetric::SocialSecurityNumber::FAKES_RX === value
-        # make a different, but also fake, SSN
-        v = value
-        @randos ||= [
-          *(1..10).map{ -> { rand(0..9).to_s * rand(3..9) } },  # mostly of this sort (why not)
-          *(1..5).map{ -> { '123456789'[0...rand(4..9)] } },    # then a lot of these
-          -> {'078051120'}                                      # and one of these
-        ]
-        while v == value
-          v = @randos.sample.()
-        end
-        v
-      else
-        Faker::Number.number(9)
-      end
-    end
-
-    def setup_for_fake
-      @fake_it = true
-      @fake_data = {
-        FirstName: {
-          routine: -> (value) { Faker::Name.first_name },
-        },
-        LastName: {
-          routine: -> (value) { Faker::Name.last_name },
-        },
-        SSN: {
-          routine: self.method(:fake_ssn),
-        }, 
-        DOB: {
-          routine: -> (value) { Faker::Date.between(70.years.ago, 1.years.ago) },
-        }
-      }.each{|_,v| v.merge!({ index: nil, values: {} }) }   # these will be defined and filled, respectively, later
     end
 
     def setup_import data_source:
@@ -440,10 +380,6 @@ module Importers
               next
             else
               if row.size == @headers.size
-                # prepare for streaming in faker data on development or staging
-                if @fake_it && @fake_data[:FirstName][:index].present?
-                  row = fake_client_info(row)
-                end
                 @new_data << @headers.zip(row).to_h.with_indifferent_access
               else
                 @import.import_errors[File.basename(@file_path)] ||= []
@@ -482,13 +418,6 @@ module Importers
       @date_deleted_index = @headers.index('DateDeleted')
       @export_id_index = @headers.index('ExportID')
       @hud_key = @headers.first
-      # prepare for streaming in faker data on development or staging
-      if @fake_it
-        # get indexes of columns
-        @fake_data.each do |k,v|
-          @fake_data[k][:index] = @headers.index(k.to_s)
-        end
-      end
     end
 
     def update_export

@@ -19,12 +19,13 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def initialize( n: 100, dir: 'tmp/test_data', logger: BogusLogger.new, remove_old: true )
-      @n_clients  = n.to_i
-      @dir        = dir
-      @logger     = logger
+    def initialize( n: 100, dir: 'tmp/test_data', logger: BogusLogger.new, remove_old: true, env: :development)
+      @n_clients = n.to_i
+      @dir = dir
+      @logger = logger
       @remove_old = remove_old
       @export_root_path = Rails.root.join.to_s << "/#{@dir}/"
+      @env = env.to_sym
     end
 
     def run!
