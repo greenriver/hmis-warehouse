@@ -312,7 +312,7 @@ module ReportGenerators::DataQuality::Fy2016
           [id, enrollment[:first_date_in_program], enrollment[:enrollment_group_id]]
         end
         lengths = {}
-        keys.each_slice(1000) do |clients|
+        keys.each_slice(50) do |clients|
           ors = clients.map do |client_id, entry_date, enrollment_id|
             sh_t[:client_id].eq(client_id).
               and(sh_t[:first_date_in_program].eq(entry_date).
@@ -342,8 +342,7 @@ module ReportGenerators::DataQuality::Fy2016
         client_id,
         entry_date,
         enrollment_group_id
-      ]]
-      
+      ]] || 0      
     end
 
     def client_disabled?(enrollment:)
