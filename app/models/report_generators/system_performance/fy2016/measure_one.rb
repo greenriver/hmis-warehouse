@@ -85,6 +85,10 @@ module ReportGenerators::SystemPerformance::Fy2016
         end
         # puts clients.inspect
         @answers[:onea_c2][:value] = clients.size
+        if clients.size == 0
+          finish_report()
+          return
+        end
         @support[:onea_c2][:support] = {
           headers: ['Client ID', 'Days'],
           counts: clients.map{|id, days| [id, days]}
