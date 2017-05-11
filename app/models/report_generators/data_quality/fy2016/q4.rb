@@ -220,7 +220,7 @@ module ReportGenerators::DataQuality::Fy2016
     #   d. [information date] is within 30 days of the anniversary date AND [data collection stage] for [income and sources] = 5 AND [income from any source] = 1 AND there are no identified income sources.
     def add_income_annual_update_answers
       clients_with_enrollments = adult_stayers_and_heads_of_household_stayers.map do |id, enrollment|
-        enrollment[:stay_length] = stay_length(client_id: id, entry_date: enrollment[:first_date_in_program], exit_date: enrollment[:enrollment_group_id])
+        enrollment[:stay_length] = stay_length(client_id: id, entry_date: enrollment[:first_date_in_program], enrollment_group_id: enrollment[:enrollment_group_id])
         [id,enrollment]
       end.to_h.select do |_,enrollment|
         enrollment[:stay_length] >= 365

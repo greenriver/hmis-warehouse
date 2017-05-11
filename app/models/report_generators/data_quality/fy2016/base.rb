@@ -290,32 +290,90 @@ module ReportGenerators::DataQuality::Fy2016
       end
     end
 
-    def stay_length(client_id:, entry_date:, exit_date:)
+    def stay_length(client_id:, entry_date:, enrollment_group_id:)
       GrdaWarehouse::ServiceHistory.service.
         where(
           client_id: client_id, 
           first_date_in_program: entry_date,
-          enrollment_group_id: exit_date
+          enrollment_group_id: enrollment_group_id
         ).
         select(:date).
         distinct.
         count
     end
 
+    # select count distinct date, concat(client_id, enrollment_group_id, first_date_in_program)
+    # from sh
+    # where concat(client_id, enrollment_group_id, first_date_in_program)
+    # group by (client_id, enrollment_group_id, first_date_in_program)
+    def stay_length_for_adult_hoh(client_id:, entry_date:, enrollment_group_id:)
+      @stay_lengths_for_adult_hohs ||= begin
+        keys = adult_stayers_and_heads_of_household_stayers.map do |id, enrollment|
+          [id, enrollment[:first_date_in_program], enrollment[:enrollment_group_id]]
+        end
+        lengths = {}
+        keys.each_slice(50) do |clients|
+          ors = clients.map do |client_id, entry_date, enrollment_id|
+            sh_t[:client_id].eq(client_id).
+              and(sh_t[:first_date_in_program].eq(entry_date).
+              and(sh_t[:enrollment_group_id].eq(enrollment_id))
+              ).to_sql
+          end
+          lengths.merge!(
+            GrdaWarehouse::ServiceHistory.service.
+              where(ors.join(' or ')).
+              group(
+                sh_t[:client_id],
+                sh_t[:first_date_in_program],
+                sh_t[:enrollment_group_id]
+              ).pluck(
+                nf('COUNT', [nf('DISTINCT', [sh_t[:date]])]).to_sql,
+                :client_id,
+                :first_date_in_program,
+                :enrollment_group_id
+            ).map do |count, client_id, entry_date, enrollment_id|
+              [[client_id, entry_date, enrollment_id], count]
+            end.to_h
+          )
+        end
+        lengths
+      end
+      @stay_lengths_for_adult_hohs[[
+        client_id,
+        entry_date,
+        enrollment_group_id
+      ]] || 0      
+    end
+
     def client_disabled?(enrollment:)
       return true if enrollment[:DisablingCondition] == 1
       # load disabling conditions for client, we've indicated we don't have any.
       # If we do, we have a problem
-      disabilities = [5,6,7,8,9]
-      yes_responses = [1,2,3]
-      GrdaWarehouse::Hud::Client.joins(:source_disabilities).
-        where(id: enrollment[:client_id]).
-        where(
-          Disabilities: {
-            DisabilityType: disabilities, 
-            DisabilityResponse: yes_responses}
-        ).count > 0
+      @client_disabilities ||= begin
+        disabilities = [5,6,7,8,9]
+        yes_responses = [1,2,3]
+        dt = GrdaWarehouse::Hud::Disability.arel_table
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        disabled = {}
+        @all_clients.keys.each_slice(5000) do |ids|
+          ors = ids.map do |id|
+            ct[:id].eq(id).
+              and(dt[:DisabilityType].in(disabilities)).
+              and(dt[:DisabilityResponse].in(yes_responses)).to_sql
+          end
+          disabled.merge!(
+            GrdaWarehouse::Hud::Client.joins(:source_disabilities).
+              where(ors.join(' or ')).
+              group(ct[:id]).
+              pluck(:id, nf('COUNT', [ct[:id]]).to_sql).
+              to_h
+          )
+        end
+        disabled
+      end
+      @client_disabilities[enrollment[:client_id]].present? && @client_disabilities[enrollment[:client_id]] > 0
     end
+    
 
     def living_situation_is_homeless enrollment:
       # [living situation] (3.917.1) = 16, 1, 18 or 27
@@ -335,6 +393,10 @@ module ReportGenerators::DataQuality::Fy2016
       homeless_for_one_year?(enrollment: enrollment) ||
       enrollment[:TimesHomelessPastThreeYears].present? && enrollment[:TimesHomelessPastThreeYears] >= 4 &&
        enrollment[:MonthsHomelessPastThreeYears].present? && enrollment[:MonthsHomelessPastThreeYears] >= 12
+    end
+
+    private def sh_t
+      GrdaWarehouse::ServiceHistory.arel_table
     end
   end
 end
