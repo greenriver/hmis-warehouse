@@ -1,4 +1,0 @@
-﻿PAT_ID,sex,first_name,middle_name,last_name,alias_list,birthdate,allergy_list,pcp,tg,race,ethnicity,vet_status,ssn
-Z50,F,Lana,,Kane,,1985-05-06T00:00:00,,"SPACEMAN, DR","M to F",WHITE,NOT HISPANIC,veteran,123456789
-Z52,F,Christy,A,Moana,,1991-05-05T00:00:00,"CODEIN, BEE STINGS","JAMES, NICK",,ASIAN,NOT HISPANIC,non-veteran,234567891
-Z53,M,John,,Smith,MARK,1949-03-19T00:00:00,"PEANUT BUTTER","REDFORD, JANE",,BLACK,HISPANIC,non-veteran,345678912
