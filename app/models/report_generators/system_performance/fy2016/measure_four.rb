@@ -28,114 +28,10 @@ module ReportGenerators::SystemPerformance::Fy2016
         Rails.logger.info "Starting report #{@report.report.name}"
         @answers = setup_questions()
         @support = @answers.deep_dup
-        # To get the appropriate Federal Partner Funding Sources (2.6) we need to look at the agency info table provided by Jennifer Flynn from DND
-        # Specifically we need 2,3,4,5 which correlate to:
-        # FederalPartnerProgram = 'HUD CoC' and Component in ('PSH', 'RRH', 'SSO', 'TH')
-        
-        # sql = "
-        #   select programid, databaseid
-        #   from hud_performance_agency_program_info
-        #   where CoCFunded = 1 
-        #     and Component in ('PSH', 'RRH', 'SSO', 'TH')
-        #     and GrantStartDate <= '#{@report.options['report_end']}'
-        #     and (GrantEndDate is null or GrantEndDate >= '#{@report.options['report_start']}')
-        #     and ProgramTypeCode in (#{(PH + SH + TH).join(', ')})
-        # "
-        # Find anyone 18 years or older in a relevant project,
-        # get their latest project entry date within the report range for which the length of stay is >= 365 days. 
-        universe_of_stayers = calculate_stayers
-        update_report_progress(percent: 10)
-        # Per Jennifer Flynn, ignore 60 day window around program start anniversary, 
-        # that was not the instructions given to programs about when to collect assessments
-        universe_of_stayers = add_stayer_income(universe_of_stayers)
-        update_report_progress(percent: 40)
-        @answers[:four1_c2][:value] = universe_of_stayers.size
-        @answers[:four2_c2][:value] = universe_of_stayers.size
-        @answers[:four3_c2][:value] = universe_of_stayers.size
-
-        @support[:four1_c2][:support] = {
-          headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
-          counts: universe_of_stayers.map do |client| 
-            [
-              client[:client_id], 
-              client[:project_name], 
-              client[:first_date_in_program], 
-              client[:last_date_in_program]
-            ]
-          end
-        }
-        universe_of_stayers.each do |client|
-          if client[:latest_earned_income] - client[:earliest_earned_income] > 0
-            @answers[:four1_c3][:value] += 1
-            @support[:four1_c3][:support] ||= {
-              headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
-              counts: []
-            }
-            @support[:four1_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
-          end
-          if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
-            @answers[:four2_c3][:value] += 1
-            @support[:four2_c3][:support] ||= {
-              headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
-              counts: []
-            }
-            @support[:four2_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
-          end
-          if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
-            @answers[:four3_c3][:value] += 1
-            @support[:four3_c3][:support] ||= {
-              headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
-              counts: []
-            }
-            @support[:four3_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
-          end
-        end
-
-        universe_of_leavers = calculate_leavers 
+        add_stayer_answers()
         update_report_progress(percent: 50)
-        universe_of_leavers = add_leaver_income(universe_of_leavers)
+        add_leaver_answers()
         update_report_progress(percent: 90)
-        @answers[:four4_c2][:value] = universe_of_leavers.size
-        @answers[:four5_c2][:value] = universe_of_leavers.size
-        @answers[:four6_c2][:value] = universe_of_leavers.size
-
-        @support[:four4_c2][:support] = {
-          headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
-          counts: universe_of_leavers.map do |client| 
-            [
-              client[:client_id], 
-              client[:project_name], 
-              client[:first_date_in_program], 
-              client[:last_date_in_program]
-            ]
-          end
-        }
-        universe_of_leavers.each do |client|
-          if client[:latest_earned_income] - client[:earliest_earned_income] > 0
-            @answers[:four4_c3][:value] += 1
-            @support[:four4_c3][:support] ||= {
-              headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
-              counts: []
-            }
-            @support[:four4_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
-          end
-          if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
-            @answers[:four5_c3][:value] += 1
-            @support[:four5_c3][:support] ||= {
-              headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
-              counts: []
-            }
-            @support[:four5_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
-          end
-          if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
-            @answers[:four6_c3][:value] += 1
-            @support[:four6_c3][:support] ||= {
-              headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
-              counts: []
-            }
-            @support[:four6_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
-          end
-        end
 
         Rails.logger.info @answers.inspect
         finish_report()
@@ -144,6 +40,118 @@ module ReportGenerators::SystemPerformance::Fy2016
       end
     end
 
+    def add_stayer_answers
+      # To get the appropriate Federal Partner Funding Sources (2.6) we need to look at the agency info table provided by Jennifer Flynn from DND
+      # Specifically we need 2,3,4,5 which correlate to:
+      # FederalPartnerProgram = 'HUD CoC' and Component in ('PSH', 'RRH', 'SSO', 'TH')
+      
+      # sql = "
+      #   select programid, databaseid
+      #   from hud_performance_agency_program_info
+      #   where CoCFunded = 1 
+      #     and Component in ('PSH', 'RRH', 'SSO', 'TH')
+      #     and GrantStartDate <= '#{@report.options['report_end']}'
+      #     and (GrantEndDate is null or GrantEndDate >= '#{@report.options['report_start']}')
+      #     and ProgramTypeCode in (#{(PH + SH + TH).join(', ')})
+      # "
+      # Find anyone 18 years or older in a relevant project,
+      # get their latest project entry date within the report range for which the length of stay is >= 365 days. 
+      universe_of_stayers = calculate_stayers
+      update_report_progress(percent: 10)
+      # Per Jennifer Flynn, ignore 60 day window around program start anniversary, 
+      # that was not the instructions given to programs about when to collect assessments
+      universe_of_stayers = add_stayer_income(universe_of_stayers)
+      update_report_progress(percent: 40)
+      @answers[:four1_c2][:value] = universe_of_stayers.size
+      @answers[:four2_c2][:value] = universe_of_stayers.size
+      @answers[:four3_c2][:value] = universe_of_stayers.size
+
+      @support[:four1_c2][:support] = {
+        headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
+        counts: universe_of_stayers.map do |client| 
+          [
+            client[:client_id], 
+            client[:project_name], 
+            client[:first_date_in_program], 
+            client[:last_date_in_program]
+          ]
+        end
+      }
+      universe_of_stayers.each do |client|
+        if client[:latest_earned_income] - client[:earliest_earned_income] > 0
+          @answers[:four1_c3][:value] += 1
+          @support[:four1_c3][:support] ||= {
+            headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
+            counts: []
+          }
+          @support[:four1_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
+        end
+        if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
+          @answers[:four2_c3][:value] += 1
+          @support[:four2_c3][:support] ||= {
+            headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
+            counts: []
+          }
+          @support[:four2_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
+        end
+        if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+          @answers[:four3_c3][:value] += 1
+          @support[:four3_c3][:support] ||= {
+            headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
+            counts: []
+          }
+          @support[:four3_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
+        end
+      end
+    end
+
+    def add_leaver_answers
+      universe_of_leavers = calculate_leavers 
+      update_report_progress(percent: 50)
+      universe_of_leavers = add_leaver_income(universe_of_leavers)
+      update_report_progress(percent: 90)
+      @answers[:four4_c2][:value] = universe_of_leavers.size
+      @answers[:four5_c2][:value] = universe_of_leavers.size
+      @answers[:four6_c2][:value] = universe_of_leavers.size
+
+      @support[:four4_c2][:support] = {
+        headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
+        counts: universe_of_leavers.map do |client| 
+          [
+            client[:client_id], 
+            client[:project_name], 
+            client[:first_date_in_program], 
+            client[:last_date_in_program]
+          ]
+        end
+      }
+      universe_of_leavers.each do |client|
+        if client[:latest_earned_income] - client[:earliest_earned_income] > 0
+          @answers[:four4_c3][:value] += 1
+          @support[:four4_c3][:support] ||= {
+            headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
+            counts: []
+          }
+          @support[:four4_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
+        end
+        if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
+          @answers[:four5_c3][:value] += 1
+          @support[:four5_c3][:support] ||= {
+            headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
+            counts: []
+          }
+          @support[:four5_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
+        end
+        if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+          @answers[:four6_c3][:value] += 1
+          @support[:four6_c3][:support] ||= {
+            headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
+            counts: []
+          }
+          @support[:four6_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
+        end
+      end
+    end
     def calculate_stayers
       # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
       # Page 24 of 41
