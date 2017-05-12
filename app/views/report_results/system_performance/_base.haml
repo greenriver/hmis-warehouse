@@ -2,24 +2,17 @@
   %table.table.table-condensed.table-hover
     - @result.results.each do |key, result|
       - if result['title'].present?
+        - have_support = @result.support.present? && @result.support[key].present? && @result.support[key]['support'].present?
         %tr
           %th= result['title']  
           %td
-            - if @result.support.present? && @result.support[key].present? && @result.support[key]['support'].present?
-              %a.launch-modal{href: '#', data: {toggle: :modal, target: "##{key}-support"}}
+            - if have_support
+              = link_to report_report_result_support_index_path(@report, @result, {key: key}), data: {loads_in_pjax_modal: true} do
                 = result['value']
             - else
               = result['value']
-
-
--# Supporting modals
-.report-result__support
-  - @result.results.each do |key, section|
-    - if @result.support.present? && @result.support[key].present? && @result.support[key]['support'].present?
-      = render 'report_results/system_performance/support', key: key, section: section, support: @result.support[key]['support']
-
-= content_for :page_js do
-  :javascript
-    (function($) {
-      $('.launch-modal').on('click', function(e){ e.preventDefault();});
-    })(jQuery);
+          %td
+            - if have_support
+              = link_to report_report_result_support_index_path(@report, @result, {key: key, format: :xlsx}) do
+                %span.icon-download2
+              
