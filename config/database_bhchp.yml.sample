@@ -5,19 +5,12 @@ default: &default
 
 development:
   <<: *default
-  database: boston_hmis_dev
+  database: bhchp_dev
 
-development_grda_warehouse:
-  <<: *default
-  database: boston_grda_warehouse_dev
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: boston_hmis_test
-
-test_grda_warehouse:
-  <<: *default
-  database: boston_grda_warehouse_test
+  database: bhchp_test

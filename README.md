@@ -70,3 +70,31 @@ We use the following common rails gems and conventions:
 * helpers need to be explictly loaded in controllers. i.e. we have `config.action_controller.include_all_helpers = false` set
 * `bin/rake generate controller ... ` doesn't make fixures and they are disabled in test_helper. We don't use them and instead seed data in test or let test create their own data however they need to.
 * it also doesn't make helper or asset stubs, make them by hand if you need one. See `config/application.rb` for details.
+
+# Multiple databases
+
+The project reads/writes from several different databases. We keep track of these different environments by setting up parallel db configs/structures for each non-default database. For example, health care data is configured in config/database_bhchp.yml, and database resources are in db_bhchp. Most things should just work as expected without doing anything special, but there is on exception. When running migrations, we need to use a custom generator, since the default rails one hardcodes the migration output path. So instead of
+
+```
+rails generate migration foo
+```
+
+you'll need to run
+
+```
+rails generate bhchp_migration foo
+```
+
+if you want to migrate something in the health care database.
+
+Lastly, all of the expected rake tasks for database manipulation are there, but prefaced with the 'bhchp' namespace. So, for instance
+
+```
+bundle exec rake db:migrate
+```
+
+becomes
+
+```
+bundle exec rake bhchp:db:migrate
+```
