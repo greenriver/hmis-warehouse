@@ -128,6 +128,7 @@ module ReportGenerators::DataQuality::Fy2016
       columns = {
         client_id: :client_id,
         age: :age,
+        DOB: :DOB,
         RelationshipToHoH: :RelationshipToHoH,
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
@@ -146,6 +147,9 @@ module ReportGenerators::DataQuality::Fy2016
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
+        end.map do |enrollment|
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          enrollment
         end.group_by do |row|
           row[:client_id]
         end

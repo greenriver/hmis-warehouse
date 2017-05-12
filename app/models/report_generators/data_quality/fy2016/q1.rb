@@ -37,7 +37,8 @@ module ReportGenerators::DataQuality::Fy2016
     def fetch_all_clients
       columns = {
         client_id: :client_id, 
-        age: :age, 
+        age: :age,
+        DOB: :DOB,
         project_type: act_as_project_overlay, 
         VeteranStatus: :VeteranStatus, 
         enrollment_group_id: :enrollment_group_id,
@@ -61,6 +62,9 @@ module ReportGenerators::DataQuality::Fy2016
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
+        end.map do |enrollment|
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          enrollment
         end.group_by do |row|
           row[:client_id]
         end

@@ -27,38 +27,37 @@ module ReportGenerators::SystemPerformance::Fy2016
    private
     def calculate
       if start_report(Reports::SystemPerformance::Fy2016::MeasureSeven.first)
+        set_report_start_and_end()
+        Rails.logger.info "Starting report #{@report.report.name}"
+        # Overview: 
+        # 7a.1 Success of placement from Street Outreach (SO) at finding permanent housing
+        # 7b.1 Success of placement from ES, SH, TH and PH-Rapid-Re-Housing at finding permanent housing
+        # 7b.2 Success of PH (except Rapid Re-Housing) at finding permanent housing
+        @answers = setup_questions()
+        @support = @answers.deep_dup
 
-      Rails.logger.info "Starting report #{@report.report.name}"
-      @report.update(percent_complete: 0.01)
-      # Overview: 
-      # 7a.1 Success of placement from Street Outreach (SO) at finding permanent housing
-      # 7b.1 Success of placement from ES, SH, TH and PH-Rapid-Re-Housing at finding permanent housing
-      # 7b.2 Success of PH (except Rapid Re-Housing) at finding permanent housing
-      @answers = setup_questions()
-      @support = @answers.deep_dup
-
-      # Relevant Project Types/Program Types
-      # 1: Emergency Shelter (ES)
-      # 2: Transitional Housing (TH)
-      # 3: Permanent Supportive Housing (disability required for entry) (PH)
-      # 4: Street Outreach (SO)
-      # 6: Services Only
-      # 7: Other
-      # 8: Safe Haven (SH)
-      # 9: Permanent Housing (Housing Only) (PH)
-      # 10: Permanent Housing (Housing with Services - no disability required for entry) (PH)
-      # 11: Day Shelter
-      # 12: Homeless Prevention
-      # 13: Rapid Re-Housing (PH)
-      # 14: Coordinated Assessment
-      
-      calculate_7a_1()
-      @report.update(percent_complete: 33)
-      calculate_7b_1()
-      @report.update(percent_complete: 66)
-      calculate_7b_2()
-      Rails.logger.info @answers
-      finish_report()
+        # Relevant Project Types/Program Types
+        # 1: Emergency Shelter (ES)
+        # 2: Transitional Housing (TH)
+        # 3: Permanent Supportive Housing (disability required for entry) (PH)
+        # 4: Street Outreach (SO)
+        # 6: Services Only
+        # 7: Other
+        # 8: Safe Haven (SH)
+        # 9: Permanent Housing (Housing Only) (PH)
+        # 10: Permanent Housing (Housing with Services - no disability required for entry) (PH)
+        # 11: Day Shelter
+        # 12: Homeless Prevention
+        # 13: Rapid Re-Housing (PH)
+        # 14: Coordinated Assessment
+        
+        calculate_7a_1()
+        update_report_progress(percent: 33)
+        calculate_7b_1()
+        update_report_progress(percent: 66)
+        calculate_7b_2()
+        Rails.logger.info @answers
+        finish_report()
       else
         Rails.logger.info 'No Report Queued'
       end

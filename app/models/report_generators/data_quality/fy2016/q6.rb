@@ -126,13 +126,15 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_all_clients
+      en_t = GrdaWarehouse::Hud::Enrollment.arel_table
+      ex_t = GrdaWarehouse::Hud::Exit.arel_table
       columns = {
         client_id: :client_id, 
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
         project_name: :project_name,
-        entry_created_at: "#{GrdaWarehouse::Hud::Enrollment.quoted_table_name}.DateCreated",
-        exit_created_at: "#{GrdaWarehouse::Hud::Exit.quoted_table_name}.DateCreated",
+        entry_created_at: en_t[:DateCreated].as('DateCreated').to_sql,
+        exit_created_at: ex_t[:DateCreated].as('DateCreated').to_sql,
       }
       
       all_client_scope.

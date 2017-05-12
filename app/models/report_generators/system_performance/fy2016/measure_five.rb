@@ -24,8 +24,9 @@ module ReportGenerators::SystemPerformance::Fy2016
 
     def calculate
       if start_report(Reports::SystemPerformance::Fy2016::MeasureFive.first)
+        @report_start ||= @report.options['report_start'].to_date
+        @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
-        @report.update(percent_complete: 0.01)
         # Overview: Determine the number of clients in the system in specific programs during the
         # report period.  Of those, were any active in the two years prior?
         @answers = setup_questions()
@@ -45,47 +46,8 @@ module ReportGenerators::SystemPerformance::Fy2016
         # 12: Homeless Prevention
         # 13: Rapid Re-Housing (PH)
         # 14: Coordinated Assessment
-        
-        # 5.1 
-        # Select clients entering any of the applicable project types in the report date range.
-        relevent_project_types = ES + SH + TH
-        set_client_universe(relevent_project_types)
-        @answers[:five1_c2][:value] = @clients.size
-        @support[:five1_c2][:support] = {
-          headers:['Client ID'],
-          counts: @clients.map{|id, _| [id]}
-        }
-        # save our progress
-        @report.update(percent_complete: 1)
-        # Determine the client's first start date within the date range
-        previous_clients = find_first_entries(relevent_project_types)
-        @answers[:five1_c3][:value] = previous_clients.size
-        @support[:five1_c3][:support] = {
-          headers:['Client ID'],
-          counts: previous_clients.map{|id, _| [id]}
-        }
-        @answers[:five1_c4][:value] = @answers[:five1_c2][:value] - @answers[:five1_c3][:value]
-        # save our progress
-        @report.update(percent_complete: 50)
-        # 5.2 
-        # Select clients entering any of the applicable project types in the report date range.
-        relevent_project_types = ES + SH + TH + PH
-        set_client_universe(relevent_project_types)
-        # save our progress
-        @report.update(percent_complete: 51)
-        @answers[:five2_c2][:value] = @clients.size
-        @support[:five2_c2][:support] = {
-          headers:['Client ID'],
-          counts: @clients.map{|id, _| [id]}
-        }
-        # Determine the client's first start date within the date range
-        previous_clients = find_first_entries(relevent_project_types)
-        @answers[:five2_c3][:value] = previous_clients.size
-        @support[:five2_c3][:support] = {
-          headers:['Client ID'],
-          counts: previous_clients.map{|id, _| [id]}
-        }
-        @answers[:five2_c4][:value] = @answers[:five2_c2][:value] - @answers[:five2_c3][:value]
+        add_es_sh_th_answers()
+        add_es_sh_th_ph_answers()
         Rails.logger.info @answers.inspect
         finish_report()
       else
@@ -93,11 +55,70 @@ module ReportGenerators::SystemPerformance::Fy2016
       end
     end
 
-    private
+    def add_es_sh_th_answers
+      # 5.1 
+      # Select clients entering any of the applicable project types in the report date range.
+      relevent_project_types = ES + SH + TH
+      set_client_universe(relevent_project_types)
+      @answers[:five1_c2][:value] = @clients.size
+      @support[:five1_c2][:support] = {
+        headers:['Client ID'],
+        counts: @clients.map{|id, _| [id]}
+      }
+      # save our progress
+      @report.update(percent_complete: 1)
+      # Determine the client's first start date within the date range
+      previous_clients = find_first_entries(relevent_project_types)
+      @answers[:five1_c3][:value] = previous_clients.size
+      @support[:five1_c3][:support] = {
+        headers: ['Client ID', 'Current Enrollment Start', 'Earlier Enrollment Start'],
+        counts: previous_clients.map do |id, _| 
+          [
+            id,
+            @clients[id][:start_date],
+            @clients[id][:earlier_entry],
+          ]
+        end
+      }
+      @answers[:five1_c4][:value] = @answers[:five1_c2][:value] - @answers[:five1_c3][:value]
+      # save our progress
+      update_report_progress(percent: 50)
+    end
+    
+    def add_es_sh_th_ph_answers
+      # 5.2 
+      # Select clients entering any of the applicable project types in the report date range.
+      relevent_project_types = ES + SH + TH + PH
+      set_client_universe(relevent_project_types)
+      # save our progress
+      @report.update(percent_complete: 51)
+      @answers[:five2_c2][:value] = @clients.size
+      @support[:five2_c2][:support] = {
+        headers:['Client ID'],
+        counts: @clients.map{|id, _| [id]}
+      }
+      # Determine the client's first start date within the date range
+      previous_clients = find_first_entries(relevent_project_types)
+      @answers[:five2_c3][:value] = previous_clients.size
+      @support[:five2_c3][:support] = {
+        headers: ['Client ID', 'Current Enrollment Start', 'Earlier Enrollment Start'],
+        counts: previous_clients.map do |id, _| 
+          [
+            id,
+            @clients[id][:start_date],
+            @clients[id][:earlier_entry],
+          ]
+        end
+      }
+      @answers[:five2_c4][:value] = @answers[:five2_c2][:value] - @answers[:five2_c3][:value]
+       # save our progress
+      update_report_progress(percent: 90)
+    end
+
     def set_client_universe relevent_project_types
       @clients = {}
       client_scope = GrdaWarehouse::ServiceHistory.entry.
-        started_between(start_date: @report.options['report_start'], end_date: @report.options['report_end'].to_date + 1.day).
+        started_between(start_date: @report_start, end_date: @report_end + 1.day).
         hud_project_type(relevent_project_types)
 
       client_scope = add_filters(scope: client_scope)
@@ -110,12 +131,12 @@ module ReportGenerators::SystemPerformance::Fy2016
     end
 
     def find_first_entries relevent_project_types
-      previous_clients = []
+      previous_clients = Set.new
       @clients.each do |id, client|
         sh_scope = GrdaWarehouse::ServiceHistory.entry.
           where(client_id: id).
           hud_project_type(relevent_project_types).
-          started_between(start_date: @report.options['report_start'], end_date: @report.options['report_end'].to_date + 1.day)
+          started_between(start_date: @report_start, end_date: @report_end + 1.day)
 
         sh_scope = add_filters(scope: sh_scope)
 
@@ -144,6 +165,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           minimum(:first_date_in_program)
 
         if earlier_date.present?
+          @clients[id][:earlier_entry] = earlier_date
           # clients[id][:early_start_date] = @answers.first['first_date_in_program']
           previous_clients << id
         end
