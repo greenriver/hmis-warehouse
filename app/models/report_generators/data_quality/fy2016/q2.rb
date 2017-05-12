@@ -290,9 +290,10 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_all_clients
+      et = GrdaWarehouse::Hud::Enrollment.arel_table
       columns = {
         client_id: :client_id, 
-        age: :age, 
+        age: :age,
         project_type: act_as_project_overlay, 
         VeteranStatus: :VeteranStatus, 
         enrollment_group_id: :enrollment_group_id, 
@@ -305,7 +306,7 @@ module ReportGenerators::DataQuality::Fy2016
         SSNDataQuality: :SSNDataQuality,
         DOB: :DOB,
         DOBDataQuality: :DOBDataQuality,
-        DateCreated: "#{GrdaWarehouse::Hud::Enrollment.quoted_table_name}.DateCreated",
+        DateCreated: et[:DateCreated].as('DateCreated').to_sql,
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
         Ethnicity: :Ethnicity,
@@ -319,6 +320,9 @@ module ReportGenerators::DataQuality::Fy2016
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
+        end.map do |enrollment|
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          enrollment
         end.group_by do |row|
           row[:client_id]
         end

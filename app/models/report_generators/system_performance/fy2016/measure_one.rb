@@ -23,6 +23,7 @@ module ReportGenerators::SystemPerformance::Fy2016
     
     def calculate
       if start_report(Reports::SystemPerformance::Fy2016::MeasureOne.first)
+        set_report_start_and_end()
         # Overview: Calculate the length of time each client has been homeless within a window
         # Column B is the distinct clients homeless
         # Column D is the Average of the total time homeless
@@ -49,7 +50,6 @@ module ReportGenerators::SystemPerformance::Fy2016
         # Line 2 looks at (1, 8, 2)      
         
         Rails.logger.info "Starting report #{@report.report.name}"
-        @report.update(percent_complete: 0.01)
         # Universe is anyone who spent time in ES or SH
         # 
         # This uses service records instead of entry records, it is much slower, but 
@@ -60,7 +60,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         #   select(:client_id).distinct.pluck(:client_id)
 
         remaining_scope = GrdaWarehouse::ServiceHistory.
-          entry_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'].to_date).
+          entry_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
             hud_project_type(ES + SH).
           select(:client_id)
         
@@ -80,7 +80,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           end
           if index % 100 == 0 && index != 0
             # save our progress, divide by two because we need to loop over these again
-            @report.update(percent_complete: (((index.to_f / remaining.count) / 4) * 100).round(2))
+            update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
           end
         end
         # puts clients.inspect
@@ -98,7 +98,7 @@ module ReportGenerators::SystemPerformance::Fy2016
 
         # Universe is anyone who spent time in TH, ES or SH
         remaining_scope = GrdaWarehouse::ServiceHistory.
-          entry_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'].to_date).
+          entry_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
           hud_project_type(TH + ES + SH).
           select(:client_id)
 
@@ -116,7 +116,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           end
           if index % 100 == 0 && index != 0
             # save our progress, start at 50% because we've already run through once
-            @report.update(percent_complete: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
+            update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
           end
         end
         # puts clients.inspect
@@ -131,7 +131,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         # Universe is anyone who spent time in ES or SH
         # Now include days between first reported homeless date and entry date
         remaining_scope = GrdaWarehouse::ServiceHistory.
-          entry_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'].to_date).
+          entry_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
             hud_project_type(ES + SH).
           select(:client_id)
 
@@ -151,7 +151,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           end
           if index % 100 == 0 && index != 0
             # save our progress, divide by two because we need to loop over these again
-            @report.update(percent_complete: (((index.to_f / remaining.count) / 4) * 100 + 50).round(2))
+            update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 50).round(2))
           end
         end
         # puts clients.inspect
@@ -166,7 +166,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         # Universe is anyone who spent time in TH, ES or SH
         # Now include days between first reported homeless date and entry date
         remaining_scope = GrdaWarehouse::ServiceHistory.
-          entry_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'].to_date).
+          entry_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
           hud_project_type(TH + ES + SH).
           select(:client_id)
 
@@ -184,7 +184,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           end
           if index % 100 == 0 && index != 0
             # save our progress, start at 50% because we've already run through once
-            @report.update(percent_complete: (((index.to_f / remaining.count) / 4) * 100 + 75).round(2))
+            update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 75).round(2))
           end
         end
         # puts clients.inspect

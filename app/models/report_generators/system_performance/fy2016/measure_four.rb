@@ -24,8 +24,8 @@ module ReportGenerators::SystemPerformance::Fy2016
     def calculate
       # TODO: Because we don't push head of household Housing Status onto dependents, we may need to lookup Housing Status if we aren't the head of household
       if start_report(Reports::SystemPerformance::Fy2016::MeasureFour.first)
+        set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
-        @report.update(percent_complete: 0.01)
         @answers = setup_questions()
         @support = @answers.deep_dup
         # To get the appropriate Federal Partner Funding Sources (2.6) we need to look at the agency info table provided by Jennifer Flynn from DND
@@ -44,11 +44,11 @@ module ReportGenerators::SystemPerformance::Fy2016
         # Find anyone 18 years or older in a relevant project,
         # get their latest project entry date within the report range for which the length of stay is >= 365 days. 
         universe_of_stayers = calculate_stayers
-        @report.update(percent_complete: 10)
+        update_report_progress(percent: 10)
         # Per Jennifer Flynn, ignore 60 day window around program start anniversary, 
         # that was not the instructions given to programs about when to collect assessments
         universe_of_stayers = add_stayer_income(universe_of_stayers)
-        @report.update(percent_complete: 40)
+        update_report_progress(percent: 40)
         @answers[:four1_c2][:value] = universe_of_stayers.size
         @answers[:four2_c2][:value] = universe_of_stayers.size
         @answers[:four3_c2][:value] = universe_of_stayers.size
@@ -92,9 +92,9 @@ module ReportGenerators::SystemPerformance::Fy2016
         end
 
         universe_of_leavers = calculate_leavers 
-        @report.update(percent_complete: 50)
+        update_report_progress(percent: 50)
         universe_of_leavers = add_leaver_income(universe_of_leavers)
-        @report.update(percent_complete: 90)
+        update_report_progress(percent: 90)
         @answers[:four4_c2][:value] = universe_of_leavers.size
         @answers[:four5_c2][:value] = universe_of_leavers.size
         @answers[:four6_c2][:value] = universe_of_leavers.size
@@ -149,7 +149,19 @@ module ReportGenerators::SystemPerformance::Fy2016
       # Page 24 of 41
       # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
       # 3. The client must be an adult to be included in this measure.
-      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :PersonalID, :data_source_id, :project_tracking_method, :project_name]
+      columns = [
+        :client_id, 
+        :first_date_in_program, 
+        :last_date_in_program, 
+        :project_id, 
+        :age, 
+        :DOB, 
+        :enrollment_group_id, 
+        :PersonalID, 
+        :data_source_id, 
+        :project_tracking_method, 
+        :project_name
+      ]
 
       stayers_scope = GrdaWarehouse::ServiceHistory.entry.
         coc_funded_in(coc_code: COC_CODE).
@@ -166,6 +178,9 @@ module ReportGenerators::SystemPerformance::Fy2016
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns).map do |row|
           Hash[columns.zip(row)]
+        end.map do |enrollment|
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          enrollment
         end.group_by do |row|
           row[:client_id]
         end.map do |_,enrollments| 
@@ -202,7 +217,19 @@ module ReportGenerators::SystemPerformance::Fy2016
       # 1. A “system leaver” is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
       # is not active in any of the relevant projects as of the [report end date].
       # 2. The client must be an adult to be included.
-      columns = [:client_id, :first_date_in_program, :last_date_in_program, :project_id, :age, :DOB, :enrollment_group_id, :PersonalID, :data_source_id, :project_tracking_method, :project_name]
+      columns = [
+        :client_id, 
+        :first_date_in_program, 
+        :last_date_in_program, 
+        :project_id, 
+        :age, 
+        :DOB,
+        :enrollment_group_id, 
+        :PersonalID, 
+        :data_source_id, 
+        :project_tracking_method, 
+        :project_name
+      ]
 
       client_id_scope = GrdaWarehouse::ServiceHistory.entry.
         ongoing(on_date: @report.options['report_end']).
@@ -241,9 +268,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
           final_enrollment = v.last
-          if final_enrollment[:DOB].present? && (final_enrollment[:first_date_in_program] < @report.options['report_start'].to_date)
-            final_enrollment[:age] = GrdaWarehouse::Hud::Client.age(date: @report.options['report_start'].to_date, dob: final_enrollment[:DOB])
-          end
+          final_enrollment[:age] = age_for_report(dob: final_enrollment[:DOB], enrollment: final_enrollment)
           final_enrollment
         end.select do |row|
           # We only look at adults

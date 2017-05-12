@@ -167,15 +167,17 @@ module GrdaWarehouse::Tasks
       # Sometimes we see a service record duplicated, make sure we don't count
       # the duplicates
       st = GrdaWarehouse::Hud::Service.arel_table
-      client_source.joins(source_services: :project).
-        where(id: @destinations.keys, Project: {TrackingMethod: 3}).
-        group(:id).
-        pluck(
-          :id,
-          nf('COUNT', [nf('DISTINCT', [checksum(GrdaWarehouse::Hud::Service, [st[:DateProvided], st[:ProjectEntryID]])])]).to_sql 
-        ).
-      each do |id, source_service_count|
-        @destinations[id][:source][:service] = source_service_count
+      @destinations.keys.each_slice(250) do |ids|
+        client_source.joins(source_services: :project).
+          where(id: ids, Project: {TrackingMethod: 3}).
+          group(:id).
+          pluck(
+            :id,
+            nf('COUNT', [nf('DISTINCT', [checksum(GrdaWarehouse::Hud::Service, [st[:DateProvided], st[:ProjectEntryID]])])]).to_sql 
+          ).
+        each do |id, source_service_count|
+          @destinations[id][:source][:service] = source_service_count
+        end
       end
     end
 

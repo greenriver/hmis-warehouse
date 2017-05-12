@@ -7,7 +7,11 @@ Rails.application.routes.draw do
   devise_for :users, controllers: { invitations: 'users/invitations'}
 
   resources :reports do
-    resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy]
+    resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
+
+      resources :support, only: [:index], controller: 'report_results/support'
+
+    end
   end
   namespace :reports do
     namespace :hic do

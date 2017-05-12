@@ -23,8 +23,9 @@ module GrdaWarehouse::Tasks
           clean_destination_clients
         end
       end
-      update_client_demographics_based_on_sources
-      add_missing_ages_to_service_history
+      update_client_demographics_based_on_sources()
+      fix_incorrect_ages_in_service_history()
+      add_missing_ages_to_service_history()
     end
 
     private def find_unused_destination_clients
@@ -150,6 +151,28 @@ module GrdaWarehouse::Tasks
     private def clean_destination_clients
       return unless @clients.any?
       GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: Time.now)
+    end
+
+    def fix_incorrect_ages_in_service_history
+      logger.info "Finding any clients with incorrect ages in the last 3 years of service history and invalidating them."
+      incorrect_age_clients = Set.new
+      service_history_ages = GrdaWarehouse::ServiceHistory.entry.
+        pluck(:client_id, :age, :first_date_in_program)
+      clients = GrdaWarehouse::Hud::Client.
+        where(id:GrdaWarehouse::ServiceHistory.entry.
+          distinct.select(:client_id)).
+        pluck(:id, :DOB).
+        map.to_h
+      
+      service_history_ages.each do |id, age, entry_date|
+        next unless dob = clients[id] # ignore blanks
+        client_age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
+        incorrect_age_clients << id if age != client_age
+        incorrect_age_clients << id if age.present? && age < 0
+      end
+      logger.info "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history"
+      GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
+        map(&:invalidate_service_history)
     end
 
     private def add_missing_ages_to_service_history

@@ -24,9 +24,8 @@ module ReportGenerators::SystemPerformance::Fy2016
     
     def calculate
       if start_report(Reports::SystemPerformance::Fy2016::MeasureTwo.first)
- 
+        set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
-        @report.update(percent_complete: 0.01)
 
         @answers = setup_questions()
         @support = @answers.deep_dup 
@@ -49,8 +48,8 @@ module ReportGenerators::SystemPerformance::Fy2016
         # 
        
         project_types = SO + ES + TH + SH + PH 
-        look_back_until =  LOOKBACK_STOP_DATE.to_date >= (@report.options['report_start'].to_date - 730.days) ? LOOKBACK_STOP_DATE : (@report.options['report_start'].to_date - 730.days).strftime('%Y-%m-%d')
-        look_forward_until = (@report.options['report_end'].to_date - 730.days).strftime('%Y-%m-%d')
+        look_back_until =  LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days) ? LOOKBACK_STOP_DATE : (@report_start - 730.days).strftime('%Y-%m-%d')
+        look_forward_until = (@report_end - 730.days).strftime('%Y-%m-%d')
 
         columns = {
           client_id: :client_id, 
@@ -122,7 +121,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         @support[:two_b6][:support] = support_for(answer: :two_b6, data: project_exists_from[:ph])
         @answers[:two_b7][:value] = @answers[:two_b2][:value] + @answers[:two_b3][:value] + @answers[:two_b4][:value] + @answers[:two_b5][:value] + @answers[:two_b6][:value]
 
-        @report.update(percent_complete: 10)
+        update_report_progress(percent: 10)
 
         # Find anyone who has returned to homelessness after 14+ days
         # Find their first return to homelessness and calculate the days between the 
@@ -159,7 +158,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           client_scope = GrdaWarehouse::ServiceHistory.entry.
             joins(:project).
             where(client_id: p_exit[:client_id]).
-            where(sh[:first_date_in_program].lteq(@report.options['report_end']).
+            where(sh[:first_date_in_program].lteq(@report_end).
               and(sh[:first_date_in_program].gt(p_exit[:last_date_in_program])))
 
           client_scope = add_filters(scope: client_scope)
@@ -482,22 +481,24 @@ module ReportGenerators::SystemPerformance::Fy2016
     def support_for answer:, data:
       case answer
       when :two_b2, :two_b3, :two_b4, :two_b5, :two_b6
-        {
-          headers: ['Client ID', 'Project', 'Project Type', 'Destination'], 
-          counts: data.map do |m| 
+        add_support(
+          headers: ['Client ID', 'Project', 'Project Type', 'Destination', 'Start Date', 'Exit Date'], 
+          data: data.map do |m| 
             [
               m[:client_id], 
               m[:project_name], 
               HUD::project_type(m[:project_type]), 
               HUD::destination(m[:destination]),
+              m[:first_date_in_program],
+              m[:last_date_in_program]
             ]
           end
-        }
+        )
       when :two_c2, :two_c3, :two_c4, :two_c5, :two_c6, :two_e2, :two_e3, :two_e4, :two_e5, :two_e6, :two_g2, :two_g3, :two_g4, :two_g5, :two_g6
-        {
+        add_support(
           headers: ['Client ID', 'Days'], 
-          counts: data,
-        }
+          data: data,
+        )
       end
     end
 
