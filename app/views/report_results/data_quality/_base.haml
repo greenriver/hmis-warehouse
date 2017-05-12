@@ -9,9 +9,10 @@
             - if have_support
               = link_to report_report_result_support_index_path(@report, @result, {key: key}), data: {loads_in_pjax_modal: true} do
                 = result['value']
+            - else
+              = result['value']
           %td
             - if have_support
               = link_to report_report_result_support_index_path(@report, @result, {key: key, format: :xlsx}) do
                 %span.icon-download2
-            - else
-              = result['value']
+            
