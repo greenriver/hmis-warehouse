@@ -13,9 +13,9 @@ Dir.chdir APP_ROOT do
     "config/database.yml",
     "config/secrets.yml",
     "config/eto_api.yml",
-    "config/exception_notifier.yml"
-    "config/mail_account.yml"
-    "config/weather.yml"
+    "config/exception_notifier.yml",
+    "config/mail_account.yml",
+    "config/weather.yml",
   ]
   ymls.each do |file|
     unless File.exist?(file)
@@ -23,7 +23,7 @@ Dir.chdir APP_ROOT do
       system "cp #{file}.sample #{file}"
     end
   end
-  
+
   puts "\n== Preparing Database =="
   system "bin/rake db:create"
   system "bin/rake db:migrate"
