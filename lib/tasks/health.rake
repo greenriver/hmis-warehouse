@@ -1,6 +1,6 @@
-task spec: ["bhchp:db:test:prepare"]
+task spec: ["health:db:test:prepare"]
 
-namespace :bhchp do
+namespace :health do
  
   namespace :db do |ns|
  
@@ -50,8 +50,8 @@ namespace :bhchp do
  
     # append and prepend proper tasks to all the tasks defined here above
     ns.tasks.each do |task|
-      task.enhance ["bhchp:set_custom_config"] do
-        Rake::Task["bhchp:revert_to_original_config"].invoke
+      task.enhance ["health:set_custom_config"] do
+        Rake::Task["health:revert_to_original_config"].invoke
       end
     end
   end
@@ -64,11 +64,11 @@ namespace :bhchp do
     }
  
     # set config variables for custom database
-    ENV['SCHEMA'] = "bhchp/schema.rb"
-    Rails.application.config.paths['db'] = ["db_bhchp"]
-    Rails.application.config.paths['db/migrate'] = ["db_bhchp/migrate"]
-    Rails.application.config.paths['db/seeds'] = ["db_bhchp/seeds.rb"]
-    Rails.application.config.paths['config/database'] = ["config/database_bhchp.yml"]
+    ENV['SCHEMA'] = "health/schema.rb"
+    Rails.application.config.paths['db'] = ["db_health"]
+    Rails.application.config.paths['db/migrate'] = ["db_health/migrate"]
+    Rails.application.config.paths['db/seeds'] = ["db_health/seeds.rb"]
+    Rails.application.config.paths['config/database'] = ["config/database_health.yml"]
   end
  
   task :revert_to_original_config do

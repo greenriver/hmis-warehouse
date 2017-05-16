@@ -5,7 +5,7 @@ default: &default
 
 development:
   <<: *default
-  database: bhchp_dev
+  database: health_dev
 
 
 # Warning: The database defined as "test" will be erased and
@@ -13,4 +13,4 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: bhchp_test
+  database: health_test

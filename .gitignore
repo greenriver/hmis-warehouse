@@ -41,7 +41,7 @@ rerun.txt
 pickle-email-*.html
 .irb-history
 config/database.yml
-config/database_bhchp.yml
+config/database_health.yml
 config/eto_api.yml
 config/weather.yml
 config/exception_notifier.yml
