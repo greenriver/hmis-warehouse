@@ -254,6 +254,8 @@ GEM
     multipart-post (2.0.0)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
+    net-sftp (2.1.2)
+      net-ssh (>= 2.6.5)
     net-ssh (3.2.0)
     netrc (0.11.0)
     newrelic_rpm (3.17.2.327)
@@ -460,6 +462,7 @@ DEPENDENCIES
   memoist
   memory_profiler
   minitest-reporters
+  net-sftp
   newrelic_rpm
   nokogiri (>= 1.7.1)
   nominatim
