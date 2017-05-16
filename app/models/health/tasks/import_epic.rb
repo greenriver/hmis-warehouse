@@ -29,8 +29,16 @@ module Health
     end
 
     def import klass:, file:
-      handle = read_csv_file(path: "#{@config['destination']}/#{file}")
-      raise "Incorrect file format for #{file}" unless header_row_matches(file: handle, klass: klass)
+      path = "#{@config['destination']}/#{file}"
+      handle = read_csv_file(path: path)
+      if ! header_row_matches(file: handle, klass: klass)
+        msg = "Incorrect file format for #{file}"
+        notify msg
+        raise msg
+      end
+      CSV.foreach(path, headers: true) do |row|
+        row
+      end
     end
 
     def import_files
@@ -46,9 +54,8 @@ module Health
         password: @config['password']
       ) 
       sftp.download!(@config['path'], @config['destination'], recursive: true)
-      msg = "Health data downloaded"
-      @logger.info msg
-      @notifier.ping msg if @send_notifications
+
+      notify "Health data downloaded"
     end
 
     def read_csv_file path:
@@ -65,9 +72,12 @@ module Health
     def header_row_matches file:, klass:
       expected = klass.csv_map.keys.sort
       found = CSV.parse(file.first).first.map(&:to_sym).sort
-      puts expected.inspect
-      puts found.inspect
       found == expected
+    end
+
+    def notify msg
+      @logger.info msg
+      @notifier.ping msg if @send_notifications
     end
   end
 end
