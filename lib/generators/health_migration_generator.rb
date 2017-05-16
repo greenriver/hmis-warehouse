@@ -6,6 +6,6 @@ class HealthMigrationGenerator < ActiveRecord::Generators::MigrationGenerator
   def create_migration_file
     set_local_assigns!
     validate_file_name!
-    migration_template @migration_template, "db_health/migrate/#{file_name}.rb"
+    migration_template @migration_template, "db/health/migrate/#{file_name}.rb"
   end
 end
