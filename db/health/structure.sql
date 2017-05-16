@@ -39,7 +39,6 @@ SET default_with_oids = false;
 
 CREATE TABLE appointments (
     id integer NOT NULL,
-    appointment_date date,
     type character varying,
     notes text,
     doctor character varying,
@@ -47,7 +46,9 @@ CREATE TABLE appointments (
     sa character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer
+    patient_id integer,
+    appointment_time timestamp without time zone,
+    id_in_source character varying
 );
 
 
@@ -82,7 +83,8 @@ CREATE TABLE medications (
     instructions text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer
+    patient_id integer,
+    id_in_source character varying
 );
 
 
@@ -162,7 +164,8 @@ CREATE TABLE problems (
     icd10_list character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer
+    patient_id integer,
+    id_in_source character varying
 );
 
 
@@ -183,6 +186,42 @@ CREATE SEQUENCE problems_id_seq
 --
 
 ALTER SEQUENCE problems_id_seq OWNED BY problems.id;
+
+
+--
+-- Name: recent_visits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE recent_visits (
+    id integer NOT NULL,
+    date_of_service date,
+    department character varying,
+    facility_type character varying,
+    provider character varying,
+    id_in_source character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    patient_id integer
+);
+
+
+--
+-- Name: recent_visits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE recent_visits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: recent_visits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE recent_visits_id_seq OWNED BY recent_visits.id;
 
 
 --
@@ -261,6 +300,13 @@ ALTER TABLE ONLY problems ALTER COLUMN id SET DEFAULT nextval('problems_id_seq':
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY recent_visits ALTER COLUMN id SET DEFAULT nextval('recent_visits_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY visits ALTER COLUMN id SET DEFAULT nextval('visits_id_seq'::regclass);
 
 
@@ -297,6 +343,14 @@ ALTER TABLE ONLY problems
 
 
 --
+-- Name: recent_visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY recent_visits
+    ADD CONSTRAINT recent_visits_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -323,6 +377,13 @@ CREATE INDEX index_medications_on_patient_id ON medications USING btree (patient
 --
 
 CREATE INDEX index_problems_on_patient_id ON problems USING btree (patient_id);
+
+
+--
+-- Name: index_recent_visits_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_recent_visits_on_patient_id ON recent_visits USING btree (patient_id);
 
 
 --
@@ -354,4 +415,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170512172320');
 INSERT INTO schema_migrations (version) VALUES ('20170512172327');
 
 INSERT INTO schema_migrations (version) VALUES ('20170512172333');
+
+INSERT INTO schema_migrations (version) VALUES ('20170516185409');
 
