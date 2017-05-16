@@ -138,7 +138,7 @@ namespace :grda_warehouse do
       grda.munged_personal_id = true
       grda.save
 
-      dnd_warehouse = GrdaWarehouse::DataSource.where(name: 'DND Warehouse').first_or_create
+      dnd_warehouse = GrdaWarehouse::DataSource.where(name: 'HMIS Warehouse').first_or_create
       dnd_warehouse.short_name = 'Warehouse'
       dnd_warehouse.save
     end
