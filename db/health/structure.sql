@@ -114,7 +114,6 @@ ALTER SEQUENCE medications_id_seq OWNED BY medications.id;
 CREATE TABLE patients (
     id integer NOT NULL,
     id_in_source character varying NOT NULL,
-    gender integer DEFAULT 99 NOT NULL,
     first_name character varying,
     middle_name character varying,
     last_name character varying,
@@ -129,7 +128,8 @@ CREATE TABLE patients (
     ssn character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    client_id integer
+    client_id integer,
+    gender character varying
 );
 
 
@@ -365,4 +365,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170516185409');
 INSERT INTO schema_migrations (version) VALUES ('20170516190400');
 
 INSERT INTO schema_migrations (version) VALUES ('20170516195310');
+
+INSERT INTO schema_migrations (version) VALUES ('20170517125108');
 

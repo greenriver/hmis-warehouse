@@ -6,6 +6,8 @@ module Health
     has_many :problems
     has_many :visits
 
+    scope :unprocessed, -> { where client_id: nil}
+    
     self.source_key = :PAT_ID
     
     def self.csv_map(version: nil)
