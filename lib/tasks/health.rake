@@ -2,6 +2,12 @@ task spec: ["health:db:test:prepare"]
 
 namespace :health do
  
+  desc "Import and match health data"
+  task daily: [:environment, "log:info_to_stdout"] do
+    Importing::RunHealthImportJob.new.perform
+  end
+
+  # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
  
     task :drop do

@@ -59,9 +59,9 @@ module Health
     def fetch_files
       sftp = Net::SFTP.start(
         @config['host'], 
-        @config['username'], 
+        @config['username'],
         password: @config['password']
-      ) 
+      )
       sftp.download!(@config['path'], @config['destination'], recursive: true)
 
       notify "Health data downloaded"
