@@ -60,7 +60,7 @@ module Admin
 
     private
       def role_scope
-        Role.all
+        Role.editable
       end
 
       def role_params

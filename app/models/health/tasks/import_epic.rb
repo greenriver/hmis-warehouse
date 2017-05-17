@@ -2,8 +2,8 @@ require 'net/sftp'
 require 'csv'
 require 'charlock_holmes'
 
-module Health
-  class Tasks::ImportEpic
+module Health::Tasks
+  class ImportEpic
     include TsqlImport
     attr_accessor :send_notifications, :notifier_config, :logger
 
@@ -60,7 +60,9 @@ module Health
       sftp = Net::SFTP.start(
         @config['host'], 
         @config['username'],
-        password: @config['password']
+        password: @config['password'],
+        verbose: :debug,
+        auth_methods: ['publickey','password']
       )
       sftp.download!(@config['path'], @config['destination'], recursive: true)
 

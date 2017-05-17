@@ -403,7 +403,11 @@ CREATE TABLE roles (
     can_view_projects boolean DEFAULT false,
     can_view_organizations boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
-    can_upload_hud_zips boolean DEFAULT false
+    can_upload_hud_zips boolean DEFAULT false,
+    can_administer_health boolean DEFAULT false,
+    can_edit_client_health boolean DEFAULT false,
+    can_view_client_health boolean DEFAULT false,
+    health_role boolean DEFAULT false NOT NULL
 );
 
 
@@ -1177,4 +1181,6 @@ INSERT INTO schema_migrations (version) VALUES ('20161216003217');
 INSERT INTO schema_migrations (version) VALUES ('20161219184752');
 
 INSERT INTO schema_migrations (version) VALUES ('20170505132237');
+
+INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 

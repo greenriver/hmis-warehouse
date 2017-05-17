@@ -4,8 +4,17 @@ class Role < ActiveRecord::Base
   validates :name, presence: true
   
   def role_name
-    name.to_s.humanize.gsub 'Dnd', 'DND'
+    name.to_s.humanize.gsub('Dnd', 'DND')
   end
+
+  scope :health, -> do
+    where(health_role: true)
+  end
+
+  scope :editable, -> do
+    where(health_role: false)
+  end
+
 
   def self.permissions
     [
@@ -25,6 +34,9 @@ class Role < ActiveRecord::Base
       :can_view_organizations,
       :can_view_client_window,
       :can_upload_hud_zips,
+      :can_administer_health,
+      :can_edit_client_health,
+      :can_view_client_health,
     ]
   end
 

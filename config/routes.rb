@@ -124,6 +124,18 @@ Rails.application.routes.draw do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
     end
+    namespace :health do
+      resources :admin, only: [:index]
+      resources :patients, only: [:index] do
+        post :update, on: :collection
+      end
+      resources :users, only: [:index] do
+        post :update
+      end
+      resources :roles, only: [:index] do
+        post :update
+      end
+    end
   end
   resource :account, only: [:edit, :update]
 

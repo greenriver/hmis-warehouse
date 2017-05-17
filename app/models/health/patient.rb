@@ -7,7 +7,7 @@ module Health
     has_many :visits
 
     scope :unprocessed, -> { where client_id: nil}
-    
+
     self.source_key = :PAT_ID
     
     def self.csv_map(version: nil)
@@ -31,5 +31,8 @@ module Health
       }
     end
 
+    def name
+      "#{first_name} #{middle_name} #{last_name}"
+    end
   end
 end

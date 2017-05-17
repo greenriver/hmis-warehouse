@@ -1,0 +1,23 @@
+= render 'breadcrumbs'
+%p Use this form to connect any patients who are not automatically matched to clients on import, or to fix an incorrectly matched patient. 
+= simple_form_for :patients, url: admin_health_patients_path do |f|
+  = f.error_notification
+  .form-inputs
+    %p= page_entries_info @patients
+    %p= paginate @patients
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Patient
+          %th Client ID
+      %tbody
+        - @patients.each do |patient|
+          %tr
+            = simple_fields_for 'patients[]', patient do |t|
+              %td
+                = patient.name
+              %td
+                = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
+  .form-actions
+    = f.button :submit, value: 'Update Connections'
+  %p= paginate @patients
