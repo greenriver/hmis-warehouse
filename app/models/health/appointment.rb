@@ -1,7 +1,9 @@
 module Health
-  class Appointment < HealthBase
+  class Appointment < Base
 
     belongs_to :patient
+
+    self.source_key = :ENC_ID
 
     def self.csv_map(version: nil)
       {

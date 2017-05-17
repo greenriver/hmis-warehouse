@@ -1,7 +1,9 @@
 module Health
-  class Medication < HealthBase
+  class Medication < Base
 
     belongs_to :patient
+
+    self.source_key = :OM_ID
 
     def self.csv_map(version: nil)
       {

@@ -1,11 +1,13 @@
 module Health
-  class Patient < HealthBase
+  class Patient < Base
 
     has_many :appointments
     has_many :medications
     has_many :problems
     has_many :visits
 
+    self.source_key = :PAT_ID
+    
     def self.csv_map(version: nil)
       {
         PAT_ID: :id_in_source,

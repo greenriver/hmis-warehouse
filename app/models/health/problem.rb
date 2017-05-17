@@ -1,8 +1,10 @@
 module Health
-  class Problem < HealthBase
+  class Problem < Base
 
     belongs_to :patient
 
+    self.source_key = :PL_ID
+    
     def self.csv_map(version: nil)
       {
         PAT_ID: :patient_id,
