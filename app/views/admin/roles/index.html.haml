@@ -22,7 +22,7 @@
           %th
           %th
         %tbody
-          - Role.permissions.each do |permission|
+          - Role.permissions(exclude_health: true).each do |permission|
             %tr
               %td
                 =permission.to_s.humanize

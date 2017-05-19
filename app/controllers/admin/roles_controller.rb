@@ -67,7 +67,7 @@ module Admin
         params.require(:role).
           permit(
             :name,
-            Role.permissions
+            Role.permissions(exclude_health: true)
           )
       end
       def sort_column

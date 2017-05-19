@@ -16,8 +16,8 @@ class Role < ActiveRecord::Base
   end
 
 
-  def self.permissions
-    [
+  def self.permissions(exclude_health: false)
+    perms = [
       :can_view_clients,
       :can_edit_clients,
       :can_view_reports,
@@ -34,6 +34,13 @@ class Role < ActiveRecord::Base
       :can_view_organizations,
       :can_view_client_window,
       :can_upload_hud_zips,
+    ] 
+    perms += self.health_permissions unless exclude_health
+    return perms
+  end
+
+  def self.health_permissions
+    [
       :can_administer_health,
       :can_edit_client_health,
       :can_view_client_health,

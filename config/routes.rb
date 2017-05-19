@@ -130,11 +130,9 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :users, only: [:index] do
-        post :update
+        post :update, on: :collection
       end
-      resources :roles, only: [:index] do
-        post :update
-      end
+      resources :roles, only: [:index]
     end
   end
   resource :account, only: [:edit, :update]
