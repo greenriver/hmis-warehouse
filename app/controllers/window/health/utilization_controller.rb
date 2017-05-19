@@ -1,6 +1,6 @@
 module Window
   class HealthController < ApplicationController
-    before_action :require_can_view_client_window!
+    before_action :can_edit_client_health!
     before_action :set_client, only: [:index]
     
     def index

@@ -1,14 +1,20 @@
 :ruby
   tabs = [
-    [ :show, 'Client Dashboard' ],
-    [ :edit, 'Merge' ],
-    [ :history, 'Client History' ],
+    [ client_path(@client), 'Client Dashboard', ],
+    [ edit_client_path(@client), 'Merge' ],
+    [ history_client_path(@client), 'Client History' ],
   ]
+  if can_edit_client_health?
+    tabs << [ client_health_patient_index_path(@client), 'Health' ]
+  end
 %ul.nav.nav-tabs
   - tabs.each do |action, text|
-    - if action_name == action.to_s
+    - components = Rails.application.routes.recognize_path(action)
+    - current_action = components[:action]
+    - current_controller = components[:controller].split('/').last # FIXME
+    - if action_name == current_action.to_s && controller_name == current_controller.to_s
       %li.active.active-tab{role: 'presentation'}
         %a{href: '#'} 
           = text
     - else
-      %li= link_to text, action: action
+      %li= link_to text, action

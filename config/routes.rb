@@ -6,6 +6,18 @@ Rails.application.routes.draw do
   end
   devise_for :users, controllers: { invitations: 'users/invitations'}
 
+  def healthcare_routes
+    namespace :health do
+      resources :patient, only: [:index]
+      resources :utilization, only: [:index]
+      resources :appointments, only: [:index]
+      resources :medications, only: [:index]
+      namespace :careplan do
+        resources :goals
+      end
+    end
+  end
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy]
   end
@@ -69,13 +81,14 @@ Rails.application.routes.draw do
       patch :merge
       patch :unmerge
     end
+    healthcare_routes()
   end
 
   namespace :window do
     resources :clients, only: [:index, :show] do
       resources :print, only: [:index]
-      resources :health, only: [:index]
       resources :youth, only: [:index]
+      healthcare_routes()
     end
   end
 
