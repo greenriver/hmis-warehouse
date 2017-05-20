@@ -545,7 +545,7 @@ module GrdaWarehouse::Hud
       #   from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
       #   maximum(:date)
       service_history.homeless.
-        from(GrdaWarehouse::ServiceHistory.quoted_table_name}).
+        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
 
