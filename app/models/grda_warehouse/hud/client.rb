@@ -541,8 +541,11 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       # TODO: This will need to be re-written when the Warehouse moves to postgres
+      # service_history.homeless.
+      #   from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+      #   maximum(:date)
       service_history.homeless.
-        from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
 
