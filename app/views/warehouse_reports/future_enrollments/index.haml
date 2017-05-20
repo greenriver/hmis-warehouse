@@ -16,6 +16,6 @@
         %tr
           %td= link_to client.LastName.tr(' ', '⎵'), client_path(client)
           %td= link_to client.FirstName.tr(' ', '⎵'), client_path(client)
-          %td= client.source_enrollments.where(et[:EntryDate].gt(Date.today)["EntryDate > ?", Date.today]).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
+          %td= client.source_enrollments.where(et[:EntryDate].gt(Date.today)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
 %p= paginate @clients
