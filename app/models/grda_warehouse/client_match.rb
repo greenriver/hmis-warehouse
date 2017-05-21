@@ -3,7 +3,7 @@ module GrdaWarehouse
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :updated_by, class_name: 'User'
-    serialize :score_details, JSON
+    serialize :score_details, Hash
     validates :status, inclusion: {in: ['candidate', 'accepted', 'rejected', 'processed_sources']}
 
     def self.create_candidates!(client, threshold:, metrics:)
