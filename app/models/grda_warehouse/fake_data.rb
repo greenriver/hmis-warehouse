@@ -1,6 +1,6 @@
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
-  serialize :map, JSON
-  serialize :client_ids, JSON
+  serialize :map, Hash
+  serialize :client_ids, Hash
 
   # Fetch the appropriate faked value for a given field.
   # Return an existing match if one exists or create a new one,
