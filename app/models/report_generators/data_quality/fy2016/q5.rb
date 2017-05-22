@@ -294,7 +294,6 @@ module ReportGenerators::DataQuality::Fy2016
         DateToStreetESSH: et[:DateToStreetESSH].as('DateToStreetESSH').to_sql,
         TimesHomelessPastThreeYears: et[:TimesHomelessPastThreeYears].as('TimesHomelessPastThreeYears').to_sql,
         MonthsHomelessPastThreeYears: et[:MonthsHomelessPastThreeYears].as('MonthsHomelessPastThreeYears').to_sql,
-        MonthsHomelessPastThreeYears: et[:MonthsHomelessPastThreeYears].as('MonthsHomelessPastThreeYears').to_sql,
         PreviousStreetESSH: et[:PreviousStreetESSH].as('PreviousStreetESSH').to_sql,
       }
       
