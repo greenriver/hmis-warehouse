@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  mount LetsencryptPlugin::Engine, at: '/'
   class OnlyXhrRequest
     def matches?(request)
       request.xhr?

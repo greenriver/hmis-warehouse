@@ -1,6 +1,6 @@
 set :deploy_to, '/u/apps/staging/boston-hmis-staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-server ENV['HOSTS'], user: ENV['USER'], roles: %w{app db web}
+server ENV['BOSTON_STAGING'], user: ENV['USER'], roles: %w{app db web}
 namespace :deploy do
   before :finishing, :warehouse_migrations do
     on roles(:db)  do
