@@ -85,6 +85,7 @@ gem 'exception_notification'
 
 # Use Unicorn as the app server
 gem 'puma'
+gem 'letsencrypt_plugin'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development

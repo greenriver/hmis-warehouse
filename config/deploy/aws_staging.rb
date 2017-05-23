@@ -1,9 +1,10 @@
 set :deploy_to, '/var/www/boston-hmis-staging'
-set :rails_env, "staging"
-
+set :rails_env, 'staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+server ENV['STAGING_HOST'], user: 'ubuntu', roles: %w{app db web}
 
-server ENV['STAGING_HOST'], user: 'ubuntu', roles: %w{app web}
+set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_known', 'challenge')
+set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')
 
 namespace :deploy do
   before :finishing, :warehouse_migrations do
@@ -18,11 +19,6 @@ namespace :deploy do
       within current_path do
         execute :rake, 'reports:seed RAILS_ENV=staging'
       end
-    end
-  end
-  before :finishing, :nginx_restart do
-    on roles(:web) do
-      execute :sudo, '/etc/init.d/nginx restart'
     end
   end
 end 
