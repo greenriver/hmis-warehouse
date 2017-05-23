@@ -1,8 +1,8 @@
 class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
-  serialize :files, Hash
-  serialize :import_errors, Hash
-  serialize :summary, Hash
+  serialize :files
+  serialize :import_errors
+  serialize :summary
   belongs_to :data_source
 
   def import_time
