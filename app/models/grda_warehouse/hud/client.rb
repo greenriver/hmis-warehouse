@@ -105,6 +105,8 @@ module GrdaWarehouse::Hud
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
 
+    has_one :patient, class_name: Health::Patient.name  
+
     scope :destination, -> do
       where(data_source: GrdaWarehouse::DataSource.destination)
     end

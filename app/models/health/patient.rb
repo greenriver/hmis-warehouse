@@ -6,6 +6,8 @@ module Health
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
+    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+
     scope :unprocessed, -> { where client_id: nil}
 
     self.source_key = :PAT_ID

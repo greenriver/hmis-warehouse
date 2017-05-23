@@ -4,7 +4,7 @@
     [ edit_client_path(@client), 'Merge' ],
     [ history_client_path(@client), 'Client History' ],
   ]
-  if can_edit_client_health?
+  if can_edit_client_health? && @client.patient.present?
     tabs << [ client_health_patient_index_path(@client), 'Health' ]
   end
 %ul.nav.nav-tabs
