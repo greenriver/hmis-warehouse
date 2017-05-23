@@ -1,0 +1,14 @@
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Date
+      %th Department
+      %th Type
+      %th Provider
+  %tbody
+    - visits.each do |visit|
+      %tr
+        %td= visit.date_of_service
+        %td= visit.department
+        %td= visit.visit_type
+        %td= visit.provider

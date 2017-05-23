@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       resources :utilization, only: [:index]
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
+      resources :problems, only: [:index]
       namespace :careplan do
         resources :goals
       end

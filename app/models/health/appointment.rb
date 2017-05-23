@@ -1,7 +1,7 @@
 module Health
   class Appointment < Base
 
-    belongs_to :patient
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :appointments
 
     self.source_key = :ENC_ID
 

@@ -1,0 +1,23 @@
+- upcoming = @appointments.select{|m| m.appointment_time > Time.now}
+- past = @appointments.select{|m| m.appointment_time <= Time.now}
+
+- title = 'Appointments'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+
+.row
+  .col-sm-12
+    %h3 Upcoming Appointments
+    - if upcoming.any?
+      = render 'appointments_table', appointments: upcoming
+    - else
+      %p No upcoming appointments scheduled.
+
+    %h3 Past Appointments
+    - if past.any?
+      = render 'appointments_table', appointments: past
+    - else
+      %p No past appointments.

@@ -46,9 +46,9 @@ CREATE TABLE appointments (
     sa character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer,
     appointment_time timestamp without time zone,
-    id_in_source character varying
+    id_in_source character varying,
+    patient_id character varying
 );
 
 
@@ -83,8 +83,8 @@ CREATE TABLE medications (
     instructions text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer,
-    id_in_source character varying
+    id_in_source character varying,
+    patient_id character varying
 );
 
 
@@ -165,8 +165,8 @@ CREATE TABLE problems (
     icd10_list character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer,
-    id_in_source character varying
+    id_in_source character varying,
+    patient_id character varying
 );
 
 
@@ -204,14 +204,14 @@ CREATE TABLE schema_migrations (
 
 CREATE TABLE visits (
     id integer NOT NULL,
-    date_of_service date,
     department character varying,
     visit_type character varying,
     provider character varying,
     id_in_source character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    patient_id integer
+    patient_id character varying,
+    date_of_service timestamp without time zone
 );
 
 
@@ -310,34 +310,6 @@ ALTER TABLE ONLY visits
 
 
 --
--- Name: index_appointments_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_appointments_on_patient_id ON appointments USING btree (patient_id);
-
-
---
--- Name: index_medications_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_medications_on_patient_id ON medications USING btree (patient_id);
-
-
---
--- Name: index_problems_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_problems_on_patient_id ON problems USING btree (patient_id);
-
-
---
--- Name: index_visits_on_patient_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_visits_on_patient_id ON visits USING btree (patient_id);
-
-
---
 -- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -367,4 +339,8 @@ INSERT INTO schema_migrations (version) VALUES ('20170516190400');
 INSERT INTO schema_migrations (version) VALUES ('20170516195310');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517125108');
+
+INSERT INTO schema_migrations (version) VALUES ('20170523175542');
+
+INSERT INTO schema_migrations (version) VALUES ('20170523181235');
 

@@ -1,6 +1,17 @@
 - title = 'Client Healthcare Dashboard'
 = content_for(:title, title)
-%h1= title
+%h1= "#{title} for #{@client.name}"
 = render 'clients/tab_navigation'
+.row
+  .col-sm-12
+    %h2 Patient Summary  
+    %p
+      = "The following is patient information for the client #{@client.name}."
 
-Client Health
+= render 'patient_summary'
+.jUtilization
+.jAppointments
+.jProblems
+.jMedications
+
+= render 'patient_js'

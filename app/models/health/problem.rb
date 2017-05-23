@@ -1,7 +1,7 @@
 module Health
   class Problem < Base
 
-    belongs_to :patient
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :problems
 
     self.source_key = :PL_ID
     

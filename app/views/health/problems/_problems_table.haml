@@ -1,0 +1,16 @@
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Onset Date
+      %th Last Assessed
+      %th Problem
+      %th Comment
+      %th ICD10 List
+  %tbody
+    - problems.each do |problem|
+      %tr
+        %td= problem.onset_date
+        %td= problem.last_assessed
+        %td= problem.name
+        %td= problem.comment
+        %td= problem.icd10_list

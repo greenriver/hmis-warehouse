@@ -1,10 +1,10 @@
 module Health
   class Patient < Base
 
-    has_many :appointments
-    has_many :medications
-    has_many :problems
-    has_many :visits
+    has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
     scope :unprocessed, -> { where client_id: nil}
 
@@ -32,7 +32,9 @@ module Health
     end
 
     def name
-      "#{first_name} #{middle_name} #{last_name}"
+      full_name = "#{first_name} #{middle_name} #{last_name}"
+      full_name << "(#{aliases})" if aliases.present?
+      return full_name
     end
   end
 end
