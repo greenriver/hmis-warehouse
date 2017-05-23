@@ -15,7 +15,7 @@
     - st = services.arel_table
     - services.bed_night.uniqueness_constraint.group(dp( services, 'year', st[:DateProvided] ).to_sql).count.sort_by(&:first).reverse.each do |year, count|
       %tr
-        %td= year
+        %td= year.to_i
         %td.num-cell= count
         - dots[:min] = count if count < dots[:min]
         - dots[:max] = count if count > dots[:max]

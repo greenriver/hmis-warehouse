@@ -1,3 +1,4 @@
+require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
     include RandomScope
@@ -380,10 +381,23 @@ module GrdaWarehouse::Hud
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
-        source_api_ids.detect do |api_id|
-          api ||= EtoApi::Base.new.tap{|api| api.connect}
-          image_data = api.client_image(client_id: api_id.id_in_data_source, site_id: api_id.site_id_in_data_source) rescue nil
-          (image_data && image_data.length > 0)
+        if Rails.env.production?
+          source_api_ids.detect do |api_id|
+            api ||= EtoApi::Base.new.tap{|api| api.connect}
+            image_data = api.client_image(client_id: api_id.id_in_data_source, site_id: api_id.site_id_in_data_source) rescue nil
+            (image_data && image_data.length > 0)
+          end
+        else
+          if [0,1].include?(self[:Gender])
+            num = id % 99
+            gender = if self[:Gender] == 1
+              'men'
+            else
+              'women'
+            end
+            response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
+            image_data = response.body
+          end
         end
         image_data || self.class.no_image_on_file_image
       end
@@ -527,8 +541,11 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       # TODO: This will need to be re-written when the Warehouse moves to postgres
+      # service_history.homeless.
+      #   from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+      #   maximum(:date)
       service_history.homeless.
-        from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
 

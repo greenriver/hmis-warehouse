@@ -48,6 +48,7 @@ config/exception_notifier.yml
 config/mail_account.yml
 config/health_sftp.yml
 .env
+.env.local
 
 # Environment normalization:
 /vendor/bundle

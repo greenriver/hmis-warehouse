@@ -35,18 +35,19 @@ module ReportGenerators::SystemPerformance::Fy2016
       
       # NOTE: Dependents do get flagged correctly as Category 3 if attached to a Head of Household
       if start_report(Reports::SystemPerformance::Fy2016::MeasureSix.first)
+        set_report_start_and_end()
         # Overview: Returns to homelessness after exit to PH of clients defined by Category 3 (similar to Measure 2 with a smaller sub-set of clients)
         @answers = setup_questions()
         @support = @answers.deep_dup
 
         Rails.logger.info "Starting report #{@report.report.name}"
-        @report.update(percent_complete: 1)
+        update_report_progress(percent: 1)
         measure_6_a_and_b()
-        @report.update(percent_complete: 33)
+        update_report_progress(percent: 33)
         measure_6c_1()
-        @report.update(percent_complete: 66)
+        update_report_progress(percent: 66)
         measure_6c_2()
-        @report.update(percent_complete: 99)
+        update_report_progress(percent: 99)
 
         Rails.logger.info @answers
         finish_report()
@@ -86,8 +87,8 @@ module ReportGenerators::SystemPerformance::Fy2016
       }
 
       project_types = TH + SH + PH 
-      look_back_until = LOOKBACK_STOP_DATE.to_date >= (@report.options['report_start'].to_date - 730.days) ? LOOKBACK_STOP_DATE : (@report.options['report_start'].to_date - 730.days)
-      look_forward_until = @report.options['report_end'].to_date - 730.days
+      look_back_until = LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days) ? LOOKBACK_STOP_DATE : (@report_start - 730.days)
+      look_forward_until = @report_end - 730.days
 
       project_exits_scope = GrdaWarehouse::ServiceHistory.exit.
         joins(:project).
@@ -504,8 +505,8 @@ module ReportGenerators::SystemPerformance::Fy2016
       universe_scope = GrdaWarehouse::ServiceHistory.entry.
         coc_funded_in(coc_code: COC_CODE).
         category_3.
-        open_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+        open_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
         hud_project_type(SH + TH + RRH).
         where.not(client_id: client_id_scope.
           select(:client_id).
@@ -523,8 +524,8 @@ module ReportGenerators::SystemPerformance::Fy2016
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistory.exit.
           coc_funded_in(coc_code: COC_CODE).
-          ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+          ended_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
           hud_project_type(SH + TH + RRH).
           where(client_id: id)
 
@@ -557,7 +558,7 @@ module ReportGenerators::SystemPerformance::Fy2016
       # eg. Those who were counted by PH but not PH-RRH, but exited to somewhere else
       
       client_id_scope = GrdaWarehouse::ServiceHistory.entry.
-          ongoing(on_date: @report.options['report_end']).
+          ongoing(on_date: @report_end).
           hud_project_type(PH_PSH)
 
       client_id_scope = add_filters(scope: client_id_scope)
@@ -565,8 +566,8 @@ module ReportGenerators::SystemPerformance::Fy2016
       leavers_scope = GrdaWarehouse::ServiceHistory.entry.
         coc_funded_in(coc_code: COC_CODE).
         category_3.
-        open_between(start_date: @report.options['report_start'], 
-        end_date: @report.options['report_end'].to_date + 1.day).
+        open_between(start_date: @report_start, 
+        end_date: @report_end + 1.day).
         hud_project_type(PH_PSH).
         where.not(client_id: client_id_scope.
           select(:client_id).
@@ -583,7 +584,7 @@ module ReportGenerators::SystemPerformance::Fy2016
       stayers_scope = GrdaWarehouse::ServiceHistory.entry.
         coc_funded_in(coc_code: COC_CODE).
         category_3.
-        ongoing(on_date: @report.options['report_end']).
+        ongoing(on_date: @report_end).
         hud_project_type(PH_PSH)
       
       stayers_scope = add_filters(scope: stayers_scope)
@@ -597,8 +598,8 @@ module ReportGenerators::SystemPerformance::Fy2016
       leavers.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistory.exit.
           coc_funded_in(coc_code: COC_CODE).
-          ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+          ended_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
           hud_project_type(PH).
           where(client_id: id)
         

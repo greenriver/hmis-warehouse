@@ -1,0 +1,15 @@
+= content_for :modal_title do
+  = "#{@data['title']} - Supporting Data"
+- if @data['support']['counts'].any?
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        - @data['support']['headers'].each do |t|
+          %th= t
+    %tbody
+      - @data['support']['counts'].each do |row|
+        %tr
+          - row.each do |v|
+            %td= v
+- else
+  None found

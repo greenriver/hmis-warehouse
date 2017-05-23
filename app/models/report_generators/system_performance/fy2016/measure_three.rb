@@ -23,33 +23,64 @@ module ReportGenerators::SystemPerformance::Fy2016
    
     def calculate
       if start_report(Reports::SystemPerformance::Fy2016::MeasureThree.first)
-      
+        set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
-        @report.update(percent_complete: 0.01)
+        update_report_progress(percent: 0.01)
         # Overview: collect annual counts of homeless persons by sheltering type
         @answers = setup_questions()
         @support = @answers.deep_dup
 
-        # Get totals
-        shelter_types = ES + SH + TH
-        
-        client_scope = GrdaWarehouse::ServiceHistory.service.
-          service_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end']).
-          hud_project_type(shelter_types)
-        client_scope = add_filters(scope: client_scope)
-    
-        clients = client_scope.
-          select(:client_id).
-          distinct.
-          pluck(:client_id)
+        add_total_unsheltered_answers()
+                
+        update_report_progress(percent: 30)
 
-        @answers[:three2_c2][:value] = clients.size
-        @support[:three2_c2][:support] = {
-          headers: ['Client ID'],
-          counts: clients.map{|m| [m]}
-        }
-        
-        @report.update(percent_complete: 30, results: @answers, support: @support)
+        add_homeless_breakdowns()
+
+
+        Rails.logger.info @answers.inspect
+        finish_report()
+      else
+        Rails.logger.info 'No Report Queued'
+      end
+
+    end
+
+    def add_total_unsheltered_answers
+      # Get totals
+      shelter_types = ES + SH + TH
+      
+      columns = [
+        :client_id,
+        :project_name,
+        :first_date_in_program,
+      ]
+      client_scope = GrdaWarehouse::ServiceHistory.service.
+        service_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
+        hud_project_type(shelter_types)
+      client_scope = add_filters(scope: client_scope)
+  
+      clients = client_scope.
+        select(*columns).
+        distinct.
+        pluck(*columns).map do |row|
+          Hash[columns.zip(row)]
+        end.group_by{ |row| row[:client_id]}
+      @answers[:three2_c2][:value] = clients.size
+
+      @support[:three2_c2][:support] = add_support(
+        headers: ['Client ID', 'Project', 'Start Date'],
+        data: clients.map do |id, enrollments| 
+          [
+            id,
+            enrollments.map{|en| en[:project_name]}.join('; '),
+            enrollments.map{|en| en[:first_date_in_program]}.join('; '),
+          ]
+        end
+        )
+      update_report_progress(percent: 20)
+    end
+
+    def add_homeless_breakdowns
         # sql = "
         #   select distinct client_id, project_type
         #   from hud_performance_client_housing_history
@@ -58,11 +89,13 @@ module ReportGenerators::SystemPerformance::Fy2016
         # "
         columns = {
           client_id: :client_id, 
-          project_type: act_as_project_overlay, 
+          project_type: act_as_project_overlay,
+          project_name: :project_name,
+          first_date_in_program: :first_date_in_program,
         }
         client_scope = GrdaWarehouse::ServiceHistory.service.
           joins(:project).
-          service_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'])
+          service_within_date_range(start_date: @report_start - 1.day, end_date: @report_end)
 
         client_scope = add_filters(scope: client_scope)
         
@@ -70,6 +103,8 @@ module ReportGenerators::SystemPerformance::Fy2016
           select(*columns.values).distinct.
           pluck(*columns.values).map do |row|
             Hash[columns.keys.zip(row)]
+          end.group_by do |row|
+            [row[:client_id], row[:project_type]]
           end
         
 
@@ -91,40 +126,61 @@ module ReportGenerators::SystemPerformance::Fy2016
         sh = {}
         th = {}
         # count each person no more than once per type
-        clients.each do |row|
-          case row[:project_type]
+        clients.each do |(client_id, project_type), enrollments|
+          case project_type
             when *ES
-              es[row[:client_id]] = row[:project_type]
+              es[client_id] = project_type
             when *SH
-              sh[row[:client_id]] = row[:project_type]
+              sh[client_id] = project_type
             when *TH
-              th[row[:client_id]] = row[:project_type]
+              th[client_id] = project_type
           end
         end
         @answers[:three2_c3][:value] = es.size
         @answers[:three2_c4][:value] = sh.size
         @answers[:three2_c5][:value] = th.size
 
-        @support[:three2_c3][:support] = {
+        @support[:three2_c3][:support] = add_support(
+          headers: ['Client ID', 'Project(s)', 'Start Date(s)'],
+          data: es.map do |id,project_type|
+            project_names = clients[[id,project_type]].map{|en| en[:project_name]}.join('; ')
+            entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
+            [
+              id,
+              project_names, 
+              entry_dates,
+            ]
+          
+          end
+        )
+        @support[:three2_c4][:support] = add_support(
           headers: ['Client ID'],
-          counts: es.keys.map{|m| [m]}
-        }
-        @support[:three2_c4][:support] = {
+          data: sh.map do |id,project_type|
+            project_names = clients[[id,project_type]].map{|en| en[:project_name]}.join('; ')
+            entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
+            [
+              id,
+              project_names, 
+              entry_dates,
+            ]
+          
+          end
+        )
+        @support[:three2_c5][:support] = add_support(
           headers: ['Client ID'],
-          counts: sh.keys.map{|m| [m]}
-        }
-        @support[:three2_c5][:support] = {
-          headers: ['Client ID'],
-          counts: th.keys.map{|m| [m]}
-        }
-
-        Rails.logger.info @answers.inspect
-        finish_report()
-      else
-        Rails.logger.info 'No Report Queued'
+          data: th.map do |id,project_type|
+            project_names = clients[[id,project_type]].map{|en| en[:project_name]}.join('; ')
+            entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
+            [
+              id,
+              project_names, 
+              entry_dates,
+            ]
+          
+          end
+        )
+        update_report_progress(percent: 90)
       end
-
-    end
 
     def setup_questions
       {

@@ -5,7 +5,7 @@ module ReportGenerators::SystemPerformance::Fy2016
     def add_filters scope:
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids})
       end
       if @report.options['data_source_id'].present?
         scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
@@ -15,6 +15,14 @@ module ReportGenerators::SystemPerformance::Fy2016
       end
 
       return scope
+    end
+
+    # Age should be calculated at report start or enrollment start, whichever is greater
+    def age_for_report(dob:, enrollment:)
+      @report_start ||= @report.options['report_start'].to_date
+      entry_date = enrollment[:first_date_in_program]
+      return enrollment[:age] if dob.blank? || entry_date > @report_start
+      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
     def act_as_coc_overlay
@@ -36,6 +44,26 @@ module ReportGenerators::SystemPerformance::Fy2016
           v 
         end
       end
+    end
+
+    def set_report_start_and_end
+      @report_start ||= @report.options['report_start'].to_date
+      @report_end ||= @report.options['report_end'].to_date
+    end
+
+    def add_support headers:, data:
+      {
+        headers: headers,
+        counts: data,
+      }
+    end
+
+    def update_report_progress percent:
+      @report.update(
+        percent_complete: percent,
+        results: @answers,
+        support: @support,
+      )
     end
 
     def start_report(report)

@@ -7,7 +7,7 @@ module ReportGenerators::DataQuality::Fy2016
     def add_filters scope:
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids})
       end
       if @report.options['data_source_id'].present?
         scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
@@ -35,43 +35,51 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def all_client_scope
+      @report_start ||= @report.options['report_start'].to_date
+      @report_end ||= @report.options['report_end'].to_date
       client_scope = GrdaWarehouse::ServiceHistory.entry.
-        open_between(start_date: @report.options['report_start'],
-          end_date: @report.options['report_end']).
+        open_between(start_date: @report_start,
+          end_date: @report_end).
         joins(:client)
 
       add_filters(scope: client_scope)
     end
 
     def leavers
+      @report_start ||= @report.options['report_start'].to_date
+      @report_end ||= @report.options['report_end'].to_date
       @leavers ||= begin
         # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
         # is not active in any of the relevant projects as of the [report end date].
         # 2. The client must be an adult to be included.
-        columns = [
-          :client_id, 
-          :first_date_in_program, 
-          :last_date_in_program, 
-          :project_id, 
-          :age, 
-          :DOB, 
-          :enrollment_group_id, 
-          :data_source_id, 
-          :project_tracking_method, 
-          :project_name, 
-          :RelationshipToHoH, 
-          :household_id,
-          :destination,
-        ]
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        sh_t = GrdaWarehouse::ServiceHistory.arel_table
+        et = GrdaWarehouse::Hud::Enrollment.arel_table
+        columns = {
+          sh_t[:client_id].as('client_id').to_sql => :client_id, 
+          sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
+          sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
+          sh_t[:project_id].as('project_id').to_sql => :project_id, 
+          sh_t[:age].as('age').to_sql => :age, 
+          ct[:DOB].as('DOB').to_sql => :DOB, 
+          sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
+          sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
+          sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
+          sh_t[:project_name].as('project_name').to_sql => :project_name,
+          et[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
+          sh_t[:household_id].as('household_id').to_sql => :household_id,
+          sh_t[:destination].as('destination').to_sql => :destination,
 
+        }
+        
         client_id_scope = GrdaWarehouse::ServiceHistory.entry.
-          ongoing(on_date: @report.options['report_end'])
+          ongoing(on_date: @report_end)
 
         client_id_scope = add_filters(scope: client_id_scope)
 
         leavers_scope = GrdaWarehouse::ServiceHistory.entry.
-          ended_between(start_date: @report.options['report_start'].to_date + 1.days, 
-            end_date: @report.options['report_end'].to_date + 1.days).
+          ended_between(start_date: @report_start + 1.days, 
+            end_date: @report_end + 1.days).
           where.not(
             client_id: client_id_scope.
               select(:client_id).
@@ -83,52 +91,60 @@ module ReportGenerators::DataQuality::Fy2016
 
         leavers_scope.
           order(client_id: :asc, first_date_in_program: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns.keys).map do |row|
+            Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
           end.map do |id,enrollments| 
             # We only care about the last enrollment
-            [id, enrollments.last]
+            enrollment = enrollments.last
+            enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+            [id, enrollment]
           end.to_h
       end
     end
 
     def stayers
+      @report_end ||= @report.options['report_end'].to_date
       stayers ||= begin
         # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
         # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
         # 3. The client must be an adult to be included in this measure.
-        columns = [
-          :client_id, 
-          :first_date_in_program, 
-          :last_date_in_program, 
-          :project_id, 
-          :age, 
-          :DOB, 
-          :enrollment_group_id, 
-          :data_source_id, 
-          :project_tracking_method, 
-          :project_name, 
-          :RelationshipToHoH, 
-          :household_id,
-        ]
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        sh_t = GrdaWarehouse::ServiceHistory.arel_table
+        et = GrdaWarehouse::Hud::Enrollment.arel_table
+        columns = {
+          sh_t[:client_id].as('client_id').to_sql => :client_id, 
+          sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
+          sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
+          sh_t[:project_id].as('project_id').to_sql => :project_id, 
+          sh_t[:age].as('age').to_sql => :age, 
+          ct[:DOB].as('DOB').to_sql => :DOB, 
+          sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
+          sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
+          sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
+          sh_t[:project_name].as('project_name').to_sql => :project_name,
+          et[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
+          sh_t[:household_id].as('household_id').to_sql => :household_id,
+        }
 
         stayers_scope = GrdaWarehouse::ServiceHistory.entry.
-          ongoing(on_date: @report.options['report_end']).
+          ongoing(on_date: @report_end).
           joins(:client, :enrollment)
 
         stayers_scope = add_filters(scope: stayers_scope)
 
         stayers_scope.
           order(client_id: :asc, first_date_in_program: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns.keys).map do |row|
+            Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
           end.map do |id,enrollments| 
             # We only care about the last enrollment
-            [id, enrollments.last]
+            enrollment = enrollments.last
+            enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+            [id, enrollment]
           end.to_h
       end
     end
@@ -143,6 +159,14 @@ module ReportGenerators::DataQuality::Fy2016
       @adult_stayers_and_heads_of_household_stayers ||= stayers.select do |_, enrollment|
         adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
+    end
+
+    # Age should be calculated at report start or enrollment start, whichever is greater
+    def age_for_report(dob:, enrollment:)
+      @report_start ||= @report.options['report_start'].to_date
+      entry_date = enrollment[:first_date_in_program]
+      return enrollment[:age] if dob.blank? || entry_date > @report_start
+      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
     def adult?(age)
@@ -209,7 +233,8 @@ module ReportGenerators::DataQuality::Fy2016
 
     def setup_age_categories
       clients_with_ages = @all_clients.map do |id, enrollments|
-        [id, enrollments.last[:age]]
+        enrollment = enrollments.last
+        [id, enrollment[:age]]
       end.to_h
       @adults = clients_with_ages.select do |_, age|
         adult?(age)
@@ -223,10 +248,10 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def anniversary_date(date)
+      @report_end ||= @report.options['report_end'].to_date
       date = date.to_date
-      end_date = @report.options['report_end'].to_date
-      anniversary_date = Date.new(end_date.year, date.month, date.day)
-      anniversary_date = if anniversary_date > end_date then anniversary_date - 1.year else anniversary_date end
+      anniversary_date = Date.new(@report_end.year, date.month, date.day)
+      anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
     end
 
 

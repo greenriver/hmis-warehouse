@@ -125,16 +125,20 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_night_by_night_clients(project_types)
+      et = GrdaWarehouse::Hud::Enrollment.arel_table
+      ct = GrdaWarehouse::Hud::Client.arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        client_id: :client_id,
-        age: :age,
-        RelationshipToHoH: :RelationshipToHoH,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        project_name: :project_name,
-        project_id: :project_id,
-        data_source_id: :data_source_id,
-        enrollment_group_id: :enrollment_group_id,
+        client_id: sh_t[:client_id].as('client_id').to_sql, 
+        age: sh_t[:age].as('age').to_sql,
+        DOB: ct[:DOB].as('DOB').to_sql,
+        RelationshipToHoH: et[:RelationshipToHoH].as('RelationshipToHoH').to_sql,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
+        project_id: sh_t[:project_id].as('project_id').to_sql,
+        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
       }
       
       all_client_scope.
@@ -146,6 +150,9 @@ module ReportGenerators::DataQuality::Fy2016
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
+        end.map do |enrollment|
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          enrollment
         end.group_by do |row|
           row[:client_id]
         end
