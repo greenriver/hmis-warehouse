@@ -42,11 +42,12 @@ pickle-email-*.html
 .irb-history
 config/database.yml
 config/database_health.yml
+config/health_sftp.yml
 config/eto_api.yml
 config/weather.yml
 config/exception_notifier.yml
 config/mail_account.yml
-config/health_sftp.yml
+config/letsencrypt_plugin.yml
 .env
 .env.local
 
