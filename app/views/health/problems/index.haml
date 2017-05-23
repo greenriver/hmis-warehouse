@@ -7,7 +7,7 @@
 
 .row
   .col-sm-12
-    - if @problems.any?
+    - if @patient.present? && @problems.any?
       = render 'problems_table', problems: @problems
     - else
       %p No problems.

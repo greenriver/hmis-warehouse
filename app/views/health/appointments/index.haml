@@ -10,14 +10,15 @@
 
 .row
   .col-sm-12
-    %h3 Upcoming Appointments
-    - if upcoming.any?
-      = render 'appointments_table', appointments: upcoming
-    - else
-      %p No upcoming appointments scheduled.
+    - if @patient.present?
+      %h3 Upcoming Appointments
+      - if upcoming.any?
+        = render 'appointments_table', appointments: upcoming
+      - else
+        %p No upcoming appointments scheduled.
 
-    %h3 Past Appointments
-    - if past.any?
-      = render 'appointments_table', appointments: past
-    - else
-      %p No past appointments.
+      %h3 Past Appointments
+      - if past.any?
+        = render 'appointments_table', appointments: past
+      - else
+        %p No past appointments.
