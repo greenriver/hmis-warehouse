@@ -46,6 +46,7 @@ config/weather.yml
 config/exception_notifier.yml
 config/mail_account.yml
 .env
+.env.local
 
 # Environment normalization:
 /vendor/bundle
