@@ -109,7 +109,7 @@ group :development do
   gem 'capistrano', '~> 3.6.1'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
-  # gem 'capistrano-passenger'
+  gem 'capistrano-passenger'
   gem 'capistrano-rails'
   gem 'rails-erd'
   gem 'web-console'
