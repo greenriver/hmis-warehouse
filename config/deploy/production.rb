@@ -1,4 +1,5 @@
 set :deploy_to, '/u/apps/boston-hmis'
+server ENV['HOSTS'], user: ENV['USER'], roles: %w{app db web}
 
 namespace :deploy do
   before :finishing, :warehouse_migrations do
