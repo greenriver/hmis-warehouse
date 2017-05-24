@@ -14,13 +14,13 @@
         %th.nobr Date collected
     %tbody
       - @client.source_hmis_forms.each do |assessment|
-        - assessment[:answers]['sections'].each do |section|
-          - if section['section_title'] == "PAGE #5. Wellness,..."
-            - section['questions'].each do |q|
-              - if q['answer'].present?
+        - assessment[:answers][:sections].each do |section|
+          - if section[:section_title] == "PAGE #5. Wellness,..."
+            - section[:questions].each do |q|
+              - if q[:answer].present?
                 %tr.q
-                  %td= q['question']
+                  %td= q[:question]
                   %td
                     %strong
-                      = q['answer'] 
+                      = q[:answer] 
                   %td= assessment[:collected_at].to_date

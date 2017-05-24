@@ -7,10 +7,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   scope :triage, -> { where name: 'Triage Assessment'}
 
   def primary_language
-    return 'Unknown' unless answers.present? && answers['sections'].present?
-    answers['sections'].each do |m|
-      m['questions'].each do |m| 
-        return m['answer'] if m['answer'].present? && m['question'] == 'A-2. Primary Language Spoken'
+    return 'Unknown' unless answers.present?
+    answers[:sections].each do |m|
+      m[:questions].each do |m| 
+        return m[:answer] if m[:answer].present? && m[:question] == 'A-2. Primary Language Spoken'
       end
     end
     'Unknown'
