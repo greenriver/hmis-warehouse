@@ -1,6 +1,8 @@
 set :deploy_to, '/u/apps/boston-hmis'
 server ENV['BOSTON_PRODUCTION'], user: ENV['USER'], roles: %w{app db web}
 
+set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')
+
 namespace :deploy do
   before :finishing, :warehouse_migrations do
     on roles(:db)  do
