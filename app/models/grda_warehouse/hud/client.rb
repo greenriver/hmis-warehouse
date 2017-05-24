@@ -83,6 +83,7 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :client
     has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
 
+    has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs

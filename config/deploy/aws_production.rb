@@ -5,10 +5,8 @@ raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
 
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
-puts ENV['HOSTS']
-puts ENV['HOST1']
-puts ENV['HOST2']
-puts ENV['DEPLOY_USER']
+puts "Allowable hosts: #{ENV['HOSTS']}"
+puts "Hosts specified for deployment: #{ENV['HOST1']} #{ENV['HOST2']}"
 
 server ENV['HOST1'], user: ENV['DEPLOY_USER'], roles: %w{app db web}
 server ENV['HOST2'], user: ENV['DEPLOY_USER'], roles: %w{app web}
@@ -29,11 +27,6 @@ namespace :deploy do
       within current_path do
         execute :rake, 'reports:seed RAILS_ENV=production'
       end
-    end
-  end
-  before :finishing, :nginx_restart do
-    on roles(:web) do
-      execute :sudo, '/etc/init.d/nginx restart'
     end
   end
 end 
