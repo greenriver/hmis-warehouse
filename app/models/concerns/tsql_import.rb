@@ -9,21 +9,21 @@
       end
     end
 
-    def insert_batch klass, columns, values, transaction: true
+    def insert_batch klass, columns, values, transaction: true, batch_size: 200
       return if values.empty?
       if transaction
         klass.transaction do
-          process klass, columns, values
+          process klass, columns, values, batch_size: batch_size
         end
       else
-        process klass, columns, values
+        process klass, columns, values, batch_size: batch_size
       end
     end
 
-    def process klass, columns, values
+    def process klass, columns, values, batch_size: 200
       cmd = "#{batch_insert_template(klass, columns)}"
       # tsql limits bulk inserts to 1000 rows
-      values.each_slice(200) do |a|
+      values.each_slice(batch_size) do |a|
         values_sql = a.map do |row|
           quoted_values = row.map {|val| klass.connection.quote(val)}
           "(#{quoted_values.join(',')})"

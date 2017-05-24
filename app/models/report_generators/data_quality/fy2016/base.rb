@@ -7,7 +7,7 @@ module ReportGenerators::DataQuality::Fy2016
     def add_filters scope:
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids})
       end
       if @report.options['data_source_id'].present?
         scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
@@ -52,22 +52,26 @@ module ReportGenerators::DataQuality::Fy2016
         # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
         # is not active in any of the relevant projects as of the [report end date].
         # 2. The client must be an adult to be included.
-        columns = [
-          :client_id, 
-          :first_date_in_program, 
-          :last_date_in_program, 
-          :project_id, 
-          :age, 
-          :DOB, 
-          :enrollment_group_id, 
-          :data_source_id, 
-          :project_tracking_method, 
-          :project_name, 
-          :RelationshipToHoH, 
-          :household_id,
-          :destination,
-        ]
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        sh_t = GrdaWarehouse::ServiceHistory.arel_table
+        et = GrdaWarehouse::Hud::Enrollment.arel_table
+        columns = {
+          sh_t[:client_id].as('client_id').to_sql => :client_id, 
+          sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
+          sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
+          sh_t[:project_id].as('project_id').to_sql => :project_id, 
+          sh_t[:age].as('age').to_sql => :age, 
+          ct[:DOB].as('DOB').to_sql => :DOB, 
+          sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
+          sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
+          sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
+          sh_t[:project_name].as('project_name').to_sql => :project_name,
+          et[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
+          sh_t[:household_id].as('household_id').to_sql => :household_id,
+          sh_t[:destination].as('destination').to_sql => :destination,
 
+        }
+        
         client_id_scope = GrdaWarehouse::ServiceHistory.entry.
           ongoing(on_date: @report_end)
 
@@ -87,8 +91,8 @@ module ReportGenerators::DataQuality::Fy2016
 
         leavers_scope.
           order(client_id: :asc, first_date_in_program: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns.keys).map do |row|
+            Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
           end.map do |id,enrollments| 
@@ -106,20 +110,23 @@ module ReportGenerators::DataQuality::Fy2016
         # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
         # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
         # 3. The client must be an adult to be included in this measure.
-        columns = [
-          :client_id, 
-          :first_date_in_program, 
-          :last_date_in_program, 
-          :project_id, 
-          :age, 
-          :DOB, 
-          :enrollment_group_id, 
-          :data_source_id, 
-          :project_tracking_method, 
-          :project_name, 
-          :RelationshipToHoH, 
-          :household_id,
-        ]
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        sh_t = GrdaWarehouse::ServiceHistory.arel_table
+        et = GrdaWarehouse::Hud::Enrollment.arel_table
+        columns = {
+          sh_t[:client_id].as('client_id').to_sql => :client_id, 
+          sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
+          sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
+          sh_t[:project_id].as('project_id').to_sql => :project_id, 
+          sh_t[:age].as('age').to_sql => :age, 
+          ct[:DOB].as('DOB').to_sql => :DOB, 
+          sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
+          sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
+          sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
+          sh_t[:project_name].as('project_name').to_sql => :project_name,
+          et[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
+          sh_t[:household_id].as('household_id').to_sql => :household_id,
+        }
 
         stayers_scope = GrdaWarehouse::ServiceHistory.entry.
           ongoing(on_date: @report_end).
@@ -129,8 +136,8 @@ module ReportGenerators::DataQuality::Fy2016
 
         stayers_scope.
           order(client_id: :asc, first_date_in_program: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns.keys).map do |row|
+            Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
           end.map do |id,enrollments| 

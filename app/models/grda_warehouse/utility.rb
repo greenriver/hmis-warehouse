@@ -29,12 +29,15 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ImportLog,
       GrdaWarehouse::IdentifyDuplicatesLog,
       GrdaWarehouse::GenerateServiceHistoryLog,
+      GrdaWarehouse::Hud::Client,
+      GrdaWarehouse::DataSource,
     ]
     tables.each do |klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end
-
-    GrdaWarehouse::Hud::Client.with_deleted.delete_all
-    GrdaWarehouse::DataSource.delete_all
+  end
+  def modifier(model)
+    return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client].include?(model)
+    'RESTRICT'
   end
 end

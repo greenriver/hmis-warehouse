@@ -83,6 +83,7 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :client
     has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
 
+    has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs
@@ -541,8 +542,11 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       # TODO: This will need to be re-written when the Warehouse moves to postgres
+      # service_history.homeless.
+      #   from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+      #   maximum(:date)
       service_history.homeless.
-        from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
 

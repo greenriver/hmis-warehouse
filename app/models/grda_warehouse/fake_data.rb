@@ -1,6 +1,6 @@
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
-  serialize :map, JSON
-  serialize :client_ids, JSON
+  serialize :map, Hash
+  serialize :client_ids, Hash
 
   # Fetch the appropriate faked value for a given field.
   # Return an existing match if one exists or create a new one,
@@ -51,6 +51,10 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       City: -> (value) { Faker::Address.city },
       State: -> (value) { Faker::Address.state_abbr },
       ZIP: -> (value) { Faker::Address.zip },
+      LastPermanentStreet: -> (value) { Faker::Address.street_address },
+      LastPermanentCity: -> (value) { Faker::Address.city },
+      LastPermanentState: -> (value) { Faker::Address.state_abbr },
+      LastPermanentZIP: -> (value) { Faker::Address.zip },
       OtherDestination: -> (value) { if value.present? then Faker::Hipster.sentence(3) else nil end},
       OtherDisposition: -> (value) {if value.present? then Faker::Hipster.sentence(2) else nil end},
       OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location << ' Health' else nil end},

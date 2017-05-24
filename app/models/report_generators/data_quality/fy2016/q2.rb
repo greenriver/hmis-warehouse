@@ -291,27 +291,29 @@ module ReportGenerators::DataQuality::Fy2016
 
     def fetch_all_clients
       et = GrdaWarehouse::Hud::Enrollment.arel_table
+      ct = GrdaWarehouse::Hud::Client.arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        client_id: :client_id, 
-        age: :age,
+        client_id: sh_t[:client_id].as('client_id').to_sql, 
+        age: sh_t[:age].as('age').to_sql,
         project_type: act_as_project_overlay, 
-        VeteranStatus: :VeteranStatus, 
-        enrollment_group_id: :enrollment_group_id, 
-        project_id: :project_id, 
-        data_source_id: :data_source_id,
-        NameDataQuality: :NameDataQuality,
-        FirstName: :FirstName, 
-        LastName: :LastName, 
-        SSN: :SSN, 
-        SSNDataQuality: :SSNDataQuality,
-        DOB: :DOB,
-        DOBDataQuality: :DOBDataQuality,
+        VeteranStatus: ct[:VeteranStatus].as('VeteranStatus').to_sql, 
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
+        project_id: sh_t[:project_id].as('project_id').to_sql, 
+        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+        NameDataQuality: ct[:NameDataQuality].as('NameDataQuality').to_sql,
+        FirstName: ct[:FirstName].as('FirstName').to_sql, 
+        LastName: ct[:LastName].as('LastName').to_sql, 
+        SSN: ct[:SSN].as('SSN').to_sql, 
+        SSNDataQuality: ct[:SSNDataQuality].as('SSNDataQuality').to_sql,
+        DOB: ct[:DOB].as('DOB').to_sql,
+        DOBDataQuality: ct[:DOBDataQuality].as('DOBDataQuality').to_sql,
         DateCreated: et[:DateCreated].as('DateCreated').to_sql,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        Ethnicity: :Ethnicity,
-        Gender: :Gender,
-        RaceNone: :RaceNone,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        Ethnicity: ct[:Ethnicity].as('Ethnicity').to_sql,
+        Gender: ct[:Gender].as('Gender').to_sql,
+        RaceNone: ct[:RaceNone].as('RaceNone').to_sql,
       }
                   
       all_client_scope.
