@@ -65,10 +65,10 @@
 
 -# load in al the bits of aggregate statistics via ajax
 = content_for :page_js do
-  - source_clients = @client.source_clients.preload(:data_source)
+  - source_clients = @client.source_clients.preload(:data_source, :organizations)
   :javascript
     var rollupPath = #{rollup_client_path(@client).to_json};
-    var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name ] ] }.to_h.to_json};
+    var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json};
     var manyClients = #{source_clients.many?.to_json};
     var high = #{@client.source_clients.size + 1};
     var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);

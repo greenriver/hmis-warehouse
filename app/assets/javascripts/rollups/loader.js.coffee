@@ -15,7 +15,7 @@ class App.Rollups.Loader
             # if $id.data().always or @manyClients
             # Just always show the squares since they also provide a means of accessing the client GUID
             id = $id.data().id
-            [ point, personalID, dataSourceID ] = @clients[id]
+            [ point, personalID, dataSourceID, organization ] = @clients[id]
             $square = App.util.colorSquare
               point:     point
               low:       0
@@ -25,10 +25,15 @@ class App.Rollups.Loader
               center:    true
             $square.addClass('rollup__square')
             $square.append dataSourceID
-            $html = $ '<div>PersonalID: <span class="pid"/><br>data source: <span/><br><i>click to copy personal id</i></div>'
+            $html = $ '<div><div class="org"/>PersonalID: <span class="pid"/><br>data source: <span/><br><i>click to copy personal id</i></div>'
             $html.css textAlign: 'left', fontSize: 'smaller'
-            $html.find('span:first').text personalID
+            $html.find('.pid').text personalID
             $html.find('span:last').text dataSourceID
+            $org = $html.find '.org'
+            if organization
+              $org.text organization
+            else
+              $org.remove()
             $square.tooltip html: true, title: $html
             $id.append $square
             $square.click ->
