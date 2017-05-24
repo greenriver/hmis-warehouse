@@ -1,9 +1,10 @@
 .client__summary
-  - if @client.processed_service_history.present? && @client.chronic?
-    .alert.alert-warning.client__chronic
-      %span.icon-warning
-      = @client.full_name
-      is chronically homeless
+  - if @client.processed_service_history.present? && @client.longterm_stayer?
+    .alert.alert-warning.client__flag.client__flag--longterm__stayer
+      Long-term Stayer
+  - if @client.sync_with_cas?
+    .alert.alert-warning.client__flag.client__flag--cas
+      CAS Active
   .row
     .col-sm-4
       %br
@@ -46,8 +47,3 @@
     .col-sm-4
       .client__image
         = image_tag image_client_path(@client)
-
-  
-  
-              
-                

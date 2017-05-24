@@ -179,7 +179,7 @@ $client-match-action-row-height: 22px;
   max-width: 250px;
   max-height: 250px;
 }
-.clients__client 
+.clients__client
 {
   padding-bottom: 0.5em;
   padding-top: 0.5em;
@@ -238,7 +238,7 @@ $client-match-action-row-height: 22px;
 {
   border-bottom: 1px solid $gray-040;
 }
-.enrollment__project_type 
+.enrollment__project_type
 {
   display: inline-block;
 }
@@ -255,7 +255,7 @@ $client-match-action-row-height: 22px;
 .rollup__square
 {
   font-size: 0.7em;
-  color: white; 
+  color: white;
   padding: 0.2em 0.4em;
   font-weight: bold;
   cursor: pointer;
@@ -266,6 +266,7 @@ $client-match-action-row-height: 22px;
   font-size: 1.2em;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
+  margin: 20px;
 }
 .clients__chronic
 {
@@ -281,4 +282,24 @@ $client-match-action-row-height: 22px;
 .client__cas_flags .checkbox
 {
   margin-bottom: 0.25em;
+}
+
+.client__flag{
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.25em;
+  margin: 20px;
+  display: inline-block;
+  margin-left: 0;
+}
+
+.client__flag--longterm__stayer{
+  background-color: $brand-info;
+  border-color: $brand-info;
+}
+
+.client__flag--cas{
+  background-color: $brand-warning;
+  border-color: $brand-warning;
 }
