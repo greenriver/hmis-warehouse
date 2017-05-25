@@ -295,11 +295,11 @@ $client-match-action-row-height: 22px;
 }
 
 .client__flag--longterm__stayer{
-  background-color: $brand-info;
-  border-color: $brand-info;
+  background-color: $brand-warning;
+  border-color: $brand-warning;
 }
 
 .client__flag--cas{
-  background-color: $brand-warning;
-  border-color: $brand-warning;
+  background-color: $brand-info;
+  border-color: $brand-info;
 }
