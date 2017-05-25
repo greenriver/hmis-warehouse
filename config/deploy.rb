@@ -27,7 +27,7 @@ set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 set :linked_files, fetch(:linked_files, []).push('config/database.yml', 'config/secrets.yml', 'config/weather.yml', 'config/exception_notifier.yml', 'config/eto_api.yml', 'config/mail_account.yml', '.env')
 
 # Default value for linked_dirs is []
-set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp' 'public/system', 'var')
+set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'public/system', 'tmp/sockets', 'var')
 
 # Default value for default_env is {}
 # set :default_env, { path: "/opt/ruby/bin:$PATH" }
