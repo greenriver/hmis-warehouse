@@ -91,8 +91,6 @@
             = client.processed_service_history.try(:first_date_served)
             and
             =client.processed_service_history.try(:last_date_served)
-          - if client.chronic?
-            .clients__chronic
-              Chronically Homeless
+          = render 'chronic_flags', client: client
         
 %p= paginate @clients, params: {sort: @column, direction: @direction}
