@@ -8,6 +8,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def primary_language
     return 'Unknown' unless answers.present?
+    answers = self.answers.with_indifferent_access
     answers[:sections].each do |m|
       m[:questions].each do |m| 
         return m[:answer] if m[:answer].present? && m[:question] == 'A-2. Primary Language Spoken'
