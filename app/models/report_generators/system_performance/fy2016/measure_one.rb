@@ -233,10 +233,10 @@ module ReportGenerators::SystemPerformance::Fy2016
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        date: sh_t[:date].as(:date).to_sql, 
+        date: sh_t[:date].as('date').to_sql, 
         project_type: act_as_project_overlay, 
-        first_date_in_program: sh_t[:first_date_in_program].as(:first_date_in_program).to_sql,
-        DateToStreetESSH: et[:DateToStreetESSH].as(:DateToStreetESSH).to_sql,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        DateToStreetESSH: et[:DateToStreetESSH].as('DateToStreetESSH').to_sql,
       }
       #Rails.logger.info "Calculating Days Homelesss for: #{id}"
       # Load all bed nights
