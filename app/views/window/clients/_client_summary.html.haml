@@ -1,10 +1,4 @@
 .client__summary
-  - if @client.processed_service_history.present? && @client.longterm_stayer?
-    .alert.alert-warning.client__flag.client__flag--longterm__stayer
-      Long-term Stayer
-  - if @client.sync_with_cas?
-    .alert.alert-warning.client__flag.client__flag--cas
-      CAS Active
   .row
     .col-sm-4
       %br
@@ -41,6 +35,7 @@
         Preferred Language:
         %strong
           = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
+      = render 'clients/chronic_flags', client: @client
     .col-sm-4.client__data-sharing-agreement
       %h3 Data Sharing Agreement
       = @client.consent_form_status.presence ||'No consent forms on file'

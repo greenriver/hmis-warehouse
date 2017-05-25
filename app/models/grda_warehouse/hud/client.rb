@@ -238,7 +238,8 @@ module GrdaWarehouse::Hud
     end
 
     def longterm_stayer?
-      chronics.last.days_in_last_three_years >= 365
+      days = chronics&.last&.days_in_last_three_years || 0
+      days >= 365
     end
 
     def ever_chronic?
