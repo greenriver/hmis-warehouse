@@ -199,7 +199,6 @@ module ReportGenerators::Pit::Fy2017
           end
           chronic
         end
-        binding.pry
         @answers[:homeless_sub][:homeless_subpopulations][:chronically_homeless_individuals][k] = chronic_individuals.size
         @support[:homeless_sub][:homeless_subpopulations][:chronically_homeless_individuals][k] = {
           headers: ['Client ID'], 
