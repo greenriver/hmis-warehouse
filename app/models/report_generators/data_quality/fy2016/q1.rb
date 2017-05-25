@@ -35,33 +35,37 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_all_clients
+      ct = GrdaWarehouse::Hud::Client.arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
+      et = GrdaWarehouse::Hud::Enrollment.arel_table
+
       columns = {
-        client_id: :client_id, 
-        age: :age,
-        DOB: :DOB,
-        project_type: act_as_project_overlay, 
-        VeteranStatus: :VeteranStatus, 
-        enrollment_group_id: :enrollment_group_id,
-        project_id: :project_id,
-        project_name: :project_name,
-        data_source_id: :data_source_id, 
-        RelationshipToHoH: :RelationshipToHoH,
-        DisablingCondition: :DisablingCondition,
-        ResidencePrior: :ResidencePrior,
-        PreviousStreetESSH: :PreviousStreetESSH,
-        DateToStreetESSH: :DateToStreetESSH,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        TimesHomelessPastThreeYears: :TimesHomelessPastThreeYears,
-        MonthsHomelessPastThreeYears: :MonthsHomelessPastThreeYears,
+        sh_t[:client_id].as('client_id').to_sql => :client_id, 
+        sh_t[:age].as('age').to_sql => :age,
+        ct[:DOB].as('DOB').to_sql => :DOB,
+        act_as_project_overlay => :project_type, 
+        ct[:VeteranStatus].as('VeteranStatus').to_sql => :VeteranStatus, 
+        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql =>  :enrollment_group_id,
+        sh_t[:project_id].as('project_id').to_sql => :project_id,
+        sh_t[:project_name].as('project_name').to_sql => :project_name,
+        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
+        et[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
+        et[:DisablingCondition].as('DisablingCondition').to_sql => :DisablingCondition,
+        et[:ResidencePrior].as('ResidencePrior').to_sql => :ResidencePrior,
+        et[:PreviousStreetESSH].as('PreviousStreetESSH').to_sql => :PreviousStreetESSH,
+        et[:DateToStreetESSH].as('DateToStreetESSH').to_sql => :DateToStreetESSH,
+        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program,
+        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program,
+        et[:TimesHomelessPastThreeYears].as('TimesHomelessPastThreeYears').to_sql => :TimesHomelessPastThreeYears,
+        et[:MonthsHomelessPastThreeYears].as('MonthsHomelessPastThreeYears').to_sql => :MonthsHomelessPastThreeYears,
       }
       
       all_client_scope.
         joins(:project, :enrollment).
         order(date: :asc).
-        pluck(*columns.values).
+        pluck(*columns.keys).
         map do |row|
-          Hash[columns.keys.zip(row)]
+          Hash[columns.values.zip(row)]
         end.map do |enrollment|
           enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
           enrollment

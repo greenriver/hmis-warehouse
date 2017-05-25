@@ -25,18 +25,20 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def fetch_all_clients
+      ct = GrdaWarehouse::Hud::Client.arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        client_id: :client_id, 
-        age: :age,
-        DOB: :DOB,
+        client_id: sh_t[:client_id].as('client_id').to_sql, 
+        age: sh_t[:age].as('age').to_sql,
+        DOB: ct[:DOB].as('DOB').to_sql,
         project_type: act_as_project_overlay, 
-        project_id: :project_id, 
-        data_source_id: :data_source_id,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        project_name: :project_name,
-        destination: :destination,
-        enrollment_group_id: :enrollment_group_id,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
+        project_id: sh_t[:project_id].as('project_id').to_sql, 
+        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
+        destination: sh_t[:destination].as('destination').to_sql,
       }
       
       all_client_scope.
@@ -325,17 +327,20 @@ module ReportGenerators::DataQuality::Fy2016
 
     def income_columns
       @columns ||= begin
-        income_source_columns = Hash[income_sources.map{|v| [v,v]}]
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        sh_t = GrdaWarehouse::ServiceHistory.arel_table
+        it = GrdaWarehouse::Hud::IncomeBenefit.arel_table
+        income_source_columns = Hash[income_sources.map{|v| [v, it[v].as(v.to_s).to_sql]}]
         {
-          client_id: :client_id, 
-          project_id: :project_id, 
-          data_source_id: :data_source_id,
-          first_date_in_program: :first_date_in_program,
-          last_date_in_program: :last_date_in_program,
-          project_name: :project_name,
-          InformationDate: :InformationDate,
-          enrollment_group_id: :enrollment_group_id,
-          IncomeFromAnySource: :IncomeFromAnySource,
+          client_id: sh_t[:client_id].as('client_id').to_sql, 
+          project_id: sh_t[:project_id].as('project_id').to_sql, 
+          data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+          first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+          last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+          project_name: sh_t[:project_name].as('project_name').to_sql, 
+          InformationDate: it[:InformationDate].as('InformationDate').to_sql,
+          enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+          IncomeFromAnySource: it[:IncomeFromAnySource].as('IncomeFromAnySource').to_sql,
         }.merge(income_source_columns)        
       end
       @columns

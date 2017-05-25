@@ -31,7 +31,7 @@ module GrdaWarehouse::Tasks
       end
       if updated_clients.size > 0
         msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
-        @notifier.ping msg
+        @notifier.ping msg if @send_notifications
       end
     end
 

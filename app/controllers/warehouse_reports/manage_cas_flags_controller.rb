@@ -136,7 +136,7 @@ module WarehouseReports
         'Full HAN Release'
       elsif column == :limited_cas_release
         'Limited CAS Release'
-      elsif default === false
+      elsif default === false || default === 'false'
         true
       else
         Time.now

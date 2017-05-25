@@ -1,5 +1,9 @@
 set :deploy_to, '/u/apps/staging/boston-hmis-staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+server ENV['BOSTON_STAGING'], user: ENV['USER'], roles: %w{app db web}
+
+set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')
+
 namespace :deploy do
   before :finishing, :warehouse_migrations do
     on roles(:db)  do

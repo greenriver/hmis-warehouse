@@ -1,15 +1,16 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
-  serialize :response, JSON
-  serialize :answers, JSON
+  serialize :response, Hash
+  serialize :answers, Hash
 
   scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
   scope :triage, -> { where name: 'Triage Assessment'}
 
   def primary_language
-    answers['sections'].each do |m|
-      m['questions'].each do |m| 
-        return m['answer'] if m['answer'].present? && m['question'] == 'A-2. Primary Language Spoken'
+    return 'Unknown' unless answers.present?
+    answers[:sections].each do |m|
+      m[:questions].each do |m| 
+        return m[:answer] if m[:answer].present? && m[:question] == 'A-2. Primary Language Spoken'
       end
     end
     'Unknown'

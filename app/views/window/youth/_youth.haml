@@ -16,12 +16,12 @@
         %th.nobr Date collected
     %tbody
       - @client.source_hmis_forms.each do |assessment|
-        - assessment[:answers]['sections'].each do |section|
-          - section['questions'].each do |q|
-            - if q['answer'].present? && youth_questions.include?(q['question'])
+        - assessment[:answers][:sections].each do |section|
+          - section[:questions].each do |q|
+            - if q[:answer].present? && youth_questions.include?(q[:question])
               %tr.q
-                %td= q['question']
+                %td= q[:question]
                 %td
                   %strong
-                    = q['answer'] 
+                    = q[:answer] 
                 %td= assessment[:collected_at].to_date

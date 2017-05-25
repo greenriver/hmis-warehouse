@@ -83,6 +83,7 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :client
     has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
 
+    has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs
@@ -545,8 +546,11 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       # TODO: This will need to be re-written when the Warehouse moves to postgres
+      # service_history.homeless.
+      #   from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+      #   maximum(:date)
       service_history.homeless.
-        from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
+        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
 
@@ -785,8 +789,8 @@ module GrdaWarehouse::Hud
           if nicks.any?
             nicks_for_search = nicks.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
             similar_destinations = self.class.destination.where(
-              nv('LOWER', [Client.FirstName]).in(nicks_for_search)
-            ).where(c_arel['LastName'].matches("%#{self.LastName}%")).
+              nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search)
+            ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
             where.not(id: self.id)
             m[:by_nickname] = similar_destinations if similar_destinations.any?
           end
@@ -798,9 +802,9 @@ module GrdaWarehouse::Hud
             alt_names_for_search = alt_names.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
             similar_destinations = self.class.destination.where(
               nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:LastName]]).matches('#{self.LastName}%')).
+                and(nf('LOWER', [c_arel[:LastName]]).matches('#{self.LastName.downcase}%')).
               or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
-                and(nf('LOWER', [c_arel[:FirstName]]).matches('#{self.FirstName}%'))
+                and(nf('LOWER', [c_arel[:FirstName]]).matches('#{self.FirstName.downcase}%'))
               )
             ).where.not(id: self.id)
             m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?

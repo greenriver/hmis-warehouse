@@ -32,7 +32,11 @@ module WarehouseReports
     end
 
     class MonthAndOrganization < ModelForm
-      attribute :org, Integer, default: GrdaWarehouse::Hud::Organization.residential.order(:OrganizationName).distinct.limit(1).pluck(:id, :OrganizationName).first.first
+      attribute :org, Integer, default: GrdaWarehouse::Hud::Organization.residential.
+        order(:OrganizationName).
+        distinct.
+        limit(1).
+        pluck(:id, :OrganizationName).first.first rescue 0
       attribute :month, Integer, default: Date.today.month
       attribute :year,  Integer, default: Date.today.year
 
