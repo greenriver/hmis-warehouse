@@ -18,14 +18,12 @@
 # end
 
 # Learn more: http://github.com/javan/whenever
-every 1.day, at: '9:30 am' do
-  rake "grda_warehouse:daily"
-end
+if Rails.env.production?
+  every 1.day, at: '6:10 pm' do
+    rake "grda_warehouse:daily"
+  end
 
-every 1.day, at: '2:30 am' do
-  command "cd /u/apps/boston-hmis/current && backup perform -t hmis --config-file /u/apps/boston-hmis/current/backup/models/hmis.rb"
-end
-
-every 1.day, at: '4:00 pm' do
-  rake "eto:import:demographics"
+  every 1.day, at: '4:00 pm' do
+    rake "eto:import:demographics"
+  end
 end

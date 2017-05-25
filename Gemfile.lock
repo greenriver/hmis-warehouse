@@ -117,6 +117,9 @@ GEM
     capistrano-rvm (0.1.2)
       capistrano (~> 3.0)
       sshkit (~> 1.2)
+    capistrano3-delayed-job (1.7.3)
+      capistrano (~> 3.0, >= 3.0.0)
+      daemons (~> 1.2.4)
     capybara (2.11.0)
       addressable
       mime-types (>= 1.16)
@@ -449,6 +452,7 @@ DEPENDENCIES
   capistrano-passenger
   capistrano-rails
   capistrano-rvm
+  capistrano3-delayed-job (~> 1.0)
   capybara
   carrierwave
   charlock_holmes
