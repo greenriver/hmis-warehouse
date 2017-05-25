@@ -281,6 +281,7 @@ $client-match-action-row-height: 22px;
   font-size: 1.2em;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
+  padding: 0.5em 0.5em;
 }
 .clients__chronic
 {
@@ -292,8 +293,30 @@ $client-match-action-row-height: 22px;
   float: right;
   clear: right;
 }
-.client__cas_flags .form-group,
-.client__cas_flags .checkbox
+.client__cas-flags .form-group,
+.client__cas-flags .checkbox
 {
   margin-bottom: 0.25em;
+}
+
+.client-flag
+{
+  text-align: center;
+  margin-top: 0.5em;
+  margin-bottom: 0.25em;
+  padding: 1em 0.5em;
+  display: inline-block;
+  padding: 0.5em 0.5em;
+}
+
+.client-flag__longterm-stayer
+{
+  background-color: $brand-warning;
+  border-color: $brand-warning;
+}
+
+.client-flag__cas
+{
+  background-color: $brand-info;
+  border-color: $brand-info;
 }

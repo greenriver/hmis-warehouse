@@ -16,9 +16,7 @@
       .col-sm-7  
         .client__view_client
           = link_to 'View', window_client_path(client), class: 'btn btn-secondary'
-        - if client.chronic?
-          .clients__chronic
-            Chronically Homeless
+        = render 'clients/chronic_flags', client: client
         .client__ssns
           - client.source_clients.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
             .client__ssn

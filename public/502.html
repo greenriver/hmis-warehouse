@@ -1,15 +1,85 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Temporarily Offline</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-<body>
-  <div class="dialog">
-    <div>
-      <h1>Down for Maintenance</h1>
-    </div>
-    <p>Boston DND Warehouse is offline for a momemnt while we perform maintenance. Please try again in a few minutes.</p>
-  </div>
-</body>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'>
+    <meta content='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <meta content='IE=edge' http-equiv='X-UA-Compatible'>
+    <title>Boston DND Warehouse</title>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700' rel='stylesheet' type='text/css'>
+    <link rel="icon" type="image/png" href="/assets/favicon-32x32-f681ef22ac79f76dd59b47a56c0abd687aa9d3e6e1550534ac24fed1d39e11b8.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/assets/favicon-16x16-13f3829e2d14e56f1caf9211fe0cd04d11b584883b357a11d37a6b9461b51341.png" sizes="16x16" />
+    <meta name="csrf-param" content="authenticity_token" />
+    <style type="text/css">
+    body
+    {
+      font-family: "Open Sans", sans-serif;
+    }
+    .header 
+    {
+      background-color: #0C2639;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+      height: 59px; margin: -8px;
+    }
+    .header h1
+    {
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0.25em;
+      -webkit-margin-before: 0;
+    }
+    .footer 
+    {
+      margin-top: 54px;
+      padding: 27px 0 54px;
+      background-color: #091f2f;
+      min-height: 180px;
+      color: #fff;   position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 1rem;
+    }
+    .footer p
+    {
+      text-align: center;
+      font-family: "Open Sans", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .container
+    {
+      width: 100%; 
+      text-align: center; 
+      margin-top: 50px; 
+      
+      line-height: 34.8px; 
+      color: rgb(119, 55, 71);
+    }
+    .main-header 
+    {
+      font-family: 'Open Sans Condensed', sans-serif;
+      font-weight: bold;
+    }
+    .seconary-header
+    {
+      font-weight: lighter;
+    }
+    </style>
+  </head>
+  <body class='errors internal_server_error'>
+    <header class="header">
+      <h1>BOSTON DND WAREHOUSE</h1>
+    </header>
+    <main>
+      <div class='container'>
+        <h1 class="main-header">Down for Maintenance</h1>
+        <h3 class="secondary-header">Boston DND Warehouse is offline for a moment while we perform maintenance. Please try again in a few minutes.</h3>
+      </div>
+    </main>
+    <footer class="footer">
+      <p>The Boston DND Warehouse is operated by the 
+Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.</p>
+    </footer>
+  </body>
 </html>
-~
