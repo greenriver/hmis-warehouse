@@ -3,9 +3,9 @@
 %h3{style: 'margin-top: 0;'}= "Form Identifier: #{@form.answers['assessment_identifier']}"
 %p(style="font-size:smaller;font-style:italic;")
   Only answered questions are shown.
-- @form.answers['sections'].each do |section|
-  %h4.client__assessment-section-heading= section['section_title']
-  - section['questions'].each do |question|
-    - if question['answer'].present?
-      .client__assessment-question= question['question']
-      .client__assessment-answer= question['answer']
+- @form.answers[:sections].each do |section|
+  %h4.client__assessment-section-heading= section[:section_title]
+  - section[:questions].each do |question|
+    - if question[:answer].present?
+      .client__assessment-question= question[:question]
+      .client__assessment-answer= question[:answer]
