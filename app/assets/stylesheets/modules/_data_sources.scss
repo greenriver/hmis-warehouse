@@ -2,7 +2,7 @@
   display: inline-block;
   font-size: 0.75rem;
   text-decoration: none;
-  padding: 0.2em 0.5em; 
+  padding: 0.2em 0.5em;
   background-color: $gray-065;
   color: white;
   min-width: 4.2em;
@@ -29,4 +29,7 @@
 .ds-bl
 {
   background-color: $nechv;
+}
+.ds-warehouse{
+  background-color: $cob-sg-blue-002;
 }
