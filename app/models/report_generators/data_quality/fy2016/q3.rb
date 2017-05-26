@@ -12,10 +12,13 @@ module ReportGenerators::DataQuality::Fy2016
           update_report_progress(percent: 25)
           @clients_with_issues = Set.new
           add_veteran_answers()
+          update_report_progress(percent: 35)
           add_entry_date_answers()
+          update_report_progress(percent: 45)
           add_head_of_household_answers()
+          update_report_progress(percent: 60)
           add_location_answers()
-          update_report_progress(percent: 30)
+          update_report_progress(percent: 75)
           add_disabling_condition_answers()
         end
         finish_report()
