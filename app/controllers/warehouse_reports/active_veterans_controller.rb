@@ -15,7 +15,7 @@ module WarehouseReports
         includes(:processed_service_history).
         joins(:processed_service_history).
         where(id: @served_client_ids).
-        order("#{sort_column} #{sort_direction}")
+        order(sort_options[{column: @column, direction: @direction}][:column])
       
       respond_to do |format|
         format.html do
@@ -69,39 +69,46 @@ module WarehouseReports
         ds_short_name: ds_table[:short_name].as('short_name').to_sql,
       }
     end
-
+    
     private def sort_column
-      sort_options.map{|m| m[:column]}.uniq.
-        include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::WarehouseClientsProcessed.quoted_table_name}.first_date_served"
+      sort_options.map{|k,_| k[:column]}.uniq.
+        include?(params[:sort]) ? params[:sort] : 'first_date_served'
     end
 
     private def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+      direction = params[:direction].to_sym
+      [:asc, :desc].include?(direction) ? direction : :asc
     end
 
     private def sort_options
-      [
+      @sort_options ||= begin 
+        ct = GrdaWarehouse::Hud::Client.arel_table
+        wcpt = GrdaWarehouse::WarehouseClientsProcessed.arel_table
+        
         {
-          title: 'Last name A-Z', 
-          column: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.LastName", 
-          direction: 'asc'
-        },
-        {
-          title: 'Last name Z-A', 
-          column: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.LastName", 
-          direction: 'desc'
-        },
-        {
-          title: 'Most served', 
-          column: "#{GrdaWarehouse::WarehouseClientsProcessed.quoted_table_name}.days_served", 
-          direction: 'desc'
-        },
-        {
-          title: 'Longest standing', 
-          column: "#{GrdaWarehouse::WarehouseClientsProcessed.quoted_table_name}.first_date_served", 
-          direction: 'asc'
-        },
-      ]
+          {column: 'LastName', direction: :asc} => {
+            title: 'Last name A-Z', 
+            column: ct[:LastName].asc, 
+            param: 'LastName',
+          },
+          {column: 'LastName', direction: :desc} => {
+            title: 'Last name Z-A', 
+            column: ct[:LastName].desc,
+            param: 'LastName',
+          },
+          {column: 'days_served', direction: :desc} => {
+            title: 'Most served', 
+            column: wcpt[:days_served].desc, 
+            param: 'days_served',
+          },
+          {column: 'first_date_served', direction: :asc} => {
+            title: 'Longest standing', 
+            column: wcpt[:first_date_served].asc, 
+            param: 'first_date_served',
+          },
+        }
+        
+      end
     end
   end
 end
