@@ -1,0 +1,8 @@
+.row
+  .col-sm-12
+    - if client.processed_service_history.present? && client.longterm_stayer?
+      .alert.alert-warning.client-flag.client-flag__longterm-stayer
+        Long-term Stayer
+    - if client.sync_with_cas?
+      .alert.alert-warning.client-flag.client-flag__cas
+        Chronically Homeless and in CAS

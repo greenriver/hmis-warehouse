@@ -3,11 +3,15 @@ module WarehouseReports
     before_action :require_can_view_reports!
     def index
       @sort_options = sort_options
-      date_range_options = params.permit(range: [:start, :end])[:range]
-      @range = DateRange.new(date_range_options)
+      date_range_options = params.permit(range: [:start, :end, project_type: []])[:range]
+      @range = DateRangeAndProject.new(date_range_options)
       @column = sort_column
       @direction = sort_direction
-      @served_client_ids = service_history_source.
+      scope = service_history_source
+      if ( pts = @range.project_type.select(&:present?).map(&:to_sym) ).any?
+        scope = scope.where( project_type: pts.flat_map{ |t| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[t] } )
+      end
+      @served_client_ids = scope.
         service_within_date_range(start_date: @range.start, end_date: @range.end).
         select(:client_id).distinct
       @clients = client_source.
@@ -20,7 +24,7 @@ module WarehouseReports
       respond_to do |format|
         format.html do
           @clients = @clients.page(params[:page]).per(50)
-          @enrollments = service_history_source.entry.
+          @enrollments = scope.entry.
             open_between(start_date: @range.start, end_date: @range.end + 1.day).
             includes(:enrollment).
             joins(:data_source).
@@ -32,7 +36,7 @@ module WarehouseReports
 
         end
         format.xlsx do
-          @enrollments = service_history_source.entry.
+          @enrollments = scope.entry.
             open_between(start_date: @range.start, end_date: @range.end + 1.day).
             includes(:enrollment).
             joins(:data_source).
@@ -45,6 +49,13 @@ module WarehouseReports
       end
     end
 
+    class DateRangeAndProject < DateRange
+      attribute :project_type, Array[String]
+
+      def project_types
+        GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.map(&:reverse)
+      end
+    end
     
     private def client_source
       GrdaWarehouse::Hud::Client.destination.veteran

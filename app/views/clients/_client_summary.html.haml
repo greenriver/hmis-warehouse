@@ -1,9 +1,4 @@
 .client__summary
-  - if @client.processed_service_history.present? && @client.chronic?
-    .alert.alert-warning.client__chronic
-      %span.icon-warning
-      = @client.full_name
-      is chronically homeless
   .row
     .col-sm-4
       %h3 Service Summary
@@ -20,11 +15,10 @@
               = "#{@client.days_of_service} of #{@client.total_days_of_service} days served between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
         - else
           %p None
+      = render 'chronic_flags', client: @client
     .col-sm-4
       %h3 Data Sharing Agreement
       = @client.consent_form_status.presence ||'No consent forms on file'
     .col-sm-4
       .client__image
         = image_tag image_client_path
-              
-                

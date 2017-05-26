@@ -1,9 +1,4 @@
 .client__summary
-  - if @client.processed_service_history.present? && @client.chronic?
-    .alert.alert-warning.client__chronic
-      %span.icon-warning
-      = @client.full_name
-      is chronically homeless
   .row
     .col-sm-4
       %br
@@ -40,14 +35,10 @@
         Preferred Language:
         %strong
           = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
+      = render 'clients/chronic_flags', client: @client
     .col-sm-4.client__data-sharing-agreement
       %h3 Data Sharing Agreement
       = @client.consent_form_status.presence ||'No consent forms on file'
     .col-sm-4
       .client__image
         = image_tag image_client_path(@client)
-
-  
-  
-              
-                

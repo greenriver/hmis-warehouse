@@ -54,5 +54,10 @@ module BostonHmis
 
     # force all requests over ssl by default
     config.force_ssl = true
+
+    # serve error pages from the Rails app itself 
+    # rather than using static error pages in public/.
+    config.exceptions_app = self.routes
+
   end
 end
