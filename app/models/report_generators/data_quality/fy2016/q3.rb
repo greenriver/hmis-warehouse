@@ -9,12 +9,12 @@ module ReportGenerators::DataQuality::Fy2016
         @all_clients = fetch_all_clients()
         if @all_clients.any?
           setup_age_categories()
-          update_report_progress(percent: 25)
+          update_report_progress(percent: 5)
           @clients_with_issues = Set.new
           add_veteran_answers()
-          update_report_progress(percent: 35)
+          update_report_progress(percent: 15)
           add_entry_date_answers()
-          update_report_progress(percent: 45)
+          update_report_progress(percent: 20)
           add_head_of_household_answers()
           update_report_progress(percent: 60)
           add_location_answers()
@@ -234,24 +234,34 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def household_members(enrollment)
-      @all_households ||= households.values.map{|m| m[:household]}.
-        index_by do |enrollments|
-          enrollment = enrollments.first
-          [
-            enrollment[:data_source_id], 
-            enrollment[:project_id], 
-            enrollment[:household_id], 
-            enrollment[:first_date_in_program],
-          ]
-        end
-      @all_households[
-        [
+      # @all_households ||= households.values.map{|m| m[:household]}.
+      #   index_by do |enrollments|
+      #     enrollment = enrollments.first
+      #     [
+      #       enrollment[:data_source_id], 
+      #       enrollment[:project_id], 
+      #       enrollment[:household_id], 
+      #       enrollment[:first_date_in_program],
+      #     ]
+      #   end
+      # @all_households[
+      #   [
+      #     enrollment[:data_source_id], 
+      #     enrollment[:project_id], 
+      #     enrollment[:household_id], 
+      #     enrollment[:first_date_in_program],
+      #   ]
+      # ]
+      # The previous uses too much RAM for large data sets
+      # This may be slower, but shouldn't require additional RAM
+      households.values.select do |row| 
+        row[:key] == [
           enrollment[:data_source_id], 
           enrollment[:project_id], 
           enrollment[:household_id], 
-          enrollment[:first_date_in_program],
+          enrollment[:first_date_in_program]
         ]
-      ]
+        end.first[:household]
     end
 
     def setup_questions
