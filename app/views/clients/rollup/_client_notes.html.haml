@@ -1,0 +1,18 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th User
+      %th Type
+      %th Note
+      %th Date Posted
+  %tbody
+    - @client.notes.order(created_at: :desc).each do |note|
+      %tr
+        %td= note.user_id
+        %td= note.type
+        %td= note.note 
+        %td= note.created_at
+-# = simple_form_for @client_note do |f|
+-#   = f.input :note, label: 'Write your note here', error: 'You need to compose a note in order to submit'
+-#   = f.input :type, label: 'Note type', collection: ["Chronic Justification", "Window Note",]
+-#   = f.submit value: 'Submit', class: 'btn btn-secondary'

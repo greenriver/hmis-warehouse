@@ -135,6 +135,7 @@ Rails.application.routes.draw do
     end
   end
   resource :account, only: [:edit, :update]
-
+  
+  resources :client_notes, only: [:create, :edit, :destroy]
   root 'root#index'
 end

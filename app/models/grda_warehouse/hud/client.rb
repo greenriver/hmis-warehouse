@@ -105,7 +105,11 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
-
+    
+    has_many :notes, class_name: GrdaWarehouse::ClientNotes::Base.name, inverse_of: :client
+    has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
+    has_many :window_notes, class_name: GrdaWarehouse::ClientNotes::WindowNote.name
+    
     scope :destination, -> do
       where(data_source: GrdaWarehouse::DataSource.destination)
     end
@@ -176,7 +180,9 @@ module GrdaWarehouse::Hud
     scope :hiv_positive, -> do
       where.not(hiv_positive: false)
     end
-
+    
+    delegate :window_notes, :chronic_justifications, to: :client_notes
+    
     attr_accessor :merge
     attr_accessor :unmerge
 

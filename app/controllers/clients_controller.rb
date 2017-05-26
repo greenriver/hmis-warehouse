@@ -90,6 +90,7 @@ class ClientsController < ApplicationController
       "/clients/rollup/special_populations",
       "/clients/rollup/zip_details",
       "/clients/rollup/zip_map",
+      "/clients/rollup/client_notes",
     ]
     rollup = allowed_rollups.find do |m|
       m == "/clients/rollup/" + params.require(:partial).underscore

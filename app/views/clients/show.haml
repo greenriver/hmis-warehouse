@@ -19,6 +19,11 @@
 %hr
 .row
   .col-sm-12
+    .rollup{data: {partial: :client_notes}}
+      %h3 Notes
+    
+.row
+  .col-sm-12
     .rollup{data: {partial: :demographics}}
       %h3 Demographics
     .row
@@ -63,7 +68,7 @@
       %h3 Disability Types
 #scratchpad
 
--# load in al the bits of aggregate statistics via ajax
+-# load in all the bits of aggregate statistics via ajax
 = content_for :page_js do
   - source_clients = @client.source_clients.preload(:data_source, :organizations)
   :javascript
