@@ -2,12 +2,11 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.3.14
--- Dumped by pg_dump version 9.6.2
+-- Dumped from database version 9.5.6
+-- Dumped by pg_dump version 9.5.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -250,40 +249,6 @@ ALTER SEQUENCE delayed_jobs_id_seq OWNED BY delayed_jobs.id;
 
 
 --
--- Name: hmis_forms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE hmis_forms (
-    id integer NOT NULL,
-    client_id integer,
-    response text,
-    name character varying,
-    answers text,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: hmis_forms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE hmis_forms_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_forms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE hmis_forms_id_seq OWNED BY hmis_forms.id;
-
-
---
 -- Name: imports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -472,19 +437,23 @@ CREATE TABLE roles (
     can_view_clients boolean DEFAULT false,
     can_edit_clients boolean DEFAULT false,
     can_view_reports boolean DEFAULT false,
+    can_view_censuses boolean DEFAULT false,
+    can_view_census_details boolean DEFAULT false,
     can_edit_users boolean DEFAULT false,
     can_view_full_ssn boolean DEFAULT false,
     can_view_full_dob boolean DEFAULT false,
+    can_view_hiv_status boolean DEFAULT false,
+    can_view_dmh_status boolean DEFAULT false,
     can_view_imports boolean DEFAULT false,
     can_edit_roles boolean DEFAULT false,
-    can_view_censuses boolean DEFAULT false,
-    can_view_census_details boolean DEFAULT false,
     can_view_projects boolean DEFAULT false,
     can_view_organizations boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
-    can_view_hiv_status boolean DEFAULT false,
-    can_view_dmh_status boolean DEFAULT false
+    can_administer_health boolean DEFAULT false,
+    can_edit_client_health boolean DEFAULT false,
+    can_view_client_health boolean DEFAULT false,
+    health_role boolean DEFAULT false NOT NULL
 );
 
 
@@ -751,126 +720,119 @@ ALTER SEQUENCE versions_id_seq OWNED BY versions.id;
 
 
 --
--- Name: activity_logs id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY activity_logs ALTER COLUMN id SET DEFAULT nextval('activity_logs_id_seq'::regclass);
 
 
 --
--- Name: cas_reports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY cas_reports ALTER COLUMN id SET DEFAULT nextval('cas_reports_id_seq'::regclass);
 
 
 --
--- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('clients_unduplicated_id_seq'::regclass);
 
 
 --
--- Name: delayed_jobs id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs ALTER COLUMN id SET DEFAULT nextval('delayed_jobs_id_seq'::regclass);
 
 
 --
--- Name: hmis_forms id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_forms ALTER COLUMN id SET DEFAULT nextval('hmis_forms_id_seq'::regclass);
-
-
---
--- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY imports ALTER COLUMN id SET DEFAULT nextval('imports_id_seq'::regclass);
 
 
 --
--- Name: nicknames id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY nicknames ALTER COLUMN id SET DEFAULT nextval('nicknames_id_seq'::regclass);
 
 
 --
--- Name: report_results id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results ALTER COLUMN id SET DEFAULT nextval('report_results_id_seq'::regclass);
 
 
 --
--- Name: report_results_summaries id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results_summaries ALTER COLUMN id SET DEFAULT nextval('report_results_summaries_id_seq'::regclass);
 
 
 --
--- Name: reports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reports ALTER COLUMN id SET DEFAULT nextval('reports_id_seq'::regclass);
 
 
 --
--- Name: roles id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY roles ALTER COLUMN id SET DEFAULT nextval('roles_id_seq'::regclass);
 
 
 --
--- Name: similarity_metrics id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY similarity_metrics ALTER COLUMN id SET DEFAULT nextval('similarity_metrics_id_seq'::regclass);
 
 
 --
--- Name: unique_names id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY unique_names ALTER COLUMN id SET DEFAULT nextval('unique_names_id_seq'::regclass);
 
 
 --
--- Name: uploads id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY uploads ALTER COLUMN id SET DEFAULT nextval('uploads_id_seq'::regclass);
 
 
 --
--- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles ALTER COLUMN id SET DEFAULT nextval('user_roles_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
 
 --
--- Name: versions id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY versions ALTER COLUMN id SET DEFAULT nextval('versions_id_seq'::regclass);
 
 
 --
--- Name: activity_logs activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY activity_logs
@@ -878,7 +840,7 @@ ALTER TABLE ONLY activity_logs
 
 
 --
--- Name: cas_reports cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY cas_reports
@@ -886,7 +848,7 @@ ALTER TABLE ONLY cas_reports
 
 
 --
--- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY clients_unduplicated
@@ -894,7 +856,7 @@ ALTER TABLE ONLY clients_unduplicated
 
 
 --
--- Name: delayed_jobs delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs
@@ -902,15 +864,7 @@ ALTER TABLE ONLY delayed_jobs
 
 
 --
--- Name: hmis_forms hmis_forms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_forms
-    ADD CONSTRAINT hmis_forms_pkey PRIMARY KEY (id);
-
-
---
--- Name: imports imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY imports
@@ -918,7 +872,7 @@ ALTER TABLE ONLY imports
 
 
 --
--- Name: nicknames nicknames_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: nicknames_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY nicknames
@@ -926,7 +880,7 @@ ALTER TABLE ONLY nicknames
 
 
 --
--- Name: report_results report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results
@@ -934,7 +888,7 @@ ALTER TABLE ONLY report_results
 
 
 --
--- Name: report_results_summaries report_results_summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: report_results_summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results_summaries
@@ -942,7 +896,7 @@ ALTER TABLE ONLY report_results_summaries
 
 
 --
--- Name: reports reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reports
@@ -950,7 +904,7 @@ ALTER TABLE ONLY reports
 
 
 --
--- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY roles
@@ -958,7 +912,7 @@ ALTER TABLE ONLY roles
 
 
 --
--- Name: similarity_metrics similarity_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: similarity_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY similarity_metrics
@@ -966,7 +920,7 @@ ALTER TABLE ONLY similarity_metrics
 
 
 --
--- Name: unique_names unique_names_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: unique_names_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY unique_names
@@ -974,7 +928,7 @@ ALTER TABLE ONLY unique_names
 
 
 --
--- Name: uploads uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY uploads
@@ -982,7 +936,7 @@ ALTER TABLE ONLY uploads
 
 
 --
--- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles
@@ -990,7 +944,7 @@ ALTER TABLE ONLY user_roles
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -998,7 +952,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: versions versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY versions
@@ -1181,7 +1135,7 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 
 
 --
--- Name: user_roles fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles
@@ -1189,7 +1143,7 @@ ALTER TABLE ONLY user_roles
 
 
 --
--- Name: user_roles fk_rails_3369e0d5fc; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3369e0d5fc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles
@@ -1197,7 +1151,7 @@ ALTER TABLE ONLY user_roles
 
 
 --
--- Name: reports fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reports
@@ -1205,7 +1159,7 @@ ALTER TABLE ONLY reports
 
 
 --
--- Name: report_results fk_rails_cd0d43bf48; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_cd0d43bf48; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results
@@ -1216,7 +1170,7 @@ ALTER TABLE ONLY report_results
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user",public;
+SET search_path TO "$user", public;
 
 INSERT INTO schema_migrations (version) VALUES ('20160615125048');
 
@@ -1284,8 +1238,6 @@ INSERT INTO schema_migrations (version) VALUES ('20161111205317');
 
 INSERT INTO schema_migrations (version) VALUES ('20161119003439');
 
-INSERT INTO schema_migrations (version) VALUES ('20161122172130');
-
 INSERT INTO schema_migrations (version) VALUES ('20161213140009');
 
 INSERT INTO schema_migrations (version) VALUES ('20161214144658');
@@ -1297,6 +1249,8 @@ INSERT INTO schema_migrations (version) VALUES ('20161216003217');
 INSERT INTO schema_migrations (version) VALUES ('20161219184752');
 
 INSERT INTO schema_migrations (version) VALUES ('20170505132237');
+
+INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 
 INSERT INTO schema_migrations (version) VALUES ('20170526162435');
 
