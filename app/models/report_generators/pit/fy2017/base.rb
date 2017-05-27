@@ -535,10 +535,10 @@ module ReportGenerators::Pit::Fy2017
     def potential_candidates
       @potential_candidates ||= begin
         service_history_scope.
-          select(*sh_cols).
-          pluck(*sh_cols).
+          select(*sh_cols.values).
+          pluck(*sh_cols.values).
           map do |ar|
-            sh_cols_with_project_type_overlay.zip(ar).to_h
+            sh_cols.keys.zip(ar).to_h
           end.
           group_by{|m| m[:client_id]}
       end
@@ -630,9 +630,9 @@ module ReportGenerators::Pit::Fy2017
             m.merge!(
               GrdaWarehouse::Hud::Client.
               where(id: ids).
-              pluck(*client_columns).
+              pluck(*client_columns.values).
               map do |ar|
-                client_columns.zip(ar).to_h
+                client_columns.keys.zip(ar).to_h
               end.
               index_by{|m| m[:id]}
             )
@@ -653,9 +653,9 @@ module ReportGenerators::Pit::Fy2017
               GrdaWarehouse::Hud::Disability.
               joins(:destination_client).
               where(warehouse_clients: {destination_id: ids}).
-              pluck(*disability_columns, :destination_id).
+              pluck(*disability_columns.values, :destination_id).
               map do |ar|
-                (disability_columns + [:client_id]).zip(ar).to_h
+                (disability_columns.keys + [:client_id]).zip(ar).to_h
               end.
               group_by{|m| m[:client_id]}
             )
@@ -677,9 +677,9 @@ module ReportGenerators::Pit::Fy2017
               GrdaWarehouse::Hud::HealthAndDv.
               joins(:destination_client).
               where(warehouse_clients: {destination_id: ids}).
-              pluck(*health_columns, :destination_id).
+              pluck(*health_columns.values, :destination_id).
               map do |ar|
-                (health_columns + [:client_id]).zip(ar).to_h
+                (health_columns.keys + [:client_id]).zip(ar).to_h
               end.
               group_by{|m| m[:client_id]}
             )
@@ -714,56 +714,72 @@ module ReportGenerators::Pit::Fy2017
     end
 
     def sh_cols
-      [
-        act_as_project_overlay,
-        :client_id, 
-        :enrollment_group_id, 
-        :age, 
-        :household_id, 
-        :project_id,
-        :data_source_id,
-        :RelationshipToHoH,
-      ]
+      {
+        project_type: act_as_project_overlay,
+        client_id: sh_t[:client_id].as('client_id').to_sql, 
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
+        age: sh_t[:age].as('age').to_sql, 
+        household_id: sh_t[:household_id].as('household_id').to_sql, 
+        project_id: sh_t[:project_id].as('project_id').to_sql,
+        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+        RelationshipToHoH: e_t[:RelationshipToHoH].as('RelationshipToHoH').to_sql,
+      }
     end
 
     def client_columns
-      [
-        :PersonalID, 
-        :data_source_id, 
-        :Gender, 
-        :VeteranStatus,
-        :Ethnicity,
-        :AmIndAKNative,
-        :Asian,
-        :BlackAfAmerican,
-        :NativeHIOtherPacific,
-        :White,
-        :RaceNone,
-        :id,
-      ]
+      {
+        PersonalID: c_t[:PersonalID].as('PersonalID').to_sql, 
+        data_source_id: c_t[:data_source_id].as('data_source_id').to_sql, 
+        Gender: c_t[:Gender].as('Gender').to_sql, 
+        VeteranStatus: c_t[:VeteranStatus].as('VeteranStatus').to_sql,
+        Ethnicity: c_t[:Ethnicity].as('Ethnicity').to_sql,
+        AmIndAKNative: c_t[:AmIndAKNative].as('AmIndAKNative').to_sql,
+        Asian: c_t[:Asian].as('Asian').to_sql,
+        BlackAfAmerican: c_t[:BlackAfAmerican].as('BlackAfAmerican').to_sql,
+        NativeHIOtherPacific: c_t[:NativeHIOtherPacific].as('NativeHIOtherPacific').to_sql,
+        White: c_t[:White].as('White').to_sql,
+        RaceNone: c_t[:RaceNone].as('RaceNone').to_sql,
+        id: c_t[:id].as('id').to_sql,
+      }
     end
 
     def disability_columns
-      [
-        :DisabilityType,
-        :DisabilityResponse,
-      ]
+      {
+        DisabilityType: d_t[:DisabilityType].as('DisabilityType').to_sql,
+        DisabilityResponse: d_t[:DisabilityResponse].as('DisabilityResponse').to_sql,
+      }
     end
 
     def health_columns
-      [
-        :DomesticViolenceVictim
-      ]
-    end
-
-    def sh_cols_with_project_type_overlay
-      @sh_cols_with_project_type_overlay ||= sh_cols.map{|m| m == act_as_project_overlay ? :project_type : m}
+      {
+        DomesticViolenceVictim: hdv_t[:DomesticViolenceVictim].as('DomesticViolenceVictim').to_sql
+      }
     end
 
     def act_as_project_overlay
       pt = GrdaWarehouse::Hud::Project.arel_table
       st = GrdaWarehouse::ServiceHistory.arel_table
       nf( 'COALESCE', [ pt[:act_as_project_type], st[:project_type] ] ).as('project_type').to_sql
+    end
+
+    def sh_t
+      GrdaWarehouse::ServiceHistory.arel_table
+    end
+
+    def c_t
+      GrdaWarehouse::Hud::Client.arel_table
+    end
+
+    def e_t
+      GrdaWarehouse::Hud::Enrollment.arel_table
+    end
+
+    def d_t
+      GrdaWarehouse::Hud::Disability.arel_table
+    end
+
+    def hdv_t
+      GrdaWarehouse::Hud::HealthAndDv.arel_table
     end
   end
 end
