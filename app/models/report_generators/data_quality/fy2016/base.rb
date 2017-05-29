@@ -266,7 +266,8 @@ module ReportGenerators::DataQuality::Fy2016
     def households
       @households ||= begin
         counter = 0
-        @all_clients.map do |id, enrollments|
+        hh = {}
+        @all_clients.each do |id, enrollments|
           enrollment = enrollments.last
           household = @all_clients.values.flatten(1).select do |en|
             enrollment[:data_source_id] == en[:data_source_id] &&
@@ -276,19 +277,17 @@ module ReportGenerators::DataQuality::Fy2016
           end
           counter += 1
           log_with_memory("Building households #{counter} of #{@all_clients.size}")
-          [
-            id,
-            {
-              key: [
-                household.first[:data_source_id], 
-                household.first[:project_id], 
-                household.first[:household_id], 
-                household.first[:first_date_in_program],
-              ],
-              household: household
-            }
-          ]
-        end.to_h
+          hh[id] = {
+            key: [
+              household.first[:data_source_id], 
+              household.first[:project_id], 
+              household.first[:household_id], 
+              household.first[:first_date_in_program],
+            ],
+            household: household
+          }
+        end
+        hh
       end
       @households
     end
