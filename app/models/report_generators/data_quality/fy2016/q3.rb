@@ -152,10 +152,10 @@ module ReportGenerators::DataQuality::Fy2016
           counter += 1
           if counter % 500 == 0
             GC.start
-            if Rails.env.development?
+            # if Rails.env.development?
               Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
               Rails.logger.info "processed #{counter}"
-            end
+            # end
           end
         end
         flag
