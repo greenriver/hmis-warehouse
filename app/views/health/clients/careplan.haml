@@ -1,0 +1,10 @@
+- title = 'Care Plan'
+= content_for(:title, title)
+%h1= content_for :title
+.row
+  .col-sm-12
+    = render 'clients/tab_navigation', current: client_health_careplan_path(@client)
+
+.row
+  .col-sm-12
+    = render 'health/tab_navigation', current: client_health_careplan_path(@client)

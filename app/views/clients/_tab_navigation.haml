@@ -1,21 +1,35 @@
 :ruby
-  tabs = [
-    [ client_path(@client), 'Client Dashboard', ],
-    [ edit_client_path(@client), 'Merge' ],
-    [ history_client_path(@client), 'Client History' ],
-  ]
+  tabs = {
+    client_path(@client) => {
+      title: 'Client Dashboard',
+      permission: can_view_clients?,
+    },
+    edit_client_path(@client) => {
+      title: 'Merge',
+      permission: can_edit_clients?,
+    },
+    history_client_path(@client) => {
+      title: 'Client History',
+      permission: can_edit_clients?,
+    }
+  }
   if can_edit_client_health? && @client.patient.present?
-    tabs << [ client_health_patient_index_path(@client), 'Health' ]
-    tabs << [ client_health_careplan_team_members_path(@client), 'Team Members' ]
+    tabs[client_health_patient_index_path(@client)] = {
+      title: 'Health',
+      permission: can_view_client_health? || can_edit_client_health?,
+    }
+    tabs[client_health_careplan_path(@client)] = {
+      title: 'Integrated Care Plan',
+      permission: can_edit_client_health?,
+    }
   end
-%ul.nav.nav-tabs
-  - tabs.each do |action, text|
-    - components = Rails.application.routes.recognize_path(action)
-    - current_action = components[:action]
-    - current_controller = components[:controller].split('/').last # FIXME
-    - if action_name == current_action.to_s && controller_name == current_controller.to_s
-      %li.active.active-tab{role: 'presentation'}
-        %a{href: '#'} 
-          = text
+%ul.nav.nav-tabs.margin-bottom-01
+  - tabs.each do |action, details|
+    - if action == current
+      - if details[:permission]
+        %li.active.active-tab{role: 'presentation'}
+          %a{href: '#'} 
+            = details[:title]
     - else
-      %li= link_to text, action
+      - if details[:permission]
+        %li= link_to details[:title], action

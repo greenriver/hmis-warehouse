@@ -4,7 +4,7 @@
 %h1= title
 .row
   .col-sm-12
-    = render 'tab_navigation'
+    = render 'tab_navigation', current: edit_client_path(@client)
 
 - if @client.source_clients.size > 1
   = render 'unmerge_form'

@@ -1,1 +1,4 @@
-Window Client Health
+- title = 'Client Healthcare Dashboard'
+= content_for(:title, title)
+%h1= "#{title} for #{@client.name}"
+= render 'window/clients/tab_navigation', current: window_client_health_patient_index_path(@client)

@@ -12,7 +12,7 @@
 %h1= title
 .row
   .col-sm-12
-    = render 'tab_navigation'
+    = render 'tab_navigation', current: client_path(@client)
 
 = render 'client_summary'
 
