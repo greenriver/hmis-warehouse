@@ -9,13 +9,21 @@ module ReportGenerators::DataQuality::Fy2016
         @all_clients = fetch_all_clients()
         if @all_clients.any?
           setup_age_categories()
-          update_report_progress(percent: 25)
+          update_report_progress(percent: 5)
+          log_with_memory("5 percent")
           @clients_with_issues = Set.new
           add_veteran_answers()
+          update_report_progress(percent: 15)
+          log_with_memory("15 percent")
           add_entry_date_answers()
+          update_report_progress(percent: 20)
+          log_with_memory("20 percent")
           add_head_of_household_answers()
+          update_report_progress(percent: 60)
+          log_with_memory("60 percent")
           add_location_answers()
-          update_report_progress(percent: 30)
+          update_report_progress(percent: 75)
+          log_with_memory("75 percent")
           add_disabling_condition_answers()
         end
         finish_report()
@@ -109,7 +117,7 @@ module ReportGenerators::DataQuality::Fy2016
           enrollment = enrollments.last
           [
             id, 
-            enrollment[:project_name],
+            enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
@@ -119,14 +127,20 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def add_head_of_household_answers
+      log_with_memory("Starting Household Answers")
+      log_with_memory("All Client's size: #{@all_clients.size}")
       counted = Set.new # Only count each client once
+      counter = 0
       poor_quality = @all_clients.select do |id, enrollments|
+        log_with_memory("Selecting any with poor quality #{counter}")
         flag = false
         enrollment = enrollments.last
         if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
+          log_with_memory("non-usable relationship")
           # we have a missing, or non-usable relationship
           flag = true
         else
+          log_with_memory("gathering household members")
           household = household_members(enrollment)
           relationships = household.map do |enrollment|
             enrollment[:RelationshipToHoH]
@@ -134,14 +148,24 @@ module ReportGenerators::DataQuality::Fy2016
           hoh_count = relationships.count(1)
           if hoh_count == 0
             # No one is marked as the head of household
+            log_with_memory("no HOH")
             flag = true
           elsif hoh_count > 1
             # Too many heads of household
+            log_with_memory("too many HOH")
             flag = true
+          end
+        end
+        counter += 1
+        if counter % 500 == 0
+          GC.start
+          if debug
+            log_with_memory("processed #{counter}")
           end
         end
         flag
       end
+      log_with_memory("Found all poor quality (#{poor_quality.size})")
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b4][:value] = poor_quality.size
@@ -152,7 +176,7 @@ module ReportGenerators::DataQuality::Fy2016
           [
             id,
             enrollment[:RelationshipToHoH],
-            enrollment[:project_name],
+            enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
@@ -231,16 +255,22 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def household_members(enrollment)
-      @all_households ||= households.values.map{|m| m[:household]}.
-        index_by do |enrollments|
-          enrollment = enrollments.first
-          [
+      @all_households ||= begin
+        counter = 0
+        all = {}
+        households.values.each do |m|
+          enrollment = m[:household].first
+          all[
             enrollment[:data_source_id], 
             enrollment[:project_id], 
             enrollment[:household_id], 
             enrollment[:first_date_in_program],
-          ]
+          ] = enrollments
+          counter += 1
+          log_with_memory("#{counter} households processed")
         end
+        all
+      end
       @all_households[
         [
           enrollment[:data_source_id], 
@@ -249,6 +279,16 @@ module ReportGenerators::DataQuality::Fy2016
           enrollment[:first_date_in_program],
         ]
       ]
+      # The previous uses too much RAM for large data sets
+      # This may be slower, but shouldn't require additional RAM
+      # households.values.select do |row| 
+      #   row[:key] == [
+      #     enrollment[:data_source_id], 
+      #     enrollment[:project_id], 
+      #     enrollment[:household_id], 
+      #     enrollment[:first_date_in_program]
+      #   ]
+      #   end.first[:household]
     end
 
     def setup_questions
