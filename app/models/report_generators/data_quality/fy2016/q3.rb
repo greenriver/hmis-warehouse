@@ -147,9 +147,11 @@ module ReportGenerators::DataQuality::Fy2016
         flag = false
         enrollment = enrollments.last
         if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
+          log_with_memory("non-usable relationship")
           # we have a missing, or non-usable relationship
           flag = true
         else
+          log_with_memory("gathering household members")
           household = household_members(enrollment)
           relationships = household.map do |enrollment|
             enrollment[:RelationshipToHoH]
@@ -157,9 +159,11 @@ module ReportGenerators::DataQuality::Fy2016
           hoh_count = relationships.count(1)
           if hoh_count == 0
             # No one is marked as the head of household
+            log_with_memory("no HOH")
             flag = true
           elsif hoh_count > 1
             # Too many heads of household
+            log_with_memory("too many HOH")
             flag = true
           end
         end
