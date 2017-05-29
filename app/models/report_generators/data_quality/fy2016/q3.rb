@@ -261,11 +261,13 @@ module ReportGenerators::DataQuality::Fy2016
         households.values.each do |m|
           enrollment = m[:household].first
           all[
-            enrollment[:data_source_id], 
-            enrollment[:project_id], 
-            enrollment[:household_id], 
-            enrollment[:first_date_in_program],
-          ] = enrollments
+            [
+              enrollment[:data_source_id], 
+              enrollment[:project_id], 
+              enrollment[:household_id], 
+              enrollment[:first_date_in_program],
+            ]
+          ] = m[:household]
           counter += 1
           log_with_memory("#{counter} households processed")
         end
