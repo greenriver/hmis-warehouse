@@ -1,3 +1,4 @@
+require 'newrelic_rpm'
 module ReportGenerators::DataQuality::Fy2016
   class Q3 < Base
     ADULT = 18
@@ -10,15 +11,20 @@ module ReportGenerators::DataQuality::Fy2016
         if @all_clients.any?
           setup_age_categories()
           update_report_progress(percent: 5)
+          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
           @clients_with_issues = Set.new
           add_veteran_answers()
           update_report_progress(percent: 15)
+          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
           add_entry_date_answers()
           update_report_progress(percent: 20)
+          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
           add_head_of_household_answers()
           update_report_progress(percent: 60)
+          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
           add_location_answers()
           update_report_progress(percent: 75)
+          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
           add_disabling_condition_answers()
         end
         finish_report()
@@ -112,7 +118,7 @@ module ReportGenerators::DataQuality::Fy2016
           enrollment = enrollments.last
           [
             id, 
-            enrollment[:project_name],
+            enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
@@ -123,6 +129,7 @@ module ReportGenerators::DataQuality::Fy2016
 
     def add_head_of_household_answers
       counted = Set.new # Only count each client once
+      counter = 0
       poor_quality = @all_clients.select do |id, enrollments|
         flag = false
         enrollment = enrollments.last
@@ -142,6 +149,14 @@ module ReportGenerators::DataQuality::Fy2016
             # Too many heads of household
             flag = true
           end
+          counter += 1
+          if counter % 500 == 0
+            GC.start
+            if Rails.env.development?
+              Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
+              Rails.logger.info "processed #{counter}"
+            end
+          end
         end
         flag
       end
@@ -155,7 +170,7 @@ module ReportGenerators::DataQuality::Fy2016
           [
             id,
             enrollment[:RelationshipToHoH],
-            enrollment[:project_name],
+            enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
@@ -234,34 +249,36 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def household_members(enrollment)
-      # @all_households ||= households.values.map{|m| m[:household]}.
-      #   index_by do |enrollments|
-      #     enrollment = enrollments.first
-      #     [
-      #       enrollment[:data_source_id], 
-      #       enrollment[:project_id], 
-      #       enrollment[:household_id], 
-      #       enrollment[:first_date_in_program],
-      #     ]
-      #   end
-      # @all_households[
-      #   [
-      #     enrollment[:data_source_id], 
-      #     enrollment[:project_id], 
-      #     enrollment[:household_id], 
-      #     enrollment[:first_date_in_program],
-      #   ]
-      # ]
-      # The previous uses too much RAM for large data sets
-      # This may be slower, but shouldn't require additional RAM
-      households.values.select do |row| 
-        row[:key] == [
+      @all_households ||= begin
+        households.values.map{|m| m[:household]}.
+        index_by do |enrollments|
+          enrollment = enrollments.first
+          [
+            enrollment[:data_source_id], 
+            enrollment[:project_id], 
+            enrollment[:household_id], 
+            enrollment[:first_date_in_program],
+          ]
+        end
+      end
+      @all_households[
+        [
           enrollment[:data_source_id], 
           enrollment[:project_id], 
           enrollment[:household_id], 
-          enrollment[:first_date_in_program]
+          enrollment[:first_date_in_program],
         ]
-        end.first[:household]
+      ]
+      # The previous uses too much RAM for large data sets
+      # This may be slower, but shouldn't require additional RAM
+      # households.values.select do |row| 
+      #   row[:key] == [
+      #     enrollment[:data_source_id], 
+      #     enrollment[:project_id], 
+      #     enrollment[:household_id], 
+      #     enrollment[:first_date_in_program]
+      #   ]
+      #   end.first[:household]
     end
 
     def setup_questions
