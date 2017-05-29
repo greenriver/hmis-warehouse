@@ -269,9 +269,8 @@ module ReportGenerators::DataQuality::Fy2016
       @all_households ||= begin
         counter = 0
         all = {}
-        households.values.map{|m| m[:household]}.
-        each do |enrollments|
-          enrollment = enrollments.first
+        households.values.each do |m|
+          enrollment = m[:household].first
           all[
             enrollment[:data_source_id], 
             enrollment[:project_id], 
