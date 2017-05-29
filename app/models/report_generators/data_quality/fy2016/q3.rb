@@ -3,6 +3,16 @@ module ReportGenerators::DataQuality::Fy2016
   class Q3 < Base
     ADULT = 18
 
+    def debug
+      # Rails.env.development?
+      true
+    end
+
+    def log_with_memory text
+      Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
+    end
+
+
     def run!
       if start_report(Reports::DataQuality::Fy2016::Q3.first)
         @answers = setup_questions()
@@ -11,20 +21,20 @@ module ReportGenerators::DataQuality::Fy2016
         if @all_clients.any?
           setup_age_categories()
           update_report_progress(percent: 5)
-          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
+          log_with_memory("5 percent")
           @clients_with_issues = Set.new
           add_veteran_answers()
           update_report_progress(percent: 15)
-          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
+          log_with_memory("15 percent")
           add_entry_date_answers()
           update_report_progress(percent: 20)
-          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
+          log_with_memory("20 percent")
           add_head_of_household_answers()
           update_report_progress(percent: 60)
-          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
+          log_with_memory("60 percent")
           add_location_answers()
           update_report_progress(percent: 75)
-          Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample if Rails.env.development?
+          log_with_memory("75 percent")
           add_disabling_condition_answers()
         end
         finish_report()
@@ -128,9 +138,12 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def add_head_of_household_answers
+      log_with_memory("Starting Household Answers")
+      log_with_memory("All Client's size: #{@all_clients.size}")
       counted = Set.new # Only count each client once
       counter = 0
       poor_quality = @all_clients.select do |id, enrollments|
+        log_with_memory("Selecting any with poor quality #{counter}")
         flag = false
         enrollment = enrollments.last
         if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
@@ -152,14 +165,14 @@ module ReportGenerators::DataQuality::Fy2016
           counter += 1
           if counter % 500 == 0
             GC.start
-            # if Rails.env.development?
-              Rails.logger.info "MEM IN USE: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample}"
-              Rails.logger.info "processed #{counter}"
-            # end
+            if debug
+              log_with_memory("processed #{counter}")
+            end
           end
         end
         flag
       end
+      log_with_memory("Found all poor quality (#{poor_quality.size})")
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b4][:value] = poor_quality.size
