@@ -1,17 +1,6 @@
-require 'newrelic_rpm'
 module ReportGenerators::DataQuality::Fy2016
   class Q3 < Base
     ADULT = 18
-
-    def debug
-      # Rails.env.development?
-      true
-    end
-
-    def log_with_memory text
-      Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
-    end
-
 
     def run!
       if start_report(Reports::DataQuality::Fy2016::Q3.first)
