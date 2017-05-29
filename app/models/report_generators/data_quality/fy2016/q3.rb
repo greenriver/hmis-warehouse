@@ -153,7 +153,7 @@ module ReportGenerators::DataQuality::Fy2016
           if counter % 500 == 0
             GC.start
             # if Rails.env.development?
-              Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
+              Rails.logger.info "MEM IN USE: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample}"
               Rails.logger.info "processed #{counter}"
             # end
           end
