@@ -162,12 +162,12 @@ module ReportGenerators::DataQuality::Fy2016
             # Too many heads of household
             flag = true
           end
-          counter += 1
-          if counter % 500 == 0
-            GC.start
-            if debug
-              log_with_memory("processed #{counter}")
-            end
+        end
+        counter += 1
+        if counter % 500 == 0
+          GC.start
+          if debug
+            log_with_memory("processed #{counter}")
           end
         end
         flag
