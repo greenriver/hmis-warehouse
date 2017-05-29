@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
-  match "/404", :to => "errors#not_found", :via => :all
-  match "/422", :to => "errors#unacceptable", :via => :all
-  match "/500", :to => "errors#internal_server_error", :via => :all
+  match "/404", to: "errors#not_found", via: :all
+  match "/422", to: "errors#unacceptable", via: :all
+  match "/500", to: "errors#internal_server_error", via: :all
 
   mount LetsencryptPlugin::Engine, at: '/'
   class OnlyXhrRequest
@@ -20,6 +20,12 @@ Rails.application.routes.draw do
       resources :problems, only: [:index]
       namespace :careplan do
         resources :goals
+        namespace :team do
+          resources :members, only: [:index, :create, :destroy] do
+            get :previous, on: :collection
+            post :restore
+          end
+        end
       end
     end
   end

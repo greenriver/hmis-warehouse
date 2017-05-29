@@ -6,6 +6,9 @@ module Health
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
+    has_one :team
+    has_many :team_members, class_name: Health::Team::Member.name, through: :team
+
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
     scope :unprocessed, -> { where client_id: nil}

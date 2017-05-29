@@ -1,0 +1,29 @@
+- if members.any?
+  - members.each do |member|
+    .health__team-member.card.well
+      .health__team-member--type
+        = member.member_type_name
+      .health__team-member--name
+        = member.full_name
+      - if member.last_contact.present?
+        .health__team-member--last-contact
+          = member.last_contact
+      .health__team-member--email
+        = mail_to member.email, subject: 'Collaborative Care Plan' do
+          %i.icon-flag
+      - if restore
+        .health__team-member--restore
+          = link_to client_health_careplan_team_member_restore_path(@client, member), method: :restore do
+            %span.icon-plus
+            Restore
+          %br
+          Deleted on:
+          = member.deleted_at.to_date
+      - else
+        .health__team-member--delete
+          = link_to client_health_careplan_team_member_path(@client, member), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
+            %span.icon-cross
+
+
+- else
+  %p.alert.alert-info No current team members.

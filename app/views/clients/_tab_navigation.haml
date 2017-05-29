@@ -6,6 +6,7 @@
   ]
   if can_edit_client_health? && @client.patient.present?
     tabs << [ client_health_patient_index_path(@client), 'Health' ]
+    tabs << [ client_health_careplan_team_members_path(@client), 'Team Members' ]
   end
 %ul.nav.nav-tabs
   - tabs.each do |action, text|
