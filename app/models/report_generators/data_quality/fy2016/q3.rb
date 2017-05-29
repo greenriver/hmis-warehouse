@@ -267,16 +267,21 @@ module ReportGenerators::DataQuality::Fy2016
 
     def household_members(enrollment)
       @all_households ||= begin
+        counter = 0
+        all = {}
         households.values.map{|m| m[:household]}.
-        index_by do |enrollments|
+        each do |enrollments|
           enrollment = enrollments.first
-          [
+          all[
             enrollment[:data_source_id], 
             enrollment[:project_id], 
             enrollment[:household_id], 
             enrollment[:first_date_in_program],
-          ]
+          ] = enrollments
+          counter += 1
+          log_with_memory("#{counter} households processed")
         end
+        all
       end
       @all_households[
         [
