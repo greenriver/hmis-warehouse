@@ -10,6 +10,12 @@ The warehouse application consists of three parts:
 * Fill in any appropriate details for the various `.yml` files in `config`
 * Run `bin/rake grda_warehouse:seed_data_sources`
 * ...
+=== Notes on Gem dependencies
+  * You may need to install freetds prior to running bin/setup
+  `brew install freetds`
+  * You may experience issues with openssl, brew, postgres and rvm not playing nicely together.  The following should help with trouble shooting.  At the time of writing, we're looking for Openssl 1.1.x
+  `ruby -ropenssl -e 'puts OpenSSL::OPENSSL_VERSION'`
+  * Also, `brew list -1 | grep openssl`
 == Anonimized Data
 * In your production environment, export a batch of anonimized data
 ```
