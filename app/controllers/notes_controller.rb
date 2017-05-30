@@ -15,6 +15,6 @@ class NotesController < ApplicationController
   end
   
   def create
-    raise params.inspect
+    # raise params.inspect
   end
 end
