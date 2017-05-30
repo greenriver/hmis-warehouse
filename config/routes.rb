@@ -67,6 +67,7 @@ Rails.application.routes.draw do
     post :defer, on: :member
   end
   resources :clients, only: [:index, :show, :edit, :update] do
+    resources :notes
     member do
       get :month_of_service
       get :service_range
@@ -136,6 +137,6 @@ Rails.application.routes.draw do
   end
   resource :account, only: [:edit, :update]
   
-  resources :client_notes, only: [:create, :edit, :destroy]
+
   root 'root#index'
 end

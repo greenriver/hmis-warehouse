@@ -1,6 +1,7 @@
 module GrdaWarehouse::ClientNotes
   class Base < GrdaWarehouseBase
     self.table_name = :client_notes
+    validates_presence_of :note, :type
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     
     scope :window_notes, -> do

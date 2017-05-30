@@ -28,6 +28,7 @@ class ClientsController < ApplicationController
 
   def show
     log_item(@client)
+    @note = GrdaWarehouse::ClientNotes::Base.new
   end
 
   def edit
