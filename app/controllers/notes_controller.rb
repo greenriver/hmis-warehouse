@@ -15,6 +15,15 @@ class NotesController < ApplicationController
   end
   
   def create
-    # raise params.inspect
+    @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
+  end
+  
+  # Only allow a trusted parameter "white list" through.
+  private def note_params
+    params.
+      permit(
+        :note,
+        :type,
+      )
   end
 end

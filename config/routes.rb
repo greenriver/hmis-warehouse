@@ -67,7 +67,7 @@ Rails.application.routes.draw do
     post :defer, on: :member
   end
   resources :clients, only: [:index, :show, :edit, :update] do
-    resources :notes only: [:create, :destroy]
+    resources :notes, only: [:create, :destroy]
     member do
       get :month_of_service
       get :service_range
