@@ -16,10 +16,10 @@ module GrdaWarehouse::ClientNotes
       "Note"
     end
     
-    def note_options
+    def self.available_types
       [
-        "Chronic Justification",
-        "Window Note",
+        GrdaWarehouse::ClientNotes::WindowNote,
+        GrdaWarehouse::ClientNotes::ChronicJustification,
       ]
     end
   end

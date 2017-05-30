@@ -78,6 +78,7 @@ Rails.application.routes.draw do
       get :chronic_days
       patch :merge
       patch :unmerge
+      post :create_note
     end
   end
 

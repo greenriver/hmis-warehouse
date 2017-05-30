@@ -6,9 +6,9 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
 
   before_action :require_can_view_clients!, only: [:show, :index, :month_of_service, :service_range, :history]
-  before_action :require_can_view_clients_or_window!, only: [:rollup, :image]
+  before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :month_of_service, :service_range, :history, :rollup, :image, :chronic_days, :update]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :month_of_service, :service_range, :history, :rollup, :image, :chronic_days, :update, :create_note]
   before_action :set_client_start_date, only: [:show, :edit, :history, :rollup]
   before_action :set_potential_matches, only: [:edit]
   after_action :log_client, only: [:show, :edit, :update, :destroy, :merge, :unmerge]
@@ -61,7 +61,9 @@ class ClientsController < ApplicationController
 
   def history
   end
-
+  
+  
+  
   # display an assessment form in a modal
   def assessment
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
