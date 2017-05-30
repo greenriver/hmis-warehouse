@@ -276,7 +276,10 @@ module ReportGenerators::DataQuality::Fy2016
             enrollment[:first_date_in_program] == en[:first_date_in_program]
           end
           counter += 1
-          log_with_memory("Building households #{counter} of #{@all_clients.size}")
+          if counter % 500 == 0
+            GC.start
+            log_with_memory("Building households #{counter} of #{@all_clients.size}")
+          end
           hh[id] = {
             key: [
               household.first[:data_source_id], 
