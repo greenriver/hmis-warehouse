@@ -435,8 +435,8 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def debug
-      # Rails.env.development?
-      true
+      Rails.env.development?
+      # true
     end
 
     def log_with_memory text
