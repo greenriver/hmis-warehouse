@@ -3,6 +3,7 @@ module GrdaWarehouse::ClientNotes
     self.table_name = :client_notes
     validates_presence_of :note, :type
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :user
     
     scope :window_notes, -> do
       where(type: GrdaWarehouse::WindowNote)
@@ -12,8 +13,12 @@ module GrdaWarehouse::ClientNotes
       where(type: GrdaWarehouse::ChronicJustification)
     end 
     
-    def type
-      "Note"
+    def self.type_name
+      raise "Must be implemented in sub-class"
+    end
+    
+    def type_name
+      self.class.type_name
     end
     
     def self.available_types

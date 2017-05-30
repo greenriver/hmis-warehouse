@@ -62,8 +62,6 @@ class ClientsController < ApplicationController
   def history
   end
   
-  
-  
   # display an assessment form in a modal
   def assessment
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)

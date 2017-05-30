@@ -1,4 +1,4 @@
 = simple_form_for @note, as: :note, url: create_note_client_path(@client) do |f|
-  = f.input :type, label: 'Note type', collection: GrdaWarehouse::ClientNotes::Base.available_types()
+  = f.input :type, label: 'Note type', collection: GrdaWarehouse::ClientNotes::Base.available_types(), label_method: :type_name
   = f.input :note, label: 'Note'
   = f.submit value: 'Add Note', class: 'btn btn-secondary'

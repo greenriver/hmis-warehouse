@@ -14,10 +14,7 @@ class NotesController < ApplicationController
   def show
   end
   
-  def create
-    @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
-  end
-  
+  # Duplicated in client controller through a concern
   def create
     @client = GrdaWarehouse::Hud::Client.find(params["client_id"])
     type = note_params[:type]

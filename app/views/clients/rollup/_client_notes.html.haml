@@ -1,14 +1,27 @@
-%table.table.table-striped
-  %thead
-    %tr
-      %th User
-      %th Type
-      %th Note
-      %th Date Posted
-  %tbody
-    - @client.notes.order(created_at: :desc).each do |note|
-      %tr
-        %td= note.user_id
-        %td= note.type
-        %td= note.note 
-        %td= note.created_at
+-# %table.table.table-striped
+-#   %thead
+-#     %tr
+-#       %th User
+-#       %th Type
+-#       %th Note
+-#       %th Date Posted
+-#   %tbody
+-#     - @client.notes.order(created_at: :desc).each do |note|
+-#       %tr
+-#         %td= note.user&.name
+-#         %td= note.type_name
+-#         %td= note.note 
+-#         %td= note.created_at
+-# 
+
+- @client.notes.order(created_at: :desc).each do |note|
+  .well
+    %h3= note.type_name
+    %light= note.note
+    .row
+      .col-sm-10
+      .col-sm-2
+        %light= "Posted by"
+        %h5= note.user&.name
+      .col-sm-2
+        %h5= note.created_at

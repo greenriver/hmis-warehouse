@@ -1,6 +1,6 @@
 module GrdaWarehouse::ClientNotes
   class ChronicJustification < Base
-    def type
+    def self.type_name
       "Chronic Justification"
     end 
   end

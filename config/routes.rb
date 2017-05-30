@@ -67,7 +67,6 @@ Rails.application.routes.draw do
     post :defer, on: :member
   end
   resources :clients, only: [:index, :show, :edit, :update] do
-    resources :notes, only: [:create, :destroy]
     member do
       get :month_of_service
       get :service_range
@@ -79,6 +78,7 @@ Rails.application.routes.draw do
       patch :merge
       patch :unmerge
       post :create_note
+      post :destroy_note
     end
   end
 
@@ -87,6 +87,10 @@ Rails.application.routes.draw do
       resources :print, only: [:index]
       resources :health, only: [:index]
       resources :youth, only: [:index]
+      member do
+        post :create_note
+        post :destroy_note
+      end
     end
   end
 
