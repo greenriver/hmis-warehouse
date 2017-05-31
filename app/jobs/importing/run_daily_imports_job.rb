@@ -23,9 +23,30 @@ module Importing
       GrdaWarehouse::Tasks::CensusAverages.new.run!
       GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
       # Only run the chronic calculator on the 1st and 15th
+      # but run it for the past 2 of each
       if Date.today.day.in?([1,15])
-        GrdaWarehouse::Tasks::ChronicallyHomeless.new.run!
-        GrdaWarehouse::Tasks::DmhChronicallyHomeless.new.run!
+        this_month = Date.today.beginning_of_month
+        last_month = this_month - 1.month
+        if Date.today.day == 1
+          two_months_ago = this_month - 2.months
+          dates = [
+            this_month,
+            Date.new(last_month.year, last_month.month, 15),
+            last_month,
+            Date.new(two_months_ago.year, two_months_ago.month, 15),
+          ]
+        else
+          dates = [
+            Date.new(this_month.year, this_month.month, 15),
+            this_month,
+            Date.new(last_month.year, last_month.month, 15),
+            last_month,
+          ]
+        end
+        dates.each do |date|
+          GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
+          GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
+        end
       end
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
 
