@@ -516,7 +516,7 @@ module GrdaWarehouse::Tasks
             insert_batch(GrdaWarehouse::ServiceHistory, service_history_columns, entries_to_add, transaction: false)
             # update the last date served for this client
             last_date_served = last_dates_served.max
-            processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first
+            processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
             processed.last_date_served = last_date_served
             if processed.days_served.blank?
               processed.days_served = unique_days.size
