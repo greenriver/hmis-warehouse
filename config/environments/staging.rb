@@ -16,4 +16,5 @@ Rails.application.configure do
   config.sandbox_email_mode = true
   config.action_mailer.delivery_method = :sendmail
   config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], protocol: 'https'}
+  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours }
 end
