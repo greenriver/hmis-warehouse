@@ -19,6 +19,7 @@ Dir.chdir APP_ROOT do
     "config/health_sftp.yml",
     "config/database_health.yml",
     "config/letsencrypt_plugin.yml",
+    "config/cache_store.yml",
   ]
   ymls.each do |file|
     unless File.exist?(file)
