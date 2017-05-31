@@ -76,22 +76,17 @@ module ClientController
     end
     
     def create_note
-      type = note_params[:type]
+      # type = note_params[:type]
+      type = "GrdaWarehouse::ClientNotes::ChronicJustification"
       @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
-      unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
-        @note.validate
-        flash[:error] = "Failed to add Note, note type not found"
-        render :show
-        return
-      end
       begin
-        @client.notes.create!(note_params.merge({user_id: current_user.id}))
-        #new_note = klass.create!(opts)
+        raise "Note type note found" unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
+        @client.notes.create!(note_params.merge({user_id: current_user.id, type: type}))
         flash[:notice] = "Added new note"
         redirect_to action: :show
       rescue Exception => e
         @note.validate
-        flash[:error] = "Failed to add Note #{e}"
+        flash[:error] = "Failed to add note: #{e}"
         render :show
       end
     end

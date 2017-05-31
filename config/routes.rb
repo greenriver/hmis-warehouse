@@ -78,8 +78,10 @@ Rails.application.routes.draw do
       patch :merge
       patch :unmerge
       post :create_note
-      post :destroy_note
     end
+  end
+  namespace :clients do
+    resources :notes, only: [:destroy]
   end
 
   namespace :window do

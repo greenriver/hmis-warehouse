@@ -1,6 +1,7 @@
 module GrdaWarehouse::ClientNotes
   class Base < GrdaWarehouseBase
     self.table_name = :client_notes
+    acts_as_paranoid
     validates_presence_of :note, :type
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user
@@ -26,6 +27,10 @@ module GrdaWarehouse::ClientNotes
         GrdaWarehouse::ClientNotes::WindowNote,
         GrdaWarehouse::ClientNotes::ChronicJustification,
       ]
+    end
+    
+    def user_can_destroy?(user)
+       user.id == self.user_id
     end
   end
 end  
