@@ -14,9 +14,9 @@ module EtoApi::Tasks
     attr_accessor :logger
     def initialize()
       # map data source to subject line
-      @data_sources = [[1,  '[Client GUID Table]']]
-      @expected_headers = ["Site Name", "Site ID", "Participant Enterprise Identifier", "Participant Site Identifier"]
-      @headers = [:site_id_in_data_source, :warehouse_id, :id_in_data_source, :data_source_id, :client_id]
+      @data_sources = [[1,  '[Client GUID Table DND]'], [3, '[Client GUID Table BPHC]']]
+      @expected_headers = ["Site Name", "Site ID Coded", "Participant Enterprise Identifier", "Participant Site Identifier", "Contact Date"]
+      @headers = [:site_id_in_data_source, :warehouse_id, :id_in_data_source, :last_contact, :data_source_id, :client_id]
     end
 
     # Fetch client mapping from Gmail and replace all records for each data source with 
@@ -81,14 +81,15 @@ module EtoApi::Tasks
       end
       @csv = @csv.map! do |row|
         if row.length == @expected_headers.length
-          site_name, site_id, guid, client_site_id = row
-
-          # remove the nasty {} that shouldn't be there, but somehow sneak back in
-          guid = guid.gsub('{', '').gsub('}', '')
-          
-          # attempt to find the client associated with this id for future joining
-          client_id = client_id_from_personal_id(row[2].gsub('-',''))
-          clean = [site_id, guid, client_site_id, ds_id, client_id]
+          site_name, site_id, guid, client_site_id, last_contact = row
+          if guid.present?
+            # remove the nasty {} that shouldn't be there, but somehow sneak back in
+            guid = guid.gsub('{', '').gsub('}', '')
+            
+            # attempt to find the client associated with this id for future joining
+            client_id = client_id_from_personal_id(row[2].gsub('-',''))
+            clean = [site_id, guid, client_site_id, last_contact, ds_id, client_id]
+          end
         end
       end.compact
       GrdaWarehouse::ApiClientDataSourceId.transaction do

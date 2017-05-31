@@ -8,7 +8,7 @@ module EtoApi
     extend Memoist
     attr_accessor :trace
 
-    def initialize(trace: true)
+    def initialize(trace: true, api_connection: 'dnd_eto')
       @trace = trace
       @endpoints = {
         security: 'https://services.etosoftware.com/API/Security.svc',
@@ -21,11 +21,11 @@ module EtoApi
       api_config = YAML.load_file('config/eto_api.yml')
       @credentials = {
         security: {
-          'Email': api_config['email'],
-          'Password': api_config['password']
+          'Email': api_config[api_connection]['email'],
+          'Password': api_config[api_connection]['password']
         }
       }
-      @enterprise = api_config['enterprise']
+      @enterprise = api_config[api_connection]['enterprise']
     end
 
     def endpoint(service)
