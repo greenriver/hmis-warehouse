@@ -86,6 +86,7 @@ module GrdaWarehouse::Tasks
     end
 
     def load_active_clients
+      # @clients ||= [367361, 201508, 322942, 328524]
       @clients ||= GrdaWarehouse::ServiceHistory.
         currently_homeless(date: @date).
         where.not(client_id: dmh_clients).
@@ -142,6 +143,20 @@ module GrdaWarehouse::Tasks
         e.sort_by!{|m| m[:date]}
         meta = e.first
         dates_served = e.map{|m| m[:date]}.uniq
+        # special treatment for SO
+        # Count all days in any month served
+        if meta[:project_type] == 4 
+          so_dates_served = []
+          dates_served.map do |date|
+            Date.new(date.year, date.month, 01)
+          end.uniq.each do |first_of_month|
+            last_of_month = first_of_month.end_of_month
+            first_of_month.upto(last_of_month) do |d|
+              so_dates_served << d
+            end
+          end
+          dates_served = so_dates_served.uniq
+        end
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
         count_until = if meta[:project_tracking_method] == 3

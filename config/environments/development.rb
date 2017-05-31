@@ -52,6 +52,9 @@ Rails.application.configure do
 
   config.force_ssl = false
 
+  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours }
+  config.action_controller.perform_caching = true
+
   # config.middleware.use ExceptionNotification::Rack,
   #   :slack => {
   #     :webhook_url => Rails.application.config_for(:exception_notifier)['slack']['webhook_url'],
