@@ -15,13 +15,13 @@
 -# 
 
 - @client.notes.order(created_at: :desc).each do |note|
-  .well
-    %h3= note.type_name
+  .well.client-notes
+    %h4= note.type_name
     %light= note.note
     .row
-      .col-sm-10
-      .col-sm-2
-        %light= "Posted by"
-        %h5= note.user&.name
-      .col-sm-2
-        %h5= note.created_at
+      .col-sm-8
+        %p.client-notes__attribution
+          Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
+      .col-sm-4
+        -if note.user == current_user
+          .btn.btn-delete-client-note.btn-secondary Delete this note
