@@ -58,13 +58,18 @@ module GrdaWarehouse::Tasks
           ht[:service_type]
         )
       values = history.connection.select_rows(query.to_sql).group_by(&:first).values.map(&:first).map do |id, date, age, data_source_id, last_date_in_program, enrollment_group_id, project_id, organization_id, household_id, project_name, project_type, project_tracking_method, service_type|
+         # Fix the column type, select_rows now returns all strings
+        date = GrdaWarehouse::ServiceHistory.column_types['date'].type_cast_from_database(date)
+        last_date_in_program = GrdaWarehouse::ServiceHistory.column_types['last_date_in_program'].type_cast_from_database(last_date_in_program)
+        age = GrdaWarehouse::ServiceHistory.column_types['age'].type_cast_from_database(age)
+        project_tracking_method = GrdaWarehouse::ServiceHistory.column_types['project_tracking_method'].type_cast_from_database(project_tracking_method)
         {
-          client_id: id,
+          client_id: id.to_i,
           date: date,
           first_date_in_program: date,
           last_date_in_program: last_date_in_program,
           age: age,
-          data_source_id: data_source_id,
+          data_source_id: data_source_id.to_i,
           enrollment_group_id: enrollment_group_id,
           project_id: project_id,
           organization_id: organization_id,
