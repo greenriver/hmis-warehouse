@@ -5,13 +5,13 @@
     %span.caret
   .dropdown-menu.options
     %ul
-      - sort_options.each do |opt|
-        - if @column == opt[:column] && @direction == opt[:direction]
-          - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
-          - sorted = opt[:title]
+      - sort_options.each do |opt, details|
+        - if @column == opt[:column] && @direction.to_sym == opt[:direction]
+          - title = "<span class='icon-checkbox-checked'></span> #{details[:title]} #{opt[:direction]}".html_safe
+          - sorted = details[:title]
         - else
-          - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
-        %li= sort_as_link(title, opt[:column], opt[:direction])
+          - title = "<span class='icon-checkbox-unchecked'></span> #{details[:title]} #{opt[:direction]}".html_safe
+        %li= sort_as_link(title, opt[:column], opt[:direction].to_s)
 
 %p.client__current-sort-filter
   Currently sorted by:
