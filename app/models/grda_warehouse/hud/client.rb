@@ -288,7 +288,7 @@ module GrdaWarehouse::Hud
             .pluck(*columns.values).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
-          entries = entries.group_by{|m| [m['household_id'], m['date']]}
+          entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['date']]}
         end
       end
     end
@@ -305,7 +305,7 @@ module GrdaWarehouse::Hud
         recent_households = households.select do |_, entries|
           # all entries will have the same date and last_date_in_program
           entry = entries.first
-          (entry_date, exit_date) = entry.values_at('date', 'last_date_in_program')
+          (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
           # If we entered the program between the two dates
           # or we entered the program before the later date and haven't exited
           started_within_no_exit = entry_date < before && exit_date.blank?
@@ -316,7 +316,7 @@ module GrdaWarehouse::Hud
         recent_households = households.select do |_, entries|
           # all entries will have the same date and last_date_in_program
           entry = entries.first
-          (entry_date, exit_date) = entry.values_at('date', 'last_date_in_program')
+          (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
           # If we entered the program after the date in question
           # or we exited the program after the date in question
           # or we haven't exited the program
@@ -327,7 +327,7 @@ module GrdaWarehouse::Hud
       end
       child = false
       adult = false
-      hh.each do |k, h|
+      hh.with_indifferent_access.each do |k, h|
         _, date = k
         # client life stage
         child = self.DOB.present? && age_on(date) < 18
@@ -350,7 +350,7 @@ module GrdaWarehouse::Hud
     end
 
     def hmis_client_response
-      @hmis_client_response ||= JSON.parse(hmis_client.response) if hmis_client.present?
+      @hmis_client_response ||= JSON.parse(hmis_client.response).with_indifferent_access if hmis_client.present?
     end
 
     def email
