@@ -69,6 +69,7 @@ gem 'redcarpet'
 # and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
 gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
+gem 'roo', require: false
 # gem 'wicked_pdf'
 # gem 'wkhtmltopdf-binary'
 

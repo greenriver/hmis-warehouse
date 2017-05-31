@@ -251,7 +251,11 @@ module ReportGenerators::DataQuality::Fy2016
     def anniversary_date(date)
       @report_end ||= @report.options['report_end'].to_date
       date = date.to_date
-      binding.pry
+      # careful of leap years
+      if date.month == 2 && date.day == 29
+        date += 1.day
+      end
+
       anniversary_date = Date.new(@report_end.year, date.month, date.day)
       anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
     end
@@ -435,8 +439,8 @@ module ReportGenerators::DataQuality::Fy2016
     end
 
     def debug
-      # Rails.env.development?
-      true
+      Rails.env.development?
+      # true
     end
 
     def log_with_memory text

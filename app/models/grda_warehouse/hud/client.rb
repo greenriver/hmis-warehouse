@@ -569,7 +569,6 @@ module GrdaWarehouse::Hud
     end
 
     def days_of_service
-      # self.class.where(id: self.id).service_days_by_client_id.values.first
       processed_service_history.try(:days_served)
     end
 
@@ -584,17 +583,6 @@ module GrdaWarehouse::Hud
           end
         end
       end
-    end
-
-    def self.service_days_by_client_id
-      services = GrdaWarehouse::ServiceHistory
-      at = services.arel_table
-      query = services.service.
-        joins(:client).
-        select(:client_id).
-        select(nf( 'COUNT', [ nf( 'DISTINCT', [at[:date]] ) ] )).
-        group(:client_id)
-      services.connection.select_rows(query.to_sql).to_h
     end
 
     def self.without_service_history
