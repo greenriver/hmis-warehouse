@@ -3,16 +3,16 @@
 %h1= content_for :title
 .row
   .col-sm-12
-    = render 'clients/tab_navigation', current: client_health_careplan_path(@client)
+    = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
 .row
   .col-sm-12
-    = render 'health/tab_navigation', current: client_health_careplan_team_members_path(@client)
+    = render 'window/health/tab_navigation', current: polymorphic_path(careplan_path_generator + [:team, :members])
 .row
   .col-sm-8
     = render 'current_members', members: @team.members.order(type: :asc, last_name: :asc, first_name: :asc), restore: false
     .prevous
       - if @team.members.only_deleted.any?
-        = link_to previous_client_health_careplan_team_members_path(@client) do
+        = link_to polymorphic_path([:previous] + careplan_path_generator + [:team, :members]) do
           %i.icon-copy
           previous team members
   .col-sm-4

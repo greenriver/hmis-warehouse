@@ -1,19 +1,15 @@
-module Window
-  class HealthController < ApplicationController
-    before_action :can_edit_client_health!
+module Window::Health
+  class UtilizationController < ApplicationController
+    before_action :require_can_edit_client_health!
     before_action :set_client, only: [:index]
+    before_action :set_patient, only: [:index]
+    include PjaxModalController
+    include HealthPatient
     
     def index
-      
-      
-    end
+      @visits = @patient.visits.order(date_of_service: :desc)
 
-    def show
-    end
-
-
-    protected def set_client
-      @client = GrdaWarehouse::Hud::Client.find(params[:client_id].to_i)
+      render layout: !request.xhr?
     end
   end
 end

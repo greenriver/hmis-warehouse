@@ -1,26 +1,18 @@
 - show_health = can_edit_client_health? && @client.patient.present?
 :ruby
   tabs = {
-    window_client_path(@client) => {
+    polymorphic_path(client_path_generator, id: @client.id) => {
       title: 'Basic Info & Programs',
       permission: true,
     },
-    window_client_health_patient_index_path(@client) => {
+    polymorphic_path(health_path_generator + [:patient, :index]) => {
       title: 'Health',
       permission: show_health,
     },
-    window_client_health_careplan_path(@client) => {
+    polymorphic_path(careplan_path_generator) => {
       title: 'Care Plan',
       permission: show_health
     }
-    # window_client_health_index_path(@client) => {
-    #  title: 'Health',
-    #  permission: @client.signed_consent_form_fully?,
-    # },
-    # window_client_youth_index_path(@client) => {
-    #  title: 'Youth Details',
-    #  permission: @client.signed_consent_form_fully?,
-    # },
   }
 
 - # For now, we only need tabs if we can see the health information

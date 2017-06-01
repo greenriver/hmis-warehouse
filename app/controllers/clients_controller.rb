@@ -2,6 +2,7 @@ class ClientsController < ApplicationController
   include PjaxModalController
   include ClientController
   include ArelHelper
+  include ClientPathGenerator
 
   helper ClientMatchHelper
 

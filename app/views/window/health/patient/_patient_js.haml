@@ -8,22 +8,29 @@
         $(target).html($error);
       };
 
-      $('.jUtilization').load('#{client_health_utilization_index_path()}', function(response, status, xhr) {
+      var $utilization = $('.jUtilization');
+      $utilization.load($utilization.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
         }
       });
-      $('.jAppointments').load('#{client_health_appointments_path()}', function(response, status, xhr) {
+
+      var $appointments = $('.jAppointments');
+      $appointments.load($appointments.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
         }
       });
-      $('.jProblems').load('#{client_health_problems_path()}', function(response, status, xhr) {
+
+      var $problems = $('.jProblems');
+      $problems.load($problems.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
         }
       });
-      $('.jMedications').load('#{client_health_medications_path()}', function(response, status, xhr) {
+
+      var $medications = $('.jMedications');
+      $medications.load($medication.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
         }

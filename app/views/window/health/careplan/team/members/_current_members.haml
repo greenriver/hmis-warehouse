@@ -13,7 +13,7 @@
           %i.icon-flag
       - if restore
         .health__team-member--restore
-          = link_to client_health_careplan_team_member_restore_path(@client, member), method: :restore do
+          = link_to polymorphic_path(careplan_path_generator + [:team, :member, :restore], member_id: member.id), method: :restore do
             %span.icon-plus
             Restore
           %br
@@ -21,7 +21,7 @@
           = member.deleted_at.to_date
       - else
         .health__team-member--delete
-          = link_to client_health_careplan_team_member_path(@client, member), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
+          = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
             %span.icon-cross
 
 
