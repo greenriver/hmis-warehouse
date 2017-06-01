@@ -89,10 +89,6 @@ Rails.application.routes.draw do
       resources :print, only: [:index]
       resources :health, only: [:index]
       resources :youth, only: [:index]
-      member do
-        post :create_note
-        post :destroy_note
-      end
     end
   end
 
@@ -144,6 +140,5 @@ Rails.application.routes.draw do
   end
   resource :account, only: [:edit, :update]
   
-
   root 'root#index'
 end

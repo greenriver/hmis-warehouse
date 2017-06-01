@@ -1,10 +1,10 @@
 - @client.notes.order(created_at: :desc).each do |note|
   .well.client-notes
     %h4= note.type_name
-    %light= note.note
+    %p= note.note
     .row
       .col-sm-8
-        %p.client-notes__attribution
+        %p.small.client-notes__attribution
           Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
-      .col-sm-4
-        .btn.btn-delete-client-note.btn-secondary= link_to "Delete this note", clients_note_path(note), method: :delete
+      .col-sm-4.text-right
+        .btn.btn-default.btn-small= link_to "Delete", clients_note_path(note), method: :delete
