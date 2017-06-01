@@ -5,11 +5,11 @@
       title: 'Basic Info & Programs',
       permission: true,
     },
-    polymorphic_path(health_path_generator + [:patient, :index]) => {
+    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
       title: 'Health',
       permission: show_health,
     },
-    polymorphic_path(careplan_path_generator) => {
+    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
       title: 'Care Plan',
       permission: show_health
     }
