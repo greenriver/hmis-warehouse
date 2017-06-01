@@ -72,6 +72,109 @@ ALTER SEQUENCE appointments_id_seq OWNED BY appointments.id;
 
 
 --
+-- Name: careplans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE careplans (
+    id integer NOT NULL,
+    patient_id integer,
+    user_id integer,
+    sdh_enroll_date date,
+    first_meeting_with_case_manager_date date,
+    self_sufficiency_baseline_due_date date,
+    self_sufficiency_final_due_date date,
+    self_sufficiency_baseline_completed_date date,
+    self_sufficiency_final_completed_date date,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: careplans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE careplans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: careplans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE careplans_id_seq OWNED BY careplans.id;
+
+
+--
+-- Name: health_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE health_goals (
+    id integer NOT NULL,
+    careplan_id integer,
+    user_id integer,
+    type character varying,
+    number integer,
+    name character varying,
+    associated_dx character varying,
+    barriers character varying,
+    provider_plan character varying,
+    case_manager_plan character varying,
+    rn_plan character varying,
+    bh_plan character varying,
+    other_plan character varying,
+    confidence integer,
+    az_housing character varying,
+    az_income character varying,
+    az_non_cash_benefits character varying,
+    az_disabilities character varying,
+    az_food character varying,
+    az_employment character varying,
+    az_training character varying,
+    az_transportation character varying,
+    az_life_skills character varying,
+    az_health_care_coverage character varying,
+    az_physical_health character varying,
+    az_mental_health character varying,
+    az_substance_use character varying,
+    az_criminal_justice character varying,
+    az_legal character varying,
+    az_safety character varying,
+    az_risk character varying,
+    az_family character varying,
+    az_community character varying,
+    az_time_management character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: health_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE health_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: health_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE health_goals_id_seq OWNED BY health_goals.id;
+
+
+--
 -- Name: medications; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -353,6 +456,20 @@ ALTER TABLE ONLY appointments ALTER COLUMN id SET DEFAULT nextval('appointments_
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY careplans ALTER COLUMN id SET DEFAULT nextval('careplans_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY health_goals ALTER COLUMN id SET DEFAULT nextval('health_goals_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY medications ALTER COLUMN id SET DEFAULT nextval('medications_id_seq'::regclass);
 
 
@@ -404,6 +521,22 @@ ALTER TABLE ONLY visits ALTER COLUMN id SET DEFAULT nextval('visits_id_seq'::reg
 
 ALTER TABLE ONLY appointments
     ADD CONSTRAINT appointments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY careplans
+    ADD CONSTRAINT careplans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: health_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY health_goals
+    ADD CONSTRAINT health_goals_pkey PRIMARY KEY (id);
 
 
 --
@@ -460,6 +593,34 @@ ALTER TABLE ONLY versions
 
 ALTER TABLE ONLY visits
     ADD CONSTRAINT visits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_careplans_on_patient_id ON careplans USING btree (patient_id);
+
+
+--
+-- Name: index_careplans_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_careplans_on_user_id ON careplans USING btree (user_id);
+
+
+--
+-- Name: index_health_goals_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_goals_on_careplan_id ON health_goals USING btree (careplan_id);
+
+
+--
+-- Name: index_health_goals_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_goals_on_user_id ON health_goals USING btree (user_id);
 
 
 --
@@ -523,4 +684,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170529174730');
 INSERT INTO schema_migrations (version) VALUES ('20170529182835');
 
 INSERT INTO schema_migrations (version) VALUES ('20170529203247');
+
+INSERT INTO schema_migrations (version) VALUES ('20170601172245');
 

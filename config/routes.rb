@@ -18,7 +18,7 @@ Rails.application.routes.draw do
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
       resources :problems, only: [:index]
-      get :careplan
+      resource :careplan
       namespace :careplan do
         resources :goals
         namespace :team do

@@ -9,6 +9,9 @@ module Health
     has_one :team
     has_many :team_members, class_name: Health::Team::Member.name, through: :team
 
+    has_one :careplan
+    has_many :goals, class_name: Health::Goal::Base.name, through: :careplan
+
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
     scope :unprocessed, -> { where client_id: nil}
