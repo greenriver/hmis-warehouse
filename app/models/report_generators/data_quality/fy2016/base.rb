@@ -1,3 +1,4 @@
+require 'newrelic_rpm'
 module ReportGenerators::DataQuality::Fy2016
   class Base
     ADULT = 18
@@ -250,6 +251,11 @@ module ReportGenerators::DataQuality::Fy2016
     def anniversary_date(date)
       @report_end ||= @report.options['report_end'].to_date
       date = date.to_date
+      # careful of leap years
+      if date.month == 2 && date.day == 29
+        date += 1.day
+      end
+
       anniversary_date = Date.new(@report_end.year, date.month, date.day)
       anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
     end
@@ -263,27 +269,39 @@ module ReportGenerators::DataQuality::Fy2016
     #   } 
     # }]
     def households
-      @households ||= @all_clients.map do |id, enrollments|
-        enrollment = enrollments.last
-        household = @all_clients.values.flatten(1).select do |en|
-          enrollment[:data_source_id] == en[:data_source_id] &&
-          enrollment[:project_id] == en[:project_id] &&
-          enrollment[:household_id] == en[:household_id] &&
-          enrollment[:first_date_in_program] == en[:first_date_in_program]
+      @households ||= begin
+        counter = 0
+        hh = {}
+        flat_clients = @all_clients.values.flatten(1).group_by do |enrollment|
+          [
+            enrollment[:data_source_id],
+            enrollment[:project_id],
+            enrollment[:household_id],
+            enrollment[:first_date_in_program],
+          ]
         end
-        [
-          id,
-          {
-            key: [
-              household.first[:data_source_id], 
-              household.first[:project_id], 
-              household.first[:household_id], 
-              household.first[:first_date_in_program],
-            ],
-            household: household
+        @all_clients.each do |id, enrollments|
+          enrollment = enrollments.last
+          key = [
+            enrollment[:data_source_id],
+            enrollment[:project_id],
+            enrollment[:household_id],
+            enrollment[:first_date_in_program],
+          ]
+          household = flat_clients[key]
+
+          counter += 1
+          if counter % 500 == 0
+            GC.start
+            log_with_memory("Building households #{counter} of #{@all_clients.size}")
+          end
+          hh[id] = {
+            key: key,
+            household: household,
           }
-        ]
-      end.to_h
+        end
+        hh
+      end
       @households
     end
 
@@ -418,6 +436,15 @@ module ReportGenerators::DataQuality::Fy2016
       homeless_for_one_year?(enrollment: enrollment) ||
       enrollment[:TimesHomelessPastThreeYears].present? && enrollment[:TimesHomelessPastThreeYears] >= 4 &&
        enrollment[:MonthsHomelessPastThreeYears].present? && enrollment[:MonthsHomelessPastThreeYears] >= 12
+    end
+
+    def debug
+      Rails.env.development?
+      # true
+    end
+
+    def log_with_memory text
+      Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
     end
 
     private def sh_t

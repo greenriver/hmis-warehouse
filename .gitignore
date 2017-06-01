@@ -48,6 +48,7 @@ config/weather.yml
 config/exception_notifier.yml
 config/mail_account.yml
 config/letsencrypt_plugin.yml
+config/cache_store.yml
 .env
 .env.local
 

@@ -5,21 +5,19 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 
 gem 'nokogiri', '>= 1.7.1' # >= 1.7.1 due to CVE-2016-4658
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
-
+gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter'
 gem 'composite_primary_keys', '~> 8.0'
 gem "pg"
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails"
+gem "rails", '~> 4.2.8'
 gem 'bcrypt'
 gem "haml-rails"
 gem "sass-rails"
 gem 'autoprefixer-rails'
 gem 'kaminari'
-gem 'with_advisory_lock', git: 'https://github.com/eanders/with_advisory_lock.git', branch: 'MSSQL-support'
+gem 'with_advisory_lock'
 gem 'schema_plus_views'
 gem 'memoist', require: false
 
@@ -71,6 +69,7 @@ gem 'redcarpet'
 # and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
 gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
+gem 'roo', require: false
 # gem 'wicked_pdf'
 # gem 'wkhtmltopdf-binary'
 
@@ -84,7 +83,7 @@ gem 'exception_notification'
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Unicorn as the app server
-gem 'puma'
+gem 'puma', '~> 3.7.1'
 gem 'letsencrypt_plugin'
 
 # Use Capistrano for deployment
@@ -93,6 +92,8 @@ gem 'letsencrypt_plugin'
 gem 'newrelic_rpm', require: false
 # gem "temping", require: false
 gem 'dotenv-rails'
+
+gem 'redis-rails'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

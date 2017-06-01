@@ -10,8 +10,6 @@ module EtoApi::Tasks
       @clients = []
       @client_ids = client_ids || []
       @trace = trace
-      @api = EtoApi::Detail.new(trace: @trace)
-      @api.connect
       @batch_time = batch_time
       @restart = Time.now + @batch_time
       @run_time = run_time
@@ -45,46 +43,55 @@ module EtoApi::Tasks
       # 635 = Assigned Counselor
       #
       # 639 = Main Outreach Counselor
-      #
-      cs = load_candidates(type: :demographic)
-      current_hmis_clients = GrdaWarehouse::HmisClient.count
-      current_hmis_forms = GrdaWarehouse::HmisForm.count
-      if @one_off
-        msg = "Importing #{cs.size} clients from the api, trigged by visiting the client in the UI."
-      else
-        msg = "Importing #{cs.size} clients from the api, restarting every #{time_ago_in_words(@batch_time.from_now)}, stopping after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
-      end
-      Rails.logger.info msg
-      notifier.ping msg if send_notifications
-      @clients = load_candidates(type: :demographic)
-      @clients.find_in_batches(batch_size: 10) do |clients|
-        clients.each do |client|
-          found = fetch_demographics(client)
-          if found.present?
-            fetch_assessments(client)
-          end
-          if Time.now > @restart
-            Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
-            @api = nil
-            sleep(5)
-            @api = EtoApi::Detail.new(trace: @trace)
-            @api.connect
-            @restart = Time.now + @batch_time
-          end
-          if Time.now > @stop_time
-            current_hmis_clients = GrdaWarehouse::HmisClient.count
-            current_hmis_forms = GrdaWarehouse::HmisForm.count
-            msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
-            Rails.logger.info msg 
-            notifier.ping msg if send_notifications
-            return
+      
+      # Loop over all items in the config
+      api_config = YAML.load_file('config/eto_api.yml')
+      api_config.to_a.reverse.to_h.each do |key, conf|
+        @data_source_id = conf['data_source_id']
+
+        @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
+        @api.connect
+
+        cs = load_candidates(type: :demographic)
+        current_hmis_clients = GrdaWarehouse::HmisClient.count
+        current_hmis_forms = GrdaWarehouse::HmisForm.count
+        if @one_off
+          msg = "Importing #{cs.size} clients from the api, trigged by visiting the client in the UI."
+        else
+          msg = "Importing #{cs.size} clients from the api, restarting every #{time_ago_in_words(@batch_time.from_now)}, stopping after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
+        end
+        Rails.logger.info msg
+        notifier.ping msg if send_notifications
+        @clients = load_candidates(type: :demographic)
+        @clients.find_in_batches(batch_size: 10) do |clients|
+          clients.each do |client|
+            found = fetch_demographics(client)
+            if found.present?
+              fetch_assessments(client)
+            end
+            if Time.now > @restart
+              Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
+              @api = nil
+              sleep(5)
+              @api = EtoApi::Detail.new(trace: @trace)
+              @api.connect
+              @restart = Time.now + @batch_time
+            end
+            if Time.now > @stop_time
+              current_hmis_clients = GrdaWarehouse::HmisClient.count
+              current_hmis_forms = GrdaWarehouse::HmisForm.count
+              msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
+              Rails.logger.info msg 
+              notifier.ping msg if send_notifications
+              return
+            end
           end
         end
+        # @clients = load_candidates(type: :assessment)
+        # @clients.each do |client|
+        #   fetch_assessments(client)
+        # end
       end
-      # @clients = load_candidates(type: :assessment)
-      # @clients.each do |client|
-      #   fetch_assessments(client)
-      # end
     end
 
     def fetch_assessments client
@@ -95,7 +102,10 @@ module EtoApi::Tasks
       site_id = client.site_id_in_data_source
       # 75 = HUD Entry/Exit Assessment
       # 211 = Add Triage assessment
-      assessment_ids = [75, 211]
+      
+      assessment_ids = [75] # BPHC doesn't yet have the triage touch point
+      assessment_ids = [75, 211] if @data_source_id == 1 # DND does
+
       assessment_ids.each do |tp_id|
         responses = @api.list_touch_point_responses(site_id: site_id, subject_id: subject_id, touch_point_id: tp_id)
         if responses
@@ -238,12 +248,14 @@ module EtoApi::Tasks
       scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client)
       if @client_ids.any?
         # Force a specific candidate set
-        scope.where(client_id: @client_ids)
+        scope.where(client_id: @client_ids, data_source_id: @data_source_id)
       else
         # Load anyone who's not been updated recently
         case type
         when :demographic
-          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id))
+          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id)).
+            where(data_source_id: @data_source_id).
+            order(last_contact: :desc)
           # scope.where.not(client_id: GrdaWarehouse::HmisClient.
           #   where(['updated_at < ?', 1.week.ago.to_date])
           # )

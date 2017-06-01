@@ -62,8 +62,7 @@ module GrdaWarehouse::Tasks
           # Sort newest first so we don't update the name on the destination client
           sql = dest.source_clients.select(attributes).order(DateUpdated: :desc).to_sql
           source_clients = client_source.
-            connection.raw_connection.execute(sql)
-            .each(as: :hash).
+            connection.execute(sql).
             map(&:with_indifferent_access)
           dest_attr = attributes.map{|m| [m, nil]}.to_h
           source_clients.each do |sc|
@@ -73,6 +72,14 @@ module GrdaWarehouse::Tasks
               # Per DND 2/15/2017 this should now be set to the most recently changed
               # source client
               # dest_attr[attribute] = sc[attribute] if attribute == :VeteranStatus && sc[attribute] == 1
+              # 
+              # Now, only replace yes or no with yes or no
+              # or if we don't currently have a yes or no, replace it with the newest value
+              if attribute == :VeteranStatus
+                if (['1','2'].include?(dest_attr[attribute].to_s) && ['1','2'].include?(sc[attribute].to_s)) || ! ['1','2'].include?(dest_attr[attribute].to_s)
+                  dest_attr[attribute] = sc[attribute]
+                end
+              end
             end
           end
           # Always use the most recently updated 
@@ -108,12 +115,15 @@ module GrdaWarehouse::Tasks
       @to_update = []
       sql = GrdaWarehouse::WarehouseClientsProcessed.service_history.select(:client_id, :last_service_updated_at).to_sql
       GrdaWarehouseBase.connection.select_rows(sql).each do |client_id, last_service_updated_at|
+        # Fix the column type, select_rows now returns all strings
+        client_id = GrdaWarehouse::ServiceHistory.column_types['client_id'].type_cast_from_database(client_id)
+        last_service_updated_at = GrdaWarehouse::ServiceHistory.column_types['last_service_updated_at'].type_cast_from_database(last_service_updated_at)
         # Ignore anyone who no longer has any active source clients
         next unless g_service_history.client_sources[client_id].present?
         # If newly imported data is newer than the date stored the last time we generated, regenerate
         last_modified = g_service_history.max_date_updated_for_destination_id(client_id)
         if last_service_updated_at.nil?
-          @to_add << client_id  
+          @to_update << client_id  
         elsif last_modified.nil? || last_modified > last_service_updated_at
           @to_update << client_id
         end
