@@ -167,7 +167,7 @@ module GrdaWarehouse::Hud
     # Sometimes all we have is a name, we still want to try and 
     # protect those
     def self.confidentialize(name:)
-      @confidential_project_names ||= self.where(confidential: true).pluck(:ProjectName).map(&:downcase).map(&:strip)
+      @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).pluck(:ProjectName).map(&:downcase).map(&:strip)
       if @confidential_project_names.include?(name.downcase.strip)
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
