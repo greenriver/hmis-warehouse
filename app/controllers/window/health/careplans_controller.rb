@@ -13,12 +13,34 @@ module Window::Health
       @goal = Health::Goal::Base.new
       @goals = @careplan.goals.order(number: :asc)
     end
+
+    def update
+      begin
+        @careplan.update!(careplan_params)
+        flash[:notice] = "Careplan updated"
+      rescue Exception => e
+        flash[:error] = "Failed to update careplan. #{e}"
+      end
+      redirect_to action: :show
+    end
     
     def set_careplan
       @careplan = Health::Careplan.where(patient_id: @patient.id).first_or_create do |cp|
         cp.user = current_user
         cp.save!
       end
+    end
+
+    def careplan_params
+      params.require(:careplan).
+        permit(
+          :sdh_enroll_date,
+          :first_meeting_with_case_manager_date,
+          :self_sufficiency_baseline_due_date,
+          :self_sufficiency_final_due_date,
+          :self_sufficiency_baseline_completed_date,
+          :self_sufficiency_final_completed_date
+        )
     end
 
   end

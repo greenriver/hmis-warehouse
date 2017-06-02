@@ -1,0 +1,35 @@
+= simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator) do |f|
+  .row.text-small
+    .col-sm-offset-4.col-sm-4
+      .row
+        .col-sm-7.text-right{style: 'padding-right: 0; padding-top: 0.5em;'}
+          %strong
+            SDH Enroll Date
+        .col-sm-5
+          = f.input :sdh_enroll_date, label: false, as: :string, input_html: {data: {provide: :datepicker}}
+      .row
+        .col-sm-7.text-right{style: 'padding-right: 0; padding-top: 0.5em;'}
+          %strong
+            First meeting with SDH CM
+        .col-sm-5
+          = f.input :first_meeting_with_case_manager_date, label: false, as: :string, input_html: {data: {provide: :datepicker}}
+    .col-sm-4
+      Self-Sufficiency Assessment
+      .row
+        .col-sm-6
+          %strong
+            Baseline Due
+          = f.input :self_sufficiency_baseline_due_date, label: false, as: :string, input_html: {data: {provide: :datepicker}}
+          %strong
+            Baseline Completed
+          = f.input :self_sufficiency_final_due_date, label: false, as: :string, input_html: {data: {provide: :datepicker}}
+        .col-sm-6
+          %strong
+            Final Due
+          = f.input :self_sufficiency_baseline_completed_date, label: false, as: :string, input_html: {data: {provide: :datepicker}}
+          %strong
+            Final Completed
+          = f.input :self_sufficiency_final_completed_date, label: false, as: :string, input_html: {data: {provide: :datepicker}}
+
+  .form-actions.text-right
+    = f.button :submit, value: 'Update Dates', class: 'btn btn-small'

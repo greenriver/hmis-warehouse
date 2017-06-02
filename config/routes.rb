@@ -18,7 +18,7 @@ Rails.application.routes.draw do
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
       resources :problems, only: [:index]
-      resource :careplan
+      resource :careplan, except: [:destroy]
       namespace :careplan do
         resources :goals
         namespace :team do

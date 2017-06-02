@@ -6,6 +6,9 @@
     = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
 .row
   .col-sm-12
+    = render 'summary'
+.row
+  .col-sm-12
     = render 'window/health/tab_navigation', current: polymorphic_path(careplan_path_generator)
 .row
   .col-sm-12

@@ -32,7 +32,7 @@ module Window::Health::Careplan
         @goal.update!(goal_params)
         flash[:notice] = "#{@goal.name} updated"
       rescue Exception => e
-        flash[:error] = "Failed to add goal #{e}"
+        flash[:error] = "Failed to update goal #{e}"
       end
       redirect_to create_success_path
     end
