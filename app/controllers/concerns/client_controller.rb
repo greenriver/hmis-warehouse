@@ -74,6 +74,42 @@ module ClientController
     def title_for_index
       'Client Search'
     end
+
+    # ajaxy method to render a particular rollup table
+    def rollup
+      allowed_rollups = [
+        "/clients/rollup/assessments",
+        "/clients/rollup/assessments_without_data",
+        "/clients/rollup/case_manager",
+        "/clients/rollup/chronic",
+        "/clients/rollup/contact_information",
+        "/clients/rollup/demographics",
+        "/clients/rollup/disability_types",
+        "/clients/rollup/entry_assessments",
+        "/clients/rollup/error",
+        "/clients/rollup/exit_assessments",
+        "/clients/rollup/family",
+        "/clients/rollup/income_benefits",
+        "/clients/rollup/ongoing_residential_enrollments",
+        "/clients/rollup/other_enrollments",
+        "/clients/rollup/residential_enrollments",
+        "/clients/rollup/services",
+        "/clients/rollup/services_full",
+        "/clients/rollup/special_populations",
+        "/clients/rollup/zip_details",
+        "/clients/rollup/zip_map",
+        "/clients/rollup/client_notes",
+      ]
+      rollup = allowed_rollups.find do |m|
+        m == "/clients/rollup/" + params.require(:partial).underscore
+      end
+
+      raise 'Rollup not in whitelist' unless rollup.present?
+
+      begin
+        render partial: rollup, layout: false
+      end
+    end
     
     def create_note
       # type = note_params[:type]

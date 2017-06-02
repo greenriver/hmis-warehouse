@@ -9,7 +9,7 @@
           %ul
             %li
               = "Last seen #{time_ago_in_words(@client.date_of_last_service)} ago"
-            - if ( projects = @client.last_projects_served_by.select(&:present?) ).any?
+            - if ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
               %li= "Last seen at #{projects.to_sentence}"
             %li
               = "#{@client.days_of_service} of #{@client.total_days_of_service} days served between #{@client.date_of_first_service} and #{@client.date_of_last_service}"

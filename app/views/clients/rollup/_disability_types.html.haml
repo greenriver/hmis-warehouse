@@ -1,4 +1,4 @@
-= cache(['clients', 'disability_types', @client], expires_in: 4.hours) do
+= cache(['clients', 'disability_types', @client, controller_path], expires_in: 4.hours) do
   - items = @client.source_enrollment_disabilities.preload( enrollment: :client ).group_by(&:enrollment).sort_by{ |e,_| e.EntryDate }.reverse
   - if items.any?
     %div

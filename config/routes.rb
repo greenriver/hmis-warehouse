@@ -87,8 +87,11 @@ Rails.application.routes.draw do
   namespace :window do
     resources :clients, only: [:index, :show] do
       resources :print, only: [:index]
-      resources :health, only: [:index]
-      resources :youth, only: [:index]
+      # resources :health, only: [:index]
+      # resources :youth, only: [:index]
+      get :rollup
+      get :assessment
+      get :image
     end
   end
 

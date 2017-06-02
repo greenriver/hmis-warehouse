@@ -1,4 +1,4 @@
-= cache(['clients', 'demographics', @client], expires_in: 4.hours) do
+= cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path], expires_in: 4.hours) do
   %table.table.table-striped
     %thead
       %tr

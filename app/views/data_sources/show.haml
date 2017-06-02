@@ -29,7 +29,7 @@
               %thead
                 %tr
                   %th{style: 'width:30%'} Name
-                  %th{style: 'width:20%'} Project Type
+                  %th{style: 'width:15%'} Project Type
                   %th{style: 'width:20%'} Act as Project Type for HUD Reports
                   %th{style: 'width:10%'} 
                     HUD CoC Code
@@ -39,6 +39,8 @@
                     HUD CoC Funded
                     %br
                     Continuum Project
+                  %th{style: 'width:5%'} 
+                    Confidential?
                   %th{style: 'width:5%'} Site?
                   %th{style: 'width:5%'} Inventory?
               %tbody
@@ -58,6 +60,8 @@
                       = check_box_tag("data_source[project_attributes][#{project.id}][hud_continuum_funded]", true, project.hud_continuum_funded)
                       %br
                       = checkmark(project.ContinuumProject)
+                    %td
+                      = check_box_tag("data_source[project_attributes][#{project.id}][confidential]", true, project.confidential)
                     %td
                       = checkmark(project.sites.size > 0)
                     %td

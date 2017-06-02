@@ -1,4 +1,4 @@
-= cache(['clients', 'zip_details', @client], expires_in: 4.hours) do
+= cache(['clients', 'zip_details', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
   - prev = @client.source_enrollments.any_address.preload(:client).sort_by(&:EntryDate).reverse.group_by{ |e| e.EntryDate.year }
   - if prev.present?
     %table.table

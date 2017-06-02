@@ -559,10 +559,20 @@ module GrdaWarehouse::Hud
         maximum(:date)
     end
 
-    def last_projects_served_by
+    def last_projects_served_by(include_confidential_names: false)
       # FIXME: this is a hack because processed_service_history's date sometimes doesn't match any service history record
       # astoundingly, this is faster than a more sensible database query that doesn't return everything
-      service_history.pluck(:date, :project_name).group_by(&:first).max_by(&:first).last.map(&:last).uniq.sort
+      service_history.joins(:project).
+        pluck(:date, :project_name, :confidential).
+        group_by(&:first).
+        max_by(&:first).
+        last.map do |_,project_name, confidential|
+          if ! confidential || include_confidential_names
+            project_name
+          else
+            'Confidential Program'
+          end
+        end.uniq.sort
       # service_history.where( date: processed_service_history.select(:last_date_served) ).order(:project_name).distinct.pluck(:project_name)
     end
 
@@ -909,7 +919,7 @@ module GrdaWarehouse::Hud
     end
 
     # build an array of useful hashes for the enrollments roll-ups
-    def enrollments_for scope
+    def enrollments_for scope, include_confidential_names: false
       conn = ActiveRecord::Base.connection
       exit_table = GrdaWarehouse::Hud::Exit.arel_table
       enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
@@ -932,6 +942,7 @@ module GrdaWarehouse::Hud
         OrganizationName: organization_table[:OrganizationName].as('OrganizationName').to_sql,
         ProjectID: project_table[:ProjectID].as('ProjectID').to_sql,
         project_id: project_table[:id].as('project_id').to_sql,
+        confidential: project_table[:confidential].as('confidential').to_sql,
         client_source_id: client_table[:id].as('client_source_id').to_sql,
       }
       exit_join = enrollment_table.join(exit_table, Arel::Nodes::OuterJoin).
@@ -955,6 +966,11 @@ module GrdaWarehouse::Hud
       enrollments_by_project_entry.map do |_, e|
         e.sort_by!{|m| m[:date]}
         meta = e.select{|m| m[:record_type] == 'entry'}.first
+        # Hide confidential program names, if appropriate
+        meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
+        unless include_confidential_names
+          meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if meta[:confidential] 
+        end
         dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
@@ -972,7 +988,7 @@ module GrdaWarehouse::Hud
           client_source_id: meta[:client_source_id],
           project_id: meta[:project_id],
           ProjectID: meta[:ProjectID],
-          project_name: "#{meta[:project_name]} < #{meta[:OrganizationName]}",
+          project_name: meta[:project_name],
           entry_date: meta[:EntryDate],
           exit_date: meta[:ExitDate],
           days: dates_served.count,
