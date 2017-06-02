@@ -99,4 +99,5 @@ module ApplicationHelper
       content_tag( :em, sn, class: "ds-#{sn.downcase}" ) + " #{n.full_name}"
     end
   end
+
 end
