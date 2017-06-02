@@ -1,0 +1,22 @@
+.goal
+  %h2.goal-title
+    Goal
+    = clinical.number
+  .goal-form.well
+    = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id)) do |f|
+      .row
+        .col-sm-6
+          = f.input :name, label: 'Goal'
+          = f.input :associated_dx, label: 'Associated DX'
+          = f.input :barriers
+        .col-sm-6
+          %h3.goal__team-plan-title Team Plan
+          = f.input :provider_plan, label: 'Provider'
+          = f.input :case_manager_plan, label: 'SDH Case Manager'
+          = f.input :rn_plan, label: 'RN'
+          = f.input :bh_plan, label: 'BH'
+
+      .form-actions
+        = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id), method: :delete, class: 'btn btn-secondary' do 
+          Delete Goal
+        = f.button :submit, value: 'Update Goal'

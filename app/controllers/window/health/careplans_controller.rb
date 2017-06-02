@@ -11,7 +11,7 @@ module Window::Health
     
     def show
       @goal = Health::Goal::Base.new
-
+      @goals = @careplan.goals.order(number: :asc)
     end
     
     def set_careplan

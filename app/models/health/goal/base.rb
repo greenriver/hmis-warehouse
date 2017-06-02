@@ -7,6 +7,8 @@ module Health
     belongs_to :careplan, class_name: Health::Careplan.name
     delegate :patient, to: :careplan
 
+    validates_presence_of :name, :number, :type
+
     def self.type_name
       raise 'Implement in sub-class'
     end
@@ -23,6 +25,10 @@ module Health
         Health::Goal::Social,
         Health::Goal::SelfManagement,
       ]
+    end
+
+    def self.available_numbers
+      (1..4)
     end
   end
 end

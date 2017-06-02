@@ -1,0 +1,43 @@
+.goal
+  %h2.goal-title
+    Goal
+    = social.number
+  .goal-form.well
+    = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id)) do |f|
+      .row
+        .col-sm-12
+          = f.input :name, label: 'Goal'
+      .row
+        .col-sm-12
+          %h3
+            Other Social Needs: Goals
+      .row.goal__social
+        .col-sm-3
+          = f.input :az_income, label: 'Income/Money Management'
+          = f.input :az_non_cash_benefits, label: 'Non-Cash Benefits'
+          = f.input :az_disabilities, label: 'Disabilities'
+          = f.input :az_food, label: 'Food Insecurity'
+          = f.input :az_employment, label: 'Employment'
+        .col-sm-3
+          = f.input :az_training, label: 'Adult Ed/Training'
+          = f.input :az_transportation, label: 'Mobility/Transportation'
+          = f.input :az_life_skills, label: 'Life Skills & Activities of Daily Living (ADLs)'
+          = f.input :az_health_care_coverage, label: 'Health Care Coverage'
+          = f.input :az_physical_health, label: 'Physical Health'
+        .col-sm-3
+          = f.input :az_mental_health, label: 'Mental Health'
+          = f.input :az_substance_use, label: 'Substance Use'
+          = f.input :az_criminal_justice, label: 'Criminal Justice'
+          = f.input :az_legal, label: 'Legal, Non-Criminal'
+          = f.input :az_safety, label: 'Safety'
+        .col-sm-3
+          = f.input :az_risk, label: 'Risk'
+          = f.input :az_family, label: 'Family & Social Relationships'
+          = f.input :az_community, label: 'Community Involvement'
+          = f.input :az_time_management, label: 'Daily Time Management'
+        
+
+      .form-actions
+        = link_to polymorphic_path(careplan_path_generator + [:goal], id: social.id), method: :delete, class: 'btn btn-secondary' do 
+          Delete Goal
+        = f.button :submit, value: 'Update Goal'

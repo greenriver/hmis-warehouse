@@ -151,7 +151,8 @@ CREATE TABLE health_goals (
     az_time_management character varying,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    goal_details text
 );
 
 
@@ -686,4 +687,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170529182835');
 INSERT INTO schema_migrations (version) VALUES ('20170529203247');
 
 INSERT INTO schema_migrations (version) VALUES ('20170601172245');
+
+INSERT INTO schema_migrations (version) VALUES ('20170602013551');
 

@@ -1,0 +1,16 @@
+- if @goals.present?
+  .row
+    - @goals.each do |goal|
+      .col-sm-3
+        .goal-tabs
+          %span.goal-number.badge
+            = goal.number
+          %span.goal-name
+            = goal.name
+  .row
+    - @goals.each do |goal|
+      = render goal
+
+- else
+  %p
+    This careplan is lacking goals.

@@ -1,5 +1,5 @@
 module Health
-  class Goal::SelfManagement < HealthBase
+  class Goal::SelfManagement < Goal::Base
     def self.type_name
       'Self Management'
     end
