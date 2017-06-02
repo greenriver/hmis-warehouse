@@ -77,7 +77,11 @@ Rails.application.routes.draw do
       get :chronic_days
       patch :merge
       patch :unmerge
+      post :create_note
     end
+  end
+  namespace :clients do
+    resources :notes, only: [:destroy]
   end
 
   namespace :window do
@@ -135,6 +139,6 @@ Rails.application.routes.draw do
     end
   end
   resource :account, only: [:edit, :update]
-
+  
   root 'root#index'
 end

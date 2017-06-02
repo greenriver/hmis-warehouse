@@ -74,6 +74,31 @@ module ClientController
     def title_for_index
       'Client Search'
     end
+    
+    def create_note
+      # type = note_params[:type]
+      type = "GrdaWarehouse::ClientNotes::ChronicJustification"
+      @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
+      begin
+        raise "Note type note found" unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
+        @client.notes.create!(note_params.merge({user_id: current_user.id, type: type}))
+        flash[:notice] = "Added new note"
+        redirect_to action: :show
+      rescue Exception => e
+        @note.validate
+        flash[:error] = "Failed to add note: #{e}"
+        render :show
+      end
+    end
+    
+    # Only allow a trusted parameter "white list" through.
+    private def note_params
+      params.require(:note).
+        permit(
+          :note,
+          :type,
+        )
+    end
 
     protected def client_source
       GrdaWarehouse::Hud::Client
