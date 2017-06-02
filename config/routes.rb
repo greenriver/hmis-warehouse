@@ -18,7 +18,9 @@ Rails.application.routes.draw do
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
       resources :problems, only: [:index]
-      resource :careplan, except: [:destroy]
+      resource :careplan, except: [:destroy] do
+        get :self_sufficiency_assessment
+      end
       namespace :careplan do
         resources :goals
         namespace :team do

@@ -23,6 +23,10 @@ module Window::Health
       end
       redirect_to action: :show
     end
+
+    def self_sufficiency_assessment
+      @assessment = @client.self_sufficiency_assessments.last
+    end
     
     def set_careplan
       @careplan = Health::Careplan.where(patient_id: @patient.id).first_or_create do |cp|
