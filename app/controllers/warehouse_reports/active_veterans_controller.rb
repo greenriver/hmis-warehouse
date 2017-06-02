@@ -87,7 +87,7 @@ module WarehouseReports
     end
 
     private def sort_direction
-      direction = params[:direction].to_sym
+      direction = params[:direction].try(:to_sym)
       [:asc, :desc].include?(direction) ? direction : :asc
     end
 
