@@ -32,6 +32,7 @@ module WarehouseReports
           select( st[:client_id], st[:enrollment_group_id] ).
           group( st[:client_id], st[:enrollment_group_id] )
         cs_and_egs = services.connection.select_rows(cs_and_egs.to_sql).group_by(&:first).map do |cid, rows|
+          cid = GrdaWarehouse::ServiceHistory.column_types['client_id'].type_cast_from_database(cid)
           [
             cid,
             rows.map(&:last)

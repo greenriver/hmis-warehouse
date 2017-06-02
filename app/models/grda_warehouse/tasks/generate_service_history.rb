@@ -251,6 +251,9 @@ module GrdaWarehouse::Tasks
       sql = GrdaWarehouse::WarehouseClientsProcessed.service_history.select(:client_id, :last_service_updated_at).to_sql
       @to_update = [] # This will be converted to a hash later
       GrdaWarehouseBase.connection.select_rows(sql).each do |client_id, last_service_updated_at|
+        # Fix the column type, select_rows now returns all strings
+        client_id = GrdaWarehouse::ServiceHistory.column_types['client_id'].type_cast_from_database(client_id)
+        last_service_updated_at = GrdaWarehouse::ServiceHistory.column_types['last_service_updated_at'].type_cast_from_database(last_service_updated_at)
         # Ignore anyone who no longer has any active source clients
         next unless client_sources[client_id].present?
         # If newly imported data is newer than the date stored the last time we generated, regenerate
@@ -513,7 +516,7 @@ module GrdaWarehouse::Tasks
             insert_batch(GrdaWarehouse::ServiceHistory, service_history_columns, entries_to_add, transaction: false)
             # update the last date served for this client
             last_date_served = last_dates_served.max
-            processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first
+            processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
             processed.last_date_served = last_date_served
             if processed.days_served.blank?
               processed.days_served = unique_days.size
@@ -890,6 +893,10 @@ module GrdaWarehouse::Tasks
           end
 
           GrdaWarehouse::Hud::Base.connection.select_rows(sql).map do |ds_id, personal_id, max_updated, max_deleted|
+            # Fix the column type, select_rows now returns all strings
+            ds_id = GrdaWarehouse::ServiceHistory.column_types['data_source_id'].type_cast_from_database(ds_id)
+            max_updated = GrdaWarehouse::Hud::Service.column_types['DateUpdated'].type_cast_from_database(max_updated)
+            max_deleted = GrdaWarehouse::Hud::Service.column_types['DateDeleted'].type_cast_from_database(max_deleted)
             res[[personal_id, ds_id]] = ActiveSupport::TimeWithZone.new([max_updated, max_deleted].compact.max, Time.zone)
           end
         end
