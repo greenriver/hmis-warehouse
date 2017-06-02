@@ -3,7 +3,7 @@ module GrdaWarehouse::Tasks
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications
     def initialize()
-      @send_notifications = Rails.env.development? || Rails.env.production?
+      @send_notifications =  Rails.env.production?
       if @send_notifications
         slack_url = Rails.application.config_for(:exception_notifier)['slack']['webhook_url']
         channel = Rails.application.config_for(:exception_notifier)['slack']['channel']
