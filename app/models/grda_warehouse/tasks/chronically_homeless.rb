@@ -22,11 +22,12 @@ module GrdaWarehouse::Tasks
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     DMH_SITE = 38
 
-    def initialize(date: Date.today)
+    def initialize(date: Date.today, count_so_as_full_month: true)
       @progress_format = '%a: '
       @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
       @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
       @date = date
+      @count_so_as_full_month = count_so_as_full_month
     end
 
     def run!
@@ -145,7 +146,7 @@ module GrdaWarehouse::Tasks
         dates_served = e.map{|m| m[:date]}.uniq
         # special treatment for SO
         # Count all days in any month served
-        if meta[:project_type] == 4 
+        if meta[:project_type] == 4 && @count_so_as_full_month
           so_dates_served = []
           dates_served.map do |date|
             Date.new(date.year, date.month, 01)
