@@ -181,8 +181,6 @@ module GrdaWarehouse::Hud
       where.not(hiv_positive: false)
     end
     
-    delegate :window_notes, :chronic_justifications, to: :client_notes
-    
     attr_accessor :merge
     attr_accessor :unmerge
 
