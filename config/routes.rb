@@ -167,5 +167,13 @@ Rails.application.routes.draw do
   end
   resource :account, only: [:edit, :update]
 
+  unless Rails.env.production?
+    resource :style_guide, only: :none do
+      get :careplan
+      get :health_team
+      get :icon_font
+    end
+  end
+
   root 'root#index'
 end

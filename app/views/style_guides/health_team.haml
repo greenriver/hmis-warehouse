@@ -1,0 +1,51 @@
+%h2 Add a Team Member
+= simple_form_for @member, as: :member, url: polymorphic_path(careplan_path_generator + [:team, :members], client_id: @client.id) do |f|
+  = f.input :type, collection: Health::Team::Member.available_types, label_method: :member_type_name, include_blank: false, label: false, input_html: {class: 'select2'}
+  = f.input :first_name
+  = f.input :last_name
+  = f.input :title, hint: 'MD, RN or Family Member, Specialist etc.'
+  = f.input :email, placeholder: 'user@domain.com', type: :email
+  = f.input :organization
+  .form-actions
+    = f.button :submit, value: 'Add Team Member'
+
+
+.alert.alert-info
+  You can swap the following two sets to see deleted members
+
+- members = @team.members
+- restore = false
+
+- # members = @team.members.only_deleted
+- # restore = true
+
+- if members.any?
+  - members.each do |member|
+    .health__team-member.card.well
+      .health__team-member--type
+        = member.member_type_name
+      .health__team-member--name
+        = member.full_name
+      - if member.last_contact.present?
+        .health__team-member--last-contact
+          = member.last_contact
+      .health__team-member--email
+        = mail_to member.email, subject: 'Collaborative Care Plan' do
+          %i.icon-flag
+      - if restore
+        .health__team-member--restore
+          = link_to polymorphic_path(careplan_path_generator + [:team, :member, :restore], member_id: member.id, client_id: @client.id), method: :restore do
+            %span.icon-plus
+            Restore
+          %br
+          Deleted on:
+          = member.deleted_at.to_date
+      - else
+        .health__team-member--delete
+          = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
+            %span.icon-cross
+
+
+
+- else
+  %p.alert.alert-info No current team members.
