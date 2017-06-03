@@ -4,7 +4,7 @@
       %th Entry
       %th Program Name
   %tbody
-    - enrollments = @client.service_history_entry.joins(:project).residential.ongoing
+    - enrollments = @client.service_history_entry.visible_in_window.joins(:project).residential.ongoing
     - if enrollments.any?
       - enrollments.each do |e|
         %tr

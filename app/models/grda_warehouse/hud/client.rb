@@ -59,6 +59,7 @@ module GrdaWarehouse::Hud
     has_many :warehouse_client_destination, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :destination_id, inverse_of: :destination
     has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
+    has_many :window_source_clients, -> {visible_in_window}, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
     has_one :processed_service_history, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: 'GrdaWarehouse::ServiceHistory'
@@ -179,6 +180,10 @@ module GrdaWarehouse::Hud
     end
     scope :hiv_positive, -> do
       where.not(hiv_positive: false)
+    end
+
+    scope :visible_in_window, -> do
+      joins(:data_source).where(data_sources: {visible_in_window: true})
     end
     
     attr_accessor :merge
@@ -654,7 +659,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.text_search(text)
+    def self.text_search(text, client_scope:)
       return none unless text.present?
       text.strip!
       sa = source.arel_table
@@ -698,11 +703,11 @@ module GrdaWarehouse::Hud
         end
       end
 
-      client_ids = GrdaWarehouse::Hud::Client
-        .joins(:warehouse_client_source).source
-        .where(where)
-        .preload(:destination_client)
-        .map{|m| m.destination_client.id}
+      client_ids = client_scope.
+        joins(:warehouse_client_source).source.
+        where(where).
+        preload(:destination_client).
+        map{|m| m.destination_client.id}
       where(id: client_ids)
     end
 

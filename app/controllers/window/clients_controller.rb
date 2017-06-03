@@ -10,7 +10,7 @@ module Window
     def index
       # search
       @clients = if params[:q].present?
-        client_source.text_search(params[:q])
+        client_source.text_search(params[:q], client_scope: client_search_scope)
       else
         client_scope.none
       end
@@ -27,7 +27,11 @@ module Window
     end
 
     private def client_scope
-      client_source
+      client_source.joins(source_clients: :data_source).where(data_sources: {visible_in_window: true})
+    end
+
+    def client_search_scope
+      client_source.source.joins(:data_source).where(data_sources: {visible_in_window: true})
     end
 
     def set_client_from_client_id

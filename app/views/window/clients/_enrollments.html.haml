@@ -1,7 +1,7 @@
 :ruby
   only_ongoing ||= false
   include_links ||= can_view_projects?
-  enrollments = @client.enrollments_for(scope, include_confidential_names: false)
+  enrollments = @client.enrollments_for(scope.visible_in_window, include_confidential_names: false)
   enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
   any_homeless = enrollments.any?{ |e| e[:homeless] }
 - if enrollments.any?

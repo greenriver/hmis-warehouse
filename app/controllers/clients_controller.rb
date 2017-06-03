@@ -18,7 +18,7 @@ class ClientsController < ApplicationController
   def index
     # search
     @clients = if params[:q].present?
-      client_source.text_search(params[:q])
+      client_source.text_search(params[:q], client_scope: client_source)
     else
       client_scope
     end
@@ -33,7 +33,7 @@ class ClientsController < ApplicationController
 
   def edit
     if params[:q].present?
-      @search_clients = client_source.text_search(params[:q]).where.not(id: @client.id).limit(50)
+      @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50)
     end
   end
 
@@ -193,6 +193,10 @@ class ClientsController < ApplicationController
     send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
   end
 
+  protected def client_source
+    GrdaWarehouse::Hud::Client
+  end
+    
   private def client_scope
     client_source.destination
   end

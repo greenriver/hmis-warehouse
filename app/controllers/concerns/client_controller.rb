@@ -136,10 +136,6 @@ module ClientController
         )
     end
 
-    protected def client_source
-      GrdaWarehouse::Hud::Client
-    end
-
     protected def set_client
       @client = client_scope.find(params[:id].to_i)
     end

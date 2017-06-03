@@ -34,6 +34,7 @@ class DataSourcesController < ApplicationController
     error = false
     begin
       GrdaWarehouse::Hud::Project.transaction do
+        @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
         data_source_params[:project_attributes].each do |id, project_attributes|
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i
@@ -75,6 +76,7 @@ class DataSourcesController < ApplicationController
   private def data_source_params
     params.require(:data_source).
       permit(
+        :visible_in_window,
         project_attributes: 
         [
           :act_as_project_type, 
@@ -87,7 +89,13 @@ class DataSourcesController < ApplicationController
 
   private def new_data_source_params
     params.require(:grda_warehouse_data_source).
-      permit(:name, :short_name, :munged_personal_id, :source_type)
+      permit(
+        :name, 
+        :short_name, 
+        :munged_personal_id, 
+        :source_type,
+        :visible_in_window,
+      )
   end
 
   private def data_source_source

@@ -8,6 +8,8 @@
 
     = f.input :munged_personal_id, as: :boolean, label: 'Does the Personal ID column contain a UUID?', hint: 'Checking this will add dashes to the Personal ID when displayed, converting 5011A79B04E34BB99D5A002A3E079C61 into 5011A79B-04E3-4BB9-9D5A-002A3E079C61.'
 
+    = f.input :visible_in_window, label: 'Should this data source be visible in the window into the warehouse?'
+
     = f.input :source_type, as: :hidden, value: 'manual' 
 
 
