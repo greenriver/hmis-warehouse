@@ -1,0 +1,10 @@
+%ul.nav.nav-tabs.margin-bottom-02{role: :tablist}
+  %li{role: :presentation}
+    %a{href: '/warehouse_reports/#other-reports', role: :tab, aria: {controls: 'Operational'}}
+      Operational
+  %li{role: :presentation}
+    %a{href: '/warehouse_reports/#data-quality-reports', role: :tab, aria: {controls: 'Warehouse Data Quality Reports'}}
+      Warehouse Data Quality
+  %li.active{role: :presentation}
+    %a{href: '#data-quality-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Project Data Quality Reports'}}
+      Project Data Quality

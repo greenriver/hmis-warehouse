@@ -60,6 +60,11 @@ Rails.application.routes.draw do
     resources :find_by_id, only: [:index] do
       post :search, on: :collection
     end
+    namespace :project do
+      get :data_quality 
+      resources :apr, only: [:show, :destroy]
+      resources :dashboard, only: [:show, :destroy]
+    end
   end
 
   resources :client_matches, only: [:index, :update] do

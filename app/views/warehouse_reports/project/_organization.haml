@@ -1,0 +1,33 @@
+- id = organization.id
+%tr.jOrganization{data: {organization_id: id}}
+  %td.jToggle.closed
+    ▶︎
+  %td
+    %em{class: "ds-#{data_source.downcase}"}
+      = data_source
+    = organization.OrganizationName
+  %td{colspan: 6}
+    = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'jSelectAll', data: {organization_id: id}})
+%tr.jProject.hidden{data: {organization_id: id}}
+  %th
+  %th
+    Project
+  %th
+    Select
+  %th
+    APR
+  %th
+    Dashboard
+  %th
+    Contact
+  %th
+    Email
+  %th
+    Last Action
+- projects.each do |project|
+  %tr.jProject.hidden{data: {organization_id: id}}
+    %td
+    %td.padding-left-02
+      = project.ProjectName
+    %td
+      = check_box_tag("project[#{project.id}]", 1, false, {class: 'jProjectSelect'})
