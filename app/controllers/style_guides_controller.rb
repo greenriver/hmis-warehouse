@@ -13,6 +13,9 @@ class StyleGuidesController < ApplicationController
     @goals = @careplan.goals.order(number: :asc)
   end
 
+  def add_goal
+  end
+
   def health_team
     @member = Health::Team::Member.new
     @client = GrdaWarehouse::Hud::Client.find(14911)

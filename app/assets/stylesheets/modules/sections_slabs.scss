@@ -1,0 +1,43 @@
+.slab {
+  padding: 12px 12px 2px 12px;
+  background-color: $gray-015;
+  margin-bottom: 24px;
+}
+.slab__base-dates {
+  @media (max-width: $screen-sm-max) {
+    padding-bottom: 24px;
+  }
+}
+.slab__header {
+  font-size: 12px;
+  font-weight: 700;
+}
+.section-expander-block {
+  margin-bottom: 24px;
+  padding: 8px 16px;
+  box-shadow: none;
+}
+.section-expander-block__metadata {
+  display: inline-block;
+  padding-right: 12px;
+}
+.section-expander-block__expander-arrow {
+  font-size: 22px;
+}
+.section-expander-block__header {
+  margin: 0;
+  line-height: 1.2;
+}
+.section-expander-block__expander-region {
+  text-align: right;
+  vertical-align: middle;
+  line-height: 1;
+}
+.section-expander-block__action-row {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  @media (min-width: $screen-md-min) {
+    margin-top: 18px;
+    margin-bottom: 18px;
+  }
+}
