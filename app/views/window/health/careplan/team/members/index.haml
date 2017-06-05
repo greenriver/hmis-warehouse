@@ -6,7 +6,8 @@
     = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
 .row
   .col-sm-12
-    = render 'window/health/tab_navigation', current: polymorphic_path(careplan_path_generator + [:team, :members])
+    = render 'goals_link'
+    =# render 'window/health/tab_navigation', current: polymorphic_path(careplan_path_generator + [:team, :members])
 .row
   .col-sm-8
     = render 'current_members', members: @team.members.order(type: :asc, last_name: :asc, first_name: :asc), restore: false
