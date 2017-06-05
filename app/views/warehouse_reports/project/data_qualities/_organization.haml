@@ -2,14 +2,17 @@
 %tr.jOrganization{data: {organization_id: id}}
   %td.jToggle.closed
     ▶︎
-  %td
+  %td{style: 'width: 4em;'}
     %em{class: "ds-#{data_source.downcase}"}
       = data_source
+  %td{style: 'width: 16em;'}
     = organization.OrganizationName
   %td{colspan: 4}
     = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'jSelectAll', data: {organization_id: id}})
 %tr.jProject.hidden{data: {organization_id: id}}
   %th
+  %th
+    Type
   %th
     Project
   %th
@@ -24,6 +27,8 @@
   - last_report = project.data_qualilty_reports&.last
   %tr.jProject.hidden{data: {organization_id: id}}
     %td
+    %td
+      = HUD.project_type_brief(project.ProjectType)
     %td.padding-left-02
       = project.ProjectName
     %td

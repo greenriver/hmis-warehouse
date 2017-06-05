@@ -132,8 +132,15 @@ Rails.application.routes.draw do
   resources :organizations, only: [:index, :show]
   resources :projects, only: [:index, :show] do
     resources :project_contacts, except: [:show]
+    resources :data_quality_reports, only: [:index, :show]
   end
   resources :weather, only: [:index]
+
+  resources :notifications, only: [:show] do
+    resources :projects, only: [:show] do
+      resources :data_quality_reports, only: [:show]
+    end
+  end
 
   namespace :admin do
     # resolves route clash w/ devise

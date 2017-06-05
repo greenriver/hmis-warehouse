@@ -36,5 +36,9 @@ module GrdaWarehouse::Hud
         )
       where(closed_within_range.or(opened_within_range).or(open_throughout))
     end
+
+    def operating_year
+      "#{self.StartDate} - #{self.EndDate}"
+    end
   end
 end

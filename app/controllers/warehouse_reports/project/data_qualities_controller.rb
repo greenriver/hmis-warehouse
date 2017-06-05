@@ -36,7 +36,7 @@ module WarehouseReports::Project
               where(project_id: project_id).
               order(id: :desc).first_or_initialize
           end
-          Reporting::RunProjectDataQualityJob.perform_now(report_id: report.id, generate: @generate, send_email: @email)
+          Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
         end
         redirect_to action: :show
       end
