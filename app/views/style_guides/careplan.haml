@@ -62,119 +62,215 @@
                 = goal.number
               %span.goal-list__name
                 = goal.name
-
+          %li.draggable-list__item.active
+            %i.icon-move
+            %span.goal-list__number
+              5
+            %span.goal-list__name
+              Example of active item
     .col-md-4
       .pull-right
         =link_to add_goal_style_guide_path, class: 'btn btn-action btn-icon-left', data: { loads_in_pjax_modal: true } do
           %i.icon-plus
           Add Goal
-    
-  
+  .row
+    .col-xs-12
+      .section-expander-block__separator
+  - if @goals.present?
+    .row.section-expander-block__content-row
+      - @goals.first.tap do |goal|
+        - if ['Health::Goal::Clinical', 'Health::Goal::Housing'].include?(goal.type)
+          - clinical = goal
+          .col-md-10.col-md-offset-1
+            .goal
+              %h3.goal-title
+                Goal
+                = clinical.number
+              .goal-form
+                = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
+                  .row
+                    .col-sm-6
+                      = f.input :name, label: 'Goal'
+                      = f.input :associated_dx, label: 'Associated DX'
+                      = f.input :barriers
+                    .col-sm-6
+                      %h4.goal__team-plan-title Team Plan
+                      = f.input :provider_plan, label: 'Provider'
+                      = f.input :case_manager_plan, label: 'SDH Case Manager'
+                      = f.input :rn_plan, label: 'RN'
+                      = f.input :bh_plan, label: 'BH'
+
+                  .form-actions.pull-right
+                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                      Delete Goal
+                    = f.button :submit, value: 'Update Goal'
+        - elsif ['Health::Goal::Social'].include?(goal.type)
+          - social = goal
+          .goal
+            %h3.goal-title
+              Goal
+              = social.number
+            .goal-form.well
+              = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id)) do |f|
+                .row
+                  .col-sm-12
+                    = f.input :name, label: 'Goal'
+                .row
+                  .col-sm-12
+                    %h3
+                      Other Social Needs: Goals
+                .row.goal__social
+                  .col-sm-3
+                    = f.input :az_income, label: 'Income/Money Management'
+                    = f.input :az_non_cash_benefits, label: 'Non-Cash Benefits'
+                    = f.input :az_disabilities, label: 'Disabilities'
+                    = f.input :az_food, label: 'Food Insecurity'
+                    = f.input :az_employment, label: 'Employment'
+                  .col-sm-3
+                    = f.input :az_training, label: 'Adult Ed/Training'
+                    = f.input :az_transportation, label: 'Mobility/Transportation'
+                    = f.input :az_life_skills, label: 'Life Skills & Activities of Daily Living (ADLs)'
+                    = f.input :az_health_care_coverage, label: 'Health Care Coverage'
+                    = f.input :az_physical_health, label: 'Physical Health'
+                  .col-sm-3
+                    = f.input :az_mental_health, label: 'Mental Health'
+                    = f.input :az_substance_use, label: 'Substance Use'
+                    = f.input :az_criminal_justice, label: 'Criminal Justice'
+                    = f.input :az_legal, label: 'Legal, Non-Criminal'
+                    = f.input :az_safety, label: 'Safety'
+                  .col-sm-3
+                    = f.input :az_risk, label: 'Risk'
+                    = f.input :az_family, label: 'Family & Social Relationships'
+                    = f.input :az_community, label: 'Community Involvement'
+                    = f.input :az_time_management, label: 'Daily Time Management'
+                  
+
+                .form-actions.pull-right
+                  = link_to polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    Delete Goal
+                  = f.button :submit, value: 'Update Goal'
+        - elsif ['Health::Goal::SelfManagement'].include?(goal.type)
+          - self_management = goal
+          .goal
+            %h3.goal-title
+              Goal
+              = self_management.number
+            .goal-form.well
+              = simple_form_for(self_management, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id)) do |f|
+                .row
+                  .col-sm-6
+                    = f.input :name, label: 'Goal'
+                    = f.input :associated_dx, label: 'Associated DX'
+                    = f.input :barriers
+                    = f.input :confidence, label: 'Confidence: on a scale of 1 to 10, how confident are you that you can meet your goal?'
+                  .col-sm-6
+                    = f.input :goal_details, as: :text, input_html: {rows: 10}
+
+                .form-actions.pull-right
+                  = link_to polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    Delete Goal
+                  = f.button :submit, value: 'Update Goal'
 
 
 
 
+%h3 Goal Type Examples
+%p Display of each goal type when someone clicks on that goal in the Team Goals list. (These would display in the Team Goals well above, as Goal 1 is displayed.)
 - if @goals.present?
-  .row
-    - @goals.each do |goal|
-      .col-sm-3
-        .goal-tabs
-          %span.goal-number.badge
-            = goal.number
-          %span.goal-name
-            = goal.name
-  .row
-    - @goals.each do |goal|
-      - if ['Health::Goal::Clinical', 'Health::Goal::Housing'].include?(goal.type)
-        - clinical = goal
-        .goal
-          %h2.goal-title
-            Goal
-            = clinical.number
-          .goal-form.well
-            = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
-              .row
-                .col-sm-6
-                  = f.input :name, label: 'Goal'
-                  = f.input :associated_dx, label: 'Associated DX'
-                  = f.input :barriers
-                .col-sm-6
-                  %h3.goal__team-plan-title Team Plan
-                  = f.input :provider_plan, label: 'Provider'
-                  = f.input :case_manager_plan, label: 'SDH Case Manager'
-                  = f.input :rn_plan, label: 'RN'
-                  = f.input :bh_plan, label: 'BH'
+  - @goals.each do |goal|
+    .well.section-expander-block.open
+      .row.section-expander-block__content-row
+        .col-md-10.col-md-offset-1
+          - if ['Health::Goal::Clinical', 'Health::Goal::Housing'].include?(goal.type)
+            - clinical = goal
+            .goal
+              %h2.goal-title
+                Goal
+                = clinical.number
+              .goal-form
+                = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
+                  .row
+                    .col-sm-6
+                      = f.input :name, label: 'Goal'
+                      = f.input :associated_dx, label: 'Associated DX'
+                      = f.input :barriers
+                    .col-sm-6
+                      %h4.goal__team-plan-title Team Plan
+                      = f.input :provider_plan, label: 'Provider'
+                      = f.input :case_manager_plan, label: 'SDH Case Manager'
+                      = f.input :rn_plan, label: 'RN'
+                      = f.input :bh_plan, label: 'BH'
 
-              .form-actions
-                = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
-                  Delete Goal
-                = f.button :submit, value: 'Update Goal'
-      - elsif ['Health::Goal::Social'].include?(goal.type)
-        - social = goal
-        .goal
-          %h2.goal-title
-            Goal
-            = social.number
-          .goal-form.well
-            = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id)) do |f|
-              .row
-                .col-sm-12
-                  = f.input :name, label: 'Goal'
-              .row
-                .col-sm-12
-                  %h3
-                    Other Social Needs: Goals
-              .row.goal__social
-                .col-sm-3
-                  = f.input :az_income, label: 'Income/Money Management'
-                  = f.input :az_non_cash_benefits, label: 'Non-Cash Benefits'
-                  = f.input :az_disabilities, label: 'Disabilities'
-                  = f.input :az_food, label: 'Food Insecurity'
-                  = f.input :az_employment, label: 'Employment'
-                .col-sm-3
-                  = f.input :az_training, label: 'Adult Ed/Training'
-                  = f.input :az_transportation, label: 'Mobility/Transportation'
-                  = f.input :az_life_skills, label: 'Life Skills & Activities of Daily Living (ADLs)'
-                  = f.input :az_health_care_coverage, label: 'Health Care Coverage'
-                  = f.input :az_physical_health, label: 'Physical Health'
-                .col-sm-3
-                  = f.input :az_mental_health, label: 'Mental Health'
-                  = f.input :az_substance_use, label: 'Substance Use'
-                  = f.input :az_criminal_justice, label: 'Criminal Justice'
-                  = f.input :az_legal, label: 'Legal, Non-Criminal'
-                  = f.input :az_safety, label: 'Safety'
-                .col-sm-3
-                  = f.input :az_risk, label: 'Risk'
-                  = f.input :az_family, label: 'Family & Social Relationships'
-                  = f.input :az_community, label: 'Community Involvement'
-                  = f.input :az_time_management, label: 'Daily Time Management'
-                
+                  .form-actions
+                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                      Delete Goal
+                    = f.button :submit, value: 'Update Goal'
+          - elsif ['Health::Goal::Social'].include?(goal.type)
+            - social = goal
+            .goal
+              %h2.goal-title
+                Goal
+                = social.number
+              .goal-form
+                = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id)) do |f|
+                  .row
+                    .col-sm-12
+                      = f.input :name, label: 'Goal'
+                  .row
+                    .col-sm-12
+                      %h3
+                        Other Social Needs: Goals
+                  .row.goal__social
+                    .col-sm-3
+                      = f.input :az_income, label: 'Income/Money Management'
+                      = f.input :az_non_cash_benefits, label: 'Non-Cash Benefits'
+                      = f.input :az_disabilities, label: 'Disabilities'
+                      = f.input :az_food, label: 'Food Insecurity'
+                      = f.input :az_employment, label: 'Employment'
+                    .col-sm-3
+                      = f.input :az_training, label: 'Adult Ed/Training'
+                      = f.input :az_transportation, label: 'Mobility/Transportation'
+                      = f.input :az_life_skills, label: 'Life Skills & Activities of Daily Living (ADLs)'
+                      = f.input :az_health_care_coverage, label: 'Health Care Coverage'
+                      = f.input :az_physical_health, label: 'Physical Health'
+                    .col-sm-3
+                      = f.input :az_mental_health, label: 'Mental Health'
+                      = f.input :az_substance_use, label: 'Substance Use'
+                      = f.input :az_criminal_justice, label: 'Criminal Justice'
+                      = f.input :az_legal, label: 'Legal, Non-Criminal'
+                      = f.input :az_safety, label: 'Safety'
+                    .col-sm-3
+                      = f.input :az_risk, label: 'Risk'
+                      = f.input :az_family, label: 'Family & Social Relationships'
+                      = f.input :az_community, label: 'Community Involvement'
+                      = f.input :az_time_management, label: 'Daily Time Management'
+                    
 
-              .form-actions
-                = link_to polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
-                  Delete Goal
-                = f.button :submit, value: 'Update Goal'
-      - elsif ['Health::Goal::SelfManagement'].include?(goal.type)
-        - self_management = goal
-        .goal
-          %h2.goal-title
-            Goal
-            = self_management.number
-          .goal-form.well
-            = simple_form_for(self_management, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id)) do |f|
-              .row
-                .col-sm-6
-                  = f.input :name, label: 'Goal'
-                  = f.input :associated_dx, label: 'Associated DX'
-                  = f.input :barriers
-                  = f.input :confidence, label: 'Confidence: on a scale of 1 to 10, how confident are you that you can meet your goal?'
-                .col-sm-6
-                  = f.input :goal_details, as: :text, input_html: {rows: 10}
+                  .form-actions
+                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                      Delete Goal
+                    = f.button :submit, value: 'Update Goal'
+          - elsif ['Health::Goal::SelfManagement'].include?(goal.type)
+            - self_management = goal
+            .goal
+              %h2.goal-title
+                Goal
+                = self_management.number
+              .goal-form
+                = simple_form_for(self_management, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id)) do |f|
+                  .row
+                    .col-sm-6
+                      = f.input :name, label: 'Goal'
+                      = f.input :associated_dx, label: 'Associated DX'
+                      = f.input :barriers
+                      = f.input :confidence, label: 'Confidence: on a scale of 1 to 10, how confident are you that you can meet your goal?'
+                    .col-sm-6
+                      = f.input :goal_details, as: :text, input_html: {rows: 10}
 
-              .form-actions
-                = link_to polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
-                  Delete Goal
-                = f.button :submit, value: 'Update Goal'
+                  .form-actions
+                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                      Delete Goal
+                    = f.button :submit, value: 'Update Goal'
 
 - else
   %p

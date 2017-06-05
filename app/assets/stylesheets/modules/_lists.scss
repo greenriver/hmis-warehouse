@@ -19,6 +19,15 @@
 .goal-list {
   line-height: 1.1;
 }
+.draggable-list__item:hover,
+.draggable-list__item:active,
+.draggable-list__item:focus {
+  cursor: pointer;
+  font-weight: 700;
+  .goal-list__number {
+    background-color: darken($cas-blue-007, 15);
+  }
+}
 .goal-list__number {
   background-color: $cas-blue-007;
   border-radius: 50%;
@@ -30,4 +39,10 @@
   display: inline-block;
   vertical-align: middle;
   text-align: center;
+}
+.active .goal-list__number {
+  background-color: $gray-070;
+}
+.active .goal-list__name {
+  font-weight: 700;
 }
