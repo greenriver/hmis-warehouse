@@ -4,12 +4,12 @@
       %th Entry
       %th Program Name
   %tbody
-    - enrollments = @client.service_history_entry.residential.ongoing
+    - enrollments = @client.service_history_entry.visible_in_window.joins(:project).residential.ongoing
     - if enrollments.any?
       - enrollments.each do |e|
         %tr
           %td= e.first_date_in_program
-          %td= e.project_name
+          %td= e.project.safe_project_name
     - else
       %tr
         %td(colspan="2" style="text-align:center")

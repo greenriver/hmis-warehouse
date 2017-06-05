@@ -1,0 +1,49 @@
+- content_for :title, WarehouseReport.model_name.human.pluralize
+%h1= content_for :title
+
+= render 'breadcrumbs'
+= simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th{style: 'width: 2em;'}
+        %th{style: 'width: 20em;'}
+          Organization
+        %th{colspan: 6}
+          Select
+          - @projects.each do |(data_source, organization), projects|
+            = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+  = render 'actions', f: f
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var updateToggles = function() {
+        $('.jToggle').html('▼');
+        $('.jToggle.closed').html('▶︎');
+      }
+      updateToggles();
+      
+      $('.jToggle').on('click', function(e){
+        $(this).toggleClass('closed');
+        org_id = $(this).closest('.jOrganization').data('organizationId');
+        $(".jProject[data-organization-id='" + org_id + "']").toggleClass('hidden');
+
+        updateToggles();
+      });
+
+      $('.jSelectAll').on('click', function(e){
+        checked = $(this).is(':checked');
+        org_id = $(this).closest('.jOrganization').data('organizationId');
+        $(".jProject[data-organization-id='" + org_id + "']").find('jProjectSelect').attr('checked', checked);
+        $(".jProject[data-organization-id='" + org_id + "']").find('.jProjectSelect').attr('checked', checked);
+        if (checked) {
+          $(this).closest('.jOrganization').children('.closed').removeClass('closed');
+          $(".jProject[data-organization-id='" + org_id + "']").removeClass('hidden');
+          updateToggles();
+
+        }
+      });
+
+      
+    })(jQuery);

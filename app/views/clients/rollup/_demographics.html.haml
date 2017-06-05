@@ -1,4 +1,4 @@
-= cache(['clients', 'demographics', @client], expires_in: 4.hours) do
+= cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path], expires_in: 4.hours) do
   %table.table.table-striped
     %thead
       %tr
@@ -27,8 +27,11 @@
         %td= @client.race_fields.map{ |f| HUD::race f }.join ', '
         %td= HUD::ethnicity @client.Ethnicity
         %td= HUD::no_yes_missing @client.VeteranStatus
-
-      - @client.source_clients.each do |client|
+      - if controller_path.include?('window')
+        - source_clients = @client.source_clients.visible_in_window
+      - else
+        - source_clients = @client.source_clients
+      - source_clients.each do |client|
         %tr
           %td.id-sqr{ data: { id: client.id, always: 1 } }
           %td= client.name

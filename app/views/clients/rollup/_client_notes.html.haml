@@ -1,12 +1,15 @@
-- @client.notes.order(created_at: :desc).each do |note|
-  .well.client-notes
-    %h4= note.type_name
-    %p= note.note
-    .row
-      .col-sm-8
-        %p.small.text-muted
-          Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
-      .col-sm-4.text-right
-        .btn.btn-secondary.btn-small
-          = link_to clients_note_path(note), method: :delete, data: {confirm: "Would you really like to delete this note?"} do
-            %span.icon-cross{style: 'color: rgb(64, 64, 64);'}
+- if @client.notes.any?
+  - @client.notes.order(created_at: :desc).each do |note|
+    .well.client-notes
+      %h4= note.type_name
+      %p= note.note
+      .row
+        .col-sm-8
+          %p.small.text-muted
+            Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
+        .col-sm-4.text-right
+          .btn.btn-secondary.btn-small
+            = link_to clients_note_path(note), method: :delete, data: {confirm: "Would you really like to delete this note?"} do
+              %span.icon-cross{style: 'color: rgb(64, 64, 64);'}
+- else
+  No notes on file

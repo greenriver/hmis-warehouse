@@ -60,6 +60,11 @@ Rails.application.routes.draw do
     resources :find_by_id, only: [:index] do
       post :search, on: :collection
     end
+    namespace :project do
+      resource :data_quality 
+      resources :apr, only: [:show, :destroy]
+      resources :dashboard, only: [:show, :destroy]
+    end
   end
 
   resources :client_matches, only: [:index, :update] do
@@ -87,8 +92,11 @@ Rails.application.routes.draw do
   namespace :window do
     resources :clients, only: [:index, :show] do
       resources :print, only: [:index]
-      resources :health, only: [:index]
-      resources :youth, only: [:index]
+      # resources :health, only: [:index]
+      # resources :youth, only: [:index]
+      get :rollup
+      get :assessment
+      get :image
     end
   end
 
@@ -122,7 +130,9 @@ Rails.application.routes.draw do
   end
 
   resources :organizations, only: [:index, :show]
-  resources :projects, only: [:index, :show]
+  resources :projects, only: [:index, :show] do
+    resources :project_contacts, except: [:show]
+  end
   resources :weather, only: [:index]
 
   namespace :admin do

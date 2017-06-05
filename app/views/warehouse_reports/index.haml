@@ -1,16 +1,22 @@
 - content_for :title, WarehouseReport.model_name.human.pluralize
 %h1= content_for :title
 
-%ul.nav.nav-tabs{role: :tablist}
-  %li.active{role: :presentation}
-    %a{href: '#other-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Other Reports'}}
-      Other Reports
-  %li{role: :presentation}
-    %a{href: '#data-quality-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Data Quality Reports'}}
-      Data Quality
+= render 'tab_navigation'
 .tab-content
   #other-reports.tab-pane.active{role: :tabpanel}
     = render 'other_reports'
   #data-quality-reports.tab-pane{role: :tabpanel}
     = render 'data_quality_reports'
 
+= content_for :page_js do
+  :javascript
+    $('.nav-tabs a').click(function(e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+    $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      window.location.hash = id;
+    });
+    var hash = window.location.hash;
+    $('.nav-tabs a[href="' + hash + '"]').tab('show');

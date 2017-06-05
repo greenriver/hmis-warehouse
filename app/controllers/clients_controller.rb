@@ -18,7 +18,7 @@ class ClientsController < ApplicationController
   def index
     # search
     @clients = if params[:q].present?
-      client_source.text_search(params[:q])
+      client_source.text_search(params[:q], client_scope: client_source)
     else
       client_scope
     end
@@ -33,7 +33,7 @@ class ClientsController < ApplicationController
 
   def edit
     if params[:q].present?
-      @search_clients = client_source.text_search(params[:q]).where.not(id: @client.id).limit(50)
+      @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50)
     end
   end
 
@@ -68,42 +68,7 @@ class ClientsController < ApplicationController
     render 'assessment_form'
   end
 
-  # ajaxy method to render a particular rollup table
-  def rollup
-    allowed_rollups = [
-      "/clients/rollup/assessments",
-      "/clients/rollup/assessments_without_data",
-      "/clients/rollup/case_manager",
-      "/clients/rollup/chronic",
-      "/clients/rollup/contact_information",
-      "/clients/rollup/demographics",
-      "/clients/rollup/disability_types",
-      "/clients/rollup/entry_assessments",
-      "/clients/rollup/error",
-      "/clients/rollup/exit_assessments",
-      "/clients/rollup/family",
-      "/clients/rollup/income_benefits",
-      "/clients/rollup/ongoing_residential_enrollments",
-      "/clients/rollup/other_enrollments",
-      "/clients/rollup/residential_enrollments",
-      "/clients/rollup/services",
-      "/clients/rollup/services_full",
-      "/clients/rollup/special_populations",
-      "/clients/rollup/zip_details",
-      "/clients/rollup/zip_map",
-      "/clients/rollup/client_notes",
-    ]
-    rollup = allowed_rollups.find do |m|
-      m == "/clients/rollup/" + params.require(:partial).underscore
-    end
-
-    raise 'Rollup not in whitelist' unless rollup.present?
-
-    begin
-      render partial: rollup, layout: false
-    end
-  end
-
+  
   # Merge clients into this client
   # If the client is a destination
   #   find its source clients
@@ -228,6 +193,10 @@ class ClientsController < ApplicationController
     send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
   end
 
+  protected def client_source
+    GrdaWarehouse::Hud::Client
+  end
+    
   private def client_scope
     client_source.destination
   end
