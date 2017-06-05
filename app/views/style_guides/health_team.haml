@@ -44,7 +44,7 @@
             = member.deleted_at.to_date
         - else
           .health__team-member--delete
-            = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
+            = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
               %span.icon-cross
 
 
