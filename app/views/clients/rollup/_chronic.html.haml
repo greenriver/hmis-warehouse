@@ -10,6 +10,16 @@
     chart.load();
   });
   
-%h4 Months homeless in the last 3 years: #{@client.months_served_since date: 3.years.ago.to_date}
-%h4 Months homeless in the last year: #{@client.months_served_since date: 1.years.ago.to_date}
-%h4 Homeless episodes in the last 3 years: #{@client.homeless_episodes_since date: 3.years.ago.to_date}
+%table.table.table-striped
+  %tbody
+    %tr
+      %td= 'Months homeless in the last 3 years'
+      %td= @client.months_served_since date: 3.years.ago.to_date
+    %tr
+      %td= 'Months homeless in the last year'
+      %td= @client.months_served_since date: 1.years.ago.to_date
+    %tr
+      %td= 'Homeless episodes in the last 3 years'
+      %td= @client.homeless_episodes_since date: 3.years.ago.to_date
+        
+        
