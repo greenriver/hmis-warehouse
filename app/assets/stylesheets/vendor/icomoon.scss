@@ -1,10 +1,11 @@
 @font-face {
     font-family: 'icomoon';
-    src:    font-url('icomoon.eot?q4k0gz');
-    src:    font-url('icomoon.eot?q4k0gz#iefix') format('embedded-opentype'),
-        font-url('icomoon.ttf?q4k0gz') format('truetype'),
-        font-url('icomoon.woff?q4k0gz') format('woff'),
-        font-url('icomoon.svg?q4k0gz#icomoon') format('svg');
+    src:    font-url('icomoon.eot?9wdb70');
+    src:    font-url('icomoon.eot?9wdb70#iefix') format('embedded-opentype'),
+        font-url('icomoon.woff2?9wdb70') format('woff2'),
+        font-url('icomoon.ttf?9wdb70') format('truetype'),
+        font-url('icomoon.woff?9wdb70') format('woff'),
+        font-url('icomoon.svg?9wdb70#icomoon') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -33,11 +34,35 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-wheelchair:before {
-  content: "\e900";
+
+.icon-arrow-circled-down:before {
+  content: "\e908";
+  color: #90a4bc;
+}
+.icon-arrow-circled-right:before {
+  content: "\e909";
+  color: #90a4bc;
+}
+.icon-helping-hands:before {
+  content: "\e901";
+}
+.icon-medical-provider:before {
+  content: "\e902";
+}
+.icon-mental-health:before {
+  content: "\e903";
+}
+.icon-nurse-clipboard:before {
+  content: "\e904";
+}
+.icon-reminder:before {
+  content: "\e905";
+}
+.icon-team:before {
+  content: "\e906";
 }
 .icon-pencil:before {
-  content: "\e905";
+  content: "\e907";
 }
 .icon-copy:before {
   content: "\e92c";
@@ -137,4 +162,7 @@
 }
 .icon-filter:before {
   content: "\ea5b";
+}
+.icon-wheelchair:before {
+  content: "\e900";
 }

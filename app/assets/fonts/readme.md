@@ -1,4 +1,5 @@
 The icon font is generated at icomoon, using their free service.
+[Green River: We have an account, where the icon set is saved: you can get the login from JS and skip Steps 0 & 1]
 To add fonts to the package, you can either re-create the font collection and add to it, or create an additional icon set with only the new icons and include that in the site as well.
 
 To recreate the icon font and add to it (recommended method):
