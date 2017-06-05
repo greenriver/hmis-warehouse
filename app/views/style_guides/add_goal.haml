@@ -1,0 +1,8 @@
+- content_for :modal_title, 'Add Goal'
+
+= simple_form_for('') do |f|
+  %p You can add details and change goal order after creating this goal.
+  = f.input :type,  label: 'Goal Type', input_html: {class: 'select2'}
+  = f.input :name, label: 'Goal Title'
+  .form-actions
+    = f.button :submit, value: 'Add Goal'

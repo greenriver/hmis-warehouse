@@ -1,20 +1,23 @@
-.care-plan__dates
+.slab
   = simple_form_for(@careplan, as: :careplan, url: polymorphic_path(careplan_path_generator, client_id: @client.id)) do |f|
     .row
-      .col-sm-offset-6.col-sm-2
-        .margin-top-03
+      .col-md-6.col-sm-3
+        %h4
+          Care Plan Dates
+      .col-md-2.col-sm-4
+        .margin-top-03.slab__base-dates
           = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}      
           = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
-      .col-sm-4
-        .care-plan__dates--header
+      .col-md-4.col-sm-4
+        .slab__header
           Self-Sufficiency Assessment
         .row
-          .col-sm-6
+          .col-md-6
               
             = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker}}
               
             = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker}}
-          .col-sm-6
+          .col-md-6
               
             = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}
               
@@ -22,13 +25,53 @@
 
     .form-actions.text-right
       = f.button :submit, value: 'Update Dates', class: 'btn btn-small'
-%h3 Add Goal
-= simple_form_for(@goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goals], id: @careplan.id, client_id: @client.id)) do |f|
-  = f.input :type, collection: Health::Goal::Base.available_types, label_method: :type_name, include_blank: false, label: 'Goal Type', input_html: {class: 'select2'}
-  = f.input :name, label: 'Goal'
-  = f.input :number, label: 'Goal Number', collection: Health::Goal::Base.available_numbers
-  .form-actions
-    = f.button :submit, value: 'Add Goal'
+
+
+
+.well.section-expander-block.closed
+  .row
+    .col-md-8
+      %h3.section-expander-block__header Team Goals
+    .col-md-4
+      .section-expander-block__expander-region
+        .section-expander-block__metadata.text-small
+          %span Last Modified:
+          %span.text-bold 3/5/2017, by Betsy Adams
+        %a.section-expander-block__expander-arrow
+          %i.icon-arrow-circled-right
+
+.well.section-expander-block.open
+  .row
+    .col-md-8
+      %h3.section-expander-block__header Team Goals
+    .col-md-4
+      .section-expander-block__expander-region
+        .section-expander-block__metadata.text-small
+          %span Last Modified:
+          %span.text-bold 3/5/2017, by Betsy Adams
+        %a.section-expander-block__expander-arrow
+          %i.icon-arrow-circled-down
+  .row.section-expander-block__action-row
+    .col-md-8
+      - if @goals.present?
+        %ul.draggable-list.goal-list
+          - @goals.each do |goal|
+            %li.draggable-list__item
+              %i.icon-move
+              %span.goal-list__number
+                = goal.number
+              %span.goal-list__name
+                = goal.name
+
+    .col-md-4
+      .pull-right
+        =link_to add_goal_style_guide_path, class: 'btn btn-action btn-icon-left', data: { loads_in_pjax_modal: true } do
+          %i.icon-plus
+          Add Goal
+    
+  
+
+
 
 
 - if @goals.present?
