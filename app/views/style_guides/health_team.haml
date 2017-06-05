@@ -20,31 +20,32 @@
 - # restore = true
 
 - if members.any?
-  - members.each do |member|
+  - members.group_by(&:member_type_name).each do |group, members|
     .health__team-member.card.well
       .health__team-member--type
-        = member.member_type_name
-      .health__team-member--name
-        = member.full_name
-      - if member.last_contact.present?
-        .health__team-member--last-contact
-          = member.last_contact
-      .health__team-member--email
-        = mail_to member.email, subject: 'Collaborative Care Plan' do
-          %i.icon-flag
-      - if restore
-        .health__team-member--restore
-          = link_to polymorphic_path(careplan_path_generator + [:team, :member, :restore], member_id: member.id, client_id: @client.id), method: :restore do
-            %span.icon-plus
-            Restore
-          %br
-          Deleted on:
-          = member.deleted_at.to_date
-      - else
-        .health__team-member--delete
-          = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
-            %span.icon-cross
-
+        %i{class: Health::Team::Member.icon_for(group)}
+        = group
+      - members.each do |member|
+        .health__team-member--name
+          = member.full_name
+        - if member.last_contact.present?
+          .health__team-member--last-contact
+            = member.last_contact
+        .health__team-member--email
+          = mail_to member.email, subject: 'Collaborative Care Plan' do
+            %i.icon-envelope-o
+        - if restore
+          .health__team-member--restore
+            = link_to polymorphic_path(careplan_path_generator + [:team, :member, :restore], member_id: member.id), method: :restore do
+              %span.icon-settings_backup_restore
+              Restore
+            %br
+            Deleted on:
+            = member.deleted_at.to_date
+        - else
+          .health__team-member--delete
+            = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
+              %span.icon-cross
 
 
 - else
