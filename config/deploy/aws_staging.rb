@@ -20,6 +20,13 @@ namespace :deploy do
       end
     end
   end
+  before :finishing, :health_migrations do
+    on roles(:db)  do
+      within current_path do
+        execute :rake, 'health:db:migrate RAILS_ENV=staging'
+      end
+    end
+  end
   before :finishing, :report_seeds do
     on roles(:db)  do
       within current_path do
