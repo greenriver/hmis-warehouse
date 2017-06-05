@@ -1,3 +1,4 @@
+- show_health = can_edit_client_health? && @client.patient.present?
 :ruby
   tabs = {
     client_path(@client) => {
@@ -11,18 +12,17 @@
     history_client_path(@client) => {
       title: 'Client History',
       permission: can_edit_clients?,
+    },
+    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+      title: 'Health',
+      permission: show_health,
+    },
+    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
+      title: 'Care Plan',
+      permission: show_health
     }
   }
-  if can_edit_client_health? && @client.patient.present?
-    tabs[client_health_patient_index_path(@client)] = {
-      title: 'Health',
-      permission: can_view_client_health? || can_edit_client_health?,
-    }
-    tabs[client_health_careplan_path(@client)] = {
-      title: 'Integrated Care Plan',
-      permission: can_edit_client_health?,
-    }
-  end
+  
 %ul.nav.nav-tabs.margin-bottom-01
   - tabs.each do |action, details|
     - if action == current

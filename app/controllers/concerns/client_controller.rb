@@ -75,8 +75,65 @@ module ClientController
       'Client Search'
     end
 
-    protected def client_source
-      GrdaWarehouse::Hud::Client
+    # ajaxy method to render a particular rollup table
+    def rollup
+      allowed_rollups = [
+        "/clients/rollup/assessments",
+        "/clients/rollup/assessments_without_data",
+        "/clients/rollup/case_manager",
+        "/clients/rollup/chronic",
+        "/clients/rollup/contact_information",
+        "/clients/rollup/demographics",
+        "/clients/rollup/disability_types",
+        "/clients/rollup/entry_assessments",
+        "/clients/rollup/error",
+        "/clients/rollup/exit_assessments",
+        "/clients/rollup/family",
+        "/clients/rollup/income_benefits",
+        "/clients/rollup/ongoing_residential_enrollments",
+        "/clients/rollup/other_enrollments",
+        "/clients/rollup/residential_enrollments",
+        "/clients/rollup/services",
+        "/clients/rollup/services_full",
+        "/clients/rollup/special_populations",
+        "/clients/rollup/zip_details",
+        "/clients/rollup/zip_map",
+        "/clients/rollup/client_notes",
+      ]
+      rollup = allowed_rollups.find do |m|
+        m == "/clients/rollup/" + params.require(:partial).underscore
+      end
+
+      raise 'Rollup not in whitelist' unless rollup.present?
+
+      begin
+        render partial: rollup, layout: false
+      end
+    end
+    
+    def create_note
+      # type = note_params[:type]
+      type = "GrdaWarehouse::ClientNotes::ChronicJustification"
+      @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
+      begin
+        raise "Note type note found" unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
+        @client.notes.create!(note_params.merge({user_id: current_user.id, type: type}))
+        flash[:notice] = "Added new note"
+        redirect_to action: :show
+      rescue Exception => e
+        @note.validate
+        flash[:error] = "Failed to add note: #{e}"
+        render :show
+      end
+    end
+    
+    # Only allow a trusted parameter "white list" through.
+    private def note_params
+      params.require(:note).
+        permit(
+          :note,
+          :type,
+        )
     end
 
     protected def set_client

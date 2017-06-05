@@ -11,6 +11,10 @@ module Window::Health::Careplan
     before_action :set_goal, only: [:update, :destroy]
 
     
+    def new
+      @goal = Health::Goal::Base.new()
+    end
+
     def create
       type = goal_params[:type]
       @goal = Health::Goal::Base.new(goal_params)

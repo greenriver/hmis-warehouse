@@ -30,7 +30,7 @@
       });
 
       var $medications = $('.jMedications');
-      $medications.load($medication.data('path'), function(response, status, xhr) {
+      $medications.load($medications.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
         }

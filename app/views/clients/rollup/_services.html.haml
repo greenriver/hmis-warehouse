@@ -1,4 +1,4 @@
-= cache(['clients', 'services', @client], expires_in: 4.hours) do
+= cache(['clients', 'services', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
   - dots = { min: Float::INFINITY, max: -1, points: [] }
 
   %table.table

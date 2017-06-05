@@ -1,6 +1,7 @@
-= cache(['clients', 'services_full', @client], expires_in: 4.hours) do
+- show_confidential_programs = ! controller_path.include?('window')
+= cache(['clients', 'services_full', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
   - services = @client.source_enrollment_services.bed_night.uniqueness_constraint.descending.preload( :client, :enrollment, project: :organization )
-  - projects = services.map(&:project).compact.uniq.sort_by(&:organization_and_name).each_with_index.map{ |p, i| [ p, i ] }.to_h
+  - projects = services.map(&:project).compact.uniq.sort_by{ |m| m.organization_and_name(include_confidential_names: show_confidential_programs)}.each_with_index.map{ |p, i| [ p, i ] }.to_h
   - if services.any?
     %div(style="max-height:500px;overflow-y:auto;")
       %table.table

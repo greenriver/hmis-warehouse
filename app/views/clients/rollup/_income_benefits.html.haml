@@ -1,4 +1,4 @@
-= cache(['clients', 'income_benefits', @client], expires_in: 4.hours) do
+= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
   - incomes = @client.source_enrollment_income_benefits.any_benefits.preload( :enrollment, :client ).sort_by{ |b| b.enrollment.date }.reverse
   - if incomes.any?
     %table.table
