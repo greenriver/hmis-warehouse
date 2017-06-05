@@ -144,6 +144,10 @@ module GrdaWarehouse::Hud
       joins(:project).where.not(Project: {ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS})
     }
 
+    scope :visible_in_window, -> do
+      joins(:data_source).where(data_sources: {visible_in_window: true})
+    end
+
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
 
     scope :any_address, -> {

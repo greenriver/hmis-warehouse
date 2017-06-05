@@ -82,6 +82,11 @@ Rails.application.routes.draw do
     resources :find_by_id, only: [:index] do
       post :search, on: :collection
     end
+    namespace :project do
+      resource :data_quality 
+      resources :apr, only: [:show, :destroy]
+      resources :dashboard, only: [:show, :destroy]
+    end
   end
 
   resources :client_matches, only: [:index, :update] do
@@ -99,15 +104,21 @@ Rails.application.routes.draw do
       get :chronic_days
       patch :merge
       patch :unmerge
+      post :create_note
     end
     healthcare_routes()
+  end
+  namespace :clients do
+    resources :notes, only: [:destroy]
   end
 
   namespace :window do
     resources :clients, only: [:index, :show] do
       resources :print, only: [:index]
-      resources :youth, only: [:index]
       healthcare_routes()
+      get :rollup
+      get :assessment
+      get :image
     end
   end
 
@@ -141,8 +152,17 @@ Rails.application.routes.draw do
   end
 
   resources :organizations, only: [:index, :show]
-  resources :projects, only: [:index, :show]
+  resources :projects, only: [:index, :show] do
+    resources :project_contacts, except: [:show]
+    resources :data_quality_reports, only: [:index, :show]
+  end
   resources :weather, only: [:index]
+
+  resources :notifications, only: [:show] do
+    resources :projects, only: [:show] do
+      resources :data_quality_reports, only: [:show]
+    end
+  end
 
   namespace :admin do
     # resolves route clash w/ devise
@@ -176,6 +196,5 @@ Rails.application.routes.draw do
       get :icon_font
     end
   end
-
   root 'root#index'
 end
