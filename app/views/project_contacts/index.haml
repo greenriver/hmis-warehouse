@@ -1,0 +1,36 @@
+- title = "Project Contacts for #{@project.ProjectName}"
+- content_for :title, title
+%h1= title
+.row
+  .col-sm-12
+    = link_to new_project_project_contact_path(@project), class: 'btn btn-primary pull-right margin-bottom-02' do
+      %span.icon-plus
+      Add a Contact
+.row
+  .col-sm-12
+    - if @contacts.present?
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th
+              Name
+            %th
+              Email
+            %th
+        %tbody
+          - @contacts.each do |contact|
+            %tr
+              %td
+                = link_to edit_project_project_contact_path(@project, contact) do
+                  = contact.full_name
+              %td
+                = contact.email
+              %td
+                = link_to project_project_contact_path(@project, contact), method: :delete, class: 'btn btn-default', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
+                  %span.icon-cross
+                  Delete
+    - else
+      %p
+        No project contacts on file.
+              
+              

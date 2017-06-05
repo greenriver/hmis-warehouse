@@ -61,7 +61,7 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     namespace :project do
-      get :data_quality 
+      resource :data_quality 
       resources :apr, only: [:show, :destroy]
       resources :dashboard, only: [:show, :destroy]
     end
@@ -130,7 +130,9 @@ Rails.application.routes.draw do
   end
 
   resources :organizations, only: [:index, :show]
-  resources :projects, only: [:index, :show]
+  resources :projects, only: [:index, :show] do
+    resources :project_contacts, except: [:show]
+  end
   resources :weather, only: [:index]
 
   namespace :admin do

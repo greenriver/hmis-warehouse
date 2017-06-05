@@ -1,18 +1,19 @@
 - content_for :title, WarehouseReport.model_name.human.pluralize
 %h1= content_for :title
 
-= render 'tab_navigation'
-=# debug @projects
-%table.table.table-condensed
-  %thead
-    %tr
-      %th
-      %th
-        Organization
-      %th{colspan: 7}
-        Select
-        - @projects.each do |(data_source, organization), projects|
-          = render 'organization', data_source: data_source, organization: organization, projects: projects
+= render 'breadcrumbs'
+= simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th{style: 'width: 2em;'}
+        %th{style: 'width: 20em;'}
+          Organization
+        %th{colspan: 6}
+          Select
+          - @projects.each do |(data_source, organization), projects|
+            = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+  = render 'actions', f: f
 
 = content_for :page_js do
   :javascript

@@ -75,6 +75,10 @@ module GrdaWarehouse::Hud
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
     has_many :funders, **hud_many(Funder), inverse_of: :project
 
+    # Warehouse Reporting
+    has_many :data_qualilty_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_many :project_contacts, class_name: GrdaWarehouse::WarehouseReports::ProjectContact.name
+
     scope :residential, -> { where ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS }
 
     scope :coc_funded, -> do
