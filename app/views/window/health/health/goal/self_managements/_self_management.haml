@@ -1,10 +1,12 @@
 - goal = self_management
 .well.section-expander-block.open.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
   .row
-    .col-md-8
+    .col-md-7
       %h3.section-expander-block__header 
         Self Management Goal
-    .col-md-4
+        %span.text-muted
+          = "(#{goal.name})"
+    .col-md-5
       .section-expander-block__expander-region
         .section-expander-block__metadata.text-small
           Last Modified: 
