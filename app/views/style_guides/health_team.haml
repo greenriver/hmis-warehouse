@@ -1,3 +1,112 @@
+.slab
+  = simple_form_for('') do |f|
+    .pull-right
+      =link_to '' do
+        %i.icon-printer
+        Print Care Plan
+    .row
+      .col-md-6.col-md-offset-4.col-sm-3
+        %h4
+          Care Plan Dates
+    .row
+      .col-md-2.col-md-offset-4.col-sm-4
+        .margin-top-03.slab__base-dates
+          = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}      
+          = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
+      .col-md-4.col-sm-4
+        .slab__header
+          Self-Sufficiency Assessment
+        .row
+          .col-md-6
+              
+            = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker}}
+              
+            = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker}}
+          .col-md-6
+              
+            = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}
+              
+            = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker}}
+
+    .row
+      .col-md-6.col-md-offset-4.col-sm-3
+        .form-actions.text-right
+          = f.button :submit, value: 'Update Dates', class: 'btn btn-small'
+
+
+
+.well.section-expander-block.closed
+  .row
+    .col-md-8
+      %h3.section-expander-block__header Team Goals
+    .col-md-4
+      .section-expander-block__expander-region
+        .section-expander-block__metadata.text-small
+          %span Last Modified:
+          %span.text-bold 3/5/2017, by Betsy Adams
+        %a.section-expander-block__expander-arrow
+          %i.icon-arrow-circled-right
+
+
+.well.section-expander-block.open
+  .row
+    .col-md-8
+      %h3.section-expander-block__header Team Members
+    .col-md-4
+      .section-expander-block__expander-region
+        .section-expander-block__metadata.text-small
+          %span Last Modified:
+          %span.text-bold 3/5/2017, by Betsy Adams
+        %a.section-expander-block__expander-arrow
+          %i.icon-arrow-circled-down
+  .row.section-expander-block__action-row
+    .col-md-8
+    .col-md-4
+      .pull-right
+        =link_to add_team_member_style_guide_path, class: 'btn btn-action btn-icon-left', data: { loads_in_pjax_modal: true } do
+          %i.icon-plus
+          Add Team Member
+  .row.section-expander-block__content-row
+    .col-sm-12
+      - members = @team.members
+      - restore = false
+      .row
+        - if members.any?
+          - members.each do |member|
+            .col-sm-4
+              .health__team-member.card.well
+                .health__team-member--type
+                  = member.member_type_name
+                .health__team-member--name
+                  = member.full_name
+                - if member.last_contact.present?
+                  .health__team-member--last-contact
+                    = member.last_contact
+                .health__team-member--email
+                  = mail_to member.email, subject: 'Collaborative Care Plan' do
+                    %i.icon-flag
+                - if restore
+                  .health__team-member--restore
+                    = link_to polymorphic_path(careplan_path_generator + [:team, :member, :restore], member_id: member.id, client_id: @client.id), method: :restore do
+                      %span.icon-plus
+                      Restore
+                    %br
+                    Deleted on:
+                    = member.deleted_at.to_date
+                - else
+                  .health__team-member--delete
+                    = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team. You can restore them to the team later."} do 
+                      %span.icon-cross
+
+
+
+        - else
+          .col-sm-4
+            %p.alert.alert-info No current team members.
+
+
+
+
 %h2 Add a Team Member
 = simple_form_for @member, as: :member, url: polymorphic_path(careplan_path_generator + [:team, :members], client_id: @client.id) do |f|
   = f.input :type, collection: Health::Team::Member.available_types, label_method: :member_type_name, include_blank: false, label: false, input_html: {class: 'select2'}
@@ -42,7 +151,7 @@
           = member.deleted_at.to_date
       - else
         .health__team-member--delete
-          = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
+          = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team. You can restore them to the team later."} do 
             %span.icon-cross
 
 

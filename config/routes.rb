@@ -175,6 +175,7 @@ Rails.application.routes.draw do
       get :health_team
       get :icon_font
       get :add_goal
+      get :add_team_member
     end
   end
 
