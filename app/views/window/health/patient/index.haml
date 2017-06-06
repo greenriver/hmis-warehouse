@@ -6,13 +6,8 @@
   .col-sm-12
     %h2 Patient Summary
     - if @patient.present?
-      %p
-        = "The following is patient information for the client #{@client.name}."
       = render 'patient_summary'
-      .jUtilization{data: {path: window_client_health_utilization_index_path()}}
-      .jAppointments{data: {path: window_client_health_appointments_path()}}
-      .jProblems{data: {path: window_client_health_problems_path()}}
-      .jMedications{data: {path: window_client_health_medications_path()}}
+      = render 'patient_details'
 
       = render 'patient_js'
     - else

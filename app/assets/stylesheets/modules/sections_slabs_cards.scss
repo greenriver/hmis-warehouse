@@ -14,7 +14,7 @@
 }
 .section-expander-block {
   margin-bottom: 24px;
-  padding: 8px 16px;
+  padding: 8px 16px 16px;
   box-shadow: none;
 }
 .section-expander-block__metadata {
@@ -47,6 +47,35 @@
   margin-top: 0;
   margin-bottom: 24px;
 }
-.health__team-member.card {
+.health__team-member--type {
   background-color: #fff;
+  border: 1px solid $gray-040;
+  padding: 4px;
+  font-size: 16px;
+  line-height: 1;
+  height: 44px; //hacky b/c the icons have extra white space giving them height
+  @include open-sans-medium;
+  margin-bottom: 9px;
+}
+.health__team-member--type i {
+  font-size: 44px;
+  vertical-align: middle;
+}
+.health__team-member__individual {
+  margin-bottom: 9px;
+  padding-bottom: 9px;
+  border-bottom: 2px solid $gray-040;
+}
+.health__team-member__action {
+  display: inline-block;
+  padding-left: 12px;
+}
+.health__team-member__action a {
+  color: $cob-sg-blue-006;
+}
+.health__team-member__action a:hover,
+.health__team-member__action a:active,
+.health__team-member__action a:focus
+ {
+  color: darken($cob-sg-blue-006, 20);
 }

@@ -6,7 +6,7 @@ module WindowClientPathGenerator
     helper_method :health_path_generator
 
     def careplan_path_generator
-       health_path_generator + [:careplan]
+      health_path_generator + [:careplan]
     end
 
     def health_path_generator

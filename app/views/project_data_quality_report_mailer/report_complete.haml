@@ -1,0 +1,4 @@
+%h2 Report Complete
+%p
+= link_to notification_project_data_quality_report_url(notification_id: @token.token, project_id: @report.project.id, id: @report.id) do 
+  = "View Data Quality Report for #{@report.project.ProjectName}."

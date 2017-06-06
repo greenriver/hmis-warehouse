@@ -1,4 +1,4 @@
-module Window::Health
+module Health
   class UtilizationController < Window::Health::UtilizationController
     
 

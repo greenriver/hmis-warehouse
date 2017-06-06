@@ -26,6 +26,20 @@ module Health
       ]
     end
 
+    def self.icon_for(member_type_name)
+      {
+        'Behavioral Health' => ' icon-mental-health',
+        'SDH Case Manager' => 'icon-helping-hands',
+        'Nurse Care Manager' => 'icon-nurse-clipboard',
+        'Other Important Contact' => 'icon-reminder',
+        'Provider (MD/NP/PA)' => 'icon-medical-provider',
+      }[member_type_name]
+    end
+
+    def self.icon
+      self.icon_for(self.member_type_name)
+    end
+
     def full_name
       ["#{first_name} #{last_name}", title].join(', ')
     end
