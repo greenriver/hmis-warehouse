@@ -40,7 +40,7 @@
                   = f.button :submit, value: 'Update Goal'
               .col-sm-6
                 .status
-      - if goal.versions.any? && ! @readonly
+      - if goal.versions.count > 1 && ! @readonly
         .pull-right
           = link_to(polymorphic_path(careplan_path_generator + [:goal, :previous], goal_id: goal.id)) do 
             < past versions
