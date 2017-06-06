@@ -1,5 +1,6 @@
+- wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 .slab
-  = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator) do |f|
+  = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator), wrapper: wrapper do |f|
     .row
       .col-md-5.col-sm-3
         %h3.section-expander-block__header
@@ -9,12 +10,13 @@
           = f.input :sdh_enroll_date, label: 'SDH Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}
           = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
       .col-md-4.col-sm-4
-        .slab__header
-          - if @client.self_sufficiency_assessments.any?
-            = link_to(polymorphic_path([:self_sufficiency_assessment] + careplan_path_generator), data: { loads_in_pjax_modal: true }) do
-              Self-Sufficiency Assessment
-          - else
-            No Self-Sufficiency Assessment on file
+        - unless @readonly
+          .slab__header
+            - if @client.self_sufficiency_assessments.any?
+              = link_to(polymorphic_path([:self_sufficiency_assessment] + careplan_path_generator), data: { loads_in_pjax_modal: true }) do
+                Self-Sufficiency Assessment
+            - else
+              No Self-Sufficiency Assessment on file
         .row
           .col-sm-6
               
@@ -26,6 +28,6 @@
             = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}
               
             = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker}}
-        
-    .form-actions.text-right
-      = f.button :submit, value: 'Update Dates', class: 'btn btn-small'
+    - unless @readonly 
+      .form-actions.text-right
+        = f.button :submit, value: 'Update Dates', class: 'btn btn-small'

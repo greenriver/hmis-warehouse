@@ -8,12 +8,17 @@ module Window::Health
     before_action :set_client
     before_action :set_patient
     before_action :set_careplan
-    before_action :set_self_management_goal, only: [:show]
-    before_action :set_housing_goal, only: [:show]
+    before_action :set_self_management_goal, only: [:show, :print]
+    before_action :set_housing_goal, only: [:show, :print]
+    before_action :set_variable_goals, only: [:show, :print]
     
     def show
       @goal = Health::Goal::Base.new
-      @goals = @careplan.goals.variable_goals.order(number: :asc)
+      @readonly = false
+    end
+
+    def print
+      @readonly = true
     end
 
     def update
@@ -51,6 +56,10 @@ module Window::Health
         goal.number = -1
         goal.save!
       end
+    end
+
+    def set_variable_goals
+      @goals = @careplan.goals.variable_goals.order(number: :asc)
     end
 
     def careplan_params

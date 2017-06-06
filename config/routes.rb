@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       resources :problems, only: [:index]
       resource :careplan, except: [:destroy] do
         get :self_sufficiency_assessment
+        get :print
       end
       namespace :careplan do
         resources :goals do

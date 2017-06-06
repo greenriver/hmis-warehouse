@@ -1,3 +1,4 @@
+- wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 - goal = social
 .well.section-expander-block.open.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
   .row
@@ -12,12 +13,13 @@
             = goal.updated_at.to_date
             - if goal.editor.present?
               = " by #{goal.editor&.name}"
-        %a.section-expander-block__expander-arrow.open
-          %i.icon-arrow-circled
+        - unless @readonly
+          %a.section-expander-block__expander-arrow.open
+            %i.icon-arrow-circled
   .row.section-expander-block__action-row
     .col-sm-12
       .goal-form
-        = simple_form_for(goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: goal.id), remote: true) do |f|
+        = simple_form_for(goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: goal.id), remote: true, wrapper: wrapper) do |f|
           .row
             .col-sm-12
               = f.input :name, label: 'Goal'
@@ -49,12 +51,12 @@
               = f.input :az_family, label: 'Family & Social Relationships'
               = f.input :az_community, label: 'Community Involvement'
               = f.input :az_time_management, label: 'Daily Time Management'
-            
-          .row
-            .col-sm-6
-              .form-actions
-                = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
-                  Delete Goal
-                = f.button :submit, value: 'Update Goal'
-            .col-sm-6
-              .status
+          - unless @readonly
+            .row
+              .col-sm-6
+                .form-actions
+                  = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
+                    Delete Goal
+                  = f.button :submit, value: 'Update Goal'
+              .col-sm-6
+                .status
