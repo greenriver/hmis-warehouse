@@ -4,10 +4,6 @@
       - @goals.each do |goal|
         = render goal
 
-- else
-  %p
-    This careplan is lacking goals.
-
 = content_for :page_js do
   :javascript
     (function($) {
