@@ -17,3 +17,7 @@
 .row
   .col-sm-12
     = render 'self_management_goal'
+
+= content_for :page_js do
+  :javascript
+    window.print();

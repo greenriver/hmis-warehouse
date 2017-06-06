@@ -23,4 +23,22 @@
         });
         // default to all goals closed
         $('.jGoal .section-expander-block__expander-arrow').trigger('click');
+
+        // Enable the confidence slider
+        $('.jGoals').bind('DOMSubtreeModified', function() {
+          if($('.confidence_slider.ui-slider').length == 0) {
+            $('.confidence_slider').slider({
+              value: $('input#goal_confidence').val(),
+              min: 1,
+              max: 10,
+              step: 1,
+              slide: function(e, ui) {
+                var $confidence = $(e.target).closest('.confidence');
+                $('input#goal_confidence').attr('value', ui.value);
+                console.log(e);
+                $confidence.find('.value').text(ui.value); 
+              }
+            });
+          }
+        });
       })(jQuery);

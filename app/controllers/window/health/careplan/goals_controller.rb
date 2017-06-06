@@ -8,7 +8,7 @@ module Window::Health::Careplan
     before_action :set_client
     before_action :set_patient
     before_action :set_careplan
-    before_action :set_goal, only: [:update, :destroy, :show]
+    before_action :set_goal, only: [:update, :destroy, :show, :previous]
 
     
     def new
@@ -16,6 +16,10 @@ module Window::Health::Careplan
     end
 
     def show
+
+    end
+
+    def previous
 
     end
 

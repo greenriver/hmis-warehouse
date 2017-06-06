@@ -25,6 +25,7 @@ Rails.application.routes.draw do
       namespace :careplan do
         resources :goals do
           post :sort, on: :collection
+          resources :previous, only: [:index, :show]
         end
         namespace :team do
           resources :members, only: [:index, :create, :destroy, :new] do

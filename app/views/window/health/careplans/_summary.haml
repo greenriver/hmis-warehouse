@@ -1,4 +1,10 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
+- unless @readonly
+  .row
+    .col-sm-12.text-right
+      =link_to polymorphic_path([:print] + careplan_path_generator) do
+        %i.icon-printer
+        Print Care Plan
 .slab
   = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator), wrapper: wrapper do |f|
     .row
