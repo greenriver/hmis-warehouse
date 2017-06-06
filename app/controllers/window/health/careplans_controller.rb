@@ -18,9 +18,9 @@ module Window::Health
     def update
       begin
         @careplan.update!(careplan_params)
-        flash[:notice] = "Careplan updated"
+        flash[:notice] = "Care plan updated"
       rescue Exception => e
-        flash[:error] = "Failed to update careplan. #{e}"
+        flash[:error] = "Failed to update care plan. #{e}"
       end
       redirect_to action: :show
     end
