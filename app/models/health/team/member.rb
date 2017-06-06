@@ -5,6 +5,7 @@ module Health
     acts_as_paranoid
 
     belongs_to :team, class_name: Health::Team.name
+        
     validates :email, presence: true, email_format: { check_mx: true }, length: {maximum: 250}
     validates_presence_of :first_name, :last_name, :organization
 

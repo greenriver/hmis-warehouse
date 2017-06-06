@@ -318,7 +318,8 @@ CREATE TABLE team_members (
     last_contact date,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_id integer
 );
 
 
@@ -350,7 +351,8 @@ CREATE TABLE teams (
     patient_id integer,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_id integer
 );
 
 
@@ -689,4 +691,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170529203247');
 INSERT INTO schema_migrations (version) VALUES ('20170601172245');
 
 INSERT INTO schema_migrations (version) VALUES ('20170602013551');
+
+INSERT INTO schema_migrations (version) VALUES ('20170606143003');
 

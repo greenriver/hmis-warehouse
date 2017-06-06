@@ -1,10 +1,10 @@
 .slab
   = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator) do |f|
     .row
-      .col-md-6.col-sm-3
-        %h4
+      .col-md-5.col-sm-3
+        %h3.section-expander-block__header
           Care Plan Dates
-      .col-md-2.col-sm-4
+      .col-md-3.col-sm-4
         .margin-top-03.slab__base-dates
           = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}
           = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}

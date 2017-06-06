@@ -16,6 +16,10 @@ module Window::Health::Careplan::Team
 
     end
 
+    def new
+      @member = Health::Team::Member.new
+    end
+
     def previous
 
     end
@@ -23,8 +27,10 @@ module Window::Health::Careplan::Team
     def restore
       begin
         @member.restore!
+        @member.update(user_id: current_user.id)
+        @team.update(user_id: current_user.id)
       rescue Exception => e
-        flash[:error] = 'Unable to restore team member'
+        flash[:error] = "Unable to restore team member: #{e}"
       end
       redirect_to action: :index
     end
@@ -33,10 +39,14 @@ module Window::Health::Careplan::Team
       type = team_member_params[:type]
       @member = Health::Team::Member.new(team_member_params)
       klass = type.constantize if Health::Team::Member.available_types.map(&:to_s).include?(type)
-      opts = team_member_params.merge({team_id: @team.id})
+      opts = team_member_params.merge({
+        team_id: @team.id,
+        user_id: current_user.id
+      })
       begin
         raise 'Member type not found' unless klass.present?
         new_member = klass.create!(opts)
+        @team.update(user_id: current_user.id)
         flash[:notice] = "Added #{new_member.full_name} to team"
         redirect_to action: :index
       rescue Exception => e
@@ -48,7 +58,9 @@ module Window::Health::Careplan::Team
 
     def destroy
       begin
+        @member.update(user_id: current_user.id)
         @member.destroy!
+        @team.update(user_id: current_user.id)
         flash[:notice] = "Removed #{@member.full_name} from team"
       rescue Exception => e
         flash[:error] = "Failed to delete Team Member"

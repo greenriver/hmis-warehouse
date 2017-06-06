@@ -26,7 +26,7 @@ Rails.application.routes.draw do
           post :sort, on: :collection
         end
         namespace :team do
-          resources :members, only: [:index, :create, :destroy] do
+          resources :members, only: [:index, :create, :destroy, :new] do
             get :previous, on: :collection
             post :restore
           end

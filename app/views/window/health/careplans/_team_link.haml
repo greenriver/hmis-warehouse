@@ -1,9 +1,9 @@
 .well.section-expander-block.closed
   .row
     .col-md-8
-      %h3.section-expander-block__header Team Members
-    .col-md-4
-      .section-expander-block__expander-region
-        .section-expander-block__metadata.text-small
-          = link_to polymorphic_path(careplan_path_generator + [:team, :members]), class: 'section-expander-block__expander-arrow' do
-            %i.icon-arrow-circled-right
+      %h3.section-expander-block__header
+        Team Members
+    .col-md-4.text-right
+      = link_to polymorphic_path(careplan_path_generator + [:team, :members]) do
+        .section-expander-block__expander-arrow
+          %i.icon-arrow-circled
