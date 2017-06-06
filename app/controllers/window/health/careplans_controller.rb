@@ -8,10 +8,11 @@ module Window::Health
     before_action :set_client
     before_action :set_patient
     before_action :set_careplan
+    before_action :set_self_management_goal, only: [:show]
     
     def show
       @goal = Health::Goal::Base.new
-      @goals = @careplan.goals.order(number: :asc)
+      @goals = @careplan.goals.variable_goals.order(number: :asc)
     end
 
     def update
@@ -32,6 +33,13 @@ module Window::Health
       @careplan = Health::Careplan.where(patient_id: @patient.id).first_or_create do |cp|
         cp.user = current_user
         cp.save!
+      end
+    end
+
+    def set_self_management_goal
+      @self_management = Health::Goal::SelfManagement.where(careplan_id: @careplan.id).first_or_create do |goal|
+        goal.number = -1
+        goal.save!
       end
     end
 

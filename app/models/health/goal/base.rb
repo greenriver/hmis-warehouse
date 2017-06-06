@@ -6,8 +6,11 @@ module Health
 
     belongs_to :careplan, class_name: Health::Careplan.name
     delegate :patient, to: :careplan
+    belongs_to :editor, class_name: User.name, foreign_key: :user_id
 
     validates_presence_of :name, :number, :type
+
+    scope :variable_goals, -> { where(type: self.available_types_for_variable_goals)}
 
     def self.type_name
       raise 'Implement in sub-class'
@@ -31,8 +34,8 @@ module Health
       self.available_types - [Health::Goal::SelfManagement]
     end
 
-    def self.next_available_number
-      Health::Goal::Base.maximum(:number) + 1
+    def self.next_available_number(careplan_id:)
+      Health::Goal::Base.where(careplan_id: careplan_id).maximum(:number) + 1 || 1
     end
 
     def self.available_numbers

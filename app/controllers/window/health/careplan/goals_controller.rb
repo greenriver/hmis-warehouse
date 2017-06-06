@@ -39,7 +39,11 @@ module Window::Health::Careplan
       type = goal_params[:type]
       @goal = Health::Goal::Base.new(goal_params)
       klass = type.constantize if Health::Goal::Base.available_types.map(&:to_s).include?(type)
-      opts = goal_params.merge({careplan_id: @careplan.id, number: Health::Goal::Base.next_available_number})
+      opts = goal_params.merge({
+        careplan_id: @careplan.id, 
+        number: Health::Goal::Base.next_available_number(careplan_id: @careplan.id),
+        user_id: current_user.id
+      })
       begin
         raise 'Member type not found' unless klass.present?
         new_goal = klass.create!(opts)
@@ -53,7 +57,7 @@ module Window::Health::Careplan
 
     def update
       begin
-        @goal.update!(goal_params)
+        @goal.update!(goal_params.merge({user_id: current_user.id}))
         flash[:notice] = "#{@goal.name} updated"
       rescue Exception => e
         flash[:error] = "Failed to update goal #{e}"

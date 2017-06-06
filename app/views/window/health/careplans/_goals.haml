@@ -1,5 +1,5 @@
 - if @goals.present?
-  .row
+  .row.jGoals
     .col-sm-12
       - @goals.each do |goal|
         = render goal
@@ -11,7 +11,19 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      $('.goal-form input').on('click', function(e) {
+      $('.goal-form input[type=submit]').on('click', function(e) {
         $(this).closest('.goal-form').prepend('<div class="alert alert-info">Saving...</div>')
       });
+      // goal expansion & contraction
+      $('.jGoals').on('click', '.section-expander-block__expander-arrow', function(e) {
+        var $button = $(e.currentTarget)
+        var $container = $button.closest('.section-expander-block');
+        var $row = $container.find('.section-expander-block__action-row')
+        $row.slideToggle();
+        $container.toggleClass('open');
+        $button.toggleClass('open')
+
+      });
+      // default to all goals closed
+      $('.jGoal .section-expander-block__expander-arrow').trigger('click');
     })(jQuery);

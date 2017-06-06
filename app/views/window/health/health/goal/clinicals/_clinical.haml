@@ -1,22 +1,37 @@
-.goal{id: "goal-#{clinical.id}", data: {goal: clinical.id}}
-  %h2.goal-title
-    Goal
-    = clinical.number
-  .goal-form.well
-    = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id), remote: true) do |f|
-      .row
-        .col-sm-6
-          = f.input :name, label: 'Goal'
-          = f.input :associated_dx, label: 'Associated DX'
-          = f.input :barriers
-        .col-sm-6
-          %h3.goal__team-plan-title Team Plan
-          = f.input :provider_plan, label: 'Provider'
-          = f.input :case_manager_plan, label: 'SDH Case Manager'
-          = f.input :rn_plan, label: 'RN'
-          = f.input :bh_plan, label: 'BH'
+- goal = clinical
+.well.section-expander-block.open.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
+  .row
+    .col-md-8
+      %h3.section-expander-block__header
+        Goal
+        = goal.number
+    .col-md-4
+      .section-expander-block__expander-region
+        .section-expander-block__metadata.text-small
+          Last Modified: 
+          %strong
+            = goal.updated_at.to_date
+            - if goal.editor.present?
+              = " by #{goal.editor&.name}"
+        %a.section-expander-block__expander-arrow.open
+          %i.icon-arrow-circled
+  .row.section-expander-block__action-row
+    .col-sm-12
+      .goal-form
+        = simple_form_for(goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: goal.id), remote: true) do |f|
+          .row
+            .col-sm-6
+              = f.input :name, label: 'Goal'
+              = f.input :associated_dx, label: 'Associated DX'
+              = f.input :barriers
+            .col-sm-6
+              %h3.goal__team-plan-title Team Plan
+              = f.input :provider_plan, label: 'Provider'
+              = f.input :case_manager_plan, label: 'SDH Case Manager'
+              = f.input :rn_plan, label: 'RN'
+              = f.input :bh_plan, label: 'BH'
 
-      .form-actions
-        = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id), method: :delete, class: 'btn btn-secondary' do 
-          Delete Goal
-        = f.button :submit, value: 'Update Goal'
+          .form-actions
+            = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
+              Delete Goal
+            = f.button :submit, value: 'Update Goal'

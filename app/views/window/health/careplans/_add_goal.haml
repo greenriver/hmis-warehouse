@@ -35,8 +35,6 @@
           var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
             return item.replace('sorted-goal-', '')
           });
-          console.log($('.draggable-list').sortable('toArray'));
-          console.log(order);
           $.post(update_order_url, {order: order}, function(data){
             if(data.success) {
               $('.draggable-list').prepend('<div class="alert alert-success order-updated">' + data.success + '</div>')
@@ -46,8 +44,6 @@
               $('.draggable-list').prepend('<div class="alert alert-danger">' + data.error + '</div>')
             }
           });
-
-
         }
       });
 

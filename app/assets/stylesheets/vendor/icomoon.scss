@@ -142,10 +142,12 @@
 .icon-filter:before {
   content: "\ea5b";
 }
+.section-expander-block__expander-arrow.open .icon-arrow-circled:before,
 .icon-arrow-circled-down:before {
   content: "\e908";
   color: #90a4bc;
 }
+.section-expander-block__expander-arrow .icon-arrow-circled:before,
 .icon-arrow-circled-right:before {
   content: "\e909";
   color: #90a4bc;
