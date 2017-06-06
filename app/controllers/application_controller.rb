@@ -70,4 +70,17 @@ class ApplicationController < ActionController::Base
   def configure_permitted_parameters
     devise_parameter_sanitizer.for(:sign_up) { |u| u.permit(:username, :email, :password, :password_confirmation, :name) }
   end
+
+  # Redirect to window page after signin if you have
+  # no where else to go (and you can see it)
+  def after_sign_in_path_for(resource)
+    last_url = session["user_return_to"]
+    if last_url.present?
+      last_url
+    elsif can_view_client_window?
+      window_clients_path
+    else
+      root_path
+    end
+  end
 end
