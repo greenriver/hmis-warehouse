@@ -19,11 +19,27 @@ module Window::Health::Careplan
 
     end
 
+    def sort
+      order = params[:order].reject(&:blank?).map(&:to_i)
+      order.each_with_index do |id, index|
+        begin
+          Health::Goal::Base.transaction do
+            goal = Health::Goal::Base.find(id)
+            goal.update!(number: index + 1)
+          end
+        rescue Exception => e
+          render json: {error: "Unable to update order. #{e}", params: order}
+          return
+        end
+      end
+      render json: {success: 'Goal order updated, refresh to see changes.', params: order}
+    end
+
     def create
       type = goal_params[:type]
       @goal = Health::Goal::Base.new(goal_params)
       klass = type.constantize if Health::Goal::Base.available_types.map(&:to_s).include?(type)
-      opts = goal_params.merge({careplan_id: @careplan.id})
+      opts = goal_params.merge({careplan_id: @careplan.id, number: Health::Goal::Base.next_available_number})
       begin
         raise 'Member type not found' unless klass.present?
         new_goal = klass.create!(opts)

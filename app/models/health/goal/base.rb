@@ -27,6 +27,14 @@ module Health
       ]
     end
 
+    def self.available_types_for_variable_goals
+      self.available_types - [Health::Goal::SelfManagement]
+    end
+
+    def self.next_available_number
+      Health::Goal::Base.maximum(:number) + 1
+    end
+
     def self.available_numbers
       (1..4)
     end

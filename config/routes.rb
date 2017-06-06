@@ -22,7 +22,9 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
       end
       namespace :careplan do
-        resources :goals
+        resources :goals do
+          post :sort, on: :collection
+        end
         namespace :team do
           resources :members, only: [:index, :create, :destroy] do
             get :previous, on: :collection

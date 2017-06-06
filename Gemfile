@@ -52,6 +52,7 @@ gem 'execjs'
 gem 'sprockets-es6'
 gem 'select2-rails'
 gem 'font-awesome-sass'
+gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim'
 

@@ -1,9 +1,15 @@
 - title = 'Add Goal'
-= content_for(:title, title)
+
+- content_for :modal_title, title
+
 %h1= content_for :title
 = simple_form_for(@goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goals], id: @careplan.id)) do |f|
-  = f.input :type, collection: Health::Goal::Base.available_types, label_method: :type_name, include_blank: false, label: 'Goal Type', input_html: {class: 'select2'}
+  = f.input :type, collection: Health::Goal::Base.available_types_for_variable_goals, label_method: :type_name, include_blank: false, label: 'Goal Type', input_html: {class: 'select2'}
   = f.input :name, label: 'Goal'
-  = f.input :number, label: 'Goal Number', collection: Health::Goal::Base.available_numbers
+  =# f.input :number, label: 'Goal Number', collection: Health::Goal::Base.available_numbers
   .form-actions
     = f.button :submit, value: 'Add Goal'
+
+= content_for :page_js do
+  :javascript
+    $('.select2').select2();

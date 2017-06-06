@@ -21,6 +21,7 @@
 //= require select2-full
 //= require bootstrap-datepicker
 //= require Chart.bundle.min
+//= require jquery-ui/widgets/sortable
 //= require leaflet
 
 //////////////////////////
