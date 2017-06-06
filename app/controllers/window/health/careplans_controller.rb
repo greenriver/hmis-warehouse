@@ -9,6 +9,7 @@ module Window::Health
     before_action :set_patient
     before_action :set_careplan
     before_action :set_self_management_goal, only: [:show]
+    before_action :set_housing_goal, only: [:show]
     
     def show
       @goal = Health::Goal::Base.new
@@ -39,6 +40,14 @@ module Window::Health
     def set_self_management_goal
       @self_management = Health::Goal::SelfManagement.where(careplan_id: @careplan.id).first_or_create do |goal|
         goal.name = 'Self Management'
+        goal.number = -1
+        goal.save!
+      end
+    end
+
+    def set_housing_goal
+      @housing = Health::Goal::Housing.where(careplan_id: @careplan.id).first_or_create do |goal|
+        goal.name = 'Housing'
         goal.number = -1
         goal.save!
       end

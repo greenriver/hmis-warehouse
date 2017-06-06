@@ -3,10 +3,7 @@
   .row
     .col-md-7
       %h3.section-expander-block__header
-        Goal
-        = goal.number
-        %span.text-muted
-          = "(#{goal.name})"
+        = goal.name
     .col-md-5
       .section-expander-block__expander-region
         .section-expander-block__metadata.text-small
@@ -32,8 +29,11 @@
               = f.input :case_manager_plan, label: 'SDH Case Manager'
               = f.input :rn_plan, label: 'RN'
               = f.input :bh_plan, label: 'BH'
-
-          .form-actions
-            = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
-              Delete Goal
-            = f.button :submit, value: 'Update Goal'
+          .row
+            .col-sm-6
+              .form-actions
+                = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
+                  Delete Goal
+                = f.button :submit, value: 'Update Goal'
+            .col-sm-6
+              .status

@@ -8,7 +8,7 @@
   :javascript
     (function($) {
       $('.goal-form input[type=submit]').on('click', function(e) {
-        $(this).closest('.goal-form').prepend('<div class="alert alert-info">Saving...</div>')
+        $(this).closest('.goal-form').find('.status').html('<div class="alert alert-info">Saving...</div>')
       });
       // goal expansion & contraction
       $('.jGoals').on('click', '.section-expander-block__expander-arrow', function(e) {

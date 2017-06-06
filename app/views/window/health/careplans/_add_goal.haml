@@ -4,47 +4,49 @@
       %h3.section-expander-block__header Team Goals
     .col-md-4
       .section-expander-block__expander-region
-        .section-expander-block__metadata.text-small
-        %a.section-expander-block__expander-arrow
-          %i.icon-arrow-circled-down
-  .row.section-expander-block__action-row
-    .col-md-8
-      - if @goals.present?
-        %ul.draggable-list.goal-list
-          - @goals.each do |goal|
-            %li.draggable-list__item{id: "sorted-goal-#{goal.id}"}
-              %i.icon-move
-              %span.goal-list__number
-                = goal.number
-              %span.goal-list__name
-                = link_to goal.name, "#goal-#{goal.id}"
-
-    .col-md-4
-      .pull-right
         =link_to(polymorphic_path([:new] + careplan_path_generator + [:goal]), class: 'btn btn-action btn-icon-left', data: { loads_in_pjax_modal: true }) do
           %i.icon-plus
           Add Goal
+  - if false
+    .row.section-expander-block__action-row
+      .col-md-8
+        - if @goals.present?
+          %ul.draggable-list.goal-list
+            - @goals.each do |goal|
+              %li.draggable-list__item{id: "sorted-goal-#{goal.id}"}
+                %i.icon-move
+                %span.goal-list__number
+                  = goal.number
+                %span.goal-list__name
+                  = link_to goal.name, "#goal-#{goal.id}"
 
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var list = $('.draggable-list');
-      var update_order_url = '#{polymorphic_path([:sort] + careplan_path_generator + [:goals])}';
-      list.sortable({
-        update: function(event, ui) {
-          var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
-            return item.replace('sorted-goal-', '')
-          });
-          $.post(update_order_url, {order: order}, function(data){
-            if(data.success) {
-              $('.draggable-list').prepend('<div class="alert alert-success order-updated">' + data.success + '</div>')
-              $('.order-updated').delay(2500).fadeOut();
-            }
-            else if(data.error){
-              $('.draggable-list').prepend('<div class="alert alert-danger">' + data.error + '</div>')
-            }
-          });
-        }
-      });
+      .col-md-4
+        .pull-right
+          =link_to(polymorphic_path([:new] + careplan_path_generator + [:goal]), class: 'btn btn-action btn-icon-left', data: { loads_in_pjax_modal: true }) do
+            %i.icon-plus
+            Add Goal
 
-    })(jQuery);
+- if false
+  = content_for :page_js do
+    :javascript
+      (function($) {
+        var list = $('.draggable-list');
+        var update_order_url = '#{polymorphic_path([:sort] + careplan_path_generator + [:goals])}';
+        list.sortable({
+          update: function(event, ui) {
+            var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
+              return item.replace('sorted-goal-', '')
+            });
+            $.post(update_order_url, {order: order}, function(data){
+              if(data.success) {
+                $('.draggable-list').prepend('<div class="alert alert-success order-updated">' + data.success + '</div>')
+                $('.order-updated').delay(2500).fadeOut();
+              }
+              else if(data.error){
+                $('.draggable-list').prepend('<div class="alert alert-danger">' + data.error + '</div>')
+              }
+            });
+          }
+        });
+
+      })(jQuery);

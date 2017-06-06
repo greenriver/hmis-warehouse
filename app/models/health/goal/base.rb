@@ -31,7 +31,7 @@ module Health
     end
 
     def self.available_types_for_variable_goals
-      self.available_types - [Health::Goal::SelfManagement]
+      self.available_types - [Health::Goal::Housing, Health::Goal::SelfManagement]
     end
 
     def self.next_available_number(careplan_id:)

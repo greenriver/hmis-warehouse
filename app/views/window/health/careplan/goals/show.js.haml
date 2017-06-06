@@ -2,5 +2,5 @@
 var id = #{@goal.id};
 var updated_goal = '#{j(render(@goal))}'
 $('.jGoal[data-goal='+ id +']').replaceWith(updated_goal);
-$('.jGoal[data-goal='+ id +'] .goal-form').prepend('<div class="alert alert-success fade-soon">Goal Updated</div>');
+$('.jGoal[data-goal='+ id +'] .goal-form').find('.status').html('<div class="alert alert-success fade-soon">Goal updated.</div>');
 $('.fade-soon').delay(2500).fadeOut()
