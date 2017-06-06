@@ -16,6 +16,9 @@ class StyleGuidesController < ApplicationController
   def add_goal
   end
 
+  def add_team_member
+  end
+
   def health_team
     @member = Health::Team::Member.new
     @client = GrdaWarehouse::Hud::Client.find(14911)
