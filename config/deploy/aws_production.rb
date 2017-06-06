@@ -31,7 +31,7 @@ namespace :deploy do
   before :finishing, :health_migrations do
     on roles(:db)  do
       within current_path do
-        execute :rake, 'health:db:migrate RAILS_ENV=staging'
+        execute :rake, 'health:db:migrate RAILS_ENV=production'
       end
     end
   end
