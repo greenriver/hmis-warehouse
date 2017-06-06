@@ -8,11 +8,15 @@ module Window::Health::Careplan
     before_action :set_client
     before_action :set_patient
     before_action :set_careplan
-    before_action :set_goal, only: [:update, :destroy]
+    before_action :set_goal, only: [:update, :destroy, :show]
 
     
     def new
       @goal = Health::Goal::Base.new()
+    end
+
+    def show
+
     end
 
     def create
@@ -28,7 +32,7 @@ module Window::Health::Careplan
         @goal.validate
         flash[:error] = "Failed to add goal #{e}"
       end
-      redirect_to create_success_path
+      redirect_to create_success_path      
     end
 
     def update
@@ -38,7 +42,15 @@ module Window::Health::Careplan
       rescue Exception => e
         flash[:error] = "Failed to update goal #{e}"
       end
-      redirect_to create_success_path
+
+      respond_to do |format|
+        format.js do
+          render action: :show
+        end
+        format.html do
+          redirect_to create_success_path
+        end
+      end
     end
 
     def destroy

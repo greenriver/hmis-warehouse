@@ -1,9 +1,9 @@
-.goal
+.goal{data: {goal: social.id}}
   %h2.goal-title
     Goal
     = social.number
   .goal-form.well
-    = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id)) do |f|
+    = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id), remote: true) do |f|
       .row
         .col-sm-12
           = f.input :name, label: 'Goal'

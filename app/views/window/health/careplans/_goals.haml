@@ -7,3 +7,11 @@
 - else
   %p
     This careplan is lacking goals.
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.goal-form input').on('click', function(e) {
+        $(this).closest('.goal-form').prepend('<div class="alert alert-info">Saving...</div>')
+      });
+    })(jQuery);
