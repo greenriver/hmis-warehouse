@@ -38,6 +38,7 @@ module Window::Health
 
     def set_self_management_goal
       @self_management = Health::Goal::SelfManagement.where(careplan_id: @careplan.id).first_or_create do |goal|
+        goal.name = 'Self Management'
         goal.number = -1
         goal.save!
       end
