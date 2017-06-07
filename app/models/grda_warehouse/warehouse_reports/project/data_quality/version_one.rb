@@ -1,11 +1,12 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionOne < Base
-    
+    MISSING_THRESHOLD = 10
     def run!
       start_report()
       set_project_metadata()
       set_bed_coverage_data()
       calculate_missing_universal_elements()
+      add_agency_entering_data()
       finish_report()
     end
 
@@ -16,7 +17,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         agency_name: project.organization.OrganizationName,
         project_name: project.ProjectName,
         monitoring_date_range: "#{self.start} - #{self.end}",
-        funding_year: funder.operating_year,
+        monitoring_date_range_present: self.start.present? && self.end.present?
+        # funding_year: funder.operating_year,
         grant_id: funder.GrantID,
         coc_program_component: ::HUD.project_type(project.ProjectType),
         target_population: ::HUD.target_population(project.TargetPopulation) || '',
@@ -36,6 +38,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_answers({
         bed_coverage: bed_coveage,
         bed_coverage_percent: bed_coverage_percent,
+      })
+    end
+
+    def add_agency_entering_data
+      r = report.with_indifferent_access
+      agency_name = r[:agency_name].present?
+      project_name = r[:project_name].present?
+      monitoring_date_range_present = r[:monitoring_date_range_present]
+      grant_id = r[:grant_id].present?
+      coc_program_component = r[:coc_program_component].present?
+      beds_logged = r[:bed_coverage_percent] > 0
+      entering_required_data = agency_name && project_name && monitoring_date_range_present && grant_id && coc_program_component && beds_logged
+      add_answers({
+        entering_required_data: entering_required_data
       })
     end
 
@@ -118,38 +134,42 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_race_percent = refused_race.size/clients.size*100 rescue 0
       refused_gender_percent = refused_gender.size/clients.size*100 rescue 0
 
+      percentages = {
+        missing_name_percent: missing_name_percent,
+        missing_ssn_percent: missing_ssn_percent,
+        missing_dob_percent: missing_dob_percent,
+        missing_veteran_percent: missing_veteran_percent,
+        missing_ethnicity_percent: missing_ethnicity_percent,
+        missing_race_percent: missing_race_percent,
+        missing_gender_percent: missing_gender_percent,
+        refused_name_percent: refused_name_percent,
+        refused_ssn_percent: refused_ssn_percent,
+        refused_dob_percent: refused_dob_percent,
+        refused_veteran_percent: refused_veteran_percent,
+        refused_ethnicity_percent: refused_ethnicity_percent,
+        refused_race_percent: refused_race_percent,
+        refused_gender_percent: refused_gender_percent,
+      }
+
       add_answers({
         total_clients: clients.size,
-        missing_name: missing_name.size,
-        missing_name_percent: missing_name_percent,
-        missing_ssn: missing_ssn.size,
-        missing_ssn_percent: missing_ssn_percent,
-        missing_dob: missing_dob.size,
-        missing_dob_percent: missing_dob_percent,
-        missing_veteran: missing_veteran.size,
-        missing_veteran_percent: missing_veteran_percent,
-        missing_ethnicity: missing_ethnicity.size,
-        missing_ethnicity_percent: missing_ethnicity_percent,
+        missing_name: missing_name.size,   
+        missing_ssn: missing_ssn.size,   
+        missing_dob: missing_dob.size,     
+        missing_veteran: missing_veteran.size,       
+        missing_ethnicity: missing_ethnicity.size,       
         missing_race: missing_race.size,
-        missing_race_percent: missing_race_percent,
         missing_gender: missing_gender.size,
-        missing_gender_percent: missing_gender_percent,
         refused_name: refused_name.size,
-        refused_name_percent: refused_name_percent,
         refused_ssn: refused_ssn.size,
-        refused_ssn_percent: refused_ssn_percent,
         refused_dob: refused_dob.size,
-        refused_dob_percent: refused_dob_percent,
         refused_veteran: refused_veteran.size,
-        refused_veteran_percent: refused_veteran_percent,
         refused_ethnicity: refused_ethnicity.size,
-        refused_ethnicity_percent: refused_ethnicity_percent,
         refused_race: refused_race.size,
-        refused_race_percent: refused_race_percent,
         refused_gender: refused_gender.size,
-        refused_gender_percent: refused_gender_percent,
-
+        meets_dq_benchmark: percentages.values.max < MISSING_THRESHOLD
       })
+      add_answers(percentages)
     end
 
 
