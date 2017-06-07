@@ -44,10 +44,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         one_year_enrollments: 'Enrollments lasting 12 or more months',
         one_year_enrollments_percentage: 'clients with enrollments lasting 12 or more months in %',
         ph_destinations_percentage: 'leavers who exited to PH in %',
+        increased_earned: 'Clients with increased earned income',
         increased_earned_percentage: 'Percentage of clients who had increased earned income',
+        increased_non_cash: 'Clients with increased non-cash income',
         increased_non_cash_percentage: 'Percentage of clients who had increased non-cash income',
+        increased_overall: 'Clients with increased overall income',
         increased_overall_percentage: 'Percentage of clients who had increased total income',
       }
+
     end
 
 
