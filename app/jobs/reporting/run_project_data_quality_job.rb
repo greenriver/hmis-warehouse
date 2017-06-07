@@ -6,7 +6,11 @@ module Reporting
       @send_email = send_email
       @report = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.find(@report_id)
       if @generate
-        @report.run!
+        begin
+          @report.run!
+        rescue Exception => e
+          @report.update(processing_errors: [e.message, e.backtrace].to_json)
+        end
       end
       if @send_email
         @report.send_notifications

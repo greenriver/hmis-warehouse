@@ -87,9 +87,7 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     namespace :project do
-      resource :data_quality 
-      resources :apr, only: [:show, :destroy]
-      resources :dashboard, only: [:show, :destroy]
+      resource :data_quality
     end
   end
 

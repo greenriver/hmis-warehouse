@@ -19,17 +19,102 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def clients
       @clients ||= begin
-        client_scope.select(*columns.values).
+        client_scope.select(*client_columns.values).
           distinct.
-          pluck(*columns.values).
+          pluck(*client_columns.values).
           map do |row|
-            Hash[columns.keys.zip(row)]
+            Hash[client_columns.keys.zip(row)]
           end        
       end
     end
 
-    def columns
-      c_t = client_source.arel_table
+    def enrollments
+      @enrollments ||= begin
+        client_scope.pluck(*enrollment_columns.values).
+        map do |row|
+          Hash[enrollment_columns.keys.zip(row)]
+        end.
+        group_by{|m| m[:id]}
+      end
+    end
+
+    def incomes
+      @incomes ||= begin
+        incomes = {}
+        enrollments.each do |client_id, enrollments|
+          ds_id = enrollments.last[:data_source_id]
+          personal_id = enrollments.last[:personal_id]
+          enrollment_group_id =enrollments.last[:enrollment_group_id]
+          assessments = income_source.where(data_source_id: ds_id).
+            where(PersonalID: personal_id).
+            where(ProjectEntryID: enrollment_group_id).
+            where(i_t[:InformationDate].lteq(self.end)).
+            where(DataCollectionStage: [3, 1]).
+            order(InformationDate: :asc).
+          pluck(*income_columns).map do |row|
+            Hash[income_columns.zip(row)]
+          end
+          incomes[client_id] = assessments
+        end
+        incomes
+      end
+    end
+
+    def leavers
+      leavers = Set.new
+      enrollments.each do |client_id, enrollments|
+        leaver = true
+        enrollments.each do |enrollment|
+          leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] < self.end
+        end
+        leavers << client_id if leaver
+      end
+      leavers
+    end
+
+    def income_columns
+      [
+        :TotalMonthlyIncome, 
+        :IncomeFromAnySource, 
+        :InformationDate, 
+        :DataCollectionStage
+      ] + amount_columns
+    end
+
+    def amount_columns
+      [
+        :EarnedAmount, 
+        :UnemploymentAmount, 
+        :SSIAmount, 
+        :SSDIAmount, 
+        :VADisabilityServiceAmount, 
+        :VADisabilityNonServiceAmount, 
+        :PrivateDisabilityAmount, 
+        :WorkersCompAmount, 
+        :TANFAmount, 
+        :GAAmount, 
+        :SocSecRetirementAmount, 
+        :PensionAmount, 
+        :ChildSupportAmount, 
+        :AlimonyAmount, 
+        :OtherIncomeAmount
+      ]
+    end
+
+    def enrollment_columns
+      {
+        id: c_t[:id].as('id').to_sql,
+        project_id: sh_t[:project_id].as('project_id').to_sql,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        destination: sh_t[:destination].as('destination').to_sql,
+        personal_id: c_t[:PersonalID].as('personal_id').to_sql,
+        data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
+      }
+    end
+
+    def client_columns
       {
         id: c_t[:id].as('id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
@@ -47,13 +132,19 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def start_report
-      started_at = Time.now
+      self.started_at = Time.now
       self.report = {}
     end
 
     def finish_report
-      completed_at = Time.now
+      self.completed_at = Time.now
       save()
+    end
+
+    def status
+      return 'Error' if self.processing_errors.present?
+      return 'Incomplete' if self.completed_at.blank?
+      return "#{self.start} - #{self.end}" if self.completed_at.present?
     end
 
     def add_answers(answers)
@@ -87,6 +178,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end_date: self.end).
         joins(:project, enrollment: :client).
         where(Project: {id: self.project_id})
+    end
+
+    def c_t
+      client_source.arel_table
+    end
+
+    def sh_t
+      GrdaWarehouse::ServiceHistory.arel_table
+    end
+
+    def i_t
+      income_source.arel_table
+    end
+
+    def income_source
+      GrdaWarehouse::Hud::IncomeBenefit
     end
   end
 end

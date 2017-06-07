@@ -2,11 +2,10 @@ module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     before_action :require_can_view_reports!
 
-    before_filter :set_projects
+    before_action :set_projects
 
     def show
       @range = DateRange.new()
-
     end
 
     def create
@@ -30,9 +29,9 @@ module WarehouseReports::Project
         # kick off report generation
         @project_ids.each do |project_id|
           if @generate
-            report = GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.create(project_id: project_id, start: @range.start, end: @range.end)
+            report = report_scope.create(project_id: project_id, start: @range.start, end: @range.end)
           else
-            report = GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.
+            report = report_scope.
               where(project_id: project_id).
               order(id: :desc).first_or_initialize
           end
@@ -61,6 +60,10 @@ module WarehouseReports::Project
 
     def project_scope
       GrdaWarehouse::Hud::Project.all
+    end
+
+    def report_scope
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
     end
 
     def set_projects

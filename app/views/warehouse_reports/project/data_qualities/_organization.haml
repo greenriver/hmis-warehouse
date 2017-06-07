@@ -34,12 +34,18 @@
     %td
       = check_box_tag("project[#{project.id}]", 1, false, {class: 'jProjectSelect'})
     %td
-      = last_report&.start || content_tag( :em, 'not available')
+      - if last_status = last_report&.status
+        = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id) 
+      -else 
+        = content_tag( :em, 'not available')
     %td
       - if project.project_contacts.any?
         = project.project_contacts.map{|m| "#{m.first_name} #{m.last_name} (#{m.email})"}.join(', ')
-      - else 
+      - else
+        = link_to project_project_contacts_path(project) do
+          Add project contacts
+        on the
         = link_to project_path(project) do
-          Add project contacts on the project page
+          project page
     %td
       = last_report&.sent_at&.to_date
