@@ -43,7 +43,7 @@ module WarehouseReports::Project
 
     def download
       @report = []
-      # Fixme, these should be gathered in one query that 
+      # FIXME, these should be gathered in one query that 
       # fetches the most recent report for each project that 
       @projects.each do |_, projects|
         projects.each do |project|
@@ -52,7 +52,7 @@ module WarehouseReports::Project
         end
       end
       @report
-
+      # FIXME: Filename isn't working
       render filename: "project_data_quality_report #{Date.today}.xlsx"
     end
 

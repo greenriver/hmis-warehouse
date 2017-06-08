@@ -924,6 +924,30 @@ module GrdaWarehouse::Hud
         .map(&:new_episode?)
         .count(true)
     end
+    
+    def months_served_since date:
+      service_history.
+        service
+        .homeless
+        .where(date: date..Date.today)
+        .order(date: :asc)
+        .pluck(:date)
+        .map{|m| [m.month, m.year]}
+        .uniq
+        .count
+    end
+    
+    def months_served_between start_date:, end_date:
+      service_history.
+        service
+        .homeless
+        .where(date: start_date..end_date)
+        .order(date: :asc)
+        .pluck(:date)
+        .map{|m| [m.month, m.year]}
+        .uniq
+        .count
+    end
 
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
