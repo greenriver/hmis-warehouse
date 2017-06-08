@@ -34,6 +34,22 @@ SimpleForm.setup do |config|
     end
   end
 
+  config.wrappers :readonly, tag: 'div', class: 'form-group', error_class: 'error' do |b|
+    b.use :html5
+    b.use :placeholder
+    b.optional :maxlength
+    b.optional :pattern
+    b.optional :min_max
+    b.optional :readonly
+    b.use :label, class: 'control-label'
+
+    b.wrapper tag: 'div', class: 'controls' do |ba|
+      ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
+      ba.use :error, wrap_with: { tag: 'p', class: 'error-block' }
+      ba.use :input, class: 'form-control'
+    end
+  end
+
   config.wrappers :vertical_file_input, tag: 'div', class: 'form-group', error_class: 'has-error' do |b|
     b.use :html5
     b.use :placeholder

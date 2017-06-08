@@ -1,0 +1,38 @@
+%p
+  = "The following is patient information for the client #{@client.name}."
+.row
+  .col-sm-4
+    %dl
+      %dt 
+        Patient
+        %dd=@patient.name
+      %dt
+        Gender
+        %dd
+          = @patient.gender
+          = "(#{@patient.transgender})" if @patient.transgender.present?
+      %dt 
+        DOB
+        %dd= @patient.birthdate
+  .col-sm-4
+    %dl
+      %dt
+        SSN
+        %dd= @patient.ssn
+      %dt
+        Veteran Status
+        %dd= @patient.veteran_status
+      %dt
+        Race
+        %dd= @patient.race
+      %dt
+        Ethnicity
+        %dd= @patient.ethnicity
+  .col-sm-4
+    %dl
+      %dt
+        Primary Care Physician
+        %dd= @patient.primary_care_physician
+      %dt
+        Allergies
+        %dd= @patient.allergy_list.presence || 'none'

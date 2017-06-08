@@ -240,7 +240,7 @@ module GrdaWarehouse::Hud
     end
 
     # If we haven't been in a homeless project type in the last 30 days, this is a new episode
-    # If we dont' currently have a non-homeless residential and we have had one for the past 90 days 
+    # If we don't currently have a non-homeless residential enrollment and we have had one for the past 90 days, this is a new episode
     def new_episode?
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(self.project.ProjectType)
       thirty_days_ago = self.EntryDate - 30.days

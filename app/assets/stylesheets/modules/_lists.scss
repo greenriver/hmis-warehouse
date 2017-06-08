@@ -1,0 +1,48 @@
+.style-guide__icon-list,
+.draggable-list {
+  list-style: none;
+  padding-left: 0;
+}
+.style-guide__icon-list i {
+  font-size: 36px;
+  padding-right: 18px;
+}
+.style-guide__icon-list li {
+  margin-bottom: 18px;
+}
+.draggable-list li {
+  margin-bottom: 14px;
+}
+.draggable-list .icon-move {
+  padding-right: 10px;
+}
+.goal-list {
+  line-height: 1.1;
+}
+.draggable-list__item:hover,
+.draggable-list__item:active,
+.draggable-list__item:focus {
+  cursor: pointer;
+  font-weight: 700;
+  .goal-list__number {
+    background-color: darken($cas-blue-007, 15);
+  }
+}
+.goal-list__number {
+  background-color: $cas-blue-007;
+  border-radius: 50%;
+  line-height: 1.7;
+  color: #f5f5f5;
+  font-weight: 700;
+  height: 24px;
+  width: 24px;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+}
+.active .goal-list__number {
+  background-color: $gray-070;
+}
+.active .goal-list__name {
+  font-weight: 700;
+}

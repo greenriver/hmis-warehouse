@@ -1,0 +1,10 @@
+- title = 'Care Plan'
+= content_for(:title, title)
+%h1= content_for :title
+.row
+  .col-sm-12
+    = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
+
+.row
+  .col-sm-12
+    = render 'window/health/tab_navigation', current: polymorphic_path(careplan_path_generator)

@@ -2,11 +2,10 @@ module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     before_action :require_can_view_reports!
 
-    before_filter :set_projects
+    before_action :set_projects
 
     def show
       @range = DateRange.new()
-
     end
 
     def create
@@ -30,16 +29,31 @@ module WarehouseReports::Project
         # kick off report generation
         @project_ids.each do |project_id|
           if @generate
-            report = GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.create(project_id: project_id, start: @range.start, end: @range.end)
+            report = report_scope.create(project_id: project_id, start: @range.start, end: @range.end)
           else
-            report = GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.
+            report = report_scope.
               where(project_id: project_id).
               order(id: :desc).first_or_initialize
           end
-          Reporting::RunProjectDataQualityJob.perform_now(report_id: report.id, generate: @generate, send_email: @email)
+          Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
         end
         redirect_to action: :show
       end
+    end
+
+    def download
+      @report = []
+      # FIXME, these should be gathered in one query that 
+      # fetches the most recent report for each project that 
+      @projects.each do |_, projects|
+        projects.each do |project|
+          last_report = project.data_quality_reports.complete.last 
+          @report << last_report if last_report.present?
+        end
+      end
+      @report
+      # FIXME: Filename isn't working
+      render filename: "project_data_quality_report #{Date.today}.xlsx"
     end
 
     def generate_param
@@ -63,10 +77,14 @@ module WarehouseReports::Project
       GrdaWarehouse::Hud::Project.all
     end
 
+    def report_scope
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
+    end
+
     def set_projects
       @projects = project_scope.includes(:organization, :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:project_contacts, :data_qualilty_reports).
+        preload(:project_contacts, :data_quality_reports).
         group_by{ |m| [m.data_source.short_name, m.organization]}
     end
   end

@@ -1,0 +1,17 @@
+= render 'breadcrumbs'
+%h1 Healthcare Related Roles
+.table-responsive
+  %table.table.table-condensed
+    %thead
+      %th Permission:
+      - @roles.each do |role|
+        %th
+          = role.name
+    %tbody
+      - Role.permissions.each do |permission|
+        %tr
+          %td
+            =permission.to_s.humanize
+          - @roles.each do |role|
+            %td
+              =checkmark(role.send(permission))

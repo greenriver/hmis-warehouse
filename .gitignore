@@ -51,6 +51,7 @@ config/letsencrypt_plugin.yml
 config/cache_store.yml
 .env
 .env.local
+app/mail_interceptors/sandbox_email_interceptor.rb
 
 # Environment normalization:
 /vendor/bundle

@@ -9,6 +9,10 @@ module GrdaWarehouse
       Time.now > expires_at
     end
 
+    def valid_for_report?(report_id)
+      ! expired? && report_id == report_id
+    end
+
     def setup_token
       self.token ||= SecureRandom.urlsafe_base64
       self.expires_at ||= Time.now + 1.year

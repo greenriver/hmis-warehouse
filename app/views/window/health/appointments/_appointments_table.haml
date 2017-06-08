@@ -1,0 +1,16 @@
+%table.table.table-condensed
+  %thead
+    %tr
+      %th{style: 'width: 12em;'} Date
+      %th Department
+      %th Type
+      %th Doctor
+      %th SA
+  %tbody
+    - appointments.each do |visit|
+      %tr
+        %td= visit.appointment_time
+        %td= visit.department
+        %td= visit.appointment_type
+        %td= visit.doctor
+        %td= visit.sa

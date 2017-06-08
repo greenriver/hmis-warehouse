@@ -5,8 +5,9 @@ class ProjectDataQualityReportMailer < ApplicationMailer
     @report = report
     @contacts = @project.project_contacts
     @contacts.each do |contact|
-      token = GrdaWarehouse::ReportToken.create(report_id: @report.id, contact_id: contact.id)
+      @token = GrdaWarehouse::ReportToken.create(report_id: @report.id, contact_id: contact.id)
       mail(to: contact.email, subject: '[Warehouse] Report Complete')
     end
+    @report.notifications_sent()
   end
 end

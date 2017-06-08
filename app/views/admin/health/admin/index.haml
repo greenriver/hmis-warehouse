@@ -1,0 +1,14 @@
+- title = 'Manage Healthcare'
+- content_for(:title, title)
+%h1= title
+%p Use the following links to manage who is included in the healthcare window and who has access to see and update health related items within the window.
+%ul
+  %li
+    = link_to admin_health_patients_path do
+      Assign clients to patients
+  %li
+    = link_to admin_health_users_path do
+      Manage who can access the healthcare window
+  %li
+    = link_to admin_health_roles_path do
+      View permissions and health related-roles

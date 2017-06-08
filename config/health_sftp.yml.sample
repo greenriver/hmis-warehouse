@@ -1,0 +1,6 @@
+development:
+  host: hostname
+  path: path_to_files
+  username: username
+  password: password
+  destination: local/path/for/files

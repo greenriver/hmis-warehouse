@@ -37,6 +37,17 @@ button.close {
   border-color: darken($gray-030, 10%);
   color: #000;
 }
+.btn-action {
+  background-color: $cob-sg-blue-006;
+  border-color: $cob-sg-blue-006;
+  color: #fff;
+}
+.btn-action:hover,
+.btn-action:focus {
+  background-color: darken($cob-sg-blue-006, 10%);
+  border-color: darken($cob-sg-blue-006, 10%);
+  color: #fff;
+}
 .btn-min-width-medium {
   @media (min-width: $screen-xs-min) {
     min-width: 165px;
@@ -45,6 +56,14 @@ button.close {
 .btn [class^="icon-"], 
 .btn [class*=" icon-"] {
   font-size: rem(12);
+}
+.btn-icon-left [class^="icon-"],
+.btn-icon-left [class*=" icon-"] {
+  margin-right: 8px;
+}
+.btn-icon-right [class^="icon-"],
+.btn-icon-right [class*=" icon-"] {
+  margin-left: 8px;
 }
 .btn-label {
   @include open-sans-condensed-bold;

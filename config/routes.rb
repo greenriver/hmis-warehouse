@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
-  match "/404", :to => "errors#not_found", :via => :all
-  match "/422", :to => "errors#unacceptable", :via => :all
-  match "/500", :to => "errors#internal_server_error", :via => :all
+  match "/404", to: "errors#not_found", via: :all
+  match "/422", to: "errors#unacceptable", via: :all
+  match "/500", to: "errors#internal_server_error", via: :all
 
   mount LetsencryptPlugin::Engine, at: '/'
   class OnlyXhrRequest
@@ -10,6 +10,32 @@ Rails.application.routes.draw do
     end
   end
   devise_for :users, controllers: { invitations: 'users/invitations'}
+
+  def healthcare_routes
+    namespace :health do
+      resources :patient, only: [:index]
+      resources :utilization, only: [:index]
+      resources :appointments, only: [:index]
+      resources :medications, only: [:index]
+      resources :problems, only: [:index]
+      resource :careplan, except: [:destroy] do
+        get :self_sufficiency_assessment
+        get :print
+      end
+      namespace :careplan do
+        resources :goals do
+          post :sort, on: :collection
+          resources :previous, only: [:index, :show]
+        end
+        namespace :team do
+          resources :members, only: [:index, :create, :destroy, :new] do
+            get :previous, on: :collection
+            post :restore
+          end
+        end
+      end
+    end
+  end
 
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
@@ -61,9 +87,9 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     namespace :project do
-      resource :data_quality 
-      resources :apr, only: [:show, :destroy]
-      resources :dashboard, only: [:show, :destroy]
+      resource :data_quality do
+        get :download, on: :member
+      end
     end
   end
 
@@ -84,6 +110,7 @@ Rails.application.routes.draw do
       patch :unmerge
       post :create_note
     end
+    healthcare_routes()
   end
   namespace :clients do
     resources :notes, only: [:destroy]
@@ -92,8 +119,7 @@ Rails.application.routes.draw do
   namespace :window do
     resources :clients, only: [:index, :show] do
       resources :print, only: [:index]
-      # resources :health, only: [:index]
-      # resources :youth, only: [:index]
+      healthcare_routes()
       get :rollup
       get :assessment
       get :image
@@ -132,8 +158,15 @@ Rails.application.routes.draw do
   resources :organizations, only: [:index, :show]
   resources :projects, only: [:index, :show] do
     resources :project_contacts, except: [:show]
+    resources :data_quality_reports, only: [:index, :show]
   end
   resources :weather, only: [:index]
+
+  resources :notifications, only: [:show] do
+    resources :projects, only: [:show] do
+      resources :data_quality_reports, only: [:show]
+    end
+  end
 
   namespace :admin do
     # resolves route clash w/ devise
@@ -147,8 +180,27 @@ Rails.application.routes.draw do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
     end
+    namespace :health do
+      resources :admin, only: [:index]
+      resources :patients, only: [:index] do
+        post :update, on: :collection
+      end
+      resources :users, only: [:index] do
+        post :update, on: :collection
+      end
+      resources :roles, only: [:index]
+    end
   end
   resource :account, only: [:edit, :update]
-  
+
+  unless Rails.env.production?
+    resource :style_guide, only: :none do
+      get :careplan
+      get :health_team
+      get :icon_font
+      get :add_goal
+      get :add_team_member
+    end
+  end
   root 'root#index'
 end

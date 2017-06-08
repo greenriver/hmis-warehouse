@@ -1,6 +1,7 @@
 - title = "Project Contacts for #{@project.ProjectName}"
 - content_for :title, title
 %h1= title
+= render 'breadcrumbs'
 .row
   .col-sm-12
     = link_to new_project_project_contact_path(@project), class: 'btn btn-primary pull-right margin-bottom-02' do

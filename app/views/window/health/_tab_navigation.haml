@@ -1,0 +1,21 @@
+:ruby
+  tabs = {
+    polymorphic_path(careplan_path_generator) => {
+      title: 'Goals',
+      permission: can_edit_client_health?,
+    },
+    polymorphic_path(careplan_path_generator + [:team, :members]) => {
+      title: 'Team Members',
+      permission: can_edit_client_health?,
+    },
+  }
+%ul.nav.nav-tabs.margin-bottom-01
+  - tabs.each do |action, details|
+    - if action == current
+      - if details[:permission]
+        %li.active.active-tab{role: 'presentation'}
+          %a{href: '#'} 
+            = details[:title]
+    - else
+      - if details[:permission]
+        %li= link_to details[:title], action

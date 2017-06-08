@@ -1,0 +1,14 @@
+- title = 'Client Healthcare Dashboard'
+= content_for(:title, title)
+%h1= "#{title} for #{@client.full_name}"
+= render 'clients/tab_navigation', current: client_health_patient_index_path(@client)
+.row
+  .col-sm-12
+    %h2 Patient Summary
+    - if @patient.present?
+      = render 'patient_summary'
+      = render 'patient_details'
+
+      = render 'patient_js'
+    - else
+      %p No patient record found.

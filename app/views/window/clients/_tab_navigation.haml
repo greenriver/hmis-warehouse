@@ -1,16 +1,29 @@
+- show_health = can_edit_client_health? && @client.patient.present?
 :ruby
   tabs = {
-    window_client_path(@client) => {title: 'Basic Info & Programs', controller: 'window/clients', action: 'show', permission: true},
-    window_client_health_index_path(@client) => {title: 'Health',  controller: 'window/health', action: 'index', permission: @client.signed_consent_form_fully?},
-    window_client_youth_index_path(@client) => {title: 'Youth Details',  controller: 'window/youth', action: 'index', permission: @client.signed_consent_form_fully?},
+    polymorphic_path(client_path_generator, id: @client.id) => {
+      title: 'Basic Info & Programs',
+      permission: true,
+    },
+    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+      title: 'Health',
+      permission: show_health,
+    },
+    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
+      title: 'Care Plan',
+      permission: show_health
+    }
   }
-%ul.nav.nav-tabs
-  - tabs.each do |action, details|
-    - if params[:controller] == details[:controller] && params[:action] == details[:action]
-      - if details[:permission]
-        %li.active.active-tab{role: 'presentation'}
-          %a{href: '#'} 
-            = details[:title]
-    - else
-      - if details[:permission]
-        %li= link_to details[:title], action
+
+- # For now, we only need tabs if we can see the health information
+- if show_health
+  %ul.nav.nav-tabs.margin-bottom-01
+    - tabs.each do |action, details|
+      - if action == current
+        - if details[:permission]
+          %li.active.active-tab{role: 'presentation'}
+            %a{href: '#'} 
+              = details[:title]
+      - else
+        - if details[:permission]
+          %li= link_to details[:title], action

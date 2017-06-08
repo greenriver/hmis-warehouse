@@ -52,6 +52,7 @@ gem 'execjs'
 gem 'sprockets-es6'
 gem 'select2-rails'
 gem 'font-awesome-sass'
+gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim'
 
@@ -93,6 +94,7 @@ gem 'newrelic_rpm', require: false
 # gem "temping", require: false
 gem 'dotenv-rails'
 
+gem 'net-sftp', require: false
 gem 'redis-rails'
 
 group :development, :test do

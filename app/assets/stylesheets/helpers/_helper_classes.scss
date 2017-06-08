@@ -19,6 +19,9 @@
 .margin-bottom-03 {
   margin-bottom: 18px;
 }
+.margin-bottom-04 {
+  margin-bottom: 24px;
+}
 .margin-top-01 {
   margin-top: 6px;
 }
@@ -28,12 +31,13 @@
 .margin-top-03 {
   margin-top: 18px;
 }
-.padding-left-01
-{
+.margin-top-04 {
+  margin-top: 24px;
+}
+.padding-left-01 {
   padding-left: 6px;
 }
-.padding-left-02
-{
+.padding-left-02 {
   padding-left: 12px;
 }
 [class^="icon-"], 
@@ -48,7 +52,6 @@
 .display-block {
   display: block;
 }
-.nobr
-{
+.nobr {
   white-space: nowrap;
 }

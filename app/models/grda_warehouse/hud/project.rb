@@ -76,7 +76,10 @@ module GrdaWarehouse::Hud
     has_many :funders, **hud_many(Funder), inverse_of: :project
 
     # Warehouse Reporting
-    has_many :data_qualilty_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_one :current_data_quality_report, -> do
+      where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
+    end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
     has_many :project_contacts, class_name: GrdaWarehouse::WarehouseReports::ProjectContact.name
 
     scope :residential, -> { where ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS }

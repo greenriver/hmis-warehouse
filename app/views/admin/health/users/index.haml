@@ -1,0 +1,34 @@
+= render 'breadcrumbs'
+%p Use this form to grant access to the healthcare sections of the window into the warehouse to users. 
+
+= simple_form_for :users, url: admin_health_users_path do |f|
+  = f.error_notification
+  .form-inputs
+    %p= page_entries_info @users
+    %p= paginate @users
+    %table.table.table-striped
+      %thead
+        %tr
+          %th User
+          %th email
+          %th Health roles
+      %tbody
+        - @users.each do |user|
+          %tr
+            = simple_fields_for user do |t|
+              %td
+                = user.name
+                = t.input :id, as: :hidden, input_html: { id: "users[#{user.id}]id", name: "users[#{user.id}]id"}
+              %td
+                = user.email
+                %td
+                  .form-group.check_boxes.optional.user_roles               
+                    - Role.health.each do |role|
+                      - id = "users[#{user.id}]roles[#{role.id}]"
+                      - name = "users[#{user.id}]roles[]"
+                      %span.checkbox
+                        %label{for: id}
+                          = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
+                          = role.name
+  .form-actions
+    = f.button :submit, class: 'btn btn-primary'
