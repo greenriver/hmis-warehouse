@@ -87,7 +87,9 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     namespace :project do
-      resource :data_quality
+      resource :data_quality do
+        get :download, on: :member
+      end
     end
   end
 

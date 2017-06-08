@@ -41,6 +41,21 @@ module WarehouseReports::Project
       end
     end
 
+    def download
+      @report = []
+      # Fixme, these should be gathered in one query that 
+      # fetches the most recent report for each project that 
+      @projects.each do |_, projects|
+        projects.each do |project|
+          last_report = project.data_quality_reports.complete.last 
+          @report << last_report if last_report.present?
+        end
+      end
+      @report
+
+      render filename: "project_data_quality_report #{Date.today}.xlsx"
+    end
+
     def generate_param
       params.permit(project_data_quality: [:generate])[:project_data_quality][:generate].try(:to_i)
     end
@@ -69,7 +84,7 @@ module WarehouseReports::Project
     def set_projects
       @projects = project_scope.includes(:organization, :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:project_contacts, :data_qualilty_reports).
+        preload(:project_contacts, :data_quality_reports).
         group_by{ |m| [m.data_source.short_name, m.organization]}
     end
   end

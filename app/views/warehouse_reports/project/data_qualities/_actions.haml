@@ -33,5 +33,5 @@
         %td
           = f.button :submit, value: 'Run Selected Reports'
         %td 
-          -# link_to root_path(), class: 'btn btn-secondary' do
+          = link_to download_warehouse_reports_project_data_quality_path(format: :xlsx), class: 'btn btn-secondary' do
             Download most-recent reports

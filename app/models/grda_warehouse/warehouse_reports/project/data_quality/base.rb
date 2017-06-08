@@ -5,6 +5,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     has_many :project_contacts, through: :project
     has_many :report_tokens, -> { where(report_id: id)}, class_name: GrdaWarehouse::ReportToken.name
 
+    scope :complete, -> do
+      where.not(completed_at: nil).
+      where(processing_errors: nil).
+      order(created_at: :asc)
+    end
+
     def display
 
     end
