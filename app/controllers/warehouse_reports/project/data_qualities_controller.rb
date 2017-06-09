@@ -43,17 +43,14 @@ module WarehouseReports::Project
 
     def download
       @report = []
-      # FIXME, these should be gathered in one query that 
-      # fetches the most recent report for each project that 
-      @projects.each do |_, projects|
-        projects.each do |project|
-          last_report = project.data_quality_reports.complete.last 
-          @report << last_report if last_report.present?
-        end
+      @projects = project_scope.includes(:organization, :data_source).
+        order(data_source_id: :asc, OrganizationID: :asc).
+        preload(:project_contacts, :current_data_quality_report) 
+      @projects.each do |project|
+        last_report = project.current_data_quality_report
+        @report << last_report if last_report.present?
       end
-      @report
-      # FIXME: Filename isn't working
-      render filename: "project_data_quality_report #{Date.today}.xlsx"
+      render xlsx: :download, filename: "project_data_quality_report #{Date.today}.xlsx"
     end
 
     def generate_param
