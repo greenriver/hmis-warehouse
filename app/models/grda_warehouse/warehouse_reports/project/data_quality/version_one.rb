@@ -309,8 +309,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def add_capacity_answers
       total_services_provided = service_scope.count
       days_served = (self.end - self.start).to_i
-      average_usage = total_services_provided.to_f/days_served
-      capacity = average_usage.to_f/beds*100 rescue 0
+      average_usage = (total_services_provided.to_f/days_served).round(2)
+      capacity = (average_usage.to_f/beds*100).round(2) rescue 0
       add_answers({
         services_provided: total_services_provided,
         days_of_service: days_served,
