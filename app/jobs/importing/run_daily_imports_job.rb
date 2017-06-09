@@ -11,7 +11,7 @@ module Importing
     def perform
       start_time = Time.now
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
-      Importers::Samba.new.run!
+      # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things

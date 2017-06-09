@@ -1,0 +1,13 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Project Data Quality") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  headers = ['Run on', 'Report Start Date', 'Report End Date'] + @report.first.report_columns.values
+  sheet.add_row(headers, :style => title)
+  @report.each do |report|
+    sheet.add_row(
+      [report.created_at.to_date, report.start.to_date, report.end.to_date] + report.report_columns.keys.map do |k|
+        report.report.with_indifferent_access[k]
+      end
+    )
+  end
+end

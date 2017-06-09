@@ -3,6 +3,7 @@ App.init = ->
   $('abbr').tooltip();
   $('[data-toggle="tooltip"]').tooltip();
   $('[data-toggle="popover"]').popover();
+  $('.select2').select2();
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()

@@ -22,7 +22,7 @@ module WarehouseReports
           @clients = @clients.where(history.table_name => {project_type: @project_types})
         end
       else
-        @clients = @clients.where('1=0')
+        @clients = @clients.none
       end
       respond_to do |format|
         format.html {

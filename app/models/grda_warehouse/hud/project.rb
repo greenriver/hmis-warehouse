@@ -75,6 +75,13 @@ module GrdaWarehouse::Hud
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
     has_many :funders, **hud_many(Funder), inverse_of: :project
 
+    # Warehouse Reporting
+    has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_one :current_data_quality_report, -> do
+      where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
+    end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_many :project_contacts, class_name: GrdaWarehouse::WarehouseReports::ProjectContact.name
+
     scope :residential, -> { where ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS }
 
     scope :coc_funded, -> do
@@ -97,7 +104,7 @@ module GrdaWarehouse::Hud
       self.ProjectName
     end
 
-    def organization_and_name
+    def organization_and_name(include_confidential_names: false)
       "#{organization.name} / #{name}"
     end
 
@@ -156,6 +163,28 @@ module GrdaWarehouse::Hud
       nf( 'COALESCE', [ at[:act_as_project_type], at[:ProjectType] ] ).as('ProjectType').to_sql
     end
 
+    def safe_project_name
+      if confidential?
+        self.class.confidential_project_name
+      else
+        self.ProjectName
+      end
+    end
+
+    # Sometimes all we have is a name, we still want to try and 
+    # protect those
+    def self.confidentialize(name:)
+      @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).pluck(:ProjectName).map(&:downcase).map(&:strip)
+      if @confidential_project_names.include?(name.downcase.strip)
+        GrdaWarehouse::Hud::Project.confidential_project_name
+      else
+        name
+      end
+    end
+
+    def self.confidential_project_name
+      'Confidential Project'
+    end
 
     private def organization_source
       GrdaWarehouse::Hud::Organization

@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.1
--- Dumped by pg_dump version 9.5.1
+-- Dumped from database version 9.5.6
+-- Dumped by pg_dump version 9.5.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -403,7 +403,11 @@ CREATE TABLE roles (
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
     can_view_hiv_status boolean DEFAULT false,
-    can_view_dmh_status boolean DEFAULT false
+    can_view_dmh_status boolean DEFAULT false,
+    health_role boolean DEFAULT false NOT NULL,
+    can_administer_health boolean DEFAULT false,
+    can_edit_client_health boolean DEFAULT false,
+    can_view_client_health boolean DEFAULT false
 );
 
 
@@ -1177,4 +1181,6 @@ INSERT INTO schema_migrations (version) VALUES ('20161216003217');
 INSERT INTO schema_migrations (version) VALUES ('20161219184752');
 
 INSERT INTO schema_migrations (version) VALUES ('20170505132237');
+
+INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 

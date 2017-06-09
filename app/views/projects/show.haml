@@ -25,6 +25,9 @@
       %tr
         %th Continuum Project
         %td= checkmark(@project.ContinuumProject == 1)
+      %tr
+        %th Project Contacts
+        %td= link_to 'View/Edit', project_project_contacts_path(@project)
   .col-sm-4
     %h4 HMIS Info
     %table.table.table-condensed.table-hover

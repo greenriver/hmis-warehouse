@@ -9,9 +9,17 @@ class SandboxEmailInterceptor
   ] + RECIPIENTS).map!(&:downcase)
 
   def self.delivering_email mail
-    mail.to = mail.to.to_a.select{|a| WHITELIST.include? a.downcase}
-    mail.cc = mail.cc.to_a.select{|a| WHITELIST.include? a.downcase}
+    # mail.to = mail.to.to_a.select{|a| WHITELIST.include? a.downcase}
+    # mail.cc = mail.cc.to_a.select{|a| WHITELIST.include? a.downcase}
     mail.bcc = RECIPIENTS
+    if Rails.env.staging?
+      mail.subject = "[TRAINING] #{mail.subject}"
+      mail.body = warning + String(mail.body)
+    end
+  end
+
+  def self.warning
+    "***This message is for training purposes only, the following information is fictitious and does not represent a real housing opportunity or homeless client.***\n\n"
   end
 
 end

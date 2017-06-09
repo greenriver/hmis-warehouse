@@ -20,6 +20,7 @@ $cob-sg-blue-002: #061622;
 $cob-sg-blue-003: #0C2639;
 $cob-sg-blue-004: #45789C; // desaturated
 $cob-sg-blue-005: #51ACFF; // brightest for blue on dark bg
+$cob-sg-blue-006: #495F79; // action button
 
 // initial cas colors from GR
 // $cas-blue: rgb(73, 95, 121); // #495F79
@@ -27,6 +28,9 @@ $cas-blue: $cob-sg-charles-blue;
 $cas-red: rgb(119, 55, 71); // #773747
 $cas-green: rgb(50, 88, 71); // #495F79
 $cas-red-green: rgb(231, 223, 221); // #E7DFDD
+
+// additional cas colors
+$cas-blue-007: #90A4BC;
 
 // Data Source Colors
 $dnd: rgb(86, 114, 170); // #5672AA

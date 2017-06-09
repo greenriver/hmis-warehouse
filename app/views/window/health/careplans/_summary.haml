@@ -1,0 +1,39 @@
+- wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
+- unless @readonly
+  .row
+    .col-sm-12.text-right
+      =link_to polymorphic_path([:print] + careplan_path_generator) do
+        %i.icon-printer
+        Print Care Plan
+.slab
+  = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator), wrapper: wrapper do |f|
+    .row
+      .col-md-5.col-sm-3
+        %h3.section-expander-block__header
+          Care Plan Dates
+      .col-md-3.col-sm-4
+        .margin-top-03.slab__base-dates
+          = f.input :sdh_enroll_date, label: 'SDH Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}
+          = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
+      .col-md-4.col-sm-4
+        - unless @readonly
+          .slab__header
+            - if @client.self_sufficiency_assessments.any?
+              = link_to(polymorphic_path([:self_sufficiency_assessment] + careplan_path_generator), data: { loads_in_pjax_modal: true }) do
+                Self-Sufficiency Assessment
+            - else
+              No Self-Sufficiency Assessment on file
+        .row
+          .col-sm-6
+              
+            = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker}}
+              
+            = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker}}
+          .col-sm-6
+              
+            = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}
+              
+            = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker}}
+    - unless @readonly 
+      .form-actions.text-right
+        = f.button :submit, value: 'Update Dates', class: 'btn btn-small'

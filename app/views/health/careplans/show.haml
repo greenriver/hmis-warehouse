@@ -1,0 +1,27 @@
+- title = 'Collaborative Care Plan'
+= content_for(:title, title)
+%h1= "#{content_for(:title)} for #{@client.full_name}"
+.row
+  .col-sm-12
+    = render 'clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
+.row
+  .col-sm-12
+    = render 'summary'
+.row
+  .col-sm-12
+    = render 'window/health/careplans/team_link'
+.row
+  .col-sm-12
+    = render 'add_goal'
+
+.row
+  .col-sm-12
+    = render 'housing_goal'
+
+.row
+  .col-sm-12
+    = render 'goals'
+
+.row
+  .col-sm-12
+    = render 'self_management_goal'

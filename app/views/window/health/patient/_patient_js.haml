@@ -1,0 +1,38 @@
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var error_message = function (response, status, xhr, target) {
+        var message = "Loading failed: " + xhr.status + ' ' + xhr.statusText;
+        var $error = $(document.createElement('div'));
+        $error.text(message).addClass('alert').addClass('alert-danger')
+        $(target).html($error);
+      };
+
+      var $utilization = $('.jUtilization');
+      $utilization.load($utilization.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        }
+      });
+
+      var $appointments = $('.jAppointments');
+      $appointments.load($appointments.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        }
+      });
+
+      var $problems = $('.jProblems');
+      $problems.load($problems.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        }
+      });
+
+      var $medications = $('.jMedications');
+      $medications.load($medications.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        }
+      });
+    })(jQuery);

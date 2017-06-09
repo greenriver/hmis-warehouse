@@ -2,6 +2,8 @@
 *= require select2
 *= require select2-bootstrap
 *= require bootstrap-datepicker3
+*= require jquery-ui/sortable
+*= require jquery-ui/slider
 *= require leaflet
 */
 
@@ -29,6 +31,8 @@
 @import "modules/census";
 @import "modules/data_sources";
 @import "modules/reports";
+@import "modules/sections_slabs_cards";
+@import "modules/lists";
 
 $light-body-text: lighten(#404040, 40%);
 

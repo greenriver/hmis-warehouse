@@ -1,0 +1,49 @@
+- wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
+- goal = self_management
+.well.section-expander-block.open.goal__self-management.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
+  .row
+    .col-md-7
+      %h3.section-expander-block__header 
+        = goal.name
+    .col-md-5
+      .section-expander-block__expander-region
+        .section-expander-block__metadata.text-small
+          Last Modified: 
+          %strong
+            = goal.updated_at.to_date
+            - if goal.editor.present?
+              = " by #{goal.editor&.name}"
+        - unless @readonly
+          %a.section-expander-block__expander-arrow.open
+            %i.icon-arrow-circled
+  .row.section-expander-block__action-row
+    .col-sm-12
+      .goal-form
+        = simple_form_for(goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: goal.id), remote: true, wrapper: wrapper) do |f|
+          .row
+            .col-sm-6
+              = f.input :name, label: 'Goal'
+              = f.input :associated_dx, label: 'Associated DX'
+              = f.input :barriers
+              = f.input :confidence, as: :hidden
+              .confidence
+                %label
+                  Confidence: on a scale of 1 to 10, how confident are you that you can meet your goal?
+                .value
+                  = goal.confidence || 0
+                .confidence_slider
+            .col-sm-6
+              = f.input :goal_details, as: :text, input_html: {rows: 10}
+          - unless @readonly
+            .row
+              .col-sm-6
+                .form-actions
+                  = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
+                    Delete Goal
+                  = f.button :submit, value: 'Update Goal'
+              .col-sm-6
+                .status
+        - if goal.versions.count > 1 && ! @readonly
+          .pull-right
+            = link_to(polymorphic_path(careplan_path_generator + [:goal, :previous], goal_id: goal.id)) do 
+              < past versions

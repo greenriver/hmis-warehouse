@@ -1,0 +1,13 @@
+- title = 'Medications'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+
+.row
+  .col-sm-12
+    - if @patient.present? && @medications.any?
+      = render 'medications_table', medications: @medications
+    - else
+      %p No medications on file.

@@ -1,0 +1,44 @@
+- if @goals.present?
+  .row.jGoals
+    .col-sm-12
+      - @goals.each do |goal|
+        = render goal
+
+- unless @readonly
+  = content_for :page_js do
+    :javascript
+      (function($) {
+        $('.goal-form input[type=submit]').on('click', function(e) {
+          $(this).closest('.goal-form').find('.status').html('<div class="alert alert-info">Saving...</div>')
+        });
+        // goal expansion & contraction
+        $('.jGoals').on('click', '.section-expander-block__expander-arrow', function(e) {
+          var $button = $(e.currentTarget)
+          var $container = $button.closest('.section-expander-block');
+          var $row = $container.find('.section-expander-block__action-row')
+          $row.slideToggle();
+          $container.toggleClass('open');
+          $button.toggleClass('open')
+
+        });
+        // default to all goals closed
+        $('.jGoal .section-expander-block__expander-arrow').trigger('click');
+
+        // Enable the confidence slider
+        $('.jGoals').bind('DOMSubtreeModified', function() {
+          if($('.confidence_slider.ui-slider').length == 0) {
+            $('.confidence_slider').slider({
+              value: $('input#goal_confidence').val(),
+              min: 1,
+              max: 10,
+              step: 1,
+              slide: function(e, ui) {
+                var $confidence = $(e.target).closest('.confidence');
+                $('input#goal_confidence').attr('value', ui.value);
+                console.log(e);
+                $confidence.find('.value').text(ui.value); 
+              }
+            });
+          }
+        });
+      })(jQuery);
