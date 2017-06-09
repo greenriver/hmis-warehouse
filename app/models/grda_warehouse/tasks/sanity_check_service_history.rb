@@ -7,8 +7,8 @@ module GrdaWarehouse::Tasks
     def initialize(sample_size = 10, client_ids = [])
       @sample_size = sample_size
       @client_ids = client_ids
-      @notifier_config = Rails.application.config_for(:exception_notifier) rescue nil
-      @send_notifications = notifier_config && ( Rails.env.development? || Rails.env.production? )
+      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
+      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
       @logger = Rails.logger
       if @client_ids.any?
         @sample_size = @client_ids.size
@@ -33,8 +33,8 @@ module GrdaWarehouse::Tasks
 
     def sanity_check
       if send_notifications
-        slack_url = notifier_config['slack']['webhook_url']
-        channel   = notifier_config['slack']['channel']
+        slack_url = notifier_config['webhook_url']
+        channel   = notifier_config['channel']
         notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'Service History Sanity Checker'
       end
       messages = []

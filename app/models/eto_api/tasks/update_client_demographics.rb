@@ -16,11 +16,11 @@ module EtoApi::Tasks
       @stop_time = Time.now + run_time
       @one_off = one_off
 
-      @notifier_config = Rails.application.config_for(:exception_notifier) rescue nil
-      @send_notifications = notifier_config && ( Rails.env.development? || Rails.env.production? )
+      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
+      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
       if send_notifications
-        slack_url = notifier_config['slack']['webhook_url']
-        channel   = notifier_config['slack']['channel']
+        slack_url = notifier_config['webhook_url']
+        channel   = notifier_config['channel']
         @notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'ETO API Importer'
       end
       #@api.trace = false

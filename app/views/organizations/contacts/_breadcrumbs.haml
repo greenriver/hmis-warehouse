@@ -1,0 +1,3 @@
+= content_for :crumbs do
+  = link_to data_source_path(id: @entity.data_source_id) do
+    = "« #{@entity.data_source.name}"

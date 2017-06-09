@@ -7,8 +7,10 @@
       = data_source
   %td{style: 'width: 16em;'}
     = organization.OrganizationName
-  %td{colspan: 4}
-    = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'jSelectAll', data: {organization_id: id}})
+  %td= check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'jSelectAll', data: {organization_id: id}})
+  %td
+  %td{colspan: 2}
+    = organization.contacts.map(&:full_name_with_email).join(', ')
 %tr.jProject.hidden{data: {organization_id: id}}
   %th
   %th
@@ -20,7 +22,7 @@
   %th
     Report
   %th
-    Contact(s)
+    Contacts
   %th
     Last Sent On
 - projects.each do |project|
@@ -39,10 +41,10 @@
       -else 
         = content_tag( :em, 'not available')
     %td
-      - if project.project_contacts.any?
-        = project.project_contacts.map{|m| "#{m.first_name} #{m.last_name} (#{m.email})"}.join(', ')
+      - if project.contacts.any?
+        = project.contacts.map(&:full_name_with_email).join(', ')
       - else
-        = link_to project_project_contacts_path(project) do
+        = link_to project_contacts_path(project) do
           Add project contacts
         on the
         = link_to project_path(project) do

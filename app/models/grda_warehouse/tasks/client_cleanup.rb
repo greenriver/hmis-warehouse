@@ -4,10 +4,11 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications
     def initialize(max_allowed=200, bogus_notifier=false)
       @max_allowed = max_allowed
-      @send_notifications = Rails.env.development? || Rails.env.production?
+      exception_notifier_config = Rails.application.config_for(:exception_notifier)['slack']
+      @send_notifications = (Rails.env.development? || Rails.env.production?) && exception_notifier_config.present?
       if @send_notifications
-        slack_url = Rails.application.config_for(:exception_notifier)['slack']['webhook_url']
-        channel = Rails.application.config_for(:exception_notifier)['slack']['channel']
+        slack_url = exception_notifier_config['webhook_url']
+        channel = exception_notifier_config['channel']
         @notifier = Slack::Notifier.new slack_url, channel: channel, username: 'ClientCleanup'
       end
       self.logger = Rails.logger

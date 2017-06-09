@@ -9,10 +9,13 @@
         %th{style: 'width: 2em;'}
         %th{style: 'width: 20em;', colspan: 2}
           Organization
-        %th{colspan: 6}
+        %th{colspan: 2}
           Select
+        %th{colspan: 2}
+          Contacts
           - @projects.each do |(data_source, organization), projects|
             = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+        
   = render 'actions', f: f
 
 = content_for :page_js do

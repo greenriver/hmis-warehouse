@@ -45,7 +45,7 @@ module WarehouseReports::Project
       @report = []
       @projects = project_scope.includes(:organization, :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:project_contacts, :current_data_quality_report) 
+        preload(:contacts, :current_data_quality_report) 
       @projects.each do |project|
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
@@ -81,7 +81,7 @@ module WarehouseReports::Project
     def set_projects
       @projects = project_scope.includes(:organization, :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:project_contacts, :data_quality_reports).
+        preload(:contacts, :data_quality_reports).
         group_by{ |m| [m.data_source.short_name, m.organization]}
     end
   end

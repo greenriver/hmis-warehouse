@@ -2,7 +2,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
     self.table_name = :project_data_quality
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
-    has_many :project_contacts, through: :project
+    has_many :project_contacts, through: :project, source: :contacts
+    has_many :organization_contacts, through: :project
     has_many :report_tokens, -> { where(report_id: id)}, class_name: GrdaWarehouse::ReportToken.name
 
     scope :complete, -> do
@@ -158,7 +159,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def send_notifications
-      ProjectDataQualityReportMailer.report_complete(project, self).deliver_later
+      (project_contacts + organization_contacts).each do |contact|
+        ProjectDataQualityReportMailer.report_complete(project, self, contact).deliver_later
+      end
+      notifications_sent()
     end
 
     def notifications_sent

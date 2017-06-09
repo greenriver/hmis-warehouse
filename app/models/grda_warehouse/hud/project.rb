@@ -80,7 +80,8 @@ module GrdaWarehouse::Hud
     has_one :current_data_quality_report, -> do
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
-    has_many :project_contacts, class_name: GrdaWarehouse::WarehouseReports::ProjectContact.name
+    has_many :contacts, class_name: GrdaWarehouse::Contact::Project.name, foreign_key: :entity_id
+    has_many :organization_contacts, through: :organization, source: :contacts
 
     scope :residential, -> { where ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS }
 

@@ -4,8 +4,8 @@ module Importing
     attr_accessor :send_notifications, :notifier_config
 
     def initialize
-      @notifier_config = Rails.application.config_for(:exception_notifier) rescue nil
-      @send_notifications = notifier_config && ( Rails.env.development? || Rails.env.production? )
+      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
+      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
     end
 
     def perform
@@ -68,9 +68,9 @@ module Importing
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"
       Rails.logger.info msg
-      if send_notifications
-        slack_url = notifier_config['slack']['webhook_url']
-        channel   = notifier_config['slack']['channel']
+      if @send_notifications
+        slack_url = notifier_config['webhook_url']
+        channel   = notifier_config['channel']
         notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'DailyImporter'
         notifier.ping msg
       end

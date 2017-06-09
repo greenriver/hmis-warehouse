@@ -1,0 +1,7 @@
+- title = "Edit Project Contact for #{@entity.ProjectName}"
+- content_for :title, title
+%h1= title
+.row
+  .col-sm-4
+    = simple_form_for(@contact, as: :contact, url: project_contact_path(@entity, @contact)) do |f|
+      = render 'form', f: f
