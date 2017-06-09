@@ -79,6 +79,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       leavers
     end
 
+    def beds 
+      project.inventories.map(&:BedInventory).reduce(:+) || 0
+    end
+
     def income_columns
       [
         :TotalMonthlyIncome, 
@@ -189,6 +193,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         joins(:project, enrollment: :client).
         where(Project: {id: self.project_id})
     end
+
+    def service_scope
+      GrdaWarehouse::ServiceHistory.service.
+        open_between(start_date: self.start,
+          end_date: self.end).
+        joins(:project, enrollment: :client).
+        where(Project: {id: self.project_id})
+    end
+
 
     def c_t
       client_source.arel_table

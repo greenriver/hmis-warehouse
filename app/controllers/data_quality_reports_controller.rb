@@ -9,8 +9,17 @@ class DataQualityReportsController < ApplicationController
 
   end
 
+  def index
+    @project = project_source.find(params[:project_id].to_i)
+    @reports = @project.data_quality_reports
+  end
+
   def report_scope
     GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
+  end
+
+  def project_source
+    GrdaWarehouse::Hud::Project
   end
 
   def set_report

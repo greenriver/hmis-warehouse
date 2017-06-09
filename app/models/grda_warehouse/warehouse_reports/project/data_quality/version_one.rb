@@ -10,7 +10,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_length_of_stay()
       destination_ph()
       add_income_answers()
-
+      add_capacity_answers()
       finish_report()
     end
 
@@ -50,6 +50,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_non_cash_percentage: 'Percentage of clients who had increased non-cash income',
         increased_overall: 'Clients with increased overall income',
         increased_overall_percentage: 'Percentage of clients who had increased total income',
+        services_provided: 'Number of service events',
+        days_of_service: 'Number of days in selected range',
+        average_daily_usage: 'Average daily usage',
+        capacity_percentage: 'Percentage of beds in use, on average',
       }
 
     end
@@ -70,7 +74,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def set_bed_coverage_data
-      beds = project.inventories.map(&:BedInventory).reduce(:+) || 0
       hmis_beds = project.inventories.map(&:HMISParticipatingBeds).reduce(:+) || 0
       
       bed_coverage = 0 
@@ -301,6 +304,19 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_overall_percentage: increased_overall_percentage,
       })
 
+    end
+
+    def add_capacity_answers
+      total_services_provided = service_scope.count
+      days_served = (self.end - self.start).to_i
+      average_usage = total_services_provided.to_f/days_served
+      capacity = average_usage.to_f/beds*100 rescue 0
+      add_answers({
+        services_provided: total_services_provided,
+        days_of_service: days_served,
+        average_daily_usage: average_usage,
+        capacity_percentage: capacity,
+      })
     end
 
 
