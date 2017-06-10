@@ -4,7 +4,7 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications
     def initialize()
       @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = @notifier_config.present? Rails.env.production?
+      @send_notifications = @notifier_config.present? && Rails.env.production?
       if @send_notifications
         slack_url = @notifier_config['webhook_url']
         channel = @notifier_config['channel']
