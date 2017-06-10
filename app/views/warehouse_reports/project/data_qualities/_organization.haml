@@ -10,7 +10,7 @@
   %td= check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'jSelectAll', data: {organization_id: id}})
   %td
   %td{colspan: 2}
-    = organization.contacts.map(&:full_name_with_email).join(', ')
+    = organization.contacts.map(&:full_name_with_email).join('<br />').html_safe
 %tr.jProject.hidden{data: {organization_id: id}}
   %th
   %th
@@ -42,7 +42,7 @@
         = content_tag( :em, 'not available')
     %td
       - if project.contacts.any?
-        = project.contacts.map(&:full_name_with_email).join(', ')
+        = project.contacts.map(&:full_name_with_email).join('<br />').html_safe
       - else
         = link_to project_contacts_path(project) do
           Add project contacts
