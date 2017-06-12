@@ -119,9 +119,10 @@ module GrdaWarehouse::Hud
     scope :source, -> do
       where(data_source: GrdaWarehouse::DataSource.importable)
     end
-    scope :unmatched, -> do
-      source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
-    end
+    # For now, this is way to slow, calculate in ruby
+    # scope :unmatched, -> do
+    #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
+    # end
     scope :veteran, -> do
       where VeteranStatus: 1
     end

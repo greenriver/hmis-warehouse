@@ -1,25 +1,29 @@
 %h3
   = link_to 'Import Status', imports_path
-- @imports.each do |import|
-  %h4
-    = import.data_source.name
-  %table.table.table-condensed
-    %tr
-      %th
-        Imported On
-      %td
-        - if import.id.present?
-          = link_to import.created_at, import_path(import)
-        - else
-          %em Never run
-    - if import.id.present?
+- if @imports.present?
+  - @imports.each do |import|
+    %h4
+      = import.data_source.name
+    %table.table.table-condensed
       %tr
         %th
-          Completed In
+          Imported On
         %td
-          = import.import_time
-      %tr
-        %th
-          Files Found
-        %td
-          = import.files.try(:count)
+          - if import.id.present?
+            = link_to import.created_at, import_path(import)
+          - else
+            %em Never run
+      - if import.id.present?
+        %tr
+          %th
+            Completed In
+          %td
+            = import.import_time
+        %tr
+          %th
+            Files Found
+          %td
+            = import.files.try(:count)
+- else
+  %p
+    %em No import history found.

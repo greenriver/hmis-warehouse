@@ -3,23 +3,29 @@ module Admin::Dashboard
     include ArelHelper
     before_action :require_can_view_imports!
     def index
-      @missing_destinations = GrdaWarehouse::WarehouseClient.where.not(destination_id: client_source.select(:id)).count
-      @missing_sources = GrdaWarehouse::WarehouseClient.where.not(source_id: GrdaWarehouse::Hud::Client.select(:id)).count
-      @missing_client_destinations = client_source.destination.where.not(id: GrdaWarehouse::WarehouseClient.select(:destination_id)).count
-      @duplicate_source_items = check_for_hud_primary_key_duplicates
+      destination_ids = GrdaWarehouse::WarehouseClient.pluck(:destination_id)
+      destination_client_ids = client_source.destination.pluck(:id)
+      @missing_destinations = (destination_ids - destination_client_ids).size
+
+      source_ids = GrdaWarehouse::WarehouseClient.pluck(:source_id)
+      source_client_ids = client_source.source.pluck(:id)
+      @missing_sources = (source_ids - source_client_ids).size
+
+      @missing_client_destinations = (destination_client_ids - destination_ids).size
+      @duplicate_source_items = [] #check_for_hud_primary_key_duplicates
     end
 
     # Find any instances where we have duplicate entries within a given 
     # data source based on the HUD primary key
-    private def check_for_hud_primary_key_duplicates
+    def check_for_hud_primary_key_duplicates
       {}.tap do |m|
         data_source_scope.each do |ds|
           m[ds.name] ||= {}
           GrdaWarehouse::Hud.models_by_hud_filename.values.each do |klass|
-            errors = klass.where(data_source_id: ds.id)
-              .group(klass.hud_primary_key)
-              .having( nf( 'COUNT', [klass.arel_table[klass.hud_primary_key.to_sym]] ).gt 1 ) # .having("count(#{klass.hud_primary_key}) > 1")
-              .count.size
+            errors = klass.where(data_source_id: ds.id).
+              group(klass.hud_primary_key).
+              having( nf( 'COUNT', [klass.arel_table[klass.hud_primary_key.to_sym]] ).gt 1 ). # .having("count(#{klass.hud_primary_key}) > 1")
+              count.size
             if errors > 0
               m[ds.name][klass.table_name] ||= {}
               m[ds.name][klass.table_name][:errors] = errors 
@@ -32,15 +38,15 @@ module Admin::Dashboard
       end
     end
 
-    private def client_source 
+    def client_source 
       GrdaWarehouse::Hud::Client
     end
 
-    private def warehouse_client_source
+    def warehouse_client_source
       GrdaWarehouse::WarehouseClient
     end
 
-    private def data_source_scope
+    def data_source_scope
       GrdaWarehouse::DataSource.importable
     end
   end

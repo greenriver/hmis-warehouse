@@ -17,8 +17,11 @@ module Admin::Dashboard
 
       @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.last
       @service_history = GrdaWarehouse::GenerateServiceHistoryLog.last
-      @source_clients_with_no_destination = GrdaWarehouse::Hud::Client.unmatched.count
-      @service_histories_to_add =  GrdaWarehouse::Hud::Client.destination.without_service_history.count
+      source_clients = GrdaWarehouse::Hud::Client.source.pluck(:id)
+      matched_sources = GrdaWarehouse::WarehouseClient.pluck(:source_id)
+
+      @source_clients_with_no_destination = (source_clients - matched_sources).size
+      # @service_histories_to_add =  GrdaWarehouse::Hud::Client.destination.without_service_history.count
     end
 
     private def client_source
