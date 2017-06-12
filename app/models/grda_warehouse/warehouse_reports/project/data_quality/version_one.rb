@@ -6,54 +6,186 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       set_project_metadata()
       set_bed_coverage_data()
       calculate_missing_universal_elements()
+      add_missing_enrollment_elements()
       add_agency_entering_data()
       add_length_of_stay()
       destination_ph()
       add_income_answers()
       add_capacity_answers()
+      meets_data_quality_benchmark()
       finish_report()
     end
 
     def report_columns
       {
-        total_clients: 'Clients included',
-        agency_name: 'Agency name',
-        project_name: 'Project name',
-        monitoring_date_range: 'Operating year (Funder start date and end date)',
-        monitoring_date_range_present: 'Operating year present?',
-        grant_id: 'Grant identification #',
-        coc_program_component: 'CoC program component (project type)',
-        target_population: 'Target population',
-        entering_required_data: 'Is the agency entering the required data/descriptor touch-points into HMIS for this project?',
-        bed_coverage: 'Bed coverage',
-        bed_coverage_percent: 'Bed coverage percent',
-        missing_name_percent: 'Missing names in %',
-        missing_ssn_percent: 'Missing SSN in %',
-        missing_dob_percent: 'Missing DOB in %',
-        missing_veteran_percent: 'Missing veteran status in %',
-        missing_ethnicity_percent: 'Missing ethnicity in %',
-        missing_race_percent: 'Missing race in %',
-        missing_gender_percent: 'Missing gender in %',
-        refused_name_percent: 'Refused name in %',
-        refused_ssn_percent: 'Refused SSN in %',
-        refused_dob_percent: 'Refused DOB in %',
-        refused_veteran_percent: 'Refused veteran status in %',
-        refused_ethnicity_percent: 'Refused ethnicity in %',
-        refused_race_percent: 'Refused race in %',
-        refused_gender_percent: 'Refused gender in %',
-        one_year_enrollments: 'Enrollments lasting 12 or more months',
-        one_year_enrollments_percentage: 'clients with enrollments lasting 12 or more months in %',
-        ph_destinations_percentage: 'leavers who exited to PH in %',
-        increased_earned: 'Clients with increased earned income',
-        increased_earned_percentage: 'Percentage of clients who had increased earned income',
-        increased_non_cash: 'Clients with increased non-cash income',
-        increased_non_cash_percentage: 'Percentage of clients who had increased non-cash income',
-        increased_overall: 'Clients with increased overall income',
-        increased_overall_percentage: 'Percentage of clients who had increased total income',
-        services_provided: 'Number of service events',
-        days_of_service: 'Number of days in selected range',
-        average_daily_usage: 'Average daily usage',
-        capacity_percentage: 'Percentage of beds in use, on average',
+        total_clients: {
+          title:'Clients included'
+        },
+        total_leavers: {
+          title: 'Leavers',
+        },
+        agency_name: {
+          title: 'Agency name',
+        },
+        project_name: {
+          title: 'Project name',
+        },
+        monitoring_date_range: {
+          title: 'Operating year (Funder start date and end date)',
+        },
+        monitoring_date_range_present: {
+          title: 'Operating year present?',
+          callback: :boolean,
+        },
+        grant_id: {
+          title: 'Grant identification #',
+        },
+        coc_program_component: {
+          title: 'CoC program component (project type)',
+        },
+        target_population: {
+          title: 'Target population',
+        },
+        entering_required_data: {
+          title: 'Is the agency entering the required data/descriptor touch-points into HMI},
+          S for this project?',
+          callback: :boolean,
+        },
+        bed_coverage: {
+          title: 'Bed coverage',
+        },
+        bed_coverage_percent: {
+          title:'Bed coverage',
+          callback: :percent,
+        },
+        missing_name_percent: {
+          title:'Missing names',
+          callback: :percent,
+        },
+        missing_ssn_percent: {
+          title:'Missing SSN',
+          callback: :percent,
+        },
+        missing_dob_percent: {
+          title:'Missing DOB',
+          callback: :percent,
+        },
+        missing_veteran_percent: {
+          title:'Missing veteran status',
+          callback: :percent,
+        },
+        missing_ethnicity_percent: {
+          title:'Missing ethnicity',
+          callback: :percent,
+        },
+        missing_race_percent: {
+          title:'Missing race',
+          callback: :percent,
+        },
+        missing_gender_percent: {
+          title:'Missing gender',
+          callback: :percent,
+        },
+        missing_disabling_condition_percentage: {
+          title: 'Missing disabling condition',
+          callback: :percent
+        },
+        missing_prior_living_percentage: {
+          title: 'Missing prior living',
+          callback: :percent
+        },
+        missing_destination_percentage: {
+          title: 'Missing destination',
+          callback: :percent
+        },
+        refused_name_percent: {
+          title:'Refused name',
+          callback: :percent,
+        },
+        refused_ssn_percent: {
+          title:'Refused SSN',
+          callback: :percent,
+        },
+        refused_dob_percent: {
+          title:'Refused DOB',
+          callback: :percent,
+        },
+        refused_veteran_percent: {
+          title:'Refused veteran status',
+          callback: :percent,
+        },
+        refused_ethnicity_percent: {
+          title:'Refused ethnicity',
+          callback: :percent,
+        },
+        refused_race_percent: {
+          title:'Refused race',
+          callback: :percent,
+        },
+        refused_gender_percent: {
+          title:'Refused gender',
+          callback: :percent,
+        },
+        refused_disabling_condition_percentage: {
+          title: 'Refused disabling condition',
+          callback: :percent
+        },
+        refused_prior_living_percentage: {
+          title: 'Refused prior living',
+          callback: :percent
+        },
+        refused_destination_percentage: {
+          title: 'Refused destination',
+          callback: :percent
+        },
+        meets_dq_benchmark: {
+          title:"Meets DQ Benchmark (all missing/refused < #{MISSING_THRESHOLD}%)",
+          callback: :boolean,
+        },
+        one_year_enrollments: {
+          title:'Enrollments lasting 12 or more months',
+        },
+        one_year_enrollments_percentage: {
+          title:'Clients with enrollments lasting 12 or more months',
+          callback: :percent,
+        },
+        ph_destinations_percentage: {
+          title:'Leavers who exited to PH',
+        },
+        increased_earned: {
+          title:'Clients with increased earned income',
+        },
+        increased_earned_percentage: {
+          title:'Percentage of clients who had increased earned income',
+          callback: :percent,
+        },
+        increased_non_cash: {
+          title:'Clients with increased non-cash income',
+        },
+        increased_non_cash_percentage: {
+          title:'Percentage of clients who had increased non-cash income',
+          callback: :percent,
+        },
+        increased_overall: {
+          title:'Clients with increased overall income',
+        },
+        increased_overall_percentage: {
+          title:'Percentage of clients who had increased total income',
+          callback: :percent,
+        },
+        services_provided: {
+          title:'Number of service events',
+        },
+        days_of_service: {
+          title:'Number of days in selected range',
+        },
+        average_daily_usage: {
+          title:'Average daily usage',
+        },
+        capacity_percentage: {
+          title:'Percentage of beds in use, on average',
+          callback: :percent,
+        },
       }
 
     end
@@ -136,7 +268,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if client[:ethnicity].blank? || missing?(client[:ethnicity])
           missing_ethnicity << client[:id]
         end
-        if missing?(client[:race_none])
+        # If we have no race info, whatsoever
+        if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
           missing_race << client[:id]
         end
         if client[:gender].blank? || missing?(client[:gender])
@@ -181,26 +314,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_race_percent = (refused_race.size.to_f/clients.size*100).round(2) rescue 0
       refused_gender_percent = (refused_gender.size.to_f/clients.size*100).round(2) rescue 0
 
-      percentages = {
-        missing_name_percent: missing_name_percent,
-        missing_ssn_percent: missing_ssn_percent,
-        missing_dob_percent: missing_dob_percent,
-        missing_veteran_percent: missing_veteran_percent,
-        missing_ethnicity_percent: missing_ethnicity_percent,
-        missing_race_percent: missing_race_percent,
-        missing_gender_percent: missing_gender_percent,
-        refused_name_percent: refused_name_percent,
-        refused_ssn_percent: refused_ssn_percent,
-        refused_dob_percent: refused_dob_percent,
-        refused_veteran_percent: refused_veteran_percent,
-        refused_ethnicity_percent: refused_ethnicity_percent,
-        refused_race_percent: refused_race_percent,
-        refused_gender_percent: refused_gender_percent,
-      }
-
-      meets_dq_benchmark = percentages.values.max < MISSING_THRESHOLD rescue false
       add_answers({
         total_clients: clients.size,
+        total_leavers: leavers.size,
         missing_name: missing_name.size,   
         missing_ssn: missing_ssn.size,   
         missing_dob: missing_dob.size,     
@@ -215,9 +331,105 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         refused_ethnicity: refused_ethnicity.size,
         refused_race: refused_race.size,
         refused_gender: refused_gender.size,
+        missing_name_percent: missing_name_percent,
+        missing_ssn_percent: missing_ssn_percent,
+        missing_dob_percent: missing_dob_percent,
+        missing_veteran_percent: missing_veteran_percent,
+        missing_ethnicity_percent: missing_ethnicity_percent,
+        missing_race_percent: missing_race_percent,
+        missing_gender_percent: missing_gender_percent,
+        refused_name_percent: refused_name_percent,
+        refused_ssn_percent: refused_ssn_percent,
+        refused_dob_percent: refused_dob_percent,
+        refused_veteran_percent: refused_veteran_percent,
+        refused_ethnicity_percent: refused_ethnicity_percent,
+        refused_race_percent: refused_race_percent,
+        refused_gender_percent: refused_gender_percent,
+        
+      })
+    end
+
+    def meets_data_quality_benchmark
+      percentages = [
+        :missing_name_percent,
+        :missing_ssn_percent,
+        :missing_dob_percent,
+        :missing_veteran_percent,
+        :missing_ethnicity_percent,
+        :missing_race_percent,
+        :missing_gender_percent,
+        :missing_disabling_condition_percentage,
+        :missing_prior_living_percentage,
+        :missing_destination_percentage,
+        :refused_name_percent,
+        :refused_ssn_percent,
+        :refused_dob_percent,
+        :refused_veteran_percent,
+        :refused_ethnicity_percent,
+        :refused_race_percent,
+        :refused_gender_percent,
+        :refused_disabling_condition_percentage,
+        :refused_prior_living_percentage,
+        :refused_destination_percentage,
+      ]
+      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).values.max < MISSING_THRESHOLD rescue false
+      add_answers({
         meets_dq_benchmark: meets_dq_benchmark
       })
-      add_answers(percentages)
+    end
+
+    def add_missing_enrollment_elements
+      client_count = clients.size
+      leavers_count = leavers.size
+      missing_disabling_condition = Set.new
+      missing_prior_living = Set.new
+      missing_destination = Set.new
+      refused_disabling_condition = Set.new
+      refused_prior_living = Set.new
+      refused_destination = Set.new
+      enrollments.each do |client_id, enrollments|
+        enrollments.each do |enrollment|
+          missing_disabling_condition << client_id if missing?(enrollment[:disabling_condition])
+          missing_prior_living << client_id if missing?(enrollment[:residence_prior])
+          refused_disabling_condition << client_id if refused?(enrollment[:disabling_condition])
+          refused_prior_living << client_id if refused?(enrollment[:residence_prior])
+        end
+      end
+      leavers.each do |client_id|
+        enrollments[client_id].each do |enrollment|
+          missing_destination << client_id if missing?(enrollment[:destination])
+          refused_destination << client_id if refused?(enrollment[:destination])
+        end
+      end
+
+      missing_disabling_condition_percentage = (missing_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
+      missing_prior_living_percentage = (missing_prior_living.size.to_f/client_count*100).round(2) rescue 0     
+      refused_disabling_condition_percentage = (refused_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
+      refused_prior_living_percentage = (refused_prior_living.size.to_f/client_count*100).round(2) rescue 0
+      
+      # missing and refused destinations will be NaN if there are no leavers
+      if leavers.count == 0
+        missing_destination_percentage = 0
+        refused_destination_percentage = 0
+      else
+        missing_destination_percentage = (missing_destination.size.to_f/leavers_count*100).round(2) rescue 0
+        refused_destination_percentage = (refused_destination.size.to_f/leavers_count*100).round(2) rescue 0
+      end
+
+      add_answers({
+        missing_disabling_condition: missing_disabling_condition.size,
+        missing_disabling_condition_percentage: missing_disabling_condition_percentage,
+        missing_prior_living: missing_prior_living.size,
+        missing_prior_living_percentage: missing_prior_living_percentage,
+        missing_destination: missing_destination.size,
+        missing_destination_percentage: missing_destination_percentage,
+        refused_disabling_condition: refused_disabling_condition.size,
+        refused_disabling_condition_percentage: refused_disabling_condition_percentage,
+        refused_prior_living: refused_prior_living.size,
+        refused_prior_living_percentage: refused_prior_living_percentage,
+        refused_destination: refused_destination.size,
+        refused_destination_percentage: refused_destination_percentage,
+      })
     end
 
     def add_length_of_stay
@@ -292,9 +504,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_overall << client_id if last_total_income > first_total_income
       end
 
-      increased_earned_percentage = (increased_earned.to_f/incomes.size*100).round(2) rescue 0
-      increased_non_cash_percentage = (increased_non_cash.to_f/incomes.size*100).round(2) rescue 0
-      increased_overall_percentage = (increased_overall.to_f/incomes.size*100).round(2) rescue 0
+      increased_earned_percentage = (increased_earned.to_f/clients.size*100).round(2) rescue 0
+      increased_non_cash_percentage = (increased_non_cash.to_f/clients.size*100).round(2) rescue 0
+      increased_overall_percentage = (increased_overall.to_f/clients.size*100).round(2) rescue 0
       add_answers({
         increased_earned: increased_earned.size,
         increased_non_cash: increased_non_cash.size,
@@ -307,7 +519,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_capacity_answers
-      total_services_provided = service_scope.count
+      total_services_provided = service_scope.select(:client_id, :date).distinct.to_a.count
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
       capacity = (average_usage.to_f/beds*100).round(2) rescue 0
