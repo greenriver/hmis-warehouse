@@ -903,6 +903,12 @@ module GrdaWarehouse::Hud
           self.save()
           prev_destination_client.invalidate_service_history
           prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
+
+          # move any client notes
+          GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+
+          # move any patients
+          Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
         end
         # and invaldiate our own service history
         invalidate_service_history
