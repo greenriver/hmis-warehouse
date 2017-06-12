@@ -1,5 +1,6 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
+    include ApplicationHelper
     self.table_name = :project_data_quality
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
     has_many :project_contacts, through: :project, source: :contacts
@@ -68,15 +69,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def leavers
-      leavers = Set.new
-      enrollments.each do |client_id, enrollments|
-        leaver = true
-        enrollments.each do |enrollment|
-          leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] < self.end
+      @leavers ||= begin 
+        leavers = Set.new
+        enrollments.each do |client_id, enrollments|
+          leaver = true
+          enrollments.each do |enrollment|
+            leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] < self.end
+          end
+          leavers << client_id if leaver
         end
-        leavers << client_id if leaver
+        leavers
       end
-      leavers
+      @leavers
     end
 
     def beds 
@@ -122,6 +126,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         destination: sh_t[:destination].as('destination').to_sql,
         personal_id: c_t[:PersonalID].as('personal_id').to_sql,
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
+        residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,
+        disabling_condition: e_t[:DisablingCondition].as('disabling_condition').to_sql,
       }
     end
 
@@ -139,6 +145,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         ethnicity: c_t[:Ethnicity].as('ethnicity').to_sql,
         gender: c_t[:Gender].as('gender').to_sql,
         race_none: c_t[:RaceNone].as('race_none').to_sql,
+        am_ind_ak_native: c_t[:AmIndAKNative].as('am_ind_ak_native').to_sql,
+        asian: c_t[:Asian].as('asian').to_sql,
+        black_af_american: c_t[:BlackAfAmerican].as('black_af_american').to_sql,
+        native_hi_other_pacific: c_t[:NativeHIOtherPacific].as('native_hi_other_pacific').to_sql,
+        white: c_t[:White].as('white').to_sql,
       }
     end
 
@@ -182,6 +193,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       [99].include?(value.to_i)
     end
 
+    # Display methods
+    def percent(value)
+      "#{value}%"
+    end
+
+    def boolean(value)
+      value ? 'Yes': 'No'
+    end
+
     def client_source
       GrdaWarehouse::Hud::Client.source
     end
@@ -190,7 +210,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::ServiceHistory.entry.
         open_between(start_date: self.start,
           end_date: self.end).
-        joins(:project, enrollment: :client).
+        joins(:project, :enrollment, enrollment: :client).
         where(Project: {id: self.project_id})
     end
 
@@ -202,13 +222,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         where(Project: {id: self.project_id})
     end
 
-
     def c_t
       client_source.arel_table
     end
 
     def sh_t
       GrdaWarehouse::ServiceHistory.arel_table
+    end
+
+    def e_t
+      GrdaWarehouse::Hud::Enrollment.arel_table
     end
 
     def i_t

@@ -24,9 +24,13 @@
         %th Measure
         %th Result
     %tbody
-      - @report.report_columns.each do |key, title| 
+      - @report.report_columns.each do |key, info| 
         %tr
           %td
-            = title
+            = info[:title]
           %td
-            = @report.report.with_indifferent_access[key]
+            - value = @report.report.with_indifferent_access[key]
+            - if info[:callback].present?
+              = @report.public_send(info[:callback], value)
+            - else 
+              = value

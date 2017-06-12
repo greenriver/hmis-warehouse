@@ -22,6 +22,8 @@
   %th
     Report
   %th
+    Last Run
+  %th
     Contacts
   %th
     Last Sent On
@@ -40,6 +42,8 @@
         = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id) 
       -else 
         = content_tag( :em, 'not available')
+    %td
+      = last_report&.completed_at
     %td
       - if project.contacts.any?
         = project.contacts.map(&:full_name_with_email).join(', ')
