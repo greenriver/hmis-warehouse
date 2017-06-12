@@ -79,10 +79,18 @@ module WarehouseReports::Project
     end
 
     def set_projects
-      @projects = project_scope.includes(:organization, :data_source).
-        order(data_source_id: :asc, OrganizationID: :asc).
+      @projects = project_scope.joins(:organization, :data_source).
+        order("#{p_t[:data_source_id].asc.to_sql}, #{o_t[:OrganizationName].asc.to_sql}, #{p_t[:ProjectName].asc.to_sql}").
         preload(:contacts, :data_quality_reports).
         group_by{ |m| [m.data_source.short_name, m.organization]}
+    end
+
+    def p_t
+      GrdaWarehouse::Hud::Project.arel_table
+    end
+
+    def o_t
+      GrdaWarehouse::Hud::Organization.arel_table
     end
   end
 end

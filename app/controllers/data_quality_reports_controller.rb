@@ -11,7 +11,7 @@ class DataQualityReportsController < ApplicationController
 
   def index
     @project = project_source.find(params[:project_id].to_i)
-    @reports = @project.data_quality_reports
+    @reports = @project.data_quality_reports.order(started_at: :desc)
   end
 
   def report_scope
