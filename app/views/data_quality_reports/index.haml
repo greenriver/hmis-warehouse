@@ -7,11 +7,14 @@
       %tr
         %th Date Range
         %th Run On
+        %th Completed On
     %tbody
       - @reports.each do |report|
         %tr
           %td
             = link_to report.status, project_data_quality_report_path(project_id: @project.id, id: report.id)
+          %td
+            = report.started_at
           %td
             = report.completed_at
 - else

@@ -13,6 +13,9 @@
     %li
       Run On:
       = @report.started_at
+    %li
+      Completed On:
+      = @report.completed_at
 - if @report.processing_errors.present?
   .alert.alert-danger
     Processing error:
