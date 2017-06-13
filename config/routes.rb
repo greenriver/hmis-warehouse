@@ -204,5 +204,9 @@ Rails.application.routes.draw do
       get :add_team_member
     end
   end
+
+  namespace :system_status do
+    get :operational
+  end
   root 'root#index'
 end
