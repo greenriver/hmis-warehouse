@@ -1,8 +1,9 @@
+
 module GrdaWarehouse::Tasks
   class ClientCleanup
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications
-    def initialize(max_allowed=200, bogus_notifier=false)
+    def initialize(max_allowed=200, bogus_notifier=false, debug: false)
       @max_allowed = max_allowed
       exception_notifier_config = Rails.application.config_for(:exception_notifier)['slack']
       @send_notifications = (Rails.env.development? || Rails.env.production?) && exception_notifier_config.present?
@@ -12,15 +13,22 @@ module GrdaWarehouse::Tasks
         @notifier = Slack::Notifier.new slack_url, channel: channel, username: 'ClientCleanup'
       end
       self.logger = Rails.logger
+      @debug = debug
     end
     def run!
       GrdaWarehouseBase.transaction do 
         @clients = find_unused_destination_clients
+        debug_log "Found #{@clients.size} unused destination clients"
         if @clients.any?
+          debug_log "Deleting service history"
           clean_service_history
+          debug_log "Deleting warehouse clients processed"
           clean_warehouse_clients_processed
+          debug_log "Deleting warehouse clients"
           clean_warehouse_clients
+          debug_log "Deleting hmis clients"
           clean_hmis_clients
+          debug_log "Soft-deleting destination clients"
           clean_destination_clients
         end
       end
@@ -106,33 +114,38 @@ module GrdaWarehouse::Tasks
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"
       end
-      GrdaWarehouse::Tasks::AddServiceHistory.new.run!
+      if processed < 0
+        debug_log "Rebuilding service history for #{processed} clients"
+        GrdaWarehouse::Tasks::AddServiceHistory.new.run!
+      end
     end
 
-    # Determine who has changed data since the last import
+    # Determine who has source data that changed since the last service history generation
     # This is stolen from and dependent on Generate Service History 
     def clients_to_munge
+      debug_log "Determining if any clients source data has been updated since the last service history generation"
       g_service_history = GrdaWarehouse::Tasks::GenerateServiceHistory.new
       @to_update = []
-      sql = GrdaWarehouse::WarehouseClientsProcessed.service_history.select(:client_id, :last_service_updated_at).to_sql
-      GrdaWarehouseBase.connection.select_rows(sql).each do |client_id, last_service_updated_at|
-        # Fix the column type, select_rows now returns all strings
-        client_id = GrdaWarehouse::ServiceHistory.column_types['client_id'].type_cast_from_database(client_id)
-        last_service_updated_at = GrdaWarehouse::ServiceHistory.column_types['last_service_updated_at'].type_cast_from_database(last_service_updated_at)
+      GrdaWarehouse::WarehouseClientsProcessed.service_history.pluck(:client_id, :last_service_updated_at).each do |client_id, last_service_updated_at|
         # Ignore anyone who no longer has any active source clients
         next unless g_service_history.client_sources[client_id].present?
         # If newly imported data is newer than the date stored the last time we generated, regenerate
         last_modified = g_service_history.max_date_updated_for_destination_id(client_id)
         if last_service_updated_at.nil?
-          @to_update << client_id  
+          @to_update << client_id
         elsif last_modified.nil? || last_modified > last_service_updated_at
+          # logger.info "Service History last modified #{last_modified}, Warehouse Clients Processed last_service_updated_at #{last_service_updated_at}"
           @to_update << client_id
         end
       end
+      logger.info "...found #{@to_update.size}."
       @to_update
     end
 
-    private def clean_service_history
+    def debug_log message
+      logger.info message if @debug
+    end
+    def clean_service_history
       return unless @clients.any?
       sh_size = GrdaWarehouse::ServiceHistory.where(client_id: @clients).count
       if @clients.size > @max_allowed
@@ -167,6 +180,7 @@ module GrdaWarehouse::Tasks
     def fix_incorrect_ages_in_service_history
       logger.info "Finding any clients with incorrect ages in the last 3 years of service history and invalidating them."
       incorrect_age_clients = Set.new
+      less_than_zero = Set.new
       service_history_ages = GrdaWarehouse::ServiceHistory.entry.
         pluck(:client_id, :age, :first_date_in_program)
       clients = GrdaWarehouse::Hud::Client.
@@ -178,10 +192,13 @@ module GrdaWarehouse::Tasks
       service_history_ages.each do |id, age, entry_date|
         next unless dob = clients[id] # ignore blanks
         client_age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
-        incorrect_age_clients << id if age != client_age
-        incorrect_age_clients << id if age.present? && age < 0
+        incorrect_age_clients << id if age.present? && (age != client_age || age < 0)
+        less_than_zero << id if age.present? && age < 0
       end
-      logger.info "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history"
+      msg =  "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
+      msg +=  " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size > 0
+      logger.info msg
+      @notifier.ping msg if @send_notifications
       GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
         map(&:invalidate_service_history)
     end

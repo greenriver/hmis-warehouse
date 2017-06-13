@@ -331,7 +331,7 @@ module GrdaWarehouse::Tasks
             logger.info "No changes found for #{id}, fixing so we don't see them again until they change"
             processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
             processed.routine = 'service_history'
-            processed.last_service_updated_at = determine_last_update_date_of_service(id)
+            processed.last_service_updated_at = max_date_updated_for_destination_id(id)
             processed.save unless @dry_run
             return
             return
@@ -401,7 +401,7 @@ module GrdaWarehouse::Tasks
         # checked up until the new date
         processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
         processed.routine = 'service_history'
-        processed.last_service_updated_at = determine_last_update_date_of_service(id)
+        processed.last_service_updated_at = max_date_updated_for_destination_id(id)
         processed.save unless @dry_run
         return
       end
@@ -446,7 +446,7 @@ module GrdaWarehouse::Tasks
           # GrdaWarehouse::ServiceHistory.import headers, entries.map(&:values)
           processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
           processed.routine = 'service_history'
-          processed.last_service_updated_at = determine_last_update_date_of_service(id)
+          processed.last_service_updated_at = max_date_updated_for_destination_id(id)
           processed.first_date_served = first_date_served
           processed.last_date_served = last_date_served
           processed.days_served = days_served
@@ -546,7 +546,7 @@ module GrdaWarehouse::Tasks
         # Mark the client processed, so we don't try to process them again and again even though they don't have any enrollments
         processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
         processed.routine = 'service_history'
-        processed.last_service_updated_at = determine_last_update_date_of_service(id)
+        processed.last_service_updated_at = max_date_updated_for_destination_id(id)
         processed.first_date_served = nil
         processed.last_date_served = nil
         processed.days_served = 0
@@ -575,7 +575,7 @@ module GrdaWarehouse::Tasks
           # GrdaWarehouse::ServiceHistory.import headers, entries.map(&:values)
           processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
           processed.routine = 'service_history'
-          processed.last_service_updated_at = determine_last_update_date_of_service(id)
+          processed.last_service_updated_at = max_date_updated_for_destination_id(id)
           processed.first_date_served = first_date_served
           processed.last_date_served = last_date_served
           processed.days_served = days_served
@@ -901,16 +901,6 @@ module GrdaWarehouse::Tasks
           end
         end
       end
-    end
-
-    def max_date_updated_for_destination_id destination_id
-      client_sources[destination_id].map do |s|
-        lookup = [
-          clients_by_id[s][client_personal_id_index], 
-          clients_by_id[s][client_data_source_id_index]
-        ]
-        max_date_updated_personal_id[lookup]
-      end.compact.max
     end
 
     def client_id_index
@@ -1474,14 +1464,13 @@ module GrdaWarehouse::Tasks
       nil
     end
 
-    # get the newest updated date from Exit, Enrollment, Services
-    def determine_last_update_date_of_service destination
-      client_sources[destination].map do |id|
-        [clients_by_id[id][client_personal_id_index], clients_by_id[id][client_data_source_id_index]]
-      end.map do |pid_ds|
-        if pid_ds.present?
-          max_date_updated_personal_id[pid_ds]
-        end
+    def max_date_updated_for_destination_id destination_id
+      client_sources[destination_id].map do |s|
+        lookup = [
+          clients_by_id[s][client_personal_id_index], 
+          clients_by_id[s][client_data_source_id_index]
+        ]
+        max_date_updated_personal_id[lookup]
       end.compact.max
     end
 
