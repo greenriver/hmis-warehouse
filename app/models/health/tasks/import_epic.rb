@@ -27,7 +27,7 @@ module Health::Tasks
     end
 
     def run!
-      # fetch_files()
+      fetch_files()
       import_files()
       update_consent()
       notify_health_admin_of_changes()
