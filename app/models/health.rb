@@ -3,6 +3,10 @@ module Health
     models_by_health_filename.fetch(filename)
   end
 
+  module_function def model_to_filename(model)
+    models_by_health_filename.invert.fetch(model)
+  end
+
   module_function def models_by_health_filename
     # use an explict whitelist as a security measure
     {

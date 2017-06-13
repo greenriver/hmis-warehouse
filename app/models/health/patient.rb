@@ -47,6 +47,14 @@ module Health
       consent_revoked.present?
     end
 
+    def self.revoke_consent
+      update_all(consent_revoked: Time.now)
+    end
+
+    def self.restore_consent
+      update_all(consent_revoked: nil)
+    end
+
     def self.csv_map(version: nil)
       {
         PAT_ID: :id_in_source,

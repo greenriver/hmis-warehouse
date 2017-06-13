@@ -54,6 +54,26 @@ module Health::Tasks
       Health.models_by_health_filename.each do |file, klass|
         import(klass: klass, file: file)
       end
+      update_consent()
+    end
+
+    def update_consent
+      klass = Health::Patient
+      file = Health.model_to_filename(klass)
+      path = "#{@config['destination']}/#{file}"
+
+      consented = klass.consented.pluck(:id_in_source)
+      revoked = klass.consent_revoked.pluck(:id_in_source)
+      incoming = []
+      CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
+        incoming << row[klass.source_key.to_s]
+      end
+      to_revoke = consented - incoming
+      to_restore = revoked & incoming
+      @logger.info "Revoking consent for #{to_revoke.size} patients"
+      klass.where(id_in_source: to_revoke).revoke_consent
+      @logger.info "Restoring consent for #{to_restore.size} patients"
+      klass.where(id_in_source: to_restore).restore_consent
     end
 
     def fetch_files
@@ -61,7 +81,7 @@ module Health::Tasks
         @config['host'], 
         @config['username'],
         password: @config['password'],
-        verbose: :debug,
+        # verbose: :debug,
         auth_methods: ['publickey','password']
       )
       sftp.download!(@config['path'], @config['destination'], recursive: true)
