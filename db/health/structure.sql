@@ -233,7 +233,8 @@ CREATE TABLE patients (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     client_id integer,
-    gender character varying
+    gender character varying,
+    consent_revoked timestamp without time zone
 );
 
 
@@ -693,4 +694,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170601172245');
 INSERT INTO schema_migrations (version) VALUES ('20170602013551');
 
 INSERT INTO schema_migrations (version) VALUES ('20170606143003');
+
+INSERT INTO schema_migrations (version) VALUES ('20170613150635');
 

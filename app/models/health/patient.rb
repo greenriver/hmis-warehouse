@@ -15,8 +15,22 @@ module Health
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
     scope :unprocessed, -> { where client_id: nil}
+    scope :consent_revoked, -> {where.not(consent_revoked: nil)}
+    scope :consented, -> {where(consent_revoked: nil)}
 
     self.source_key = :PAT_ID
+
+    def self.accessible_by_user user
+        # health admins can see all, including consent revoked
+        if user.can_administer_health?
+          all
+        # everyone else can only see consented patients
+        elsif user.present? && (user.can_edit_client_health? || user.can_view_client_health?)
+          consented
+        else
+          none
+        end
+      end
     
     def self.csv_map(version: nil)
       {
