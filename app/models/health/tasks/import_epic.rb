@@ -21,11 +21,16 @@ module Health::Tasks
           username: 'HealthImporter'
         )        
       end
+      @to_revoke = []
+      @to_restore = []
+      @new_patients = []
     end
 
     def run!
-      fetch_files()
+      # fetch_files()
       import_files()
+      update_consent()
+      notify_health_admin_of_changes()
     end
 
     def import klass:, file:
@@ -43,7 +48,11 @@ module Health::Tasks
           [klass.csv_map[k.to_sym], v]
         end.to_h
         entry = klass.where(klass.csv_map[klass.source_key] => key).
-          first_or_create(translated_row)
+          first_or_create(translated_row) do |patient|
+          if klass == Health::Patient
+            @new_patients << patient[:id_in_source]
+          end
+        end
         if entry.updated_at < translated_row[:updated_at]
           entry.update(translated_row)
         end
@@ -54,7 +63,19 @@ module Health::Tasks
       Health.models_by_health_filename.each do |file, klass|
         import(klass: klass, file: file)
       end
-      update_consent()
+    end
+
+    def notify_health_admin_of_changes
+      if @new_patients.size > 0 || @to_revoke.any? || @to_restore.any?
+        User.can_administer_health.each do |user|
+          HealthConsentChangeMailer.consent_changed(
+            new_patients: @new_patients.size,
+            consented: @to_restore.size, 
+            revoked_consent: @to_revoke.size, 
+            user: user
+          ).deliver_later
+        end 
+      end
     end
 
     def update_consent
@@ -68,12 +89,12 @@ module Health::Tasks
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
         incoming << row[klass.source_key.to_s]
       end
-      to_revoke = consented - incoming
-      to_restore = revoked & incoming
-      @logger.info "Revoking consent for #{to_revoke.size} patients"
-      klass.where(id_in_source: to_revoke).revoke_consent
-      @logger.info "Restoring consent for #{to_restore.size} patients"
-      klass.where(id_in_source: to_restore).restore_consent
+      @to_revoke = consented - incoming
+      @to_restore = revoked & incoming
+      notify "Revoking consent for #{@to_revoke.size} patients"
+      klass.where(id_in_source: @to_revoke).revoke_consent
+      notify "Restoring consent for #{@to_restore.size} patients"
+      klass.where(id_in_source: @to_restore).restore_consent
     end
 
     def fetch_files

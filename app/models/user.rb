@@ -33,16 +33,25 @@ class User < ActiveRecord::Base
     end
   end
 
- # define helper methods for looking up if this
- # user has an permission through one of its roles
- Role.permissions.each do |permission|
+  # define helper methods for looking up if this
+  # user has an permission through one of its roles
+  Role.permissions.each do |permission|
     define_method(permission) do
       @permisisons ||= load_effective_permissions
       @permisisons[permission]
     end
 
+    # Methods for determining if a user has permission
+    # e.g. the_user.can_administer_health?
     define_method("#{permission}?") do
       self.send(permission)
+    end
+
+    # Provide a scope for each permission to get any user who qualifies
+    # e.g. User.can_administer_health 
+    scope permission, -> do
+      joins(:roles).
+      where(roles: {permission => true})
     end
   end
 
