@@ -21,17 +21,32 @@ module Health
     self.source_key = :PAT_ID
 
     def self.accessible_by_user user
-        # health admins can see all, including consent revoked
-        if user.can_administer_health?
-          all
-        # everyone else can only see consented patients
-        elsif user.present? && (user.can_edit_client_health? || user.can_view_client_health?)
-          consented
-        else
-          none
-        end
+      # health admins can see all, including consent revoked
+      if user.can_administer_health?
+        all
+      # everyone else can only see consented patients
+      elsif user.present? && (user.can_edit_client_health? || user.can_view_client_health?)
+        consented
+      else
+        none
       end
+    end
     
+    def accessible_by_user user
+      return false unless user.present?
+      return true if user.can_administer_health?
+      return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
+      return false
+    end
+
+    def consented?
+      consent_revoked.blank?
+    end
+
+    def consent_revoked?
+      consent_revoked.present?
+    end
+
     def self.csv_map(version: nil)
       {
         PAT_ID: :id_in_source,

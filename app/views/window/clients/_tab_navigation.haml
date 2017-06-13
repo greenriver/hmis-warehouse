@@ -1,4 +1,4 @@
-- show_health = can_edit_client_health? && @client.patient.present?
+- show_health = @client.patient.accessible_by_user(current_user).present?
 :ruby
   tabs = {
     polymorphic_path(client_path_generator, id: @client.id) => {
