@@ -253,12 +253,13 @@ module EtoApi::Tasks
         # Load anyone who's not been updated recently
         case type
         when :demographic
-          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id)).
-            where(data_source_id: @data_source_id).
-            order(last_contact: :desc)
-          # scope.where.not(client_id: GrdaWarehouse::HmisClient.
-          #   where(['updated_at < ?', 1.week.ago.to_date])
-          # )
+          # scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id)).
+          #   where(data_source_id: @data_source_id).
+          #   order(last_contact: :desc)
+          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
+            where(['updated_at < ?', 3.days.ago.to_date])
+          ).
+          where(data_source_id: @data_source_id)
         when :assessment
           scope.joins(:hmis_client)
             # .where(['updated_at < ?', 1.week.ago.to_date])
