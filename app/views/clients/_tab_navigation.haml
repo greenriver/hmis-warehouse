@@ -1,4 +1,4 @@
-- show_health = @client.patient.accessible_by_user(current_user).present?
+- show_health = @client.patient.present? && @client.patient.accessible_by_user(current_user).present?
 :ruby
   tabs = {
     client_path(@client) => {
