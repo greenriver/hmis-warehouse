@@ -48,6 +48,10 @@ module ArelHelper
       self.class.datediff *args
     end
 
+    def seconds_diff(*args)
+      self.class.seconds_diff *args
+    end
+
     def datepart(*args)
       self.class.datepart *args
     end
@@ -128,6 +132,18 @@ module ArelHelper
         Arel::Nodes::Subtraction.new d1, d2
       when 'SQLServer'
         nf 'DATEDIFF', [ lit(type), d1, d2 ]
+      else
+        raise NotImplementedError
+      end
+    end
+
+
+    # to convert a pair of timestamps into a difference in seconds
+    def seconds_diff(engine, d1, d2)
+      case engine.connection.adapter_name
+      when 'PostgreSQL'
+        delta = Arel::Nodes::Subtraction.new d1, d2
+        nf 'EXTRACT', [ lit("epoch FROM #{delta.to_sql}") ]
       else
         raise NotImplementedError
       end
