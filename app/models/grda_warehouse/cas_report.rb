@@ -4,5 +4,6 @@ module GrdaWarehouse
     def readonly?
       true
     end
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :cas_reports
   end
 end
