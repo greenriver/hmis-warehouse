@@ -1,0 +1,75 @@
+- title = "Veteran Exit Detail"
+- content_for :title, title
+%h1= title
+.row
+  .col-sm-8
+    = render 'filter'
+  .col-sm-2.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
+
+.row
+  .col-sm-12
+    %h2 Summary
+    %p 
+      The following is exit data for veteran who exited homelessness between
+      = @range.start
+      and
+      = "#{@range.end}."
+      During that time there were 
+      = @clients.count
+      exits consisting of
+      = @clients.map{ |row| row[:client_id]}.uniq.count
+      unique clients.
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th
+            Destination
+          %th
+            Count
+      %tbody
+        - @buckets.each do |destination_id, count|
+          %tr
+            %td
+              = HUD.destination(destination_id)
+            %td
+              = count
+      %tfoot
+        %tr
+          %th
+            Total
+          %th
+            = @buckets.values.sum
+
+    %h2 Exit Details
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th
+            Client
+          %th
+            Date
+          %th
+            Destination
+          %th
+            Exit From
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td
+              = link_to "#{client[:first_name]} #{client[:last_name]}", client_path(id: client[:client_id])
+            %td
+              = client[:date]
+            %td
+              = HUD.destination(client[:destination])
+            %td
+              = client[:project_name]
+
+-# .warehouse-reports__active-veterans
+-#   .pagination
+-#     %p= page_entries_info @clients
+-#     %p= paginate @clients
+-#   = render 'veteran_table'
+                  
+-# %p= paginate @clients
