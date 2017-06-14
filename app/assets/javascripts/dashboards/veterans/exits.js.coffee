@@ -6,13 +6,14 @@ class App.Dashboards.Veterans.Exits
     Chart.defaults.global.elements.rectangle.backgroundColor = '#45789C'
     Chart.defaults.global.elements.rectangle.borderColor = '#45789C'
     Chart.defaults.global.elements.rectangle.borderWidth = 1
+    Chart.defaults.global.onClick = @_follow_link
 
 
     data = 
       labels: (v for k, v of @labels),
       datasets: (v for k, v of @data),
 
-    exits_chart = new Chart @chart,
+    @exits_chart = new Chart @chart,
       type: 'bar',
       data: data,
       options: 
@@ -45,3 +46,22 @@ class App.Dashboards.Veterans.Exits
                 text + " :" + value
               else # .. else, you display the dataset and the total, using an array
                 [text + " :" + value, "Total : " + total]
+
+  _follow_link: (event) =>
+    
+    if target = @exits_chart.getElementAtEvent(event)[0]
+      # console.log(target)
+      month = @exits_chart.config.data.labels[target._index]
+      # console.log(month)
+      
+      url = '/warehouse_reports/veteran_details/exits?' + $.param({month: month})
+      window.open url
+    # chart = @charts[event.target.id.replace('census-chart-', '')]
+    # project = $(event.target).data('project')
+
+    # # If we clicked on a point, send us to the list of associated clients
+    # if point = chart.getElementAtEvent(event)[0]
+    #   date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
+    #   params = {type: @type, date: date, project: project}
+    #   url = @url.replace('date_range', 'details') + '?' + $.param(params)
+    #   window.open url

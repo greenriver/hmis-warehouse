@@ -1,0 +1,24 @@
+
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Veteran Exit Detail") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+    'Warehouse Client ID',
+    'First Name', 
+    'Last Name', 
+    'Date',
+    'Destination',
+    'Exit From',
+  ], :style => title)
+  @clients.each do |client|
+    row = [
+      client[:client_id], 
+      client[:first_name], 
+      client[:last_name],
+      client[:date], 
+      client[:destination],
+      client[:project_name],
+    ] 
+    sheet.add_row(row)
+  end
+end

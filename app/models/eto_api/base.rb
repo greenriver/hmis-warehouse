@@ -16,7 +16,8 @@ module EtoApi
         search: 'https://services.etosoftware.com/API/Search.svc',
         actor: 'https://services.etosoftware.com/API/Actor.svc',
         touch_pount: 'https://services.etosoftware.com/API/TouchPoint.svc',
-        staff: 'https://services.etosoftware.com/API/Staff.svc'
+        staff: 'https://services.etosoftware.com/API/Staff.svc',
+        activity: 'https://services.etosoftware.com/API/Activity.svc',
       }
       api_config = YAML.load_file('config/eto_api.yml')
       @credentials = {
@@ -134,7 +135,7 @@ module EtoApi
     end
     memoize :enrollments
 
-    def site_demographics(program_id:nil, site_id:)
+    def site_demographics program_id: nil, site_id:
       creds = get_site_creds(site_id)
       program_ids = if program_id
         [program_id]
@@ -148,6 +149,61 @@ module EtoApi
       end
     end
     memoize :site_demographics
+
+    def list_point_of_services program_id: nil, site_id:
+      creds = get_site_creds(site_id)
+      program_ids = if program_id
+        [program_id]
+      else
+        programs(site_id: site_id).keys
+      end
+      program_ids.flat_map do |program_id|
+        api_get_json("#{@endpoints[:forms]}/Forms/POSList/#{program_id.to_i}", creds).each do |r|
+          r['ProgramID'] = program_id
+        end
+      end
+    end
+    memoize :list_point_of_services
+
+    # pos_id is a string
+    def get_point_of_service pos_id:, site_id:
+      creds = get_site_creds(site_id)
+      api_get_json "#{@endpoints[:forms]}/Forms/POS/#{pos_id}", creds
+    end
+
+    def get_point_of_service_info pos_id:, site_id:
+      creds = get_site_creds(site_id)
+      api_get_json "#{@endpoints[:forms]}/Forms/POS/GetPosInfo/#{pos_id}", creds
+    end
+
+    # def get_point_of_service_for_client program_id: nil, actor_type:, site_id:
+    #   creds = get_site_creds(site_id)
+    #   program_ids = if program_id
+    #     [program_id]
+    #   else
+    #     programs(site_id: site_id).keys
+    #   end
+    #   program_ids.flat_map do |program_id|
+    #     api_post_json "#{@endpoints[:forms]}/Forms/POS/GetAllActorPOS", {programid: program_id, actorType: actor_type}, creds
+    #   end
+    # end
+     
+    def get_client_efforts staff_id:, program_id:, client_id:, site_id:
+      creds = get_site_creds(site_id)
+      api_get_json "#{@endpoints[:forms]}/Forms/Effort/#{staff_id}/#{program_id}/#{client_id}", creds
+    end
+
+    def activities program_id:nil, site_id:, all_activities: nil
+      creds = get_site_creds(site_id)
+      program_ids = if program_id
+        [program_id]
+      else
+        programs(site_id: site_id).keys
+      end
+      program_ids.flat_map do |program_id|
+        api_get_json"#{@endpoints[:activity]}/Activities/GetActivities?ProgramId#{program_id.to_i}&GetAllActivitySettings=1", creds
+      end
+    end
 
     def demographic_defined_values cdid:, site_id:
       creds = get_site_creds(site_id)
