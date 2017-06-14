@@ -12,22 +12,26 @@
 %h1= title
 .row
   .col-sm-12
-    = render 'tab_navigation'
+    = render 'tab_navigation', current: client_path(@client)
 
 = render 'client_summary'
 
-%hr
+%hr    
 .row
   .col-sm-12
     .rollup{data: {partial: :demographics}}
       %h3 Demographics
     .row
-      .col-sm-6.client__cas_flags
+      .col-sm-4.client__cas_flags
         = render 'cas_flags'
-      .col-sm-6
+      .col-sm-4
         - if @client.processed_service_history.present? && @client.ever_chronic?
           .rollup{data: {partial: :chronic}}
             %h3 Chronic Days
+      .col-sm-4
+        =render "note_form"
+        .rollup{data: {partial: :client_notes}}
+          %h3 Notes
     -# This has been moved to the enrollments section
     -# .rollup#family
     -#   %h3 Family Members
@@ -63,7 +67,7 @@
       %h3 Disability Types
 #scratchpad
 
--# load in al the bits of aggregate statistics via ajax
+-# load in all the bits of aggregate statistics via ajax
 = content_for :page_js do
   - source_clients = @client.source_clients.preload(:data_source, :organizations)
   :javascript

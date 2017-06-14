@@ -7,7 +7,7 @@
     = f.input :email, as: :email, required: true
   .form--checkbox-groups
     %h3 Roles for Access Permissions
-    = f.association :roles, as: :check_boxes, label_method: :role_name
+    = f.association :roles, as: :check_boxes, label_method: :role_name, collection: Role.editable
     =# f.input :dnd_staff, label: 'DND Staff'
     =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
 

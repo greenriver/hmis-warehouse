@@ -1,33 +1,34 @@
-- items = @client.source_enrollment_disabilities.preload( enrollment: :client ).group_by(&:enrollment).sort_by{ |e,_| e.EntryDate }.reverse
-- if items.any?
-  %div
-    %table.table
-      %thead
-        %tr
-          %th
-          %th Program Entry Date
-          %th Substance Abuse
-          %th Mental
-          %th Physical
-          %th Developmental
-          %th HIV/AIDS
-          %th Chronic
-      %tbody
-        - items.each do |enrollment, disabilities|
-          :ruby
-            aggregated = %w( mental substance physical developmental hiv chronic ).map do |m|
-              method = "#{m}?".to_sym
-              d = disabilities.detect(&method)
-              [ m.to_sym, d.try(:response) ]
-            end.to_h
+= cache(['clients', 'disability_types', @client, controller_path], expires_in: 4.hours) do
+  - items = @client.source_enrollment_disabilities.preload( enrollment: :client ).group_by(&:enrollment).sort_by{ |e,_| e.EntryDate }.reverse
+  - if items.any?
+    %div
+      %table.table
+        %thead
           %tr
-            %td.id-sqr{ 'data-id' => enrollment.client.id }
-            %td.date-cell= l enrollment.EntryDate
-            %td= lighten_no aggregated[:substance]
-            %td= lighten_no aggregated[:mental]
-            %td= lighten_no aggregated[:physical]
-            %td= lighten_no aggregated[:developmental]
-            %td= lighten_no aggregated[:hiv]
-            %td= lighten_no aggregated[:chronic]
-- else
-  No disability records found
+            %th
+            %th Program Entry Date
+            %th Substance Abuse
+            %th Mental
+            %th Physical
+            %th Developmental
+            %th HIV/AIDS
+            %th Chronic
+        %tbody
+          - items.each do |enrollment, disabilities|
+            :ruby
+              aggregated = %w( mental substance physical developmental hiv chronic ).map do |m|
+                method = "#{m}?".to_sym
+                d = disabilities.detect(&method)
+                [ m.to_sym, d.try(:response) ]
+              end.to_h
+            %tr
+              %td.id-sqr{ 'data-id' => enrollment.client.id }
+              %td.date-cell= l enrollment.EntryDate
+              %td= lighten_no aggregated[:substance]
+              %td= lighten_no aggregated[:mental]
+              %td= lighten_no aggregated[:physical]
+              %td= lighten_no aggregated[:developmental]
+              %td= lighten_no aggregated[:hiv]
+              %td= lighten_no aggregated[:chronic]
+  - else
+    No disability records found

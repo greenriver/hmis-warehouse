@@ -1,8 +1,7 @@
-
 = render 'breadcrumbs'
 = render 'title'
 
--# render 'tab_navigation'
+= render 'tab_navigation', current: window_client_path(@client)
 = render 'client_summary'
 = render 'rollups'
 

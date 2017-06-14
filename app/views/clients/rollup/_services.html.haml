@@ -1,30 +1,31 @@
-- dots = { min: Float::INFINITY, max: -1, points: [] }
+= cache(['clients', 'services', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
+  - dots = { min: Float::INFINITY, max: -1, points: [] }
 
-%table.table
-  %colgroup
-    %col
-    %col(style="width:6.5em;")
-    %col(style="width:12px;")
-  %thead
-    %tr
-      %th Year of Service Start
-      %th Bed Starts
-      %th
-  %tbody
-    - services = @client.source_services
-    - st = services.arel_table
-    - services.bed_night.uniqueness_constraint.group(dp( services, 'year', st[:DateProvided] ).to_sql).count.sort_by(&:first).reverse.each do |year, count|
+  %table.table
+    %colgroup
+      %col
+      %col(style="width:6.5em;")
+      %col(style="width:12px;")
+    %thead
       %tr
-        %td= year.to_i
-        %td.num-cell= count
-        - dots[:min] = count if count < dots[:min]
-        - dots[:max] = count if count > dots[:max]
-        - dots[:points] << count
-        %td.dot
+        %th Year of Service Start
+        %th Bed Starts
+        %th
+    %tbody
+      - services = @client.source_services
+      - st = services.arel_table
+      - services.bed_night.uniqueness_constraint.group(dp( services, 'year', st[:DateProvided] ).to_sql).count.sort_by(&:first).reverse.each do |year, count|
+        %tr
+          %td= year.to_i
+          %td.num-cell= count
+          - dots[:min] = count if count < dots[:min]
+          - dots[:max] = count if count > dots[:max]
+          - dots[:points] << count
+          %td.dot
 
-- if dots[:min] < dots[:max]
-  :javascript
-    var dots = #{dots.to_json};
-    $('#services td.dot').each(function(i){
-      $(this).append(App.util.colorDot({point:dots.points[i],low:dots.min,high:dots.max,center:true}));
-    });
+  - if dots[:min] < dots[:max]
+    :javascript
+      var dots = #{dots.to_json};
+      $('#services td.dot').each(function(i){
+        $(this).append(App.util.colorDot({point:dots.points[i],low:dots.min,high:dots.max,center:true}));
+      });

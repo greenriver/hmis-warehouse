@@ -1,0 +1,14 @@
+- title = 'ED & Inpatient Utilization'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+
+.row
+  .col-sm-12
+    %h3 Past Visits
+    - if @visits.any?
+      = render 'visit_table', visits: @visits
+    - else
+      %p No past visits.

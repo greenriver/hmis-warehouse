@@ -25,7 +25,7 @@
         %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
   .clients__list
     .row
-      - @clients.preload(:source_clients).each do |client|
+      - @clients.preload(:window_source_clients).each do |client|
         = render 'client_card', client: client
           
   %p= paginate @clients, params: {sort: @column, direction: @direction}

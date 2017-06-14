@@ -12,6 +12,9 @@
 # 1. Anyone homeless in all of the last 12 months is chronic
 # 2. If you are homeless 12 or more months in the last 36 months, you also need to have had at least three episodes, this means that if you were homeless for the last 10 months, had 2 months housed and then the prior 24 months were homeless, you are still not chronic.
 # 3. Ignore anyone currently enrolled in a DMH project, we'll catch them in the DMH chronic calculator
+# 
+# Something like this is very helpful for debugging:
+# ch = GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: '2017-06-01'.to_date, dry_run: true, client_ids: [123456,123457], debug: true);
 
 module GrdaWarehouse::Tasks
   require 'ruby-progressbar'
@@ -21,59 +24,88 @@ module GrdaWarehouse::Tasks
     CHRONIC_PROJECT_TYPES = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     DMH_SITE = 38
+    SO = 4
+    
+    attr_accessor :logger, :debug
 
-    def initialize(date: Date.today)
+    # Pass client_ids as an array
+    def initialize(
+      date: Date.today, 
+      count_so_as_full_month: true, 
+      dry_run: false, 
+      client_ids: nil,
+      debug: false
+    )
+      self.logger = Rails.logger
       @progress_format = '%a: '
       @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
       @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
       @date = date
+      @count_so_as_full_month = count_so_as_full_month
+      @dry_run = dry_run
+      @clients = client_ids
+      @limited = client_ids.present? && client_ids.any?
+      @debug = debug
     end
 
     def run!
-      Rails.logger.info "Updating status of chronically homeless clients on #{@date}"
+      logger.info "====DRY RUN====" if @dry_run
+      logger.info "Updating status of chronically homeless clients on #{@date}"
       load_active_clients()
-      Rails.logger.info "Found #{@clients.size} clients who are homeless on #{@date}"
+      logger.info "====Using supplied client ids====" if @limited
+      logger.info "Found #{@clients.size} clients who are homeless on #{@date}"
       @chronically_homeless = []
       @client_details = {}
       extra_work = 0
       @clients.each_with_index do |client_id, index|
+        debug_log "Calculating chronicity for #{client_id}"
         # remove any cached calculations from the previous client
         reset_for_batch()
         adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
         homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
-        if disabled?(client_id) && homeless_months.size >= 12
-          # load the client.  This is expensive, but we need some related data
-          # that's not easy to do without calculations
-          client = GrdaWarehouse::Hud::Client.find(client_id)
-          # If we've been homless in all of the last 12 months, we're chronic
-          if homeless_in_all_last_12_months?(months: homeless_months)
-            @chronically_homeless << client_id
-            @chronic_trigger = "All previous 12 months, #{homeless_months.size} in last 36"
-            @chronic = true
-          else
-            # If we've been homeless for 12 of 36 months, we need to see if we've had 4 episodes in that time
-            #   Get any enrollments for the client in the last 36 months and then count new episodes
-            episodes = client.homeless_episodes_between(start_date: (@date - 3.years), end_date: @date)
-            if episodes > 3
+        debug_log "Found #{homeless_months.size} homeless months"
+        if homeless_months.size >= 12
+          disabled = disabled?(client_id)
+          debug_log "Client disabled? #{disabled.inspect}"
+          if disabled 
+            # load the client.  This is expensive, but we need some related data
+            # that's not easy to do without calculations
+            client = GrdaWarehouse::Hud::Client.find(client_id)
+            # If we've been homless in all of the last 12 months, we're chronic
+            if homeless_in_all_last_12_months?(months: homeless_months)
               @chronically_homeless << client_id
-              @chronic_trigger = "#{homeless_months.size} of last 36 months in #{episodes} episodes"
+              @chronic_trigger = "All previous 12 months, #{homeless_months.size} in last 36"
               @chronic = true
+            else
+              # If we've been homeless for 12 of 36 months, we need to see if we've had 4 episodes in that time
+              #   Get any enrollments for the client in the last 36 months and then count new episodes
+              episodes = client.homeless_episodes_between(start_date: (@date - 3.years), end_date: @date)
+              debug_log "Episodes: #{episodes.inspect}"
+              if episodes > 3
+                @chronically_homeless << client_id
+                @chronic_trigger = "#{homeless_months.size} of last 36 months in #{episodes} episodes"
+                @chronic = true
+              end
+            end
+            if @chronic
+              debug_log "Chronic Triggers: "
+              debug_log @chronic_trigger.inspect
+              # Add details for any chronically homeless client
+              add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months.size, chronic_trigger: @chronic_trigger)
             end
           end
-          if @chronic
-            # Add details for any chronically homeless client
-            add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months.size, chronic_trigger: @chronic_trigger)
-          end
         end
-        @progress.format = "#{@progress_format}Found chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}"
+        @progress.format = "#{@progress_format}Found chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
       end
-      Rails.logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
-      
-      GrdaWarehouse::Chronic.transaction do
-        GrdaWarehouse::Chronic.where(date: @date, dmh: false).delete_all
-        insert_batch GrdaWarehouse::Chronic, @client_details.values.first.keys, @client_details.values.map(&:values)
+      logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
+      unless @dry_run
+        GrdaWarehouse::Chronic.transaction do
+          GrdaWarehouse::Chronic.where(date: @date, dmh: false).delete_all
+          insert_batch GrdaWarehouse::Chronic, @client_details.values.first.keys, @client_details.values.map(&:values)
+        end
+        logger.info 'Done updating status of chronically homeless clients'
       end
-      Rails.logger.info 'Done updating status of chronically homeless clients'
+      logger.info 'Completed chronic calculations'
     end
 
     def reset_for_batch
@@ -113,6 +145,7 @@ module GrdaWarehouse::Tasks
     # First check to see if any of that includes a 90+ day non-homeless residential
     # project stay.  If there is, limit the full request to only the days after the stay
     def residential_history_for_client(client_id:)
+      debug_log "calculating residential history"
       services = GrdaWarehouse::ServiceHistory
       st = services.arel_table
       homeless_reset = services.residential.
@@ -128,11 +161,13 @@ module GrdaWarehouse::Tasks
         service_within_date_range(start_date: @date - 3.years, end_date: @date).
         where(client_id: client_id)
       if homeless_reset.present?
+        debug_log "Found previous residential history, using #{homeless_reset} instead of #{@date - 3.years} as beginning of calculation"
         scope = scope.where(date: homeless_reset..@date)
       end 
       all_dates = scope.pluck(*cols).map do |row|
         cols.zip(row).to_h
       end
+      debug_log "Found #{all_dates.size} days in the residential history"
       # group by enrollment and then calculated adjusted dates for each enrollment
       enrollments_by_project_entry = all_dates.group_by do |m|
         [m[:enrollment_group_id], m[:project_id], m[:data_source_id]]
@@ -142,6 +177,21 @@ module GrdaWarehouse::Tasks
         e.sort_by!{|m| m[:date]}
         meta = e.first
         dates_served = e.map{|m| m[:date]}.uniq
+        # special treatment for SO
+        # Count all days in any month served
+        if meta[:project_type] == SO && @count_so_as_full_month
+          so_dates_served = []
+          dates_served.map do |date|
+            Date.new(date.year, date.month, 01)
+          end.uniq.each do |first_of_month|
+            last_of_month = first_of_month.end_of_month
+            first_of_month.upto(last_of_month) do |d|
+              so_dates_served << d
+            end
+          end
+          debug_log "SO Dates Served: #{so_dates_served.size}"
+          dates_served = so_dates_served.uniq
+        end
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
         count_until = if meta[:project_tracking_method] == 3
@@ -154,8 +204,13 @@ module GrdaWarehouse::Tasks
         homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: all_dates)
         all_homeless_dates += homeless_dates_for_enrollment
       end
+      debug_log "Counting #{all_homeless_dates.size} homeless days"
       all_homeless_dates
       
+    end
+
+    def debug_log string
+      logger.info string if debug
     end
 
     def next_enrollment enrollments:, type:, start:
@@ -213,11 +268,11 @@ module GrdaWarehouse::Tasks
     def homeless_in_all_last_12_months? months:
       @last_12_months ||= begin
         last_12_months = Set.new
-        12.times do |i| 
+        (1..12).each do |i|
           last_12_months << (@date.to_date - i.months).to_time.strftime("%Y-%m")
         end
         last_12_months
-      end      
+      end
       (@last_12_months - months).blank?
     end
 

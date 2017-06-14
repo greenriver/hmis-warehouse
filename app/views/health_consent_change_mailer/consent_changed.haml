@@ -1,0 +1,25 @@
+%h2 Patient Consent Changed
+%p
+  During a recent import to the warehouse the following changes were made to patient consent:
+%ul
+  - if @new_patients > 0
+    %li
+      = @new_patients
+      - if @new_patients == 1
+        new patient has been added
+      - else
+        new patients have been added
+  - if @consented > 0
+    %li
+      = @consented
+      - if @consented == 1
+        patient consented to be included
+      - else
+        patients consented to be included
+  - if @revoked_consent > 0
+    %li
+      = @revoked_consent
+      - if @revoked_consent == 1
+        patient revoked consent
+      - else
+        patients revoked consent

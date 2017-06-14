@@ -25,6 +25,13 @@
       %tr
         %th Continuum Project
         %td= checkmark(@project.ContinuumProject == 1)
+      %tr
+        %th Project Contacts
+        %td= link_to 'View/Edit', project_contacts_path(@project)
+      - if @project.data_quality_reports.any?
+        %tr
+          %th Project Data Quality Reports
+          %td= link_to 'View Reports', project_data_quality_reports_path(@project)
   .col-sm-4
     %h4 HMIS Info
     %table.table.table-condensed.table-hover

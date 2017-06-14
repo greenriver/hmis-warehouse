@@ -1,0 +1,39 @@
+- content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
+%h1= content_for :title
+
+%h3 Summary
+.well
+  %ul
+    %li
+      Start Date:
+      = @report.start
+    %li
+      End Date:
+      = @report.end
+    %li
+      Run On:
+      = @report.started_at
+    %li
+      Completed On:
+      = @report.completed_at
+- if @report.processing_errors.present?
+  .alert.alert-danger
+    Processing error:
+    = JSON.parse(@report.processing_errors).first
+- else
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Measure
+        %th Result
+    %tbody
+      - @report.report_columns.each do |key, info| 
+        %tr
+          %td
+            = info[:title]
+          %td
+            - value = @report.report.with_indifferent_access[key]
+            - if info[:callback].present?
+              = @report.public_send(info[:callback], value)
+            - else 
+              = value

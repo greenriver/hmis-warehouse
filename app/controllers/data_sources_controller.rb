@@ -34,6 +34,7 @@ class DataSourcesController < ApplicationController
     error = false
     begin
       GrdaWarehouse::Hud::Project.transaction do
+        @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
         data_source_params[:project_attributes].each do |id, project_attributes|
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i
@@ -44,6 +45,7 @@ class DataSourcesController < ApplicationController
           project.project_cocs.each do |coc|
             coc.update(hud_coc_code: project_attributes[:hud_coc_code])
           end
+          project.confidential = project_attributes[:confidential] || false
           if ! project.save
             error = true
           end
@@ -53,7 +55,7 @@ class DataSourcesController < ApplicationController
       error = true
     end
     if error
-      flash[:error] = "Unable to update data source."
+      flash[:error] = "Unable to update data source. #{e}"
       render :show
     else
       redirect_to data_source_path(@data_source), notice: "Data Source updated"
@@ -73,12 +75,27 @@ class DataSourcesController < ApplicationController
 
   private def data_source_params
     params.require(:data_source).
-      permit(project_attributes: [:act_as_project_type, :hud_coc_code, :hud_continuum_funded])
+      permit(
+        :visible_in_window,
+        project_attributes: 
+        [
+          :act_as_project_type, 
+          :hud_coc_code, 
+          :hud_continuum_funded,
+          :confidential,
+        ]
+      )
   end
 
   private def new_data_source_params
     params.require(:grda_warehouse_data_source).
-      permit(:name, :short_name, :munged_personal_id, :source_type)
+      permit(
+        :name, 
+        :short_name, 
+        :munged_personal_id, 
+        :source_type,
+        :visible_in_window,
+      )
   end
 
   private def data_source_source

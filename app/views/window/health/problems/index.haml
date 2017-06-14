@@ -1,0 +1,13 @@
+- title = 'Problems'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+
+.row
+  .col-sm-12
+    - if @patient.present? && @problems.any?
+      = render 'problems_table', problems: @problems
+    - else
+      %p No problems.

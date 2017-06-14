@@ -60,14 +60,14 @@ module Admin
 
     private
       def role_scope
-        Role.all
+        Role.editable
       end
 
       def role_params
         params.require(:role).
           permit(
             :name,
-            Role.permissions
+            Role.permissions(exclude_health: true)
           )
       end
       def sort_column

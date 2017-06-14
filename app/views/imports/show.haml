@@ -30,7 +30,7 @@
                       %th Updated
                       %th Errors
                   %tbody
-                    - @import.summary.each do |k,v|
+                    - @import.summary.with_indifferent_access.each do |k,v|
                       - filename = k.split('/')[-1]
                       %tr
                         %td= filename
@@ -39,7 +39,7 @@
                         %td= v['lines_updated']
                         %td
                           - if @import.import_errors.is_a?(Hash) && @import.import_errors[filename].is_a?(Array)
-                            = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors[filename], total_errors: v['total_errors'] 
+                            = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors.with_indifferent_access[filename], total_errors: v['total_errors'] 
                           - else
                             = v['total_errors']
                             

@@ -1,0 +1,8 @@
+%h2 Report Complete
+%p
+  A data quality report was recently run for
+  = @report.project.ProjectName
+  in the Boston DND HMIS Warehouse.  You can see the results of the report by following this link:
+  %br
+  = link_to notification_project_data_quality_report_url(notification_id: @token.token, project_id: @report.project.id, id: @report.id) do 
+    = "View Data Quality Report for #{@report.project.ProjectName}."

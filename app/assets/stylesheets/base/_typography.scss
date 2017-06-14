@@ -14,7 +14,18 @@ dd {
 .font-size-large {
   font-size: 2em;
 }
-.description
-{
+.description {
   font-size: 0.8em;
+}
+.text-small {
+  font-size: $font-size-small;
+}
+.text-bold {
+  font-weight: 700;
+}
+.section-expander-block h1,
+.section-expander-block h2,
+.section-expander-block h3,
+.section-expander-block h4 {
+  margin-top: 0;
 }

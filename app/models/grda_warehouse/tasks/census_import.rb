@@ -111,9 +111,11 @@ module GrdaWarehouse::Tasks
           next_data = history_for_range_by_project_type(start_date, start_date + 1.year).group_by(&:first)
           data_by_date.merge! next_data
           next_data.each do |date, rows|
+            date = Date.parse date if date.is_a? String
             # yesterday = date - 1.day
             # yesterdata = data_by_date[yesterday] || []
             rows.each do |date,pt,gender,veteran,count|
+              date = Date.parse date if date.is_a? String
               bed_count = 0
               # yr = yesterdata.detect do |_,pt2,gender2,veteran2|
               #   pt == pt2 && gender == gender2 && veteran == veteran2

@@ -1,1 +1,2 @@
-= render 'enrollments', only_ongoing: true, scope: @client.source_enrollments.residential.joins( project: :organization ).preload( :client, :exit, project: :organization ).order(EntryDate: :desc)
+= cache(['clients', 'ongoing_residential_enrollments', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
+  = render 'enrollments', only_ongoing: true, scope: @client.source_enrollments.residential.joins( project: :organization ).preload( :client, :exit, project: :organization ).order(EntryDate: :desc)

@@ -11,6 +11,7 @@ module GrdaWarehouse::Hud
       class_name: 'GrdaWarehouse::ServiceHistory',
       foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID],
       inverse_of: :organization
+    has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
 
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> {

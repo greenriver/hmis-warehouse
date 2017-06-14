@@ -7,11 +7,11 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications, :notifier_config
     def initialize
       self.logger = Rails.logger
-      @notifier_config = Rails.application.config_for(:exception_notifier) rescue nil
-      @send_notifications = notifier_config && ( Rails.env.development? || Rails.env.production? )
+      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
+      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
       if @send_notifications
-        slack_url = notifier_config['slack']['webhook_url']
-        channel   = notifier_config['slack']['channel']
+        slack_url = notifier_config['webhook_url']
+        channel   = notifier_config['channel']
         @notifier  = Slack::Notifier.new(slack_url, channel: channel, username: 'Service History Generator')
       end
     end
@@ -251,6 +251,9 @@ module GrdaWarehouse::Tasks
       sql = GrdaWarehouse::WarehouseClientsProcessed.service_history.select(:client_id, :last_service_updated_at).to_sql
       @to_update = [] # This will be converted to a hash later
       GrdaWarehouseBase.connection.select_rows(sql).each do |client_id, last_service_updated_at|
+        # Fix the column type, select_rows now returns all strings
+        client_id = GrdaWarehouse::ServiceHistory.column_types['client_id'].type_cast_from_database(client_id)
+        last_service_updated_at = GrdaWarehouse::ServiceHistory.column_types['last_service_updated_at'].type_cast_from_database(last_service_updated_at)
         # Ignore anyone who no longer has any active source clients
         next unless client_sources[client_id].present?
         # If newly imported data is newer than the date stored the last time we generated, regenerate
@@ -328,7 +331,7 @@ module GrdaWarehouse::Tasks
             logger.info "No changes found for #{id}, fixing so we don't see them again until they change"
             processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
             processed.routine = 'service_history'
-            processed.last_service_updated_at = determine_last_update_date_of_service(id)
+            processed.last_service_updated_at = max_date_updated_for_destination_id(id)
             processed.save unless @dry_run
             return
             return
@@ -398,7 +401,7 @@ module GrdaWarehouse::Tasks
         # checked up until the new date
         processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
         processed.routine = 'service_history'
-        processed.last_service_updated_at = determine_last_update_date_of_service(id)
+        processed.last_service_updated_at = max_date_updated_for_destination_id(id)
         processed.save unless @dry_run
         return
       end
@@ -443,7 +446,7 @@ module GrdaWarehouse::Tasks
           # GrdaWarehouse::ServiceHistory.import headers, entries.map(&:values)
           processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
           processed.routine = 'service_history'
-          processed.last_service_updated_at = determine_last_update_date_of_service(id)
+          processed.last_service_updated_at = max_date_updated_for_destination_id(id)
           processed.first_date_served = first_date_served
           processed.last_date_served = last_date_served
           processed.days_served = days_served
@@ -513,7 +516,7 @@ module GrdaWarehouse::Tasks
             insert_batch(GrdaWarehouse::ServiceHistory, service_history_columns, entries_to_add, transaction: false)
             # update the last date served for this client
             last_date_served = last_dates_served.max
-            processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first
+            processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
             processed.last_date_served = last_date_served
             if processed.days_served.blank?
               processed.days_served = unique_days.size
@@ -543,7 +546,7 @@ module GrdaWarehouse::Tasks
         # Mark the client processed, so we don't try to process them again and again even though they don't have any enrollments
         processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
         processed.routine = 'service_history'
-        processed.last_service_updated_at = determine_last_update_date_of_service(id)
+        processed.last_service_updated_at = max_date_updated_for_destination_id(id)
         processed.first_date_served = nil
         processed.last_date_served = nil
         processed.days_served = 0
@@ -572,7 +575,7 @@ module GrdaWarehouse::Tasks
           # GrdaWarehouse::ServiceHistory.import headers, entries.map(&:values)
           processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: id, routine: 'service_history').first_or_initialize
           processed.routine = 'service_history'
-          processed.last_service_updated_at = determine_last_update_date_of_service(id)
+          processed.last_service_updated_at = max_date_updated_for_destination_id(id)
           processed.first_date_served = first_date_served
           processed.last_date_served = last_date_served
           processed.days_served = days_served
@@ -890,20 +893,14 @@ module GrdaWarehouse::Tasks
           end
 
           GrdaWarehouse::Hud::Base.connection.select_rows(sql).map do |ds_id, personal_id, max_updated, max_deleted|
+            # Fix the column type, select_rows now returns all strings
+            ds_id = GrdaWarehouse::ServiceHistory.column_types['data_source_id'].type_cast_from_database(ds_id)
+            max_updated = GrdaWarehouse::Hud::Service.column_types['DateUpdated'].type_cast_from_database(max_updated)
+            max_deleted = GrdaWarehouse::Hud::Service.column_types['DateDeleted'].type_cast_from_database(max_deleted)
             res[[personal_id, ds_id]] = ActiveSupport::TimeWithZone.new([max_updated, max_deleted].compact.max, Time.zone)
           end
         end
       end
-    end
-
-    def max_date_updated_for_destination_id destination_id
-      client_sources[destination_id].map do |s|
-        lookup = [
-          clients_by_id[s][client_personal_id_index], 
-          clients_by_id[s][client_data_source_id_index]
-        ]
-        max_date_updated_personal_id[lookup]
-      end.compact.max
     end
 
     def client_id_index
@@ -1467,14 +1464,13 @@ module GrdaWarehouse::Tasks
       nil
     end
 
-    # get the newest updated date from Exit, Enrollment, Services
-    def determine_last_update_date_of_service destination
-      client_sources[destination].map do |id|
-        [clients_by_id[id][client_personal_id_index], clients_by_id[id][client_data_source_id_index]]
-      end.map do |pid_ds|
-        if pid_ds.present?
-          max_date_updated_personal_id[pid_ds]
-        end
+    def max_date_updated_for_destination_id destination_id
+      client_sources[destination_id].map do |s|
+        lookup = [
+          clients_by_id[s][client_personal_id_index], 
+          clients_by_id[s][client_data_source_id_index]
+        ]
+        max_date_updated_personal_id[lookup]
       end.compact.max
     end
 

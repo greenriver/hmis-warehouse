@@ -1,0 +1,3 @@
+class StringInput < ReadOnlyInput
+  
+end

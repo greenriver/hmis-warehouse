@@ -24,18 +24,24 @@ module Admin
     end
 
     def edit
-      @user = user_scope.find params[:id]
+      @user = user_scope.find(params[:id].to_i)
     end
 
     def update
-      @user = user_scope.find params[:id]
-      @user.update_attributes user_params
-      if @user.save 
-        redirect_to({action: :index}, notice: 'User updated')
-      else
+      @user = user_scope.find(params[:id].to_i)
+      existing_health_roles = @user.roles.health.to_a
+      begin
+        User.transaction do
+          @user.update(user_params) 
+          # Restore any health roles we previously had
+          @user.roles = (@user.roles + existing_health_roles).uniq
+        end
+      rescue Exception => e
         flash[:error] = 'Please review the form problems below'
         render :edit
+        return
       end
+      redirect_to({action: :index}, notice: 'User updated')
     end
 
     def destroy
