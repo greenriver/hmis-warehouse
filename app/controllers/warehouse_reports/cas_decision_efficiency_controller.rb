@@ -2,13 +2,12 @@ module WarehouseReports
   class CasDecisionEfficiencyController < ApplicationController
     before_action :require_can_view_reports!
     def index
-      et = GrdaWarehouse::Hud::Enrollment.arel_table
-      @clients = client_source.
-        joins(:source_enrollments).
-        preload(:source_enrollments).
-        where( et[:EntryDate].gt(Date.today) ).
-        order(:LastName, :FirstName).
-        page(params[:page]).per(25)
+      @step_range = StepRange.new step_params
+    end
+
+    private def step_params
+      return {} unless params.has_key? :steps
+      params.require(:steps).permit(:first, :second, :unit)
     end
 
     # creates a histogram mapping intervals to numbers of occurrences
@@ -43,8 +42,13 @@ module WarehouseReports
     end
 
     class StepRange < ModelForm
-      attribute :first_step, String
-      attribute :second_step, String
+      attribute :first,  String, lazy: true, default: -> (o,_) { o.ordered_steps.first.first }
+      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o.first].first }
+      attribute :unit,   String, default: 'day'
+
+      def units
+        %w(day hour)
+      end
 
       # hash from steps to steps that may follow them
       def self.ordered_steps
