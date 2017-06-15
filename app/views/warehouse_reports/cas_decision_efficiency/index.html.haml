@@ -1,57 +1,128 @@
 - title = 'Coordinated Access System Decision Efficiency'
 - content_for :title, title
+
+:css
+  .stat + * {
+    margin-left: 1em;
+  }
+
+
 %h1= title
 
-= simple_form_for @step_range, as: :steps, url: warehouse_reports_missing_values_path, html: { method: :get } do |f|
-  = f.error_notification
+= simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
   .form-group
     .row
-      .col-sm-4
+      .col-sm-5
         = f.input :first, label: 'Step From', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
-      .col-sm-4
+      .col-sm-5
         = f.input :second, label: 'Step To', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step' }
       .col-sm-2
         = f.input :unit, label: 'Temporal Unit', collection: @step_range.units, include_blank: false
 
--# if @query.valid?
-  %canvas#counts{ width: 800, height: 200 }
-  %em(style="display:table;margin:0 auto;")
-    click on a bar to copy its field and value to the clipboard
+%canvas#counts{ width: 800, height: 200 }
+#stats(style="display:table;margin:0 auto;")
+  click on a bar to copy its field and value to the clipboard
 
 - content_for :page_js do
   :javascript
-    var legalSteps = #{@step_range.ordered_steps.to_json};
-    // prep UI
+    $(function(){
+      var legalSteps = #{@step_range.ordered_steps.to_json};
+      var data = #{@data.to_a.to_json};
+      // prep UI
+      $('#new_steps').each(function(){
+        var $form = $(this);
+        $form.find(':input').change(function(){
+          var $s1 = $form.find('#first-step'), $s2 = $form.find('#second-step');
+          if (this === $s1[0]) {
+            var v2 = $s2.val();
+            $s2.find('option').remove();
+            var setStep = false;
+            $.each(legalSteps[$s1.val()], function(){
+              var $o = $('<option/>').text(this).val(this);
+              if (this === v2) {
+                setStep = true;
+                $o.prop( 'selected', true );
+              }
+              $s2.append($o);
+            });
+            if (!setStep) {
+              $s2.find('option:first').prop( 'selected', true );
+            }
+          }
+          $form.submit();
+        });
+        $form.submit(function (e) {
+          console.log('submitting...');
+          e.preventDefault();
+          var $p = $.get($form.attr('action'), $form.serialize());
+          $p.success(function(d, status, xhr){
+            data = d;
+            doTheRest();
+          });
+          return false;
+        });
+      });
 
-    // queue this as a separate event to improve layout speed
-    function doTheRest() {
-      // clear buttons etc.
-      if (false) {
+      function stats(data) {
+        var points = [], sum = 0;
+        for ( var i = 0; i < data.length; i += 1 ) {
+          var value = data[i][0], n = data[i][1];
+          for ( var j = 0; j < n; j += 1 ) {
+            points.push(value);
+            sum += value;
+          }
+        }
+        var mean = sum / points.length, median = 0, stddev = 0, min = points[0], max = points[points.length - 1];
+        if (points.length) {
+          if ( points.length % 2 === 0 ) {
+            i = points.length / 2;
+            median = ( points[i] + points[i-1] ) / 2;
+          } else {
+            median = points[ Math.floor( points.length / 2 ) ];
+          }
+          if (points.length > 1) {
+            for ( i = 0; i < points.length; i += 1 ) {
+              stddev += ( points[i] - mean ) ** 2;
+            }
+            stddev /= points.length - 1;
+            stddev = Math.sqrt(stddev);
+            stddev = Math.round(stddev * 100) / 100;
+          }
+        }
+        var $s = $('#stats').empty();
+        var renderable = { n: points.length, minimum: min, maximum: max, mean: mean, median: median, "standard deviation": stddev };
+        for ( var key in renderable ) {
+          var $e = $('<span class="stat"><label/> <span/></span>');
+          $e.find('label').text(key + ':');
+          $e.find('span').text(renderable[key]);
+          $s.append($e);
+        }
+      }
+
+      // queue this as a separate event to improve layout speed
+      function doTheRest() {
+        var $chart = $('#counts');
+        var labels = [], values = [];
+        for (var i = 0; i < data.length; i += 1) {
+          labels.push(data[i][0]);
+          values.push(data[i][1]);
+        }
+        stats(data);
         var chart = new Chart($chart,{
           type: 'bar',
           options: {
             legend: {
               display: false
             },
-            tooltips: {
-              callbacks: {
-                label: function (tooltipItem) {
-                  var d = data[tooltipItem.index][1], type;
-                  var n = tooltipItem.yLabel;
-                  if (d.counts_present)
-                    type = 'present'
-                  else
-                    type = 'missing'
-                  return type + ': ' + n
+            scales: {
+              yAxes: [
+                {
+                  ticks: {
+                    beginAtZero: true,
+                    stepSize: 1
+                  }
                 }
-              }
-            },
-            onClick: function(e, ar) {
-              if (ar.length) {
-                var datum = data[ar[0]._index];
-                var text = datum[0] + ': ' + datum[1].total
-                App.util.copyToClipboard(text);
-              }
+              ]
             }
           },
           data: {
@@ -64,5 +135,5 @@
           }
         });
       }
-    }
-    setTimeout(doTheRest, 0);
+      setTimeout(doTheRest, 0);
+    });

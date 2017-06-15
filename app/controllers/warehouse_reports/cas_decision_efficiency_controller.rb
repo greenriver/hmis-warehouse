@@ -1,8 +1,19 @@
 module WarehouseReports
   class CasDecisionEfficiencyController < ApplicationController
-    before_action :require_can_view_reports!
+    include ArelHelper
+
+    before_action :require_can_view_reports!, :load_vars
+
     def index
+    end
+
+    def chart
+      render json: @data.to_a
+    end
+
+    private def load_vars
       @step_range = StepRange.new step_params
+      @data = step_time_histogram @step_range
     end
 
     private def step_params
@@ -11,11 +22,18 @@ module WarehouseReports
     end
 
     # creates a histogram mapping intervals to numbers of occurrences
-    private def step_time_histogram(first_step, second_step, unit=:day)
+    private def step_time_histogram(step_range)
+      first_step  = step_range.first
+      second_step = step_range.second
+      unit        = step_range.unit
       divisor = case unit
-      when :hour
+      when 'second'
+        1
+      when 'minute'
+        60
+      when 'hour'
         60 * 60
-      when :day
+      when 'day'
         24 * 60 * 60
       else
         raise "unanticipated time unit: #{unit}"
@@ -47,7 +65,7 @@ module WarehouseReports
       attribute :unit,   String, default: 'day'
 
       def units
-        %w(day hour)
+        %w( day hour minute )
       end
 
       # hash from steps to steps that may follow them
