@@ -9,7 +9,7 @@ class App.Dashboards.Veterans.Active
 
     data = 
       labels: (v for k, v of @labels),
-      datasets: [@data],
+      datasets: (v for k, v of @data),
     
     housed_chart = new Chart @chart,
       type: 'bar',

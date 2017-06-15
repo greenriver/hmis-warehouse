@@ -1,0 +1,43 @@
+- title = "Active Veteran Detail"
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+  .col-sm-4.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
+
+= render 'filter'
+.row
+  .col-sm-12
+    %p
+      Clients with at least one day of service between
+      = @start_date
+      and
+      = "#{@end_date}."
+
+.row
+  .col-sm-12
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th
+            Client
+          %th
+            Project Type
+          %th
+            Project
+          %th
+            Entry Date
+      %tbody
+        - @enrollments.each do |client_id, enrollments|
+          - enrollments.each do |enrollment|
+            %tr
+              %td
+                = link_to client_id, client_path(client_id)
+              %td
+                = HUD.project_type(enrollment[:project_type])
+              %td
+                = enrollment[:project_name]
+              %td
+                = enrollment[:first_date_in_program]

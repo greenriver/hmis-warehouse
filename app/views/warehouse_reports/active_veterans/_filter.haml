@@ -13,7 +13,7 @@
       = f.button :submit, value: 'Update View', class: 'pull-right'
   .row(style="margin-top:1rem;")
     .col-sm-12
-      = f.input :project_type, collection: @range.project_types, input_html: { multiple: true }, label: false
+      = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2' }, label: false
 
 - content_for :page_js do
   :javascript

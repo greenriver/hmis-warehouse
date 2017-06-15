@@ -2,7 +2,7 @@
 - content_for :title, title
 %h1= title
 .row
-  .col-sm-8
+  .col-sm-10
     = render 'filter'
   .col-sm-2.text-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
