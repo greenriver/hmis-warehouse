@@ -1,8 +1,10 @@
 module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
+    include ClientEntryCalculations
 
-    CACHE_EXPIRY = if Rails.env.production? then 8.hours else 2.minutes end 
+    CACHE_EXPIRY = if Rails.env.production? then 8.hours else 2.minutes end
+    CACHE_EXPIRY = 20.seconds
     before_action :require_can_view_censuses!
     def index
       # Census
@@ -15,29 +17,39 @@ module Dashboards
       raise NotImplementedError
     end
 
-    def _active(client_cache_key:, enrollment_cache_key:, client_count_key:)
+    def _active(cache_key_prefix:)
       # Active Clients
       @range = DateRange.new({start: 1.months.ago.beginning_of_month.to_date, end: 1.months.ago.end_of_month.to_date})
       # @range = DateRange.new() # one week
       
-      @clients = Rails.cache.fetch(client_cache_key, expires_in: CACHE_EXPIRY) do
-        active_clients(range: @range)
+      @enrollments = Rails.cache.fetch("#{cache_key_prefix}-enrollments", expires_in: CACHE_EXPIRY) do
+        active_client_service_history(range: @range)
       end
-      @enrollments = Rails.cache.fetch(enrollment_cache_key, expires_in: CACHE_EXPIRY) do
-        active_client_service_history(clients: @clients, range: @range)
-      end
-      @client_count = Rails.cache.fetch(client_count_key, expires_in: CACHE_EXPIRY) do
-        @clients.count
-      end
+      @clients = @enrollments.keys
+      @client_count = @clients.count
 
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES
       @data = {
-        label: 'Client count',
-        backgroundColor: '#45789C',
-        data: [],
+        clients: {
+          label: 'Client count',
+          backgroundColor: '#45789C',
+          data: [],
+        },
+        enrollments: {
+          label: 'Enrollment count',
+          backgroundColor: '#704C70',
+          data: [],
+        },
       }
       @labels.each do |key, _|
-        @data[:data] << @enrollments.values.
+        @data[:clients][:data] << @enrollments.values.
+          flatten(1).
+          select do |m| 
+            HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
+          end.map do |enrollment|
+            enrollment[:client_id]
+          end.uniq.count
+        @data[:enrollments][:data] << @enrollments.values.
           flatten(1).
           select do |m| 
             HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
@@ -105,101 +117,51 @@ module Dashboards
       raise NotImplementedError
     end
 
-    def _entered(enrollments_by_client_key:, seen_in_past_month_key:)
+    def _entered cache_key_prefix:
       # Residential enrollments in the past 30 days
       @start_date = 1.months.ago.beginning_of_month.to_date
       @end_date = 1.months.ago.end_of_month.to_date
 
-      columns = [:project_type, :first_date_in_program, :first_date_served, :last_date_in_program, :client_id]
-
-      @enrollments_by_client = Rails.cache.fetch(enrollments_by_client_key, expires_in: CACHE_EXPIRY) do
-        raw_enrollments = homeless_service_history_source.
-          entry.where(client_id: client_source).
-          started_between(start_date: @start_date, end_date: @end_date).
-          joins(client: :processed_service_history).
-          order(date: :asc).
-          pluck(*columns).map do |row|
-          Hash[columns.zip(row)]
-        end
-        @enrollments_by_client = raw_enrollments.group_by{ |m| m[:client_id]}
-      end      
-
-      @enrollments = {}
-      @enrollments[:new_clients] = @enrollments_by_client.select do |client_id, enrollments|
-        first_date_served = enrollments.first[:first_date_served]
-        entry_dates = enrollments.map{|enrollment| enrollment[:first_date_in_program]}.uniq
-        # If we only have one entry date and it matches our first date served, this is our first 
-        # residential enrollment
-        entry_dates.size == 1 && entry_dates.first == first_date_served
+      @enrollments_by_type = Rails.cache.fetch("#{cache_key_prefix}-enrollments_by_project_type", expires_in: CACHE_EXPIRY) do
+        entered_enrollments_by_type start_date: @start_date, end_date: @end_date
       end
 
-      non_new_clients = @enrollments_by_client.select do |client_id, enrollments|
-        !@enrollments[:new_clients].include?(client_id)
-      end
+      @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: @enrollments_by_type)
 
-      seen_in_past_month = Rails.cache.fetch(seen_in_past_month_key, expires_in: CACHE_EXPIRY) do
-        sh = GrdaWarehouse::ServiceHistory.arel_table
-        seen_in_past_month = homeless_service_history_source.
-          entry_within_date_range(start_date: 3.months.ago.to_date, end_date: 1.month.ago.to_date).
-          where(client_id: non_new_clients.keys).
-          where(sh[:first_date_in_program].lteq(1.month.ago)).
-          joins(client: :processed_service_history).
-          order(date: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
-          end.
-          group_by{ |m| m[:client_id]}
-      end
-      @enrollments[:seen_in_past_month] = seen_in_past_month
-      clients_not_seen_in_past_month = @enrollments_by_client.keys - @enrollments[:new_clients].keys - @enrollments[:seen_in_past_month].keys
-      @enrollments[:not_seen_in_past_month] = @enrollments_by_client.select do |client_id, enrollments|
-        clients_not_seen_in_past_month.include?(client_id)
-      end
+      @entries_in_range_by_type = entries_in_range_from_enrollments(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
+
+      @client_entry_totals_by_type = client_totals_from_enrollments(enrollments: @entries_in_range_by_type)
+      
+      @buckets = bucket_clients(entries: @entries_in_range_by_type)
       
       # build hashes suitable for chartjs
-      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES
-      @data = {
-        new_clients: {
-          label: 'First time clients',
-          data: [],
-          backgroundColor: '#288BE4',
-        },
-        seen_in_past_month: {
-          label: 'Seen in the past month',
-          data: [],
-          backgroundColor: '#704C70',
-        },
-        not_seen_in_past_month: {
-          label: 'Returning after more than a month',
-          data: [],
-          backgroundColor: '#5672AA',
-        },
-      }
-      ph_entries = []
-      @labels.each do |key, label|
-        @enrollments.each do |group, enrollments|
-          @data[group][:data] << enrollments.values.flatten(1).select do |m| 
-            HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
-          end.count
-          if label == 'Permanent Housing' 
-            ph_entries << enrollments.values.flatten(1).select do |m| 
-              HUD::project_type_brief(m[:project_type]).downcase.to_sym == :ph
-            end.count
-          end
+      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort_by(&:first)
+      @data = setup_data_structure(start_date: @start_date)
+
+      # ensure that the counts are in the same order as the labels
+      @labels.each do |project_type_sym, _|
+        @buckets.each do |project_type, bucket|
+          project_type_key = HUD::project_type_brief(project_type).downcase.to_sym
+          if project_type_sym == project_type_key
+            bucket.each do |group_key, ids|
+              @data[group_key][:data] << ids.size
+            end
+          end    
         end
       end
-      @ph_entries = ph_entries.reduce(:+) || 0
+
     end
 
     private def client_source
       raise 'Implement in sub-class'
     end
 
-    private def homeless_service_history_source
+    def homeless_service_history_source
       GrdaWarehouse::ServiceHistory.
         where(
           project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        )
+        ).
+        where(client_id: client_source)
     end
 
     private def residential_service_history_source
@@ -219,48 +181,35 @@ module Dashboards
     end
 
     private def service_history_columns
-      enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
-      ds_table = GrdaWarehouse::DataSource.arel_table
-      service_history_columns = [
-        :client_id, 
-        :project_id, 
-        :first_date_in_program, 
-        :last_date_in_program, 
-        :project_name, 
-        :project_type, 
-        :organization_id, 
-        :data_source_id,
-        enrollment_table[:PersonalID].as('PersonalID').to_sql,
-        ds_table[:short_name].as('short_name').to_sql,
-      ]
+      {
+        client_id: sh_t[:client_id].as('client_id').to_sql, 
+        project_id:  sh_t[:project_id].as('project_id').to_sql, 
+        first_date_in_program:  sh_t[:first_date_in_program].as('first_date_in_program').to_sql, 
+        last_date_in_program:  sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        project_name:  sh_t[:project_name].as('project_name').to_sql, 
+        project_type:  sh_t[:project_type].as('project_type').to_sql, 
+        organization_id:  sh_t[:organization_id].as('organization_id').to_sql, 
+      }
     end
 
-    private def active_clients range: 
-      sort_column = "#{GrdaWarehouse::WarehouseClientsProcessed.quoted_table_name}.first_date_served"
-      sort_direction = "asc"
-      served_client_ids = homeless_service_history_source.
-        service_within_date_range(start_date: range.start, end_date: range.end).
-        select(:client_id).distinct
-
-      clients = client_source.
-        preload(:source_clients).
-        includes(:processed_service_history).
-        joins(:processed_service_history).
-        where(id: served_client_ids).
-        order("#{sort_column} #{sort_direction}")
-    end
-
-    private def active_client_service_history clients:, range: 
+    private def active_client_service_history range: 
       homeless_service_history_source.entry.
         open_between(start_date: range.start, end_date: range.end + 1.day).
-        includes(:enrollment).
-        joins(:data_source).
-        where(client_id: clients.map(&:id)).
-        pluck(*service_history_columns).
+        pluck(*service_history_columns.values).
         map do |row|
-          Hash[service_history_columns.zip(row)]
+          Hash[service_history_columns.keys.zip(row)]
         end.
         group_by{|m| m[:client_id]}
     end
+
+    def sh_t
+      GrdaWarehouse::ServiceHistory.arel_table
+    end
+    def e_t
+      GrdaWarehouse::Hud::Enrollment.arel_table
+    end
+    def ds_t
+      GrdaWarehouse::DataSource.arel_table
+    end 
   end
 end

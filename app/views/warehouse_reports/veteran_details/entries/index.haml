@@ -1,0 +1,42 @@
+- title = "Veteran Entry Detail"
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+  .col-sm-4.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
+
+= render 'filter'
+.row
+  .col-sm-12
+    %p
+      Entries in 
+      = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[@project_type_code]
+      between
+      = @start_date
+      and
+      = "#{@end_date}."
+
+.row
+  - @buckets.values.each do |groups|
+    - groups.each do |group, clients|
+      .col-sm-3
+        %h3
+          = @data[group][:label]
+          = "(#{clients.count})"
+        %table.table.table-condensed
+          %thead
+            %tr
+              %th
+                Client
+              %th
+                Entry Dates
+          %tbody
+            - clients.each do |client_id, dates|
+              %tr
+                %td
+                  = link_to client_id, client_path(client_id)
+                %td
+                  = dates.join('<br />').html_safe
+            

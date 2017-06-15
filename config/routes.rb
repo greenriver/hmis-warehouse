@@ -81,6 +81,7 @@ Rails.application.routes.draw do
     resources :active_veterans, only: [:index]
     namespace :veteran_details do
       resources :exits, only: [:index]
+      resources :entries, only: [:index]
     end
     resources :open_enrollments_no_service, only: [:index]
     resources :manage_cas_flags, only: [:index] do

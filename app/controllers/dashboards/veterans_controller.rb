@@ -6,10 +6,7 @@ module Dashboards
     before_action :require_can_view_censuses!
     
     def active
-      client_cache_key = 'active-vet-clients'
-      enrollment_cache_key = 'active-vet-enrollments'
-      client_count_key = 'active-vet-client-count'
-      _active(client_cache_key: client_cache_key, enrollment_cache_key: enrollment_cache_key, client_count_key: client_count_key)
+      _active(cache_key_prefix: 'active-vet')
       render layout: !request.xhr?
     end
 
@@ -25,14 +22,12 @@ module Dashboards
     end
 
     def entered
-      enrollments_by_client_key = 'entered-vet-enrollments_by_client'
-      seen_in_past_month_key = 'entered-vet-seen_in_past_month'
-      _entered(enrollments_by_client_key: enrollments_by_client_key, seen_in_past_month_key: seen_in_past_month_key)
+      _entered(cache_key_prefix: 'entered-vet')
             
       render layout: !request.xhr?
     end
 
-    private def client_source
+    def client_source
       GrdaWarehouse::Hud::Client.destination.veteran
     end
   end

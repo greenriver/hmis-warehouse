@@ -1,30 +1,27 @@
-%h3 Unduplicated Clients
-.summary.text-center
-  .row
-    .col-sm-3
-      .big-block
-        .title
-          All
-        .body
-          = @enrollments_by_client.count
-    .col-sm-3
-      .big-block
-        .title
-          New clients
-        .body
-          = @enrollments[:new_clients].count
-    .col-sm-3
-      .big-block
-        .title
-          Recently seen
-        .body
-          = @enrollments[:seen_in_past_month].count
-    .col-sm-3
-      .big-block
-        .title
-          Returning
-        .body
-          = @enrollments[:not_seen_in_past_month].count
-%h3= "Enrollments in #{@start_date.to_time.strftime('%B')}"
-%canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_json, data: @data.to_json}}
+.well
+  %p Counts are unduplicated per project type, but may be counted in multiple types.
+  - month_name = @start_date.to_time.strftime('%B')
+  %h3= "Clients enrolled in #{month_name}"
+  .summary.text-center
+    .row
+      - @client_enrollment_totals_by_type.sort_by{|project_type, _| HUD.project_type_brief(project_type)}.each do |project_type, clients|
+        .col-sm-3
+          .big-block
+            .title
+              = HUD.project_type_brief(project_type)
+            .body
+              = clients
+  %h3= "Of the clients above, those with at least one entry record in #{month_name}"
+  .summary.text-center
+    .row
+      - @client_entry_totals_by_type.sort_by{|project_type, _| HUD.project_type_brief(project_type)}.each do |project_type, clients|
+        .col-sm-3
+          .big-block
+            .title
+              = HUD.project_type_brief(project_type)
+            .body
+              = link_to clients, warehouse_reports_veteran_details_entries_path(project_type: HUD.project_type_brief(project_type).downcase, range: {start: @start_date, end: @end_date})
+
+  %h3= "Project Re-Entry in #{month_name}"
+  %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_json, data: @data.to_json}}
 =# console

@@ -21,5 +21,5 @@ class App.Dashboards.Veterans.Entered
             stacked: true
           ],
           yAxes: [
-            stacked: true
+            stacked: false
           ]
