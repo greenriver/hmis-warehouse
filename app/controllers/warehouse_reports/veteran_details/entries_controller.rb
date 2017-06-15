@@ -26,14 +26,17 @@ module WarehouseReports::VeteranDetails
       @client_entry_totals_by_type = client_totals_from_enrollments(enrollments: @entries_in_range_by_type)
       
       @buckets = bucket_clients(entries: @entries_in_range_by_type)
-      @data = setup_data_structure(start_date: @start_date)
+      @data = setup_data_structure(start_date: @start_date)     
+    end
+
+    def client_source
+      GrdaWarehouse::Hud::Client.destination.veteran
     end
 
     def homeless_service_history_source
       GrdaWarehouse::ServiceHistory.
-        where(
-          project_type: @project_type
-        )
+        where(project_type: @project_type).
+        where(client_id: client_source)
     end
   end
 end

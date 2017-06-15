@@ -63,13 +63,7 @@ module ClientEntryCalculations
     end
 
     def entered_enrollments_by_type start_date:, end_date:
-      enrollments_by_type = homeless_service_history_source.entry.
-        open_between(start_date: start_date, end_date: end_date + 1.day).
-        order(date: :asc).
-        pluck(*entered_columns).map do |row|
-          Hash[entered_columns.zip(row)]
-        end.
-        group_by{ |m| m[:project_type]}
+      enrollments_by_type = homeless_service_history_source.entry. open_between(start_date: start_date, end_date: end_date + 1.day). order(date: :asc). pluck(*entered_columns).map do |row| Hash[entered_columns.zip(row)] end. group_by{ |m| m[:project_type]}
         {}.tap do |m|
           enrollments_by_type.each do |project_type, enrollments|
             m[project_type] = enrollments.group_by{|e| e[:client_id]}
