@@ -55,14 +55,14 @@ module Dashboards
       @end_date = 1.month.ago.end_of_month.to_date
       sh = GrdaWarehouse::ServiceHistory.arel_table
       
-      columns = [:date, :destination]
+      columns = [:date, :destination, :client_id]
       all_exits = Rails.cache.fetch(all_exits_key, expires_in: CACHE_EXPIRY) do
         exits_from_homelessness.
           ended_between(start_date: @start_date, end_date: @end_date).
           order(date: :asc).
-          pluck(*columns).map do |date, destination|
+          pluck(*columns).map do |date, destination, client_id|
             destination = 99 unless HUD.valid_destinations.keys.include?(destination)
-            Hash[columns.zip([date, destination])]
+            Hash[columns.zip([date, destination, client_id])]
           end
       end
       first_date = all_exits.first[:date]
@@ -81,7 +81,6 @@ module Dashboards
             label: label.truncate(45),
             backgroundColor: colorize(label),
             ph: HUD.permanent_destinations.include?(destination),
-            details: {},
           }
           (first_date...last_date).each do |date|
             @all_exits[destination][:source_data]["#{date.to_time.strftime('%b')} #{date.year}"] += all_exits.select do |m|
@@ -93,6 +92,7 @@ module Dashboards
       end
       @all_exits_labels = @all_exits.values.first[:source_data].keys
       @ph_exits = @all_exits.deep_dup.select{|_,m| m[:ph]}
+      @ph_clients = all_exits.select{|m| HUD.permanent_destinations.include?(m[:destination])}.map{|m| m[:client_id]}.uniq
       @ph_exits.each do |destination, group|
         @ph_exits[destination][:data] = group[:source_data].values
       end

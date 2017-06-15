@@ -6,6 +6,12 @@
           Exits to PH from homelessness
         .body
           = @ph_exits.map{|_,m| m[:data].sum}.sum
+    .col-sm-4
+      .big-block
+        .title
+          Unique Clients Exiting to PH
+        .body
+          = @ph_clients.size
       
 %canvas#housed-chart{style: 'width: 100%; height: 300px;', data: {labels: @all_exits_labels.to_json, data: @ph_exits.to_json}}
 
