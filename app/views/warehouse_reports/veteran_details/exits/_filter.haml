@@ -9,8 +9,14 @@
       .input-group.date{data: {provide: :datepicker}}
         = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
         %span.input-group-addon.icon-calendar
-    .col-sm-4
-      = f.button :submit, value: 'Update View', class: 'pull-right'
+    .col-sm-2
+      .checkbox
+        %label{for: :ph}
+          = check_box_tag(:ph, true, params[:ph].present?)
+          PH Only
+        
+    .col-sm-2
+      = f.button :submit, value: 'Update View'
 
 - content_for :page_js do
   :javascript

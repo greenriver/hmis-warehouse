@@ -77,13 +77,13 @@ module Dashboards
             label = HUD::destination(99)
           end
           @all_exits[destination] ||= {
-            source_data: {},
+            source_data: Hash.new(0),
             label: label.truncate(45),
             backgroundColor: colorize(label),
-            ph: HUD.permanent_destinations.include?(destination)
+            ph: HUD.permanent_destinations.include?(destination),
+            details: {},
           }
           (first_date...last_date).each do |date|
-            @all_exits[destination][:source_data]["#{date.to_time.strftime('%b')} #{date.year}"] ||= 0
             @all_exits[destination][:source_data]["#{date.to_time.strftime('%b')} #{date.year}"] += all_exits.select do |m|
               m[:destination] == destination && m[:date] == date
             end.count

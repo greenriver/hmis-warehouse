@@ -1,7 +1,7 @@
 #= require ./namespace
 
 class App.Dashboards.Veterans.Exits
-  constructor: (@chart, @labels, @data) ->
+  constructor: (@chart, @labels, @data, @options) ->
     Chart.defaults.global.defaultFontSize = 10
     Chart.defaults.global.elements.rectangle.backgroundColor = '#45789C'
     Chart.defaults.global.elements.rectangle.borderColor = '#45789C'
@@ -53,8 +53,9 @@ class App.Dashboards.Veterans.Exits
       # console.log(target)
       month = @exits_chart.config.data.labels[target._index]
       # console.log(month)
-      
-      url = '/warehouse_reports/veteran_details/exits?' + $.param({month: month})
+      params = {month: month}
+      params['ph'] = true if @options?.ph_only
+      url = '/warehouse_reports/veteran_details/exits?' + $.param(params)
       window.open url
     # chart = @charts[event.target.id.replace('census-chart-', '')]
     # project = $(event.target).data('project')

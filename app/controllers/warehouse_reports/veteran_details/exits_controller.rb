@@ -7,7 +7,7 @@ module WarehouseReports::VeteranDetails
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
       # Also handle month based requests from javascript
-      if date_range_options.blank?
+      if params[:month].present?
         month = params.permit(:month)
         @range = DateRange.new(
           start: Date.strptime(month[:month], "%B %Y").beginning_of_month,
@@ -25,16 +25,23 @@ module WarehouseReports::VeteranDetails
         project_name: sh_t[:project_name].as('project_name').to_sql,
       }
       @buckets = Hash.new(0)
+
       @clients = exits_from_homelessness.
-        ended_between(start_date: @range.start, end_date: @range.end).
+        ended_between(start_date: @range.start, end_date: @range.end + 1.day).
         order(date: :asc).
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          row[:destination] = 99 unless HUD.valid_destinations.keys.include?(row[:destination])
-          @buckets[row[:destination]] += 1
+          include_exit = true
+          include_exit = HUD.permanent_destinations.include?(row[:destination]) if params[:ph].present?
+          row[:include] = include_exit
+          row[:destination] = 99 unless HUD.valid_destinations.keys.include?(row[:destination]) if include_exit
+          @buckets[row[:destination]] += 1 if include_exit
         end
+      if params[:ph].present?
+        @clients.select!{|m| m[:include]}
+      end
     end
 
      def exits_from_homelessness
