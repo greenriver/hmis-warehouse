@@ -1,16 +1,18 @@
 .well
+  %p 
+    = "Clients with at least one day of service during #{@month_name}."
   .summary.text-center
     .row
-      .col-sm-5
+      .col-sm-4
         .big-block
           .title
             Unduplicated Clients
           .body
             = @client_count
-      .col-sm-2
+      .col-sm-4
         .big-block
           .title
-            Enrollments
+            Open Enrollments
           .body
             = @enrollments.values.flatten(1).count
   %canvas#active-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_json, data: @data.to_json}}

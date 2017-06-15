@@ -21,7 +21,7 @@ module Dashboards
       # Active Clients
       @range = DateRange.new({start: 1.months.ago.beginning_of_month.to_date, end: 1.months.ago.end_of_month.to_date})
       # @range = DateRange.new() # one week
-      
+      @month_name = @range.start.to_time.strftime('%B')
       @enrollments = Rails.cache.fetch("#{cache_key_prefix}-enrollments", expires_in: CACHE_EXPIRY) do
         active_client_service_history(range: @range)
       end
