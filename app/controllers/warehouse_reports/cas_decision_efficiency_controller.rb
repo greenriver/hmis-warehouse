@@ -12,8 +12,8 @@ module WarehouseReports
     end
 
     private def load_vars
-      @step_range = StepRange.new step_params
-      @data = step_time_histogram @step_range
+      @step_range = StepRange.new(step_params)
+      @data = step_time_histogram(@step_range) if @step_range.first.present?
     end
 
     private def step_params
@@ -60,8 +60,8 @@ module WarehouseReports
     end
 
     class StepRange < ModelForm
-      attribute :first,  String, lazy: true, default: -> (o,_) { o.ordered_steps.first.first }
-      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o.first].first }
+      attribute :first,  String, lazy: true, default: -> (o,_) { o.ordered_steps&.first&.first }
+      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o&.first]&.first }
       attribute :unit,   String, default: 'day'
 
       def units
