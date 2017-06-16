@@ -35,6 +35,8 @@ module WarehouseReports::Cas
         60 * 60
       when 'day'
         24 * 60 * 60
+      when 'week'
+        7 * 24 * 60 * 60
       else
         raise "unanticipated time unit: #{unit}"
       end
@@ -65,7 +67,11 @@ module WarehouseReports::Cas
       attribute :unit,   String, default: 'day'
 
       def units
-        %w( day hour minute )
+        if Rails.env.development?
+          %w( week day hour minute second )
+        else
+          %w( week day )
+        end
       end
 
       # hash from steps to steps that may follow them

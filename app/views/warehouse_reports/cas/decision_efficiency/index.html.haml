@@ -20,8 +20,7 @@
         = f.input :unit, label: 'Temporal Unit', collection: @step_range.units, include_blank: false
 
 %canvas#counts{ width: 800, height: 200 }
-#stats(style="display:table;margin:0 auto;")
-  click on a bar to copy its field and value to the clipboard
+#stats(style="display:table;margin:1em auto;")
 
 - content_for :page_js do
   :javascript
@@ -52,7 +51,6 @@
           $form.submit();
         });
         $form.submit(function (e) {
-          console.log('submitting...');
           e.preventDefault();
           var $p = $.get($form.attr('action'), $form.serialize());
           $p.success(function(d, status, xhr){
@@ -63,6 +61,11 @@
         });
       });
 
+      function round(n, places) {
+        var v = 10 ** places;
+        return Math.round( n * v ) / v;
+      }
+
       function stats(data) {
         var points = [], sum = 0;
         for ( var i = 0; i < data.length; i += 1 ) {
@@ -72,8 +75,9 @@
             sum += value;
           }
         }
-        var mean = sum / points.length, median = 0, stddev = 0, min = points[0], max = points[points.length - 1];
+        var mean = round( sum / points.length, 2 ), median = 0, stddev = 0, min = 0, max = 0;
         if (points.length) {
+          min = points[0], max = points[points.length - 1];
           if ( points.length % 2 === 0 ) {
             i = points.length / 2;
             median = ( points[i] + points[i-1] ) / 2;
@@ -86,7 +90,7 @@
             }
             stddev /= points.length - 1;
             stddev = Math.sqrt(stddev);
-            stddev = Math.round(stddev * 100) / 100;
+            stddev = round( stddev, 2);
           }
         }
         var $s = $('#stats').empty();
@@ -100,23 +104,42 @@
       }
 
       // queue this as a separate event to improve layout speed
+      var chart = null;
       function doTheRest() {
         var $chart = $('#counts');
+        if (chart) {
+          chart.destroy();
+          var $clone = $chart.clone();
+          $chart.replaceWith($clone);
+          $chart = $clone;
+        }
         var labels = [], values = [];
         for (var i = 0; i < data.length; i += 1) {
           labels.push(data[i][0]);
           values.push(data[i][1]);
         }
         stats(data);
-        var chart = new Chart($chart,{
+        chart = new Chart($chart,{
           type: 'bar',
           options: {
             legend: {
               display: false
             },
             scales: {
+              xAxes: [
+                {
+                  scaleLabel: {
+                    display: true,
+                    labelString: 'time'
+                  }
+                }
+              ],
               yAxes: [
                 {
+                  scaleLabel: {
+                    display: true,
+                    labelString: 'matches'
+                  },
                   ticks: {
                     beginAtZero: true,
                     stepSize: 1
