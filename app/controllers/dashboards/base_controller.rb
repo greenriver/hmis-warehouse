@@ -151,7 +151,6 @@ module Dashboards
           end    
         end
       end
-
     end
 
     private def client_source

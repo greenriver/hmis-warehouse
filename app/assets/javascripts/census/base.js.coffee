@@ -97,6 +97,8 @@ class App.Census.Base
       ]
 
   _animation_complete: (anim) ->
+    # Disable downloads
+    return
     return unless anim?
     return unless $(anim.chartInstance.chart.canvas).prev('.row').find('.jChartDownloads').is(':empty')
     image_url = anim.chartInstance.chart.canvas.toDataURL()

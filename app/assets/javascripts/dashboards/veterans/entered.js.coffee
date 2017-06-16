@@ -10,7 +10,7 @@ class App.Dashboards.Veterans.Entered
     data = 
       labels: (v for k, v of @labels),
       datasets: (v for k, v of @data),
-    
+    console.log data
     housed_chart = new Chart @chart,
       type: 'bar',
       data: data,
@@ -18,7 +18,7 @@ class App.Dashboards.Veterans.Entered
         bezierCurve: false,
         scales: 
           xAxes: [
-            stacked: true
+            stacked: false
           ],
           yAxes: [
             stacked: false
