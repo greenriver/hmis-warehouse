@@ -63,7 +63,7 @@ module WarehouseReports::Cas
 
     class StepRange < ModelForm
       attribute :first,  String, lazy: true, default: -> (o,_) { o.ordered_steps&.first&.first }
-      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o&.first]&.first }
+      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o&.first]&.last }
       attribute :unit,   String, default: 'day'
 
       def units
@@ -75,7 +75,7 @@ module WarehouseReports::Cas
       end
 
       # hash from steps to steps that may follow them
-      def self.ordered_steps
+      def ordered_steps
         @ordered_steps ||= begin
           scope = GrdaWarehouse::CasReport
           steps = scope.uniq.order(:match_step).pluck :match_step
@@ -90,15 +90,20 @@ module WarehouseReports::Cas
                 where( at2[:decision_order].lt at[:decision_order] ).
                 where( at2[:match_step].eq step ).
                 exists
-            ).order(:match_step).distinct.pluck(:match_step)
+            ).distinct.pluck(:match_step)
             [ step, followups ]
-          end
-          followups.select{ |_,ar| ar.any? }.to_h
+          end.to_h
+          step_order = followups.keys.sort do |a,b|
+            if followups[a].include?(b)
+              -1
+            elsif followups[b].include?(a)
+              1
+            else
+              0
+            end
+          end.each_with_index.to_h
+          followups.select{ |_,ar| ar.any? }.sort_by{ |a,_| step_order[a] }.map{ |a,ar| [ a, ar.sort_by{ |s| step_order[s] } ] }.to_h
         end
-      end
-
-      def ordered_steps
-        self.class.ordered_steps
       end
     end
   end
