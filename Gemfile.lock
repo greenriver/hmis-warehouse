@@ -243,6 +243,7 @@ GEM
       rails (>= 4.2, < 5.1)
     letter_opener (1.4.1)
       launchy (~> 2.2)
+    linefit (0.3.4)
     list_matcher (1.0.7)
     lograge (0.4.1)
       actionpack (>= 4, < 5.1)
@@ -502,6 +503,7 @@ DEPENDENCIES
   launchy
   letsencrypt_plugin
   letter_opener
+  linefit
   list_matcher
   lograge
   memoist

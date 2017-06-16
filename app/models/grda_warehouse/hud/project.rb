@@ -58,6 +58,13 @@ module GrdaWarehouse::Hud
       }
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
+    PROJECT_TYPE_COLORS = {
+      ph: 'rgba(150, 3, 130, 0.5)',
+      th: 'rgba(103, 81, 140, 0.5)',
+      es: 'rgba(87, 132, 93, 0.5)',
+      so: 'rgba(132, 26, 7, 0.5)',
+      sh: 'rgba(61, 99, 130, 0.5)',
+    }
 
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: ['OrganizationID', :data_source_id], foreign_key: ['OrganizationID', :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects

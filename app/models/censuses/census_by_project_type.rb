@@ -40,6 +40,10 @@ module Censuses
     def for_date_range_combined start_date:, end_date:, scope: nil
       load_associated_records()
       service_days = fetch_service_days(start_date.to_date - 1.day, end_date, scope)
+      colors = GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS
+      colors[:total] = 'rgba(35, 173, 211, 0.5)'
+      titles = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES
+      titles[:total] = 'Total'
       totals = service_days.group_by do |m|
         m['date']
       end.map do |date, days| 
@@ -48,7 +52,7 @@ module Censuses
         date[:x] 
       end
       grouped = service_days.group_by do |m|
-        HUD.project_type(m['project_type'])
+        HUD.project_type_brief(m['project_type']).downcase.to_sym
       end.map do |project_type, days|
         [
           project_type,
@@ -59,17 +63,50 @@ module Censuses
           end
         ]
       end.to_h
-      grouped['Total Clients'] = totals
+      grouped[:total] = totals
+      # Add some trend lines
+      # min_date = totals.first[:x]
+      # max_date = totals.last[:x]
+      # grouped['Trend 1'] = [{x: min_date, y: 100}, {x: max_date, y: 250}]
       
       {}.tap do |data|
         grouped.each do |label, dates|
           data[:datasets] ||= []
           data[:datasets] << {
-            label: label,
+            label: titles[label],
             data: dates,
+            borderColor: colors[label],
           }
           data[:labels] ||= []
           data[:labels] << label
+
+          # Add some trend lines
+          trend_line = ::LineFit.new
+          y = dates.map{|m| m[:y]}
+          x = (0...dates.count).to_a
+          trend_line.setData(x,y)
+          intercept, slope = trend_line.coefficients
+          predicted_ys = trend_line.predictedYs
+          trend_data = [
+            {
+              x: dates.first[:x],
+              y: predicted_ys.first,
+            },
+            {
+              x: dates.last[:x],
+              y: predicted_ys.last,
+            },
+          ]
+          trend_label = "#{titles[label]} trend"
+          data[:datasets] << {
+            label: trend_label,
+            data: trend_data,
+            pointStyle: 'cross',
+            borderColor: colors[label],
+            borderWidth: 2,
+            pointRadius: 0,
+          }
+          data[:labels] << trend_label
         end
       end
     end

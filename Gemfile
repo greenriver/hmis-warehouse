@@ -55,6 +55,7 @@ gem 'font-awesome-sass'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim'
+gem 'linefit'
 
 # ETO API related
 gem "rest-client", "~> 2.0"
