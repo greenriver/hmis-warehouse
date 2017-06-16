@@ -102,6 +102,7 @@ Rails.application.routes.draw do
           get :chart
         end
       end
+      resources :decline_reason, only: [:index]
     end
   end
 
