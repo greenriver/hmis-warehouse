@@ -8,7 +8,7 @@
 
 
 %h1= title
-
+= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
 = simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
   .form-group
     .row

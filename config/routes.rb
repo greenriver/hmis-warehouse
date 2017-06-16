@@ -96,9 +96,11 @@ Rails.application.routes.draw do
         get :download, on: :member
       end
     end
-    resources :cas_decision_efficiency, only: [:index] do
-      collection do
-        get :chart
+    namespace :cas do
+      resources :decision_efficiency, only: [:index] do
+        collection do
+          get :chart
+        end
       end
     end
   end

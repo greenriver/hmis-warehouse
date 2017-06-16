@@ -1,0 +1,5 @@
+- tab ||= ''
+- @path_params = {anchor: tab} unless tab.blank?
+= content_for :crumbs do
+  = link_to warehouse_reports_path(@path_params) do
+    = "« Reports"

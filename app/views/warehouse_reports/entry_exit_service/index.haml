@@ -1,4 +1,8 @@
-%h1 Clients with Single Day Enrollments with Services
+- title = "Clients with Single Day Enrollments with Services"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
 .warehouse-reports__entry_exit_service
   .row
     .col-sm-8

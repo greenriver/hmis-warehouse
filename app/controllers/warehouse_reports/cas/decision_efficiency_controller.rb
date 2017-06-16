@@ -1,5 +1,5 @@
-module WarehouseReports
-  class CasDecisionEfficiencyController < ApplicationController
+module WarehouseReports::Cas
+  class DecisionEfficiencyController < ApplicationController
     include ArelHelper
 
     before_action :require_can_view_reports!, :load_vars

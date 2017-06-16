@@ -1,4 +1,8 @@
-%h1 Missing Projects
+- title = "Missing Projects"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
 .warehouse-reports__missing-projects
   %p
     The following
