@@ -26,4 +26,8 @@ if Rails.env.production?
   every 1.day, at: '4:00 pm' do
     rake "eto:import:demographics"
   end
+
+  every 1.day, at: '9:30 am' do
+    rake "health:daily"
+  end
 end
