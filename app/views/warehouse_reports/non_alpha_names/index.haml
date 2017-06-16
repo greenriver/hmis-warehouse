@@ -1,4 +1,8 @@
-%h1 Client With Odd Characters in Their Names
+- title = "Client With Odd Characters in Their Names"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
 .warehouse-reports__missing-projects
   .row
     .col-sm-8

@@ -2,6 +2,7 @@
 - content_for :title, title
 - et = GrdaWarehouse::Hud::Enrollment.arel_table
 %h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
 .warehouse-reports__missing-projects
   %p= page_entries_info @clients
   %table.table.table-condensed.table-hover

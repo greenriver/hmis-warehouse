@@ -1,5 +1,8 @@
-%h1 
-  Clients still in Emergency Shelters after
+- title = "Clients still in Emergency Shelters after"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
   = @years
   years
 = simple_form_for :clients, url: warehouse_reports_long_standing_clients_path, html: {method: :get} do |f|

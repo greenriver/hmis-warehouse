@@ -1,4 +1,8 @@
-%h1 Clients with Services after Project Exit or Service before Entry
+- title = "Clients with Services after Project Exit or Service before Entry"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
 %p Bold entry dates are after the service date, bold exit dates are before the service date.
 .warehouse-reports__service_after_exit
 =# debug @exits

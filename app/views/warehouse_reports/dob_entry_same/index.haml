@@ -1,4 +1,8 @@
-%h1 Clients with Initial Entry Dates on Their DOB
+- title = "Clients with Initial Entry Dates on Their DOB"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
 .warehouse-reports__missing-projects
   %p
     The following clients were born on the same day they entered homelessness.

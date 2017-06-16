@@ -1,6 +1,7 @@
-%h1
-  Client's in a Project for a Given Date Range
-
+- title = "Client's in a Project for a Given Date Range"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs'
 = simple_form_for :project, url: warehouse_reports_client_in_project_during_date_range_index_path, html: {method: :get} do |f|
   .row
     .col-sm-3

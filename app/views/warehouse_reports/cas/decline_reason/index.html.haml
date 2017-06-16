@@ -1,0 +1,23 @@
+- title = 'Coordinated Access System Decline Reasons'
+- content_for :title, title
+
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+
+.warehouse-reports
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Reason
+        %th Count
+      
+    %tbody
+      - if @reasons.empty?
+        %tr
+          %td(colspan=2 style="text-align:center;")
+            %em no decline reasons are recorded
+      - else
+        - @reasons.each do |reason, n|
+          %tr
+            %td= reason
+            %td= n

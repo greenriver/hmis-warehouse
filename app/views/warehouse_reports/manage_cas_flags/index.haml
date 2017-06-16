@@ -1,4 +1,7 @@
-%h1 Manage CAS Flags
+- title = "Manage CAS Flags"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs'
 .warehouse-reports__manage-cas-flags
   %p This form can be used to bulk update the CAS flags on clients.  ID's should be listed one per line. If you remove an ID it will unflag that client for the specific flag.
   %p 

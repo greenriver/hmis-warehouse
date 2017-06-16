@@ -19,6 +19,16 @@
     .col-sm-4
       %h3 Data Sharing Agreement
       = @client.consent_form_status.presence ||'No consent forms on file'
+      - if ( decisions = @client.cas_reports.where( current_step: true ).order(:updated_at) ).any?
+        %h3 Housing Matches
+        %ul
+          - decisions.each do |decision|
+            %li
+              = decision.decision_status
+              on
+              = decision.updated_at.to_date
     .col-sm-4
       .client__image
         = image_tag image_client_path
+              
+                

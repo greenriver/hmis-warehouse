@@ -1,6 +1,8 @@
-%h1
-  Clients Who Have Enrollments before 
-  = @date
+- title = "Clients Who Have Enrollments before #{@date}"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
 = simple_form_for :really_old_enrollments, url: warehouse_reports_really_old_enrollments_path, html: {method: :get} do |f|
   .row
     .col-sm-3
