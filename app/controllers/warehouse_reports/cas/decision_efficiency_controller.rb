@@ -85,10 +85,10 @@ module WarehouseReports::Cas
           followups = steps.map do |step|
             followups = scope.where(
               at2.project(Arel.star).
-                where( at2[:client_id].eq at[:client_id] ).
-                where( at2[:match_id].eq at[:match_id] ).
-                where( at2[:decision_order].lt at[:decision_order] ).
-                where( at2[:match_step].eq step ).
+                where( at2[:client_id].      eq at[:client_id] ).
+                where( at2[:match_id].       eq at[:match_id] ).
+                where( at2[:decision_order]. lt at[:decision_order] ).
+                where( at2[:match_step].     eq step ).
                 exists
             ).distinct.pluck(:match_step)
             [ step, followups ]
