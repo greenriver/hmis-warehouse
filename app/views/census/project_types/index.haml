@@ -1,0 +1,13 @@
+- content_for :title, 'Census by Project Type'
+%h1= content_for :title
+
+%h2 Census
+.jCharts
+  %p.jLoading.text-center Loading...
+
+- content_for :page_js do
+  :javascript
+    (function($) {
+      census = new App.Census.CombinedProjectType('#{json_census_project_types_path(params.permit(:veteran))}', 'Censuses::ProjectType', '#{@range.start}', '#{@range.end}', {disabled_datasets: ['Non-Veteran Count'], excluded_datasets: ['ph']});
+      census.load();
+    })(jQuery);

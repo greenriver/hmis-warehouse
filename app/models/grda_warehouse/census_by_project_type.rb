@@ -11,4 +11,16 @@ class GrdaWarehouse::CensusByProjectType < GrdaWarehouseBase
     end
     where( fun.eq year )
   }
+
+  scope :chronic, -> do
+    where(ProjectType: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+  end
+
+  scope :homeless, -> do
+    where(ProjectType: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)
+  end
+
+  scope :veteran, -> do
+    where(veteran: true)
+  end
 end

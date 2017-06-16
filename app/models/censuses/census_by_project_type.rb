@@ -37,6 +37,43 @@ module Censuses
       end
     end
 
+    def for_date_range_combined start_date:, end_date:, scope: nil
+      load_associated_records()
+      service_days = fetch_service_days(start_date.to_date - 1.day, end_date, scope)
+      totals = service_days.group_by do |m|
+        m['date']
+      end.map do |date, days| 
+        {x: date, y: days.map{|d| d['count_all']}.sum}
+      end.sort_by do |date| 
+        date[:x] 
+      end
+      grouped = service_days.group_by do |m|
+        HUD.project_type(m['project_type'])
+      end.map do |project_type, days|
+        [
+          project_type,
+          days.map do |day|
+            {x: day['date'], y: day['count_all']}
+          end.sort_by do |date|
+            date[:x]
+          end
+        ]
+      end.to_h
+      grouped['Total Clients'] = totals
+      
+      {}.tap do |data|
+        grouped.each do |label, dates|
+          data[:datasets] ||= []
+          data[:datasets] << {
+            label: label,
+            data: dates,
+          }
+          data[:labels] ||= []
+          data[:labels] << label
+        end
+      end
+    end
+
     def detail_name project_type
       "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
     end

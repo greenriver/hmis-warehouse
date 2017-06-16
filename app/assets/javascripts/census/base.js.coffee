@@ -4,6 +4,8 @@ class App.Census.Base
   constructor: (@url, @type, @start_date, @end_date, @options) ->
     @data = {}
     @charts = {}
+    @width = @_width()
+    @height = @_height()
 
   load: ->
     $.get @url, {start_date: @start_date, end_date: @end_date, type: @type}, (data) =>
@@ -36,7 +38,7 @@ class App.Census.Base
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}" 
     $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div>")
-    $('.jCharts').append("<canvas id='#{chart_id}' height='40' width='300' class='census-chart' data-project='#{census_detail_slug}'>")
+    $('.jCharts').append("<canvas id='#{chart_id}' height='#{@height}' width='#{@width}' class='census-chart' data-project='#{census_detail_slug}'>")
     chart_canvas = $("\##{chart_id}")
 
     default_options = 
@@ -120,4 +122,9 @@ class App.Census.Base
     html += '<br /><a href="' + data_url + '" target="_blank" download="census.csv">Download Data</a>'
     $(anim.chartInstance.chart.canvas).prev('.row').find('.jChartDownloads').html(html)
 
+  _width: ->
+    300
+
+  _height: ->
+    40
     

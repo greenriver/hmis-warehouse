@@ -10,7 +10,7 @@ module Dashboards
     before_action :require_can_view_censuses!
     def index
       # Census
-      @census_start_date = 1.years.ago.to_date
+      @census_start_date = 3.years.ago.to_date
       @census_end_date = 1.weeks.ago.to_date
 
     end

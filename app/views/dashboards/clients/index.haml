@@ -2,6 +2,11 @@
 %h1= content_for :title
 = render 'dashboards/tabs', active: 'clients'
 
+.jRemoteActive
+  %h2 Active Clients
+  .text-center
+    Loading...
+
 .jRemoteEntered
   %h2 Clients Entering Programs
   .text-center
@@ -9,11 +14,6 @@
 
 .jRemoteHoused
   %h2 Clients Housed
-  .text-center
-    Loading...
-
-.jRemoteActive
-  %h2 Active Clients
   .text-center
     Loading...
 

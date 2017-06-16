@@ -135,6 +135,11 @@ Rails.application.routes.draw do
     get :date_range, on: :collection
     get :details, on: :collection
   end
+  namespace :census do
+    resources :project_types, only: [:index] do
+      get :json, on: :collection
+    end
+  end
   resources :dashboards, only: [:index]
   namespace :dashboards do
     resources :veterans, only: [:index] do
