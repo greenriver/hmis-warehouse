@@ -40,16 +40,8 @@ class App.Census.CombinedProjectType extends App.Census.Base
       id += 1
   
   _follow_link: (event) =>
-    chart = @charts[event.target.id.replace('census-chart-', '')]
-    project = $(event.target).data('project')
-    # If we clicked on a point, send us to the list of associated clients
-    if point = chart.getElementAtEvent(event)[0]
-      date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
-      veteran = chart.config.data.datasets[point._datasetIndex].label
-      params = {type: @type, date: date, group: project, veteran: veteran}
-      url = @url.replace('date_range', 'details') + '?' + $.param(params)
-      window.open url
-
+    return
+    
   _format_tooltip_label: (tool_tip, data) =>
     return unless tool_tip
     chart = @charts[event.target.id.replace('census-chart-', '')]
