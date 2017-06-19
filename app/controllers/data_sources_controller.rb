@@ -13,6 +13,12 @@ class DataSourcesController < ApplicationController
   end
 
   def show
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    o_t = GrdaWarehouse::Hud::Organization.arel_table
+    @organizations = @data_source.organizations.
+      joins(:projects).
+      includes(:projects, projects: :project_cocs).
+      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
 
   def new
