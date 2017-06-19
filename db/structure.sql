@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.3.14
+-- Dumped from database version 9.6.3
 -- Dumped by pg_dump version 9.6.3
 
 SET statement_timeout = 0;
@@ -105,52 +105,6 @@ ALTER SEQUENCE activity_logs_id_seq OWNED BY activity_logs.id;
 
 
 --
--- Name: cas_reports; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE cas_reports (
-    id integer NOT NULL,
-    client_id integer NOT NULL,
-    match_id integer NOT NULL,
-    decision_id integer NOT NULL,
-    decision_order integer NOT NULL,
-    match_step character varying NOT NULL,
-    decision_status character varying NOT NULL,
-    current_step boolean DEFAULT false NOT NULL,
-    active_match boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    elapsed_days integer DEFAULT 0 NOT NULL,
-    client_last_seen_date timestamp without time zone,
-    criminal_hearing_date timestamp without time zone,
-    decline_reason character varying,
-    not_working_with_client_reason character varying,
-    administrative_cancel_reason character varying,
-    client_spoken_with_services_agency boolean,
-    cori_release_form_submitted boolean
-);
-
-
---
--- Name: cas_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE cas_reports_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE cas_reports_id_seq OWNED BY cas_reports.id;
-
-
---
 -- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -247,40 +201,6 @@ CREATE SEQUENCE delayed_jobs_id_seq
 --
 
 ALTER SEQUENCE delayed_jobs_id_seq OWNED BY delayed_jobs.id;
-
-
---
--- Name: hmis_forms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE hmis_forms (
-    id integer NOT NULL,
-    client_id integer,
-    response text,
-    name character varying,
-    answers text,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: hmis_forms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE hmis_forms_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_forms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE hmis_forms_id_seq OWNED BY hmis_forms.id;
 
 
 --
@@ -472,19 +392,19 @@ CREATE TABLE roles (
     can_view_clients boolean DEFAULT false,
     can_edit_clients boolean DEFAULT false,
     can_view_reports boolean DEFAULT false,
+    can_view_censuses boolean DEFAULT false,
+    can_view_census_details boolean DEFAULT false,
     can_edit_users boolean DEFAULT false,
     can_view_full_ssn boolean DEFAULT false,
     can_view_full_dob boolean DEFAULT false,
+    can_view_hiv_status boolean DEFAULT false,
+    can_view_dmh_status boolean DEFAULT false,
     can_view_imports boolean DEFAULT false,
     can_edit_roles boolean DEFAULT false,
-    can_view_censuses boolean DEFAULT false,
-    can_view_census_details boolean DEFAULT false,
     can_view_projects boolean DEFAULT false,
     can_view_organizations boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
-    can_view_hiv_status boolean DEFAULT false,
-    can_view_dmh_status boolean DEFAULT false,
     health_role boolean DEFAULT false NOT NULL,
     can_administer_health boolean DEFAULT false,
     can_edit_client_health boolean DEFAULT false,
@@ -762,13 +682,6 @@ ALTER TABLE ONLY activity_logs ALTER COLUMN id SET DEFAULT nextval('activity_log
 
 
 --
--- Name: cas_reports id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY cas_reports ALTER COLUMN id SET DEFAULT nextval('cas_reports_id_seq'::regclass);
-
-
---
 -- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -780,13 +693,6 @@ ALTER TABLE ONLY clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('clien
 --
 
 ALTER TABLE ONLY delayed_jobs ALTER COLUMN id SET DEFAULT nextval('delayed_jobs_id_seq'::regclass);
-
-
---
--- Name: hmis_forms id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_forms ALTER COLUMN id SET DEFAULT nextval('hmis_forms_id_seq'::regclass);
 
 
 --
@@ -882,14 +788,6 @@ ALTER TABLE ONLY activity_logs
 
 
 --
--- Name: cas_reports cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY cas_reports
-    ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
-
-
---
 -- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -903,14 +801,6 @@ ALTER TABLE ONLY clients_unduplicated
 
 ALTER TABLE ONLY delayed_jobs
     ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_forms hmis_forms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_forms
-    ADD CONSTRAINT hmis_forms_pkey PRIMARY KEY (id);
 
 
 --
@@ -1035,13 +925,6 @@ CREATE INDEX index_activity_logs_on_item_model ON activity_logs USING btree (ite
 --
 
 CREATE INDEX index_activity_logs_on_user_id ON activity_logs USING btree (user_id);
-
-
---
--- Name: index_cas_reports_on_client_id_and_match_id_and_decision_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON cas_reports USING btree (client_id, match_id, decision_id);
 
 
 --
@@ -1220,7 +1103,7 @@ ALTER TABLE ONLY report_results
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user",public;
+SET search_path TO "$user", public;
 
 INSERT INTO schema_migrations (version) VALUES ('20160615125048');
 
@@ -1288,8 +1171,6 @@ INSERT INTO schema_migrations (version) VALUES ('20161111205317');
 
 INSERT INTO schema_migrations (version) VALUES ('20161119003439');
 
-INSERT INTO schema_migrations (version) VALUES ('20161122172130');
-
 INSERT INTO schema_migrations (version) VALUES ('20161213140009');
 
 INSERT INTO schema_migrations (version) VALUES ('20161214144658');
@@ -1303,6 +1184,4 @@ INSERT INTO schema_migrations (version) VALUES ('20161219184752');
 INSERT INTO schema_migrations (version) VALUES ('20170505132237');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517200539');
-
-INSERT INTO schema_migrations (version) VALUES ('20170526162435');
 

@@ -2,11 +2,12 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.6
--- Dumped by pg_dump version 9.5.6
+-- Dumped from database version 9.6.3
+-- Dumped by pg_dump version 9.6.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -450,77 +451,77 @@ ALTER SEQUENCE visits_id_seq OWNED BY visits.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: appointments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY appointments ALTER COLUMN id SET DEFAULT nextval('appointments_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: careplans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY careplans ALTER COLUMN id SET DEFAULT nextval('careplans_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: health_goals id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY health_goals ALTER COLUMN id SET DEFAULT nextval('health_goals_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: medications id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY medications ALTER COLUMN id SET DEFAULT nextval('medications_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: patients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY patients ALTER COLUMN id SET DEFAULT nextval('patients_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: problems id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY problems ALTER COLUMN id SET DEFAULT nextval('problems_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: team_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY team_members ALTER COLUMN id SET DEFAULT nextval('team_members_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: teams id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY teams ALTER COLUMN id SET DEFAULT nextval('teams_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY versions ALTER COLUMN id SET DEFAULT nextval('versions_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: visits id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY visits ALTER COLUMN id SET DEFAULT nextval('visits_id_seq'::regclass);
 
 
 --
--- Name: appointments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: appointments appointments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY appointments
@@ -528,7 +529,7 @@ ALTER TABLE ONLY appointments
 
 
 --
--- Name: careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: careplans careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY careplans
@@ -536,7 +537,7 @@ ALTER TABLE ONLY careplans
 
 
 --
--- Name: health_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: health_goals health_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY health_goals
@@ -544,7 +545,7 @@ ALTER TABLE ONLY health_goals
 
 
 --
--- Name: medications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: medications medications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY medications
@@ -552,7 +553,7 @@ ALTER TABLE ONLY medications
 
 
 --
--- Name: patients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: patients patients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY patients
@@ -560,7 +561,7 @@ ALTER TABLE ONLY patients
 
 
 --
--- Name: problems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: problems problems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY problems
@@ -568,7 +569,7 @@ ALTER TABLE ONLY problems
 
 
 --
--- Name: team_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: team_members team_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY team_members
@@ -576,7 +577,7 @@ ALTER TABLE ONLY team_members
 
 
 --
--- Name: teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: teams teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY teams
@@ -584,7 +585,7 @@ ALTER TABLE ONLY teams
 
 
 --
--- Name: versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: versions versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY versions
@@ -592,7 +593,7 @@ ALTER TABLE ONLY versions
 
 
 --
--- Name: visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: visits visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY visits

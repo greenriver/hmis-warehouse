@@ -15,6 +15,8 @@
     = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
       %span.icon-plus
       Upload HUD HMIS ZIP
+= link_to "/data_sources/#{@data_source.id}/uploads", class: 'btn btn-primary' do
+  Imports
 - if @data_source.has_data?
   .row.table-utilities
     .col-sm-12
