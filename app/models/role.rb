@@ -34,6 +34,7 @@ class Role < ActiveRecord::Base
       :can_view_organizations,
       :can_view_client_window,
       :can_upload_hud_zips,
+      :can_view_everything,
     ] 
     perms += self.health_permissions unless exclude_health
     return perms
