@@ -615,6 +615,37 @@ ALTER SEQUENCE user_roles_id_seq OWNED BY user_roles.id;
 
 
 --
+-- Name: user_viewable_entity; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE user_viewable_entity (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    entity_id integer NOT NULL,
+    entity_type character varying NOT NULL
+);
+
+
+--
+-- Name: user_viewable_entity_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE user_viewable_entity_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_viewable_entity_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE user_viewable_entity_id_seq OWNED BY user_viewable_entity.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -808,6 +839,13 @@ ALTER TABLE ONLY user_roles ALTER COLUMN id SET DEFAULT nextval('user_roles_id_s
 
 
 --
+-- Name: user_viewable_entity id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY user_viewable_entity ALTER COLUMN id SET DEFAULT nextval('user_viewable_entity_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -931,6 +969,14 @@ ALTER TABLE ONLY uploads
 
 ALTER TABLE ONLY user_roles
     ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_viewable_entity user_viewable_entity_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY user_viewable_entity
+    ADD CONSTRAINT user_viewable_entity_pkey PRIMARY KEY (id);
 
 
 --
@@ -1104,6 +1150,13 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON versions USING btree (it
 
 
 --
+-- Name: one_entity_per_type_per_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_user ON user_viewable_entity USING btree (user_id, entity_id, entity_type);
+
+
+--
 -- Name: unduplicated_clients_unduplicated_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1240,4 +1293,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 INSERT INTO schema_migrations (version) VALUES ('20170526162435');
 
 INSERT INTO schema_migrations (version) VALUES ('20170619210146');
+
+INSERT INTO schema_migrations (version) VALUES ('20170619211924');
 
