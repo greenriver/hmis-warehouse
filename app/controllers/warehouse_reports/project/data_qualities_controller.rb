@@ -17,26 +17,39 @@ module WarehouseReports::Project
       @range = DateRange.new(date_range_params)
       @range.validate
       begin
-        @project_ids = project_params
+        @project_ids = project_params rescue []
+        @project_group_ids = project_group_params rescue []
+        if @project_ids.empty? && @project_group_ids.empty?
+          raise ActionController::ParameterMissing, 'Parameters missing'
+        end
       rescue ActionController::ParameterMissing => e
-        errors << 'At least one project must be selected'
+        errors << 'At least one project or project group must be selected'
       end
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
         render action: :show
       else
         # kick off report generation
-        @project_ids.each do |project_id|
-          if @generate
-            report = report_scope.create(project_id: project_id, start: @range.start, end: @range.end)
-          else
-            report = report_scope.
-              where(project_id: project_id).
-              order(id: :desc).first_or_initialize
-          end
-          Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
-        end
+        queue_report(id_column: :project_id, keys: @project_ids)
+        queue_report(id_column: :project_group_id, keys: @project_group_ids)
         redirect_to action: :show
+      end
+    end
+
+    def queue_report(id_column:, keys:)
+      keys.each do |id|
+        if @generate
+          report = report_scope.create(
+            id_column => id, 
+            start: @range.start, 
+            end: @range.end
+          )
+        else
+          report = report_scope.
+            where(id_column => id).
+            order(id: :desc).first_or_initialize
+        end
+        Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
 
@@ -44,8 +57,15 @@ module WarehouseReports::Project
       @report = []
       @projects = project_scope.includes(:organization, :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:contacts, :current_data_quality_report) 
+        preload(:contacts, :current_data_quality_report)
+      @project_groups = project_group_scope.includes(:projects, projects: :organization, projects: :data_source).
+        order(data_source_id: :asc, OrganizationID: :asc).
+        preload(:contacts, :current_data_quality_report)
       @projects.each do |project|
+        last_report = project.current_data_quality_report
+        @report << last_report if last_report.present?
+      end
+      @project_groups.each do |project|
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
       end
@@ -62,6 +82,10 @@ module WarehouseReports::Project
 
     def project_params
       params.require(:project).keys.map(&:to_i)
+    end
+
+    def project_group_params
+      params.require(:project_group).keys.map(&:to_i)
     end
 
     def date_range_params

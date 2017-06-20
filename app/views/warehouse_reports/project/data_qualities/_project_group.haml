@@ -1,12 +1,12 @@
 - id = group.id
 - last_report = group.data_quality_reports&.last
-%tr.jProject
+%tr.jProject.jProject.hidden{data: {organization_id: :project_groups}}
   %td
   %td
   %td.padding-left-02
     = group.name
   %td
-    = check_box_tag("project_group[#{group.id}]", 1, false)
+    = check_box_tag("project_group[#{group.id}]", 1, false, {class: 'jProjectSelect'})
   %td
     - if last_status = last_report&.status
       = link_to last_status, project_group_data_quality_report_path(project_group_id: group.id, id: last_report.id) 
@@ -18,10 +18,7 @@
     - if group.contacts.any?
       = group.contacts.map(&:full_name_with_email).join('<br />').html_safe
     - else
-      = link_to project_group_contacts_path(group) do
-        Add project group contacts
-      on the
       = link_to edit_project_group_path(group) do
-        project group page
+        Project group contacts are inherited from the projects involved.
   %td
     = last_report&.sent_at&.to_date

@@ -15,6 +15,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       order(created_at: :asc)
     end
 
+    scope :incomplete, -> do
+      where(completed_at: nil, processing_errors: nil)
+    end
+
     def display
 
     end
@@ -86,7 +90,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def beds 
-      project.inventories.map(&:BedInventory).reduce(:+) || 0
+      @beds ||= projects.flat_map(&:inventories).map(&:BedInventory).reduce(:+) || 0
+    end
+
+    def hmis_beds
+      @hmis_beds ||= projects.flat_map(&:inventories).map(&:HMISParticipatingBeds).reduce(:+) || 0
     end
 
     def income_columns
@@ -176,8 +184,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def send_notifications
-      (project_contacts + organization_contacts).each do |contact|
-        ProjectDataQualityReportMailer.report_complete(project, self, contact).deliver_later
+      (project_contacts + organization_contacts + project_group_contacts).each do |contact|
+        ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver_later
       end
       notifications_sent()
     end
@@ -213,7 +221,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
-        where(Project: {id: self.project_id})
+        where(Project: {id: projects.map(&:id)})
     end
 
     def service_scope
@@ -221,7 +229,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start,
           end_date: self.end).
         joins(:project, enrollment: :client).
-        where(Project: {id: self.project_id})
+        where(Project: {id: projects.map(&:id)})
+    end
+
+    def projects
+      return project_group.projects if self.project_group_id.present?
+      return [project]
     end
 
     def c_t

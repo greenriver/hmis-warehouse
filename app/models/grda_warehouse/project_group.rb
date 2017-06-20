@@ -9,7 +9,10 @@ module GrdaWarehouse
       join_table: :project_project_groups
 
     has_many :data_quality_reports, 
-      class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
+      class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_one :current_data_quality_report, -> do
+      where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
+    end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
 
     has_many :contacts, through: :projects
 

@@ -28,7 +28,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           title: 'Agency name',
         },
         project_name: {
-          title: 'Project name',
+          title: 'Project name(s)',
         },
         monitoring_date_range: {
           title: 'Operating year (Funder start date and end date)',
@@ -192,22 +192,37 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
 
     def set_project_metadata
-      funder = project.funders.last
+      agency_names = projects.map(&:organization).map(&:OrganizationName).compact
+      project_names = projects.map(&:ProjectName)
+      monitoring_ranges = []
+      monitoring_date_range_present = false
+      grant_ids = []
+      coc_program_components = projects.map do |project|
+        ::HUD.project_type(project.ProjectType)
+      end
+      target_populations = projects.map do |project|
+        ::HUD.target_population(project.TargetPopulation) || nil
+      end.compact
+
+      projects.flat_map(&:funders).each do |funder|
+        monitoring_ranges << "#{funder&.StartDate} - #{funder&.EndDate}"
+        monitoring_date_range_present = true if funder&.StartDate.present? && funder&.EndDate.present?
+        grant_ids << funder&.GrantID
+      end
+
       add_answers({
-        agency_name: project.organization.OrganizationName,
-        project_name: project.ProjectName,
-        monitoring_date_range: "#{funder&.StartDate} - #{funder&.EndDate}",
-        monitoring_date_range_present: funder&.StartDate.present? && funder&.EndDate.present?,
+        agency_name: agency_names.join(', '),
+        project_name: project_names.join(', '),
+        monitoring_date_range: monitoring_ranges.join(', '),
+        monitoring_date_range_present: monitoring_date_range_present,
         # funding_year: funder.operating_year,
-        grant_id: funder&.GrantID,
-        coc_program_component: ::HUD.project_type(project.ProjectType),
-        target_population: ::HUD.target_population(project.TargetPopulation) || '',
+        grant_id: grant_ids.join(', '),
+        coc_program_component: coc_program_components.join(', '),
+        target_population: target_populations.join(', '),
       })
     end
 
-    def set_bed_coverage_data
-      hmis_beds = project.inventories.map(&:HMISParticipatingBeds).reduce(:+) || 0
-      
+    def set_bed_coverage_data      
       bed_coverage = 0 
       bed_coverage_percent = 0
       if hmis_beds > 0
