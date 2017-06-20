@@ -3,8 +3,7 @@
     %tr
       %th{rowspan: 2} ID
       %th{rowspan: 2} Client
-      %th{rowspan: 2} First Date Served
-      %th{rowspan: 2} Days Served
+      %th{rowspan: 2} First Date Homeless
       %th{rowspan: 2} DOB
       %th{rowspan: 2} SSN
       %th{rowspan: 2} Veteran in
@@ -22,8 +21,7 @@
       %tr
         %td{rowspan: span}= client.id
         %td{rowspan: span}= client.name
-        %td{rowspan: span}= client.processed_service_history.first_date_served
-        %td{rowspan: span}= client.processed_service_history.days_served
+        %td{rowspan: span}= client&.first_service_history&.date
         %td{rowspan: span}= date_format client.DOB
         %td.nobr{rowspan: span}= ssn client.SSN
         %td{rowspan: span}
