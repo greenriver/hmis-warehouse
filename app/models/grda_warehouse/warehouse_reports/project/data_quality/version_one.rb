@@ -537,7 +537,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       total_services_provided = service_scope.select(:client_id, :date).distinct.to_a.count
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
-      capacity = (average_usage.to_f/beds*100).round(2) rescue 0
+      capacity = if beds > 0 
+        (average_usage.to_f/beds*100).round(2) rescue 0
+      else
+        0
+      end
       add_answers({
         services_provided: total_services_provided,
         days_of_service: days_served,

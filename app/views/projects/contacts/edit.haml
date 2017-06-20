@@ -5,3 +5,5 @@
   .col-sm-4
     = simple_form_for(@contact, as: :contact, url: project_contact_path(@entity, @contact)) do |f|
       = render 'form', f: f
+      .form-actions
+        = f.button :submit, value: 'Update Contact'
