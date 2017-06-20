@@ -5,3 +5,5 @@
   .col-sm-4
     = simple_form_for(@contact, as: :contact, url: organization_contacts_path(@entity)) do |f|
       = render 'form', f: f
+      .form-actions
+        = f.button :submit, value: 'Add Contact'
