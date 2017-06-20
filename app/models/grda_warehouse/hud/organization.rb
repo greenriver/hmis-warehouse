@@ -19,7 +19,7 @@ module GrdaWarehouse::Hud
         Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS
       )
     }
-    scope :viewable_by, -> (user) {
+    scope :viewable_by, -> (user) do
       if user.roles.where( can_view_everything: true ).exists?
         current_scope
       else
@@ -35,7 +35,7 @@ module GrdaWarehouse::Hud
           ).exists
         )
       end
-    }
+    end
 
     def self.hud_csv_headers(version: nil)
       [

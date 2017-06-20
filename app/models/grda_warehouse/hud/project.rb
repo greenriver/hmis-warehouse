@@ -99,7 +99,7 @@ module GrdaWarehouse::Hud
         or(arel_table[:hud_continuum_funded].eq(true))
       )
     end
-    scope :viewable_by, -> (user) {
+    scope :viewable_by, -> (user) do
       if user.roles.where( can_view_everything: true ).exists?
         current_scope
       else
@@ -122,7 +122,7 @@ module GrdaWarehouse::Hud
           ).exists
         )
       end
-    }
+    end
 
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|

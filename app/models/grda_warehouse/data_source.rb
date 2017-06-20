@@ -15,14 +15,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   scope :importable, -> { where.not(source_type: nil)}
   scope :destination, -> { where(source_type: nil)}
   scope :importable_via_samba, -> { importable.where(source_type: "samba")}
-  scope :viewable_by, -> (user) {
+  scope :viewable_by, -> (user) do
     if user.roles.where( can_view_everything: true ).exists?
       current_scope
     else
       at = GrdaWarehouse::Hud::UserViewableEntity.arel_table
       joins(:user_viewable_entities).where( at[:user_id].eq user.id )
     end
-  }
+  end
 
   accepts_nested_attributes_for :projects
 
