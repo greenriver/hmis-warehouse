@@ -99,6 +99,30 @@ module GrdaWarehouse::Hud
         or(arel_table[:hud_continuum_funded].eq(true))
       )
     end
+    scope :viewable_by, -> (user) {
+      if user.roles.where( can_view_everything: true ).exists?
+        current_scope
+      else
+        uve_t = GrdaWarehouse::Hud::UserViewableEntity.arel_table
+        p_t   = arel_table
+        o_t   = Organization.arel_table
+        # FIXME: in Rails 5 we will have nicer left joins
+        left_join = p_t.join( o_t, Arel::Nodes::OuterJoin ).
+          on( p_t[:OrganizationID].eq(o_t[:OrganizationID]).and p_t[:data_source_id].eq o_t[:data_source_id] ).
+          to_sql.gsub /^.*?(?=LEFT)/, ''
+        joins(left_join).where(
+          GrdaWarehouse::Hud::UserViewableEntity.where(
+            uve_t[:user_id].eq(user.id).and(
+              uve_t[:entity_id].eq(p_t[:id]).and( uve_t[:entity_type].eq sti_name ).or(
+                uve_t[:entity_id].eq(p_t[:data_source_id]).and( uve_t[:entity_type].eq GrdaWarehouse::DataSource.sti_name )
+              ).or(
+                uve_t[:entity_id].eq(o_t[:id]).and( uve_t[:entity_type].eq o_t.engine.sti_name )
+              )
+            )
+          ).exists
+        )
+      end
+    }
 
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|

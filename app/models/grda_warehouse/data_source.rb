@@ -10,10 +10,19 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :organizations, class_name: GrdaWarehouse::Hud::Organization.name, inverse_of: :data_source
   has_many :projects, class_name: GrdaWarehouse::Hud::Project.name, inverse_of: :data_source
   has_many :exports, class_name: GrdaWarehouse::Hud::Export.name, inverse_of: :data_source
+  has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
 
   scope :importable, -> { where.not(source_type: nil)}
   scope :destination, -> { where(source_type: nil)}
   scope :importable_via_samba, -> { importable.where(source_type: "samba")}
+  scope :viewable_by, -> (user) {
+    if user.roles.where( can_view_everything: true ).exists?
+      current_scope
+    else
+      at = GrdaWarehouse::Hud::UserViewableEntity.arel_table
+      joins(:user_viewable_entities).where( at[:user_id].eq user.id )
+    end
+  }
 
   accepts_nested_attributes_for :projects
 

@@ -19,6 +19,23 @@ module GrdaWarehouse::Hud
         Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS
       )
     }
+    scope :viewable_by, -> (user) {
+      if user.roles.where( can_view_everything: true ).exists?
+        current_scope
+      else
+        uve_t = GrdaWarehouse::Hud::UserViewableEntity.arel_table
+        o_t   = arel_table
+        where(
+          GrdaWarehouse::Hud::UserViewableEntity.where(
+            uve_t[:user_id].eq(user.id).and(
+              uve_t[:entity_id].eq(o_t[:id]).and( uve_t[:entity_type].eq sti_name ).or(
+                uve_t[:entity_id].eq(o_t[:data_source_id]).and( uve_t[:entity_type].eq GrdaWarehouse::DataSource.sti_name )
+              )
+            )
+          ).exists
+        )
+      end
+    }
 
     def self.hud_csv_headers(version: nil)
       [
