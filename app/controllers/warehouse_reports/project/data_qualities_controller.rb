@@ -56,11 +56,14 @@ module WarehouseReports::Project
     def download
       @report = []
       @projects = project_scope.includes(:organization, :data_source).
-        order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:contacts, :current_data_quality_report)
+        joins(:organization).
+        preload(:contacts, :current_data_quality_report).
+        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)
+        
       @project_groups = project_group_scope.includes(projects: :organization, projects: :data_source).
-        order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:contacts, :current_data_quality_report)
+        joins(projects: :organization).
+        preload(:contacts, :current_data_quality_report).
+        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)        
       @projects.each do |project|
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
