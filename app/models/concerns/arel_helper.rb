@@ -200,5 +200,9 @@ module ArelHelper
     def p_t
       GrdaWarehouse::Hud::Project.arel_table
     end
+
+    def o_t
+      GrdaWarehouse::Hud::Organization.arel_table
+    end
   end
 end

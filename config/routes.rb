@@ -180,6 +180,9 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show]
   end
+
+  resources :project_groups, except: [:destroy, :show]
+  
   resources :weather, only: [:index]
 
   resources :notifications, only: [:show] do

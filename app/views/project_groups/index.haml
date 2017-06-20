@@ -1,0 +1,31 @@
+- title = 'Project Groups'
+= content_for(:title, title)
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    = link_to new_project_group_path, class: 'btn btn-primary' do
+      %span.icon-plus
+      Add Project Group
+.row
+  .col-sm-12
+    %p
+      Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
+    - if @project_groups.any?
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th
+              Name
+            %th
+              Projects
+        %tbody
+          - @project_groups.each do |group|
+            %tr
+              %td
+                = link_to group.name, edit_project_group_path(group)
+              %td
+                = group.projects.map(&:ProjectName).join(', ')
+    - else
+      %p 
+        There are no project groups.
