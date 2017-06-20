@@ -58,7 +58,7 @@ module WarehouseReports::Project
       @projects = project_scope.includes(:organization, :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
         preload(:contacts, :current_data_quality_report)
-      @project_groups = project_group_scope.includes(:projects, projects: :organization, projects: :data_source).
+      @project_groups = project_group_scope.includes(projects: :organization, projects: :data_source).
         order(data_source_id: :asc, OrganizationID: :asc).
         preload(:contacts, :current_data_quality_report)
       @projects.each do |project|

@@ -7,6 +7,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
     has_many :project_group_contacts, through: :project_group, source: :contacts
+    has_many :organization_project_group_contacts, through: :project_group, source: :organization_contacts
     has_many :report_tokens, -> { where(report_id: id)}, class_name: GrdaWarehouse::ReportToken.name
 
     scope :complete, -> do
@@ -184,7 +185,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def send_notifications
-      (project_contacts + organization_contacts + project_group_contacts).each do |contact|
+      (project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts).uniq.each do |contact|
         ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
       end
       notifications_sent()

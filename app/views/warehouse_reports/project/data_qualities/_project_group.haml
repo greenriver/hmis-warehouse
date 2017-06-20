@@ -15,8 +15,8 @@
   %td
     = last_report&.completed_at
   %td
-    - if group.contacts.any?
-      = group.contacts.map(&:full_name_with_email).join('<br />').html_safe
+    - if group.contacts.any? || group.organization_contacts.any?
+      = (group.contacts + group.organization_contacts).map(&:full_name_with_email).uniq.join('<br />').html_safe
     - else
       = link_to edit_project_group_path(group) do
         Project group contacts are inherited from the projects involved.

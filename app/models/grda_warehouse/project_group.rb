@@ -15,6 +15,7 @@ module GrdaWarehouse
     end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
 
     has_many :contacts, through: :projects
+    has_many :organization_contacts, through: :projects
 
 
     def self.available_projects

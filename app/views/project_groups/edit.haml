@@ -5,7 +5,22 @@
 = simple_form_for @project_group, url: project_group_path(@project_group) do |f|
   = render 'form', f: f
 
+- if @project_group.contacts.any? || @project_group.organization_contacts.any?
+  %h3 Contacts
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Name
+        %th email
+    %tbody
+      - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
+        %tr
+          %td
+            = name
+          %td
+            = email
 - if @reports.any?
+  %h3 Project Data Quality Reports
   %table.table.table-condensed
     %thead
       %tr
