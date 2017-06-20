@@ -15,6 +15,27 @@
           Contacts
           - @projects.each do |(data_source, organization), projects|
             = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+  - if @project_groups.any?
+    %table.table.table-condensed
+      %thead
+        %tr.jProject
+          %th
+          %th
+          %th
+            Group
+          %th
+            Select
+          %th
+            Report
+          %th
+            Last Run
+          %th
+            Contacts
+          %th
+            Last Sent On
+        - @project_groups.each do |group|
+          = render 'project_group', f: f, group: group, projects: group.projects
+
         
   = render 'actions', f: f
 

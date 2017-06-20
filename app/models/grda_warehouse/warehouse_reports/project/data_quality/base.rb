@@ -3,8 +3,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     include ApplicationHelper
     self.table_name = :project_data_quality
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
+    belongs_to :project_group, class_name: GrdaWarehouse::ProjectGroup.name
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
+    has_many :project_group_contacts, through: :project_group
     has_many :report_tokens, -> { where(report_id: id)}, class_name: GrdaWarehouse::ReportToken.name
 
     scope :complete, -> do

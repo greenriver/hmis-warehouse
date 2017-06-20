@@ -1,8 +1,7 @@
 module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     before_action :require_can_view_reports!
-
-    before_action :set_projects
+    before_action :set_projects, :set_project_groups
 
     def show
       @range = DateRange.new()
@@ -74,6 +73,10 @@ module WarehouseReports::Project
       GrdaWarehouse::Hud::Project.all
     end
 
+    def project_group_scope
+      GrdaWarehouse::ProjectGroup.all
+    end
+
     def report_scope
       GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
     end
@@ -83,6 +86,12 @@ module WarehouseReports::Project
         order("#{p_t[:data_source_id].asc.to_sql}, #{o_t[:OrganizationName].asc.to_sql}, #{p_t[:ProjectName].asc.to_sql}").
         preload(:contacts, :data_quality_reports).
         group_by{ |m| [m.data_source.short_name, m.organization]}
+    end
+
+    def set_project_groups
+      @project_groups = project_group_scope.includes(:projects).
+        order(name: :asc).
+        preload(:contacts, :data_quality_reports)
     end
 
     def p_t

@@ -181,7 +181,9 @@ Rails.application.routes.draw do
     resources :data_quality_reports, only: [:index, :show]
   end
 
-  resources :project_groups, except: [:destroy, :show]
+  resources :project_groups, except: [:destroy, :show] do
+    resources :contacts, except: [:show], controller: 'project_groups/contacts'
+  end
   
   resources :weather, only: [:index]
 
