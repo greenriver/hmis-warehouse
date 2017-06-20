@@ -20,7 +20,7 @@
   .alert.alert-danger
     Processing error:
     = JSON.parse(@report.processing_errors).first
-- else
+- elsif @report.report.present?
   %table.table.table-condensed
     %thead
       %tr

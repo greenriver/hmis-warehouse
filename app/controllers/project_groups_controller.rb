@@ -11,10 +11,6 @@ class ProjectGroupsController < ApplicationController
     @project_group = GrdaWarehouse::ProjectGroup.new
   end
 
-  def show
-  
-  end
-
   def create
       @project_group = GrdaWarehouse::ProjectGroup.new
     begin
@@ -30,7 +26,7 @@ class ProjectGroupsController < ApplicationController
   end
 
   def edit
-  
+    @reports = @project_group.data_quality_reports.order(started_at: :desc)
   end
 
   def update
