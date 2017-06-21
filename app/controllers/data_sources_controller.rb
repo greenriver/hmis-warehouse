@@ -17,6 +17,8 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       joins(:projects).
+      merge( p_t.engine.viewable_by current_user ).
+      merge( o_t.engine.viewable_by current_user ).
       includes(:projects, projects: :project_cocs).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
@@ -28,6 +30,7 @@ class DataSourcesController < ApplicationController
   def create
     @data_source = data_source_source.new(new_data_source_params)
     if @data_source.save
+      current_user.add_viewable @data_source
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
@@ -105,7 +108,7 @@ class DataSourcesController < ApplicationController
   end
 
   private def data_source_source
-    GrdaWarehouse::DataSource
+    GrdaWarehouse::DataSource.viewable_by current_user
   end
 
   private def data_source_scope

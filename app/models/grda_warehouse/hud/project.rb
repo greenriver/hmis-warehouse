@@ -106,7 +106,8 @@ module GrdaWarehouse::Hud
       else
         uve_t = GrdaWarehouse::Hud::UserViewableEntity.arel_table
         p_t   = arel_table
-        o_t   = Organization.arel_table
+        o_t   = Arel::Table.new Organization.table_name
+        o_t.table_alias = 'o_t'
         # FIXME: in Rails 5 we will have nicer left joins
         left_join = p_t.join( o_t, Arel::Nodes::OuterJoin ).
           on( p_t[:OrganizationID].eq(o_t[:OrganizationID]).and p_t[:data_source_id].eq o_t[:data_source_id] ).

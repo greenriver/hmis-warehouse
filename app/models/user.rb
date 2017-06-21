@@ -123,6 +123,10 @@ class User < ActiveRecord::Base
     end
   end
 
+  def add_viewable(viewable)
+    viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
+  end
+
   private
 
     def viewable(model)
