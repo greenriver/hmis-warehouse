@@ -31,6 +31,7 @@ class Role < ActiveRecord::Base
       :can_view_imports,
       :can_edit_roles,
       :can_view_projects,
+      :can_edit_project_groups,
       :can_view_organizations,
       :can_view_client_window,
       :can_upload_hud_zips,

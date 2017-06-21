@@ -30,7 +30,7 @@ module Dashboards
       @clients = @enrollments.keys
       @client_count = @clients.count
 
-      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES
+      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort.to_h
       @data = {
         clients: {
           label: 'Client count',
@@ -135,7 +135,8 @@ module Dashboards
       @client_entry_totals_by_type = client_totals_from_enrollments(enrollments: @entries_in_range_by_type)
       
       @buckets = bucket_clients(entries: @entries_in_range_by_type)
-      
+      @first_time_total_deduplicated = @buckets.map{|_,groups| groups[:first_time].keys}.flatten.uniq.count
+
       # build hashes suitable for chartjs
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort_by(&:first)
       @data = setup_data_structure(start_date: @start_date)

@@ -19,10 +19,11 @@
       and
       = "#{@end_date}."
 
-.row
-  - @buckets.values.each do |groups|
-    - groups.each do |group, clients|
-      .col-sm-3
+
+- @buckets.values.each do |groups|
+  - groups.each do |group, clients|
+    .row
+      .col-sm-12
         %h3
           = @data[group][:label]
           = "(#{clients.count})"
@@ -32,12 +33,30 @@
               %th
                 Client
               %th
-                Entry Dates
+                Entry
+              %th
+                Exit
+              %th
+                Project Type
+              %th
+                Project
           %tbody
-            - clients.each do |client_id, dates|
+            - clients.each do |client_id, enrollments|
+              - enrollments = enrollments.reverse
               %tr
-                %td
+                %td{rowspan: enrollments.count + 1}
                   = link_to client_id, client_path(client_id)
-                %td
-                  = dates.join('<br />').html_safe
+              - enrollments.each_with_index do |enrollment, index|
+                - highlight = ''
+                - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
+                %tr{class: highlight}
+                  %td
+                    = enrollment[:first_date_in_program]
+                  %td
+                    = enrollment[:last_date_in_program]
+                  %td
+                    = HUD.project_type(enrollment[:project_type])
+                  %td
+                    = enrollment[:project_name]
+                  
             

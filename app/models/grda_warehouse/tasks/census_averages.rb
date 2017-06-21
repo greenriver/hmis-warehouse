@@ -89,12 +89,13 @@ module GrdaWarehouse::Tasks
         census = census_by_project_type_source.for_year(start_year).pluck(*census_by_project_type_columns).group_by do |m| 
             m[census_columns.index(:ProjectType)]
         end.map do |project_type,m|
+          @destination_data_source_id ||= data_source_source.destination.first.id
           [project_type, {
               year: start_year,
               ProjectType: project_type,
               client_count: m.map{|e| e[census_columns.index(:client_count)] || 0}.sum,
               days_of_service: m.map{|e| e[census_columns.index(:date)]}.uniq.size,
-              data_source_id: data_source_source.destination.first.id, # When combining by project type, this is meaningless
+              data_source_id: @destination_data_source_id, # When combining by project type, this is meaningless
           }]
         end.to_h
         census.each do |project_type, v|

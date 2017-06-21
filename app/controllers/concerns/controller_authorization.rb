@@ -10,7 +10,7 @@ module ControllerAuthorization
   # an alert if access is blocked
   Role.permissions.each do |permission|
     define_method("require_#{permission}!") do
-      not_authorized! unless current_user.send("#{permission}?".to_sym)
+      not_authorized! unless current_user&.send("#{permission}?".to_sym)
     end
   end
 

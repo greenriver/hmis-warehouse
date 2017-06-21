@@ -6,3 +6,6 @@
     = link_to data_sources_path, class: 'vsm-item-link' do
       .vsm-item-link--description
         = GrdaWarehouse::DataSource.model_name.human.pluralize
+    = link_to project_groups_path, class: 'vsm-item-link' do
+      .vsm-item-link--description
+        = GrdaWarehouse::ProjectGroup.model_name.human.pluralize

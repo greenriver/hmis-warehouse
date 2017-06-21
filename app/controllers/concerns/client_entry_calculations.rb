@@ -10,7 +10,8 @@ module ClientEntryCalculations
         :project_type, 
         :first_date_in_program,
         :last_date_in_program, 
-        :client_id
+        :client_id,
+        :project_name,
       ]
     end
      
@@ -18,7 +19,7 @@ module ClientEntryCalculations
       month_name = start_date.to_time.strftime('%B')
       {
         first_time: {
-          label: 'First time clients',
+          label: 'First time clients in the project type',
           data: [],
           backgroundColor: '#288BE4',
         },
@@ -62,8 +63,19 @@ module ClientEntryCalculations
       end.to_h
     end
 
+    # all enrollments for clients who were active during the date range
     def entered_enrollments_by_type start_date:, end_date:
-      enrollments_by_type = homeless_service_history_source.entry. open_between(start_date: start_date, end_date: end_date + 1.day). order(date: :asc). pluck(*entered_columns).map do |row| Hash[entered_columns.zip(row)] end. group_by{ |m| m[:project_type]}
+      enrollments_by_type = homeless_service_history_source.entry.
+        where(client_id: homeless_service_history_source.entry.
+          open_between(start_date: start_date, end_date: end_date + 1.day).
+          select(:client_id)
+        ).
+        order(date: :asc).
+        pluck(*entered_columns).
+        map do
+          |row| Hash[entered_columns.zip(row)]
+        end.
+        group_by{ |m| m[:project_type]}
         {}.tap do |m|
           enrollments_by_type.each do |project_type, enrollments|
             m[project_type] = enrollments.group_by{|e| e[:client_id]}
@@ -81,17 +93,16 @@ module ClientEntryCalculations
           first_time: {},
         }
         clients.each do |client_id, enrollments|
-          dates = enrollments.map{|en| en[:first_date_in_program]}
           if enrollments.count == 1
-            buckets[project_type][:first_time][client_id] = dates
+            buckets[project_type][:first_time][client_id] = enrollments
           else
             days = days_since_last_entry(enrollments)
             if days < 30
-              buckets[project_type][:less_than_thirty][client_id] = dates
+              buckets[project_type][:less_than_thirty][client_id] = enrollments
             elsif (30..60).include?(days)
-              buckets[project_type][:thirty_to_sixty][client_id] = dates
+              buckets[project_type][:thirty_to_sixty][client_id] = enrollments
             else # days > 60
-              buckets[project_type][:sixty_plus][client_id] = dates
+              buckets[project_type][:sixty_plus][client_id] = enrollments
             end
           end
         end

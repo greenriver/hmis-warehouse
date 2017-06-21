@@ -1249,9 +1249,15 @@ module GrdaWarehouse::Tasks
       # Changing and now building until the most-recent end date for the data source
       # This makes the assumption that we always have a complete data dump
       # per data source
-      export = export_for_export_id(data_source_id: enrollment[enrollment_data_source_id_index], export_id: enrollment[enrollment_export_id_index])
-      (export_date, export_end) = export.values_at(export_export_date_index, export_export_end_date_index)
-      export_date = export_date.to_date
+      begin
+        export = export_for_export_id(data_source_id: enrollment[enrollment_data_source_id_index], export_id: enrollment[enrollment_export_id_index])
+        (export_date, export_end) = export.values_at(export_export_date_index, export_export_end_date_index)
+        export_date = export_date.to_date
+      rescue Exception => e
+        Rails.logger.error e.inspect
+        Rails.logger.error enrollment.inspect
+        raise "Failed to build entries for #{enrollment.inspect}"
+      end
       # Special case which comes up mostly with ETO exports where they fail to update the ExportDate
       build_history_until = if(export_date < Date.today && Date.today < export_end)
         max_update_for_export(export: export).to_date

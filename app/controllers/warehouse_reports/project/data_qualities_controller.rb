@@ -1,8 +1,7 @@
 module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     before_action :require_can_view_reports!
-
-    before_action :set_projects
+    before_action :set_projects, :set_project_groups
 
     def show
       @range = DateRange.new()
@@ -18,35 +17,59 @@ module WarehouseReports::Project
       @range = DateRange.new(date_range_params)
       @range.validate
       begin
-        @project_ids = current_user.projects.where( id: project_params ).pluck :id   # filter by viewability
+        @project_ids = project_params rescue []
+        @project_ids = current_user.projects.where( id: @project_ids ).pluck :id   # filter by viewability
+        @project_group_ids = project_group_params rescue []
+        if @project_ids.empty? && @project_group_ids.empty?
+          raise ActionController::ParameterMissing, 'Parameters missing'
+        end
       rescue ActionController::ParameterMissing => e
-        errors << 'At least one project must be selected'
+        errors << 'At least one project or project group must be selected'
       end
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
         render action: :show
       else
         # kick off report generation
-        @project_ids.each do |project_id|
-          if @generate
-            report = report_scope.create(project_id: project_id, start: @range.start, end: @range.end)
-          else
-            report = report_scope.
-              where(project_id: project_id).
-              order(id: :desc).first_or_initialize
-          end
-          Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
-        end
+        queue_report(id_column: :project_id, keys: @project_ids)
+        queue_report(id_column: :project_group_id, keys: @project_group_ids)
         redirect_to action: :show
+      end
+    end
+
+    def queue_report(id_column:, keys:)
+      keys.each do |id|
+        if @generate
+          report = report_scope.create(
+            id_column => id, 
+            start: @range.start, 
+            end: @range.end
+          )
+        else
+          report = report_scope.
+            where(id_column => id).
+            order(id: :desc).first_or_initialize
+        end
+        Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
 
     def download
       @report = []
       @projects = project_scope.includes(:organization, :data_source).
-        order(data_source_id: :asc, OrganizationID: :asc).
-        preload(:contacts, :current_data_quality_report) 
+        joins(:organization).
+        preload(:contacts, :current_data_quality_report).
+        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)
+        
+      @project_groups = project_group_scope.includes(projects: :organization, projects: :data_source).
+        joins(projects: :organization).
+        preload(:contacts, :current_data_quality_report).
+        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)        
       @projects.each do |project|
+        last_report = project.current_data_quality_report
+        @report << last_report if last_report.present?
+      end
+      @project_groups.each do |project|
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
       end
@@ -65,6 +88,10 @@ module WarehouseReports::Project
       params.require(:project).keys.map(&:to_i)
     end
 
+    def project_group_params
+      params.require(:project_group).keys.map(&:to_i)
+    end
+
     def date_range_params
       params.require(:project_data_quality).
         permit([:start, :end])
@@ -72,6 +99,10 @@ module WarehouseReports::Project
 
     def project_scope
       GrdaWarehouse::Hud::Project.viewable_by current_user
+    end
+
+    def project_group_scope
+      GrdaWarehouse::ProjectGroup.all
     end
 
     def report_scope
@@ -83,6 +114,12 @@ module WarehouseReports::Project
         order("#{p_t[:data_source_id].asc.to_sql}, #{o_t[:OrganizationName].asc.to_sql}, #{p_t[:ProjectName].asc.to_sql}").
         preload(:contacts, :data_quality_reports).
         group_by{ |m| [m.data_source.short_name, m.organization]}
+    end
+
+    def set_project_groups
+      @project_groups = project_group_scope.includes(:projects).
+        order(name: :asc).
+        preload(:contacts, :data_quality_reports)
     end
 
     def p_t
