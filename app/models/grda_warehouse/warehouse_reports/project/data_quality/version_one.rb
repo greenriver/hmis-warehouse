@@ -205,9 +205,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end.compact
 
       projects.flat_map(&:funders).each do |funder|
-        monitoring_ranges << "#{funder&.StartDate} - #{funder&.EndDate}"
+        monitoring_ranges << "#{funder&.StartDate} - #{funder&.EndDate}" if funder.StartDate.present? || funder.EndDate.present?
         monitoring_date_range_present = true if funder&.StartDate.present? && funder&.EndDate.present?
-        grant_ids << funder&.GrantID
+        grant_ids << funder.GrantID if funder.GrantID.present?
       end
 
       add_answers({
