@@ -19,7 +19,7 @@ module ClientEntryCalculations
       month_name = start_date.to_time.strftime('%B')
       {
         first_time: {
-          label: 'First time clients',
+          label: 'First time clients in the project type',
           data: [],
           backgroundColor: '#288BE4',
         },
