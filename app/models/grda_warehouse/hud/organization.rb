@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
       foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID],
       inverse_of: :organization
     has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
 
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> {
@@ -70,9 +71,7 @@ module GrdaWarehouse::Hud
       select(:OrganizationID, :OrganizationName).distinct.pluck(:OrganizationName, :OrganizationID)
     end
 
-    def name
-      self.OrganizationName
-    end
+    alias_attribute :name, :OrganizationName
 
     def self.text_search(text)
       return none unless text.present?

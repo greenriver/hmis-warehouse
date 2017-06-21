@@ -81,6 +81,7 @@ module GrdaWarehouse::Hud
     has_many :affiliations, **hud_many(Affiliation), inverse_of: :project
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
     has_many :funders, **hud_many(Funder), inverse_of: :project
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
 
     # Warehouse Reporting
     has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
@@ -132,9 +133,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def name
-      self.ProjectName
-    end
+    alias_attribute :name, :ProjectName
 
     def organization_and_name(include_confidential_names: false)
       "#{organization.name} / #{name}"

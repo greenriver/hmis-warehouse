@@ -35,6 +35,7 @@ module Admin
           @user.update(user_params) 
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
+          @user.set_viewables viewable_params
         end
       rescue Exception => e
         flash[:error] = 'Please review the form problems below'
@@ -72,6 +73,14 @@ module Admin
         :email,
         role_ids: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
+      )
+    end
+
+    private def viewable_params
+      params.require(:user).permit(
+        data_sources: [],
+        organizations: [],
+        projects: []
       )
     end
 
