@@ -4,6 +4,10 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
 
+.pull-right
+  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+    Download Excel
+
 .warehouse-reports
   %table.table.table-condensed.table-hover
     %thead
