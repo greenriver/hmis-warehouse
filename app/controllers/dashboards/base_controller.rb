@@ -30,7 +30,7 @@ module Dashboards
       @clients = @enrollments.keys
       @client_count = @clients.count
 
-      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES
+      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort.to_h
       @data = {
         clients: {
           label: 'Client count',
