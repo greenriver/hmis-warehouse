@@ -18,7 +18,7 @@ module WarehouseReports::Project
       @range = DateRange.new(date_range_params)
       @range.validate
       begin
-        @project_ids = project_params
+        @project_ids = current_user.projects.where( id: project_params ).pluck :id   # filter by viewability
       rescue ActionController::ParameterMissing => e
         errors << 'At least one project must be selected'
       end
@@ -71,7 +71,7 @@ module WarehouseReports::Project
     end
 
     def project_scope
-      GrdaWarehouse::Hud::Project.all
+      GrdaWarehouse::Hud::Project.viewable_by current_user
     end
 
     def report_scope

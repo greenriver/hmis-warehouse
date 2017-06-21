@@ -19,7 +19,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def project_source
-    GrdaWarehouse::Hud::Project
+    GrdaWarehouse::Hud::Project.viewable_by current_user
   end
 
   def set_report
