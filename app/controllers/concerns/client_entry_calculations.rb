@@ -10,7 +10,8 @@ module ClientEntryCalculations
         :project_type, 
         :first_date_in_program,
         :last_date_in_program, 
-        :client_id
+        :client_id,
+        :project_name,
       ]
     end
      
@@ -92,17 +93,16 @@ module ClientEntryCalculations
           first_time: {},
         }
         clients.each do |client_id, enrollments|
-          dates = enrollments.map{|en| en[:first_date_in_program]}
           if enrollments.count == 1
-            buckets[project_type][:first_time][client_id] = dates
+            buckets[project_type][:first_time][client_id] = enrollments
           else
             days = days_since_last_entry(enrollments)
             if days < 30
-              buckets[project_type][:less_than_thirty][client_id] = dates
+              buckets[project_type][:less_than_thirty][client_id] = enrollments
             elsif (30..60).include?(days)
-              buckets[project_type][:thirty_to_sixty][client_id] = dates
+              buckets[project_type][:thirty_to_sixty][client_id] = enrollments
             else # days > 60
-              buckets[project_type][:sixty_plus][client_id] = dates
+              buckets[project_type][:sixty_plus][client_id] = enrollments
             end
           end
         end
