@@ -10,20 +10,21 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
 .row
   .col-sm-12
-    %p
-      Limit to matches created within a date range.
-    = render 'filter'
+    
 .row
   .col-sm-12
     = simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
       .form-group
+        %p
+          Limit to matches created within a date range.
+          = render 'filter', f: f
         .row
           .col-sm-5
-            = f.input :first, label: 'Step From', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
+            = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
           .col-sm-5
-            = f.input :second, label: 'Step To', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step' }
+            = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
           .col-sm-2
-            = f.input :unit, label: 'Temporal Unit', collection: @step_range.units, include_blank: false
+            = f.input :unit, label: 'In', collection: @step_range.units.map{|m| [m.titleize.pluralize, m]}, include_blank: false, input_html: {class: 'jUnits'}
 
     %canvas#counts{ width: 800, height: 200 }
     #stats(style="display:table;margin:1em auto;")
@@ -136,7 +137,7 @@
                 {
                   scaleLabel: {
                     display: true,
-                    labelString: 'time'
+                    labelString: $('.jUnits :selected').text()
                   }
                 }
               ],
@@ -144,7 +145,7 @@
                 {
                   scaleLabel: {
                     display: true,
-                    labelString: 'matches'
+                    labelString: 'Matches'
                   },
                   ticks: {
                     beginAtZero: true,
@@ -157,7 +158,7 @@
           data: {
             labels: labels,
             datasets: [{
-              label: 'matches',
+              label: 'Matches',
               data: values,
               backgroundColor: '#091f2f'
             }]

@@ -12,7 +12,7 @@ module WarehouseReports::Cas
     end
 
     def date_range_options
-      options = params.permit(range: [:start, :end])[:range]
+      options = params.permit(steps: [:start, :end])[:steps]
       unless options.present?
         options = {
           start: 23.month.ago.to_date,
@@ -35,8 +35,8 @@ module WarehouseReports::Cas
 
     # creates a histogram mapping intervals to numbers of occurrences
     private def step_time_histogram(step_range)
-      first_step  = step_range.first
-      second_step = step_range.second
+      first_step  = step_range.first.gsub(/\(\d+\)/,'').strip
+      second_step = step_range.second.gsub(/\(\d+\)/,'').strip
       unit        = step_range.unit
       divisor = case unit
       when 'second'
@@ -117,7 +117,7 @@ module WarehouseReports::Cas
               0
             end
           end.each_with_index.to_h
-          followups.select{ |_,ar| ar.any? }.sort_by{ |a,_| step_order[a] }.map{ |a,ar| [ a, ar.sort_by{ |s| step_order[s] } ] }.to_h
+          followups.select{ |_,ar| ar.any? }.sort_by{ |a,_| step_order[a] }.map{ |a,ar| [ "(#{step_order[a] + 1}) #{a}", ar.sort_by{ |s| step_order[s] }.map{|s| "(#{step_order[s] + 1}) #{s}"} ] }.to_h
         end
       end
     end
