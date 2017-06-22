@@ -51,12 +51,12 @@
         - @not_on_list.each do |client|
           %tr
             %td
-              = link_to(client_path(client[:client_id])) do 
-                = client[:first_name]
-                = client[:last_name]
+              = link_to(client_path(client[:id])) do 
+                = client[:FirstName]
+                = client[:LastName]
             %td
-              = client[:days]
+              = client.chronics.find_by_date(@date)&.days_in_last_three_years
             %td
-              = client[:months]
+              = client.chronics.find_by_date(@date)&.months_in_last_three_years
             %td
-              = client[:trigger]
+              = client.chronics.find_by_date(@date)&.trigger

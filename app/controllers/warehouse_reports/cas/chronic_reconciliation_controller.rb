@@ -21,13 +21,13 @@ module WarehouseReports::Cas
           Hash[client_columns.keys.zip(row)]
         end
 
-      @not_on_list = client_source.includes(:chronics).
-        where(chronics: {date: @date}).
+      @not_on_list = client_source.
         where(id: (cas_ids - chronic_ids)).
-        pluck(*client_columns.values).
-        map do |row|
-          Hash[client_columns.keys.zip(row)]
-        end
+        includes(:chronics)
+        # pluck(*client_columns.values).
+        # map do |row|
+        #   Hash[client_columns.keys.zip(row)]
+        # end
     end
 
     def client_columns
