@@ -1,7 +1,62 @@
 - title = 'Chronic Reconcilliation Report'
 - content_for :title, title
 %h1= content_for :title
-
+= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
 = simple_form_for @date, as: :date, url: warehouse_reports_cas_chronic_reconciliation_index_path, method: :get do |f|
-  = 'test'
-  
+  .row
+    .col-sm-3
+      = select_tag(:date, options_from_collection_for_select(GrdaWarehouse::Chronic.order(date: :desc).distinct.limit(30).pluck(:date).map{|m| [m,m]}, :first, :first, @date), class: 'select2', style: 'width: 100%;')
+    .col-sm-3
+      = button_tag('Update View', class: 'btn btn-primary')
+.row
+  .col-sm-6
+    %h3
+      Chronic Clients with 365 Days on 
+      = @date
+      Not Flagged for CAS
+      = "(#{@missing_in_cas.count})"
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Client
+          %th Days
+          %th Months
+          %th Trigger
+      %tbody
+        - @missing_in_cas.each do |client|
+          %tr
+            %td
+              = link_to(client_path(client[:client_id])) do 
+                = client[:first_name]
+                = client[:last_name]
+            %td
+              = client[:days]
+            %td
+              = client[:months]
+            %td
+              = client[:trigger]
+  .col-sm-6
+    %h3
+      Clients Flagged for CAS, Not in Chronic List with more than 365 days from
+      = @date
+      = "(#{@not_on_list.count})"
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Client
+          %th Days
+          %th Months
+          %th Trigger
+      %tbody
+        - @not_on_list.each do |client|
+          %tr
+            %td
+              = link_to(client_path(client[:client_id])) do 
+                = client[:first_name]
+                = client[:last_name]
+            %td
+              = client[:days]
+            %td
+              = client[:months]
+            %td
+              = client[:trigger]

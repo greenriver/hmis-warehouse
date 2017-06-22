@@ -21,14 +21,13 @@ module WarehouseReports::Cas
           Hash[client_columns.keys.zip(row)]
         end
 
-      @not_on_list = client_source.joins(:chronics).
+      @not_on_list = client_source.includes(:chronics).
         where(chronics: {date: @date}).
         where(id: (cas_ids - chronic_ids)).
         pluck(*client_columns.values).
         map do |row|
           Hash[client_columns.keys.zip(row)]
         end
-      console
     end
 
     def client_columns
@@ -41,7 +40,7 @@ module WarehouseReports::Cas
         trigger: ch_t[:trigger].as('trigger').to_sql,
       }
     end
-    
+
     def chronic_source
       GrdaWarehouse::Chronic
     end
