@@ -5,7 +5,7 @@ class UploadsController < ApplicationController
 
   def index
     @uploads = Upload.where(data_source_id: @data_source.id)
-      .page(params[:page].to_i).per(20)
+      .page(params[:page].to_i).per(20).order(created_at: :desc)
   end
 
   def new
