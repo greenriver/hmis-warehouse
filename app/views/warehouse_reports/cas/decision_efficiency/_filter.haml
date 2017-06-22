@@ -1,0 +1,25 @@
+.row.margin-bottom-02
+  .col-sm-12
+    = simple_form_for @range, as: :range, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get, class: 'jFilter' } do |f|
+      = f.error_notification
+      .row
+        .col-sm-3
+          .input-group.date{data: {provide: :datepicker}}
+            = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
+            %span.input-group-addon.icon-calendar
+        .col-sm-3
+          .input-group.date{data: {provide: :datepicker}}
+            = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
+            %span.input-group-addon.icon-calendar
+        .col-sm-4
+          = f.button :submit, value: 'Update View'
+
+- content_for :page_js do
+  :javascript
+    $('#new_range').submit(function(e){
+      var $form = $(this);
+      // disable things *immediately after* submit
+      setTimeout(function(){
+        $form.find(':input').prop('disabled', true);
+      }, 0);
+    });
