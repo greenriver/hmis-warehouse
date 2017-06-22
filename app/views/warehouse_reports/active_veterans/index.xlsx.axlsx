@@ -9,8 +9,8 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
     'DOB', 
     'SSN',
     'Veteran in',
-    'First Date Served',
-    'Days Served', 
+    'First Date Homeless',
+    'Number of enrollments',
     'Data Source', 
     'Project Type', 
     'Project', 
@@ -26,9 +26,8 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
       client.DOB, 
       client.SSN,
       client.source_clients.map{ |m| if m.VeteranStatus == 1 then GrdaWarehouse::DataSource.short_name(m.data_source_id) end}.compact.uniq.join(', '),
-      client.processed_service_history.first_date_served,  
-      client.processed_service_history.days_served,
-      @enrollments[client.id].size
+      client&.first_service_history&.date,
+      @enrollments[client.id].size,
     ]
     @enrollments[client.id].each do |enrollment|
       row += [

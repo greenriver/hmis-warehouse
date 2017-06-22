@@ -3,14 +3,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     include ApplicationHelper
     self.table_name = :project_data_quality
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
+    belongs_to :project_group, class_name: GrdaWarehouse::ProjectGroup.name
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
+    has_many :project_group_contacts, through: :project_group, source: :contacts
+    has_many :organization_project_group_contacts, through: :project_group, source: :organization_contacts
     has_many :report_tokens, -> { where(report_id: id)}, class_name: GrdaWarehouse::ReportToken.name
 
     scope :complete, -> do
       where.not(completed_at: nil).
       where(processing_errors: nil).
       order(created_at: :asc)
+    end
+
+    scope :incomplete, -> do
+      where(completed_at: nil, processing_errors: nil)
     end
 
     def display
@@ -84,7 +91,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def beds 
-      project.inventories.map(&:BedInventory).reduce(:+) || 0
+      @beds ||= projects.flat_map(&:inventories).map(&:BedInventory).reduce(:+) || 0
+    end
+
+    def hmis_beds
+      @hmis_beds ||= projects.flat_map(&:inventories).map(&:HMISParticipatingBeds).reduce(:+) || 0
     end
 
     def income_columns
@@ -174,8 +185,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def send_notifications
-      (project_contacts + organization_contacts).each do |contact|
-        ProjectDataQualityReportMailer.report_complete(project, self, contact).deliver_later
+      (project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts).uniq.each do |contact|
+        ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
       end
       notifications_sent()
     end
@@ -211,7 +222,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
-        where(Project: {id: self.project_id})
+        where(Project: {id: projects.map(&:id)})
     end
 
     def service_scope
@@ -219,7 +230,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start,
           end_date: self.end).
         joins(:project, enrollment: :client).
-        where(Project: {id: self.project_id})
+        where(Project: {id: projects.map(&:id)})
+    end
+
+    def projects
+      return project_group.projects if self.project_group_id.present?
+      return [project]
     end
 
     def c_t

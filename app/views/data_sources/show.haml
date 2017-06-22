@@ -1,73 +1,87 @@
 = render 'breadcrumbs'
 %h1= @data_source.name
-.row
-  .col-sm-8
-    %table.table.table-condensed.table-hover
-      %tr
-        %th Last Import Run
-        %td= @data_source.last_imported_at
-      %tr
-        %th Date Span
-        %td
-          - if @data_source.data_span.present?
-            = @data_source.data_span.join(' - ')
-  .col-sm-4
-    = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
-      %span.icon-plus
-      Upload HUD HMIS ZIP
-= link_to "/data_sources/#{@data_source.id}/uploads", class: 'btn btn-primary' do
-  Imports
-- if @data_source.has_data?
-  .row.table-utilities
-    .col-sm-12
-      = simple_form_for @data_source, url: data_source_path(@data_source) do |f|
-        = f.input :visible_in_window, label: 'Should the following projects be visible in the Window into the Warehouse?', input_html: {name: 'data_source[visible_in_window]'}
+= simple_form_for @data_source, url: data_source_path(@data_source) do |f|
+  .row
+    .col-sm-8
+      %table.table.table-condensed
+        %tr
+          %th Last Import Run
+          %td= @data_source.last_imported_at
+        %tr
+          %th Date Span
+          %td
+            - if @data_source.data_span.present?
+              = @data_source.data_span.join(' - ')
+        -if @data_source.uploads.any?
+          %tr
+            %th Uploads
+            %td
+              = link_to data_source_uploads_path(@data_source) do
+                View
+        %tr
+          %th
+            Visible in the Window into the Warehouse?
+          %td
+            = f.input :visible_in_window, label: false, input_html: {name: 'data_source[visible_in_window]'}
+    .col-sm-4
+      = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
+        %span.icon-plus
+        Upload HUD HMIS ZIP
+  - if @data_source.has_data?
+    .row.table-utilities
+      .col-sm-12
         %h2
           = GrdaWarehouse::Hud::Organization.model_name.human.pluralize
           &
           = GrdaWarehouse::Hud::Project.model_name.human.pluralize
         .table-responsive
           - @organizations.each do |org|
-            %h3= org.name
-            %table.table.table-condensed.table-hover
-              %thead
-                %tr
-                  %th{style: 'width:30%'} Name
-                  %th{style: 'width:15%'} Project Type
-                  %th{style: 'width:20%'} Act as Project Type for HUD Reports
-                  %th{style: 'width:10%'} 
-                    HUD CoC Code
-                    %br
-                    CoC Code
-                  %th{style: 'width:10%'} 
-                    HUD CoC Funded
-                    %br
-                    Continuum Project
-                  %th{style: 'width:5%'} 
-                    Confidential?
-                  %th{style: 'width:5%'} Site?
-                  %th{style: 'width:5%'} Inventory?
-              %tbody
-                - org.projects.each do |project|
+            .well
+              .row
+                .col-sm-8
+                  %h3= org.name
+                .col-sm-4.text-right
+                  = link_to organization_contacts_path(organization_id: org.id) do
+                    View/Edit Organization Contacts
+              %table.table.table-condensed
+                %thead
                   %tr
-                    %td
-                      = link_to project.name, project_path(project)
-                    %td
-                      = HUD.project_type project.ProjectType
-                    %td
-                      = select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
-                    %td
-                      = text_field_tag("data_source[project_attributes][#{project.id}][hud_coc_code]", project.project_cocs&.first&.hud_coc_code, size: 10)
+                    %th{style: 'width:30%'} Name
+                    %th{style: 'width:15%'} Project Type
+                    %th{style: 'width:20%'} Act as Project Type for HUD Reports
+                    %th{style: 'width:10%'} 
+                      HUD CoC Code
                       %br
-                      = project.project_cocs.map(&:CoCCode).join(', ')
-                    %td
-                      = check_box_tag("data_source[project_attributes][#{project.id}][hud_continuum_funded]", true, project.hud_continuum_funded)
+                      CoC Code
+                    %th{style: 'width:10%'} 
+                      HUD CoC Funded
                       %br
-                      = checkmark(project.ContinuumProject)
-                    %td
-                      = check_box_tag("data_source[project_attributes][#{project.id}][confidential]", true, project.confidential)
-                    %td
-                      = checkmark(project.sites.size > 0)
-                    %td
-                      = checkmark(project.inventories.size > 0)
+                      Continuum Project
+                    %th{style: 'width:5%'} 
+                      Confidential?
+                    %th{style: 'width:5%'} Site?
+                    %th{style: 'width:5%'} Inventory?
+                %tbody
+                  - org.projects.each do |project|
+                    %tr
+                      %td
+                        = link_to project.name, project_path(project)
+                      %td
+                        = HUD.project_type project.ProjectType
+                      %td
+                        = select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
+                      %td
+                        = text_field_tag("data_source[project_attributes][#{project.id}][hud_coc_code]", project.project_cocs&.first&.hud_coc_code, size: 10)
+                        %br
+                        = project.project_cocs.map(&:CoCCode).join(', ')
+                      %td
+                        = check_box_tag("data_source[project_attributes][#{project.id}][hud_continuum_funded]", true, project.hud_continuum_funded)
+                        %br
+                        = checkmark(project.ContinuumProject)
+                      %td
+                        = check_box_tag("data_source[project_attributes][#{project.id}][confidential]", true, project.confidential)
+                      %td
+                        = checkmark(project.sites.size > 0)
+                      %td
+                        = checkmark(project.inventories.size > 0)
         = f.button :submit

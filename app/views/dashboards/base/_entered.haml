@@ -1,7 +1,7 @@
 .well
   %p Counts are unduplicated per project type, but may be counted in multiple types.
   - month_name = @start_date.to_time.strftime('%B')
-  %h3= "Clients enrolled in #{month_name}"
+  %h3= "Clients with at least one day of service in #{month_name}"
   .summary.text-center
     .row
       - @client_enrollment_totals_by_type.sort_by{|project_type, _| HUD.project_type_brief(project_type)}.each do |project_type, clients|
@@ -24,4 +24,12 @@
 
   %h3= "Project Re-Entry in #{month_name}"
   %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_h.values.to_json, data: @data.to_json}}
+  %h3 Unduplicated First Time in Project Type Clients
+  .summary.text-center
+    .row
+      .col-sm-3
+        .big-block
+          .title
+          .body
+            = @first_time_total_deduplicated
 =# console

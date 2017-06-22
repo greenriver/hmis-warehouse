@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(GrdaWarehouse::CasReport.reason_attributes.values, :style => title)
+  @raw_reasons.each do |reason|
+    sheet.add_row(reason.attributes.values_at(*reason.class.reason_attributes.keys.map(&:to_s)))
+  end
+end

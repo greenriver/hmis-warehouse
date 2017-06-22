@@ -1,7 +1,7 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Project Data Quality") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  headers = ['Run on', 'Report Start Date', 'Report End Date'] + @report.first.report_columns.values
+  headers = ['Run on', 'Report Start Date', 'Report End Date'] + @report.first.report_columns.values.map{|m| m[:title]}
   sheet.add_row(headers, :style => title)
   @report.each do |report|
     sheet.add_row(

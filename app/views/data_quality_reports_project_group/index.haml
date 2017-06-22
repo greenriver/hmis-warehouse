@@ -1,0 +1,22 @@
+- content_for :title, "Project Data Quality Reports for #{@project_group.name}"
+%h1= content_for :title
+
+- if @reports.any?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Date Range
+        %th Run On
+        %th Completed On
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td
+            = link_to report.status, project_group_data_quality_report_path(project_group_id: @project_group.id, id: report.id)
+          %td
+            = report.started_at
+          %td
+            = report.completed_at
+- else
+  %p
+    No reports on file
