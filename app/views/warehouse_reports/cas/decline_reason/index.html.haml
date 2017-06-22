@@ -1,27 +1,33 @@
 - title = 'Coordinated Access System Decline Reasons'
 - content_for :title, title
-
+-console
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
-
-.pull-right
-  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-    Download Excel
-
-.warehouse-reports
-  %table.table.table-condensed.table-hover
-    %thead
-      %tr
-        %th Reason
-        %th Count
-      
-    %tbody
-      - if @reasons.empty?
-        %tr
-          %td(colspan=2 style="text-align:center;")
-            %em no decline reasons are recorded
-      - else
-        - @reasons.each do |reason, n|
+.row
+  .col-sm-10
+    %p
+      Limit to matches created within a date range.
+    = render 'filter'
+  .col-sm-2
+    .pull-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+.row
+  .col-sm-12
+    .warehouse-reports
+      %table.table.table-condensed.table-hover
+        %thead
           %tr
-            %td= reason
-            %td= n
+            %th Reason
+            %th Count
+          
+        %tbody
+          - if @reasons.empty?
+            %tr
+              %td(colspan=2 style="text-align:center;")
+                %em no decline reasons are recorded
+          - else
+            - @reasons.each do |reason, n|
+              %tr
+                %td= reason
+                %td= n
