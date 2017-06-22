@@ -6,7 +6,7 @@ namespace :grda_warehouse do
   task migrate: [:environment] do
     db_conf = Rails.configuration.database_configuration
     ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.migrate("db/grda_warehouse/")
+    ActiveRecord::Migrator.migrate("db/grda_warehouse/migrate")
   end
 
   desc "Create the GRDA warehouse"
@@ -42,7 +42,7 @@ namespace :grda_warehouse do
   task rollback: [:environment] do
     db_conf = Rails.configuration.database_configuration
     ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.rollback("db/grda_warehouse/")
+    ActiveRecord::Migrator.rollback("db/grda_warehouse/migrate")
   end
 
   desc "run the down method of the grda migration specified by VERSION"
@@ -51,7 +51,7 @@ namespace :grda_warehouse do
     raise "VERSION is required - To go down one migration, run db:rollback" unless version
     db_conf = Rails.configuration.database_configuration
     ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.run(:down, "db/grda_warehouse/", version)
+    ActiveRecord::Migrator.run(:down, "db/grda_warehouse/migrate", version)
     #db_namespace["_dump"].invoke
   end
 
@@ -61,7 +61,7 @@ namespace :grda_warehouse do
     raise "VERSION is required - To go down one migration, run db:rollback" unless version
     db_conf = Rails.configuration.database_configuration
     ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.run(:up, "db/grda_warehouse/", version)
+    ActiveRecord::Migrator.run(:up, "db/grda_warehouse/migrate", version)
     #db_namespace["_dump"].invoke
   end
 
