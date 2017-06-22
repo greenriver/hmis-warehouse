@@ -12,6 +12,12 @@
           %td
             - if @data_source.data_span.present?
               = @data_source.data_span.join(' - ')
+        -if @data_source.uploads.any?
+          %tr
+            %th Uploads
+            %td
+              = link_to data_source_uploads_path(@data_source) do
+                View
         %tr
           %th
             Visible in the Window into the Warehouse?
