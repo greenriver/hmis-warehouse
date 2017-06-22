@@ -15,8 +15,8 @@ module WarehouseReports::Cas
       options = params.permit(steps: [:start, :end])[:steps]
       unless options.present?
         options = {
-          start: 23.month.ago.to_date,
-          end: Date.today,# 1.months.ago.to_date,
+          start: 12.month.ago.to_date,
+          end: Date.today,
         }
       end
       options
