@@ -137,6 +137,9 @@ module Dashboards
       
       @buckets = bucket_clients(entries: @entries_in_range_by_type)
       @first_time_total_deduplicated = @buckets.map{|_,groups| groups[:first_time].keys}.flatten.uniq.count
+      @first_time_ever = homeless_service_history_source.first_date.joins(:client).
+        where(date: (@start_date..@end_date)).
+        count
 
       # build hashes suitable for chartjs
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort_by(&:first)

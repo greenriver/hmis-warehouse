@@ -103,6 +103,7 @@ Rails.application.routes.draw do
         end
       end
       resources :decline_reason, only: [:index]
+      resources :chronic_reconciliation, only: [:index]
     end
   end
 

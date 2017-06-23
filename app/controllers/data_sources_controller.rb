@@ -17,7 +17,7 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       joins(:projects).
-      includes(:projects, projects: :project_cocs).
+      includes(:projects, projects: [:project_cocs, :sites, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
 
