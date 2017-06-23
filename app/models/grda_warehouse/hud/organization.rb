@@ -21,7 +21,7 @@ module GrdaWarehouse::Hud
       )
     }
     scope :viewable_by, -> (user) do
-      if user.roles.where( can_view_everything: true ).exists?
+      if user.roles.where( can_edit_anything_super_user: true ).exists?
         current_scope
       else
         uve_t = GrdaWarehouse::Hud::UserViewableEntity.arel_table

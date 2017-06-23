@@ -1,7 +1,7 @@
 - base ||= 'user'
 .form-inputs
   %h3 Viewable Entities
-  - if ( panopticon = Role.where( can_view_everything: true ).map(&:role_name) ).any?
+  - if ( panopticon = Role.where( can_edit_anything_super_user: true ).map(&:role_name) ).any?
     %p
       %em
         The

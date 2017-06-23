@@ -16,7 +16,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   scope :destination, -> { where(source_type: nil)}
   scope :importable_via_samba, -> { importable.where(source_type: "samba")}
   scope :viewable_by, -> (user) do
-    if user.roles.where( can_view_everything: true ).exists?
+    if user.roles.where( can_edit_anything_super_user: true ).exists?
       current_scope
     else
       at = GrdaWarehouse::Hud::UserViewableEntity.arel_table
