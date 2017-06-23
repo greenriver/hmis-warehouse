@@ -24,12 +24,18 @@
 
   %h3= "Project Re-Entry in #{month_name}"
   %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_h.values.to_json, data: @data.to_json}}
-  %h3 Unduplicated First Time in Project Type Clients
-  .summary.text-center
+  %h3 Unduplicated Clients
+  .summary
     .row
-      .col-sm-3
-        .big-block
-          .title
-          .body
-            = @first_time_total_deduplicated
-=# console
+      .col-sm-12
+        %p
+          In
+          = "#{month_name},"
+          %strong
+            = @first_time_total_deduplicated 
+          clients appeared for the first time in one of the project types above. Of those 
+          = "#{@first_time_total_deduplicated}," 
+          %strong
+            = @first_time_ever
+          had no prior record of any type in the system.
+        
