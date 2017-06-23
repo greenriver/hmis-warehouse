@@ -81,7 +81,7 @@
                       %td
                         = check_box_tag("data_source[project_attributes][#{project.id}][confidential]", true, project.confidential)
                       %td
-                        = checkmark(project.sites.size > 0)
+                        = checkmark(project.sites.present? )
                       %td
-                        = checkmark(project.inventories.size > 0)
+                        = checkmark(project.inventories.present? )
         = f.button :submit
