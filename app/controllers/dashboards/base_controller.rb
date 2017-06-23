@@ -128,7 +128,8 @@ module Dashboards
         entered_enrollments_by_type start_date: @start_date, end_date: @end_date
       end
 
-      @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: @enrollments_by_type)
+      open_enrollments_by_project = enrollments_ongoing_in_date_range(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
+      @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: open_enrollments_by_project)
 
       @entries_in_range_by_type = entries_in_range_from_enrollments(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
 
