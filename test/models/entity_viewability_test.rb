@@ -43,7 +43,7 @@ class EntityViewabilityTest < ActiveSupport::TestCase
   def test_all_viewable_role
     u = get :users, :u1
     r = get :roles, :r1
-    r.update_column :can_view_everything, true
+    r.update_column :can_edit_anything_super_user, true
     u.roles << r
     u.save
     assert_equal prep( all :projects ), prep( projects.viewable_by u ), "panopticon user can see all projects"
