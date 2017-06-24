@@ -2,6 +2,33 @@ require 'test_helper'
 
 class EntityViewabilityTest < ActiveSupport::TestCase
 
+  FIXTURE = {
+    data_sources: {
+      ds1: {
+        organizations: {
+          o1: {
+            projects: %i[ p1 p2 p3 ]
+          },
+          o2: {
+            projects: %i[ p4 p5 p6 ]
+          }
+        }
+      },
+      ds2: {
+        organizations: {
+          o3: {
+            projects: %i[ p7 p8 p9 ]
+          },
+          o4: {
+            projects: %i[ p10 p11 p12 ]
+          }
+        }
+      }
+    },
+    users: %i[ u1 ],
+    roles: %i[ r1 ]
+  }
+
   def test_initially_user_can_see_nothing
     u = get :users, :u1
     assert u, "we have a user"
@@ -242,32 +269,6 @@ class EntityViewabilityTest < ActiveSupport::TestCase
   # because this seem(ed) simpler than a fixture file
   MODELS = {}
   setup do
-    data = {
-      data_sources: {
-        ds1: {
-          organizations: {
-            o1: {
-              projects: %i[ p1 p2 p3 ]
-            },
-            o2: {
-              projects: %i[ p4 p5 p6 ]
-            }
-          }
-        },
-        ds2: {
-          organizations: {
-            o3: {
-              projects: %i[ p7 p8 p9 ]
-            },
-            o4: {
-              projects: %i[ p10 p11 p12 ]
-            }
-          }
-        }
-      },
-      users: %i[ u1 ],
-      roles: %i[ r1 ]
-    }
     # some rigamarole so we can keep a nice declarative fixture
     uid = SecureRandom.uuid   # suspenders for our belt
     id = 1
@@ -316,7 +317,7 @@ class EntityViewabilityTest < ActiveSupport::TestCase
       end
     end
     User.transaction do
-      data.each do |type, h|
+      FIXTURE.each do |type, h|
         recursive_create.call type, h
       end
     end
