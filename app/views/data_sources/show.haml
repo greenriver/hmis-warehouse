@@ -12,6 +12,12 @@
           %td
             - if @data_source.data_span.present?
               = @data_source.data_span.join(' - ')
+        -if @data_source.uploads.any?
+          %tr
+            %th Uploads
+            %td
+              = link_to data_source_uploads_path(@data_source) do
+                View
         %tr
           %th
             Visible in the Window into the Warehouse?
@@ -75,7 +81,7 @@
                       %td
                         = check_box_tag("data_source[project_attributes][#{project.id}][confidential]", true, project.confidential)
                       %td
-                        = checkmark(project.sites.size > 0)
+                        = checkmark(project.sites.present? )
                       %td
-                        = checkmark(project.inventories.size > 0)
+                        = checkmark(project.inventories.present? )
         = f.button :submit

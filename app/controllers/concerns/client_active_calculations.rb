@@ -17,9 +17,14 @@ module ClientActiveCalculations
     def active_client_service_history range: 
       homeless_service_history_source.entry.
         open_between(start_date: range.start, end_date: range.end + 1.day).
+        where(client_id: homeless_service_history_source.service_within_date_range(start_date: range.start, end_date: range.end + 1.day).select(:client_id)
+        ).
         pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
+        end.select do |row|
+          # throw out any that start after the range
+          row[:first_date_in_program] <= range.end
         end.
         group_by{|m| m[:client_id]}
     end

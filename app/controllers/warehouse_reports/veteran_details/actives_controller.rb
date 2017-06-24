@@ -17,7 +17,10 @@ module WarehouseReports::VeteranDetails
       # @enrollments = Rails.cache.fetch("active-vet-enrollments", expires_in: CACHE_EXPIRY) do
       @enrollments = begin
         active_client_service_history(range: @range)
-      end    
+      end
+      # respond_to do |format|
+      #   format.html{ @enrollments.page(params[:page]).per(50)}
+      # end
     end
 
     def client_source
