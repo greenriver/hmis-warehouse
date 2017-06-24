@@ -18,17 +18,37 @@ class EntityViewabilityTest < ActiveSupport::TestCase
     p = get :projects, :p1
     u.add_viewable p
     assert_equal [p], projects.viewable_by(u).all, "only the one project is viewable"
-    assert_equal [p.data_source], datasources.viewable_by(u), "only the one data source is viewable"
-    assert_equal [p.organization], organizations.viewable_by(u), "only the one organization is viewable"
+    assert_equal [p.organization], prep(organizations.viewable_by(u)), "only the one organization is viewable"
+    assert_equal [p.data_source], prep(datasources.viewable_by(u)), "only the one data source is viewable"
   end
 
   def test_when_user_assigned_organization
     u = get :users, :u1
     o = get :organizations, :o1
     u.add_viewable o
-    assert_equal o.projects.to_a, projects.viewable_by(u).all, "all the projects under org are viewable"
-    assert_equal [o.data_source], datasources.viewable_by(u), "only the one data source is viewable"
-    assert_equal [o], organizations.viewable_by(u), "only the one organization is viewable"
+    assert_equal prep(o.projects), prep(projects.viewable_by(u)), "all the projects under org are viewable"
+    assert_equal [o], prep(organizations.viewable_by(u)), "only the one organization is viewable"
+    assert_equal [o.data_source], prep(datasources.viewable_by(u)), "only the one data source is viewable"
+  end
+
+  def test_when_user_assigned_datasource
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    u.add_viewable ds
+    assert_equal prep(ds.projects), prep(projects.viewable_by(u)), "all the projects under datasource are viewable"
+    assert_equal prep(ds.organizations), prep(organizations.viewable_by(u)), "all the organizations under the data source are viewable"
+    assert_equal [ds], prep(datasources.viewable_by(u)), "only the one data source is viewable"
+  end
+
+  def test_all_viewable_role
+    u = get :users, :u1
+    r = get :roles, :r1
+    r.update_column :can_view_everything, true
+    u.roles << r
+    u.save
+    assert_equal prep( all :projects ), prep( projects.viewable_by u ), "panopticon user can see all projects"
+    assert_equal prep( all :organizations ), prep( organizations.viewable_by u ), "panopticon user can see all organizations"
+    assert_equal prep( all :data_sources ), prep( datasources.viewable_by u ), "panopticon user can see all data sources"
   end
 
   ## fixturish stuff below this point
@@ -118,6 +138,14 @@ class EntityViewabilityTest < ActiveSupport::TestCase
 
   def get(model, id)
     MODELS[model][id]
+  end
+
+  def all(model)
+    MODELS.fetch( model, {} ).values
+  end
+
+  def prep(relation)
+    relation.to_a.sort_by(&:id) rescue byebug
   end
 
   teardown do
