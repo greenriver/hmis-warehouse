@@ -19,8 +19,83 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     if user.roles.where( can_view_everything: true ).exists?
       current_scope
     else
-      at = GrdaWarehouse::Hud::UserViewableEntity.arel_table
-      joins(:user_viewable_entities).where( at[:user_id].eq user.id )
+      # unfortunately an arel bug prevented our using a much simpler query using existence subqueries
+      ds_at = arel_table
+      v_at  = Arel::Table.new GrdaWarehouse::Hud::UserViewableEntity.table_name
+      v_at2 = Arel::Table.new v_at.table_name
+      v_at3 = Arel::Table.new v_at.table_name
+      p_at  = Arel::Table.new GrdaWarehouse::Hud::Project.table_name
+      o_at  = Arel::Table.new GrdaWarehouse::Hud::Organization.table_name
+      ij1_t = Arel::Table.new 'ij1_t'
+      ij2_t = Arel::Table.new 'ij2_t'
+      # add some aliases to make this more composable
+      pfx = "ds_vb_"
+      v_at.table_alias   = "#{pfx}_v_at"
+      v_at2.table_alias  = "#{pfx}_v_at2"
+      v_at3.table_alias  = "#{pfx}_v_at3"
+      p_at.table_alias   = "#{pfx}_p_at"
+      o_at.table_alias   = "#{pfx}_o_at"
+      ds_to_v = ds_at.join( v_at, Arel::Nodes::OuterJoin ).
+        on(
+            v_at[:entity_type].eq(sti_name).
+          and(
+            v_at[:entity_id].  eq ds_at[:id]
+          ).
+          and(
+            v_at[:user_id].    eq user.id
+          )
+        ).
+        join_sources
+      o_to_v = o_at.join( 
+          v_at2.join(o_at).
+            project(o_at[:data_source_id]).
+            on(
+                v_at2[:entity_type].eq(GrdaWarehouse::Hud::Organization.sti_name).
+              and(
+                v_at2[:user_id].    eq user.id
+              ).
+              and(
+                o_at[:DateDeleted]. not_eq nil
+              )
+            ).
+            as(ij1_t.table_name),
+          Arel::Nodes::OuterJoin
+        ).
+        on(
+          ij1_t[:data_source_id].eq ds_at[:id]
+        ).
+        join_sources
+      p_to_v = p_at.join( 
+          v_at3.join(p_at).
+            project(p_at[:data_source_id]).
+            on(
+                v_at3[:entity_type].eq(GrdaWarehouse::Hud::Project.sti_name).
+              and(
+                v_at3[:user_id].    eq user.id
+              ).
+              and(
+                p_at[:DateDeleted]. not_eq nil
+              )
+            ).
+            as(ij2_t.table_name),
+          Arel::Nodes::OuterJoin
+        ).
+        on(
+          ij2_t[:data_source_id].eq ds_at[:id]
+        ).
+        join_sources
+      joins(ds_to_v).
+      joins(o_to_v).
+      joins(p_to_v).
+        where.not(
+            v_at[:id]. eq(nil).
+          and(
+            ij1_t[:data_source_id].eq nil
+          ).
+          and(
+            ij2_t[:data_source_id].eq nil
+          )
+        )
     end
   end
 
