@@ -51,6 +51,192 @@ class EntityViewabilityTest < ActiveSupport::TestCase
     assert_equal prep( all :data_sources ), prep( datasources.viewable_by u ), "panopticon user can see all data sources"
   end
 
+  def test_two_projects_same_organization
+    u = get :users, :u1
+    p1 = get :projects, :p1
+    p2 = get :projects, :p2
+    u.add_viewable p1, p2
+    assert_equal prep([ p1, p2 ]), prep( projects.viewable_by u ), "can see both projects"
+    assert_equal prep([ p1.organization, p2.organization ]), prep( organizations.viewable_by u ), "can see projects' organizations"
+    assert_equal prep([ p1.data_source, p2.data_source ]), prep( datasources.viewable_by u ), "can see projects' data sources"
+  end
+
+ def test_two_projects_different_organizations
+    u = get :users, :u1
+    p1 = get :projects, :p1
+    p2 = get :projects, :p4
+    u.add_viewable p1, p2
+    assert_equal prep([ p1, p2 ]), prep( projects.viewable_by u ), "can see both projects"
+    assert_equal prep([ p1.organization, p2.organization ]), prep( organizations.viewable_by u ), "can see projects' organizations"
+    assert_equal prep([ p1.data_source, p2.data_source ]), prep( datasources.viewable_by u ), "can see projects' data sources"
+  end
+
+ def test_two_projects_different_data_sources
+    u = get :users, :u1
+    p1 = get :projects, :p1
+    p2 = get :projects, :p7
+    u.add_viewable p1, p2
+    assert_equal prep([ p1, p2 ]), prep( projects.viewable_by u ), "can see both projects"
+    assert_equal prep([ p1.organization, p2.organization ]), prep( organizations.viewable_by u ), "can see projects' organizations"
+    assert_equal prep([ p1.data_source, p2.data_source ]), prep( datasources.viewable_by u ), "can see projects' data sources"
+  end
+
+  def test_two_organizations_same_data_source
+    u = get :users, :u1
+    o1 = get :organizations, :o1
+    o2 = get :organizations, :o2
+    u.add_viewable o1, o2
+    assert_equal prep( o1.projects + o2.projects ), prep( projects.viewable_by u ), "can see all projects of both organizations"
+    assert_equal prep([ o1, o2 ]), prep( organizations.viewable_by u ), "can see both organizations"
+    assert_equal prep([ o1.data_source, o2.data_source ]), prep( datasources.viewable_by u ), "can see organizations' data sources"
+  end
+
+  def test_two_organizations_different_data_sources
+    u = get :users, :u1
+    o1 = get :organizations, :o1
+    o2 = get :organizations, :o3
+    u.add_viewable o1, o2
+    assert_equal prep( o1.projects + o2.projects ), prep( projects.viewable_by u ), "can see all projects of both organizations"
+    assert_equal prep([ o1, o2 ]), prep( organizations.viewable_by u ), "can see both organizations"
+    assert_equal prep([ o1.data_source, o2.data_source ]), prep( datasources.viewable_by u ), "can see organizations' data sources"
+  end
+
+  def test_organization_and_one_of_its_projects
+    u = get :users, :u1
+    o = get :organizations, :o1
+    p = get :projects, :p1
+    u.add_viewable o, p
+    assert_equal prep( o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep([ o, p.organization ]), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_organization_and_project_different_org_same_ds
+    u = get :users, :u1
+    o = get :organizations, :o1
+    p = get :projects, :p4
+    u.add_viewable o, p
+    assert_equal prep( o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep([ o, p.organization ]), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_organization_and_project_different_org_different_ds
+    u = get :users, :u1
+    o = get :organizations, :o1
+    p = get :projects, :p7
+    u.add_viewable o, p
+    assert_equal prep( o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep([ o, p.organization ]), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_data_source_and_org
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o1
+    u.add_viewable ds, o
+    assert_equal prep( ds.projects + o.projects ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [o] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_data_source_and_org_different_ds
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    u.add_viewable ds, o
+    assert_equal prep( ds.projects + o.projects ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [o] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_data_source_and_project
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    p = get :projects, :p1
+    u.add_viewable ds, p
+    assert_equal prep( ds.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_data_source_and_project_different_ds
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    p = get :projects, :p7
+    u.add_viewable ds, p
+    assert_equal prep( ds.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_ds_o_p_1
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o1
+    p = get :projects, :p1
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [ o, p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_ds_o_p_2
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o1
+    p = get :projects, :p4
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [ o, p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_ds_o_p_3
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    p = get :projects, :p7
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [ o, p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_ds_o_p_4
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    p = get :projects, :p10
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [ o, p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_ds_o_p_5
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    p = get :projects, :p1
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [ o, p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
+  def test_ds_o_p_6
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    p = get :projects, :p4
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.viewable_by u ), "can see correct projects"
+    assert_equal prep( ds.organizations + [ o, p.organization] ), prep( organizations.viewable_by u ), "can see correct organizations"
+    assert_equal prep([ ds, o.data_source, p.data_source ]), prep( datasources.viewable_by u ), "can see correct data sources"
+  end
+
   ## fixturish stuff below this point
 
   # because this seem(ed) simpler than a fixture file
@@ -145,19 +331,20 @@ class EntityViewabilityTest < ActiveSupport::TestCase
   end
 
   def prep(relation)
-    relation.to_a.sort_by(&:id) rescue byebug
+    relation.to_a.compact.uniq.sort_by(&:id) rescue byebug
   end
 
   teardown do
     MODELS.fetch( :users, {} ).values.each do |u|
-      GrdaWarehouse::Hud::UserViewableEntity.where( user_id: u.id ).destroy_all
-      u.really_destroy!
+      GrdaWarehouse::Hud::UserViewableEntity.where( user_id: u.id ).delete_all
+      u.really_delete
     end
+    MODELS.delete :users
     %i( roles projects organizations data_sources ).each do |type|
       instances = ( MODELS.fetch type, {} ).values
       if instances.present?
-        if instances.first.respond_to?(:really_destroy!)
-          instances.each(&:really_destroy!)
+        if instances.first.respond_to?(:really_delete)
+          instances.each(&:really_delete)
         else
           instances.each(&:delete)
         end
