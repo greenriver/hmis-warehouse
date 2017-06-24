@@ -11,13 +11,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :projects, class_name: GrdaWarehouse::Hud::Project.name, inverse_of: :data_source
   has_many :exports, class_name: GrdaWarehouse::Hud::Export.name, inverse_of: :data_source
   has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
+
   has_many :uploads
   
   scope :importable, -> { where.not(source_type: nil)}
   scope :destination, -> { where(source_type: nil)}
   scope :importable_via_samba, -> { importable.where(source_type: "samba")}
   scope :viewable_by, -> (user) do
-    if user.roles.where( can_view_everything: true ).exists?
+    if user.roles.where( can_edit_anything_super_user: true ).exists?
       current_scope
     else
       ds_t = quoted_table_name
