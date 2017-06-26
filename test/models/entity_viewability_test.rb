@@ -29,6 +29,74 @@ class EntityViewabilityTest < ActiveSupport::TestCase
     roles: %i[ r1 ]
   }
 
+  def test_ds_org_project_can_edit
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    p = get :projects, :p10
+    u.add_viewable ds, o, p
+    assert_equal prep( ds.projects + o.projects + [p] ), prep( projects.editable_by u ), "can edit all of data source's and organization's projects plus the one"
+    assert_equal prep( ds.organizations + [o] ), prep( organizations.editable_by u ), "can edit all data source's organizations plus the one"
+    assert_equal [ds], prep( datasources.editable_by u ), "can edit only the one data source"
+  end
+
+  def test_ds_org_can_edit
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    o = get :organizations, :o3
+    u.add_viewable ds, o
+    assert_equal prep( ds.projects + o.projects ), prep( projects.editable_by u ), "can edit all projects of data source and organization"
+    assert_equal prep( ds.organizations + [o] ), prep( organizations.editable_by u ), "can edit all data source's organizations plus the one"
+    assert_equal [ds], prep( datasources.editable_by u ), "can only edit the one data source"
+  end
+
+  def test_ds_project_user_can_edit
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    p = get :projects, :p7
+    u.add_viewable ds, p
+    assert_equal prep( ds.projects + [p] ), prep( projects.editable_by u ), "can edit all data_source's projects plus the one outside it"
+    assert_equal prep( ds.organizations ), prep( organizations.editable_by u ), "can edit only the data source's organizations"
+    assert_equal [ds], prep( datasources.editable_by u ), "can edit only the one data source"
+  end
+
+  def test_org_project_user_can_edit
+    u = get :users, :u1
+    o = get :organizations, :o1
+    p = get :projects, :p4
+    u.add_viewable o, p
+    assert_equal prep( o.projects + [p] ), prep( projects.editable_by u ), "can edit the one project and all the organization's projects"
+    assert_equal [o], prep( organizations.editable_by u ), "can edit only the one organization"
+    assert_equal [], prep( datasources.editable_by u ), "cannot edit any data sources"
+  end
+
+  def test_project_user_can_only_edit_project
+    u = get :users, :u1
+    p = get :projects, :p1
+    u.add_viewable p
+    assert_equal [p], prep( projects.editable_by u ), "can edit project"
+    assert_equal [], prep( organizations.editable_by u ), "cannot edit any organizations"
+    assert_equal [], prep( datasources.editable_by u ), "cannot edit any data sources"
+  end
+
+  def test_organization_user_can_edit_org_and_projects
+    u = get :users, :u1
+    o = get :organizations, :o1
+    u.add_viewable o
+    assert_equal prep( o.projects ), prep( projects.editable_by u ), "can edit organization's projects"
+    assert_equal [o], prep( organizations.editable_by u ), "can edit organization"
+    assert_equal [], prep( datasources.editable_by u ), "cannot edit any data sources"
+  end
+
+  def test_data_source_user_can_edit_everything
+    u = get :users, :u1
+    ds = get :data_sources, :ds1
+    u.add_viewable ds
+    assert_equal prep( ds.projects ), prep( projects.editable_by u ), "can edit all of datasource's projects"
+    assert_equal prep( ds.organizations ), prep( organizations.editable_by u ), "can edit all of datasource's organizations"
+    assert_equal [ds], prep( datasources.editable_by u ), "can edit data source"
+  end
+
   def test_initially_user_can_see_nothing
     u = get :users, :u1
     assert u, "we have a user"

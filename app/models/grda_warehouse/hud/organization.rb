@@ -44,7 +44,7 @@ module GrdaWarehouse::Hud
         q  = -> (s) { connection.quote s }
 
         where [
-          has_access_to_data_source_through_viewable_entities(user, q, qc),
+          has_access_to_organization_through_viewable_entities(user, q, qc),
           has_access_to_organization_through_data_source(user, q, qc)
         ].join ' OR '
       end
