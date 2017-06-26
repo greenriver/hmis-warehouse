@@ -1,9 +1,10 @@
 class DataQualityReportsController < ApplicationController
+  include PjaxModalController
   # Autorize by either access to projects OR access by token
   skip_before_action :authenticate_user!
   before_action :require_valid_token_or_project_access!
-  before_action :set_report, only: [:show]
-  before_action :set_project, only: [:show]
+  before_action :set_report, only: [:show, :support]
+  before_action :set_project, only: [:show, :support]
 
   def show
 
@@ -12,6 +13,13 @@ class DataQualityReportsController < ApplicationController
   def index
     @project = project_source.find(params[:project_id].to_i)
     @reports = @project.data_quality_reports.order(started_at: :desc)
+  end
+
+  def support
+    raise 'Key required' if params[:key].blank?
+    key = params[:key].to_s
+    support = @report.support
+    @data = support[key].with_indifferent_access
   end
 
   def report_scope

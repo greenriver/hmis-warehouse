@@ -1,0 +1,15 @@
+= content_for :modal_title do
+  = "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName} - Supporting Data"
+- if @data.any?
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        - @data[:headers].each do |t|
+          %th= t
+    %tbody
+      - @data[:counts].each do |row|
+        %tr
+          - row.each do |v|
+            %td= v
+- else
+  None found
