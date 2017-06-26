@@ -12,7 +12,7 @@ module GrdaWarehouse::Hud
       foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID],
       inverse_of: :organization
     has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> {
@@ -38,7 +38,7 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
-      viewability_table  = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       organization_table = quoted_table_name
         
       <<-SQL.squish
@@ -59,7 +59,7 @@ module GrdaWarehouse::Hud
 
     private_class_method def self.has_access_to_organization_through_data_source(user, q, qc)
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
-      viewability_table  = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       organization_table = quoted_table_name
         
       <<-SQL.squish
@@ -83,7 +83,7 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_organization_through_projects(user, q, qc)
-      viewability_table  = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name
         

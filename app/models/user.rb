@@ -20,7 +20,7 @@ class User < ActiveRecord::Base
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
   after_destroy do |user|
-    GrdaWarehouse::Hud::UserViewableEntity.where( user_id: user.id ).destroy_all
+    GrdaWarehouse::UserViewableEntity.where( user_id: user.id ).destroy_all
   end
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -113,7 +113,7 @@ class User < ActiveRecord::Base
 
   def set_viewables(viewables)
     return unless persisted?
-    GrdaWarehouse::Hud::UserViewableEntity.transaction do
+    GrdaWarehouse::UserViewableEntity.transaction do
       %i( data_sources organizations projects ).each do |type|
         ids = ( viewables[type] || [] ).map(&:to_i)
         scope = viewable_join self.send(type)
@@ -136,7 +136,7 @@ class User < ActiveRecord::Base
     end
 
     def viewable_join(model)
-      GrdaWarehouse::Hud::UserViewableEntity.where entity_type: model.sti_name, user_id: id
+      GrdaWarehouse::UserViewableEntity.where entity_type: model.sti_name, user_id: id
     end
 
 end

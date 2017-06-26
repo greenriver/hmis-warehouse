@@ -337,7 +337,7 @@ class EntityViewabilityTest < ActiveSupport::TestCase
 
   teardown do
     MODELS.fetch( :users, {} ).values.each do |u|
-      GrdaWarehouse::Hud::UserViewableEntity.where( user_id: u.id ).delete_all
+      GrdaWarehouse::UserViewableEntity.where( user_id: u.id ).delete_all
       u.really_delete
     end
     MODELS.delete :users

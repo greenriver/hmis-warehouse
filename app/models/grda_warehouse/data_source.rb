@@ -10,7 +10,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :organizations, class_name: GrdaWarehouse::Hud::Organization.name, inverse_of: :data_source
   has_many :projects, class_name: GrdaWarehouse::Hud::Project.name, inverse_of: :data_source
   has_many :exports, class_name: GrdaWarehouse::Hud::Export.name, inverse_of: :data_source
-  has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
+  has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
   has_many :uploads
   
@@ -36,7 +36,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+    viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
 
     <<-SQL.squish
 
@@ -56,7 +56,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_organizations(user, q, qc)
     data_source_table  = quoted_table_name
-    viewability_table  = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+    viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
 
     <<-SQL.squish
@@ -83,7 +83,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_projects(user, q, qc)
     data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+    viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
 
     <<-SQL.squish

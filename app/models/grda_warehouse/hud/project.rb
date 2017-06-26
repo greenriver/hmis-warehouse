@@ -86,7 +86,7 @@ module GrdaWarehouse::Hud
     has_many :affiliations, **hud_many(Affiliation), inverse_of: :project
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
     has_many :funders, **hud_many(Funder), inverse_of: :project
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::Hud::UserViewableEntity'
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     # Warehouse Reporting
     has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
@@ -122,7 +122,7 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
-      viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table     = quoted_table_name
 
       <<-SQL.squish
@@ -142,7 +142,7 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_project_through_organization(user, q, qc)
-      viewability_table   = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      viewability_table   = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
 
@@ -172,7 +172,7 @@ module GrdaWarehouse::Hud
 
     private_class_method def self.has_access_to_project_through_data_source(user, q, qc)
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
-      viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table     = quoted_table_name
 
       <<-SQL
