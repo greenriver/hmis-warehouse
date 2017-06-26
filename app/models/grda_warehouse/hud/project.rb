@@ -109,65 +109,90 @@ module GrdaWarehouse::Hud
       if user.roles.where( can_edit_anything_super_user: true ).exists?
         current_scope
       else
-        ds_t = GrdaWarehouse::DataSource.quoted_table_name
-        ve_t = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
-        p_t  = quoted_table_name
-        o_t  = GrdaWarehouse::Hud::Organization.quoted_table_name
-
         qc = -> (s) { connection.quote_column_name s }
         q  = -> (s) { connection.quote s }
-
         where(
-          <<-SQL.squish
-
-            EXISTS (
-              SELECT 1 FROM
-                #{ve_t}
-                WHERE
-                  #{ve_t}.#{qc.('entity_id')}   = #{p_t}.#{qc.('id')}
-                  AND
-                  #{ve_t}.#{qc.('entity_type')} = #{q.(sti_name)}
-                  AND
-                  #{ve_t}.#{qc.('user_id')}     = #{user.id}
-            )
-          OR
-            EXISTS (
-              SELECT 1 FROM
-                #{ve_t}
-                INNER JOIN
-                #{o_t}
-                ON
-                  #{ve_t}.#{qc.('entity_id')}   = #{o_t}.#{qc.('id')}
-                  AND
-                  #{ve_t}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
-                  AND
-                  #{ve_t}.#{qc.('user_id')}     = #{user.id}
-                WHERE
-                  #{o_t}.#{qc.('data_source_id')} = #{p_t}.#{qc.('data_source_id')}
-                  AND
-                  #{o_t}.#{qc.('OrganizationID')} = #{p_t}.#{qc.('OrganizationID')}
-                  AND
-                  #{o_t}.#{qc.('DateDeleted')} IS NULL
-            )
-          OR
-            EXISTS (
-              SELECT 1 FROM
-                #{ve_t}
-                INNER JOIN
-                #{ds_t}
-                ON
-                  #{ve_t}.#{qc.('entity_id')}   = #{ds_t}.#{qc.('id')}
-                  AND
-                  #{ve_t}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
-                  AND
-                  #{ve_t}.#{qc.('user_id')}     = #{user.id}
-                WHERE
-                  #{p_t}.#{qc.('data_source_id')} = #{ds_t}.#{qc.('id')}
-            )
-
-          SQL
+          [
+            has_access_to_project_through_viewable_entities(user, q, qc),
+            has_access_to_project_through_organization(user, q, qc),
+            has_access_to_project_through_data_source(user, q, qc)
+          ].join ' OR '
         )
       end
+    end
+
+    private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
+      viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      project_table     = quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{viewability_table}
+            WHERE
+              #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
+              AND
+              #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
+              AND
+              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+        )
+
+      SQL
+    end
+
+    private_class_method def self.has_access_to_project_through_organization(user, q, qc)
+      viewability_table   = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      project_table       = quoted_table_name
+      organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{viewability_table}
+            INNER JOIN
+            #{organization_table}
+            ON
+              #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
+              AND
+              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
+              AND
+              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            WHERE
+              #{organization_table}.#{qc.('data_source_id')} = #{project_table}.#{qc.('data_source_id')}
+              AND
+              #{organization_table}.#{qc.('OrganizationID')} = #{project_table}.#{qc.('OrganizationID')}
+              AND
+              #{organization_table}.#{qc.('DateDeleted')} IS NULL
+        )
+
+      SQL
+    end
+
+    private_class_method def self.has_access_to_project_through_data_source(user, q, qc)
+      data_source_table = GrdaWarehouse::DataSource.quoted_table_name
+      viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+      project_table     = quoted_table_name
+
+      <<-SQL
+
+        EXISTS (
+          SELECT 1 FROM
+            #{viewability_table}
+            INNER JOIN
+            #{data_source_table}
+            ON
+              #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
+              AND
+              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
+              AND
+              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            WHERE
+              #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+        )
+
+      SQL
     end
 
     # make a scope for every project type and a type? method for instances

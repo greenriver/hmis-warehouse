@@ -21,65 +21,91 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     if user.can_edit_anything_super_user?
       current_scope
     else
-      ds_t = quoted_table_name
-      ve_t = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
-      p_t  = GrdaWarehouse::Hud::Project.quoted_table_name
-      o_t  = GrdaWarehouse::Hud::Organization.quoted_table_name
-
       qc = -> (s) { connection.quote_column_name s }
       q  = -> (s) { connection.quote s }
 
       where(
-        <<-SQL.squish
-
-          EXISTS (
-            SELECT 1 FROM
-              #{ve_t}
-              WHERE
-                #{ve_t}.#{qc.('entity_id')}   = #{ds_t}.#{qc.('id')}
-                AND
-                #{ve_t}.#{qc.('entity_type')} = #{q.(sti_name)}
-                AND
-                #{ve_t}.#{qc.('user_id')}     = #{user.id}
-          )
-        OR
-          EXISTS (
-            SELECT 1 FROM
-              #{ve_t}
-              INNER JOIN
-              #{o_t}
-              ON
-                #{ve_t}.#{qc.('entity_id')}   = #{o_t}.#{qc.('id')}
-                AND
-                #{ve_t}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
-                AND
-                #{ve_t}.#{qc.('user_id')}     = #{user.id}
-              WHERE
-                #{o_t}.#{qc.('data_source_id')} = #{ds_t}.#{qc.('id')}
-                AND
-                #{o_t}.#{qc.('DateDeleted')} IS NULL
-          )
-        OR
-          EXISTS (
-            SELECT 1 FROM
-              #{ve_t}
-              INNER JOIN
-              #{p_t}
-              ON
-                #{ve_t}.#{qc.('entity_id')}   = #{p_t}.#{qc.('id')}
-                AND
-                #{ve_t}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
-                AND
-                #{ve_t}.#{qc.('user_id')}     = #{user.id}
-              WHERE
-                #{p_t}.#{qc.('data_source_id')} = #{ds_t}.#{qc.('id')}
-                AND
-                #{p_t}.#{qc.('DateDeleted')} IS NULL
-          )
-
-        SQL
+        [
+          has_access_to_data_source_through_viewable_entities(user, q, qc),
+          has_access_to_data_source_through_organizations(user, q, qc),
+          has_access_to_data_source_through_projects(user, q, qc)
+        ].join ' OR '
       )
     end
+  end
+
+  private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
+    data_source_table = quoted_table_name
+    viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+
+    <<-SQL.squish
+
+      EXISTS (
+        SELECT 1 FROM
+          #{viewability_table}
+          WHERE
+            #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
+            AND
+            #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
+            AND
+            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+      )
+
+    SQL
+  end
+
+  private_class_method def self.has_access_to_data_source_through_organizations(user, q, qc)
+    data_source_table  = quoted_table_name
+    viewability_table  = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+    organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
+
+    <<-SQL.squish
+
+      EXISTS (
+        SELECT 1 FROM
+          #{viewability_table}
+          INNER JOIN
+          #{organization_table}
+          ON
+            #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
+            AND
+            #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
+            AND
+            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+          WHERE
+            #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+            AND
+            #{organization_table}.#{qc.('DateDeleted')} IS NULL
+      )
+
+    SQL
+  end
+
+  private_class_method def self.has_access_to_data_source_through_projects(user, q, qc)
+    data_source_table = quoted_table_name
+    viewability_table = GrdaWarehouse::Hud::UserViewableEntity.quoted_table_name
+    project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
+
+    <<-SQL.squish
+
+      EXISTS (
+        SELECT 1 FROM
+          #{viewability_table}
+          INNER JOIN
+          #{project_table}
+          ON
+            #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
+            AND
+            #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
+            AND
+            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+          WHERE
+            #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+            AND
+            #{project_table}.#{qc.('DateDeleted')} IS NULL
+      )
+
+    SQL
   end
 
   accepts_nested_attributes_for :projects
