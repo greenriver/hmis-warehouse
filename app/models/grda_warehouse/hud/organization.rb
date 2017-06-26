@@ -21,7 +21,7 @@ module GrdaWarehouse::Hud
       )
     }
     scope :viewable_by, -> (user) do
-      if user.roles.where( can_edit_anything_super_user: true ).exists?
+      if user.can_edit_anything_super_user?
         current_scope
       else
         ds_t = GrdaWarehouse::DataSource.quoted_table_name
