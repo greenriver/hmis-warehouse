@@ -106,7 +106,7 @@ module GrdaWarehouse::Hud
       )
     end
     scope :viewable_by, -> (user) do
-      if user.roles.where( can_edit_anything_super_user: true ).exists?
+      if user.can_edit_anything_super_user?
         current_scope
       else
         qc = -> (s) { connection.quote_column_name s }
