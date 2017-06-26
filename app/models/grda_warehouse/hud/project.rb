@@ -111,6 +111,7 @@ module GrdaWarehouse::Hud
       else
         qc = -> (s) { connection.quote_column_name s }
         q  = -> (s) { connection.quote s }
+
         where(
           [
             has_access_to_project_through_viewable_entities(user, q, qc),
