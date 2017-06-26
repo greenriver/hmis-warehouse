@@ -2,20 +2,6 @@ namespace :grda_warehouse do
   desc "Setup a sample GRDA warehouse database"
   task setup: [:migrate, :seed_data_sources]
 
-  desc "Migrate the GRDA warehouse"
-  task migrate: [:environment] do
-    db_conf = Rails.configuration.database_configuration
-    ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.migrate("db/warehouse/migrate")
-  end
-
-  desc "Create the GRDA warehouse"
-  task create: [:environment] do
-    db_conf = Rails.configuration.database_configuration
-    ActiveRecord::Base.connection.create_database "#{Rails.env}_grda_warehouse", db_conf["#{Rails.env}_grda_warehouse"]
-  end
-
-
   task defrag: [:environment] do
     puts "Finding fragmented indexes"
     sql_fragged_report = <<-SQL.strip_heredoc
@@ -37,34 +23,7 @@ namespace :grda_warehouse do
     end
 
   end
-
-  desc "Roll-back the GRDA warehouse"
-  task rollback: [:environment] do
-    db_conf = Rails.configuration.database_configuration
-    ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.rollback("db/warehouse/migrate")
-  end
-
-  desc "run the down method of the grda migration specified by VERSION"
-  task down: [:environment] do
-    version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-    raise "VERSION is required - To go down one migration, run db:rollback" unless version
-    db_conf = Rails.configuration.database_configuration
-    ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.run(:down, "db/warehouse/migrate", version)
-    #db_namespace["_dump"].invoke
-  end
-
-  desc "run the up method of the grda migration specified by VERSION"
-  task up: [:environment] do
-    version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-    raise "VERSION is required - To go down one migration, run db:rollback" unless version
-    db_conf = Rails.configuration.database_configuration
-    ActiveRecord::Base.establish_connection db_conf["#{Rails.env}_grda_warehouse"]
-    ActiveRecord::Migrator.run(:up, "db/warehouse/migrate", version)
-    #db_namespace["_dump"].invoke
-  end
-
+  
   desc "Empty the GRDA warehouse"
   task clear: [:environment] do
     GrdaWarehouse::Utility.clear!
