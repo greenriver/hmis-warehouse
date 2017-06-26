@@ -1,5 +1,5 @@
 class GrdaWarehouseBase < ActiveRecord::Base
-  establish_connection "#{Rails.env}_grda_warehouse".parameterize.underscore.to_sym
+  establish_connection DB_WAREHOUSE
   self.abstract_class = true
 
   def self.sql_server?
