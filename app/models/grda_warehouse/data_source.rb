@@ -75,7 +75,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
           WHERE
             #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
             AND
-            #{organization_table}.#{qc.('DateDeleted')} IS NULL
+            #{organization_table}.#{qc.(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
       )
 
     SQL
@@ -102,7 +102,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
           WHERE
             #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
             AND
-            #{project_table}.#{qc.('DateDeleted')} IS NULL
+            #{project_table}.#{qc.(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
       )
 
     SQL

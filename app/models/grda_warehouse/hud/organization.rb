@@ -105,7 +105,7 @@ module GrdaWarehouse::Hud
               AND
               #{project_table}.#{qc.('OrganizationID')} = #{organization_table}.#{qc.('OrganizationID')}
               AND
-              #{project_table}.#{qc.('DateDeleted')} IS NULL
+              #{project_table}.#{qc.(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
         )
 
       SQL
