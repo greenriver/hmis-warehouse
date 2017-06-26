@@ -120,6 +120,7 @@ module GrdaWarehouse::Hud
         )
       end
     end
+    scope :editable_by, -> (user) { viewable_by user }
 
     private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
       viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name

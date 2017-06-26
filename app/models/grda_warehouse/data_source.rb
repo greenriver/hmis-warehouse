@@ -33,6 +33,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       )
     end
   end
+  scope :editable_by, -> (user) do
+    if user.can_edit_anything_super_user?
+      current_scope
+    else
+      qc = -> (s) { connection.quote_column_name s }
+      q  = -> (s) { connection.quote s }
+
+      where has_access_to_data_source_through_viewable_entities(user, q, qc)
+    end
+  end
 
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
