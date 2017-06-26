@@ -24,7 +24,7 @@ set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 # set :pty, true
 
 # Default value for :linked_files is []
-set :linked_files, fetch(:linked_files, []).push('config/database.yml', 'config/secrets.yml', 'config/weather.yml', 'config/exception_notifier.yml', 'config/eto_api.yml', 'config/mail_account.yml', 'config/database_health.yml', 'config/health_sftp.yml', 'config/cache_store.yml', '.env')
+set :linked_files, fetch(:linked_files, []).push('config/database.yml', 'config/database_warehouse.yml', 'config/secrets.yml', 'config/weather.yml', 'config/exception_notifier.yml', 'config/eto_api.yml', 'config/mail_account.yml', 'config/database_health.yml', 'config/health_sftp.yml', 'config/cache_store.yml', '.env')
 
 # Default value for linked_dirs is []
 set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'public/system', 'tmp/sockets', 'var')

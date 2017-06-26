@@ -42,6 +42,7 @@ pickle-email-*.html
 .irb-history
 config/database.yml
 config/database_health.yml
+config/database_warehouse.yml
 config/health_sftp.yml
 config/eto_api.yml
 config/weather.yml
