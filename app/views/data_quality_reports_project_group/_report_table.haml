@@ -3,14 +3,15 @@
     %tr
       %th Measure
       %th Result
+      %th Support
   %tbody
-    - @report.report_columns.each do |key, info| 
+    - @report.report_columns.each do |key, info|
+      - value = @report.report.with_indifferent_access[key]
+      - has_support = @report.support.with_indifferent_access[key].present? rescue false
       %tr
         %td
           = info[:title]
         %td
-          - value = @report.report.with_indifferent_access[key]
-          - has_support = @report.support.with_indifferent_access[key].present? rescue false
           - if info[:callback].present?
             - if has_support
               = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
@@ -24,3 +25,7 @@
                 = value
             - else
               = value
+        %td
+          - if has_support
+            = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key, format: :xlsx}) do
+              %span.icon-download2

@@ -17,9 +17,15 @@ class DataQualityReportsController < ApplicationController
 
   def support
     raise 'Key required' if params[:key].blank?
-    key = params[:key].to_s
+    @key = params[:key].to_s
     support = @report.support
-    @data = support[key].with_indifferent_access
+    @data = support[@key].with_indifferent_access
+    respond_to do |format|
+      format.xlsx do
+        render xlsx: :index, filename: "support-#{@key}.xlsx"
+      end
+      format.html {}
+    end
   end
 
   def report_scope
