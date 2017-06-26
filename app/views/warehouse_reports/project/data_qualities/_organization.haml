@@ -28,13 +28,13 @@
   %th
     Last Sent On
 - projects.each do |project|
-  - last_report = project.data_quality_reports&.last
+  - last_report = project.data_quality_reports&.sort_by{|m| m.created_at}&.last
   %tr.jProject.hidden{data: {organization_id: id}}
     %td
     %td
       = HUD.project_type_brief(project.ProjectType)
     %td.padding-left-02
-      = project.ProjectName
+      = link_to project.ProjectName, project_data_quality_reports_path(project)
     %td
       = check_box_tag("project[#{project.id}]", 1, false, {class: 'jProjectSelect'})
     %td

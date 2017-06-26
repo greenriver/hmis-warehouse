@@ -4,7 +4,7 @@
   %td
   %td
   %td.padding-left-02
-    = group.name
+    = link_to group.name, project_group_data_quality_reports_path(group)
   %td
     = check_box_tag("project_group[#{group.id}]", 1, false, {class: 'jProjectSelect'})
   %td

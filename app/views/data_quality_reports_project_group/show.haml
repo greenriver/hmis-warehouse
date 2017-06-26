@@ -21,19 +21,4 @@
     Processing error:
     = JSON.parse(@report.processing_errors).first
 - elsif @report.report.present?
-  %table.table.table-condensed
-    %thead
-      %tr
-        %th Measure
-        %th Result
-    %tbody
-      - @report.report_columns.each do |key, info| 
-        %tr
-          %td
-            = info[:title]
-          %td
-            - value = @report.report.with_indifferent_access[key]
-            - if info[:callback].present?
-              = @report.public_send(info[:callback], value)
-            - else 
-              = value
+  = render 'report_table'
