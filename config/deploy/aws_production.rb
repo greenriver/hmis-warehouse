@@ -24,7 +24,7 @@ namespace :deploy do
   before :finishing, :warehouse_migrations do
     on roles(:db)  do
       within current_path do
-        execute :rake, 'grda_warehouse:migrate RAILS_ENV=production'
+        execute :rake, 'warehouse:db:migrate RAILS_ENV=production'
       end
     end
   end

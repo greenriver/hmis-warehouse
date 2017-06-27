@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @key.humanize.slice(0,30)) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(@data['headers'], :style => title)
+  @data['counts'].each do |row|
+    sheet.add_row(row)
+  end
+end
