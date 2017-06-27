@@ -55,7 +55,9 @@ module Importing
       # self-heals the warehouse for anyone it finds that is broken
       # and then re-checks itself
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1000).run!
-
+      # Make sure we don't have anyone who needs re-generation, even if they have
+      # birthdays that are incorrect
+      GrdaWarehouse::Tasks::AddServiceHistory.new.run!
       # Generate some duplicates if we need to, but not too many
       opts = {
         threshold: -1.45,

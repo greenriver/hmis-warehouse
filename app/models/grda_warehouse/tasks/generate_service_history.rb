@@ -14,6 +14,7 @@ module GrdaWarehouse::Tasks
         channel   = notifier_config['channel']
         @notifier  = Slack::Notifier.new(slack_url, channel: channel, username: 'Service History Generator')
       end
+      @sanity_check = Set.new
     end
 
     def run!
@@ -37,13 +38,24 @@ module GrdaWarehouse::Tasks
         remove_stale_history()
         build_history()
       end
-      # check for discrepencies
-      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(200, []).run!
+
+      sanity_check()
       
       completed_at = DateTime.now
       log.assign_attributes(completed_at: completed_at, to_delete: @to_delete.size, to_add: @to_add_count, to_update: @to_update_count)
       unless @dry_run
         log.save
+      end
+    end
+
+    # sanity check anyone we've touched
+    def sanity_check
+      batches = @sanity_check.each_slice(@batch_size)
+      batches.each_with_index do |batch, index|
+        if @send_notifications
+          @notifier.ping "Sanity Checking all #{@sanity_check} clients in batches of#{batch.size}.  Batch #{index + 1}"
+        end
+        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
     end
 
@@ -151,6 +163,9 @@ module GrdaWarehouse::Tasks
         select(:client_id).
         distinct.
         pluck(:client_id)
+      # Sanity check anyone with an open enrollment
+      @sanity_check += GrdaWarehouse::ServiceHistory.entry.
+        where(last_date_in_program: nil).pluck(:client_id)
       # Exclude anyone we're already planning to update
       @to_patch = @to_patch - @to_update.keys
       # @to_patch = [534165]
@@ -175,6 +190,8 @@ module GrdaWarehouse::Tasks
       logger.info "Updating #{@to_update.size} clients in batches of #{@batch_size}"
       GC.start
       batches = @to_update.keys.each_slice(@batch_size)
+      # prepare to sanity check anyone we've touched
+      @sanity_check += @to_update.keys
       batches.each do |batch|
         prepare_for_batch batch # Limit fetching to the current batch
         # Setup a huge transaction, we'll commit frequently
@@ -187,12 +204,6 @@ module GrdaWarehouse::Tasks
         end
         logger.info "... #{@pb_output_for_log.bar_update_string} #{@pb_output_for_log.eol}"
         @batch = nil
-        # check for discrepencies
-        # GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(50).run!
-        if @send_notifications
-          @notifier.ping "Sanity Checking @to_update batch of #{batch.size} clients"
-        end
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
       @progress.refresh
 
@@ -201,6 +212,8 @@ module GrdaWarehouse::Tasks
 
       GC.start
       batches = @to_add.each_slice(@batch_size)
+      # prepare to sanity check anyone we've touched
+      @sanity_check += @to_add
       clients_completed = 0
       batches.each do |batch|
         prepare_for_batch batch # Limit fetching to the current batch
@@ -214,12 +227,6 @@ module GrdaWarehouse::Tasks
         end
         logger.info "... #{@pb_output_for_log.bar_update_string} #{@pb_output_for_log.eol}"
         @batch = nil
-        # check for discrepencies
-        # GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(50, []).run!
-        if @send_notifications
-          @notifier.ping "Sanity Checking @to_add batch of #{batch.size} clients"
-        end
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
       @progress.refresh
 
@@ -238,10 +245,6 @@ module GrdaWarehouse::Tasks
         end
         logger.info "... #{@pb_output_for_log.bar_update_string} #{@pb_output_for_log.eol}"
         @batch = nil
-        if @send_notifications
-          @notifier.ping "Sanity Checking @to_patch batch of #{batch.size} clients"
-        end
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!  
       end
       @progress.refresh
     end
@@ -488,6 +491,7 @@ module GrdaWarehouse::Tasks
         if export.blank?
           logger.info "Client #{id} has enrollments in the service history that don't exist in the source data, rebuilding."
           add(id)
+          @sanity_check << id
           return
         end
         build_history_until = [Date.today, export.fetch(export_export_end_date_index())].compact.min

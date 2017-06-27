@@ -33,6 +33,8 @@ module GrdaWarehouse::Tasks
 
       GC.start
       batches = @to_add.each_slice(@batch_size)
+      # prepare to sanity check anyone we've touched
+      @sanity_check += @to_add
       clients_completed = 0
       batches.each do |batch|
         prepare_for_batch batch # Limit fetching to the current batch
@@ -46,13 +48,8 @@ module GrdaWarehouse::Tasks
         end
         logger.info "... #{@pb_output_for_log.bar_update_string} #{@pb_output_for_log.eol}"
         @batch = nil
-        # check for discrepencies
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(25).run!
       end
       @progress.refresh
-
-      # check for discrepencies
-      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(100).run!
     end
   end
 end

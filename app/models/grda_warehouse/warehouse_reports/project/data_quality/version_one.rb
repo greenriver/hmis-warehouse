@@ -546,9 +546,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def add_length_of_stay
       client_count = clients.size
       one_year_enrollments = Set.new
-      enrollments.each do |client_id, enrollments|
+      enrollments.each do |client_id, client_enrollments|
         months_in_project = 0
-        enrollments.each do |enrollment|
+        client_enrollments.each do |enrollment|
           end_of_enrollment = enrollment[:last_date_in_program] || self.end
           start_of_enrollment = enrollment[:first_date_in_program]
           # count a stay in any month as a month
