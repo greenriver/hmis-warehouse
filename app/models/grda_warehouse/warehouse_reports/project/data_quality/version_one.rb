@@ -554,7 +554,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           # count a stay in any month as a month
           months_in_project += (start_of_enrollment..end_of_enrollment).map{|date| [date.year, date.month]}.uniq.count
         end
-        one_year_enrollments << client_id if months_in_project < 12
+        one_year_enrollments << client_id if months_in_project > 12
       end
       one_year_enrollments_percentage = (one_year_enrollments.size.to_f/client_count*100).round(2) rescue 0
 

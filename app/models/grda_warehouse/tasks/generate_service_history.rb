@@ -52,11 +52,14 @@ module GrdaWarehouse::Tasks
     def sanity_check
       batches = @sanity_check.each_slice(@batch_size)
       batches.each_with_index do |batch, index|
-        if @send_notifications
-          @notifier.ping "Sanity Checking all #{@sanity_check} clients in batches of#{batch.size}.  Batch #{index + 1}"
-        end
+        log_and_send_message "Sanity Checking all #{@sanity_check} clients in batches of#{batch.size}.  Batch #{index + 1}"
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
+    end
+
+    def log_and_send_message msg
+      logger.info msg
+      @notifier.ping msg if @send_notifications
     end
 
     # def with_disabled_indexes(model)
@@ -187,7 +190,7 @@ module GrdaWarehouse::Tasks
       clients_completed = 0
 
       # Process Updates
-      logger.info "Updating #{@to_update.size} clients in batches of #{@batch_size}"
+      log_and_send_message "Updating #{@to_update.size} clients in batches of #{@batch_size}"
       GC.start
       batches = @to_update.keys.each_slice(@batch_size)
       # prepare to sanity check anyone we've touched
@@ -208,7 +211,7 @@ module GrdaWarehouse::Tasks
       @progress.refresh
 
       msg =  "Processing #{@to_add.size} new/invalidated clients in batches of #{@batch_size}"
-      logger.info msg
+      log_and_send_message msg
 
       GC.start
       batches = @to_add.each_slice(@batch_size)
@@ -230,7 +233,7 @@ module GrdaWarehouse::Tasks
       end
       @progress.refresh
 
-      logger.info 'Processing open enrollments...'
+      log_and_send_message "Patching #{@to_patch.size} open enrollments..."
       batches = @to_patch.each_slice(10000)
       clients_completed = 0
       batches.each do |batch|
