@@ -1,0 +1,62 @@
+<% locales = %w(es) %>
+<p>
+  <%= will_paginate @translation_keys %>
+</p>
+
+<%= form_tag managers_translation_keys_path, :method => :get do %>
+  <p>
+    Search for English Key:
+    <%= text_field_tag 'q', params[:q] %>
+    <%= submit_tag 'Search' %>
+  </p>
+<% end %>
+
+<table class="translations">
+  <thead>
+    <tr>
+      <th>Key</th>
+      <% locales.each do |locale| %>
+        <th><%= locale%></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% @translation_keys.each do |key| %>
+      <% translation = key.translations.select{|t| t.locale == 'es'}.first %>
+      <tr id="key_<%= key.id %>" class="<%= cycle "even","odd"%> <%= (translation.blank? || translation.text.blank?) ? 'new' : '' %>">
+        <td style="width:50%"><%=h key.key %></td>
+        <% locales.each do |locale| %>
+          <td style="width:50%">
+            <span class="translation-text"><%= h(translation.text) if translation %></span>
+            <a class="edit-link" href="#" <%= (translation.blank? || translation.text.blank?) ? 'style="display:none"' : '' %>>Edit</a>
+            <div class="edit-form" <%= (translation.blank? || translation.text.blank?) ? '' : 'style="display:none"' %>>
+              <% remote_form_for [:managers, key] do |f| %>
+                <% key.translations.build(:locale => 'es') unless translation %>
+                <%= f.fields_for :translations do |tf|%>
+                  <p>
+                    <%= tf.text_area :text, :size=>'80x2' %>
+                  </p>
+                  <%= tf.hidden_field :locale if tf.object.new_record? %>
+                <% end %>
+                <%= f.submit "Save Translation" %>
+              <% end %>
+            </div>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<p>
+  <%= will_paginate @translation_keys %>
+</p>
+
+<%= javascript_tag do %>
+  $$('table.translations a.edit-link').invoke('observe', 'click', function(ev) {
+    ev.preventDefault();
+    ev.element().hide();
+    ev.element().previous().hide();
+    ev.element().next().show();
+  });
+<% end %>
