@@ -207,7 +207,7 @@ Devise.setup do |config|
   if Rails.env.development? 
     config.timeout_in = 90.minutes
   else
-    config.timeout_in = 90.minutes
+    config.timeout_in = 30.minutes
   end
 
   # ==> Configuration for :lockable
