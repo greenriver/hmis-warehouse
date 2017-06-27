@@ -1,0 +1,14 @@
+- new = @translation_key.new_record?
+%h1= @translation_key.key || "New translation"
+
+= simple_form_for @translation_key do |f|
+  %p
+    = f.label :key
+    = f.text_area :key, :size=>'80x4'
+  = f.fields_for :translations do |tf|
+    %p
+      = tf.label :text, tf.object.locale
+      = tf.text_area :text, :size=>'80x2'
+    = tf.hidden_field :locale if tf.object.new_record?
+  = f.submit(new ? "Create" : "Save")
+  = link_to 'Back to overview', translation_keys_path

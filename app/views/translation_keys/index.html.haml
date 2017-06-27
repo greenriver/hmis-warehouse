@@ -1,0 +1,38 @@
+- locales = TranslationKey.available_locales
+.row
+  .col-sm-12
+    = simple_form_for :search, as: :search, url: translation_keys_path, method: :get do |f|
+      = text_field :search, :q, label: 'Search for English Key', value: @search.try(:[], :q)
+      = f.button :submit, value: 'Find String'
+
+
+    = form_tag translation_keys_path, :method => :get do
+      .radio.inline Search for keys missing translations in: 
+      .radio.inline= label_tag("missing_lang_" + "", "none")
+      .radio.inline= radio_button_tag(:missing_lang, "")
+      - locales.each do |lang| 
+        .radio.inline= label_tag("missing_lang_" + lang, lang)
+        .radio.inline= radio_button_tag(:missing_lang, lang)
+      .radio.inline= submit_tag("Submit")
+      
+.row.table-utilities
+  .col-sm-4
+    %p=# page_entries_info @translation_keys
+.row 
+  .col-sm-12
+    - if @translation_keys.present?
+      %table.table-striped.table-bordered.table-condensed
+        %thead
+          %tr
+            %th Keys
+            - locales.each do |locale|
+              %th= locale
+        %tbody
+          - @translation_keys.each do |key|
+            %tr{:class => "#{cycle "even","odd"}"}
+              %td= key.key
+              - locales.each do |locale|
+                - translation = key.translations.detect{|t| t.locale == locale }
+                %td= translation.text if translation
+              %td
+                = link_to "Edit", edit_translation_key_path(key)
