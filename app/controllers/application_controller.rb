@@ -5,14 +5,15 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
   before_action :authenticate_user!
-
+  auto_session_timeout User.timeout_in
+  
   before_filter :set_paper_trail_whodunnit
   before_filter :set_notification
 
   around_filter :cache_grda_warehouse_base_queries
   before_action :compose_activity, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
   after_action :log_activity, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
-
+  
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
       yield
