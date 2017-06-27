@@ -13,8 +13,9 @@ module WarehouseReports::Cas
       @range = DateRange.new(date_range_options)
       @raw_reasons = GrdaWarehouse::CasReport.where.not( decline_reason: nil ).
         started_between(start_date: @range.start, end_date: @range.end + 1.day)
-      @reasons = @raw_reasons.map{|row| row[:decline_reason].gsub(/Other:.*/,'Other').strip}.
-        each_with_object(Hash.new(0)) { |reason,counts| counts[reason] += 1 }
+      @reasons = @raw_reasons.map do|row| 
+        row[:decline_reason].squish.gsub(/Other.*/,'Other').strip
+      end.each_with_object(Hash.new(0)) { |reason,counts| counts[reason] += 1 }
 
       @reasons.sort_by(&:last).reverse
       
