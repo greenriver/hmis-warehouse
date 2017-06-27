@@ -52,7 +52,7 @@ module GrdaWarehouse::Tasks
     def sanity_check
       batches = @sanity_check.each_slice(@batch_size)
       batches.each_with_index do |batch, index|
-        log_and_send_message "Sanity Checking all #{@sanity_check} clients in batches of#{batch.size}.  Batch #{index + 1}"
+        log_and_send_message "Sanity Checking all #{@sanity_check.size} clients in batches of#{batch.size}.  Batch #{index + 1}"
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
     end
