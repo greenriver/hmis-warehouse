@@ -1,17 +1,24 @@
 module WarehouseReports
   class ChronicController < ApplicationController
+    include ArelHelper
     before_action :require_can_view_reports!, :load_filter
     def index
       at = chronic_source.arel_table
       @clients = @clients.
         where(chronics: {date: @filter.date}).
         order( at[:homeless_since].asc, at[:days_in_last_three_years].desc )
-      @so_clients = GrdaWarehouse::ServiceHistory.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
+      @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
       respond_to do |format|
         format.html do
           @clients = @clients.page(params[:page]).per(100)
         end
-        format.xlsx {}
+        format.xlsx do
+          @most_recent_services = service_history_source.service.where(
+            client_id: @clients.select(:id),
+            project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+          ).group(:client_id).
+          pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql).to_h
+        end
       end
     end
 
@@ -55,7 +62,8 @@ module WarehouseReports
       @clients = client_source.joins(:chronics).
         preload(:chronics).
         preload(:source_disabilities).
-        where(filter_query)
+        where(filter_query).
+        has_homeless_service_after_date(date: @filter.last_service_after)
     end
 
     private def client_source
@@ -64,6 +72,14 @@ module WarehouseReports
 
     private def chronic_source
       GrdaWarehouse::Chronic
+    end
+
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
+
+    def sh_t
+      GrdaWarehouse::ServiceHistory.arel_table
     end
 
     class ChronicFilter < ModelForm

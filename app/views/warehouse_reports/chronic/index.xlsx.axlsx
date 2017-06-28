@@ -2,9 +2,26 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since','Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources'], :style => title)
+  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since','Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources'], :style => title)
   @clients.each do |client|
     chronic = client.chronics.find_by_date(@filter.date)
-    sheet.add_row([client.id, client.FirstName, client.LastName, client.DOB, chronic.homeless_since, chronic.days_in_last_three_years, chronic.months_in_last_three_years, chronic.trigger, client.source_disabilities.select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.map{|m| m.disability_type_text}.uniq.join(', '), yn(chronic.dmh), yn(client.veteran?), yn(@so_clients.include?(client.id)), client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ') ])
+    sheet.add_row([
+      client.id, 
+      client.FirstName, 
+      client.LastName, 
+      client.DOB, 
+      chronic.homeless_since, 
+      chronic.days_in_last_three_years, 
+      chronic.months_in_last_three_years, 
+      chronic.trigger,
+      @most_recent_services[client.id], 
+      client.source_disabilities.
+        select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.
+        map{|m| m.disability_type_text}.uniq.join(', '),
+      yn(chronic.dmh),
+      yn(client.veteran?), 
+      yn(@so_clients.include?(client.id)), 
+      client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ') 
+    ])
   end
 end
