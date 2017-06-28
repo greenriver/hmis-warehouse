@@ -73,6 +73,7 @@ module WarehouseReports
       attribute :individual, Boolean, default: false
       attribute :dmh, Boolean, default: false
       attribute :veteran, Boolean, default: false
+      attribute :last_service_after, Date, default: 31.days.ago
 
       def dates
         @dates ||= GrdaWarehouse::Chronic.select(:date).distinct.order(date: :desc).pluck(:date)

@@ -1,16 +1,19 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_chronic_index_path, html: { method: :get, class: 'jFilter' } do |f|
   = f.error_notification
   .row
-    .col-sm-2
+    .col-sm-3
       = f.input :on, label: 'Chronic on Date', as: :date_picker, input_html: {class: 'jFilterOn'}
-    .col-sm-2
+    .col-sm-3
       = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
     .col-sm-3
       = f.input :min_days_homeless, label: 'Minimum Days Homeless', as: :integer, class: 'form-control', input_html: { size: 5, style: 'width: 5em;' }
-    .col-sm-2
+    .col-sm-3
       = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
       = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
       = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00'}
+  .row
+    .col-sm-4
+      = f.input :last_service_after, label: 'Last date of homeless service after', as: :date_picker   
     .col-sm-3
       %br
       = f.button :submit, value: 'Update View'
