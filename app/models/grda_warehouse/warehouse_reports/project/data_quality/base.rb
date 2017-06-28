@@ -218,6 +218,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       value ? 'Yes': 'No'
     end
 
+    def days(value)
+      "#{value} days"
+    end
+
     def client_source
       GrdaWarehouse::Hud::Client.source
     end

@@ -19,7 +19,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def report_columns
       {
         total_clients: {
-          title:'Clients included'
+          title: 'Clients included'
         },
         total_leavers: {
           title: 'Leavers',
@@ -54,35 +54,35 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           title: 'Bed coverage',
         },
         bed_coverage_percent: {
-          title:'Bed coverage',
+          title: 'Bed coverage',
           callback: :percent,
         },
         missing_name_percent: {
-          title:'Missing names',
+          title: 'Missing names',
           callback: :percent,
         },
         missing_ssn_percent: {
-          title:'Missing SSN',
+          title: 'Missing SSN',
           callback: :percent,
         },
         missing_dob_percent: {
-          title:'Missing DOB',
+          title: 'Missing DOB',
           callback: :percent,
         },
         missing_veteran_percent: {
-          title:'Missing veteran status',
+          title: 'Missing veteran status',
           callback: :percent,
         },
         missing_ethnicity_percent: {
-          title:'Missing ethnicity',
+          title: 'Missing ethnicity',
           callback: :percent,
         },
         missing_race_percent: {
-          title:'Missing race',
+          title: 'Missing race',
           callback: :percent,
         },
         missing_gender_percent: {
-          title:'Missing gender',
+          title: 'Missing gender',
           callback: :percent,
         },
         missing_disabling_condition_percentage: {
@@ -98,31 +98,31 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           callback: :percent
         },
         refused_name_percent: {
-          title:'Refused name',
+          title: 'Refused name',
           callback: :percent,
         },
         refused_ssn_percent: {
-          title:'Refused SSN',
+          title: 'Refused SSN',
           callback: :percent,
         },
         refused_dob_percent: {
-          title:'Refused DOB',
+          title: 'Refused DOB',
           callback: :percent,
         },
         refused_veteran_percent: {
-          title:'Refused veteran status',
+          title: 'Refused veteran status',
           callback: :percent,
         },
         refused_ethnicity_percent: {
-          title:'Refused ethnicity',
+          title: 'Refused ethnicity',
           callback: :percent,
         },
         refused_race_percent: {
-          title:'Refused race',
+          title: 'Refused race',
           callback: :percent,
         },
         refused_gender_percent: {
-          title:'Refused gender',
+          title: 'Refused gender',
           callback: :percent,
         },
         refused_disabling_condition_percentage: {
@@ -142,50 +142,54 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           callback: :boolean,
         },
         one_year_enrollments: {
-          title:'Enrollments lasting 12 or more months',
+          title: 'Enrollments lasting 12 or more months',
         },
         one_year_enrollments_percentage: {
-          title:'Clients with enrollments lasting 12 or more months',
+          title: 'Clients with enrollments lasting 12 or more months',
           callback: :percent,
         },
         ph_destinations: {
           title: 'Leavers who exited to PH',
         },
         ph_destinations_percentage: {
-          title:'Percentage of leavers who exited to PH',
+          title: 'Percentage of leavers who exited to PH',
         },
         increased_earned: {
-          title:'Clients with increased or retained earned income',
+          title: 'Clients with increased or retained earned income',
         },
         increased_earned_percentage: {
-          title:'Percentage of clients who had increased or retained  earned income',
+          title: 'Percentage of clients who had increased or retained  earned income',
           callback: :percent,
         },
         increased_non_cash: {
-          title:'Clients with increased or retained  non-cash income',
+          title: 'Clients with increased or retained  non-cash income',
         },
         increased_non_cash_percentage: {
-          title:'Percentage of clients who had increased or retained  non-cash income',
+          title: 'Percentage of clients who had increased or retained  non-cash income',
           callback: :percent,
         },
         increased_overall: {
-          title:'Clients with increased or retained  overall income',
+          title: 'Clients with increased or retained  overall income',
         },
         increased_overall_percentage: {
-          title:'Percentage of clients who had increased or retained  total income',
+          title: 'Percentage of clients who had increased or retained  total income',
           callback: :percent,
         },
         services_provided: {
-          title:'Number of service events',
+          title: 'Number of service events',
         },
         days_of_service: {
-          title:'Number of days in selected range',
+          title: 'Number of days in selected range',
         },
         average_daily_usage: {
-          title:'Average daily usage',
+          title: 'Average daily usage',
+        },
+        average_stay_length: {
+          title: 'Average stay length',
+          callback: :days,
         },
         capacity_percentage: {
-          title:'Percentage of beds in use, on average',
+          title: 'Percentage of beds in use, on average',
           callback: :percent,
         },
       }
@@ -668,6 +672,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       total_services_provided = service_scope.select(:client_id, :date).distinct.to_a.count
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
+      average_stay_length = (total_services_provided.to_f/clients.size).round(2)
       capacity = if beds > 0 
         (average_usage.to_f/beds*100).round(2) rescue 0
       else
@@ -677,6 +682,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         services_provided: total_services_provided,
         days_of_service: days_served,
         average_daily_usage: average_usage,
+        average_stay_length: average_stay_length,
         capacity_percentage: capacity,
       })
     end
