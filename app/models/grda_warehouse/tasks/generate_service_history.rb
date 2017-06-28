@@ -6,8 +6,6 @@ module GrdaWarehouse::Tasks
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
 
-    MAX_RUNS = 3
-
     def initialize
       self.logger = Rails.logger
       @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
@@ -58,16 +56,11 @@ module GrdaWarehouse::Tasks
 
     # sanity check anyone we've touched
     def sanity_check
-      runs = Rails.cache.fetch('sanity_check_count')
-      log_and_send_message "Sanity check runs: #{runs}"
-      return if runs >= MAX_RUNS
       batches = @sanity_check.each_slice(@batch_size)
       batches.each_with_index do |batch, index|
         log_and_send_message "Sanity Checking all #{@sanity_check.size} clients in batches of #{batch.size}.  Batch #{index + 1}"
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
-      runs += 1
-      Rails.cache.write('sanity_check_count', runs)
     end
 
     def log_and_send_message msg
@@ -776,16 +769,20 @@ module GrdaWarehouse::Tasks
       @exports_by_export_id[[data_source_id, export_id]]
     end
 
-    def services_personal_id_and_entry_id personal_id, entry_id, data_source_id
-      lookup = [personal_id, entry_id, data_source_id]
+    def services_personal_id_and_entry_id project_id, entry_id, data_source_id
+      lookup = [project_id, entry_id, data_source_id]
       @services_personal_id_and_entry_id ||= begin
         # Fetch Exits in batches
+        p_t = GrdaWarehouse::Hud::Project.arel_table
         [].tap do |m|
           source_client_personal_ids.each_slice(5000) do |ids|
-            m.concat(GrdaWarehouse::Hud::Service.where('PersonalID': ids).pluck(*service_columns.keys))
+            m.concat(GrdaWarehouse::Hud::Service.joins(:project).
+              where(PersonalID: ids).
+              pluck(*service_columns.keys, p_t[:ProjectID].as('project_id').to_sql)
+            )
           end
         end.group_by do |a|
-          [a[service_personal_id_index], a[service_data_source_id_index], a[service_entry_id_index]]
+          [a.last, a[service_data_source_id_index], a[service_entry_id_index]]
         end
       end
       @services_personal_id_and_entry_id[lookup]
@@ -1384,8 +1381,9 @@ module GrdaWarehouse::Tasks
       data_source_id = enrollment[enrollment_data_source_id_index]
       entry_id = enrollment[enrollment_entry_id_index]
       project_type = project[project_type_index]
+      project_id = project[project_project_id_index]
 
-      services = services_personal_id_and_entry_id(personal_id, data_source_id, entry_id)
+      services = services_personal_id_and_entry_id(project_id, data_source_id, entry_id)
 
       default_day = {
         client_id: @client[client_id_index],
