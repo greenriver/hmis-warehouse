@@ -5,6 +5,9 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
+
+    MAX_RUNS = 3
+
     def initialize
       self.logger = Rails.logger
       @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
@@ -15,46 +18,56 @@ module GrdaWarehouse::Tasks
         @notifier  = Slack::Notifier.new(slack_url, channel: channel, username: 'Service History Generator')
       end
       @sanity_check = Set.new
+      Rails.cache.fetch('sanity_check_count') { 0 }
     end
 
     def run!
-      @rows_inserted = 0
-      @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
-      @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
-      @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
-      @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
-      tries ||= 0
-      logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
-      started_at = DateTime.now
-      log = GrdaWarehouse::GenerateServiceHistoryLog.create(started_at: started_at)
+      begin
+        @rows_inserted = 0
+        @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
+        @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
+        @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
+        @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
+        tries ||= 0
+        logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
+        started_at = DateTime.now
+        log = GrdaWarehouse::GenerateServiceHistoryLog.create(started_at: started_at)
 
-      # Provide Application locking so we can be sure we aren't already generating history
-      if GrdaWarehouse::ServiceHistory.advisory_lock_exists?('service_history')
-        logger.warn "Service History Genration already running...exiting"
-        return
-      end
-      # # Add MSSQL support to https://github.com/mceachen/with_advisory_lock see local gem
-      GrdaWarehouse::ServiceHistory.with_advisory_lock('service_history') do
-        remove_stale_history()
-        build_history()
-      end
+        # Provide Application locking so we can be sure we aren't already generating history
+        if GrdaWarehouse::ServiceHistory.advisory_lock_exists?('service_history')
+          logger.warn "Service History Genration already running...exiting"
+          return
+        end
+        # # Add MSSQL support to https://github.com/mceachen/with_advisory_lock see local gem
+        GrdaWarehouse::ServiceHistory.with_advisory_lock('service_history') do
+          remove_stale_history()
+          build_history()
+        end
 
-      sanity_check()
-      
-      completed_at = DateTime.now
-      log.assign_attributes(completed_at: completed_at, to_delete: @to_delete.size, to_add: @to_add_count, to_update: @to_update_count)
-      unless @dry_run
-        log.save
+        sanity_check()
+        
+        completed_at = DateTime.now
+        log.assign_attributes(completed_at: completed_at, to_delete: @to_delete.size, to_add: @to_add_count, to_update: @to_update_count)
+        unless @dry_run
+          log.save
+        end
+      ensure
+        Rails.cache.delete('sanity_check_count')
       end
     end
 
     # sanity check anyone we've touched
     def sanity_check
+      runs = Rails.cache.fetch('sanity_check_count')
+      log_and_send_message "Sanity check runs: #{runs}"
+      return if runs >= MAX_RUNS
       batches = @sanity_check.each_slice(@batch_size)
       batches.each_with_index do |batch, index|
-        log_and_send_message "Sanity Checking all #{@sanity_check.size} clients in batches of#{batch.size}.  Batch #{index + 1}"
+        log_and_send_message "Sanity Checking all #{@sanity_check.size} clients in batches of #{batch.size}.  Batch #{index + 1}"
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, batch).run!
       end
+      runs += 1
+      Rails.cache.write('sanity_check_count', runs)
     end
 
     def log_and_send_message msg
@@ -492,7 +505,7 @@ module GrdaWarehouse::Tasks
         # Queue run the add method, which will blow away their service history
         # and re-create it
         if export.blank?
-          logger.info "Client #{id} has enrollments in the service history that don't exist in the source data, rebuilding."
+          log_and_send_message "Client #{id} has enrollments in the service history that don't exist in the source data, rebuilding."
           add(id)
           @sanity_check << id
           return
@@ -1263,7 +1276,7 @@ module GrdaWarehouse::Tasks
       rescue Exception => e
         Rails.logger.error e.inspect
         Rails.logger.error enrollment.inspect
-        raise "Failed to build entries for #{enrollment.inspect}"
+        log_and_send_message "Failed to build entries for client: #{enrollment.inspect}"
       end
       # Special case which comes up mostly with ETO exports where they fail to update the ExportDate
       build_history_until = if(export_date < Date.today && Date.today < export_end)

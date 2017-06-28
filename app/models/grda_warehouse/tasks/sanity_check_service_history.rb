@@ -40,7 +40,7 @@ module GrdaWarehouse::Tasks
       messages = []
       @destinations.each do |id, counts|
         if counts[:service_history].except(:service) != counts[:source].except(:service)
-          msg = "Hey, the enrollment counts don't match for client: *#{id}* \n```#{counts.except(:source_personal_ids).inspect}```\nInvalidating service history for client."
+          msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
           client_source.find(id).invalidate_service_history
@@ -49,7 +49,7 @@ module GrdaWarehouse::Tasks
           service_history_count = counts[:service_history].try(:[], :service) || 0
           service_count = counts[:source].try(:[], :service) || 0
           if (service_history_count - service_count).abs > 3
-            msg = "Hey, the service history counts don't match for client: *#{id}* \n```source: #{service_count} service_history: #{service_history_count}```\nInvalidating service history for client."
+            msg = "```client: #{id} \nsource: #{service_count} service_history: #{service_history_count}```\n"
             logger.warn msg
             messages << msg
             client_source.find(id).invalidate_service_history
@@ -60,7 +60,8 @@ module GrdaWarehouse::Tasks
       if messages.any?
         rebuilding_message = "Rebuilding service history for #{messages.size} invalidated clients."
         if send_notifications
-          msg = messages.join("\n")
+          msg = "Hey, the service history counts don't match for the following client(s).  Service histories have been invalidated.\n"
+          msg += messages.join("\n")
           msg += "\n\n#{rebuilding_message}"
           notifier.ping msg
         end
@@ -125,7 +126,8 @@ module GrdaWarehouse::Tasks
     end
 
     def load_source_enrollments
-      client_source.joins(:source_enrollments).
+      # Limit to only enrollments that have projects
+      client_source.joins(source_enrollments: :project).
         where(id: @destinations.keys).
         group(:id).
         pluck(:id, nf( 'COUNT', [enrollment_source.arel_table[:ProjectEntryID]] ).to_sql).
@@ -136,8 +138,9 @@ module GrdaWarehouse::Tasks
 
     def load_source_exits
       # this is a bit nasty, but we sometimes have two exits for a single enrollment
-        # which shouldn't happen.  We'll get around it by counting carefully
-      client_source.joins(:source_exits).
+      # which shouldn't happen.  We'll get around it by counting carefully.
+      # Also limit to only exits with enrollments that have projects
+      client_source.joins(source_exits: {enrollment: :project}).
         where(id: @destinations.keys).
         group(:id).
         pluck(
