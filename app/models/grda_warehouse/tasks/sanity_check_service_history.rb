@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
           notifier.ping msg
         end
         logger.info rebuilding_message
-        GrdaWarehouse::Tasks::AddServiceHistory.new.run!
+        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       end
     end
 

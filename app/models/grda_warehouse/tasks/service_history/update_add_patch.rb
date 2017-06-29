@@ -1,4 +1,4 @@
-module GrdaWarehouse::Tasks::GenerateServiceHistory
+module GrdaWarehouse::Tasks::ServiceHistory
   # A simplified version of Generate service history that only does 
   # the add section.
   # This allows us to invalidate clients and relatively quickly rebuild
@@ -9,9 +9,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
     require 'ruby-progressbar'
     attr_accessor :logger
 
-  end
-
-  # Build service history nights for all GrdaWarehouse::Hud::Client.destination
+    # Build service history nights for all GrdaWarehouse::Hud::Client.destination
     # Process:
     # 1. NEW: Fetch any clients who don't have an entry in GrdaWarehouse::WarehouseClientsProcessed for routine service_history
     # 2. UPDATES:
@@ -51,4 +49,5 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
       process_to_add()
       process_to_patch()
     end
+  end
 end

@@ -1,4 +1,4 @@
-module GrdaWarehouse::Tasks::GenerateServiceHistory
+module GrdaWarehouse::Tasks::ServiceHistory
   # A simplified version of Generate service history that only does 
   # the add section.
   # This allows us to invalidate clients and relatively quickly rebuild

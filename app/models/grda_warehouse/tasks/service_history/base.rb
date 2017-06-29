@@ -1,4 +1,4 @@
-module GrdaWarehouse::Tasks::GenerateServiceHistory
+module GrdaWarehouse::Tasks::ServiceHistory
   class Base
     include TsqlImport
     include ActiveSupport::Benchmarkable
@@ -406,7 +406,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
         [enrollment[:entry_id], enrollment[:data_source_id]]
       end
       entries_to_add = entries.select do |entry|
-        simple_enrollments.include?([entry[:enrollment_group_id], entry[:data_source_id]])
+        simple_enrollments.include?([entry[:entry_id], entry[:data_source_id]])
       end.map(&:values)
       benchmark "   added #{entries_to_add.size} entries (#{entries_per_day.round(2)}/day) for client_id: #{id} #{first_date_served.iso8601}-#{last_date_served.iso8601}" do
         unless @dry_run
@@ -499,7 +499,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
             insert_batch(
               service_history_source, 
               service_history_columns.values, 
-              entries_to_add, 
+              entries_to_add.map(&:values), 
               transaction: false
             )
             # update the last date served for this client
@@ -920,15 +920,18 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
 
           # but we need it to be DBMS-agnostic, so we do this
 
+          ct = GrdaWarehouse::Hud::Client.arel_table
+          dt = GrdaWarehouse::DataSource.arel_table
+
           # make some tables to joined via union
           t = unionize [
             [
-              c_t,
-              c_t.join(dt).on( c_t[:data_source_id].eq(d_t[:id])).where( d_t[:source_type].not_eq(nil))
+              ct,
+              ct.join(dt).on( ct[:data_source_id].eq dt[:id] ).where( dt[:source_type].not_eq nil )
             ],
-            [e_t],
-            [ex_t],
-            [s_t]
+            [GrdaWarehouse::Hud::Enrollment.arel_table],
+            [GrdaWarehouse::Hud::Exit.arel_table],
+            [GrdaWarehouse::Hud::Service.arel_table]
           ].map do |t, base=t|
             base.project(
                 t[:PersonalID].as('PersonalID'),
@@ -941,7 +944,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
           t = add_alias :a, t
 
           # construct the query
-          query = c_t.engine.with_deleted.select(   # note that *any* arel table engine will do; we add the with_deleted scope to prevent paranoia shenanigans with this table
+          query = ct.engine.with_deleted.select(   # note that *any* arel table engine will do; we add the with_deleted scope to prevent paranoia shenanigans with this table
               t[:data_source_id],
               t[:PersonalID],
               t[:DateUpdated].maximum,
@@ -955,7 +958,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
 
           GrdaWarehouse::Hud::Base.connection.select_rows(sql).map do |ds_id, personal_id, max_updated, max_deleted|
             # Fix the column type, select_rows now returns all strings
-            ds_id = service_history_source.column_types['data_source_id'].type_cast_from_database(ds_id)
+            ds_id = GrdaWarehouse::ServiceHistory.column_types['data_source_id'].type_cast_from_database(ds_id)
             max_updated = GrdaWarehouse::Hud::Service.column_types['DateUpdated'].type_cast_from_database(max_updated)
             max_deleted = GrdaWarehouse::Hud::Service.column_types['DateDeleted'].type_cast_from_database(max_deleted)
             res[[personal_id, ds_id]] = ActiveSupport::TimeWithZone.new([max_updated, max_deleted].compact.max, Time.zone)
@@ -976,10 +979,10 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
 
     def enrollment_columns
       {
-        enrollment_group_id: e_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
+        entry_id: e_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
         personal_id: e_t[:PersonalID].as('PersonalID').to_sql,
         project_id: e_t[:ProjectID].as('ProjectID').to_sql,
-        first_date_in_program: e_t[:EntryDate].as('EntryDate').to_sql,
+        entry_date: e_t[:EntryDate].as('EntryDate').to_sql,
         household_id: e_t[:HouseholdID].as('HouseholdID').to_sql,
         relationship_to_hoh: e_t[:RelationshipToHoH].as('RelationshipToHoH').to_sql,
         housing_status_at_entry: e_t[:HousingStatus].as('HousingStatus').to_sql,
@@ -994,9 +997,9 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
 
     def exit_columns
       {
-        enrollment_group_id: exi_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
+        entry_id: exi_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
         personal_id: exi_t[:PersonalID].as('PersonalID').to_sql,
-        last_date_in_program: exi_t[:ExitDate].as('ExitDate').to_sql,
+        exit_date: exi_t[:ExitDate].as('ExitDate').to_sql,
         destination: exi_t[:Destination].as('Destination').to_sql,
         housing_status_at_exit: exi_t[:HousingAssessment].as('HousingAssessment').to_sql,
         created_at: exi_t[:DateCreated].as('DateCreated').to_sql,
@@ -1019,7 +1022,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
 
     def service_columns
       {
-        enrollment_group_id: s_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
+        entry_id: s_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
         personal_id: s_t[:PersonalID].as('PersonalID').to_sql,
         date: s_t[:DateProvided].as('DateProvided').to_sql,
         record_type: s_t[:RecordType].as('RecordType').to_sql,
@@ -1095,7 +1098,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
     end
 
     def entry_exit_tracking project
-      ! street_outreach_acts_as_bednight?(project) && project[:tracking_method] != 3
+      ! street_outreach_acts_as_bednight?(project) && project[:project_tracking_method] != 3
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -1134,7 +1137,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
           export_id: enrollment[:export_id]
         )
         export_date = export[:export_date].to_date
-        export_end = export[:export_end].to_date
+        export_end = export[:export_end_date].to_date
       rescue Exception => e
         Rails.logger.error e.inspect
         Rails.logger.error enrollment.inspect
@@ -1183,7 +1186,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
     def construct_history_by_entry_exit enrollment:, program_exit:, head_of_household_id:, project:, build_history_until:
       program_exit_date = program_exit[:exit_date] if program_exit.present?
       program_destination = program_exit[:destination] if program_exit.present?
-      housing_status_at_exit = program_exit[:housing_status] if program_exit.present?
+      housing_status_at_exit = program_exit[:housing_status_at_exit] if program_exit.present?
       program_entry_date = enrollment[:entry_date]
       project_type = project[:project_type]
 
@@ -1203,9 +1206,9 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
         household_id: enrollment[:household_id],
         project_name: project[:project_name],
         organization_id: project[:organization_id],
-        project_tracking_method: project[:tracking_method],
+        project_tracking_method: project[:project_tracking_method],
         record_type: nil,
-        housing_status_at_entry: enrollment[:housing_status],
+        housing_status_at_entry: enrollment[:housing_status_at_entry],
         housing_status_at_exit: housing_status_at_exit,
       }
       [].tap do |e|
@@ -1244,7 +1247,7 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
     def construct_history_by_service enrollment:, program_exit:, head_of_household_id:, project:
       program_exit_date = program_exit[:exit_date] if program_exit.present?
       program_destination = program_exit[:destination] if program_exit.present?
-      housing_status_at_exit = program_exit[:housing_status] if program_exit.present?
+      housing_status_at_exit = program_exit[:housing_status_at_exit] if program_exit.present?
       program_entry_date = enrollment[:entry_date]
       personal_id = enrollment[:personal_id]
       data_source_id = enrollment[:data_source_id]
@@ -1270,9 +1273,9 @@ module GrdaWarehouse::Tasks::GenerateServiceHistory
         household_id: enrollment[:household_id],
         project_name: project[:project_name],
         organization_id: project[:organization_id],
-        project_tracking_method: project[:tracking_method],
+        project_tracking_method: project[:project_tracking_method],
         record_type: nil,
-        housing_status_at_entry: enrollment[:housing_status],
+        housing_status_at_entry: enrollment[:housing_status_at_entry],
         housing_status_at_exit: housing_status_at_exit,
       }
       [].tap do |e|
