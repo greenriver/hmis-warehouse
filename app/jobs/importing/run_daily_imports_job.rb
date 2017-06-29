@@ -16,7 +16,7 @@ module Importing
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
-      GrdaWarehouse::Tasks::GenerateServiceHistory.new.run!
+      GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
       Nickname.populate!
       UniqueName.update!
       GrdaWarehouse::Tasks::CensusImport.new.run!
@@ -57,7 +57,7 @@ module Importing
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1000).run!
       # Make sure we don't have anyone who needs re-generation, even if they have
       # birthdays that are incorrect
-      GrdaWarehouse::Tasks::AddServiceHistory.new.run!
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       # Generate some duplicates if we need to, but not too many
       opts = {
         threshold: -1.45,
