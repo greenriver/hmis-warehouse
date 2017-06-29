@@ -140,7 +140,7 @@ namespace :grda_warehouse do
 
   desc "Generate Service History"
   task generate_service_history: [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Tasks::GenerateServiceHistory.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
   end
 
   desc "Populate/replace nicknames"
