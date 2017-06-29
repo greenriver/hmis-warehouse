@@ -74,7 +74,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         client_id = service_history_source.column_types['client_id'].type_cast_from_database(client_id)
         last_service_updated_at = service_history_source.column_types['last_service_updated_at'].type_cast_from_database(last_service_updated_at)
         # Ignore anyone who no longer has any active source clients
-        next unless client_sources[client_id].present?
+        next unless source_clients_for(client_id).any?
         # If newly imported data is newer than the date stored the last time we generated, regenerate
         last_modified = max_date_updated_for_destination_id(client_id)
         if last_service_updated_at.nil?
@@ -101,7 +101,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         pluck(:client_id)
       # Exclude anyone we're already planning to update
       @to_patch = @to_patch - @to_update.keys
-      # @to_patch = [534165]
+      # @to_patch = [328572]
       logger.info "...found #{@to_patch.size}."
       @to_patch
     end
@@ -182,7 +182,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Setup a huge transaction, we'll commit frequently
         GrdaWarehouseBase.transaction do
           batch.each_with_index do |id,index|
-            patch(id)
+            # ignore anyone with no source clients
+            patch(id) if source_clients_for(id).any?
             clients_completed += 1
             status('Patched', clients_completed, commit_after: 10, denominatar: @to_patch.size)
           end
@@ -304,7 +305,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # We only care if we've changed the client table, if we have, we'll add them 
       # to @to_add and let it rebuild (maybe we have a new birthday)
       if (enrollments_to_update + enrollments_to_delete + services_to_delete + exits_to_delete).empty?
-        client_sources[id].each do |client_id|
+        source_clients_for(id).each do |client_id|
           if clients_by_id[client_id][:updated_at] > @to_update[id]
             # logger.info "Originally updating #{id}, now adding"
             @to_add << id
@@ -459,7 +460,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       entries_to_add = []
       last_dates_served = []
       unique_days = Set.new
-      return if most_recent_day_by_project.blank?
+      # if we don't have any service history or source clients, ignore this one.
+      return if most_recent_day_by_project.blank? || source_clients_for(id).empty?
       most_recent_day_by_project.each do |day|
         # Find the export associated with the source enrollment,
         # which may have a different (and updated) export_id than the 
@@ -580,7 +582,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @source_client_personal_ids ||= [].tap do |m|
         all_ids = @batch
         all_ids.each_slice(5000) do |ids|
-          m.concat(GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).where(warehouse_clients: {destination_id: ids}).pluck('PersonalID'))
+          m.concat(GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).where(warehouse_clients: {destination_id: ids}).pluck(:PersonalID))
         end
       end
     end
@@ -603,6 +605,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
           m[row.first] << row.last
         end
       end
+    end
+
+    def source_clients_for destination
+      return [] if client_sources[destination].blank?
+      client_sources[destination]
     end
 
     def enrollments_by_personal_id
@@ -760,7 +767,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def exits_for_client_id destination_id
-      client_sources[destination_id].map do |id|
+      source_clients_for(destination_id).map do |id|
         exits_for_personal_id(
           personal_id: field_for_client(client_id: id, field: :personal_id), 
           data_source_id: field_for_client(client_id: id, field: :data_source_id)
@@ -837,7 +844,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def services_for_client_id destination_id
-      client_sources[destination_id].map do |s|
+      source_clients_for(destination_id).map do |s|
         services_for_personal_id(
           field_for_client(client_id: id, field: :personal_id), 
           field_for_client(client_id: id, field: :data_source_id)
@@ -1072,7 +1079,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def find_enrollments destination
-      client_sources[destination].map do |id|
+      return [] if source_clients_for(destination).empty?
+      source_clients_for(destination).map do |id|
         enrollments_for_client(
           personal_id: field_for_client(client_id: id, field: :personal_id), 
           data_source_id: field_for_client(client_id: id, field: :data_source_id)
@@ -1081,7 +1089,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
     
     def find_enrollments_with_deleted destination
-      client_sources[destination].map do |id|
+      return [] if source_clients_for(destination).blank?
+      source_clients_for(destination).map do |id|
         enrollments_for_client_with_deleted(
           personal_id: field_for_client(client_id: id, field: :personal_id), 
           data_source_id: field_for_client(client_id: id, field: :data_source_id)
