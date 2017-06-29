@@ -13,7 +13,7 @@ class TranslationKeysController < ApplicationController
       TranslationKey.where(tk_t[:key].matches("%#{@query}%"))
       
     end.order(key: :asc)
-    console
+
     if params[:missing_lang]
       unless params[:missing_lang] == ""
         keys = keys.joins(:translations).
@@ -52,7 +52,8 @@ class TranslationKeysController < ApplicationController
   end
 
   def update
-    if @translation_key.update(params.permit(:translation_key))
+    console
+    if @translation_key.update(translation_key_params)
       flash[:notice] = 'Saved!'
       redirect_to @translation_key
     else
@@ -62,6 +63,16 @@ class TranslationKeysController < ApplicationController
   end
   
   protected  
+  
+  def translation_key_params
+    # To Permit a Hash, Pass an Array
+    # http://patshaughnessy.net/2014/6/16/a-rule-of-thumb-for-strong-parameters
+    params.require(:translation_key).
+      permit(
+        :key, 
+        translations_attributes: [:id, :text, :locale]
+      )
+  end
   
   def self.tbe_config
     @@tbe_config ||= YAML::load(File.read(Rails.root.join('config','translation_db_engine.yml'))).with_indifferent_access rescue {}
