@@ -482,6 +482,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         date = day[:date] + 1.days
 
         project = project(project_id: day[:project_id], data_source_id: day[:data_source_id])
+        return unless project.present?
+        
         if entry_exit_tracking(project)
           while date < build_history_until
             new_day = day.deep_dup
@@ -1112,6 +1114,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
     def street_outreach_acts_as_bednight? project
+      return false unless project.present?
       @bednight_so_projects ||= begin
         GrdaWarehouse::Hud::Project.so
           .joins(:services)
