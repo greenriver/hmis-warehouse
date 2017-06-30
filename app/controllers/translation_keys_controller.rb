@@ -4,6 +4,7 @@ class TranslationKeysController < ApplicationController
   before_action :add_default_locales_to_translation, only: [:show, :new]
 
   def index
+    # raise "hi"
     @search = params.require(:search).permit(:q) if params[:search]
     @missing = params.require(:language).permit(:missing_lang) if params[:language]
     tt_t = TranslationText.arel_table
@@ -24,7 +25,10 @@ class TranslationKeysController < ApplicationController
           or(tt_t[:text].eq(''))
           .and(tt_t[:locale].eq(@lang))
         )
+    else
+      @translation_keys = TranslationKey
     end
+    @translation_keys = @translation_keys.page(params[:page]).per(25)
     render action: :index
   end
 
