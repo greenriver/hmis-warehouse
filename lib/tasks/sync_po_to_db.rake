@@ -25,7 +25,7 @@ task :sync_po_to_db => :environment do
     translations.reject(&:fuzzy?).each do |t|
       next if t.msgid.blank? #atm do not insert metadata
 
-      key = TranslationKey.find_or_create_by_key(t.msgid)
+      key = TranslationKey.where(key: t.msgid).first_or_create
       #do not overwrite existing translations
       next if key.translations.detect{|text| text.locale == locale}
 

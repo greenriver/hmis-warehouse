@@ -3,7 +3,7 @@ require "fast_gettext/translation_repository/db"
 FastGettext::TranslationRepository::Db.require_models #load and include default models
 
 FastGettext.add_text_domain(
-  'database', 
+  'hmis_warehouse', 
   :path => 'locale', 
   :type => :db,
   :model => TranslationKey,

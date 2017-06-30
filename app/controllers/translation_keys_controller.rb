@@ -5,27 +5,26 @@ class TranslationKeysController < ApplicationController
 
   def index
     @search = params.require(:search).permit(:q) if params[:search]
-    @query = @search[:q] if @search.present?
-    keys = if @query.blank?
-      TranslationKey
-    else
-      tk_t = TranslationKey.arel_table
-      TranslationKey.where(tk_t[:key].matches("%#{@query}%"))
+    @missing = params.require(:language).permit(:missing_lang) if params[:language]
+    tt_t = TranslationText.arel_table
+    tk_t = translation_key_source.arel_table
+    if @search.present?
+      @query = @search[:q]  
+      @translation_keys = if @query.blank?
+        translation_key_source
+      else
+        translation_key_source.where(tk_t[:key].matches("%#{@query}%"))    
+      end.order(key: :asc)
+    elsif @missing.present?
       
-    end.order(key: :asc)
-
-    if params[:missing_lang]
-      unless params[:missing_lang] == ""
-        keys = keys.joins(:translations).
-          where(
-            tk_t[:text].is(nil).
-            or(tk_t[:text].eq(''))
-            .and(tk_t[:locale].eq(params.require(:language).permit(:missing_lang)))
-          )
-      end
+      @lang = params.require(:language).permit(:missing_lang).fetch(:missing_lang)
+      @translation_keys = translation_key_source.joins(:translations).
+        where(
+          tt_t[:text].eq(nil).
+          or(tt_t[:text].eq(''))
+          .and(tt_t[:locale].eq(@lang))
+        )
     end
-    @translation_keys = keys#.page(2).per(25)
-
     render action: :index
   end
 
@@ -62,7 +61,9 @@ class TranslationKeysController < ApplicationController
     end
   end
   
-  protected  
+  def translation_key_source
+    TranslationKey
+  end  
   
   def translation_key_params
     # To Permit a Hash, Pass an Array

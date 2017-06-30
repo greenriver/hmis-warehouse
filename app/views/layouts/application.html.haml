@@ -21,11 +21,11 @@
             .site-name
               .site-title
                 = link_to root_path do
-                  = 'Boston DND Warehouse'
+                  = _('Boston DND Warehouse')
                   - unless Rails.env.production?
                     %span{style: 'font-size:12px;'}= "[#{Rails.env}]"
             .tagline
-              Ending Veteran & Chronic Homelessness in Boston
+              = _('Ending Veteran & Chronic Homelessness in Boston')
           .col-xs-2
             - if user_signed_in?
               = render 'layouts/site_menu'

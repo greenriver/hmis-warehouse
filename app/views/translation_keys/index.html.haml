@@ -5,15 +5,9 @@
       = text_field :search, :q, label: 'Search for English Key', value: @search.try(:[], :q)
       = f.button :submit, value: 'Find String'
 
-
-    = form_tag translation_keys_path, :method => :get do
-      .radio.inline Search for keys missing translations in: 
-      .radio.inline= label_tag("missing_lang_" + "", "none")
-      .radio.inline= radio_button_tag(:missing_lang, "")
-      - locales.each do |lang| 
-        .radio.inline= label_tag("missing_lang_" + lang, lang)
-        .radio.inline= radio_button_tag(:missing_lang, lang)
-      .radio.inline= submit_tag("Submit")
+    = simple_form_for :language, as: :language, url: translation_keys_path, method: :get do |f|
+      = f.input :missing_lang, collection: locales, include_blank: false
+      = f.button :submit, value: 'Find Missing Strings'
       
 .row.table-utilities
   .col-sm-4
