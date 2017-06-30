@@ -1003,7 +1003,6 @@ module GrdaWarehouse::Hud
       enrollments = scope.
         joins(exit_join.join_sources).
         joins(:service_histories, :project).
-        # joins(:organization).
         where(service_table[:record_type].in(['service', 'entry'])).
         select(*columns.values).
         pluck(*columns.values).
