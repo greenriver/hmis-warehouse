@@ -851,7 +851,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def services_for_client_id destination_id
-      source_clients_for(destination_id).map do |s|
+      source_clients_for(destination_id).map do |id|
         services_for_personal_id(
           field_for_client(client_id: id, field: :personal_id), 
           field_for_client(client_id: id, field: :data_source_id)
