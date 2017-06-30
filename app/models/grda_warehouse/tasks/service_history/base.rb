@@ -133,7 +133,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       GC.start
       batches = @to_update.keys.each_slice(@batch_size)
       batches.each do |batch|
-        prepare_for_batch batch() # Limit fetching to the current batch
+        prepare_for_batch(batch) # Limit fetching to the current batch
         # Setup a huge transaction, we'll commit frequently
         GrdaWarehouseBase.transaction do
           batch.each_with_index do |id,index|
@@ -158,7 +158,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @sanity_check += @to_add
       clients_completed = 0
       batches.each do |batch|
-        prepare_for_batch batch # Limit fetching to the current batch
+        prepare_for_batch(batch) # Limit fetching to the current batch
         # Setup a huge transaction, we'll commit frequently
         GrdaWarehouseBase.transaction do
           batch.each_with_index do |id,index|
@@ -178,7 +178,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       batches = @to_patch.each_slice(10000)
       clients_completed = 0
       batches.each do |batch|
-        prepare_for_batch batch # Limit fetching to the current batch
+        prepare_for_batch(batch) # Limit fetching to the current batch
         # Setup a huge transaction, we'll commit frequently
         GrdaWarehouseBase.transaction do
           batch.each_with_index do |id,index|
@@ -466,12 +466,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Find the export associated with the source enrollment,
         # which may have a different (and updated) export_id than the 
         # most recent day 
-        export = export_for_project_entry_id(data_source_id: day[:data_source_id], project_entry_id: day[:enrollment_group_id])
+        export = export_for_project_entry_id(
+          data_source_id: day[:data_source_id], 
+          project_entry_id: day[:enrollment_group_id]
+        )
         # If we don't have a source enrollment, something went wrong
         # Queue run the add method, which will blow away their service history
         # and re-create it
         if export.blank?
-          log_and_send_message "Client #{id} has enrollments in the service history that don't exist in the source data, rebuilding."
+          log_and_send_message "Client #{id} has enrollments in the service history that don't exist in the source data, rebuilding. day: #{day.inspect}"
           add(id)
           @sanity_check << id
           return
@@ -538,7 +541,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Mark the client processed, so we don't try to process them again and again even though they don't have any enrollments
         processed = warehouse_clients_processed_source.where(client_id: id, routine: 'service_history').first_or_initialize
         processed.routine = 'service_history'
-        processed.last_service_updated_at = max_date_updated_for_destination_id(id)
+        # attempt to find the updated date, but if we don't have anything, we should
+        # be safe using today
+        processed.last_service_updated_at = max_date_updated_for_destination_id(id) || Date.today
         processed.first_date_served = nil
         processed.last_date_served = nil
         processed.days_served = 0
@@ -697,7 +702,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             st[:data_source_id],
             st[:client_id]
           ).
-          where( st[:record_type].eq 'service' ).
+          where( st[:record_type].eq('service')).
           where( client_id: @batch, last_date_in_program: nil ).
           group( :project_id, :data_source_id, :client_id ).
           as('sh')
@@ -1154,7 +1159,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         Rails.logger.error e.inspect
         Rails.logger.error enrollment.inspect
         log_and_send_message "Failed to build entries for client with enrollment: #{enrollment.inspect} and export: #{export.inspect}"
-        return
+        return []
       end
       # Special case which comes up mostly with ETO exports where they fail to update the ExportDate
       build_history_until = if export_date.present? && export_end.present? && export_date < Date.today && Date.today < export_end
@@ -1373,7 +1378,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def max_date_updated_for_destination_id destination_id
-      client_sources[destination_id].map do |id|
+      # This shouldn't happen, but sometimes it gets confused
+      return nil unless source_clients_for(destination_id).any?
+      source_clients_for(destination_id).map do |id|
         lookup = [
           clients_by_id[id][:personal_id], 
           clients_by_id[id][:data_source_id]

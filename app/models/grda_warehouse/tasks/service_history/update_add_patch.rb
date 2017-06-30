@@ -32,8 +32,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @to_patch = clients_with_open_enrollments()
       
       # Sanity check anyone with an open enrollment
-      @sanity_check += service_history_source.entry.
-        where(last_date_in_program: nil).pluck(:client_id)
+      # @sanity_check += service_history_source.entry.
+      #   where(last_date_in_program: nil).pluck(:client_id)
       
       if no_one_to_build?
         logger.info "Nothing to do."
