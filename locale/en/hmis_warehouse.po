@@ -29,5 +29,5 @@ msgstr ""
 msgid "Process Duplicates"
 msgstr ""
 
-msgid "The Boston DND Warehouse is operated by the %br Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
+msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
 msgstr ""

@@ -52,7 +52,8 @@
       .container{class: container_classes}
         %p.text-center
           = render 'layouts/boston_seal'
-          = _("The Boston DND Warehouse is operated by the %{br} Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.").html_safe
+          .col-sm-6
+            = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
 
     = render 'pjax_modal_frame'
     = javascript_include_tag 'application'

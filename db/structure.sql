@@ -105,52 +105,6 @@ ALTER SEQUENCE activity_logs_id_seq OWNED BY activity_logs.id;
 
 
 --
--- Name: cas_reports; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE cas_reports (
-    id integer NOT NULL,
-    client_id integer NOT NULL,
-    match_id integer NOT NULL,
-    decision_id integer NOT NULL,
-    decision_order integer NOT NULL,
-    match_step character varying NOT NULL,
-    decision_status character varying NOT NULL,
-    current_step boolean DEFAULT false NOT NULL,
-    active_match boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    elapsed_days integer DEFAULT 0 NOT NULL,
-    client_last_seen_date timestamp without time zone,
-    criminal_hearing_date timestamp without time zone,
-    decline_reason character varying,
-    not_working_with_client_reason character varying,
-    administrative_cancel_reason character varying,
-    client_spoken_with_services_agency boolean,
-    cori_release_form_submitted boolean
-);
-
-
---
--- Name: cas_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE cas_reports_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE cas_reports_id_seq OWNED BY cas_reports.id;
-
-
---
 -- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -284,6 +238,210 @@ CREATE SEQUENCE imports_id_seq
 --
 
 ALTER SEQUENCE imports_id_seq OWNED BY imports.id;
+
+
+--
+-- Name: lit_incomming_localizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE lit_incomming_localizations (
+    id integer NOT NULL,
+    translated_value text,
+    locale_id integer,
+    localization_key_id integer,
+    localization_id integer,
+    locale_str character varying,
+    localization_key_str character varying,
+    source_id integer,
+    incomming_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: lit_incomming_localizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE lit_incomming_localizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lit_incomming_localizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE lit_incomming_localizations_id_seq OWNED BY lit_incomming_localizations.id;
+
+
+--
+-- Name: lit_locales; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE lit_locales (
+    id integer NOT NULL,
+    locale character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    is_hidden boolean DEFAULT false
+);
+
+
+--
+-- Name: lit_locales_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE lit_locales_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lit_locales_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE lit_locales_id_seq OWNED BY lit_locales.id;
+
+
+--
+-- Name: lit_localization_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE lit_localization_keys (
+    id integer NOT NULL,
+    localization_key character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    is_completed boolean DEFAULT false,
+    is_starred boolean DEFAULT false
+);
+
+
+--
+-- Name: lit_localization_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE lit_localization_keys_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lit_localization_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE lit_localization_keys_id_seq OWNED BY lit_localization_keys.id;
+
+
+--
+-- Name: lit_localization_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE lit_localization_versions (
+    id integer NOT NULL,
+    translated_value text,
+    localization_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: lit_localization_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE lit_localization_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lit_localization_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE lit_localization_versions_id_seq OWNED BY lit_localization_versions.id;
+
+
+--
+-- Name: lit_localizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE lit_localizations (
+    id integer NOT NULL,
+    locale_id integer,
+    localization_key_id integer,
+    default_value text,
+    translated_value text,
+    is_changed boolean DEFAULT false,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: lit_localizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE lit_localizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lit_localizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE lit_localizations_id_seq OWNED BY lit_localizations.id;
+
+
+--
+-- Name: lit_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE lit_sources (
+    id integer NOT NULL,
+    identifier character varying,
+    url character varying,
+    api_key character varying,
+    last_updated_at timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: lit_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE lit_sources_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lit_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE lit_sources_id_seq OWNED BY lit_sources.id;
 
 
 --
@@ -456,7 +614,7 @@ CREATE TABLE roles (
     can_edit_client_health boolean DEFAULT false,
     can_view_client_health boolean DEFAULT false,
     can_edit_project_groups boolean DEFAULT false,
-    can_edit_translations boolean DEFAULT false
+    can_edit_translations boolean DEFAULT false,
     can_edit_projects boolean DEFAULT false,
     can_edit_organizations boolean DEFAULT false,
     can_edit_data_sources boolean DEFAULT false,
@@ -819,6 +977,48 @@ ALTER TABLE ONLY imports ALTER COLUMN id SET DEFAULT nextval('imports_id_seq'::r
 
 
 --
+-- Name: lit_incomming_localizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_incomming_localizations ALTER COLUMN id SET DEFAULT nextval('lit_incomming_localizations_id_seq'::regclass);
+
+
+--
+-- Name: lit_locales id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_locales ALTER COLUMN id SET DEFAULT nextval('lit_locales_id_seq'::regclass);
+
+
+--
+-- Name: lit_localization_keys id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_localization_keys ALTER COLUMN id SET DEFAULT nextval('lit_localization_keys_id_seq'::regclass);
+
+
+--
+-- Name: lit_localization_versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_localization_versions ALTER COLUMN id SET DEFAULT nextval('lit_localization_versions_id_seq'::regclass);
+
+
+--
+-- Name: lit_localizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_localizations ALTER COLUMN id SET DEFAULT nextval('lit_localizations_id_seq'::regclass);
+
+
+--
+-- Name: lit_sources id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_sources ALTER COLUMN id SET DEFAULT nextval('lit_sources_id_seq'::regclass);
+
+
+--
 -- Name: nicknames id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -918,15 +1118,7 @@ ALTER TABLE ONLY activity_logs
 
 
 --
--- Name: cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY cas_reports
-    ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
-
-
---
--- Name: clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY clients_unduplicated
@@ -934,7 +1126,7 @@ ALTER TABLE ONLY clients_unduplicated
 
 
 --
--- Name: delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: delayed_jobs delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs
@@ -947,6 +1139,54 @@ ALTER TABLE ONLY delayed_jobs
 
 ALTER TABLE ONLY imports
     ADD CONSTRAINT imports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lit_incomming_localizations lit_incomming_localizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_incomming_localizations
+    ADD CONSTRAINT lit_incomming_localizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lit_locales lit_locales_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_locales
+    ADD CONSTRAINT lit_locales_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lit_localization_keys lit_localization_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_localization_keys
+    ADD CONSTRAINT lit_localization_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lit_localization_versions lit_localization_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_localization_versions
+    ADD CONSTRAINT lit_localization_versions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lit_localizations lit_localizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_localizations
+    ADD CONSTRAINT lit_localizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lit_sources lit_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY lit_sources
+    ADD CONSTRAINT lit_sources_pkey PRIMARY KEY (id);
 
 
 --
@@ -1082,17 +1322,73 @@ CREATE INDEX index_activity_logs_on_user_id ON activity_logs USING btree (user_i
 
 
 --
--- Name: index_cas_reports_on_client_id_and_match_id_and_decision_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON cas_reports USING btree (client_id, match_id, decision_id);
-
-
---
 -- Name: index_imports_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_imports_on_deleted_at ON imports USING btree (deleted_at);
+
+
+--
+-- Name: index_lit_incomming_localizations_on_incomming_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_incomming_localizations_on_incomming_id ON lit_incomming_localizations USING btree (incomming_id);
+
+
+--
+-- Name: index_lit_incomming_localizations_on_locale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_incomming_localizations_on_locale_id ON lit_incomming_localizations USING btree (locale_id);
+
+
+--
+-- Name: index_lit_incomming_localizations_on_localization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_incomming_localizations_on_localization_id ON lit_incomming_localizations USING btree (localization_id);
+
+
+--
+-- Name: index_lit_incomming_localizations_on_localization_key_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_incomming_localizations_on_localization_key_id ON lit_incomming_localizations USING btree (localization_key_id);
+
+
+--
+-- Name: index_lit_incomming_localizations_on_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_incomming_localizations_on_source_id ON lit_incomming_localizations USING btree (source_id);
+
+
+--
+-- Name: index_lit_localization_keys_on_localization_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_lit_localization_keys_on_localization_key ON lit_localization_keys USING btree (localization_key);
+
+
+--
+-- Name: index_lit_localization_versions_on_localization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_localization_versions_on_localization_id ON lit_localization_versions USING btree (localization_id);
+
+
+--
+-- Name: index_lit_localizations_on_locale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_localizations_on_locale_id ON lit_localizations USING btree (locale_id);
+
+
+--
+-- Name: index_lit_localizations_on_localization_key_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lit_localizations_on_localization_key_id ON lit_localizations USING btree (localization_key_id);
 
 
 --
@@ -1360,8 +1656,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170505132237');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 
-INSERT INTO schema_migrations (version) VALUES ('20170526162435');
-
 INSERT INTO schema_migrations (version) VALUES ('20170619210146');
 
 INSERT INTO schema_migrations (version) VALUES ('20170619235354');
@@ -1371,3 +1665,22 @@ INSERT INTO schema_migrations (version) VALUES ('20170626180251');
 INSERT INTO schema_migrations (version) VALUES ('20170627154145');
 
 INSERT INTO schema_migrations (version) VALUES ('20170627182531');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144318');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144319');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144320');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144321');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144322');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144323');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144324');
+
+INSERT INTO schema_migrations (version) VALUES ('20170628144325');
+
+INSERT INTO schema_migrations (version) VALUES ('20170703125950');
+
