@@ -64,7 +64,7 @@ module GrdaWarehouse::Tasks
       if messages.any?
         rebuilding_message = "Rebuilding service history for #{messages.size} invalidated clients."
         if send_notifications
-          msg = "Hey, the service history counts don't match for the following client(s).  Service histories have been invalidated.\n"
+          msg = "Hey, the service history counts don't match for the following #{messages.size} client(s).  Service histories have been invalidated.\n"
           msg += messages.join("\n")
           msg += "\n\n#{rebuilding_message}"
           notifier.ping msg

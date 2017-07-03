@@ -1,5 +1,7 @@
 class DataSourcesController < ApplicationController
-  before_action :require_can_view_imports!
+  before_action :require_can_edit_projects_or_everything!, only: [:update]
+  before_action :require_can_edit_data_sources_or_everything!, only: [:new, :create, :destroy]
+  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
   before_action :set_data_source, only: [:show, :update, :destroy]
 
   def index
@@ -116,5 +118,23 @@ class DataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_source.find(params[:id].to_i)
+  end
+
+  private def require_can_view_imports_projects_or_organizations!
+    can_view = can_view_imports? || can_view_projects? || can_view_organizations? || can_edit_anything_super_user?
+    return true if can_view    
+    not_authorized!
+  end
+
+  private def require_can_edit_projects_or_everything!
+    can_view = can_edit_projects? || can_edit_anything_super_user?
+    return true if can_view    
+    not_authorized!
+  end
+
+  private def require_can_edit_data_sources_or_everything!
+    can_view = can_edit_data_sources? || can_edit_anything_super_user?
+    return true if can_view    
+    not_authorized!
   end
 end

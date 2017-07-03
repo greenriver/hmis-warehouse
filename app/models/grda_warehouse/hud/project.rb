@@ -177,7 +177,7 @@ module GrdaWarehouse::Hud
       viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table     = quoted_table_name
 
-      <<-SQL
+      <<-SQL.squish
 
         EXISTS (
           SELECT 1 FROM
