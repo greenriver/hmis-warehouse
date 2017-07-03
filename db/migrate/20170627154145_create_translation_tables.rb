@@ -1,7 +1,7 @@
 class CreateTranslationTables < ActiveRecord::Migration
   def self.up
     create_table :translation_keys do |t|
-      t.string :key, :unique=>true, :null=>false
+      t.string :key, :unique=>true, :null=>false, default: ''
       t.timestamps
     end
     add_index :translation_keys, :key #I am not sure if this helps....

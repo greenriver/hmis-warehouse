@@ -2,7 +2,6 @@ desc "synchronise po files with db, creating keys and translations that do not e
 task :sync_po_to_db => :environment do
   folder = ENV['FOLDER']||'locale'
 
-  gem 'grosser-pomo', '>=0.5.1'
   require 'pomo'
   require 'pathname'
   

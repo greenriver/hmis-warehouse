@@ -228,7 +228,7 @@ Rails.application.routes.draw do
       end
       resources :roles, only: [:index]
     end
-    resources :translation_keys
+    resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
   end
   resource :account, only: [:edit, :update]

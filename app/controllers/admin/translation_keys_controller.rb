@@ -40,7 +40,6 @@ module Admin
 
     def show
       @skip_authorization = true
-      
       render action: :edit
     end
 
@@ -50,7 +49,6 @@ module Admin
     end
 
     def update
-      console
       if @translation_key.update(translation_key_params)
         flash[:notice] = 'Saved!'
         redirect_to @translation_key
