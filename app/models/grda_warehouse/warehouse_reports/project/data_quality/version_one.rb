@@ -19,7 +19,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def report_columns
       {
         total_clients: {
-          title:'Clients included'
+          title: 'Clients included'
         },
         total_leavers: {
           title: 'Leavers',
@@ -47,43 +47,42 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           title: 'Target population',
         },
         entering_required_data: {
-          title: 'Is the agency entering the required data/descriptor touch-points into HMI},
-          S for this project?',
+          title: 'Is the agency entering the required data/descriptor touch-points into HMIS for this project?',
           callback: :boolean,
         },
         bed_coverage: {
           title: 'Bed coverage',
         },
         bed_coverage_percent: {
-          title:'Bed coverage',
+          title: 'Bed coverage',
           callback: :percent,
         },
         missing_name_percent: {
-          title:'Missing names',
+          title: 'Missing names',
           callback: :percent,
         },
         missing_ssn_percent: {
-          title:'Missing SSN',
+          title: 'Missing SSN',
           callback: :percent,
         },
         missing_dob_percent: {
-          title:'Missing DOB',
+          title: 'Missing DOB',
           callback: :percent,
         },
         missing_veteran_percent: {
-          title:'Missing veteran status',
+          title: 'Missing veteran status',
           callback: :percent,
         },
         missing_ethnicity_percent: {
-          title:'Missing ethnicity',
+          title: 'Missing ethnicity',
           callback: :percent,
         },
         missing_race_percent: {
-          title:'Missing race',
+          title: 'Missing race',
           callback: :percent,
         },
         missing_gender_percent: {
-          title:'Missing gender',
+          title: 'Missing gender',
           callback: :percent,
         },
         missing_disabling_condition_percentage: {
@@ -99,31 +98,31 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           callback: :percent
         },
         refused_name_percent: {
-          title:'Refused name',
+          title: 'Refused name',
           callback: :percent,
         },
         refused_ssn_percent: {
-          title:'Refused SSN',
+          title: 'Refused SSN',
           callback: :percent,
         },
         refused_dob_percent: {
-          title:'Refused DOB',
+          title: 'Refused DOB',
           callback: :percent,
         },
         refused_veteran_percent: {
-          title:'Refused veteran status',
+          title: 'Refused veteran status',
           callback: :percent,
         },
         refused_ethnicity_percent: {
-          title:'Refused ethnicity',
+          title: 'Refused ethnicity',
           callback: :percent,
         },
         refused_race_percent: {
-          title:'Refused race',
+          title: 'Refused race',
           callback: :percent,
         },
         refused_gender_percent: {
-          title:'Refused gender',
+          title: 'Refused gender',
           callback: :percent,
         },
         refused_disabling_condition_percentage: {
@@ -143,47 +142,54 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           callback: :boolean,
         },
         one_year_enrollments: {
-          title:'Enrollments lasting 12 or more months',
+          title: 'Enrollments lasting 12 or more months',
         },
         one_year_enrollments_percentage: {
-          title:'Clients with enrollments lasting 12 or more months',
+          title: 'Clients with enrollments lasting 12 or more months',
           callback: :percent,
         },
+        ph_destinations: {
+          title: 'Leavers who exited to PH',
+        },
         ph_destinations_percentage: {
-          title:'Leavers who exited to PH',
+          title: 'Percentage of leavers who exited to PH',
         },
         increased_earned: {
-          title:'Clients with increased earned income',
+          title: 'Clients with increased or retained earned income',
         },
         increased_earned_percentage: {
-          title:'Percentage of clients who had increased earned income',
+          title: 'Percentage of clients who had increased or retained  earned income',
           callback: :percent,
         },
         increased_non_cash: {
-          title:'Clients with increased non-cash income',
+          title: 'Clients with increased or retained  non-cash income',
         },
         increased_non_cash_percentage: {
-          title:'Percentage of clients who had increased non-cash income',
+          title: 'Percentage of clients who had increased or retained  non-cash income',
           callback: :percent,
         },
         increased_overall: {
-          title:'Clients with increased overall income',
+          title: 'Clients with increased or retained  overall income',
         },
         increased_overall_percentage: {
-          title:'Percentage of clients who had increased total income',
+          title: 'Percentage of clients who had increased or retained  total income',
           callback: :percent,
         },
         services_provided: {
-          title:'Number of service events',
+          title: 'Number of service events',
         },
         days_of_service: {
-          title:'Number of days in selected range',
+          title: 'Number of days in selected range',
         },
         average_daily_usage: {
-          title:'Average daily usage',
+          title: 'Average daily usage',
+        },
+        average_stay_length: {
+          title: 'Average stay length',
+          callback: :days,
         },
         capacity_percentage: {
-          title:'Percentage of beds in use, on average',
+          title: 'Percentage of beds in use, on average',
           callback: :percent,
         },
       }
@@ -329,7 +335,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_race_percent = (refused_race.size.to_f/clients.size*100).round(2) rescue 0
       refused_gender_percent = (refused_gender.size.to_f/clients.size*100).round(2) rescue 0
 
-      add_answers({
+      answers = {
         total_clients: clients.size,
         total_leavers: leavers.size,
         missing_name: missing_name.size,   
@@ -360,8 +366,74 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         refused_ethnicity_percent: refused_ethnicity_percent,
         refused_race_percent: refused_race_percent,
         refused_gender_percent: refused_gender_percent,
-        
-      })
+      }
+      support = {
+        total_clients: {
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: clients.map{|m| [m[:id], m[:first_name], m[:last_name]]},
+        },
+        total_leavers: {
+          headers: ['Client ID'],
+          counts: leavers.map{|m| Array.wrap(m)}
+        },
+        missing_name: {
+          headers: ['Client ID'],
+          counts: missing_name.map{|m| Array.wrap(m)}
+        },
+        missing_ssn: {
+          headers: ['Client ID'],
+          counts: missing_ssn.map{|m| Array.wrap(m)}
+        },
+        missing_dob: {
+          headers: ['Client ID'],
+          counts: missing_dob.map{|m| Array.wrap(m)}
+        },  
+        missing_veteran: {
+          headers: ['Client ID'],
+          counts: missing_veteran.map{|m| Array.wrap(m)}
+        },
+        missing_ethnicity: {
+          headers: ['Client ID'],
+          counts: missing_ethnicity.map{|m| Array.wrap(m)}
+        },   
+        missing_race: {
+          headers: ['Client ID'],
+          counts: missing_race.map{|m| Array.wrap(m)}
+        },
+        missing_gender: {
+          headers: ['Client ID'],
+          counts: missing_gender.map{|m| Array.wrap(m)}
+        },
+        refused_name: {
+          headers: ['Client ID'],
+          counts: refused_name.map{|m| Array.wrap(m)}
+        },
+        refused_ssn: {
+          headers: ['Client ID'],
+          counts: refused_ssn.map{|m| Array.wrap(m)}
+        },
+        refused_dob: {
+          headers: ['Client ID'],
+          counts: refused_dob.map{|m| Array.wrap(m)}
+        },
+        refused_veteran: {
+          headers: ['Client ID'],
+          counts: refused_veteran.map{|m| Array.wrap(m)}
+        },
+        refused_ethnicity: {
+          headers: ['Client ID'],
+          counts: refused_ethnicity.map{|m| Array.wrap(m)}
+        },
+        refused_race: {
+          headers: ['Client ID'],
+          counts: refused_race.map{|m| Array.wrap(m)}
+        },
+        refused_gender: {
+          headers: ['Client ID'],
+          counts: refused_gender.map{|m| Array.wrap(m)}
+        },
+      }
+      add_answers(answers, support)
     end
 
     def meets_data_quality_benchmark
@@ -387,7 +459,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :refused_prior_living_percentage,
         :refused_destination_percentage,
       ]
-      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).values.max < MISSING_THRESHOLD rescue false
+      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < MISSING_THRESHOLD rescue false
       add_answers({
         meets_dq_benchmark: meets_dq_benchmark
       })
@@ -430,8 +502,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         missing_destination_percentage = (missing_destination.size.to_f/leavers_count*100).round(2) rescue 0
         refused_destination_percentage = (refused_destination.size.to_f/leavers_count*100).round(2) rescue 0
       end
-
-      add_answers({
+      answers = {
         missing_disabling_condition: missing_disabling_condition.size,
         missing_disabling_condition_percentage: missing_disabling_condition_percentage,
         missing_prior_living: missing_prior_living.size,
@@ -444,40 +515,86 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         refused_prior_living_percentage: refused_prior_living_percentage,
         refused_destination: refused_destination.size,
         refused_destination_percentage: refused_destination_percentage,
-      })
+      }
+
+      support = {
+        missing_disabling_condition: {
+          headers: ['Client ID'],
+          counts: missing_disabling_condition.map{|m| Array.wrap(m)}
+        },
+        missing_prior_living: {
+          headers: ['Client ID'],
+          counts: missing_prior_living.map{|m| Array.wrap(m)}
+        },
+        missing_destination: {
+          headers: ['Client ID'],
+          counts: missing_destination.map{|m| Array.wrap(m)}
+        },
+        refused_disabling_condition: {
+          headers: ['Client ID'],
+          counts: refused_disabling_condition.map{|m| Array.wrap(m)}
+        },
+        refused_prior_living: {
+          headers: ['Client ID'],
+          counts: refused_prior_living.map{|m| Array.wrap(m)}
+        },
+        refused_destination: {
+          headers: ['Client ID'],
+          counts: refused_destination.map{|m| Array.wrap(m)}
+        },
+      }
+
+      add_answers(answers, support)
     end
 
     def add_length_of_stay
       client_count = clients.size
       one_year_enrollments = Set.new
-      enrollments.each do |client_id, enrollments|
+      enrollments.each do |client_id, client_enrollments|
         months_in_project = 0
-        enrollments.each do |enrollment|
+        client_enrollments.each do |enrollment|
           end_of_enrollment = enrollment[:last_date_in_program] || self.end
-          months_in_project += (end_of_enrollment - enrollment[:first_date_in_program]).to_i/12
+          start_of_enrollment = enrollment[:first_date_in_program]
+          # count a stay in any month as a month
+          months_in_project += (start_of_enrollment..end_of_enrollment).map{|date| [date.year, date.month]}.uniq.count
         end
-        one_year_enrollments << client_id if months_in_project < 12
+        one_year_enrollments << client_id if months_in_project > 12
       end
       one_year_enrollments_percentage = (one_year_enrollments.size.to_f/client_count*100).round(2) rescue 0
-      add_answers({
+
+      answers = {
         one_year_enrollments: one_year_enrollments.size,
         one_year_enrollments_percentage: one_year_enrollments_percentage,
-      })
+      }
+      support = {
+        one_year_enrollments: {
+          headers: ['Client ID'],
+          counts: one_year_enrollments.map{|m| Array.wrap(m)}
+        },
+      }
+      add_answers(answers, support)
     end
 
     def destination_ph
       ph_destinations = Set.new
-      ph_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
-          ph_destinations << client_id if ph_project_types.include?(enrollment[:destination])
+          ph_destinations << client_id if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
-      ph_destinations_percentage = ph_destinations.size/leavers.size*100 rescue 0
-      add_answers({
+      ph_destinations_percentage = (ph_destinations.size.to_f/leavers.size*100).round(2) rescue 0
+      answers = {
         ph_destinations: ph_destinations.size,
         ph_destinations_percentage: ph_destinations_percentage,
-      })
+      }
+
+      support = {
+        ph_destinations: {
+          headers: ['Client ID'],
+          counts: ph_destinations.map{|m| Array.wrap(m)}
+        },
+      }
+      add_answers(answers, support)
     end
 
     def add_income_answers
@@ -514,22 +631,40 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         first_non_cash_income = first_assessment.values_at(*non_cash_types).compact.sum
         last_total_income = last_assessment.values_at(*all_income_types).compact.sum
         first_total_income = first_assessment.values_at(*all_income_types).compact.sum
-        increased_earned << client_id if last_earned_income > first_earned_income
-        increased_non_cash << client_id if last_non_cash_income > first_non_cash_income
-        increased_overall << client_id if last_total_income > first_total_income
+        increased_earned << client_id if last_earned_income >= first_earned_income
+        # you might also have an increase that doesn't contain the value details
+        increased_earned << client_id if first_earned_income != 1 && last_earned_income == 1
+        increased_non_cash << client_id if last_non_cash_income >= first_non_cash_income
+        increased_overall << client_id if last_total_income >= first_total_income
       end
 
-      increased_earned_percentage = (increased_earned.to_f/clients.size*100).round(2) rescue 0
-      increased_non_cash_percentage = (increased_non_cash.to_f/clients.size*100).round(2) rescue 0
-      increased_overall_percentage = (increased_overall.to_f/clients.size*100).round(2) rescue 0
-      add_answers({
+      increased_earned_percentage = (increased_earned.size.to_f/clients.size*100).round(2) rescue 0
+      increased_non_cash_percentage = (increased_non_cash.size.to_f/clients.size*100).round(2) rescue 0
+      increased_overall_percentage = (increased_overall.size.to_f/clients.size*100).round(2) rescue 0
+
+      answers = {
         increased_earned: increased_earned.size,
         increased_non_cash: increased_non_cash.size,
         increased_overall: increased_overall.size,
         increased_earned_percentage: increased_earned_percentage,
         increased_non_cash_percentage: increased_non_cash_percentage,
         increased_overall_percentage: increased_overall_percentage,
-      })
+      }
+      support = {
+        increased_earned: {
+          headers: ['Client ID'],
+          counts: increased_earned.map{|m| Array.wrap(m)}
+        },
+        increased_non_cash: {
+          headers: ['Client ID'],
+          counts: increased_non_cash.map{|m| Array.wrap(m)}
+        },
+        increased_overall: {
+          headers: ['Client ID'],
+          counts: increased_overall.map{|m| Array.wrap(m)}
+        },
+      }
+      add_answers(answers, support)
 
     end
 
@@ -537,6 +672,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       total_services_provided = service_scope.select(:client_id, :date).distinct.to_a.count
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
+      average_stay_length = (total_services_provided.to_f/clients.size).round(2)
       capacity = if beds > 0 
         (average_usage.to_f/beds*100).round(2) rescue 0
       else
@@ -546,6 +682,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         services_provided: total_services_provided,
         days_of_service: days_served,
         average_daily_usage: average_usage,
+        average_stay_length: average_stay_length,
         capacity_percentage: capacity,
       })
     end

@@ -1,5 +1,4 @@
 class User < ActiveRecord::Base
-
   has_paper_trail
   acts_as_paranoid
 
@@ -16,6 +15,12 @@ class User < ActiveRecord::Base
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
+
+  # NOTE: users and rows in this join table are in different databases, so transactions
+  # aren't going to play well across this boundary
+  after_destroy do |user|
+    GrdaWarehouse::UserViewableEntity.where( user_id: user.id ).destroy_all
+  end
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
@@ -93,7 +98,44 @@ class User < ActiveRecord::Base
     )
   end
 
+  def data_sources
+    viewable GrdaWarehouse::DataSource
+  end
+
+  def organizations
+    viewable GrdaWarehouse::Hud::Organization
+  end
+
+  def projects
+    viewable GrdaWarehouse::Hud::Project
+  end
+
+  def set_viewables(viewables)
+    return unless persisted?
+    GrdaWarehouse::UserViewableEntity.transaction do
+      %i( data_sources organizations projects ).each do |type|
+        ids = ( viewables[type] || [] ).map(&:to_i)
+        scope = viewable_join self.send(type)
+        scope.where.not( entity_id: ids ).destroy_all
+        ( ids - scope.pluck(:id) ).each{ |id| scope.where( entity_id: id ).first_or_create }
+      end
+    end
+  end
+
+  def add_viewable(*viewables)
+    viewables.each do |viewable|
+      viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
+    end
+  end
+
   private
 
+    def viewable(model)
+      model.joins(:user_viewable_entities).merge viewable_join(model)
+    end
+
+    def viewable_join(model)
+      GrdaWarehouse::UserViewableEntity.where entity_type: model.sti_name, user_id: id
+    end
 
 end

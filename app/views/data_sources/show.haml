@@ -1,6 +1,7 @@
+- wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 = render 'breadcrumbs'
 %h1= @data_source.name
-= simple_form_for @data_source, url: data_source_path(@data_source) do |f|
+= simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
   .row
     .col-sm-8
       %table.table.table-condensed
@@ -12,37 +13,41 @@
           %td
             - if @data_source.data_span.present?
               = @data_source.data_span.join(' - ')
-        -if @data_source.uploads.any?
+        -if @data_source.uploads.any? && can_view_imports?
           %tr
             %th Uploads
             %td
               = link_to data_source_uploads_path(@data_source) do
                 View
-        %tr
-          %th
-            Visible in the Window into the Warehouse?
-          %td
-            = f.input :visible_in_window, label: false, input_html: {name: 'data_source[visible_in_window]'}
+        - if can_edit_data_sources?
+          %tr
+            %th
+              Visible in the Window into the Warehouse?
+            %td
+              = f.input :visible_in_window, label: false, input_html: {name: 'data_source[visible_in_window]'}
     .col-sm-4
-      = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
-        %span.icon-plus
-        Upload HUD HMIS ZIP
+      - if can_upload_hud_zips?
+        = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
+          %span.icon-plus
+          Upload HUD HMIS ZIP
   - if @data_source.has_data?
     .row.table-utilities
       .col-sm-12
         %h2
           = GrdaWarehouse::Hud::Organization.model_name.human.pluralize
-          &
+          &amp;
           = GrdaWarehouse::Hud::Project.model_name.human.pluralize
         .table-responsive
-          - @organizations.each do |org|
+          = f.simple_fields_for :organizations, @organizations do |o|
+            - org = o.object
             .well
               .row
                 .col-sm-8
                   %h3= org.name
                 .col-sm-4.text-right
-                  = link_to organization_contacts_path(organization_id: org.id) do
-                    View/Edit Organization Contacts
+                  - if can_edit_organizations?
+                    = link_to organization_contacts_path(organization_id: org.id) do
+                      View/Edit Organization Contacts
               %table.table.table-condensed
                 %thead
                   %tr
@@ -62,26 +67,31 @@
                     %th{style: 'width:5%'} Site?
                     %th{style: 'width:5%'} Inventory?
                 %tbody
-                  - org.projects.each do |project|
+                  = f.simple_fields_for :projects, org.projects do |proj|
+                    - project = proj.object
                     %tr
                       %td
                         = link_to project.name, project_path(project)
                       %td
                         = HUD.project_type project.ProjectType
                       %td
-                        = select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
+                        = proj.input :act_as_project_type, collection: ::HUD.project_types.invert, include_blank: 'Use Actual Project Type', label: false
+                        =# select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
                       %td
-                        = text_field_tag("data_source[project_attributes][#{project.id}][hud_coc_code]", project.project_cocs&.first&.hud_coc_code, size: 10)
-                        %br
+                        - unless @readonly
+                          = proj.input :hud_coc_code, label: false, input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}
+                          %br
                         = project.project_cocs.map(&:CoCCode).join(', ')
                       %td
-                        = check_box_tag("data_source[project_attributes][#{project.id}][hud_continuum_funded]", true, project.hud_continuum_funded)
-                        %br
-                        = checkmark(project.ContinuumProject)
+                        = proj.input :hud_continuum_funded, label: false
+                        - unless @readonly
+                          %br
+                          = checkmark(project.ContinuumProject)
                       %td
-                        = check_box_tag("data_source[project_attributes][#{project.id}][confidential]", true, project.confidential)
+                        = proj.input :confidential, label: false
                       %td
                         = checkmark(project.sites.present? )
                       %td
                         = checkmark(project.inventories.present? )
-        = f.button :submit
+        - unless @readonly
+          = f.button :submit

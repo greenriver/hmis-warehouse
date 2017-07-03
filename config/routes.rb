@@ -9,7 +9,11 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: { invitations: 'users/invitations'}
+  devise_for :users, controllers: { invitations: 'users/invitations', sessions: 'users/sessions'}
+  devise_scope :user do
+    match 'active' => 'users/sessions#active', via: :get
+    match 'timeout' => 'users/sessions#timeout', via: :get
+  end  
 
   def healthcare_routes
     namespace :health do
@@ -179,12 +183,16 @@ Rails.application.routes.draw do
   end
   resources :projects, only: [:index, :show] do
     resources :contacts, except: [:show], controller: 'projects/contacts'
-    resources :data_quality_reports, only: [:index, :show]
+    resources :data_quality_reports, only: [:index, :show] do
+      get :support, on: :member
+    end
   end
 
   resources :project_groups, except: [:destroy, :show] do
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
-    resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group'
+    resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
+      get :support, on: :member
+    end
   end
   
   resources :weather, only: [:index]

@@ -24,6 +24,9 @@
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require leaflet
+//= require jquery.periodicalupdater
+//= require jquery.updater
+
 
 //////////////////////////
 // App specific code

@@ -411,7 +411,8 @@ module Importers
 
 
     def gather_file_metadata(row)
-      @headers = row
+      expected_headers = @klass.hud_csv_headers().map{|h| [h.downcase, h]}.to_h
+      @headers = row.map{|h| expected_headers[h.downcase]} # normalize header case
       # figure out the locations of DateCreated, DateUpdate, DateDeleted
       # this is way faster than array#zip every time
       @date_created_index = @headers.index('DateCreated')

@@ -4,7 +4,9 @@ module WarehouseReports::Project
     before_action :set_projects, :set_project_groups
 
     def show
-      @range = DateRange.new()
+      start_date = Date.new(Date.today.year-2,10,1)
+      end_date = Date.new(Date.today.year-1,9,30)
+      @range = DateRange.new(start: start_date, end: end_date)
     end
 
     def create
@@ -18,6 +20,7 @@ module WarehouseReports::Project
       @range.validate
       begin
         @project_ids = project_params rescue []
+        @project_ids = current_user.projects.where( id: @project_ids ).pluck :id   # filter by viewability
         @project_group_ids = project_group_params rescue []
         if @project_ids.empty? && @project_group_ids.empty?
           raise ActionController::ParameterMissing, 'Parameters missing'
@@ -97,7 +100,7 @@ module WarehouseReports::Project
     end
 
     def project_scope
-      GrdaWarehouse::Hud::Project.all
+      GrdaWarehouse::Hud::Project.viewable_by current_user
     end
 
     def project_group_scope

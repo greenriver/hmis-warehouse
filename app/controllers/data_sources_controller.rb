@@ -1,5 +1,7 @@
 class DataSourcesController < ApplicationController
-  before_action :require_can_view_imports!
+  before_action :require_can_edit_projects_or_everything!, only: [:update]
+  before_action :require_can_edit_data_sources_or_everything!, only: [:new, :create, :destroy]
+  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
   before_action :set_data_source, only: [:show, :update, :destroy]
 
   def index
@@ -13,10 +15,12 @@ class DataSourcesController < ApplicationController
   end
 
   def show
+    @readonly = ! (can_edit_data_sources? || can_edit_projects?)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       joins(:projects).
+      merge( p_t.engine.viewable_by current_user ).
       includes(:projects, projects: [:project_cocs, :sites, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
@@ -28,6 +32,7 @@ class DataSourcesController < ApplicationController
   def create
     @data_source = data_source_source.new(new_data_source_params)
     if @data_source.save
+      current_user.add_viewable @data_source
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
@@ -41,7 +46,8 @@ class DataSourcesController < ApplicationController
     begin
       GrdaWarehouse::Hud::Project.transaction do
         @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
-        data_source_params[:project_attributes].each do |id, project_attributes|
+        data_source_params[:projects_attributes].each do |_, project_attributes|
+          id = project_attributes[:id]
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i
           end
@@ -80,11 +86,12 @@ class DataSourcesController < ApplicationController
   end
 
   private def data_source_params
-    params.require(:data_source).
+    params.require(:grda_warehouse_data_source).
       permit(
         :visible_in_window,
-        project_attributes: 
+        projects_attributes: 
         [
+          :id,
           :act_as_project_type, 
           :hud_coc_code, 
           :hud_continuum_funded,
@@ -105,7 +112,7 @@ class DataSourcesController < ApplicationController
   end
 
   private def data_source_source
-    GrdaWarehouse::DataSource
+    GrdaWarehouse::DataSource.viewable_by current_user
   end
 
   private def data_source_scope
@@ -114,5 +121,23 @@ class DataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_source.find(params[:id].to_i)
+  end
+
+  private def require_can_view_imports_projects_or_organizations!
+    can_view = can_view_imports? || can_view_projects? || can_view_organizations? || can_edit_anything_super_user?
+    return true if can_view    
+    not_authorized!
+  end
+
+  private def require_can_edit_projects_or_everything!
+    can_view = can_edit_projects? || can_edit_anything_super_user?
+    return true if can_view    
+    not_authorized!
+  end
+
+  private def require_can_edit_data_sources_or_everything!
+    can_view = can_edit_data_sources? || can_edit_anything_super_user?
+    return true if can_view    
+    not_authorized!
   end
 end

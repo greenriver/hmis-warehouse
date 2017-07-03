@@ -45,11 +45,11 @@ class ProjectsController < ApplicationController
   end
 
   private def project_source
-    GrdaWarehouse::Hud::Project
+    GrdaWarehouse::Hud::Project.viewable_by current_user
   end
 
   private def organization_source
-    GrdaWarehouse::Hud::Organization
+    GrdaWarehouse::Hud::Organization.viewable_by current_user
   end
 
   private def service_history_scope

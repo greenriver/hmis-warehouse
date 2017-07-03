@@ -66,6 +66,7 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }
 
+    attr_accessor :hud_coc_code
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: ['OrganizationID', :data_source_id], foreign_key: ['OrganizationID', :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_belongs(Export), inverse_of: :projects
@@ -86,6 +87,7 @@ module GrdaWarehouse::Hud
     has_many :affiliations, **hud_many(Affiliation), inverse_of: :project
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
     has_many :funders, **hud_many(Funder), inverse_of: :project
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     # Warehouse Reporting
     has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
@@ -104,6 +106,97 @@ module GrdaWarehouse::Hud
         or(arel_table[:hud_continuum_funded].eq(true))
       )
     end
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      else
+        qc = -> (s) { connection.quote_column_name s }
+        q  = -> (s) { connection.quote s }
+
+        where(
+          [
+            has_access_to_project_through_viewable_entities(user, q, qc),
+            has_access_to_project_through_organization(user, q, qc),
+            has_access_to_project_through_data_source(user, q, qc)
+          ].join ' OR '
+        )
+      end
+    end
+    scope :editable_by, -> (user) { viewable_by user }
+
+    private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
+      viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      project_table     = quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{viewability_table}
+            WHERE
+              #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
+              AND
+              #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
+              AND
+              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+        )
+
+      SQL
+    end
+
+    private_class_method def self.has_access_to_project_through_organization(user, q, qc)
+      viewability_table   = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      project_table       = quoted_table_name
+      organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{viewability_table}
+            INNER JOIN
+            #{organization_table}
+            ON
+              #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
+              AND
+              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
+              AND
+              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            WHERE
+              #{organization_table}.#{qc.('data_source_id')} = #{project_table}.#{qc.('data_source_id')}
+              AND
+              #{organization_table}.#{qc.('OrganizationID')} = #{project_table}.#{qc.('OrganizationID')}
+              AND
+              #{organization_table}.#{qc.(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
+        )
+
+      SQL
+    end
+
+    private_class_method def self.has_access_to_project_through_data_source(user, q, qc)
+      data_source_table = GrdaWarehouse::DataSource.quoted_table_name
+      viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      project_table     = quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{viewability_table}
+            INNER JOIN
+            #{data_source_table}
+            ON
+              #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
+              AND
+              #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
+              AND
+              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            WHERE
+              #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+        )
+
+      SQL
+    end
 
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|
@@ -113,9 +206,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def name
-      self.ProjectName
-    end
+    alias_attribute :name, :ProjectName
 
     def organization_and_name(include_confidential_names: false)
       "#{organization.name} / #{name}"

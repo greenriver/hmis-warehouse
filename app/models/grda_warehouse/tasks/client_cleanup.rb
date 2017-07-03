@@ -116,7 +116,7 @@ module GrdaWarehouse::Tasks
       end
       if processed < 0
         debug_log "Rebuilding service history for #{processed} clients"
-        GrdaWarehouse::Tasks::AddServiceHistory.new.run!
+        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       end
     end
 
@@ -124,7 +124,7 @@ module GrdaWarehouse::Tasks
     # This is stolen from and dependent on Generate Service History 
     def clients_to_munge
       debug_log "Determining if any clients source data has been updated since the last service history generation"
-      g_service_history = GrdaWarehouse::Tasks::GenerateServiceHistory.new
+      g_service_history = GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new
       @to_update = []
       GrdaWarehouse::WarehouseClientsProcessed.service_history.pluck(:client_id, :last_service_updated_at).each do |client_id, last_service_updated_at|
         # Ignore anyone who no longer has any active source clients

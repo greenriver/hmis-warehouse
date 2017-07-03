@@ -104,6 +104,7 @@ gem 'aws-sdk-rails', require: false
 #Translations
 gem 'gettext_i18n_rails'
 gem 'fast_gettext'
+gem 'auto-session-timeout'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

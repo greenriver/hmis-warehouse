@@ -31,11 +31,15 @@ class Role < ActiveRecord::Base
       :can_view_imports,
       :can_edit_roles,
       :can_view_projects,
+      :can_edit_projects,
       :can_edit_project_groups,
       :can_view_organizations,
+      :can_edit_organizations,
+      :can_edit_data_sources,
       :can_view_client_window,
       :can_upload_hud_zips,
       :can_edit_translations,
+      :can_edit_anything_super_user,
     ] 
     perms += self.health_permissions unless exclude_health
     return perms

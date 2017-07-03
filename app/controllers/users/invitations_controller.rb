@@ -12,6 +12,7 @@ class Users::InvitationsController < Devise::InvitationsController
       @user = User.with_deleted.find_by_email(invite_params[:email]).restore
     end
     @user = User.invite!(invite_params, current_user)
+    @user.set_viewables viewable_params if @user
 
     if resource.errors.empty?
       if is_flashing_format? && self.resource.invitation_sent_at
@@ -38,16 +39,24 @@ class Users::InvitationsController < Devise::InvitationsController
     super
   end
 
-  protected
+  private
 
-  private def invite_params
-    params.require(:user).permit(
-      :first_name,
-      :last_name,
-      :email,
-      role_ids: [],
+    def invite_params
+      params.require(:user).permit(
+        :first_name,
+        :last_name,
+        :email,
+        role_ids: [],
+        )
+    end
+
+    def viewable_params
+      params.require(:user).permit(
+        data_sources: [],
+        organizations: [],
+        projects: []
       )
-  end
+    end
 
 end
 

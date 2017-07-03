@@ -40,7 +40,7 @@ class UploadsController < ApplicationController
   end
 
   private def data_source_source
-    GrdaWarehouse::DataSource
+    GrdaWarehouse::DataSource.viewable_by current_user
   end
 
   private def data_source_scope

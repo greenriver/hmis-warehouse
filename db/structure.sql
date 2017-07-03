@@ -105,6 +105,52 @@ ALTER SEQUENCE activity_logs_id_seq OWNED BY activity_logs.id;
 
 
 --
+-- Name: cas_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE cas_reports (
+    id integer NOT NULL,
+    client_id integer NOT NULL,
+    match_id integer NOT NULL,
+    decision_id integer NOT NULL,
+    decision_order integer NOT NULL,
+    match_step character varying NOT NULL,
+    decision_status character varying NOT NULL,
+    current_step boolean DEFAULT false NOT NULL,
+    active_match boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    elapsed_days integer DEFAULT 0 NOT NULL,
+    client_last_seen_date timestamp without time zone,
+    criminal_hearing_date timestamp without time zone,
+    decline_reason character varying,
+    not_working_with_client_reason character varying,
+    administrative_cancel_reason character varying,
+    client_spoken_with_services_agency boolean,
+    cori_release_form_submitted boolean
+);
+
+
+--
+-- Name: cas_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE cas_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE cas_reports_id_seq OWNED BY cas_reports.id;
+
+
+--
 -- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -411,6 +457,10 @@ CREATE TABLE roles (
     can_view_client_health boolean DEFAULT false,
     can_edit_project_groups boolean DEFAULT false,
     can_edit_translations boolean DEFAULT false
+    can_edit_projects boolean DEFAULT false,
+    can_edit_organizations boolean DEFAULT false,
+    can_edit_data_sources boolean DEFAULT false,
+    can_edit_anything_super_user boolean DEFAULT false
 );
 
 
@@ -868,7 +918,15 @@ ALTER TABLE ONLY activity_logs
 
 
 --
--- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY cas_reports
+    ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY clients_unduplicated
@@ -876,7 +934,7 @@ ALTER TABLE ONLY clients_unduplicated
 
 
 --
--- Name: delayed_jobs delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs
@@ -1021,6 +1079,13 @@ CREATE INDEX index_activity_logs_on_item_model ON activity_logs USING btree (ite
 --
 
 CREATE INDEX index_activity_logs_on_user_id ON activity_logs USING btree (user_id);
+
+
+--
+-- Name: index_cas_reports_on_client_id_and_match_id_and_decision_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON cas_reports USING btree (client_id, match_id, decision_id);
 
 
 --
@@ -1295,6 +1360,10 @@ INSERT INTO schema_migrations (version) VALUES ('20170505132237');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 
+INSERT INTO schema_migrations (version) VALUES ('20170526162435');
+
+INSERT INTO schema_migrations (version) VALUES ('20170619210146');
+
 INSERT INTO schema_migrations (version) VALUES ('20170619235354');
 
 INSERT INTO schema_migrations (version) VALUES ('20170626180251');
@@ -1302,4 +1371,3 @@ INSERT INTO schema_migrations (version) VALUES ('20170626180251');
 INSERT INTO schema_migrations (version) VALUES ('20170627154145');
 
 INSERT INTO schema_migrations (version) VALUES ('20170627182531');
-

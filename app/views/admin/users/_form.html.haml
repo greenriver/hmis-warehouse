@@ -1,18 +1,22 @@
 = simple_form_for [:admin, @user] do |f|
   = f.error_notification
 
-  .form-inputs
-    = f.input :first_name, required: true
-    = f.input :last_name, required: true
-    = f.input :email, as: :email, required: true
-  .form--checkbox-groups
-    %h3 Roles for Access Permissions
-    = f.association :roles, as: :check_boxes, label_method: :role_name, collection: Role.editable
-    =# f.input :dnd_staff, label: 'DND Staff'
-    =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
+  .row
+    .col-sm-6
+      .form-inputs
+        = f.input :first_name, required: true
+        = f.input :last_name, required: true
+        = f.input :email, as: :email, required: true
+      .form--checkbox-groups
+        %h3 Roles for Access Permissions
+        = f.association :roles, as: :check_boxes, label_method: :role_name, collection: Role.editable
+        =# f.input :dnd_staff, label: 'DND Staff'
+        =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
 
-  .form-actions
-    = f.button :submit, class: 'btn btn-primary'
+      .form-actions
+        = f.button :submit, class: 'btn btn-primary'
+    .col-sm-6
+      = render '/users/user_viewable_entities', f: f
 
 -# When we've connected contacts to user accounts, this would be a good roll-up place to show the contact relationships
 -# - unless @user.new_record?
