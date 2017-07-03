@@ -26,9 +26,10 @@
             %td
               = f.input :visible_in_window, label: false, input_html: {name: 'data_source[visible_in_window]'}
     .col-sm-4
-      = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
-        %span.icon-plus
-        Upload HUD HMIS ZIP
+      - if can_upload_hud_zips?
+        = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
+          %span.icon-plus
+          Upload HUD HMIS ZIP
   - if @data_source.has_data?
     .row.table-utilities
       .col-sm-12
@@ -78,7 +79,7 @@
                         =# select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
                       %td
                         - unless @readonly
-                          = proj.input :hud_coc_code, label: false, value: project.project_cocs&.first&.hud_coc_code
+                          = proj.input :hud_coc_code, label: false, input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}
                           %br
                         = project.project_cocs.map(&:CoCCode).join(', ')
                       %td
