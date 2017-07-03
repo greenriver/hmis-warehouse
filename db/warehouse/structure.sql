@@ -2463,37 +2463,6 @@ CREATE TABLE schema_migrations (
 
 
 --
--- Name: user_viewable_entities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE user_viewable_entities (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    entity_id integer NOT NULL,
-    entity_type character varying NOT NULL
-);
-
-
---
--- Name: user_viewable_entities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE user_viewable_entities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_viewable_entities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE user_viewable_entities_id_seq OWNED BY user_viewable_entities.id;
-
-
---
 -- Name: warehouse_client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2933,13 +2902,6 @@ ALTER TABLE ONLY report_tokens ALTER COLUMN id SET DEFAULT nextval('report_token
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY user_viewable_entities ALTER COLUMN id SET DEFAULT nextval('user_viewable_entities_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
 ALTER TABLE ONLY warehouse_client_service_history ALTER COLUMN id SET DEFAULT nextval('warehouse_client_service_history_id_seq'::regclass);
 
 
@@ -3306,14 +3268,6 @@ ALTER TABLE ONLY project_project_groups
 
 ALTER TABLE ONLY report_tokens
     ADD CONSTRAINT report_tokens_pkey PRIMARY KEY (id);
-
-
---
--- Name: user_viewable_entities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY user_viewable_entities
-    ADD CONSTRAINT user_viewable_entities_pkey PRIMARY KEY (id);
 
 
 --
@@ -4238,13 +4192,6 @@ CREATE INDEX inventory_export_id ON "Inventory" USING btree ("ExportID");
 
 
 --
--- Name: one_entity_per_type_per_user; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX one_entity_per_type_per_user ON user_viewable_entities USING btree (user_id, entity_id, entity_type);
-
-
---
 -- Name: organization_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4354,6 +4301,13 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 --
 
 CREATE UNIQUE INDEX "unk_Affiliation" ON "Affiliation" USING btree (data_source_id, "AffiliationID");
+
+
+--
+-- Name: unk_Client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "unk_Client" ON "Client" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -4847,8 +4801,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170605011844');
 INSERT INTO schema_migrations (version) VALUES ('20170607195038');
 
 INSERT INTO schema_migrations (version) VALUES ('20170609162811');
-
-INSERT INTO schema_migrations (version) VALUES ('20170619211924');
 
 INSERT INTO schema_migrations (version) VALUES ('20170620000812');
 
