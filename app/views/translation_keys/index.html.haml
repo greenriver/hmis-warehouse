@@ -1,32 +1,39 @@
 - locales = TranslationKey.available_locales
-.row
-  .col-sm-12
-    = simple_form_for :search, as: :search, url: translation_keys_path, method: :get do |f|
-      = text_field :search, :q, value: @search.try(:[], :q)
-      = f.button :submit, value: 'Search for Key'
-      
-    = simple_form_for :language, as: :language, url: translation_keys_path, method: :get do |f|
-      = f.input :missing_lang, label: 'Missing Translations in Locale', collection: locales, include_blank: true
-      = f.button :submit, value: 'Find Missing Translations'
-      
+
+    
+          
 .row.table-utilities
   .col-sm-4
-    %p=# page_entries_info @translation_keys
+    %p= page_entries_info @translation_keys
 .row 
-  .col-sm-12
+  .col-sm-8
     - if @translation_keys.present?
-      %table.table-striped.table-bordered.table-condensed
+      %table.table.table-condensed
         %thead
           %tr
-            %th Keys
+            %th Default strings
             - locales.each do |locale|
-              %th= locale
+              %th= human_locale(locale)
         %tbody
           - @translation_keys.each do |key|
-            %tr{:class => "#{cycle "even","odd"}"}
+            %tr
               %td= key.key
               - locales.each do |locale|
-                - translation = key.translations.detect{|t| t.locale == locale }
-                %td= translation.text if translation
+                %td
+                  - translation = key.translations.detect{|t| t.locale == locale }
+                  = simple_form_for translation, remote: true, mehod: :patch do |t|    
+                    = t.input :text, label: false, input_html: {class: 'jTranslationText', rows: 2, cols: 30} 
               %td
-                = link_to "Edit", edit_translation_key_path(key)
+                %button.btn.btn-secondary
+                  Save
+  .col-sm-4
+    = simple_form_for :search, as: :search, url: translation_keys_path, method: :get do |f|
+      = f.input :q, label: 'Search'
+      = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
+      = f.button :submit, value: 'Search or Filter'
+
+= content_for :page_js do
+  :javascript
+    $('.jTranslationText').on('blur', function(e){
+      $(this).closest('form').submit();
+    });

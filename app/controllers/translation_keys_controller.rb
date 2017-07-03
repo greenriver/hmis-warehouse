@@ -4,30 +4,24 @@ class TranslationKeysController < ApplicationController
   before_action :add_default_locales_to_translation, only: [:show, :new]
 
   def index
-    # raise "hi"
-    @search = params.require(:search).permit(:q) if params[:search]
-    @missing = params.require(:language).permit(:missing_lang) if params[:language]
     tt_t = TranslationText.arel_table
     tk_t = translation_key_source.arel_table
-    if @search.present?
-      @query = @search[:q]  
-      @translation_keys = if @query.blank?
-        translation_key_source
-      else
-        translation_key_source.where(tk_t[:key].matches("%#{@query}%"))    
-      end.order(key: :asc)
-    elsif @missing.present?
-      
-      @lang = params.require(:language).permit(:missing_lang).fetch(:missing_lang)
-      @translation_keys = translation_key_source.joins(:translations).
-        where(
-          tt_t[:text].eq(nil).
-          or(tt_t[:text].eq(''))
-          .and(tt_t[:locale].eq(@lang))
-        )
-    else
-      @translation_keys = TranslationKey
+
+    search_options = params.require(:search).permit(:q, :missing_translations) if params[:search]
+    @search = Search.new(search_options)
+    @translation_keys = translation_key_source.order(key: :asc)  
+    if @search.q.present?
+      @translation_keys = @translation_keys.where(tk_t[:key].matches("%#{@search.q}%"))
     end
+    if @search.missing_translations
+      @translation_keys = @translation_keys.
+        where(
+          id: translation_text_source.where(
+            tt_t[:text].eq(nil).or(tt_t[:text].eq('')
+          )).select(:translation_key_id)
+        )
+    end
+    
     @translation_keys = @translation_keys.page(params[:page]).per(25)
     render action: :index
   end
@@ -67,6 +61,9 @@ class TranslationKeysController < ApplicationController
   
   def translation_key_source
     TranslationKey
+  end
+  def translation_text_source
+    TranslationText
   end  
   
   def translation_key_params
@@ -97,5 +94,11 @@ class TranslationKeysController < ApplicationController
     missing_translations.each do |locale|
       @translation_key.translations.build(:locale => locale)
     end
+  end
+  
+  class Search < ModelForm
+    attribute :q, String, lazy: true, default: ''
+    attribute :missing_translations, Boolean, lazy: true, default: false
+    
   end
 end

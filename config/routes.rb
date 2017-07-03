@@ -224,6 +224,7 @@ Rails.application.routes.draw do
   resource :account, only: [:edit, :update]
 
   resources :translation_keys
+  resources :translation_text, only: [:update]
   
   unless Rails.env.production?
     resource :style_guide, only: :none do
