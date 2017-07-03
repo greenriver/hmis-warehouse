@@ -15,6 +15,7 @@ class DataSourcesController < ApplicationController
   end
 
   def show
+    @readonly = ! (can_edit_data_sources? || can_edit_projects?)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
@@ -45,7 +46,7 @@ class DataSourcesController < ApplicationController
     begin
       GrdaWarehouse::Hud::Project.transaction do
         @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
-        data_source_params[:project_attributes].each do |id, project_attributes|
+        data_source_params[:projects_attributes].each do |id, project_attributes|
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i
           end
@@ -84,11 +85,12 @@ class DataSourcesController < ApplicationController
   end
 
   private def data_source_params
-    params.require(:data_source).
+    params.require(:grda_warehouse_data_source).
       permit(
         :visible_in_window,
-        project_attributes: 
+        projects_attributes: 
         [
+          :id,
           :act_as_project_type, 
           :hud_coc_code, 
           :hud_continuum_funded,

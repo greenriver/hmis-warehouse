@@ -66,6 +66,7 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }
 
+    attr_accessor :hud_coc_code
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: ['OrganizationID', :data_source_id], foreign_key: ['OrganizationID', :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_belongs(Export), inverse_of: :projects

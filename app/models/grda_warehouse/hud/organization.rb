@@ -14,6 +14,8 @@ module GrdaWarehouse::Hud
     has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
+    accepts_nested_attributes_for :projects
+
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> {
       joins(:projects).where(

@@ -13,6 +13,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
   has_many :uploads
+
+  accepts_nested_attributes_for :organizations
+  accepts_nested_attributes_for :projects
   
   scope :importable, -> { where.not(source_type: nil)}
   scope :destination, -> { where(source_type: nil)}
