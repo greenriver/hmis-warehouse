@@ -57,14 +57,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       @incomes ||= begin
         incomes = {}
         enrollments.each do |client_id, enrollments|
+          # Use last enrollment within window for the client, per HUD Data Quality Spec
           ds_id = enrollments.last[:data_source_id]
           personal_id = enrollments.last[:personal_id]
-          enrollment_group_id =enrollments.last[:enrollment_group_id]
+          enrollment_group_id = enrollments.last[:enrollment_group_id]
           assessments = income_source.where(data_source_id: ds_id).
             where(PersonalID: personal_id).
             where(ProjectEntryID: enrollment_group_id).
             where(i_t[:InformationDate].lteq(self.end)).
-            where(DataCollectionStage: [3, 1]).
+            where(DataCollectionStage: [3, 1, 2]).
             order(InformationDate: :asc).
           pluck(*income_columns).map do |row|
             Hash[income_columns.zip(row)]
@@ -81,7 +82,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollments.each do |client_id, enrollments|
           leaver = true
           enrollments.each do |enrollment|
-            leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] < self.end
+            leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] > self.end
           end
           leavers << client_id if leaver
         end
@@ -109,6 +110,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def amount_columns
       [
+        :Earned,
         :EarnedAmount, 
         :UnemploymentAmount, 
         :SSIAmount, 
@@ -167,6 +169,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def start_report
       self.started_at = Time.now
       self.report = {}
+      self.support = {}
     end
 
     def finish_report
@@ -180,8 +183,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       return "#{self.start} - #{self.end}" if self.completed_at.present?
     end
 
-    def add_answers(answers)
-      self.update(report: self.report.merge(answers))
+    def add_answers(answers, support={})
+      self.assign_attributes(report: self.report.merge(answers))
+      self.assign_attributes(support: self.support.merge(support)) if support.present?
+      self.save
     end
 
     def send_notifications
@@ -213,6 +218,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       value ? 'Yes': 'No'
     end
 
+    def days(value)
+      "#{value} days"
+    end
+
     def client_source
       GrdaWarehouse::Hud::Client.source
     end
@@ -229,6 +238,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::ServiceHistory.service.
         open_between(start_date: self.start,
           end_date: self.end).
+        where(date: self.start..self.end).
         joins(:project, enrollment: :client).
         where(Project: {id: projects.map(&:id)})
     end

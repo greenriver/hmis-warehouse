@@ -189,6 +189,18 @@ module GrdaWarehouse::Hud
     scope :visible_in_window, -> do
       joins(:data_source).where(data_sources: {visible_in_window: true})
     end
+
+    scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
+      c_t = arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
+      where(id: 
+        GrdaWarehouse::ServiceHistory.service.
+        where(sh_t[:date].gt(date)).
+        where(
+          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        ).select(:client_id).distinct
+      )
+    end
     
     attr_accessor :merge
     attr_accessor :unmerge
@@ -991,7 +1003,6 @@ module GrdaWarehouse::Hud
       enrollments = scope.
         joins(exit_join.join_sources).
         joins(:service_histories, :project).
-        # joins(:organization).
         where(service_table[:record_type].in(['service', 'entry'])).
         select(*columns.values).
         pluck(*columns.values).

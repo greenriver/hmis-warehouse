@@ -3,6 +3,8 @@ module GrdaWarehouse::Tasks
     require 'ruby-progressbar'
     include ArelHelper
     attr_accessor :logger, :send_notifications, :notifier_config
+    MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
+    CACHE_KEY = 'sanity_check_service_history'
 
     def initialize(sample_size = 10, client_ids = [])
       @sample_size = sample_size
@@ -40,33 +42,56 @@ module GrdaWarehouse::Tasks
       messages = []
       @destinations.each do |id, counts|
         if counts[:service_history].except(:service) != counts[:source].except(:service)
-          msg = "Hey, the enrollment counts don't match for client: *#{id}* \n```#{counts.except(:source_personal_ids).inspect}```\nInvalidating service history for client."
+          msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
           client_source.find(id).invalidate_service_history
+          add_attempt(id)
         else
           # See if our service history counts are even close
           service_history_count = counts[:service_history].try(:[], :service) || 0
           service_count = counts[:source].try(:[], :service) || 0
           if (service_history_count - service_count).abs > 3
-            msg = "Hey, the service history counts don't match for client: *#{id}* \n```source: #{service_count} service_history: #{service_history_count}```\nInvalidating service history for client."
+            msg = "```client: #{id} \nsource: #{service_count} service_history: #{service_history_count}```\n"
             logger.warn msg
             messages << msg
             client_source.find(id).invalidate_service_history
+            add_attempt(id)
           end
         end 
       end
-
+      update_attempts()
       if messages.any?
         rebuilding_message = "Rebuilding service history for #{messages.size} invalidated clients."
         if send_notifications
-          msg = messages.join("\n")
+          msg = "Hey, the service history counts don't match for the following client(s).  Service histories have been invalidated.\n"
+          msg += messages.join("\n")
           msg += "\n\n#{rebuilding_message}"
           notifier.ping msg
         end
         logger.info rebuilding_message
-        GrdaWarehouse::Tasks::AddServiceHistory.new.run!
+        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
       end
+    end
+
+    def attempts
+      @attempts ||= Rails.cache.fetch(CACHE_KEY, expires_in: 12.hours) do
+        Hash.new(0)
+      end
+    end
+
+    def add_attempt id
+      attempts[id] += 1
+    end
+
+    def update_attempts
+      # Rails.logger.debug('Saving Attempts')
+      # Rails.logger.debug(attempts.inspect)
+      Rails.cache.write(CACHE_KEY, attempts)
+    end
+
+    def max_attempts_reached id
+      attempts[id] >= MAX_ATTEMPTS
     end
 
     def choose_sample
@@ -74,6 +99,10 @@ module GrdaWarehouse::Tasks
         destinations = @client_ids
       else
         destinations = clients_processed_source.random.limit(@sample_size).pluck(:client_id)
+      end
+      # prevent infinite runs
+      destinations.reject! do |id|
+        max_attempts_reached(id)
       end
       @destinations = destinations.map{ |m| [m, {
         service_history: {
@@ -125,7 +154,8 @@ module GrdaWarehouse::Tasks
     end
 
     def load_source_enrollments
-      client_source.joins(:source_enrollments).
+      # Limit to only enrollments that have projects
+      client_source.joins(source_enrollments: :project).
         where(id: @destinations.keys).
         group(:id).
         pluck(:id, nf( 'COUNT', [enrollment_source.arel_table[:ProjectEntryID]] ).to_sql).
@@ -136,8 +166,9 @@ module GrdaWarehouse::Tasks
 
     def load_source_exits
       # this is a bit nasty, but we sometimes have two exits for a single enrollment
-        # which shouldn't happen.  We'll get around it by counting carefully
-      client_source.joins(:source_exits).
+      # which shouldn't happen.  We'll get around it by counting carefully.
+      # Also limit to only exits with enrollments that have projects
+      client_source.joins(source_exits: {enrollment: :project}).
         where(id: @destinations.keys).
         group(:id).
         pluck(
@@ -150,9 +181,8 @@ module GrdaWarehouse::Tasks
     end
 
     def load_service_counts
-      service_history_source.service.
+      service_history_source.service.bed_night.
         where(client_id: @destinations.keys).
-        where(project_tracking_method: 3).
         group(:client_id).
         pluck(
           :client_id, 

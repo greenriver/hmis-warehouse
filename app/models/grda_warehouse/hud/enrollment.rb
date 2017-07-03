@@ -115,7 +115,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source, inverse_of: :enrollments
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :enrollments
     belongs_to :export, **hud_belongs(Export), inverse_of: :enrollments
-    has_one :exit, **hud_one(Exit), inverse_of: :enrollment
+    has_one :exit, foreign_key: ['ProjectEntryID', 'PersonalID', 'data_source_id'], primary_key: ['ProjectEntryID', 'PersonalID', 'data_source_id'], inverse_of: :enrollment
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: ['ProjectID', :data_source_id], primary_key: ['ProjectID', :data_source_id], inverse_of: :enrollments
     has_one :organization, through: :project
     has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id], inverse_of: :enrollment

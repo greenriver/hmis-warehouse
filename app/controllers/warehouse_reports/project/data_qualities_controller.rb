@@ -4,7 +4,9 @@ module WarehouseReports::Project
     before_action :set_projects, :set_project_groups
 
     def show
-      @range = DateRange.new()
+      start_date = Date.new(Date.today.year-2,10,1)
+      end_date = Date.new(Date.today.year-1,9,30)
+      @range = DateRange.new(start: start_date, end: end_date)
     end
 
     def create

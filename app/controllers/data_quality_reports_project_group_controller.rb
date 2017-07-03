@@ -1,12 +1,26 @@
 class DataQualityReportsProjectGroupController < ApplicationController
+  include PjaxModalController
   # Autorize by either access to projects OR access by token
   skip_before_action :authenticate_user!
   before_action :require_valid_token_or_project_access!
-  before_action :set_report, only: [:show]
-  before_action :set_project_group, only: [:show]
+  before_action :set_report, only: [:show, :support]
+  before_action :set_project_group, only: [:show, :support]
 
   def show
 
+  end
+
+  def support
+    raise 'Key required' if params[:key].blank?
+    @key = params[:key].to_s
+    support = @report.support
+    @data = support[@key].with_indifferent_access
+    respond_to do |format|
+      format.xlsx do
+        render xlsx: :index, filename: "support-#{@key}.xlsx"
+      end
+      format.html {}
+    end
   end
 
   def index
