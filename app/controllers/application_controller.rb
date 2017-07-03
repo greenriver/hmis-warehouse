@@ -34,7 +34,6 @@ class ApplicationController < ActionController::Base
   protected
 
   def locale
-    ha = _('translate me')
     default_locale = 'en'
     params[:locale] || session[:locale] || default_locale
   end

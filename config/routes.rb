@@ -220,11 +220,10 @@ Rails.application.routes.draw do
       end
       resources :roles, only: [:index]
     end
+    resources :translation_keys
+    resources :translation_text, only: [:update]
   end
   resource :account, only: [:edit, :update]
-
-  resources :translation_keys
-  resources :translation_text, only: [:update]
   
   unless Rails.env.production?
     resource :style_guide, only: :none do

@@ -21,13 +21,13 @@
               - locales.each do |locale|
                 %td
                   - translation = key.translations.detect{|t| t.locale == locale }
-                  = simple_form_for translation, remote: true, mehod: :patch do |t|    
+                  = simple_form_for(translation, remote: true, url: admin_translation_text_path(translation.id), method: :patch, html: {class: 'jTranslationTextForm'})do |t|    
                     = t.input :text, label: false, input_html: {class: 'jTranslationText', rows: 2, cols: 30} 
               %td
                 %button.btn.btn-secondary
                   Save
   .col-sm-4
-    = simple_form_for :search, as: :search, url: translation_keys_path, method: :get do |f|
+    = simple_form_for :search, as: :search, url: admin_translation_keys_path, method: :get do |f|
       = f.input :q, label: 'Search'
       = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
       = f.button :submit, value: 'Search or Filter'
@@ -35,5 +35,20 @@
 = content_for :page_js do
   :javascript
     $('.jTranslationText').on('blur', function(e){
-      $(this).closest('form').submit();
+      form = $(this).closest('form');
+      $.ajax({
+        data: form.serialize(),
+        type: form.attr('method'),
+        url: form.attr('action'),
+        complete: function(e) {
+          var note = e.responseText;
+          var alert_class = 'danger';
+          if(e.status == 200) {
+            alert_class = 'success';
+          }
+          var html = '<div class="jAjaxSave alert alert-' + alert_class + '">' + note + '</div>';
+          $('.utility').html(html);
+          $('.jAjaxSave').delay(5000).fadeOut(250);
+        } 
+      });
     });
