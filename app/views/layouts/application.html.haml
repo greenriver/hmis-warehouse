@@ -52,9 +52,7 @@
       .container{class: container_classes}
         %p.text-center
           = render 'layouts/boston_seal'
-          The Boston DND Warehouse is operated by the
-          %br
-          Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.
+          = _("The Boston DND Warehouse is operated by the %{br} Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.").html_safe
 
     = render 'pjax_modal_frame'
     = javascript_include_tag 'application'
