@@ -8,6 +8,7 @@ require 'csv'
 require 'charlock_holmes'
 require 'faker'
 require 'newrelic_rpm'
+require 'fileutils'
 # require 'temping'
 # Work around a faker bug: https://github.com/stympy/faker/issues/278
 I18n.reload!
@@ -30,7 +31,6 @@ module Importers
       @fake_it = false
       if Rails.env == 'staging'
         logger.info 'Using Fake Client Data'
-        setup_for_fake()
       else
         logger.info 'Using Real Client Data'
       end
@@ -94,9 +94,7 @@ module Importers
             unzip_path = "#{extract_path}/#{file_name}"
             @logger.info "To: #{unzip_path}"
             unzip_parent = File.dirname(unzip_path)
-            unless File.directory?(unzip_parent)
-              FileUtils.mkdir_p(unzip_parent)
-            end
+            FileUtils.mkdir_p(unzip_parent) unless File.directory?(unzip_parent)
             entry.extract(unzip_path)
             unzipped_files << [GrdaWarehouse::Hud.hud_filename_to_model(file_name).name, unzip_path] if file_name.include?('.csv')
           end
@@ -106,7 +104,10 @@ module Importers
         raise "Unable to extract file: #{@upload.file.current_path}"
       end
       # If the file was extracted successfully, delete the source file
-      File.delete(@upload.file.current_path) if File.exist?(@upload.file.current_path)
+      # File.delete(@upload.file.current_path) if File.exist?(@upload.file.current_path)
+      archive_path = File.dirname(@upload.file.current_path.sub(Rails.root.to_s + '/tmp/', "var/upload_archive/#{Date.today.strftime("%Y-%m-%d")}/"))
+      FileUtils.mkdir_p(archive_path) unless File.directory?(archive_path)
+      FileUtils.mv(@upload.file.current_path, archive_path) if File.exist?(@upload.file.current_path)
       @upload.update({percent_complete: 0.01, unzipped_files: unzipped_files, import_errors: []})
       @upload.save!
     end
