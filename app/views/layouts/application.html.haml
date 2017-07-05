@@ -10,9 +10,13 @@
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
     = stylesheet_link_tag 'application', media: 'all'
     = stylesheet_link_tag 'print', media: 'print'
-    = render 'layouts/favicon'
+    = console
+    - Dir.glob('app/assets/stylesheets/custom_styles/*.scss') do |stylesheet|
+      = stylesheet_link_tag ("custom_styles/#{File.basename stylesheet, '.scss'}"), media: 'all'
+    end
+    -# = render 'layouts/favicon'
     = csrf_meta_tags
-
+    
   %body{class: body_classes}
     %header
       .container{class: container_classes}
@@ -58,7 +62,7 @@
 
     = render 'pjax_modal_frame'
     = javascript_include_tag 'application'
-
+    
     = yield :page_js
     - if current_user
       = auto_session_timeout_js(frequency: 60)
