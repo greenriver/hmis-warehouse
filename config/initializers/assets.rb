@@ -11,4 +11,5 @@ Rails.application.config.assets.version = '1.0'
 # Rails.application.config.assets.precompile += %w( search.js )
 Rails.application.config.assets.precompile += %w( print.css )
 Rails.application.config.assets.precompile += %w( chart.js )
-Rails.application.config.assets.precompile += %w( custom_styles/* )
+# Rails.application.config.assets.precompile += %w( custom_styles/ )
+Rails.application.config.assets.precompile += ['theme/*.css']

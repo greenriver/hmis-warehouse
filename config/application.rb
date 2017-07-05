@@ -1,5 +1,4 @@
 require File.expand_path('../boot', __FILE__)
-
 require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
@@ -58,6 +57,5 @@ module BostonHmis
     # serve error pages from the Rails app itself 
     # rather than using static error pages in public/.
     config.exceptions_app = self.routes
-
   end
 end
