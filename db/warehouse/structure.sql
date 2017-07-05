@@ -1445,51 +1445,19 @@ ALTER SEQUENCE generate_service_history_log_id_seq OWNED BY generate_service_his
 
 
 --
--- Name: hmis_answers; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE hmis_answers (
-    id integer NOT NULL,
-    assessment_id integer NOT NULL,
-    question_id integer NOT NULL,
-    text character varying
-);
-
-
---
--- Name: hmis_answers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE hmis_answers_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_answers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE hmis_answers_id_seq OWNED BY hmis_answers.id;
-
-
---
 -- Name: hmis_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE hmis_assessments (
     id integer NOT NULL,
-    type character varying NOT NULL,
-    client_id integer NOT NULL,
-    response_created_at timestamp without time zone,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    source_class character varying,
-    source_id character varying,
-    source_name character varying,
-    data_source_id integer
+    assessment_id integer NOT NULL,
+    site_id integer NOT NULL,
+    site_name character varying,
+    name character varying NOT NULL,
+    "fetch" boolean DEFAULT false NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    last_fetched_at timestamp without time zone,
+    data_source_id integer NOT NULL
 );
 
 
@@ -1625,35 +1593,6 @@ CREATE SEQUENCE hmis_forms_id_seq
 --
 
 ALTER SEQUENCE hmis_forms_id_seq OWNED BY hmis_forms.id;
-
-
---
--- Name: hmis_questions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE hmis_questions (
-    id integer NOT NULL,
-    text character varying
-);
-
-
---
--- Name: hmis_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE hmis_questions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE hmis_questions_id_seq OWNED BY hmis_questions.id;
 
 
 --
@@ -2463,6 +2402,37 @@ CREATE TABLE schema_migrations (
 
 
 --
+-- Name: user_viewable_entities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE user_viewable_entities (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    entity_id integer NOT NULL,
+    entity_type character varying NOT NULL
+);
+
+
+--
+-- Name: user_viewable_entities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE user_viewable_entities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_viewable_entities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE user_viewable_entities_id_seq OWNED BY user_viewable_entities.id;
+
+
+--
 -- Name: warehouse_client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2804,13 +2774,6 @@ ALTER TABLE ONLY generate_service_history_log ALTER COLUMN id SET DEFAULT nextva
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY hmis_answers ALTER COLUMN id SET DEFAULT nextval('hmis_answers_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
 ALTER TABLE ONLY hmis_assessments ALTER COLUMN id SET DEFAULT nextval('hmis_assessments_id_seq'::regclass);
 
 
@@ -2833,13 +2796,6 @@ ALTER TABLE ONLY hmis_clients ALTER COLUMN id SET DEFAULT nextval('hmis_clients_
 --
 
 ALTER TABLE ONLY hmis_forms ALTER COLUMN id SET DEFAULT nextval('hmis_forms_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_questions ALTER COLUMN id SET DEFAULT nextval('hmis_questions_id_seq'::regclass);
 
 
 --
@@ -2896,6 +2852,13 @@ ALTER TABLE ONLY project_project_groups ALTER COLUMN id SET DEFAULT nextval('pro
 --
 
 ALTER TABLE ONLY report_tokens ALTER COLUMN id SET DEFAULT nextval('report_tokens_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY user_viewable_entities ALTER COLUMN id SET DEFAULT nextval('user_viewable_entities_id_seq'::regclass);
 
 
 --
@@ -3159,14 +3122,6 @@ ALTER TABLE ONLY generate_service_history_log
 
 
 --
--- Name: hmis_answers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_answers
-    ADD CONSTRAINT hmis_answers_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3196,14 +3151,6 @@ ALTER TABLE ONLY hmis_clients
 
 ALTER TABLE ONLY hmis_forms
     ADD CONSTRAINT hmis_forms_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY hmis_questions
-    ADD CONSTRAINT hmis_questions_pkey PRIMARY KEY (id);
 
 
 --
@@ -3268,6 +3215,14 @@ ALTER TABLE ONLY project_project_groups
 
 ALTER TABLE ONLY report_tokens
     ADD CONSTRAINT report_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_viewable_entities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY user_viewable_entities
+    ADD CONSTRAINT user_viewable_entities_pkey PRIMARY KEY (id);
 
 
 --
@@ -3961,10 +3916,24 @@ CREATE INDEX index_contacts_on_type ON contacts USING btree (type);
 
 
 --
--- Name: index_hmis_answers_on_assessment_id_and_question_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_assessments_on_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_hmis_answers_on_assessment_id_and_question_id ON hmis_answers USING btree (assessment_id, question_id);
+CREATE INDEX index_hmis_assessments_on_assessment_id ON hmis_assessments USING btree (assessment_id);
+
+
+--
+-- Name: index_hmis_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessments_on_data_source_id ON hmis_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_assessments_on_site_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessments_on_site_id ON hmis_assessments USING btree (site_id);
 
 
 --
@@ -4192,6 +4161,13 @@ CREATE INDEX inventory_export_id ON "Inventory" USING btree ("ExportID");
 
 
 --
+-- Name: one_entity_per_type_per_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_user ON user_viewable_entities USING btree (user_id, entity_id, entity_type);
+
+
+--
 -- Name: organization_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4301,13 +4277,6 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 --
 
 CREATE UNIQUE INDEX "unk_Affiliation" ON "Affiliation" USING btree (data_source_id, "AffiliationID");
-
-
---
--- Name: unk_Client; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "unk_Client" ON "Client" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -4802,6 +4771,8 @@ INSERT INTO schema_migrations (version) VALUES ('20170607195038');
 
 INSERT INTO schema_migrations (version) VALUES ('20170609162811');
 
+INSERT INTO schema_migrations (version) VALUES ('20170619211924');
+
 INSERT INTO schema_migrations (version) VALUES ('20170620000812');
 
 INSERT INTO schema_migrations (version) VALUES ('20170620013208');
@@ -4809,4 +4780,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170620013208');
 INSERT INTO schema_migrations (version) VALUES ('20170622125121');
 
 INSERT INTO schema_migrations (version) VALUES ('20170626133126');
+
+INSERT INTO schema_migrations (version) VALUES ('20170705125336');
 

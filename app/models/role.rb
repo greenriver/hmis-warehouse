@@ -38,6 +38,7 @@ class Role < ActiveRecord::Base
       :can_edit_data_sources,
       :can_view_client_window,
       :can_upload_hud_zips,
+      :can_manage_assessments,
       :can_edit_anything_super_user,
     ] 
     perms += self.health_permissions unless exclude_health
