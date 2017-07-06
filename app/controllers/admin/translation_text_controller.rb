@@ -5,8 +5,13 @@ module Admin
 
     def update
       error = false
-      begin 
+      begin
+        tp = text_params
         @text.update(text_params)
+        if tp[:text].blank?
+          @text.text = nil
+          @text.save
+        end
       rescue Exception => e
         error = true
         render status: 500, json: 'Unable to save translation', layout: false
