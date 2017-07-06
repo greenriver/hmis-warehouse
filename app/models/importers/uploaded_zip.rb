@@ -20,7 +20,7 @@ module Importers
       @logger = logger
       @refresh_type = 'Delta refresh'
       @batch_size = 10000
-      @upload = Upload.find(upload_id)
+      @upload = GrdaWarehouse::Upload.find(upload_id)
       @data_source_id = @upload.data_source.id
       @data_sources = GrdaWarehouse::DataSource.where(id: @data_source_id)
       # Process the oldest upload file for this datasource

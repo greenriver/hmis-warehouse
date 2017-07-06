@@ -4,12 +4,12 @@ class UploadsController < ApplicationController
   before_action :set_upload, only: [:show, :edit]
 
   def index
-    @uploads = Upload.where(data_source_id: @data_source.id)
+    @uploads = upload_source.where(data_source_id: @data_source.id)
       .page(params[:page].to_i).per(20).order(created_at: :desc)
   end
 
   def new
-    @upload = Upload.new
+    @upload = upload_source.new
   end
 
   def show
@@ -18,17 +18,17 @@ class UploadsController < ApplicationController
 
   def create
     run_import = false
-    @upload = Upload.new(upload_params.merge({
+    @upload = upload_source.new(upload_params.merge({
       percent_complete: 0.0, 
       data_source_id: @data_source.id, 
       user_id: current_user.id
       }))
     if @upload.save
       run_import = true
-      flash[:notice] = "#{Upload.model_name.human} queued to start."
+      flash[:notice] = "#{upload_source.model_name.human} queued to start."
       redirect_to action: :index
     else
-      flash[:alert] = "#{Upload.model_name.human} failed to queue."
+      flash[:alert] = "#{upload_source.model_name.human} failed to queue."
       render :new
     end
     Importing::RunImportHudZipJob.perform_later(upload: @upload) if run_import
@@ -52,6 +52,10 @@ class UploadsController < ApplicationController
   end
 
   private def set_upload
-    @upload = Upload.find(params[:id].to_i)
+    @upload = upload_source.find(params[:id].to_i)
+  end
+
+  def upload_source
+    GrdaWarehouse::Upload
   end
 end

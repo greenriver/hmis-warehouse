@@ -2402,6 +2402,49 @@ CREATE TABLE schema_migrations (
 
 
 --
+-- Name: uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE uploads (
+    id integer NOT NULL,
+    data_source_id integer,
+    user_id integer,
+    file character varying NOT NULL,
+    percent_complete double precision,
+    unzipped_path character varying,
+    unzipped_files json,
+    summary json,
+    import_errors json,
+    content_type character varying,
+    content bytea,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE uploads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE uploads_id_seq OWNED BY uploads.id;
+
+
+--
 -- Name: user_viewable_entities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2858,6 +2901,13 @@ ALTER TABLE ONLY report_tokens ALTER COLUMN id SET DEFAULT nextval('report_token
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY uploads ALTER COLUMN id SET DEFAULT nextval('uploads_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY user_viewable_entities ALTER COLUMN id SET DEFAULT nextval('user_viewable_entities_id_seq'::regclass);
 
 
@@ -3215,6 +3265,14 @@ ALTER TABLE ONLY project_project_groups
 
 ALTER TABLE ONLY report_tokens
     ADD CONSTRAINT report_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY uploads
+    ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -4049,6 +4107,13 @@ CREATE UNIQUE INDEX index_staff_x_client_s_id_c_id_r_id ON hmis_staff_x_clients 
 
 
 --
+-- Name: index_uploads_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_uploads_on_deleted_at ON uploads USING btree (deleted_at);
+
+
+--
 -- Name: index_warehouse_client_service_history_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4782,4 +4847,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170622125121');
 INSERT INTO schema_migrations (version) VALUES ('20170626133126');
 
 INSERT INTO schema_migrations (version) VALUES ('20170705125336');
+
+INSERT INTO schema_migrations (version) VALUES ('20170706145106');
 
