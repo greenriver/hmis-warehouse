@@ -16,7 +16,7 @@
         - theme_styles = "theme/#{File.basename(stylesheet, '.scss')}"
         = stylesheet_link_tag(theme_styles, media: 'all')
     
-    -# = render 'layouts/favicon'
+    = render 'layouts/favicon'
     = csrf_meta_tags
     
   %body{class: body_classes}
