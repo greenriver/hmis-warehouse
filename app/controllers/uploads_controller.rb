@@ -18,10 +18,13 @@ class UploadsController < ApplicationController
 
   def create
     run_import = false
+    file = upload_params[:file]
     @upload = upload_source.new(upload_params.merge({
       percent_complete: 0.0, 
       data_source_id: @data_source.id, 
-      user_id: current_user.id
+      user_id: current_user.id,
+      content_type: file.content_type,
+      content: file.read,
       }))
     if @upload.save
       run_import = true
@@ -35,7 +38,7 @@ class UploadsController < ApplicationController
   end
 
   private def upload_params
-    params.require(:upload).
+    params.require(:grda_warehouse_upload).
       permit(:file)
   end
 
