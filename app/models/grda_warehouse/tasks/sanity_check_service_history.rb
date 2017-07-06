@@ -198,7 +198,7 @@ module GrdaWarehouse::Tasks
       # the duplicates
       st = GrdaWarehouse::Hud::Service.arel_table
       @destinations.keys.each_slice(250) do |ids|
-        client_source.joins(source_services: :project).
+        client_source.joins(source_enrollments: [:services, :project]).
           where(id: ids, Project: {TrackingMethod: 3}).
           group(:id).
           pluck(
