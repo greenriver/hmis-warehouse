@@ -57,7 +57,10 @@
     %footer
       .container{class: container_classes}
         %p.text-center
-          = render 'layouts/boston_seal'
+          - if File.exist? 'app/assets/images/theme/footer_seal.jpg'
+            = image_tag "theme/footer_seal"
+          - else 
+            = render 'layouts/boston_seal'
           The Boston DND Warehouse is operated by the
           %br
           Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.
