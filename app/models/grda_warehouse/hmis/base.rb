@@ -1,5 +1,6 @@
 module GrdaWarehouse::HMIS
   class Base < GrdaWarehouse::Hud::Base
+    self.abstract_class = true
     PREFIX = 'hmis_'
 
     # use for association table names with models in GrdaWarehouse::HMIS

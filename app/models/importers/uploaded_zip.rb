@@ -20,20 +20,12 @@ module Importers
       @logger = logger
       @refresh_type = 'Delta refresh'
       @batch_size = 10000
-      @upload = Upload.find(upload_id)
+      @upload = GrdaWarehouse::Upload.find(upload_id)
       @data_source_id = @upload.data_source.id
       @data_sources = GrdaWarehouse::DataSource.where(id: @data_source_id)
       # Process the oldest upload file for this datasource
       
       @rm_files = false
-
-      # prepare for streaming in faker data on development or staging
-      @fake_it = false
-      if Rails.env == 'staging'
-        logger.info 'Using Fake Client Data'
-      else
-        logger.info 'Using Real Client Data'
-      end
     end
 
     def run!
@@ -80,8 +72,12 @@ module Importers
       end
     end
 
-    private def unzip
-      puts "Current file path: #{@upload.file.current_path} #{File.exist?(@upload.file.current_path)}"
+    def unzip
+      reconstitute_path = @upload.file.current_path
+      puts "Re-constituting upload file to: #{reconstitute_path}"
+      File.open(reconstitute_path, 'w+b') do |file|
+        file.write(@upload.content)
+      end
       return unless File.exist?(@upload.file.current_path)
       begin
         unzipped_files = []
@@ -103,11 +99,12 @@ module Importers
         Rails.logger.error ex.message
         raise "Unable to extract file: #{@upload.file.current_path}"
       end
-      # If the file was extracted successfully, delete the source file
-      # File.delete(@upload.file.current_path) if File.exist?(@upload.file.current_path)
-      archive_path = File.dirname(@upload.file.current_path.sub(Rails.root.to_s + '/tmp/', "var/upload_archive/#{Date.today.strftime("%Y-%m-%d")}/"))
-      FileUtils.mkdir_p(archive_path) unless File.directory?(archive_path)
-      FileUtils.mv(@upload.file.current_path, archive_path) if File.exist?(@upload.file.current_path)
+      # If the file was extracted successfully, delete the source file,
+      # we have a copy in the database
+      File.delete(@upload.file.current_path) if File.exist?(@upload.file.current_path)
+      # archive_path = File.dirname(@upload.file.current_path.sub(Rails.root.to_s + '/tmp/', "var/upload_archive/#{Date.today.strftime("%Y-%m-%d")}/"))
+      # FileUtils.mkdir_p(archive_path) unless File.directory?(archive_path)
+      # FileUtils.mv(@upload.file.current_path, archive_path) if File.exist?(@upload.file.current_path)
       @upload.update({percent_complete: 0.01, unzipped_files: unzipped_files, import_errors: []})
       @upload.save!
     end

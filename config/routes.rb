@@ -230,6 +230,10 @@ Rails.application.routes.draw do
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
+    
+    namespace :eto_api do
+      resources :assessments, only: [:index, :update]
+    end
   end
   resource :account, only: [:edit, :update]
   
