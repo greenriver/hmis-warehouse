@@ -228,6 +228,9 @@ Rails.application.routes.draw do
       end
       resources :roles, only: [:index]
     end
+    namespace :eto_api do
+      resources :assessments, only: [:index, :update]
+    end
   end
   resource :account, only: [:edit, :update]
 

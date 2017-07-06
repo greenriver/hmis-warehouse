@@ -79,8 +79,12 @@ module GrdaWarehouse::Hud
     has_many :project_cocs, **hud_many(ProjectCoc), inverse_of: :project
     has_many :sites, through: :project_cocs, source: :sites
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :project
-    has_many :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :project
+    has_many :income_benefits, through: :enrollments, source: :income_benefits
+    has_many :disabilities, through: :enrollments, source: :disabilities
+    has_many :employment_educations, through: :enrollments, source: :employment_educations
+    has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs
     has_many :services, through: :enrollments, source: :services
+    has_many :exits, through: :enrollments, source: :exit
     has_many :inventories, through: :project_cocs, source: :inventories
     has_many :clients, through: :enrollments, source: :clients
     has_many :funders, class_name: 'GrdaWarehouse::Hud::Funder', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :projects

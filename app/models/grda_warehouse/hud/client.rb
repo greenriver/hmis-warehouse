@@ -97,8 +97,6 @@ module GrdaWarehouse::Hud
     has_many :source_enrollment_income_benefits, through: :source_enrollments, source: :income_benefits
     has_many :source_enrollment_services, through: :source_enrollments, source: :services
     has_many :source_client_attributes_defined_text, through: :source_clients, source: :client_attributes_defined_text
-    has_many :entry_assessments, class_name: GrdaWarehouse::HMIS::EntryAssessment.name
-    has_many :exit_assessments, class_name: GrdaWarehouse::HMIS::ExitAssessment.name
     has_many :staff_x_clients, class_name: GrdaWarehouse::HMIS::StaffXClient.name, inverse_of: :client
     has_many :staff, class_name: GrdaWarehouse::HMIS::Staff.name, through: :staff_x_clients
     has_many :source_api_ids, through: :source_clients, source: :api_id
@@ -196,6 +194,18 @@ module GrdaWarehouse::Hud
       where(id: 
         GrdaWarehouse::ServiceHistory.service.
         where(sh_t[:date].gt(date)).
+        where(
+          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        ).select(:client_id).distinct
+      )
+    end
+
+    scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
+      c_t = arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
+      where(id: 
+        GrdaWarehouse::ServiceHistory.service.
+        where(date: (start_date..end_date)).
         where(
           project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
         ).select(:client_id).distinct

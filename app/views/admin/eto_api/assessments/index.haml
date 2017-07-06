@@ -1,0 +1,24 @@
+- title = 'ETO Touch Points'
+- content_for :title, title
+%h1= content_for(:title)
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Site
+      %th Touch Point
+      %th Touch Point ID
+      %th Active in ETO
+      %th Fetch into Warehouse
+  %tbody
+    - @assessments.each do |assessment|
+      %tr
+        %td
+          = assessment.site_name
+        %td
+          = assessment.name
+        %td
+          = assessment.assessment_id
+        %td
+          = checkmark(assessment.active)
+        %td
+          = checkmark(assessment.fetch)

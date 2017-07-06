@@ -458,7 +458,8 @@ CREATE TABLE roles (
     can_edit_projects boolean DEFAULT false,
     can_edit_organizations boolean DEFAULT false,
     can_edit_data_sources boolean DEFAULT false,
-    can_edit_anything_super_user boolean DEFAULT false
+    can_edit_anything_super_user boolean DEFAULT false,
+    can_manage_assessments boolean DEFAULT false
 );
 
 
@@ -1264,4 +1265,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170619210146');
 INSERT INTO schema_migrations (version) VALUES ('20170619235354');
 
 INSERT INTO schema_migrations (version) VALUES ('20170703125950');
+
+INSERT INTO schema_migrations (version) VALUES ('20170705123919');
 

@@ -470,6 +470,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           data_source_id: day[:data_source_id], 
           project_entry_id: day[:enrollment_group_id]
         )
+
         # If we don't have a source enrollment, something went wrong
         # Queue run the add method, which will blow away their service history
         # and re-create it
@@ -640,8 +641,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     # If the export_id
     def export_for_project_entry_id data_source_id:, project_entry_id:
+      lookup = [data_source_id, project_entry_id]
       @enrollments_by_project_entry_id ||= begin
-        enrollments_by_personal_id.values.flatten(1).index_by do |row|
+        enrollments_by_personal_id_with_deleted.values.flatten(1).index_by do |row|
           [row[:data_source_id], row[:entry_id]]
         end
       end
@@ -649,8 +651,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # (Probably our who updated calculation was off)
       # so we'll queue them to rebuild via a sanity check 
       # and then return false
-      if @enrollments_by_project_entry_id[[data_source_id, project_entry_id]].present?
-        export_id = @enrollments_by_project_entry_id[[data_source_id, project_entry_id]][:export_id]
+      if @enrollments_by_project_entry_id[lookup].present?
+        export_id = @enrollments_by_project_entry_id[lookup][:export_id]
       else
         return false
       end
@@ -1153,6 +1155,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
           data_source_id: enrollment[:data_source_id], 
           export_id: enrollment[:export_id]
         )
+        # Sometimes our export fetching doesn't work correctly, see if we can load it individually
+        if export.blank?
+          export = GrdaWarehouse::Hud::Export.
+            where(data_source_id: enrollment[:data_source_id], export_id: enrollment[:export_id]).
+            pluck(*export_columns.values).
+            first          
+        end
         export_date = export[:export_date].to_date
         export_end = export[:export_end_date].to_date
       rescue Exception => e
