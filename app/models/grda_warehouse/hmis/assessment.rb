@@ -59,7 +59,7 @@ module GrdaWarehouse::HMIS
       touch_points = {}
       api_config.each do |connection_key, config|
         data_source_id = config['data_source_id']
-        api = EtoApi::Base.new(api_connection: connection_key)
+        api = EtoApi::Base.new(trace: false, api_connection: connection_key)
         api.connect
         api.sites.each do |site_id, name|
           api.touch_points(site_id: site_id).each do |touch_point|
