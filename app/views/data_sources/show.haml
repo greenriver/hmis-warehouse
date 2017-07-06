@@ -34,9 +34,9 @@
     .row.table-utilities
       .col-sm-12
         %h2
-          = GrdaWarehouse::Hud::Organization.model_name.human.pluralize
+          = _('Organizations')
           &amp;
-          = GrdaWarehouse::Hud::Project.model_name.human.pluralize
+          = _('Projects')
         .table-responsive
           = f.simple_fields_for :organizations, @organizations do |o|
             - org = o.object
@@ -94,4 +94,4 @@
                       %td
                         = checkmark(project.inventories.present? )
         - unless @readonly
-          = f.button :submit
+          = f.button :submit, value: _('Update Data Source')

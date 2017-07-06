@@ -28,23 +28,16 @@ module Admin
     end
 
     def new
-      @skip_authorization = true
       @translation_key = TranslationKey.new
       
       render action: :edit
     end
 
-    def authorized?
-      true
-    end
-
     def show
-      @skip_authorization = true
       render action: :edit
     end
 
     def edit
-      @skip_authorization = true
       render action: :edit
     end
 
@@ -66,8 +59,6 @@ module Admin
     end  
     
     def translation_key_params
-      # To Permit a Hash, Pass an Array
-      # http://patshaughnessy.net/2014/6/16/a-rule-of-thumb-for-strong-parameters
       params.require(:translation_key).
         permit(
           :key, 

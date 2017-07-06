@@ -1,7 +1,7 @@
 = render partial: 'breadcrumbs'
 .row
   .col-sm-8
-    %h1= "#{ReportResult.model_name.human.pluralize}: #{@report.name}"
+    %h1= _("Report Result: #{@report.name}")
   .col-sm-4
     = render 'queue_form'
 
@@ -42,7 +42,7 @@
                   = result.value_for_options result.options
               %td= result.completed_in
               %td
-                = link_to report_report_result_path(@report, result),  method: :delete, data: {confirm: "Would you really like to delete this #{ReportResult.model_name.human}?"} do
+                = link_to report_report_result_path(@report, result),  method: :delete, data: {confirm: _("Would you really like to delete this report result?")} do
                   %span.icon-cross
                   Delete
 

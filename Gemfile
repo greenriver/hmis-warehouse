@@ -114,8 +114,8 @@ group :development, :test do
 end
 
 group :development do
-  gem 'gettext', '>=3.0.2', :require => false
-  gem 'ruby_parser', :require => false
+  gem 'gettext', '>=3.0.2', require: false
+  gem 'ruby_parser', require: false
   gem 'grosser-pomo'
   
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring

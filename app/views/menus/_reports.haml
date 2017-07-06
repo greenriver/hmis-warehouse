@@ -2,7 +2,7 @@
   .vsm-group.vsm-group__group-a
     = link_to reports_path, class: 'vsm-item-link' do
       .vsm-item-link--description
-        = "HUD #{Report.model_name.human.pluralize}"
+        = _("HUD Reports")
     = link_to warehouse_reports_path, class: 'vsm-item-link' do
       .vsm-item-link--description
-        = "#{WarehouseReport.model_name.human.pluralize}"
+        = _("Warehouse Reports")

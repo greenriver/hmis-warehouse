@@ -28,10 +28,10 @@ class UploadsController < ApplicationController
       }))
     if @upload.save
       run_import = true
-      flash[:notice] = "#{upload_source.model_name.human} queued to start."
+      flash[:notice] = _("Upload queued to start.")
       redirect_to action: :index
     else
-      flash[:alert] = "#{upload_source.model_name.human} failed to queue."
+      flash[:alert] = _("Upload failed to queue.")
       render :new
     end
     Importing::RunImportHudZipJob.perform_later(upload: @upload) if run_import

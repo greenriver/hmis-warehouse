@@ -36,7 +36,7 @@ class DataSourcesController < ApplicationController
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
-      flash[:error] = "Unable to create new #{data_source_source.model_name.human}"
+      flash[:error] = _('Unable to create new Data Source')
       render action: :new
     end
   end

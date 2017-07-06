@@ -53,10 +53,10 @@ class ReportResultsController < ApplicationController
     end
     if @result.save!
       run_report_engine = true
-      flash[:notice] = "#{ReportResult.model_name.human} queued to start."
+      flash[:notice] = _('Report queued to start.')
       redirect_to action: :index
     else
-      flash[:error] = "#{ReportResult.model_name.human} failed to queue."
+      flash[:error] = _('Report failed to queue.')
       redirect_to action: :index
       return
     end
@@ -91,7 +91,7 @@ class ReportResultsController < ApplicationController
   def update
     if @result.update(report_result_params)
       redirect_to action: :index
-      flash[:notice] = "#{ReportResult.model_name.human} was successfully updated."
+      flash[:notice] = _('Report successfully updated.')
     else
       render :edit
     end
@@ -100,7 +100,7 @@ class ReportResultsController < ApplicationController
   # DELETE /report_results/1
   def destroy
     @result.destroy
-    flash[:notice] = "#{ReportResult.model_name.human} was successfully destroyed."
+    flash[:notice] = _('Report successfully destroyed.')
     redirect_to report_report_results_url
   end
 

@@ -1,8 +1,6 @@
 = render partial: 'breadcrumbs'
 %h1
-  = GrdaWarehouse::ImportLog.model_name.human
-  from 
-  = @import.data_source.name
+  = _("Import Log from #{@import.data_source.name}")
 .row
   .col-sm-12
     .table-responsive
