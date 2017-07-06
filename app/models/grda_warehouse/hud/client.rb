@@ -199,6 +199,18 @@ module GrdaWarehouse::Hud
         ).select(:client_id).distinct
       )
     end
+
+    scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
+      c_t = arel_table
+      sh_t = GrdaWarehouse::ServiceHistory.arel_table
+      where(id: 
+        GrdaWarehouse::ServiceHistory.service.
+        where(date: (start_date..end_date)).
+        where(
+          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        ).select(:client_id).distinct
+      )
+    end
     
     attr_accessor :merge
     attr_accessor :unmerge
