@@ -20,9 +20,6 @@ msgstr ""
 msgid "Boston DND Warehouse"
 msgstr ""
 
-msgid "Boston DND Warehouse."
-msgstr ""
-
 msgid "Clients"
 msgstr ""
 
