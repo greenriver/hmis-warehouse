@@ -42,7 +42,7 @@ namespace :deploy do
       end
     end
   end
-  before :updating, :translations do
+  before :published, :translations do
     on roles(:db)  do
       within current_path do
         execute :rake, 'gettext:sync_to_po_and_db RAILS_ENV=production'
