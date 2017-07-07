@@ -4,17 +4,17 @@ module WarehouseReports::Cas
     before_action :require_can_view_reports!
 
     def index
-      @date = if params[:date].present?
-        params[:date].to_date
-      else
-        chronic_source.maximum(:date)
-      end
-      chronic_ids = chronic_source.where(date: @date).
+      @filter = Filter.new(filter_params)
+      
+      chronic_ids = client_source.joins(:chronics).
+        where(ch_t[:date].eq(@filter.date)).
         where(ch_t[:days_in_last_three_years].gteq(365)).
-        pluck(:client_id)
+        has_homeless_service_after_date(date: @filter.homeless_service_after).
+        pluck(:id)
+
       cas_ids = client_source.cas_active.pluck(:id)
       @missing_in_cas = client_source.joins(:chronics).
-        where(chronics: {date: @date}).
+        where(chronics: {date: @filter.date}).
         where(id: (chronic_ids - cas_ids)).
         pluck(*client_columns.values).
         map do |row|
@@ -24,10 +24,6 @@ module WarehouseReports::Cas
       @not_on_list = client_source.
         where(id: (cas_ids - chronic_ids)).
         includes(:chronics)
-        # pluck(*client_columns.values).
-        # map do |row|
-        #   Hash[client_columns.keys.zip(row)]
-        # end
     end
 
     def client_columns
@@ -55,6 +51,21 @@ module WarehouseReports::Cas
 
     def c_t
       client_source.arel_table
+    end
+
+    private def filter_params
+      return {} unless params.has_key? :filter
+      params.require(:filter).permit(:date, :homeless_service_after)
+    end
+
+    class Filter < ModelForm
+      attribute :date, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date)
+      attribute :homeless_service_after, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date) - 31.days
+
+      def chronic_days
+        GrdaWarehouse::Chronic.order(date: :desc).distinct.limit(30).pluck(:date)
+      end
+
     end
     
   end
