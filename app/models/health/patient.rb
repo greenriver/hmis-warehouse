@@ -81,5 +81,56 @@ module Health
       full_name << "(#{aliases})" if aliases.present?
       return full_name
     end
+
+    def self.sort_options
+      [
+        {title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc'},
+        {title: 'Patient Last name Z-A', column: :patient_last_name, direction: 'desc'},
+        {title: 'Patient First name A-Z', column: :patient_first_name, direction: 'asc'},
+        {title: 'Patient First name Z-A', column: :patient_first_name, direction: 'desc'},
+      ]
+    end
+
+    def self.column_from_sort(column: nil, direction: nil)
+      { 
+        [:patient_last_name, :asc] => arel_table[:last_name].asc,
+        [:patient_last_name, :desc] => arel_table[:last_name].desc,
+        [:patient_first_name, :asc] => arel_table[:first_name].asc,
+        [:patient_first_name, :desc] => arel_table[:first_name].desc,
+      }[[column.to_sym, direction.to_sym]] || default  
+    end
+
+    def self.default_sort_column
+      :patient_last_name
+    end
+
+    def self.default_sort_direction
+      :asc
+    end
+
+    def self.text_search(text)
+      return none unless text.present?
+      text.strip!
+      patient_t = arel_table
+
+      # Explicitly search for only last, first if there's a comma in the search
+      if text.include?(',')
+        last, first = text.split(',').map(&:strip)
+        where = patient_t[:first_name].lower.matches("#{first.downcase}%")
+          .and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
+      # Explicity search for "first last"
+      elsif text.include?(' ')
+        first, last = text.split(' ').map(&:strip)
+        where = patient_t[:first_name].lower.matches("#{first.downcase}%")
+          .and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
+      else
+        query = "%#{text.downcase}%"
+        
+        where = patient_t[:last_name].lower.matches(query).
+          or(patient_t[:first_name].lower.matches(query)).
+          or(patient_t[:id_in_source].lower.matches(query))
+      end
+      where(where)
+    end
   end
 end
