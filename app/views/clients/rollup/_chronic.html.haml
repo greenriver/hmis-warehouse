@@ -14,12 +14,16 @@
   %tbody
     %tr
       %td= 'Months homeless in the last 3 years'
-      %td= @client.months_served_since date: 3.years.ago.to_date
+      %td
+        - # Don't count the current month
+        = @client.months_served_between(start_date: 3.years.ago.beginning_of_month, end_date: Date.today.beginning_of_month - 1.day)
     %tr
       %td= 'Months homeless in the last year'
-      %td= @client.months_served_since date: 1.years.ago.to_date
+      %td
+        - # Don't count the current month
+        = @client.months_served_between(start_date: 1.years.ago.beginning_of_month, end_date: Date.today.beginning_of_month - 1.day)
     %tr
       %td= 'Homeless episodes in the last 3 years'
-      %td= @client.homeless_episodes_since date: 3.years.ago.to_date
+      %td= @client.homeless_episodes_since(date: 3.years.ago.to_date)
         
         
