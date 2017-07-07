@@ -1,5 +1,5 @@
 - id = group.id
-- last_report = group.data_quality_reports&.last
+- last_report = group.data_quality_reports.sort_by{|m| m[:id]}&.last
 %tr.jProject.jProject.hidden{data: {organization_id: :project_groups}}
   %td
   %td
