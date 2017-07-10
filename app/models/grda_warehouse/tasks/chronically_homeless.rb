@@ -41,6 +41,7 @@ module GrdaWarehouse::Tasks
       @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
       @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
       @date = date
+      @hard_stop = @date.beginning_of_month
       @count_so_as_full_month = count_so_as_full_month
       @dry_run = dry_run
       @clients = client_ids
@@ -63,6 +64,8 @@ module GrdaWarehouse::Tasks
         reset_for_batch()
         adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
         homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
+        homeless_months_size = if homeless_months.size > 36 then 36 else homeless_months.size end
+        # debug_log homeless_months.inspect
         debug_log "Found #{homeless_months.size} homeless months"
         if homeless_months.size >= 12
           disabled = disabled?(client_id)
@@ -179,7 +182,7 @@ module GrdaWarehouse::Tasks
         dates_served = e.map{|m| m[:date]}.uniq
         # special treatment for SO
         # Count all days in any month served
-        if meta[:project_type] == SO && @count_so_as_full_month
+        if count_so_as_full_month?(meta)
           so_dates_served = []
           dates_served.map do |date|
             Date.new(date.year, date.month, 01)
@@ -189,21 +192,32 @@ module GrdaWarehouse::Tasks
               so_dates_served << d
             end
           end
-          debug_log "SO Dates Served: #{so_dates_served.size}"
+          debug_log "SO Dates Served in #{meta[:project_name]}: #{so_dates_served.size}"
+          # debug_log so_dates_served.inspect
           dates_served = so_dates_served.uniq
         end
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
-        count_until = if meta[:project_tracking_method] == 3
+        count_until = if bed_night?(meta)
           meta[:last_date_in_program]
         else
           next_enrollment(enrollments: all_dates, type: meta[:project_type], start: meta[:first_date_in_program]).try(:[], :first_date_in_program) || meta[:last_date_in_program]
         end
-        # days included in adjusted days that are not also served by a residential project 
-        adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-        homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: all_dates)
-        all_homeless_dates += homeless_dates_for_enrollment
+        # days included in adjusted days that are not also served by a residential project
+        # If the project uses bed-night tracking, just count them all
+        # otherwise ignore overlapping dates (this allows for overlapping SO from two sources)
+        # We dedup dates later, none will be double counted
+        if count_all_dates?(meta)
+          adj_dates = adjusted_dates(dates: dates_served, stop_date: @hard_stop)
+          debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}"
+          all_homeless_dates += adj_dates
+        else
+          adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
+          homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: all_dates)
+          all_homeless_dates += homeless_dates_for_enrollment
+        end
       end
+      # debug_log all_homeless_dates.sort.inspect
       debug_log "Counting #{all_homeless_dates.size} homeless days"
       all_homeless_dates
       
@@ -211,6 +225,22 @@ module GrdaWarehouse::Tasks
 
     def debug_log string
       logger.info string if debug
+    end
+
+    def count_all_dates?(meta)
+      bed_night?(meta) || count_so_as_full_month?(meta)
+    end
+
+    def bed_night?(meta)
+      meta[:project_tracking_method] == 3
+    end
+
+    def count_so_as_full_month?(meta)
+      so?(meta) && @count_so_as_full_month
+    end
+
+    def so?(meta)
+      meta[:project_type] == SO
     end
 
     def next_enrollment enrollments:, type:, start:
@@ -239,8 +269,11 @@ module GrdaWarehouse::Tasks
       end.uniq
     end
 
+    # count dates up to the end of the previous month
+    # We're always going back 3 years, and don't want to count the current month 
+    # until we have complete data for it
     def adjusted_dates dates:, stop_date:
-      return dates if stop_date.nil?
+      return dates.select{|date| date < @hard_stop} if stop_date.nil?
       dates.select{|date| date < stop_date}
     end
 
@@ -343,6 +376,7 @@ module GrdaWarehouse::Tasks
         :project_type,
         :project_id,
         :project_tracking_method,
+        :project_name,
       ]
     end
   end
