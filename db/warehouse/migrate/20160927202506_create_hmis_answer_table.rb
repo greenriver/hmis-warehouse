@@ -1,6 +1,6 @@
 class CreateHmisAnswerTable < ActiveRecord::Migration
   def change
-    table_name = GrdaWarehouse::HMIS::Answer.table_name
+    table_name = :hmis_answers
     create_table table_name do |t|
       t.integer :assessment_id, null: false
       t.integer :question_id, null: false
