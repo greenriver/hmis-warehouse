@@ -164,6 +164,7 @@ namespace :grda_warehouse do
   task :calculate_chronic_homelessness, [:date] => [:environment, "log:info_to_stdout"] do |task, args|
     date = (args.date || Date.today).to_date
     GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
+    GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
   end
 
   desc "Calculate chronic homelessness ['2015-01-15, 2017-01-15, 1, month']; defaults: interval=1, unit=month"
@@ -175,24 +176,6 @@ namespace :grda_warehouse do
     unit = (args.unit || :month).to_sym
     while start_date < end_date
       GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: start_date).run!
-      start_date += interval.send(unit)
-    end
-  end
-
-  desc "Calculate DMH chronic homelessness ['2017-01-15']; defaults: date=Date.today"
-  task :calculate_dmh_chronic_homelessness, [:date] => [:environment, "log:info_to_stdout"] do |task, args|
-    date = (args.date || Date.today).to_date
-    GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
-  end
-
-  desc "Calculate DMH chronic homelessness ['2015-01-15, 2017-01-15, 1, month']; defaults: interval=1, unit=month"
-  task :calculate_dmh_chronic_for_interval, [:start, :end, :interval, :unit] => [:environment, "log:info_to_stdout"] do |task, args|
-    raise 'dates required' unless args.start.present? && args.end.present?
-    start_date = args.start.to_date
-    end_date = args.end.to_date
-    interval = (args.interval || 1).to_i
-    unit = (args.unit || :month).to_sym
-    while start_date < end_date
       GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: start_date).run!
       start_date += interval.send(unit)
     end
