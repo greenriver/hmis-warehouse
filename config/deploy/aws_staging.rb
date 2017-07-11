@@ -30,7 +30,7 @@ namespace :deploy do
       end
     end
   end
-  after :updating, :report_seeds do
+  after :updated, :report_seeds do
     on roles(:db)  do
       within current_path do
         execute :rake, 'reports:seed RAILS_ENV=staging'
