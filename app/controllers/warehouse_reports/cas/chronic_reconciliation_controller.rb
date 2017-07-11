@@ -59,8 +59,8 @@ module WarehouseReports::Cas
     end
 
     class Filter < ModelForm
-      attribute :date, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date)
-      attribute :homeless_service_after, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date) - 31.days
+      attribute(:date, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date)) rescue Date.today
+      attribute(:homeless_service_after, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date) - 31.days) rescue Date.today
 
       def chronic_days
         GrdaWarehouse::Chronic.order(date: :desc).distinct.limit(30).pluck(:date)

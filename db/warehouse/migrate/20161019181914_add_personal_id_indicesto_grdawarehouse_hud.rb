@@ -32,6 +32,6 @@ class AddPersonalIdIndicestoGrdawarehouseHud < ActiveRecord::Migration
   end
 
   def christen(m)
-    "index_#{m.table_name}_on_#{COLS.to_sentence.gsub(/[, ]/, '_')}"
+    "index_#{m.table_name}_on_data_source_id_PersonalID"
   end
 end
