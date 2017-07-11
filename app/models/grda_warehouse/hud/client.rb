@@ -609,7 +609,7 @@ module GrdaWarehouse::Hud
     end
 
     def weeks_of_service
-      total_days_of_service / 7
+      total_days_of_service / 7 rescue 'unknown'
     end
 
     def days_of_service
@@ -638,7 +638,7 @@ module GrdaWarehouse::Hud
     end
 
     def total_days_of_service
-      ((date_of_last_service - date_of_first_service).to_i + 1)
+      ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown'
     end
 
     def service_dates_for_display start_date
