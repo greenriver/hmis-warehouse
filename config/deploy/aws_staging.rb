@@ -16,14 +16,14 @@ set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_kno
 set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml', 'app/mail_interceptors/sandbox_email_interceptor.rb')
 
 namespace :deploy do
-  after :updating, :warehouse_migrations do
+  after :updated, :warehouse_migrations do
     on roles(:db)  do
       within current_path do
         execute :rake, 'warehouse:db:migrate RAILS_ENV=staging'
       end
     end
   end
-  after :updating, :health_migrations do
+  after :updated, :health_migrations do
     on roles(:db)  do
       within current_path do
         execute :rake, 'health:db:migrate RAILS_ENV=staging'
