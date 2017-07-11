@@ -1,4 +1,6 @@
-set :deploy_to, '/var/www/boston-hmis-staging'
+client = ENV.fetch('CLIENT') { 'boston' }
+
+set :deploy_to, "/var/www/#{client}-hmis-staging"
 set :rails_env, 'staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
@@ -42,4 +44,4 @@ namespace :deploy do
       end
     end
   end
-end 
+end
