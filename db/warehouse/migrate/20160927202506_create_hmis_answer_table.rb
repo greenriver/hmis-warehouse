@@ -1,6 +1,3 @@
-class GrdaWarehouse::HMIS::Answer < ActiveRecord::Base
-end
-
 class CreateHmisAnswerTable < ActiveRecord::Migration
   def up 
     create_table :hmis_answers do |t|
