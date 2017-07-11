@@ -28,6 +28,7 @@ module GrdaWarehouse::Hud
         "RaceNone",
         "Ethnicity",
         "Gender",
+        "OtherGender",
         "VeteranStatus",
         "YearEnteredService",
         "YearSeparated",
