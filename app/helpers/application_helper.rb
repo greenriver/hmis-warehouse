@@ -105,5 +105,12 @@ module ApplicationHelper
     end
 
   end
+  
+  def human_locale(locale)
+    translations = {
+      en: 'Text adjustments'
+    }
+    translations[locale.to_sym].presence || locale
+  end
 
 end

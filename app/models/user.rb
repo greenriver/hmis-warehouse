@@ -131,11 +131,18 @@ class User < ActiveRecord::Base
   private
 
     def viewable(model)
-      model.joins(:user_viewable_entities).merge viewable_join(model)
+      if can_edit_anything_super_user?
+        model.all
+      else
+        model.joins(:user_viewable_entities).merge(viewable_join(model))
+      end
     end
 
     def viewable_join(model)
-      GrdaWarehouse::UserViewableEntity.where entity_type: model.sti_name, user_id: id
+      GrdaWarehouse::UserViewableEntity.where(
+        entity_type: model.sti_name, 
+        user_id: id
+      )
     end
 
 end

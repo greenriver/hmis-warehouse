@@ -101,7 +101,13 @@ gem 'redis-rails'
 #AWS SDK
 gem 'aws-sdk-rails', require: false
 
+#Translations
+gem 'gettext_i18n_rails'
+gem 'fast_gettext'
 gem 'auto-session-timeout'
+gem 'gettext', '>=3.0.2', require: false
+gem 'ruby_parser', require: false
+gem 'grosser-pomo'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -110,7 +116,7 @@ group :development, :test do
   gem 'foreman'
 end
 
-group :development do
+group :development do  
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'html2haml'

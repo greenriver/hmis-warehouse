@@ -183,11 +183,17 @@ GEM
       i18n (~> 0.5)
     faraday (0.10.0)
       multipart-post (>= 1.2, < 3)
+    fast_gettext (1.4.1)
     flamegraph (0.9.5)
     font-awesome-sass (4.7.0)
       sass (>= 3.2)
     foreman (0.82.0)
       thor (~> 0.19.1)
+    gettext (3.2.3)
+      locale (>= 2.0.5)
+      text (>= 1.3.0)
+    gettext_i18n_rails (1.8.0)
+      fast_gettext (>= 0.9.0)
     globalid (0.4.0)
       activesupport (>= 4.2.0)
     gmail (0.6.0)
@@ -195,6 +201,7 @@ GEM
       mail (>= 2.2.1)
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
+    grosser-pomo (0.5.1)
     haml (4.0.7)
       tilt
     haml-rails (0.9.0)
@@ -246,6 +253,7 @@ GEM
       launchy (~> 2.2)
     linefit (0.3.4)
     list_matcher (1.0.7)
+    locale (2.1.2)
     lograge (0.4.1)
       actionpack (>= 4, < 5.1)
       activesupport (>= 4, < 5.1)
@@ -492,10 +500,14 @@ DEPENDENCIES
   exception_notification
   execjs
   faker (>= 1.7.2)
+  fast_gettext
   flamegraph
   font-awesome-sass
   foreman
+  gettext (>= 3.0.2)
+  gettext_i18n_rails
   gmail
+  grosser-pomo
   haml-rails
   handlebars_assets
   html2haml
@@ -532,6 +544,7 @@ DEPENDENCIES
   rspec-mocks
   ruby-prof
   ruby-progressbar
+  ruby_parser
   rubyzip (>= 1.2.1)
   sass-rails
   schema_plus_views
@@ -552,4 +565,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   1.15.0
+   1.15.1

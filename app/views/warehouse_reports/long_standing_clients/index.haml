@@ -1,14 +1,15 @@
 - title = "Clients still in Emergency Shelters after"
-- content_for :title, title
-%h1= title 
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
-
+- content_for(:title, title)
+%h1
+  = content_for :title
   = @years
   years
-= simple_form_for :clients, url: warehouse_reports_long_standing_clients_path, html: {method: :get} do |f|
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
+= simple_form_for(:clients, url: warehouse_reports_long_standing_clients_path, html: {method: :get}) do |f|
   %label{for: :years}
     Years ago
-    = select_tag :years, options_for_select((3..15), @years), {value: @years}
+    = select_tag(:years, options_for_select((3..15), @years), {value: @years})
     = f.button :submit, value: 'Update View'
 
 .warehouse-reports__long-standing-clients

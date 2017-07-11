@@ -107,7 +107,11 @@ Rails.application.routes.draw do
         end
       end
       resources :decline_reason, only: [:index]
-      resources :chronic_reconciliation, only: [:index]
+      resources :chronic_reconciliation, only: [:index] do
+        collection do
+          patch :update
+        end
+      end
     end
   end
 
@@ -127,7 +131,9 @@ Rails.application.routes.draw do
       patch :merge
       patch :unmerge
       post :create_note
+      resource :cas_active, only: :update
     end
+    
     healthcare_routes()
   end
   namespace :clients do
@@ -228,12 +234,15 @@ Rails.application.routes.draw do
       end
       resources :roles, only: [:index]
     end
+    resources :translation_keys, only: [:index, :update]
+    resources :translation_text, only: [:update]
+    
     namespace :eto_api do
       resources :assessments, only: [:index, :update]
     end
   end
   resource :account, only: [:edit, :update]
-
+  
   unless Rails.env.production?
     resource :style_guide, only: :none do
       get :careplan

@@ -13,6 +13,9 @@ class ApplicationController < ActionController::Base
   around_filter :cache_grda_warehouse_base_queries
   before_action :compose_activity, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
   after_action :log_activity, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
+
+  helper_method :locale
+  before_filter :set_gettext_locale
   
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
@@ -29,8 +32,20 @@ class ApplicationController < ActionController::Base
     force_ssl
   end
 
-  private
+  protected
 
+  def locale
+    default_locale = 'en'
+    params[:locale] || session[:locale] || default_locale
+  end
+  
+  private
+  
+  def set_gettext_locale
+    session[:locale] = I18n.locale = FastGettext.set_locale(locale)
+    super
+  end
+  
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
       user == Rails.application.secrets.basic_auth_user && \

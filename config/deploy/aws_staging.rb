@@ -1,4 +1,6 @@
-set :deploy_to, '/var/www/boston-hmis-staging'
+client = ENV.fetch('CLIENT') { 'boston' }
+
+set :deploy_to, "/var/www/#{client}-hmis-staging"
 set :rails_env, 'staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
@@ -14,25 +16,32 @@ set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_kno
 set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml', 'app/mail_interceptors/sandbox_email_interceptor.rb')
 
 namespace :deploy do
-  before :finishing, :warehouse_migrations do
+  after :updated, :warehouse_migrations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'warehouse:db:migrate RAILS_ENV=staging'
       end
     end
   end
-  before :finishing, :health_migrations do
+  after :updated, :health_migrations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'health:db:migrate RAILS_ENV=staging'
       end
     end
   end
-  before :finishing, :report_seeds do
+  after :updated, :report_seeds do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'reports:seed RAILS_ENV=staging'
       end
     end
   end
-end 
+  before :published, :translations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, 'gettext:sync_to_po_and_db RAILS_ENV=staging'
+      end
+    end
+  end
+end

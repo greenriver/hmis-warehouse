@@ -1,5 +1,13 @@
+- content_for :title,  'Patient - Client management'
+- sort_options = Health::Patient.sort_options
+%h1= content_for :title
 = render 'breadcrumbs'
-%p Use this form to connect any patients who are not automatically matched to clients on import, or to fix an incorrectly matched patient. 
+%p Use this form to connect any patients who are not automatically matched to clients on import, or to fix an incorrectly matched patient.
+.row
+  .col-sm-8
+    = render 'search_form'
+  .col-sm-4
+    = render 'sort', sort_options: sort_options
 = simple_form_for :patients, url: admin_health_patients_path do |f|
   = f.error_notification
   .form-inputs
@@ -8,14 +16,21 @@
     %table.table.table-striped
       %thead
         %tr
+          %th Patient ID
           %th Patient
+          %th Client
           %th Client ID
       %tbody
         - @patients.each do |patient|
           %tr
             = simple_fields_for 'patients[]', patient do |t|
               %td
+                = patient.id_in_source
+              %td
                 = patient.name
+              %td
+                - if patient.client.present?
+                  = patient.client.name
               %td
                 = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
   .form-actions

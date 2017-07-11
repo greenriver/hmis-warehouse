@@ -4,15 +4,27 @@ module Admin::Health
     before_filter :set_patients, only: [:index, :update]
 
     def index
-      @patients = @patients.page(params[:page].to_i).per(50)
+      sort = params.permit(:sort, :direction)
+      @column = sort[:sort]&.to_sym || patient_source.default_sort_column
+      @direction = sort[:direction]&.to_sym || patient_source.default_sort_direction
+      @patients = @patients.order(
+        patient_source.column_from_sort(
+          column: @column,
+          direction: @direction
+        ).to_sql
+      )
+      if params[:q].present?
+        @patients = @patients.text_search(params[:q])
+      end
+      @patients = @patients.page(params[:page].to_i).per(5)
     end
 
     def update
-      @patients = @patients.page(params[:page].to_i).per(50)
+      @patients = @patients.page(params[:page].to_i).per(5)
       error = false
       patients_params.each do |patient_id, client|
         begin
-          ::Health::Patient.transaction do
+          patient_source.transaction do
             patient = ::Health::Patient.find(patient_id.to_i)
             if client[:client_id].present? && client[:client_id].to_i != 0
               patient.update(client_id: client[:client_id].to_i)
@@ -34,7 +46,16 @@ module Admin::Health
     end
 
     def set_patients
-      @patients = ::Health::Patient.all.order(last_name: :asc, first_name: :asc)
+      @patients = patient_scope.
+        includes(:client)
+    end
+
+    def patient_scope
+      patient_source.all
+    end
+
+    def patient_source
+      ::Health::Patient
     end
   end
 end

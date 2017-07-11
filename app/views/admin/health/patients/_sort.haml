@@ -1,0 +1,12 @@
+.btn-group.client__sort
+  %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
+    Sort
+    %span.caret
+  .dropdown-menu.options
+    %ul
+      - sort_options.each do |opt|
+        - if @column.to_sym == opt[:column].to_sym && @direction.to_sym == opt[:direction].to_sym
+          - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
+        - else
+          - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
+        %li= sort_as_link(title, opt[:column], opt[:direction])

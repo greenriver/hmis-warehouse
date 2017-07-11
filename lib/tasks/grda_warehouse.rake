@@ -97,6 +97,13 @@ namespace :grda_warehouse do
       grda.munged_personal_id = true
       grda.save
 
+      grda = GrdaWarehouse::DataSource.where(name: 'Silver Island').first_or_create
+      grda.file_path = Rails.root.join.to_s << '/var/hmis/si'
+      grda.source_type = 'samba'
+      grda.short_name = 'SI'
+      grda.munged_personal_id = true
+      grda.save
+
       dnd_warehouse = GrdaWarehouse::DataSource.where(name: 'HMIS Warehouse').first_or_create
       dnd_warehouse.short_name = 'Warehouse'
       dnd_warehouse.save

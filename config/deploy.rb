@@ -4,6 +4,13 @@ lock '3.6.1'
 set :application, 'boston_hmis'
 set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 
+
+if !ENV['FORCE_SSH_KEY'].nil?
+  set :ssh_options, {
+    keys: [ENV['FORCE_SSH_KEY']]
+  }
+end
+
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 

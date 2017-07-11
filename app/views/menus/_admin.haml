@@ -3,12 +3,12 @@
     - if can_view_imports?
       = link_to admin_dashboard_imports_path, class: 'vsm-item-link' do
         .vsm-item-link--description
-          = "Import Dashboard"
+          = _('Import Dashboard')
     - if can_view_projects? || can_view_organizations?
       = link_to data_sources_path, class: 'vsm-item-link' do
         .vsm-item-link--description
-          = GrdaWarehouse::DataSource.model_name.human.pluralize
+          = _('Data Sources')
     - if can_edit_project_groups?
       = link_to project_groups_path, class: 'vsm-item-link' do
         .vsm-item-link--description
-          = GrdaWarehouse::ProjectGroup.model_name.human.pluralize
+          = _('Project Groups')

@@ -1,7 +1,8 @@
 class AddHealthPermissions < ActiveRecord::Migration
-  def change
+  def up
     add_column :roles, :health_role, :boolean, default: false, null: false
     Role.ensure_permissions_exist
+    Role.reset_column_information
     Role.where(name: 'Health admin').first_or_create(
       can_administer_health: true, 
       health_role: true
@@ -10,5 +11,8 @@ class AddHealthPermissions < ActiveRecord::Migration
       can_edit_client_health: true,
       health_role: true
     )
+  end
+  def down
+    remove_column :roles, :health_role, :boolean, default: false, null: false
   end
 end

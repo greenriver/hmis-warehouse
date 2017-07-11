@@ -20,7 +20,8 @@ module WarehouseReports::Project
       @range.validate
       begin
         @project_ids = project_params rescue []
-        @project_ids = current_user.projects.where( id: @project_ids ).pluck :id   # filter by viewability
+        # filter by viewability
+        @project_ids = current_user.projects.where( id: @project_ids ).pluck(:id)   
         @project_group_ids = project_group_params rescue []
         if @project_ids.empty? && @project_group_ids.empty?
           raise ActionController::ParameterMissing, 'Parameters missing'

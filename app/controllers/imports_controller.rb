@@ -28,10 +28,10 @@ class ImportsController < ApplicationController
     @import = import_source.new(import_params.merge({percent_complete: 0.0}))
     if @import.save
       run_import = true
-      flash[:notice] = "#{Import.model_name.human} queued to start."
+      flash[:notice] = _('Import queued to start.')
       redirect_to action: :index
     else
-      flash[:alert] = "#{Import.model_name.human} failed to queue."
+      flash[:alert] = _('Import failed to queue.')
       render :new
     end
     Importing::RunImportHudZipJob.perform_later(@import.id) if run_import
@@ -41,7 +41,7 @@ class ImportsController < ApplicationController
   def update
     if @import.update(import_params)
       redirect_to action: :index
-      flash[:notice] = "#{Import.model_name.human} was successfully updated."
+      flash[:notice] = _('Import was successfully updated.')
     else
       render :edit
     end
@@ -50,7 +50,7 @@ class ImportsController < ApplicationController
   # DELETE /imports/1
   def destroy
     @import.destroy
-    flash[:notice] = "#{Import.model_name.human} was successfully destroyed."
+    flash[:notice] = _('Import was successfully destroyed.')
     redirect_to imports_url
   end
 

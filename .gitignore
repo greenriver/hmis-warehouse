@@ -74,5 +74,6 @@ bower.json
 *.sublime-workspace
 
 # Ignore themes
-assets/images/theme/*
-assets/stylesheets/theme/*
+app/assets/stylesheets/theme/*.scss
+app/assets/images/theme/*.png
+app/assets/images/theme/*.ico

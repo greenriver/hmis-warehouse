@@ -3,7 +3,8 @@
     - if can_view_clients? || can_edit_clients?
       = link_to clients_path, class: 'vsm-item-link' do
         .vsm-item-link--description
-          = GrdaWarehouse::Hud::Client.model_name.human.pluralize
+          = _('Clients')
     - if can_view_client_window?
       = link_to window_clients_path, class: 'vsm-item-link' do
-        .vsm-item-link--description Window into the Warehouse
+        .vsm-item-link--description 
+          = _('Window into the Warehouse')
