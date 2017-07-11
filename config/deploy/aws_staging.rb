@@ -18,28 +18,28 @@ set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml'
 namespace :deploy do
   after :updated, :warehouse_migrations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'warehouse:db:migrate RAILS_ENV=staging'
       end
     end
   end
   after :updated, :health_migrations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'health:db:migrate RAILS_ENV=staging'
       end
     end
   end
   after :updated, :report_seeds do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'reports:seed RAILS_ENV=staging'
       end
     end
   end
   before :published, :translations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'gettext:sync_to_po_and_db RAILS_ENV=staging'
       end
     end
