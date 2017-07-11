@@ -36,7 +36,7 @@ class GrdaWarehouse::Utility
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end
   end
-  def modifier(model)
+  def self.modifier(model)
     return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client].include?(model)
     'RESTRICT'
   end
