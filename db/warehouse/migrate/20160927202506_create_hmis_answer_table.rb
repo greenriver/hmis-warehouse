@@ -1,4 +1,4 @@
-class HMIS::Answer < ActiveRecord::Base
+class GrdaWarehouse::HMIS::Answer < ActiveRecord::Base
 end
 
 class CreateHmisAnswerTable < ActiveRecord::Migration
