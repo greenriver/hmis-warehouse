@@ -9,6 +9,8 @@
       %th Touch Point ID
       %th Active in ETO
       %th Fetch into Warehouse
+      %th Display as confidential
+      %th Exclude from Window
   %tbody
     - @assessments.each do |assessment|
       %tr
@@ -22,3 +24,7 @@
           = checkmark(assessment.active)
         %td
           = checkmark(assessment.fetch)
+        %td
+          = checkmark(assessment.confidential)
+        %td
+          = checkmark(assessment.exclude_from_window)

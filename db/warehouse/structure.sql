@@ -1457,7 +1457,9 @@ CREATE TABLE hmis_assessments (
     "fetch" boolean DEFAULT false NOT NULL,
     active boolean DEFAULT true NOT NULL,
     last_fetched_at timestamp without time zone,
-    data_source_id integer NOT NULL
+    data_source_id integer NOT NULL,
+    confidential boolean DEFAULT false NOT NULL,
+    exclude_from_window boolean DEFAULT false NOT NULL
 );
 
 
@@ -4345,13 +4347,6 @@ CREATE UNIQUE INDEX "unk_Affiliation" ON "Affiliation" USING btree (data_source_
 
 
 --
--- Name: unk_Client; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "unk_Client" ON "Client" USING btree (data_source_id, "PersonalID");
-
-
---
 -- Name: unk_Disabilities; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4856,4 +4851,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170626133126');
 INSERT INTO schema_migrations (version) VALUES ('20170705125336');
 
 INSERT INTO schema_migrations (version) VALUES ('20170706145106');
+
+INSERT INTO schema_migrations (version) VALUES ('20170712174621');
 
