@@ -21,30 +21,30 @@ set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_kno
 set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')
 
 namespace :deploy do
-  before :updating, :warehouse_migrations do
+  after :updated, :warehouse_migrations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'warehouse:db:migrate RAILS_ENV=production'
       end
     end
   end
-  before :updating, :health_migrations do
+  after :updated, :health_migrations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'health:db:migrate RAILS_ENV=production'
       end
     end
   end
-  before :updating, :report_seeds do
+  after :updated, :report_seeds do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'reports:seed RAILS_ENV=production'
       end
     end
   end
   before :published, :translations do
     on roles(:db)  do
-      within current_path do
+      within release_path do
         execute :rake, 'gettext:sync_to_po_and_db RAILS_ENV=production'
       end
     end
