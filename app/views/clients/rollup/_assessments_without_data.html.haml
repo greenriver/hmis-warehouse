@@ -1,5 +1,5 @@
-- if @client.source_hmis_forms.any?
-  - assessments = @client.source_hmis_forms.sort.group_by(&:assessment_type)
+- if @client.non_confidential_source_hmis_forms.any?
+  - assessments = @client.non_confidential_source_hmis_forms.sort.group_by(&:assessment_type)
   %table.table
     %thead
       %tr
