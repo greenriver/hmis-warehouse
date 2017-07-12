@@ -32,7 +32,7 @@ module GrdaWarehouse::Tasks
         mainstream_days_homeless = GrdaWarehouse::ServiceHistory.
           service.
           where(client_id: client_id).
-          where(project_type: CHRONIC_PROJECT_TYPES).
+          where("#{coalesce_project_type.to_sql} in (#{CHRONIC_PROJECT_TYPES.join(', ')})").
           where.not(dmh_projects_filter).
           select(:date).
           distinct.
