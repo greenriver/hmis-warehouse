@@ -21,7 +21,7 @@ module GrdaWarehouse::Tasks
       extra_work = 0
       @clients.each_with_index do |client_id, index|
         reset_for_batch()
-        dmh_days_homeless = GrdaWarehouse::ServiceHistory.
+        dmh_days_homeless = service_history_source.
           currently_homeless(date: @date).
           where(client_id: client_id).
           where(dmh_projects_filter).
@@ -29,7 +29,8 @@ module GrdaWarehouse::Tasks
           select(:date).
           distinct.
           count
-        mainstream_days_homeless = GrdaWarehouse::ServiceHistory.
+        mainstream_days_homeless = service_history_source.
+          joins(:project).
           service.
           where(client_id: client_id).
           where("#{coalesce_project_type.to_sql} in (#{CHRONIC_PROJECT_TYPES.join(', ')})").
