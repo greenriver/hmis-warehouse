@@ -3,6 +3,21 @@ module GrdaWarehouse::HMIS
     dub 'assessments'
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name, foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
+
+    scope :confidential, -> do 
+      where(confidential: true)
+    end
+    scope :non_confidential, -> do
+      where.not(confidential: true)
+    end
+
+    scope :fetch_for_data_source, -> (ds_id) do
+      if ds_id == 1
+        where(fetch: true)
+      else
+        where(assessment_id: 75)
+      end
+    end
     
     def self.update_touch_points
       touch_points = fetch_touch_points()
@@ -54,6 +69,22 @@ module GrdaWarehouse::HMIS
         end.to_h
     end
 
+    # This touch point doesn't show up in the API when a list is requested
+    # but can be pulled down for each client, and contains the HUD touch point data
+    def self.hud_touch_point
+      {
+        {
+          :data_source_id=>1, 
+          :site_id=>0, 
+          :assessment_id=>75
+        } => {
+          :name=>"HUD Assessment (Entry/Update/Annual/Exit)", 
+          :site_name=>"All", 
+          :active=>true
+        }
+      }
+    end
+
     def self.fetch_touch_points
       api_config = YAML.load_file('config/eto_api.yml')
       touch_points = {}
@@ -78,7 +109,7 @@ module GrdaWarehouse::HMIS
           end
         end
       end
-      return touch_points
+      return touch_points.merge(hud_touch_point)
     end
   end
 end

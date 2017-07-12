@@ -1,10 +1,17 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: :assessment_id, foreign_key: :assessment_id
   serialize :response, Hash
   serialize :answers, Hash
 
   scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
   scope :triage, -> { where name: 'Triage Assessment'}
+  scope :confidential, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential) 
+  end
+  scope :non_confidential, -> do 
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.non_confidential)
+  end
 
   def primary_language
     return 'Unknown' unless answers.present?

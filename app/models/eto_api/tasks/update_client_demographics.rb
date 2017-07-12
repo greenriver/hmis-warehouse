@@ -100,16 +100,22 @@ module EtoApi::Tasks
       # hard-coding touch_point_id: 75 because that's the only one we care about at the moment
       
       site_id = client.site_id_in_data_source
+
+      # See /admin/eto_api/assessments for details
       # 75 = HUD Entry/Exit Assessment
       # 211 = Add Triage assessment
-      
-      assessment_ids = [75] # BPHC doesn't yet have the triage touch point
-      assessment_ids = [75, 211] if @data_source_id == 1 # DND does
+      assessment_ids = GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).pluck(:assessment_id)
 
       assessment_ids.each do |tp_id|
         responses = @api.list_touch_point_responses(site_id: site_id, subject_id: subject_id, touch_point_id: tp_id)
         if responses
-          save_touch_points(site_id: site_id, touch_point_id: tp_id, responses: responses, client_id: client.client_id, subject_id: subject_id)
+          save_touch_points(
+            site_id: site_id, 
+            touch_point_id: tp_id, 
+            responses: responses, 
+            client_id: client.client_id, 
+            subject_id: subject_id
+          )
         end
       end
     end
@@ -153,7 +159,12 @@ module EtoApi::Tasks
       responses.each do |response|
         response_id = response["TouchPointResponseID"]
         program_id = response["ProgramID"]
-        hmis_form = GrdaWarehouse::HmisForm.where(client_id: client_id, subject_id: subject_id, response_id: response_id).first_or_initialize
+        hmis_form = GrdaWarehouse::HmisForm.where(
+          client_id: client_id, 
+          subject_id: subject_id, 
+          response_id: response_id,
+          assessment_id: touch_point_id
+        ).first_or_initialize
         #   { assessment_title: 'Title',
         #     assessment_identifier: 'Project Name',
         #     sections: [{

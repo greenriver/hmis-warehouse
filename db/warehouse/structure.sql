@@ -1574,7 +1574,8 @@ CREATE TABLE hmis_forms (
     collected_at timestamp without time zone,
     staff character varying,
     assessment_type character varying,
-    collection_location character varying
+    collection_location character varying,
+    assessment_id integer
 );
 
 
@@ -4018,6 +4019,13 @@ CREATE INDEX index_hmis_clients_on_client_id ON hmis_clients USING btree (client
 
 
 --
+-- Name: index_hmis_forms_on_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_forms_on_assessment_id ON hmis_forms USING btree (assessment_id);
+
+
+--
 -- Name: index_hmis_forms_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4853,4 +4861,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170705125336');
 INSERT INTO schema_migrations (version) VALUES ('20170706145106');
 
 INSERT INTO schema_migrations (version) VALUES ('20170712174621');
+
+INSERT INTO schema_migrations (version) VALUES ('20170712182033');
 
