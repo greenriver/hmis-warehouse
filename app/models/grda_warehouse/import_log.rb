@@ -5,6 +5,10 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   serialize :summary
   belongs_to :data_source
 
+  scope :viewable_by, -> (user) do
+    where(data_source_id: GrdaWarehouse::DataSource.viewable_by(user).select(:id))
+  end
+
   def import_time
     if completed_at.present?
       seconds = ((completed_at - created_at)/1.minute).round * 60

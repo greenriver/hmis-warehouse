@@ -3,7 +3,8 @@
   .col-sm-4
     = render 'import_status'
   .col-sm-4
-    = render 'match_status'
+    = render 'match_status' if can_edit_anything_super_user?
   .col-sm-4
-    = render 'service_status'
-= link_to 'Debugging Dashboard', admin_dashboard_debug_index_path
+    = render 'service_status' if can_edit_anything_super_user?
+
+= link_to 'Debugging Dashboard', admin_dashboard_debug_index_path if can_edit_anything_super_user?

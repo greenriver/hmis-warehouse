@@ -6,6 +6,7 @@ module GrdaWarehouse
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
     belongs_to :user, required: true
+    has_one :import_log, -> { where.not(completed_at: nil)}, primary_key: [:data_source_id, :completed_at], foreign_key: [:data_source_id, :completed_at]
 
     mount_uploader :file, ImportUploader
     validates :data_source, presence: true

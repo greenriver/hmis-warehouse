@@ -60,12 +60,12 @@ class ImportsController < ApplicationController
     end
 
     def import_scope
-      GrdaWarehouse::ImportLog.all
+      GrdaWarehouse::ImportLog.viewable_by(current_user)
     end
 
     # Use callbacks to share common setup or constraints between actions.
     def set_import
-      @import = GrdaWarehouse::ImportLog.find(params[:id].to_i)
+      @import = import_scope.find(params[:id].to_i)
     end
 
     # Only allow a trusted parameter "white list" through.
