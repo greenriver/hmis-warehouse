@@ -16,11 +16,11 @@ module Admin::Health
       if params[:q].present?
         @patients = @patients.text_search(params[:q])
       end
-      @patients = @patients.page(params[:page].to_i).per(5)
+      @patients = @patients.page(params[:page].to_i).per(50)
     end
 
     def update
-      @patients = @patients.page(params[:page].to_i).per(5)
+      @patients = @patients.page(params[:page].to_i).per(50)
       error = false
       patients_params.each do |patient_id, client|
         begin
