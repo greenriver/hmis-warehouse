@@ -73,6 +73,7 @@ module Health
         ssn: :ssn,
         row_created: :created_at,
         row_updated: :updated_at,
+        medicaid_id: :medicaid_id,
       }
     end
 
