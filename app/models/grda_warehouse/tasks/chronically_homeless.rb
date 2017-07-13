@@ -149,7 +149,7 @@ module GrdaWarehouse::Tasks
     # project stay.  If there is, limit the full request to only the days after the stay
     def residential_history_for_client(client_id:)
       debug_log "calculating residential history"
-      homeless_reset = service_history_source.hhud_residential.
+      homeless_reset = service_history_source.hud_residential.
         joins(:project).
         entry_within_date_range(start_date: @date - 3.years, end_date: @date).
         where("#{coalesce_project_type.to_sql} in (#{RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE.join(', ')})").
