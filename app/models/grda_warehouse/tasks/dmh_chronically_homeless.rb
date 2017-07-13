@@ -22,7 +22,7 @@ module GrdaWarehouse::Tasks
       @clients.each_with_index do |client_id, index|
         reset_for_batch()
         dmh_days_homeless = service_history_source.
-          currently_homeless(date: @date).
+          hud_currently_homeless(date: @date).
           where(client_id: client_id).
           where(dmh_projects_filter).
           service_within_date_range(start_date: @date - 3.years, end_date: @date).
@@ -57,10 +57,10 @@ module GrdaWarehouse::Tasks
       end
       Rails.logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"
       
-      GrdaWarehouse::Chronic.transaction do
-        GrdaWarehouse::Chronic.where(date: @date, dmh: true).delete_all
+      chronic_source.transaction do
+        chronic_source.where(date: @date, dmh: true).delete_all
         if @client_details.present?
-          insert_batch GrdaWarehouse::Chronic, @client_details.values.first.keys, @client_details.values.map(&:values)
+          insert_batch(chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values))
         end
       end
       Rails.logger.info 'Done updating status of chronically homeless clients'

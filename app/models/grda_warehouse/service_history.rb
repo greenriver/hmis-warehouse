@@ -27,6 +27,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :residential, -> {
     where project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
   }
+
+  scope :hud_residential, -> do
+    GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+  end
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table
     where_closed = at[:first_date_in_program].lteq(on_date).
@@ -53,6 +57,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :homeless, -> do
     where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
+  scope :hud_homeless, -> do
+    hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+  end
+
   scope :currently_homeless, -> (date: Date.today) do 
     # Limit currently homeless to ES, SH, SO since PSH and TH etc. are 
     # technically housed
@@ -64,6 +72,22 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
       where.not(
         client_id: entry.ongoing(on_date: date).
           where(project_type: non_homeless).
+          select(:client_id).
+          distinct
+      )
+  end
+
+  scope :hud_currently_homeless, -> (date: Date.today) do
+    # Limit currently homeless to ES, SH, SO since PSH and TH etc. are 
+    # technically housed
+    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+
+    entry.
+      ongoing(on_date: date).
+      hud_homeless.
+      where.not(
+        client_id: entry.ongoing(on_date: date).
+          hud_project_type(non_homeless).
           select(:client_id).
           distinct
       )

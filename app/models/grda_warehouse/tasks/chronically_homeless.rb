@@ -102,9 +102,9 @@ module GrdaWarehouse::Tasks
       end
       logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
       unless @dry_run
-        GrdaWarehouse::Chronic.transaction do
-          GrdaWarehouse::Chronic.where(date: @date, dmh: false).delete_all
-          insert_batch GrdaWarehouse::Chronic, @client_details.values.first.keys, @client_details.values.map(&:values)
+        chronic_source.transaction do
+          chronic_source.where(date: @date, dmh: false).delete_all
+          insert_batch chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values)
         end
         logger.info 'Done updating status of chronically homeless clients'
       end
@@ -122,7 +122,7 @@ module GrdaWarehouse::Tasks
 
     def load_active_clients
       @clients ||= service_history_source.
-        currently_homeless(date: @date).
+        hud_currently_homeless(date: @date).
         where.not(client_id: dmh_clients).
         joins(:processed_client).
         select(:client_id).
@@ -149,7 +149,7 @@ module GrdaWarehouse::Tasks
     # project stay.  If there is, limit the full request to only the days after the stay
     def residential_history_for_client(client_id:)
       debug_log "calculating residential history"
-      homeless_reset = service_history_source.residential.
+      homeless_reset = service_history_source.hhud_residential.
         joins(:project).
         entry_within_date_range(start_date: @date - 3.years, end_date: @date).
         where("#{coalesce_project_type.to_sql} in (#{RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE.join(', ')})").
@@ -158,7 +158,7 @@ module GrdaWarehouse::Tasks
         where(client_id: client_id).
         maximum(:last_date_in_program)
       # Just load up the histories for the current client, loading all takes too much RAM
-      scope = service_history_source.residential.
+      scope = service_history_source.hud_residential.
         joins(:project).
         service_within_date_range(start_date: @date - 3.years, end_date: @date).
         where(client_id: client_id)
@@ -385,6 +385,10 @@ module GrdaWarehouse::Tasks
 
     def project_source
       GrdaWarehouse::Hud::Project
+    end
+
+    def chronic_source
+      GrdaWarehouse::Chronic
     end
   
     def sh_t
