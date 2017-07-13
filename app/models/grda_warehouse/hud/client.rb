@@ -598,17 +598,18 @@ module GrdaWarehouse::Hud
     def last_projects_served_by(include_confidential_names: false)
       # FIXME: this is a hack because processed_service_history's date sometimes doesn't match any service history record
       # astoundingly, this is faster than a more sensible database query that doesn't return everything
-      service_history.joins(:project).
+      sh = service_history.joins(:project).
         pluck(:date, :project_name, :confidential).
         group_by(&:first).
-        max_by(&:first).
-        last.map do |_,project_name, confidential|
-          if ! confidential || include_confidential_names
-            project_name
-          else
-            'Confidential Program'
-          end
-        end.uniq.sort
+        max_by(&:first)
+      return [] unless sh.present?  
+      sh.last.map do |_,project_name, confidential|
+        if ! confidential || include_confidential_names
+          project_name
+        else
+          'Confidential Program'
+        end
+      end.uniq.sort
       # service_history.where( date: processed_service_history.select(:last_date_served) ).order(:project_name).distinct.pluck(:project_name)
     end
 
