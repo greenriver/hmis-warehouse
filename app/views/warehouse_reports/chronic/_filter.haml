@@ -2,7 +2,7 @@
   = f.error_notification
   .row
     .col-sm-3
-      = f.input :on, label: 'Chronic on Date', as: :date_picker, input_html: {class: 'jFilterOn'}
+      = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'select2 jFilterOn'}
     .col-sm-3
       = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
     .col-sm-3
@@ -13,7 +13,7 @@
       = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00'}
   .row
     .col-sm-4
-      = f.input :last_service_after, label: 'Received Homeless Service After', as: :date_picker   
+      = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false   
     .col-sm-3
       %br
       = f.button :submit, value: 'Update View'

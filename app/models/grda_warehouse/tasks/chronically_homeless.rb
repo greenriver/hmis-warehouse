@@ -352,7 +352,7 @@ module GrdaWarehouse::Tasks
         where(OrganizationID: DMH_SITE).
         pluck(:ProjectID, :data_source_id).
         map do |project_id, data_source_id|
-          "(project_id = '#{project_id}' and data_source_id = #{data_source_id})"
+          sh_t[:project_id].eq(project_id).and(sh_t[:data_source_id].eq(data_source_id)).to_sql
       end.join(' or ')
     end
 

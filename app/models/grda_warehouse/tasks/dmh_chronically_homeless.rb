@@ -29,9 +29,8 @@ module GrdaWarehouse::Tasks
           select(:date).
           distinct.
           count
-        mainstream_days_homeless = service_history_source.
+        mainstream_days_homeless = service_history_source.service.
           joins(:project).
-          service.
           where(client_id: client_id).
           where("#{coalesce_project_type.to_sql} in (#{CHRONIC_PROJECT_TYPES.join(', ')})").
           where.not(dmh_projects_filter).

@@ -63,7 +63,7 @@ module WarehouseReports
         preload(:chronics).
         preload(:source_disabilities).
         where(filter_query).
-        has_homeless_service_after_date(date: @filter.last_service_after)
+        has_homeless_service_after_date(date: (@filter.date - @filter.last_service_after.days))
     end
 
     private def client_source
@@ -89,7 +89,7 @@ module WarehouseReports
       attribute :individual, Boolean, default: false
       attribute :dmh, Boolean, default: false
       attribute :veteran, Boolean, default: false
-      attribute :last_service_after, Date, default: 31.days.ago
+      attribute :last_service_after, Integer, default: 30
 
       def dates
         @dates ||= GrdaWarehouse::Chronic.select(:date).distinct.order(date: :desc).pluck(:date)
@@ -114,6 +114,19 @@ module WarehouseReports
             use
           end
         end
+      end
+
+      def chronic_days
+        dates
+      end
+
+      def date_ranges
+        {
+          '0 days before chronic date' => 0,
+          '30 days before chronic date' => 30,
+          '60 days before chronic date' => 60,
+          '90 days before chronic date' => 90,
+        }
       end
     end
   end
