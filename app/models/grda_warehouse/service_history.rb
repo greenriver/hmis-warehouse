@@ -25,11 +25,11 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   # the first date individuals entered a residential service
   scope :first_date, -> { where record_type: 'first' }
   scope :residential, -> {
-    where project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+    where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   }
 
   scope :hud_residential, -> do
-    GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+    hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   end
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table
