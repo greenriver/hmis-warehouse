@@ -18,19 +18,19 @@ module GrdaWarehouse::Tasks
         Rails.logger.info 'collecting client histories'
         # clear out the appropriate data and scope things to the appropriate date range
         if @replace_all
-          ht = history_source.arel_table
           start_date = history_source.order(ht[:date]).first.date
           census_by_project_source.delete_all
         else
           end_date = Date.today
           start_date = end_date - 1.year
-          ct = census_by_project_source.arel_table
-          census_by_project_source.where( ct[:date].gteq(start_date).and ct[:date].lt(end_date) ).delete_all
+          census_by_project_source.where( 
+            census_t[:date].gteq(start_date).and(census_t[:date].lt(end_date))
+          ).delete_all
         end
 
         # make a map from identifying triplets of keys to projects
         Rails.logger.info 'finding relevant projects'
-        projects = project_scope.uniq.all
+        projects = project_scope.uniq.all.preload(:inventories)
         projects = projects.index_by{ |p| [ p.data_source_id, p.ProjectID.to_s, p.OrganizationID.to_s ] }
         
         data_by_date = {}
@@ -66,9 +66,10 @@ module GrdaWarehouse::Tasks
               #   ds == ds2 && pi == pi2 && oi == oi2 && gender == gender2 && veteran == veteran2
               # end || [0]
               # yesterdays_count = yr.last
+              pt = project.act_as_project_type || project.ProjectType
               values << {
                 data_source_id:   ds.to_i,
-                ProjectType:      project.ProjectType,
+                ProjectType:      pt,
                 OrganizationID:   oi,
                 ProjectID:        pi,
                 date:             date,
@@ -91,7 +92,6 @@ module GrdaWarehouse::Tasks
         Rails.logger.info "Done with census by project"
         # clear out the appropriate data and scope things to the appropriate date range
         if @replace_all
-          ht = history_source.arel_table
           start_date = history_source.order(ht[:date]).first.date
           census_by_project_type_source.delete_all
         else
@@ -159,14 +159,12 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Hud::Client
     end
 
-    private def project_scope
+    def project_scope
       GrdaWarehouse::Hud::Project.where.not(ProjectType: nil)
     end
 
     def history_for_range_by_project(start_date, end_date)
       Rails.logger.info "collecting histories from range #{start_date} to #{end_date}"
-      ht = history_source.arel_table
-      ct = client_source.arel_table
       query = history_source.joins(:client).
         group( 
           ht[:date], 
@@ -192,14 +190,17 @@ module GrdaWarehouse::Tasks
 
     def history_for_range_by_project_type(start_date, end_date)
       Rails.logger.info "collecting histories from range #{start_date} to #{end_date}"
-      ht = history_source.arel_table
-      ct = client_source.arel_table
-      query = history_source.joins(:client).
-        group( ht[:date], ht[:project_type], coalesced_gender, coalesced_vet_status ).
+      query = history_source.joins(:client, :project).
+        group( 
+          ht[:date], 
+          coalesce_project_type, 
+          coalesced_gender, 
+          coalesced_vet_status
+        ).
         order(ht[:date]).
         where( ht[:date].between( start_date ... end_date ) ).select([
           ht[:date],
-          ht[:project_type],
+          coalesce_project_type.as('project_type').to_sql,
           coalesced_gender,
           coalesced_vet_status,
           nf( 'COUNT', [ nf( 'DISTINCT', [ht[:client_id]] ) ])
@@ -213,6 +214,30 @@ module GrdaWarehouse::Tasks
 
     private def coalesced_vet_status
       cl client_source.arel_table[:VeteranStatus], 0
+    end
+
+    def coalesce_project_type
+      nf( 'COALESCE', [ p_t[:act_as_project_type], sh_t[:project_type] ] )
+    end
+
+    def p_t
+      project_scope.arel_table
+    end
+
+    def sh_t
+      history_source.arel_table
+    end
+
+    def ht
+      sh_t
+    end
+
+    def ct
+      client_source.arel_table
+    end
+
+    def census_t
+      census_by_project_source.arel_table
     end
 
   end

@@ -278,7 +278,7 @@ module GrdaWarehouse::Hud
     end
 
     def longterm_stayer?
-      days = chronics&.last&.days_in_last_three_years || 0
+      days = chronics.order(date: :asc)&.last&.days_in_last_three_years || 0
       days >= 365
     end
 
