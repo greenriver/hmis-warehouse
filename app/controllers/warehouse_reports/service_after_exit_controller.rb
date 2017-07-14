@@ -103,49 +103,47 @@ module WarehouseReports
   end
 end
 
-=begin
 
-For the record, here are the two raw SQL queries the code above replicates, more or less. The more or less caveat comes
-in because the old code did not respect the paranoia columns, so it was aggregating over data that should be regarded as
-deleted as well as non-deleted data.
+# For the record, here are the two raw SQL queries the code above replicates, more or less. The more or less caveat comes
+# in because the old code did not respect the paranoia columns, so it was aggregating over data that should be regarded as
+# deleted as well as non-deleted data.
 
-select s.ProjectEntryID, en.EntryDate, s.DateProvided, e.ExitDate, e.PersonalID, e.data_source_id, c.FirstName, c.LastName, wc.destination_id, en.ProjectID, p.ProjectName
-from Services s
-  inner join (select Services.ProjectEntryID, max(Services.DateProvided) as DateProvided
-    from Services, [Exit]
-    where Services.ProjectEntryID = [Exit].ProjectEntryID
-      and Services.data_source_id = [Exit].data_source_id
-    group by Services.ProjectEntryID) s_group
-  on s.ProjectEntryID = s_group.ProjectEntryID
-  and s.DateProvided = s_group.DateProvided
-  inner join [Exit] e on e.ProjectEntryID = s.ProjectEntryID
-    and e.data_source_id = s.data_source_id
-  inner join Enrollment en on en.ProjectEntryID = s.ProjectEntryID
-    and en.data_source_id = s.data_source_id
-  inner join Client c on e.PersonalID = c.PersonalID
-    and e.data_source_id = c.data_source_id
-  left outer join warehouse_clients wc on wc.source_id = c.id
-  left outer join Project p on p.ProjectID = en.ProjectID
-    and p.data_source_id = en.data_source_id 
-where e.ExitDate < s.DateProvided
+# select s.ProjectEntryID, en.EntryDate, s.DateProvided, e.ExitDate, e.PersonalID, e.data_source_id, c.FirstName, c.LastName, wc.destination_id, en.ProjectID, p.ProjectName
+# from Services s
+#   inner join (select Services.ProjectEntryID, max(Services.DateProvided) as DateProvided
+#     from Services, [Exit]
+#     where Services.ProjectEntryID = [Exit].ProjectEntryID
+#       and Services.data_source_id = [Exit].data_source_id
+#     group by Services.ProjectEntryID) s_group
+#   on s.ProjectEntryID = s_group.ProjectEntryID
+#   and s.DateProvided = s_group.DateProvided
+#   inner join [Exit] e on e.ProjectEntryID = s.ProjectEntryID
+#     and e.data_source_id = s.data_source_id
+#   inner join Enrollment en on en.ProjectEntryID = s.ProjectEntryID
+#     and en.data_source_id = s.data_source_id
+#   inner join Client c on e.PersonalID = c.PersonalID
+#     and e.data_source_id = c.data_source_id
+#   left outer join warehouse_clients wc on wc.source_id = c.id
+#   left outer join Project p on p.ProjectID = en.ProjectID
+#     and p.data_source_id = en.data_source_id 
+# where e.ExitDate < s.DateProvided
 
-select s.ProjectEntryID, en.EntryDate, s.DateProvided, e.ExitDate, e.PersonalID, e.data_source_id, c.FirstName, c.LastName, wc.destination_id, en.ProjectID, p.ProjectName
-from Services s
-  inner join (select Services.ProjectEntryID, min(Services.DateProvided) as DateProvided
-    from Services, Enrollment
-    where Services.ProjectEntryID = Enrollment.ProjectEntryID
-      and Services.data_source_id = Enrollment.data_source_id
-    group by Services.ProjectEntryID) s_group
-  on s.ProjectEntryID = s_group.ProjectEntryID
-  and s.DateProvided = s_group.DateProvided
-  inner join [Exit] e on e.ProjectEntryID = s.ProjectEntryID
-    and e.data_source_id = s.data_source_id
-  inner join Enrollment en on en.ProjectEntryID = s.ProjectEntryID
-    and en.data_source_id = s.data_source_id
-  inner join Client c on e.PersonalID = c.PersonalID
-    and e.data_source_id = c.data_source_id
-  left outer join warehouse_clients wc on wc.source_id = c.id
-  left outer join Project p on p.ProjectID = en.ProjectID
-    and p.data_source_id = en.data_source_id 
-where en.EntryDate > s.DateProvided
-=end
+# select s.ProjectEntryID, en.EntryDate, s.DateProvided, e.ExitDate, e.PersonalID, e.data_source_id, c.FirstName, c.LastName, wc.destination_id, en.ProjectID, p.ProjectName
+# from Services s
+#   inner join (select Services.ProjectEntryID, min(Services.DateProvided) as DateProvided
+#     from Services, Enrollment
+#     where Services.ProjectEntryID = Enrollment.ProjectEntryID
+#       and Services.data_source_id = Enrollment.data_source_id
+#     group by Services.ProjectEntryID) s_group
+#   on s.ProjectEntryID = s_group.ProjectEntryID
+#   and s.DateProvided = s_group.DateProvided
+#   inner join [Exit] e on e.ProjectEntryID = s.ProjectEntryID
+#     and e.data_source_id = s.data_source_id
+#   inner join Enrollment en on en.ProjectEntryID = s.ProjectEntryID
+#     and en.data_source_id = s.data_source_id
+#   inner join Client c on e.PersonalID = c.PersonalID
+#     and e.data_source_id = c.data_source_id
+#   left outer join warehouse_clients wc on wc.source_id = c.id
+#   left outer join Project p on p.ProjectID = en.ProjectID
+#     and p.data_source_id = en.data_source_id 
+# where en.EntryDate > s.DateProvided
