@@ -327,8 +327,9 @@ module Importers
       logger.info "Determining what to delete for #{@klass}"
       existing = @klass.where(data_source_id: @import.data_source.id, ExportID: @export_id)
         .pluck(@hud_key, :id).to_h
-      hud_keys_to_delete = existing.keys - @new_data.map{|row| row[@hud_key]}
-      ids_to_delete = existing.select{|k,v| hud_keys_to_delete.include?(k)}.values
+      # hud keys are all stored as strings, but sometimes they look like integers
+      hud_keys_to_delete = existing.keys - @new_data.map{|row| row[@hud_key].to_s}
+      ids_to_delete = existing.select{|k,v| hud_keys_to_delete.include?(k.to_s)}.values
       ids_to_delete.each_slice(@batch_size) do |batch|
         @klass.where(ExportID: @export_id, data_source_id: @import.data_source.id, id: batch).update_all(@klass.hud_paranoid_column => Time.now)
       end
