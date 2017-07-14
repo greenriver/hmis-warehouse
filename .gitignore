@@ -75,8 +75,5 @@ bower.json
 
 # Ignore themes
 app/assets/stylesheets/theme/*.scss
-app/assets/images/theme/*.png
-app/assets/images/theme/*.gif
-app/assets/images/theme/*.jpg
-app/assets/images/theme/*.svg
-app/assets/images/theme/*.ico
+app/assets/images/theme/logo
+app/assets/images/theme/icons

@@ -12,8 +12,8 @@
     = stylesheet_link_tag 'print', media: 'print'
     
     = cache('theme', expires_in: 4.hours) do
-      - Dir.glob('app/assets/stylesheets/theme/*.scss') do |stylesheet|
-        - theme_styles = "theme/#{File.basename(stylesheet, '.scss')}"
+      - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
+        - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
         = stylesheet_link_tag(theme_styles, media: 'all')
     
     = render 'layouts/favicon'

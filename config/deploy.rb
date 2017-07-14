@@ -53,8 +53,9 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
   'public/system', 
   'tmp/sockets', 
   'var',
-  'assets/stylesheets/theme',
-  'assets/images/theme',
+  'assets/stylesheets/theme/styles',
+  'assets/images/theme/logo',
+  'assets/images/theme/icons',
 )
 
 # Default value for default_env is {}
