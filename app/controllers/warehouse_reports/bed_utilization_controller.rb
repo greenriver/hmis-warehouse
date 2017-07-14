@@ -13,7 +13,7 @@ module WarehouseReports
         ot = organizations.arel_table
         pt = projects.arel_table
         # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
-        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, :ProjectType]
+        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, :ProjectType, :act_as_project_type]
         @projects_with_counts = projects.
           joins( :service_history, :organization ).
           merge(organizations.residential).

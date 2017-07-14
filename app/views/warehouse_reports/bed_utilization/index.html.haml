@@ -61,9 +61,10 @@
         %td
           = project.name
         %td
-          - p_type = ::HUD.project_type_brief(project.ProjectType)
+          - project_type = if project.act_as_project_type then project.act_as_project_type else project.ProjectType end
+          - p_type = ::HUD.project_type_brief(project_type)
           - p_class = "client__service_type_#{p_type}"
-          %span{class: "client__service_type_#{project.ProjectType}"}
+          %span{class: "client__service_type_#{project_type}"}
             .enrollment__project_type{class: p_class}
               %em.service-type__program-type= p_type
         %td
