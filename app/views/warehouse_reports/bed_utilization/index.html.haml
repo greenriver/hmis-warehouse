@@ -2,17 +2,17 @@
 - content_for :title, title
 = link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
   Download Excel
-%h1= title
-= render '/warehouse_reports/breadcrumbs'
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
 = simple_form_for @mo, as: :mo, url: warehouse_reports_bed_utilization_index_path, html: { method: :get } do |f|
   = f.error_notification
   .row
     .col-sm-2
-      = f.input :month, collection: @mo.months, label: false, class: 'form-control'
+      = f.input :month, collection: @mo.months, label: false, class: 'form-control', input_html: {class: 'select2'}
     .col-sm-2
-      = f.input :year, collection: @mo.years, label: false, class: 'form-control'
+      = f.input :year, collection: @mo.years, label: false, class: 'form-control', input_html: {class: 'select2'}
     .col-sm-5
-      = f.input :org, collection: @mo.organizations, label: false, class: 'form-control'
+      = f.input :org, collection: @mo.organizations, label: false, class: 'form-control', input_html: {class: 'select2'}
     .col-sm-3
       = f.button :submit, value: 'Update View'
 %br
@@ -104,5 +104,4 @@
 
 = content_for :page_js do
   :javascript
-    $('select').select2();
     $('.warn-about-percent').tooltip({title: 'In calculating the percent rows were excluded for which there was no corresponding bed inventory.'});

@@ -13,7 +13,7 @@ module WarehouseReports
         ot = organizations.arel_table
         pt = projects.arel_table
         # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
-        project_cols = %w( id data_source_id ProjectID ProjectName ProjectType).map(&:to_sym)
+        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, :ProjectType]
         @projects_with_counts = projects.
           joins( :service_history, :organization ).
           merge(organizations.residential).
@@ -32,11 +32,7 @@ module WarehouseReports
     end
 
     class MonthAndOrganization < ModelForm
-      attribute :org, Integer, default: GrdaWarehouse::Hud::Organization.residential.
-        order(:OrganizationName).
-        distinct.
-        limit(1).
-        pluck(:id, :OrganizationName).first.first rescue 0
+      attribute :org, Integer, default: -> (s,_) {s.default_org}
       attribute :month, Integer, default: Date.today.month
       attribute :year,  Integer, default: Date.today.year
 
@@ -76,6 +72,14 @@ module WarehouseReports
         else
           Rails.logger.error "this needs some work; there's an organization not individuated by its disambiguated name"
         end
+      end
+
+      def default_org
+        GrdaWarehouse::Hud::Organization.residential.
+        order(:OrganizationName).
+        distinct.
+        limit(1).
+        pluck(:id, :OrganizationName).first.first rescue 0
       end
 
       def organization

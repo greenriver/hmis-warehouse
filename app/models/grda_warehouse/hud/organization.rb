@@ -19,7 +19,7 @@ module GrdaWarehouse::Hud
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> {
       joins(:projects).where(
-        Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS
+        Project.arel_table[:ProjectType].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
       )
     }
     scope :viewable_by, -> (user) do
