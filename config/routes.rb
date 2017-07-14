@@ -60,6 +60,7 @@ Rails.application.routes.draw do
   resources :report_results_summary, only: [:show]
   resources :warehouse_reports, only: [:index]
   namespace :warehouse_reports do
+    resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
     resources :dob_entry_same, only: [:index]
     resources :non_alpha_names, only: [:index]

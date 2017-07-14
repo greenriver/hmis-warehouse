@@ -1,0 +1,23 @@
+
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Project Type Reconciliation") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+    'Data Source',
+    'Organization', 
+    'Project', 
+    'Project Type', 
+    'Act as Project Type',
+  ], :style => title)
+
+  @projects.each do |project|
+    row = [
+      project.data_source.short_name, 
+      project.organization.OrganizationName, 
+      project.ProjectName,
+      HUD.project_type(project.ProjectType), 
+      HUD.project_type(project.act_as_project_type),
+    ]
+    sheet.add_row(row)
+  end
+end
