@@ -1,2 +1,3 @@
-For a different seal in footer, place a file called footer_seal.png in this folder
-To change the favicon add favicon-16x16.png, favicon-32x32.png, and favicon.ico as well to this folder 
+For a different seal or logo in the footer, place a file in this directory and add LOGO=filename to your environment variables.
+
+To override the default the favicon, add favicon-16x16.png, favicon-32x32.png, and favicon.ico to this directory.
