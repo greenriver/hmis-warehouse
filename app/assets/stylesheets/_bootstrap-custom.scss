@@ -6,7 +6,10 @@
 
 // Core variables and mixins
 //@import "bootstrap/variables";
-@import "helpers/variables"; // Green River copy and adjustments of and to bs3 variables 
+// Green River copy and adjustments of and to bs3 variables
+@import "helpers/variables";
+// Theme overrides for default styles
+@import "theme/styles/variables";
 @import "bootstrap/mixins";
 
 // Reset and dependencies
