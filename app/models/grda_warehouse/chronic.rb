@@ -4,6 +4,10 @@ module GrdaWarehouse
 
     validates_presence_of :date
 
+    scope :on_date, -> (date:) do
+      where(date: date)
+    end 
+
     def self.most_recent_day
       self.maximum(:date)
     end

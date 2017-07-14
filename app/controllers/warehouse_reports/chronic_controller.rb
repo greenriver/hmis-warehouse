@@ -4,8 +4,9 @@ module WarehouseReports
     before_action :require_can_view_reports!, :load_filter
     def index
       at = chronic_source.arel_table
-      @clients = @clients.
-        where(chronics: {date: @filter.date}).
+      @clients = @clients.includes(:chronics).
+        preload(source_clients: :data_source).
+        merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
         order( at[:homeless_since].asc, at[:days_in_last_three_years].desc )
       @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
       respond_to do |format|
