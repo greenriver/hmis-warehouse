@@ -3837,6 +3837,13 @@ CREATE INDEX "index_Services_on_DateDeleted" ON "Services" USING btree ("DateDel
 
 
 --
+-- Name: index_Services_on_DateProvided; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Services_on_DateProvided" ON "Services" USING btree ("DateProvided");
+
+
+--
 -- Name: index_Services_on_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4872,4 +4879,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170712174621');
 INSERT INTO schema_migrations (version) VALUES ('20170712182033');
 
 INSERT INTO schema_migrations (version) VALUES ('20170714172533');
+
+INSERT INTO schema_migrations (version) VALUES ('20170714195436');
 
