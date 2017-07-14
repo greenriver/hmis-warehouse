@@ -154,7 +154,7 @@ class ClientsController < ApplicationController
     end
 
     @days = @client.service_dates_for_display(@start)
-    @programs = program_scope.preload(:organization).distinct.group_by{|m| [m.data_source_id, m.ProjectID]}
+    @programs = project_scope.preload(:organization).distinct.group_by{|m| [m.data_source_id, m.ProjectID]}
     # Prevent layout over ajax
     render layout: !request.xhr?
   end
@@ -202,7 +202,7 @@ class ClientsController < ApplicationController
     client_source.destination
   end
 
-  private def program_scope
+  private def project_scope
     GrdaWarehouse::Hud::Project
   end
 

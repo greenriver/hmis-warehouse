@@ -47,7 +47,7 @@ module Censuses
         @programs[ds_id][org_id][p_id][:title] ||= {}
         @programs[ds_id][org_id][p_id][:title][:display] ||= true
         @programs[ds_id][org_id][p_id][:title][:text] ||= begin
-          title = "#{project} (#{project_type.upcase}) < #{organization} < #{data_source}" 
+          title = "#{project} (#{project_type&.upcase}) < #{organization} < #{data_source}" 
           if act_as_project_type.present?
             title += "; Acts as #{act_as_project_type.upcase} for HUD Reporting"
           end

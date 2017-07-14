@@ -17,7 +17,7 @@
     .col-sm-3
       = f.button :submit, value: 'Update View'
 .warehouse-reports__chronic
-  %p= page_entries_info @clients
+  %p= page_entries_info @clients, entry_name: _('client')
   %table.table.table-condensed.table-hover
     %thead
       %tr

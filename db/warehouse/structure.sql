@@ -4292,6 +4292,13 @@ CREATE INDEX project_export_id ON "Project" USING btree ("ExportID");
 
 
 --
+-- Name: project_project_override_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX project_project_override_index ON "Project" USING btree ((COALESCE(act_as_project_type, "ProjectType")));
+
+
+--
 -- Name: services_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4863,4 +4870,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170706145106');
 INSERT INTO schema_migrations (version) VALUES ('20170712174621');
 
 INSERT INTO schema_migrations (version) VALUES ('20170712182033');
+
+INSERT INTO schema_migrations (version) VALUES ('20170714172533');
 

@@ -11,7 +11,7 @@
 = simple_form_for :patients, url: admin_health_patients_path do |f|
   = f.error_notification
   .form-inputs
-    %p= page_entries_info @patients
+    %p= page_entries_info @patients, entry_name: _('patient')
     %p= paginate @patients
     %table.table.table-striped
       %thead

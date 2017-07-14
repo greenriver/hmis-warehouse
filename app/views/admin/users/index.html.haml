@@ -17,7 +17,7 @@
     = render 'search_form'
 .row.table-utilities
   .col-sm-8
-    %p= page_entries_info @users, entry_name: 'user account'
+    %p= page_entries_info @users, entry_name: _('user account')
     :ruby
       columns = ['last_name', 'first_name', 'email']
       directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])

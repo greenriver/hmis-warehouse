@@ -29,7 +29,7 @@
         Download Excel
 
   .pagination
-    %p= page_entries_info @clients
+    %p= page_entries_info @clients, entry_name: _('client')
     %p= paginate @clients
   - @clients.each do |client|
     - chronic = client.chronics.find_by_date(@filter.date)

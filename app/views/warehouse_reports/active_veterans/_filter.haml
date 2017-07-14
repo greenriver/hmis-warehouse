@@ -1,19 +1,19 @@
 = simple_form_for @range, as: :range, url: warehouse_reports_active_veterans_path, html: { method: :get, class: 'jFilter' } do |f|
   = f.error_notification
   .row
-    .col-sm-4
+    .col-sm-6
       .input-group.date{data: {provide: :datepicker}}
         = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
         %span.input-group-addon.icon-calendar
-    .col-sm-4
+    .col-sm-6
       .input-group.date{data: {provide: :datepicker}}
         = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
         %span.input-group-addon.icon-calendar
-    .col-sm-4
-      = f.button :submit, value: 'Update View', class: 'pull-right'
   .row(style="margin-top:1rem;")
-    .col-sm-12
+    .col-sm-6
       = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2' }, label: false
+    .col-sm-6
+      = f.button :submit, value: 'Update View', class: 'pull-right'
 
 - content_for :page_js do
   :javascript

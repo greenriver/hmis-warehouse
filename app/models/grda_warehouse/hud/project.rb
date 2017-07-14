@@ -101,7 +101,39 @@ module GrdaWarehouse::Hud
     has_many :contacts, class_name: GrdaWarehouse::Contact::Project.name, foreign_key: :entity_id
     has_many :organization_contacts, through: :organization, source: :contacts
 
-    scope :residential, -> { where ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS }
+    scope :residential, -> do
+      where(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
+    end
+    scope :hud_residential, -> do
+      where(self.project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
+    end
+    scope :non_residential, -> do 
+      where.not(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
+    end
+    scope :hud_non_residential, -> do
+      where.not(self.project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
+    end
+
+    scope :chronic, -> do
+      where(ProjectType: CHRONIC_PROJECT_TYPES)
+    end
+    scope :hud_chronic, -> do
+      where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
+    end
+    scope :homeless, -> do
+      where(ProjectType: HOMELESS_PROJECT_TYPES)
+    end
+    scope :hud_homeless, -> do
+      where(self.project_type_override.in(HOMELESS_PROJECT_TYPES))
+    end
+    scope :residential_non_homeless, -> do
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      where(ProjectType: r_non_homeless)
+    end
+    scope :hud_residential_non_homeless, -> do
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      where(self.project_type_override.in(r_non_homeless))
+    end
 
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
@@ -212,6 +244,10 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
+    def self.project_type_override
+      cl(p_t[:act_as_project_type], p_t[:ProjectType])
+    end
+
     def organization_and_name(include_confidential_names: false)
       "#{organization.name} / #{name}"
     end
@@ -266,10 +302,9 @@ module GrdaWarehouse::Hud
 
     # Not currently used, but represents the appropriate pattern
     # for HUD reporting project type
-    def self.act_as_project_overlay
-      at = self.class.arel_table
-      nf( 'COALESCE', [ at[:act_as_project_type], at[:ProjectType] ] ).as('ProjectType').to_sql
-    end
+    # def self.act_as_project_overlay
+    #   nf( 'COALESCE', [ p_t[:act_as_project_type], p_t[:ProjectType] ] ).as('ProjectType').to_sql
+    # end
 
     def safe_project_name
       if confidential?

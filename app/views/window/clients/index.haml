@@ -18,7 +18,7 @@
 - if params[:q].present?
   .row.table-utilities
     .col-sm-4
-      %p= page_entries_info @clients
+      %p= page_entries_info @clients, entry_name: _('client')
     .col-sm-4
       %p.client__current-sort-filter
         Currently sorted by:

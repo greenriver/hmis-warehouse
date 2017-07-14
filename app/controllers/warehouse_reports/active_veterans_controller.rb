@@ -9,7 +9,7 @@ module WarehouseReports
       @direction = sort_direction
       scope = service_history_source
       if ( pts = @range.project_type.select(&:present?).map(&:to_sym) ).any?
-        scope = scope.where( project_type: pts.flat_map{ |t| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[t] } )
+        scope = scope.where( project_type: pts.flat_map{ |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] } )
       end
       @served_client_ids = scope.
         service_within_date_range(start_date: @range.start, end_date: @range.end).
@@ -27,7 +27,7 @@ module WarehouseReports
           @enrollments = scope.entry.
             open_between(start_date: @range.start, end_date: @range.end + 1.day).
             includes(:enrollment).
-            joins(:data_source).
+            joins(:data_source, :project).
             where(client_id: @clients.map(&:id)).pluck(*service_history_columns.values).
             map do |row|
               Hash[service_history_columns.keys.zip(row)]
@@ -39,7 +39,7 @@ module WarehouseReports
           @enrollments = scope.entry.
             open_between(start_date: @range.start, end_date: @range.end + 1.day).
             includes(:enrollment).
-            joins(:data_source).
+            joins(:data_source, :project).
             where(client_id: @clients.map(&:id)).pluck(*service_history_columns.values).
             map do |row|
               Hash[service_history_columns.keys.zip(row)]
@@ -61,7 +61,13 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client.destination.veteran
     end
     private def service_history_source
-      GrdaWarehouse::ServiceHistory.where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort)
+      project_types = project_source::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort
+      GrdaWarehouse::ServiceHistory.joins(:project).
+        where(project_source.project_type_override.in(project_types))
+    end
+
+    def project_source
+      GrdaWarehouse::Hud::Project
     end
 
     private def service_history_columns
@@ -73,7 +79,7 @@ module WarehouseReports
         first_date_in_program: :first_date_in_program, 
         last_date_in_program: :last_date_in_program, 
         project_name: :project_name, 
-        project_type: :project_type, 
+        project_type: project_source.project_type_override.as('project_type').to_sql, 
         organization_id: :organization_id, 
         data_source_id: :data_source_id,
         PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,

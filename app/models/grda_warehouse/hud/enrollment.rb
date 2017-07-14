@@ -131,18 +131,30 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :enrollment
     belongs_to :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :enrollment_group_id, :project_id], foreign_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
 
-    scope :residential, -> {
-      joins(:project).where(Project: {ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS})
-    }
-    scope :homeless, -> {
-      joins(:project).where(Project: {ProjectType: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES})
-    }
-    scope :residential_non_homeless, -> {
-      joins(:project).where(Project: {ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES})
-    }
-    scope :non_residential, -> {
-      joins(:project).where.not(Project: {ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS})
-    }
+    scope :residential, -> do
+      joins(:project).merge(Project.residential)
+    end
+    scope :hud_residential, -> do
+      joins(:project).merge(Project.hud_residential)
+    end
+    scope :chronic, -> do
+      joins(:project).merge(Project.chronic)
+    end
+    scope :hud_chronic, -> do
+      joins(:project).merge(Project.hud_chronic)
+    end
+    scope :residential_non_homeless, -> do
+      joins(:project).merge(Project.residential_non_homeless)
+    end
+    scope :hud_residential_non_homeless, -> do
+      joins(:project).merge(Project.hud_residential_non_homeless)
+    end
+    scope :non_residential, -> do
+      joins(:project).merge(Project.non_residential)
+    end
+    scope :hud_non_residential, -> do
+      joins(:project).merge(Project.hud_non_residential)
+    end
 
     scope :visible_in_window, -> do
       joins(:data_source).where(data_sources: {visible_in_window: true})

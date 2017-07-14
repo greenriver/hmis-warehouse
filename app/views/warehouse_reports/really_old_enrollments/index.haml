@@ -13,7 +13,7 @@
       = f.button :submit, value: 'Update View'
 %br
 .warehouse-reports__really_old_enrollments
-  %p= page_entries_info @clients
+  %p= page_entries_info @clients, entry_name: _('client')
   %table.table.table-condensed.table-hover
     %thead
       %tr

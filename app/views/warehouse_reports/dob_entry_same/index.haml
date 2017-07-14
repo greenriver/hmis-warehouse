@@ -6,7 +6,7 @@
 .warehouse-reports__missing-projects
   %p
     The following clients were born on the same day they entered homelessness.
-  %p= page_entries_info @clients
+  %p= page_entries_info @clients, entry_name: _('client')
   %table.table.table-condensed.table-hover
     %thead
       %tr

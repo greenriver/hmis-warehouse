@@ -61,6 +61,26 @@ module ArelHelper
     end
   end
 
+  # Some shortcuts for arel tables
+  def sh_t
+    self.sh_t
+  end
+  def e_t
+    self.e_t
+  end
+  def ds_t
+    self.ds_t
+  end
+  def c_t
+    self.c_t
+  end
+  def p_t
+    self.p_t
+  end
+  def o_t
+    self.o_t
+  end
+
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
 
@@ -105,6 +125,10 @@ module ArelHelper
     def nf( name, args=[], aka=nil )
       raise 'args must be an Array' unless args.is_a?(Array)
       Arel::Nodes::NamedFunction.new name, args.map{ |v| qt v }, aka
+    end
+
+    def cl(*args)
+      nf 'COALESCE', args
     end
 
     # bonk out a SQL literal
@@ -200,7 +224,6 @@ module ArelHelper
     def p_t
       GrdaWarehouse::Hud::Project.arel_table
     end
-
     def o_t
       GrdaWarehouse::Hud::Organization.arel_table
     end

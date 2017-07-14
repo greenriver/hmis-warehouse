@@ -31,7 +31,7 @@
   .col-sm-2.text-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
       Download Excel
-%p= page_entries_info @clients
+%p= page_entries_info @clients, entry_name: _('client')
 %table.table.table-condensed.table-hover
   %thead
     %tr
@@ -50,7 +50,11 @@
         %td
           %nobr= link_to client.FirstName, client_path(client)
         %td= client.first_service_history.date
-        %td= ::HUD.project_type(client.first_service_history.project_type)
+        %td
+          = ::HUD.project_type(client.first_service_history.project_type)
+          - if client.first_service_history.project.act_as_project_type.present?
+            acts as
+            = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
         %td= client.first_service_history.project_name
         %td= client.first_service_history.organization.try(:OrganizationName)
         %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
