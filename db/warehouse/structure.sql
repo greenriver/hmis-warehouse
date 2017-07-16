@@ -4371,6 +4371,13 @@ CREATE UNIQUE INDEX "unk_Affiliation" ON "Affiliation" USING btree (data_source_
 
 
 --
+-- Name: unk_Client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "unk_Client" ON "Client" USING btree (data_source_id, "PersonalID");
+
+
+--
 -- Name: unk_Disabilities; Type: INDEX; Schema: public; Owner: -
 --
 

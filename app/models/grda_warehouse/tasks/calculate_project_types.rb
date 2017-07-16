@@ -14,9 +14,10 @@ module GrdaWarehouse::Tasks
       @debug = debug
     end
     def run!
-      GrdaWarehouseBase.transaction do
+      project_source.transaction do
+        debug_log("Updating project types")
         @projects = load_projects()
-        @notifier.ping "Updating project types"
+        
         @projects.each do |project|
           if should_update?(project)
             debug_log("Updating #{project.ProjectName}...")
@@ -32,10 +33,10 @@ module GrdaWarehouse::Tasks
     end
 
     def load_projects
-      project_source.where.not(p_t[:ProjectType].not_eq(p_t[:act_as_project_type]))
+      project_source.where(p_t[:ProjectType].not_eq(p_t[:act_as_project_type]))
     end
 
-    def should_update?(project)
+    def should_update? project
       (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.ProjectType != project.computed_project_type)
     end
 

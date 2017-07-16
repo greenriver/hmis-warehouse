@@ -63,22 +63,22 @@ module ArelHelper
 
   # Some shortcuts for arel tables
   def sh_t
-    self.sh_t
+    GrdaWarehouse::ServiceHistory.arel_table
   end
   def e_t
-    self.e_t
+    GrdaWarehouse::Hud::Enrollment.arel_table
   end
   def ds_t
-    self.ds_t
+     GrdaWarehouse::DataSource.arel_table
   end
   def c_t
-    self.c_t
+    GrdaWarehouse::Hud::Client.arel_table
   end
   def p_t
-    self.p_t
+    GrdaWarehouse::Hud::Project.arel_table
   end
   def o_t
-    self.o_t
+    GrdaWarehouse::Hud::Organization.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
