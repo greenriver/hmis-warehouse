@@ -248,6 +248,10 @@ module GrdaWarehouse::Hud
       cl(p_t[:act_as_project_type], p_t[:ProjectType])
     end
 
+    def compute_project_type
+      act_as_project_type.presence || self.ProjectType
+    end
+
     def organization_and_name(include_confidential_names: false)
       "#{organization.name} / #{name}"
     end

@@ -855,7 +855,8 @@ CREATE TABLE "Project" (
     id integer NOT NULL,
     act_as_project_type integer,
     hud_continuum_funded boolean,
-    confidential boolean DEFAULT false NOT NULL
+    confidential boolean DEFAULT false NOT NULL,
+    computed_project_type integer
 );
 
 
@@ -2502,7 +2503,8 @@ CREATE TABLE warehouse_client_service_history (
     record_type character varying(50) NOT NULL,
     housing_status_at_entry integer,
     housing_status_at_exit integer,
-    service_type integer
+    service_type integer,
+    computed_project_type integer
 );
 
 
@@ -4881,4 +4883,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170712182033');
 INSERT INTO schema_migrations (version) VALUES ('20170714172533');
 
 INSERT INTO schema_migrations (version) VALUES ('20170714195436');
+
+INSERT INTO schema_migrations (version) VALUES ('20170716180758');
 
