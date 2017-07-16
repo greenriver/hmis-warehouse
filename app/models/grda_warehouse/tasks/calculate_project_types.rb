@@ -1,6 +1,6 @@
 module GrdaWarehouse::Tasks
   class CalculateProjectTypes
-    inclue ArelHelper
+    include ArelHelper
     attr_accessor :logger, :send_notifications
     def initialize(bogus_notifier=false, debug: false)
       exception_notifier_config = Rails.application.config_for(:exception_notifier)['slack']
