@@ -49,6 +49,7 @@ module GrdaWarehouse::Tasks
     end
 
     def debug_log message
+      @notifier.ping message if @notifier
       logger.info message if @debug
     end
   end
