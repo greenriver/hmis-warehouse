@@ -47,7 +47,7 @@ class DataSourcesController < ApplicationController
     begin
       GrdaWarehouse::Hud::Project.transaction do
         @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
-        data_source_params[:projects_attributes].each do |_, project_attributes|
+        data_source_project_params[:projects_attributes].each do |_, project_attributes|
           id = project_attributes[:id]
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i
@@ -86,7 +86,7 @@ class DataSourcesController < ApplicationController
     redirect_to action: :index
   end
 
-  private def data_source_params
+  private def data_source_project_params
     params.require(:grda_warehouse_data_source).
       permit(
         :visible_in_window,
@@ -98,6 +98,13 @@ class DataSourcesController < ApplicationController
           :hud_continuum_funded,
           :confidential,
         ]
+      )
+  end
+
+  def data_source_params
+    params.require(:data_source).
+      permit(
+        :visible_in_window
       )
   end
 
