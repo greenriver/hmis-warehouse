@@ -10,7 +10,7 @@ module WarehouseReports
       if @range.valid?
         ht = history.arel_table
         @clients = @clients.
-          joins(first_service_history: :project).
+          joins(:first_service_history).
           preload(:first_service_history, first_service_history: [:organization, :project], source_clients: :data_source).
           entered_in_range(@range.range).
           select( :id, :FirstName, :LastName, ht[:date] ).
@@ -19,7 +19,7 @@ module WarehouseReports
         @project_types.reject!(&:empty?)
         if @project_types.any?
           @project_types.map!(&:to_i)
-          @clients = @clients.where(project_source.project_type_override.in(@project_types))
+          @clients = @clients.where(ht[:computed_project_type].in(@project_types))
         end
       else
         @clients = @clients.none

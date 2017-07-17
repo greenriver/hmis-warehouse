@@ -65,8 +65,14 @@ module ArelHelper
   def sh_t
     GrdaWarehouse::ServiceHistory.arel_table
   end
+  def s_t
+    GrdaWarehouse::Hud::Service.arel_table
+  end
   def e_t
     GrdaWarehouse::Hud::Enrollment.arel_table
+  end
+  def ex_t
+    GrdaWarehouse::Hud::Exit.arel_table
   end
   def ds_t
      GrdaWarehouse::DataSource.arel_table
@@ -212,8 +218,14 @@ module ArelHelper
     def sh_t
       GrdaWarehouse::ServiceHistory.arel_table
     end
+    def s_t
+      GrdaWarehouse::Hud::Service.arel_table
+    end
     def e_t
       GrdaWarehouse::Hud::Enrollment.arel_table
+    end
+    def ex_t
+      GrdaWarehouse::Hud::Exit.arel_table
     end
     def ds_t
       GrdaWarehouse::DataSource.arel_table

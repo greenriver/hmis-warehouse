@@ -1,6 +1,9 @@
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
+  include ArelHelper
   validates :name, presence: true
   validates :short_name, presence: true
+
+  CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
   
   has_many :import_logs
   has_many :services, class_name: GrdaWarehouse::Hud::Service.name, inverse_of: :data_source
@@ -141,41 +144,39 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     )
   end
 
-  # caculate the data coverage dates available for each data source
-  # FIXME: this is a huge table scan across several tables so it
-  # would be nice if the importers could maintain these dates somewhere
   def self.data_spans_by_id
-    spans_by_id = {}
-    dates_to_check = {
-      GrdaWarehouse::Hud::Enrollment => 'EntryDate',
-      GrdaWarehouse::Hud::Service => 'DateProvided',
-      GrdaWarehouse::Hud::Exit => 'ExitDate'
-    }
-    dates_to_check.each do |model, field|
-      # logger.debug "#{model}, #{field} #{model.count}"
-      # idxes = model.connection.indexes(model.table_name).map{|i| [i.name] + i.columns}
-      # logger.debug "indexes: #{idxes}"
-      # logger.debug scope.explain
-      scope = model.where(
-        data_source_id: pluck(:id)
-      ).group(
-        :data_source_id
-      ).select(
-        "data_source_id, min(#{model.connection.quote_column_name(field)}), max(#{model.connection.quote_column_name(field)})"
-      )
-      model.connection.select_rows(scope.to_sql).each do |id, min, max|
-        spans_by_id[id] ||= [nil, nil]
-        spans_by_id[id][0] = min if spans_by_id[id][0].nil? || min < spans_by_id[id][0]
-        spans_by_id[id][1] = max if spans_by_id[id][1].nil? || max > spans_by_id[id][1]
+    Rails.cache.fetch('data_source_date_spans_by_id', expires_in: CACHE_EXPIRY) do
+      spans_by_id = GrdaWarehouse::DataSource.pluck(:id).map do |id| [id, {}] end.to_h
+
+      GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
+        pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]]).to_sql).each do |ds, date|
+          spans_by_id[ds][:start_date] = date
+        end
+
+      GrdaWarehouse::Hud::Service.group(:data_source_id).
+        pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]]).to_sql).each do |ds, date|
+          spans_by_id[ds][:end_date] = date
+        end
+
+      GrdaWarehouse::Hud::Exit.group(:data_source_id).
+        pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]]).to_sql).each do |ds, date|
+          if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
+            spans_by_id[ds][:end_date] = date
+          end
+        end
+      spans_by_id.each do |ds, dates|
+        if dates[:start_date].present? && dates[:end_date].blank?
+          spans_by_id[ds][:end_date] = Date.today
+        end
       end
+      spans_by_id
     end
-    spans_by_id
   end
 
   def data_span
     return unless enrollments.any?
     if self.id.present?
-      self.class.where(id: self.id).data_spans_by_id[self.id]
+      self.class.data_spans_by_id[self.id]
     end
   end
 

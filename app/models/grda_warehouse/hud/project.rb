@@ -245,7 +245,8 @@ module GrdaWarehouse::Hud
     alias_attribute :name, :ProjectName
 
     def self.project_type_override
-      cl(p_t[:act_as_project_type], p_t[:ProjectType])
+      p_t[:computed_project_type]
+      # cl(p_t[:act_as_project_type], p_t[:ProjectType])
     end
 
     def compute_project_type
@@ -290,7 +291,7 @@ module GrdaWarehouse::Hud
               i.send(obj).send(meth)
             else
               if override_project_type && attr == 'ProjectType'
-                i.act_as_project_type.presence || i.send(attr)
+                i.computed_project_type
               elsif attr == 'ResidentialAffiliation'
                 i.send(attr).presence || 99
               elsif attr == 'TrackingMethod'
@@ -303,12 +304,6 @@ module GrdaWarehouse::Hud
         end
       end
     end
-
-    # Not currently used, but represents the appropriate pattern
-    # for HUD reporting project type
-    # def self.act_as_project_overlay
-    #   nf( 'COALESCE', [ p_t[:act_as_project_type], p_t[:ProjectType] ] ).as('ProjectType').to_sql
-    # end
 
     def safe_project_name
       if confidential?

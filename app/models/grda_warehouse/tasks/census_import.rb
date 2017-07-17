@@ -66,7 +66,7 @@ module GrdaWarehouse::Tasks
               #   ds == ds2 && pi == pi2 && oi == oi2 && gender == gender2 && veteran == veteran2
               # end || [0]
               # yesterdays_count = yr.last
-              pt = project.act_as_project_type || project.ProjectType
+              pt = project.computed_project_type
               values << {
                 data_source_id:   ds.to_i,
                 ProjectType:      pt,
@@ -193,14 +193,14 @@ module GrdaWarehouse::Tasks
       query = history_source.joins(:client, :project).
         group( 
           ht[:date], 
-          coalesce_project_type, 
+          ht[:computed_project_type], 
           coalesced_gender, 
           coalesced_vet_status
         ).
         order(ht[:date]).
         where( ht[:date].between( start_date ... end_date ) ).select([
           ht[:date],
-          coalesce_project_type.as('project_type').to_sql,
+          ht[:computed_project_type].as('project_type').to_sql,
           coalesced_gender,
           coalesced_vet_status,
           nf( 'COUNT', [ nf( 'DISTINCT', [ht[:client_id]] ) ])
@@ -214,10 +214,6 @@ module GrdaWarehouse::Tasks
 
     private def coalesced_vet_status
       cl client_source.arel_table[:VeteranStatus], 0
-    end
-
-    def coalesce_project_type
-      nf( 'COALESCE', [ p_t[:act_as_project_type], sh_t[:project_type] ] )
     end
 
     def p_t

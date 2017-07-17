@@ -13,6 +13,10 @@ module Importing
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      # this keeps the computed project type columns in sync, previously 
+      # this was done with a coalesce query, but it ended up being too slow
+      # on large data operations
+      GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
@@ -58,6 +62,8 @@ module Importing
       # Make sure we don't have anyone who needs re-generation, even if they have
       # birthdays that are incorrect
       GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+      # pre-populate the cache for data source date spans
+      GrdaWarehouse::DataSource.data_spans_by_id()
       # Generate some duplicates if we need to, but not too many
       opts = {
         threshold: -1.45,

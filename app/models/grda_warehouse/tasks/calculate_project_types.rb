@@ -33,11 +33,11 @@ module GrdaWarehouse::Tasks
     end
 
     def load_projects
-      project_source.where(p_t[:ProjectType].not_eq(p_t[:act_as_project_type]))
+      project_source.all
     end
 
     def should_update? project
-      (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.ProjectType != project.computed_project_type)
+      (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.act_as_project_type.blank? && project.ProjectType != project.computed_project_type)
     end
 
     def project_source

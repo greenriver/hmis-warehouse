@@ -62,8 +62,7 @@ module WarehouseReports
     end
     private def service_history_source
       project_types = project_source::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort
-      GrdaWarehouse::ServiceHistory.joins(:project).
-        where(project_source.project_type_override.in(project_types))
+      GrdaWarehouse::ServiceHistory.where(computed_project_type: project_types)
     end
 
     def project_source
@@ -79,8 +78,7 @@ module WarehouseReports
         first_date_in_program: :first_date_in_program, 
         last_date_in_program: :last_date_in_program, 
         project_name: :project_name, 
-        project_type: project_source.project_type_override.as('project_type').to_sql, 
-        organization_id: :organization_id, 
+        project_type: :computed_project_type,
         data_source_id: :data_source_id,
         PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
         ds_short_name: ds_table[:short_name].as('short_name').to_sql,

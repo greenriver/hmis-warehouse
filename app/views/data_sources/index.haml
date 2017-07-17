@@ -15,9 +15,7 @@
             %th Name
             %th Short Name
             %th Last Import Run
-            -# FIXME: too slow to calculate now
-              %th Data Span
-              - @data_spans_by_id = @data_sources.data_spans_by_id
+            %th Data Span
             %th Visible in Window
             %th
         %tbody
@@ -29,9 +27,9 @@
                 = data_source.short_name
               %td
                 = data_source.last_imported_at
-              -# %td
+              %td
                 - if (data_span = @data_spans_by_id[data_source.id])
-                  = data_span.join(' - ')
+                  = "#{data_span[:start_date]}-#{data_span[:end_date]}"
               %td
                 = checkmark(data_source.visible_in_window)
               %td

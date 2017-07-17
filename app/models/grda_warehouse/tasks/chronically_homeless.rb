@@ -31,7 +31,8 @@ module GrdaWarehouse::Tasks
     # Pass client_ids as an array
     def initialize(
       date: Date.today, 
-      count_so_as_full_month: true, 
+      count_so_as_full_month: true,
+      use_hud_override: true,
       dry_run: false, 
       client_ids: nil,
       debug: false
@@ -47,6 +48,10 @@ module GrdaWarehouse::Tasks
       @clients = client_ids
       @limited = client_ids.present? && client_ids.any?
       @debug = debug
+      @project_type_column = :project_type
+      if use_hud_override
+        @project_type_column = :computed_project_type
+      end
     end
 
     def run!
@@ -150,9 +155,8 @@ module GrdaWarehouse::Tasks
     def residential_history_for_client(client_id:)
       debug_log "calculating residential history"
       homeless_reset = service_history_source.hud_residential.
-        joins(:project).
         entry_within_date_range(start_date: @date - 3.years, end_date: @date).
-        where("#{coalesce_project_type.to_sql} in (#{RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE.join(', ')})").
+        where(@project_type_column => RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE).
         where.not(last_date_in_program: nil).
         where( datediff( service_history_source, 'day', sh_t[:first_date_in_program], sh_t[:last_date_in_program] ).gteq 90 ).
         where(client_id: client_id).
@@ -367,15 +371,15 @@ module GrdaWarehouse::Tasks
 
     def service_history_columns
       {
-        client_id: sh_t[:client_id].as('client_id').to_sql,
-        date: sh_t[:date].as('date').to_sql,
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-        project_type: act_as_project_overlay,
-        project_id: sh_t[:project_id].as('project_id').to_sql,
-        project_tracking_method: sh_t[:project_tracking_method].as('project_tracking_method').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
+        client_id: :client_id,
+        date: :date,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        enrollment_group_id: :enrollment_group_id,
+        project_type: @project_type_column,
+        project_id: :project_id,
+        project_tracking_method: :project_tracking_method,
+        project_name: :project_name,
       }
     end
 
@@ -394,17 +398,5 @@ module GrdaWarehouse::Tasks
     def sh_t
       service_history_source.arel_table
     end
-
-    def p_t
-      project_source.arel_table
-    end
-
-    def coalesce_project_type
-      nf( 'COALESCE', [ p_t[:act_as_project_type], sh_t[:project_type] ] )
-    end
-    def act_as_project_overlay
-      coalesce_project_type.as('project_type').to_sql
-    end
-
   end
 end
