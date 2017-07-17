@@ -24,7 +24,7 @@
             %th
               Visible in the Window into the Warehouse?
             %td
-              = f.input :visible_in_window, label: false, input_html: {name: 'data_source[visible_in_window]'}
+              = f.input :visible_in_window, label: false
     .col-sm-4
       - if can_upload_hud_zips?
         = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
