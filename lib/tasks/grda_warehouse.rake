@@ -111,7 +111,7 @@ namespace :grda_warehouse do
   end
 
   desc "Import Many HUD CSVs for development"
-  task :import_dev_hud_csvs, [:environment, "log:info_to_stdout"] do
+  task import_dev_hud_csvs: [:environment, "log:info_to_stdout"] do
     # loop over data sources, looking for sub directories, find the first one
     # copy all files into the data source import path
     # delete the folder, run samba import for that DS
@@ -131,12 +131,12 @@ namespace :grda_warehouse do
   end
 
   desc "Dump Many HUD CSVs from Production for Development"
-  task :dump_hud_csvs_for_dev, [:n,:env] => [:environment] do |t, args|
+  task dump_hud_csvs_for_dev: [:n,:env] => [:environment] do |t, args|
     GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500, env: args.env || :development).run!
   end
 
   desc "Import HUD Zips from all Data Sources"
-  task :import_data_sources, [:data_source_id] => [:environment] do |t, args|
+  task import_data_sources: [:data_source_id] => [:environment] do |t, args|
     Importers::Samba.new(args.data_source_id).run!
   end
 
