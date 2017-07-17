@@ -6,8 +6,6 @@ class App.Dashboards.Veterans.Exits
     Chart.defaults.global.elements.rectangle.backgroundColor = '#45789C'
     Chart.defaults.global.elements.rectangle.borderColor = '#45789C'
     Chart.defaults.global.elements.rectangle.borderWidth = 1
-    Chart.defaults.global.onClick = @_follow_link
-
 
     data = 
       labels: (v for k, v of @labels),
@@ -16,7 +14,8 @@ class App.Dashboards.Veterans.Exits
     @exits_chart = new Chart @chart,
       type: 'bar',
       data: data,
-      options: 
+      options:
+        onClick: @_follow_link,
         bezierCurve: false,
         scales: 
           xAxes: [
@@ -48,7 +47,6 @@ class App.Dashboards.Veterans.Exits
                 [text + " :" + value, "Total : " + total]
 
   _follow_link: (event) =>
-    
     if target = @exits_chart.getElementAtEvent(event)[0]
       # console.log(target)
       month = @exits_chart.config.data.labels[target._index]
