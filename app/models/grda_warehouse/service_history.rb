@@ -155,13 +155,14 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   # HUD reporting Project Type overlay
   scope :hud_project_type, -> (project_types) do
-    pt = GrdaWarehouse::Hud::Project.arel_table
-    sht = arel_table
-    joins(:project).
-    where(
-      pt[:act_as_project_type].eq(nil).
-      and(sht[:project_type].in(project_types)).
-      or(pt[:act_as_project_type].in(project_types)))
+    where(computed_project_type: project_types)
+    # pt = GrdaWarehouse::Hud::Project.arel_table
+    # sht = arel_table
+    # joins(:project).
+    # where(
+    #   pt[:act_as_project_type].eq(nil).
+    #   and(sht[:project_type].in(project_types)).
+    #   or(pt[:act_as_project_type].in(project_types)))
     # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
   end
 

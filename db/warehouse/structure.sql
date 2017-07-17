@@ -3825,6 +3825,13 @@ CREATE INDEX "index_Project_on_ProjectType" ON "Project" USING btree ("ProjectTy
 
 
 --
+-- Name: index_Project_on_computed_project_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Project_on_computed_project_type" ON "Project" USING btree (computed_project_type);
+
+
+--
 -- Name: index_Project_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4133,6 +4140,13 @@ CREATE INDEX index_uploads_on_deleted_at ON uploads USING btree (deleted_at);
 
 
 --
+-- Name: index_warehouse_client_service_history_on_computed_project_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_warehouse_client_service_history_on_computed_project_type ON warehouse_client_service_history USING btree (computed_project_type);
+
+
+--
 -- Name: index_warehouse_client_service_history_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4368,13 +4382,6 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 --
 
 CREATE UNIQUE INDEX "unk_Affiliation" ON "Affiliation" USING btree (data_source_id, "AffiliationID");
-
-
---
--- Name: unk_Client; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "unk_Client" ON "Client" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -4892,4 +4899,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170714172533');
 INSERT INTO schema_migrations (version) VALUES ('20170714195436');
 
 INSERT INTO schema_migrations (version) VALUES ('20170716180758');
+
+INSERT INTO schema_migrations (version) VALUES ('20170716202346');
 

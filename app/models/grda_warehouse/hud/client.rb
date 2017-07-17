@@ -650,7 +650,7 @@ module GrdaWarehouse::Hud
       @service_dates_for_display ||= begin
         st = service_history.arel_table
         query = service_history.joins(:project).
-          select( :date, :record_type, :project_id, :enrollment_group_id, :first_date_in_program, :last_date_in_program, :data_source_id, Project.project_type_override.as('project_type').to_sql).
+          select( :date, :record_type, :project_id, :enrollment_group_id, :first_date_in_program, :last_date_in_program, :data_source_id, st[:computed_project_type].as('project_type').to_sql).
           where( st[:date].gt start_date.beginning_of_week ).
           where( st[:date].lteq start_date.end_of_month.end_of_week ).
           order( date: :asc ).
@@ -1000,7 +1000,7 @@ module GrdaWarehouse::Hud
         PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
         ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
         date: service_table[:date].as('date').to_sql,
-        project_type: GrdaWarehouse::Hud::Project.project_type_override.to_sql,
+        project_type: service_table[:computed_project_type].as('project_type').to_sql,
         project_name: service_table[:project_name].as('project_name').to_sql,
         project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
         household_id: service_table[:household_id].as('household_id').to_sql,

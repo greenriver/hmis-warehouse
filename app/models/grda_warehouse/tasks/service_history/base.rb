@@ -1056,6 +1056,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_id: p_t[:ProjectID].as('ProjectID').to_sql,
         organization_id: p_t[:OrganizationID].as('OrganizationID').to_sql,
         project_type: p_t[:ProjectType].as('ProjectType').to_sql,
+        computed_project_type: p_t[:computed_project_type].as('computed_project_type').to_sql,
         project_name: p_t[:ProjectName].as('ProjectName').to_sql,
         project_tracking_method: p_t[:TrackingMethod].as('TrackingMethod').to_sql,
         data_source_id: p_t[:data_source_id].as('data_source_id').to_sql,
@@ -1072,6 +1073,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         enrollment_group_id: :enrollment_group_id,
         service_type: :service_type,
         project_type: :project_type,
+        computed_project_type: :computed_project_type,
         project_id: :project_id,
         age: :age,
         destination: :destination,
@@ -1215,6 +1217,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       housing_status_at_exit = program_exit[:housing_status_at_exit] if program_exit.present?
       program_entry_date = enrollment[:entry_date]
       project_type = project[:project_type]
+      computed_project_type = project[:computed_project_type]
 
       default_day = {
         client_id: @client[:id],
@@ -1222,8 +1225,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         first_date_in_program: program_entry_date,
         last_date_in_program: program_exit_date,
         enrollment_group_id: enrollment[:entry_id],
-        service_type: service_type_from_project_type(project_type),
+        service_type: service_type_from_project_type(computed_project_type),
         project_type: project_type,
+        computed_project_type: computed_project_type,
         project_id: enrollment[:project_id],
         data_source_id: enrollment[:data_source_id],
         age: nil,
@@ -1279,6 +1283,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       data_source_id = enrollment[:data_source_id]
       entry_id = enrollment[:entry_id]
       project_type = project[:project_type]
+      computed_project_type = project[:computed_project_type]
       project_id = project[:project_id]
 
       services = services_personal_id_and_entry_id(project_id, data_source_id, entry_id)
@@ -1289,8 +1294,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         first_date_in_program: program_entry_date,
         last_date_in_program: program_exit_date,
         enrollment_group_id: entry_id,
-        service_type: service_type_from_project_type(project_type),
+        service_type: service_type_from_project_type(computed_project_type),
         project_type: project_type,
+        computed_project_type: computed_project_type,
         project_id: enrollment[:project_id],
         data_source_id: enrollment[:data_source_id],
         age: nil,
