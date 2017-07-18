@@ -43,5 +43,6 @@
 //= require_directory ./charts_scatter_by_date
 //= require_directory ./dashboards
 //= require_directory ./dashboards/veterans
+//= require_directory ./warehouse_reports/cas
 
 //= require init

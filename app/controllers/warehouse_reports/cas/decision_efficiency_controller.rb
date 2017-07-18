@@ -5,10 +5,11 @@ module WarehouseReports::Cas
     before_action :require_can_view_reports!, :load_vars
 
     def index
+      
     end
 
     def chart
-      render json: @data.to_a
+      render json: @data, layout: false
     end
 
     def date_range_options
@@ -25,7 +26,46 @@ module WarehouseReports::Cas
     private def load_vars
       @range = DateRange.new(date_range_options)
       @step_range = StepRange.new(step_params)
-      @data = step_time_histogram(@step_range) if @step_range.first.present?
+      @data = {}
+      if @step_range.first.present?
+        histogram = step_time_histogram(@step_range)
+        @data[:labels] = histogram.keys
+        @data[:data_sets] = histogram.values.map(&:keys).flatten.uniq.map do |title|
+          values = histogram.keys.map do |key|
+            histogram[key].try(:[], title) || 0 
+          end
+          [title, values]
+        end.to_h
+        n = histogram.values.map(&:values).flatten.sum
+        counts = []
+        histogram.values.map(&:values).map(&:sum).each_with_index do |count, index|
+          counts << [index] * count
+        end
+        counts.flatten!
+        mean = (counts.sum.to_f / counts.length).round(2)
+        stddev = 0
+        counts.each do |point|
+          stddev += ( point - mean ) ** 2
+        end
+        stddev /= counts.length - 1
+        stddev = Math.sqrt(stddev)
+        stddev = stddev.round(2)
+        @data[:stats] = {
+          n: n,
+          minimum: histogram.keys.first,
+          maximum: histogram.keys.last,
+          median: median(counts),
+          mean: mean,
+          standard_deviation: stddev,
+        }
+        console
+      end
+    end
+
+    def median array
+      mid = array.size / 2
+      sorted = array.sort
+      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2 
     end
 
     private def step_params
@@ -66,19 +106,30 @@ module WarehouseReports::Cas
         )
       ).where(at2[:match_started_at].between(@range.start..@range.end+1.day)).
       project(
-        seconds_diff( at.engine, at2[:updated_at], at[:updated_at] )
+        seconds_diff( at.engine, at2[:updated_at], at[:updated_at] ),
+        at[:program_type]
       )
-      times = at.engine.connection.select_rows(query.to_sql).flatten.map(&:to_f).map{ |i| ( i / divisor ).round.to_i }
+      times = at.engine.connection.select_rows(query.to_sql).map do |time_diff, program_type|
+        [(time_diff.to_f / divisor).round.to_i, program_type]
+      end
       return {} if times.empty?
-      min, max = times.minmax
-      histogram = times.group_by(&:itself).map{ |v,ar| [ v, ar.length ] }.to_h
-      (min..max).each{ |v| histogram[v] ||= 0 }
+      min, max = times.map{|secs, _| secs}.minmax
+      histogram = times.group_by(&:first).map do |bucket,rows|
+        grouped_counts = {}
+        rows.each do |_, project_type|
+          grouped_counts[bucket] ||= {}
+          grouped_counts[bucket][project_type] ||= 0
+          grouped_counts[bucket][project_type] += 1
+        end
+        [bucket, grouped_counts[bucket]]
+      end.to_h
+      (min..max).each{ |v| histogram[v] ||= {} }
       histogram.sort_by(&:first).to_h
     end
 
     class StepRange < ModelForm
       attribute :first,  String, lazy: true, default: -> (o,_) { o.ordered_steps&.first&.first }
-      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o&.first]&.last }
+      attribute :second, String, lazy: true, default: -> (o,_) { o.ordered_steps[o&.first]&.first }
       attribute :unit,   String, default: 'day'
 
       def units
