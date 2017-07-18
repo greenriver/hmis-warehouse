@@ -1,4 +1,4 @@
-set :deploy_to, "/var/www/#{fetch(:client, 'boston')}-hmis-production"
+set :deploy_to, "/var/www/#{fetch(:client)}-hmis-production"
 set :rails_env, "production"
 
 raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
