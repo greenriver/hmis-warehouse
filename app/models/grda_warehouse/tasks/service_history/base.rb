@@ -1159,8 +1159,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         )
         # Sometimes our export fetching doesn't work correctly, see if we can load it individually
         if export.blank?
-          export = GrdaWarehouse::Hud::Export.
-            where(data_source_id: enrollment[:data_source_id], export_id: enrollment[:export_id]).
+          query = GrdaWarehouse::Hud::Export.
+            where(data_source_id: enrollment[:data_source_id], export_id: enrollment[:export_id])
+          export = query.
             pluck(*export_columns.values).
             first          
         end
@@ -1169,8 +1170,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       rescue Exception => e
         Rails.logger.error e.inspect
         Rails.logger.error enrollment.inspect
-        log_and_send_message "Failed to build entries for client with enrollment: #{enrollment.inspect} and export: #{export.inspect}"
-        return []
+        log_and_send_message "Failed to build entries for client with enrollment: #{enrollment.inspect} and export: #{export.inspect} with query: #{query.to_sql}"
+        return {}
       end
       # Special case which comes up mostly with ETO exports where they fail to update the ExportDate
       build_history_until = if export_date.present? && export_end.present? && export_date < Date.today && Date.today < export_end

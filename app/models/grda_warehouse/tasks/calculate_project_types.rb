@@ -14,20 +14,22 @@ module GrdaWarehouse::Tasks
       @debug = debug
     end
     def run!
-      project_source.transaction do
-        debug_log("Updating project types")
-        @projects = load_projects()
-        
-        @projects.each do |project|
-          if should_update?(project)
-            debug_log("Updating #{project.ProjectName}...")
-            project_type = project.compute_project_type()
-            project.update(computed_project_type: project_type)
+      debug_log("Updating project types")
+      @projects = load_projects()
+      
+      @projects.each do |project|
+        if should_update?(project)
+          debug_log("Updating #{project.ProjectName}...")
+          project_type = project.compute_project_type()
+          project_source.transaction do
+            # Update any service records with this project
             service_history_source.
               where(project_id: project.ProjectID, data_source_id: project.data_source_id).
               update_all(computed_project_type: project_type)
-            debug_log("done")
+            # Update the project after so that if it fails we trigger a re-update of both
+            project.update(computed_project_type: project_type)
           end
+          debug_log("done")
         end
       end
     end
