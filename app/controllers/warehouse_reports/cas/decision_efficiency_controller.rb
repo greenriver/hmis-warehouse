@@ -58,7 +58,6 @@ module WarehouseReports::Cas
           mean: mean,
           standard_deviation: stddev,
         }
-        console
       end
     end
 
