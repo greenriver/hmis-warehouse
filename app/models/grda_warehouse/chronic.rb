@@ -1,6 +1,6 @@
 module GrdaWarehouse
   class Chronic < GrdaWarehouseBase
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :chronics, required: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :chronics, required: true
 
     validates_presence_of :date
 
@@ -9,7 +9,11 @@ module GrdaWarehouse
     end 
 
     def self.most_recent_day
-      self.maximum(:date)
+      if self.count > 0
+        self.maximum(:date)
+      else
+        Date.today
+      end
     end
   end
 end

@@ -1,4 +1,4 @@
-set :deploy_to, '/var/www/boston-hmis-production'
+set :deploy_to, "/var/www/#{fetch(:client, 'boston')}-hmis-production"
 set :rails_env, "production"
 
 raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
@@ -12,10 +12,11 @@ set :delayed_job_roles, [:job]
 set :branch, 'master'
 
 puts "Allowable hosts: #{ENV['HOSTS']}"
-puts "Hosts specified for deployment: #{ENV['HOST1']} #{ENV['HOST2']}"
+puts "Hosts specified for deployment: #{ENV['HOST1']} #{ENV['HOST2']} #{ENV['HOST3']}"
 
 server ENV['HOST1'], user: ENV['DEPLOY_USER'], roles: %w{app db web}
 server ENV['HOST2'], user: ENV['DEPLOY_USER'], roles: %w{app web job}
+server ENV['HOST3'], user: ENV['DEPLOY_USER'], roles: %w{app web}
 
 set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_known', 'challenge')
 set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')

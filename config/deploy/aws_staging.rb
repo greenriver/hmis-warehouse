@@ -1,6 +1,4 @@
-client = ENV.fetch('CLIENT') { 'boston' }
-
-set :deploy_to, "/var/www/#{client}-hmis-staging"
+set :deploy_to, "/var/www/#{fetch(:client)}-hmis-staging"
 set :rails_env, 'staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 

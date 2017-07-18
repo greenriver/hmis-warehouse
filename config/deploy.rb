@@ -3,7 +3,7 @@ lock '3.6.1'
 
 set :application, 'boston_hmis'
 set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
-
+set :client, ENV.fetch('CLIENT')
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
@@ -65,6 +65,14 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
 # set :keep_releases, 5
 
 namespace :deploy do
+  before 'assets:precompile', :touch_theme_variables do
+    on roles(:app)  do
+      within shared_path do
+        # must exist for asset-precompile to succeed.
+        execute :touch, 'app/assets/stylesheets/theme/styles/_variables.scss'
+      end
+    end
+  end
 
   after :restart, :clear_cache do
     on roles(:web), in: :groups, limit: 3, wait: 10 do
