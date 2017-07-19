@@ -178,7 +178,9 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :imports
+  resources :imports do
+    get :download, on: :member
+  end
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
   resources :data_sources do
