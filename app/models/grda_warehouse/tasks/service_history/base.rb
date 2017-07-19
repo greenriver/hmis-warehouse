@@ -1171,7 +1171,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         Rails.logger.error e.inspect
         Rails.logger.error enrollment.inspect
         log_and_send_message "Failed to build entries for client with enrollment: #{enrollment.inspect} and export: #{export.inspect} with query: #{query.to_sql}"
-        return {}
+        return []
       end
       # Special case which comes up mostly with ETO exports where they fail to update the ExportDate
       build_history_until = if export_date.present? && export_end.present? && export_date < Date.today && Date.today < export_end

@@ -1062,7 +1062,8 @@ CREATE TABLE cas_reports (
     administrative_cancel_reason character varying,
     client_spoken_with_services_agency boolean,
     cori_release_form_submitted boolean,
-    match_started_at timestamp without time zone
+    match_started_at timestamp without time zone,
+    program_type character varying
 );
 
 
@@ -4901,4 +4902,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170714195436');
 INSERT INTO schema_migrations (version) VALUES ('20170716180758');
 
 INSERT INTO schema_migrations (version) VALUES ('20170716202346');
+
+INSERT INTO schema_migrations (version) VALUES ('20170718132138');
 
