@@ -353,7 +353,7 @@ module GrdaWarehouse::Tasks
 
     def dmh_projects_filter 
       project_source.
-        where(OrganizationID: DMH_SITE).
+        joins(:organization).merge(GrdaWarehouse::Hud::Organization.dmh).
         pluck(:ProjectID, :data_source_id).
         map do |project_id, data_source_id|
           sh_t[:project_id].eq(project_id).and(sh_t[:data_source_id].eq(data_source_id)).to_sql

@@ -44,6 +44,8 @@
               .row
                 .col-sm-8
                   %h3= org.name
+                  - if org.dmh
+                    Treated as DMH for chronic calculations
                 .col-sm-4.text-right
                   - if can_edit_organizations?
                     = link_to organization_contacts_path(organization_id: org.id) do

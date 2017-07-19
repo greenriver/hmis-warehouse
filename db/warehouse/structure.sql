@@ -808,7 +808,8 @@ CREATE TABLE "Organization" (
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer,
-    id integer NOT NULL
+    id integer NOT NULL,
+    dmh boolean DEFAULT false NOT NULL
 );
 
 
@@ -4904,4 +4905,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170716180758');
 INSERT INTO schema_migrations (version) VALUES ('20170716202346');
 
 INSERT INTO schema_migrations (version) VALUES ('20170718132138');
+
+INSERT INTO schema_migrations (version) VALUES ('20170719172444');
 

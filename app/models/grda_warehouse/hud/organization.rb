@@ -22,6 +22,10 @@ module GrdaWarehouse::Hud
         Project.arel_table[:ProjectType].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
       )
     }
+
+    scope :dmh, -> do
+      where(dmh: true)
+    end
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
