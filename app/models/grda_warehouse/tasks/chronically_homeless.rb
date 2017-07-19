@@ -109,7 +109,7 @@ module GrdaWarehouse::Tasks
       unless @dry_run
         chronic_source.transaction do
           chronic_source.where(date: @date, dmh: false).delete_all
-          insert_batch chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values)
+          insert_batch chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values) if @client_details.present?
         end
         logger.info 'Done updating status of chronically homeless clients'
       end
