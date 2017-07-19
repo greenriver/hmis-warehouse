@@ -3,6 +3,8 @@
 class App.WarehouseReports.Cas.DecisionEfficiency
   constructor: (@chart) ->
     @legal_steps = @chart.data('legal-steps')
+    Chart.defaults.global.defaultFontSize = 10
+
     @_prep_ui()
     $('#new_steps').submit()
 
@@ -41,44 +43,58 @@ class App.WarehouseReports.Cas.DecisionEfficiency
     labels = data['labels']
     datasets = []
     for title, counts of data['data_sets']
+      hash = window.App.util.hashCode(title)
+      color = window.App.util.intToRGB(hash * 200)
       datasets.push
         label: title,
-        data: counts
+        data: counts,
+        backgroundColor: "##{color}",
+        hoverBackgroundColor: "##{color}"
     if chart = @chart.data('chart')
       chart.destroy()
     chart = new Chart @chart, 
       type: 'bar',
-      options: 
-        legend:
-          display: false
-        ,
-        scales: 
-          xAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                display: true,
-                labelString: $('.jUnits :selected').text()
-              }
-            }
-          ],
-          yAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                display: true,
-                labelString: 'Matches'
-              },
-              ticks: {
-                beginAtZero: true,
-                stepSize: 1
-              }
-            }
-          ]
-      ,
       data: 
         labels: labels,
         datasets: datasets,
+      options: 
+        scales: 
+          xAxes: [
+            stacked: true,
+            scaleLabel:
+              display: true,
+              labelString: $('.jUnits :selected').text()
+          ],
+          yAxes: [
+            stacked: true,
+            scaleLabel:
+              display: true,
+              labelString: 'Matches'
+            ,
+            ticks:
+              beginAtZero: true,
+          ]
+        legend: 
+          fullWidth: true,
+          position: 'right'
+        tooltips:
+          mode: 'index'
+          position: 'nearest'
+          callbacks:
+            label: (tooltipItem, data) ->
+              text = data.datasets[tooltipItem.datasetIndex].label
+              value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]
+              # Loop through all datasets to get the actual total of the index
+              total = 0
+              for set in data.datasets
+                total += set.data[tooltipItem.index]
+
+              # If it is not the last dataset, you display it as you usually do
+              if (tooltipItem.datasetIndex != data.datasets.length - 1)
+                text + " :" + value
+              else # .. else, you display the dataset and the total, using an array
+                [text + " :" + value, "Total : " + total]
+      
     @chart.data('chart', chart)
     
 
