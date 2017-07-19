@@ -14,7 +14,11 @@
             %td= @import.import_time
           %tr
             %th Files Found
-            %td= @import.files.try(:count)
+            %td
+              - if @import&.upload&.content.present?
+                = link_to @import.files.try(:count), download_import_path(@import)
+              - else
+                = @import.files.try(:count)
           - if @import.summary.present?
             %tr
               %th Import Summary

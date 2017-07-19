@@ -1,6 +1,6 @@
 class ImportsController < ApplicationController
   before_action :require_can_view_imports!
-  before_action :set_import, only: [:show, :edit, :update, :destroy]
+  before_action :set_import, only: [:show, :edit, :update, :destroy, :download]
   helper_method :sort_column, :sort_direction
 
   # GET /imports
@@ -20,6 +20,20 @@ class ImportsController < ApplicationController
 
   def show
     
+  end
+
+  def download
+    if @upload = @import.upload
+      if @upload.content.present?
+        send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s))
+      end
+    end
+    # reconstitute_path = @upload.file.current_path
+    # puts "Re-constituting upload file to: #{reconstitute_path}"
+    # FileUtils.mkdir_p(File.dirname(reconstitute_path)) unless File.directory?(File.dirname(reconstitute_path))
+    # File.open(reconstitute_path, 'w+b') do |file|
+    #   file.write(@upload.content)
+    # end
   end
 
   # POST /imports
