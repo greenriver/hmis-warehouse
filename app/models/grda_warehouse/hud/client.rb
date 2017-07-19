@@ -343,14 +343,18 @@ module GrdaWarehouse::Hud
       raise 'After required if before specified.' if before.present? && ! after.present?
       hh = if before.present? && after.present?
         recent_households = households.select do |_, entries|
+          # return true if this client presented with family during the range in question
           # all entries will have the same date and last_date_in_program
           entry = entries.first
           (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
-          # If we entered the program between the two dates
-          # or we entered the program before the later date and haven't exited
-          started_within_no_exit = entry_date < before && exit_date.blank?
-          # or we entered before the first date and exited after the first date
-          entry_date.between?(before, after) || started_within_no_exit || after < exit_date && entry_date < before rescue true
+          en_1_start = entry_date
+          en_1_end = exit_date
+          en_2_start = after
+          en_2_end = before
+          
+          # Excellent discussion of why this works:
+          # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+          en_1_start < en_2_end && en_1_end > en_2_start rescue true # this catches empty exit dates
         end
       elsif after.present?
         recent_households = households.select do |_, entries|

@@ -18,7 +18,7 @@
 # end
 
 # Learn more: http://github.com/javan/whenever
-if Rails.env.production?
+if environment == 'production'
   every 1.day, at: '6:10 pm' do
     rake "grda_warehouse:daily"
   end

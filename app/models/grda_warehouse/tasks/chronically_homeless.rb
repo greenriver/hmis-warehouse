@@ -106,7 +106,9 @@ module GrdaWarehouse::Tasks
         @progress.format = "#{@progress_format}Found chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
       end
       logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
-      unless @dry_run
+      if @dry_run
+        logger.info @client_details.inspect
+      else
         chronic_source.transaction do
           chronic_source.where(date: @date, dmh: false).delete_all
           insert_batch chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values) if @client_details.present?
