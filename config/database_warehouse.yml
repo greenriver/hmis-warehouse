@@ -3,10 +3,10 @@ default: &default
   host: <%= ENV['WAREHOUSE_DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
-  <%= 'port:' ENV['WAREHOUSE_DATABASE_PORT'] if ENV['WAREHOUSE_DATABASE_PORT'].present? %>
-  <%= 'username:' ENV['WAREHOUSE_DATABASE_USER'] if ENV['WAREHOUSE_DATABASE_USER'].present? %>
-  <%= 'password:' ENV['WAREHOUSE_DATABASE_PASS'] if ENV['WAREHOUSE_DATABASE_PASS'].present? %>
-  <%= 'host:' ENV['WAREHOUSE_DATABASE_HOST'] if ENV['WAREHOUSE_DATABASE_HOST'].present? %>
+  <%= 'port:' + ENV['WAREHOUSE_DATABASE_PORT'] if ENV['WAREHOUSE_DATABASE_PORT'].present? %>
+  <%= 'username:' + ENV['WAREHOUSE_DATABASE_USER'] if ENV['WAREHOUSE_DATABASE_USER'].present? %>
+  <%= 'password:' + ENV['WAREHOUSE_DATABASE_PASS'] if ENV['WAREHOUSE_DATABASE_PASS'].present? %>
+  <%= 'host:' + ENV['WAREHOUSE_DATABASE_HOST'] if ENV['WAREHOUSE_DATABASE_HOST'].present? %>
 
 <%= ENV['RAILS_ENV'] %>:
   <<: *default

@@ -3,10 +3,10 @@ default: &default
   host: <%= ENV['DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
-  <%= 'port:' ENV['DATABASE_PORT'] if ENV['DATABASE_PORT'].present? %>
-  <%= 'username:' ENV['DATABASE_USER'] if ENV['DATABASE_USER'].present? %>
-  <%= 'password:' ENV['DATABASE_PASS'] if ENV['DATABASE_PASS'].present? %>
-  <%= 'host:' ENV['DATABASE_HOST'] if ENV['DATABASE_HOST'].present? %>
+  <%= 'port:' + ENV['DATABASE_PORT'] if ENV['DATABASE_PORT'].present? %>
+  <%= 'username:' + ENV['DATABASE_USER'] if ENV['DATABASE_USER'].present? %>
+  <%= 'password:' + ENV['DATABASE_PASS'] if ENV['DATABASE_PASS'].present? %>
+  <%= 'host:' + ENV['DATABASE_HOST'] if ENV['DATABASE_HOST'].present? %>
 
 <%= ENV['RAILS_ENV'] %>:
   <<: *default
