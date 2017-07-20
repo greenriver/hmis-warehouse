@@ -2,7 +2,7 @@
   Hello #{@resource.name},
 
 %p
-  An account has been created for you for the City of Boston DND Warehouse.  Please follow the link below to finish setting up your account:
+  = "An account has been created for you for the #{_('City of Boston DND Warehouse')}.  Please follow the link below to finish setting up your account:"
 
 %p= link_to accept_invitation_url(@resource, invitation_token: @token), accept_invitation_url(@resource, invitation_token: @token)
 

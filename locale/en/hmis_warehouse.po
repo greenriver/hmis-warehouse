@@ -17,7 +17,19 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "\n"
 
+msgid "\"Report: #{@report.name} was successfully created.\""
+msgstr ""
+
+msgid "\"Report: #{@report.name} was successfully destroyed.\""
+msgstr ""
+
+msgid "\"Report: #{@report.name} was successfully updated.\""
+msgstr ""
+
 msgid "Boston DND Warehouse"
+msgstr ""
+
+msgid "City of Boston DND Warehouse"
 msgstr ""
 
 msgid "Clients"
@@ -41,6 +53,18 @@ msgstr ""
 msgid "Import a Zip of HUD CSVs"
 msgstr ""
 
+msgid "Import failed to queue."
+msgstr ""
+
+msgid "Import queued to start."
+msgstr ""
+
+msgid "Import was successfully destroyed."
+msgstr ""
+
+msgid "Import was successfully updated."
+msgstr ""
+
 msgid "Organizations"
 msgstr ""
 
@@ -53,13 +77,34 @@ msgstr ""
 msgid "Projects"
 msgstr ""
 
+msgid "Report failed to queue."
+msgstr ""
+
+msgid "Report queued to start."
+msgstr ""
+
+msgid "Report successfully destroyed."
+msgstr ""
+
+msgid "Report successfully updated."
+msgstr ""
+
 msgid "Reports"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
 msgstr ""
 
+msgid "Unable to create new Data Source"
+msgstr ""
+
 msgid "Update Data Source"
+msgstr ""
+
+msgid "Upload failed to queue."
+msgstr ""
+
+msgid "Upload queued to start."
 msgstr ""
 
 msgid "View Imports"
@@ -78,4 +123,19 @@ msgid "Window into the Warehouse"
 msgstr ""
 
 msgid "Would you really like to delete this report result?"
+msgstr ""
+
+msgid "client"
+msgstr ""
+
+msgid "patient"
+msgstr ""
+
+msgid "role"
+msgstr ""
+
+msgid "translation"
+msgstr ""
+
+msgid "user account"
 msgstr ""
