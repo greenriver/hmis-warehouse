@@ -3,10 +3,18 @@ default: &default
   host: <%= ENV['HEALTH_DATABASE_HOST'] %>
   pool: 5
   timeout: 5000
-  <%= 'port:' ENV['HEALTH_DATABASE_PORT'] if ENV['HEALTH_DATABASE_PORT'].present? %>
-  <%= 'username:' ENV['HEALTH_DATABASE_USER'] if ENV['HEALTH_DATABASE_USER'].present? %>
-  <%= 'password:' ENV['HEALTH_DATABASE_PASS'] if ENV['HEALTH_DATABASE_PASS'].present? %>
-  <%= 'host:' ENV['HEALTH_DATABASE_HOST'] if ENV['HEALTH_DATABASE_HOST'].present? %>
+  <%= if ENV['HEALTH_DATABASE_PORT'] %>
+  port: <%= ENV['HEALTH_DATABASE_PORT'] %>
+  <%= end %>
+  <%= if ENV['HEALTH_DATABASE_USER'] %>
+  username: <%= ENV['HEALTH_DATABASE_USER'] %>
+  <%= end %>
+  <%= if ENV['HEALTH_DATABASE_PASS'] %>
+  password: <%= ENV['HEALTH_DATABASE_PASS'] %>
+  <%= end %>
+  <%= if ENV['HEALTH_DATABASE_HOST'] %>
+  host: <%= ENV['HEALTH_DATABASE_HOST'] %>
+  <%= end %>
 
 <%= ENV['RAILS_ENV'] %>:
   <<: *default
