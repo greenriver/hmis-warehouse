@@ -14,7 +14,7 @@ Rails.application.configure do
   config.log_formatter = ::Logger::Formatter.new
   config.active_record.dump_schema_after_migration = false
   config.sandbox_email_mode = true
-  config.action_mailer.delivery_method = :sendmail
+  config.action_mailer.delivery_method = ENV['MAIL_DELIVERY_METHOD']
   config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], protocol: 'https'}
   config.action_mailer.smtp_settings = {
     address: ENV['SES_SMTP_SERVER'],
