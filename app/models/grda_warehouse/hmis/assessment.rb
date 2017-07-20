@@ -86,7 +86,7 @@ module GrdaWarehouse::HMIS
     end
 
     def self.fetch_touch_points
-      api_config = YAML.load_file('config/eto_api.yml')
+      api_config = YAML.load(ERB.new(File.read("#{Rails.root}config/eto_api.yml")).result)[Rails.env]
       touch_points = {}
       api_config.each do |connection_key, config|
         data_source_id = config['data_source_id']

@@ -1,5 +1,8 @@
 task spec: ["warehouse:db:test:prepare"]
 
+require 'dotenv'
+Dotenv.load('.env', '.env.local')
+
 namespace :warehouse do
 
   # DB related, provides warehouse:db:migrate etc.

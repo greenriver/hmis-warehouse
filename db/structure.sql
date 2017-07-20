@@ -138,10 +138,29 @@ CREATE TABLE client_service_history (
 
 CREATE TABLE clients_unduplicated (
     id integer NOT NULL,
-    client_unique_id character varying,
-    unduplicated_client_id integer,
+    client_unique_id character varying NOT NULL,
+    unduplicated_client_id integer NOT NULL,
     dc_id integer
 );
+
+
+--
+-- Name: clients_unduplicated_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE clients_unduplicated_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: clients_unduplicated_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE clients_unduplicated_id_seq OWNED BY clients_unduplicated.id;
 
 
 --
@@ -181,25 +200,6 @@ CREATE SEQUENCE delayed_jobs_id_seq
 --
 
 ALTER SEQUENCE delayed_jobs_id_seq OWNED BY delayed_jobs.id;
-
-
---
--- Name: hud_performance_unduplicated_clients_new_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE hud_performance_unduplicated_clients_new_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hud_performance_unduplicated_clients_new_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE hud_performance_unduplicated_clients_new_id_seq OWNED BY clients_unduplicated.id;
 
 
 --
@@ -391,31 +391,30 @@ CREATE TABLE roles (
     can_view_clients boolean DEFAULT false,
     can_edit_clients boolean DEFAULT false,
     can_view_reports boolean DEFAULT false,
+    can_view_censuses boolean DEFAULT false,
+    can_view_census_details boolean DEFAULT false,
     can_edit_users boolean DEFAULT false,
     can_view_full_ssn boolean DEFAULT false,
     can_view_full_dob boolean DEFAULT false,
-    can_view_imports boolean DEFAULT false,
-    can_edit_roles boolean DEFAULT false,
-    can_view_censuses boolean DEFAULT false,
-    can_view_census_details boolean DEFAULT false,
-    can_view_projects boolean DEFAULT false,
-    can_view_organizations boolean DEFAULT false,
-    can_view_client_window boolean DEFAULT false,
-    can_upload_hud_zips boolean DEFAULT false,
     can_view_hiv_status boolean DEFAULT false,
     can_view_dmh_status boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
+    can_view_imports boolean DEFAULT false,
+    can_edit_roles boolean DEFAULT false,
+    can_view_projects boolean DEFAULT false,
+    can_edit_projects boolean DEFAULT false,
+    can_edit_project_groups boolean DEFAULT false,
+    can_view_organizations boolean DEFAULT false,
+    can_edit_organizations boolean DEFAULT false,
+    can_edit_data_sources boolean DEFAULT false,
+    can_view_client_window boolean DEFAULT false,
+    can_upload_hud_zips boolean DEFAULT false,
+    can_edit_translations boolean DEFAULT false,
+    can_manage_assessments boolean DEFAULT false,
+    can_edit_anything_super_user boolean DEFAULT false,
     can_administer_health boolean DEFAULT false,
     can_edit_client_health boolean DEFAULT false,
     can_view_client_health boolean DEFAULT false,
-    can_edit_project_groups boolean DEFAULT false,
-    can_view_everything boolean DEFAULT false,
-    can_edit_anything_super_user boolean DEFAULT false,
-    can_edit_projects boolean DEFAULT false,
-    can_edit_organizations boolean DEFAULT false,
-    can_edit_data_sources boolean DEFAULT false,
-    can_manage_assessments boolean DEFAULT false,
-    can_edit_translations boolean DEFAULT false
+    health_role boolean DEFAULT false NOT NULL
 );
 
 
@@ -756,7 +755,7 @@ ALTER TABLE ONLY activity_logs ALTER COLUMN id SET DEFAULT nextval('activity_log
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('hud_performance_unduplicated_clients_new_id_seq'::regclass);
+ALTER TABLE ONLY clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('clients_unduplicated_id_seq'::regclass);
 
 
 --
@@ -873,19 +872,19 @@ ALTER TABLE ONLY activity_logs
 
 
 --
+-- Name: clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY clients_unduplicated
+    ADD CONSTRAINT clients_unduplicated_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs
     ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
-
-
---
--- Name: hud_performance_unduplicated_clients_new_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY clients_unduplicated
-    ADD CONSTRAINT hud_performance_unduplicated_clients_new_pkey PRIMARY KEY (id);
 
 
 --
@@ -1172,7 +1171,7 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON versions USING btree (it
 -- Name: unduplicated_clients_unduplicated_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX unduplicated_clients_unduplicated_client_id ON client_service_history USING btree (unduplicated_client_id);
+CREATE INDEX unduplicated_clients_unduplicated_client_id ON clients_unduplicated USING btree (unduplicated_client_id);
 
 
 --

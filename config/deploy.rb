@@ -32,16 +32,7 @@ end
 
 # Default value for :linked_files is []
 set :linked_files, fetch(:linked_files, []).push(
-  'config/database.yml', 
-  'config/database_warehouse.yml', 
   'config/secrets.yml', 
-  'config/weather.yml', 
-  'config/exception_notifier.yml', 
-  'config/eto_api.yml', 
-  'config/mail_account.yml', 
-  'config/database_health.yml', 
-  'config/health_sftp.yml', 
-  'config/cache_store.yml', 
   '.env',
 )
 

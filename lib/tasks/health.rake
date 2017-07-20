@@ -1,5 +1,8 @@
 task spec: ["health:db:test:prepare"]
 
+require 'dotenv'
+Dotenv.load('.env', '.env.local')
+
 namespace :health do
  
   desc "Import and match health data"

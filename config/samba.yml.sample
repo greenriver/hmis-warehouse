@@ -1,6 +1,0 @@
-samba: 
-  domain: WORKGROUP
-  username: user 
-  password: password!
-
-

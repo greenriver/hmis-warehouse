@@ -46,7 +46,7 @@ module EtoApi::Tasks
     end
 
     private def connect_to_gmail
-      credentials = Rails.application.config_for(:mail_account)['dnd']
+      credentials = YAML.load(ERB.new(File.read("#{Rails.root}/config/mail_account.yml")).result)[Rails.env]
       Gmail.connect(credentials['user'], credentials['pass'])
     end
 

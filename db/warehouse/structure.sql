@@ -3589,10 +3589,10 @@ CREATE INDEX "index_Disabilities_on_data_source_id" ON "Disabilities" USING btre
 
 
 --
--- Name: index_Disabilities_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Disabilities_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Disabilities_on_data_source_id_and_PersonalID" ON "Disabilities" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_Disabilities_on_data_source_id_PersonalID" ON "Disabilities" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3610,10 +3610,10 @@ CREATE INDEX "index_EmploymentEducation_on_data_source_id" ON "EmploymentEducati
 
 
 --
--- Name: index_EmploymentEducation_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_EmploymentEducation_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_EmploymentEducation_on_data_source_id_and_PersonalID" ON "EmploymentEducation" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_EmploymentEducation_on_data_source_id_PersonalID" ON "EmploymentEducation" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3631,10 +3631,10 @@ CREATE INDEX "index_EnrollmentCoC_on_data_source_id" ON "EnrollmentCoC" USING bt
 
 
 --
--- Name: index_EnrollmentCoC_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_EnrollmentCoC_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_EnrollmentCoC_on_data_source_id_and_PersonalID" ON "EnrollmentCoC" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_EnrollmentCoC_on_data_source_id_PersonalID" ON "EnrollmentCoC" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3680,10 +3680,10 @@ CREATE INDEX "index_Enrollment_on_data_source_id" ON "Enrollment" USING btree (d
 
 
 --
--- Name: index_Enrollment_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Enrollment_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON "Enrollment" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_Enrollment_on_data_source_id_PersonalID" ON "Enrollment" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3722,10 +3722,10 @@ CREATE INDEX "index_Exit_on_data_source_id" ON "Exit" USING btree (data_source_i
 
 
 --
--- Name: index_Exit_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Exit_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Exit_on_data_source_id_and_PersonalID" ON "Exit" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_Exit_on_data_source_id_PersonalID" ON "Exit" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3757,10 +3757,10 @@ CREATE INDEX "index_HealthAndDV_on_data_source_id" ON "HealthAndDV" USING btree 
 
 
 --
--- Name: index_HealthAndDV_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_HealthAndDV_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_HealthAndDV_on_data_source_id_and_PersonalID" ON "HealthAndDV" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_HealthAndDV_on_data_source_id_PersonalID" ON "HealthAndDV" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3778,10 +3778,10 @@ CREATE INDEX "index_IncomeBenefits_on_data_source_id" ON "IncomeBenefits" USING 
 
 
 --
--- Name: index_IncomeBenefits_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_IncomeBenefits_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_IncomeBenefits_on_data_source_id_and_PersonalID" ON "IncomeBenefits" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_IncomeBenefits_on_data_source_id_PersonalID" ON "IncomeBenefits" USING btree (data_source_id, "PersonalID");
 
 
 --
