@@ -1,4 +1,5 @@
 Rails.application.configure do
+  deliver_method = ENV['MAIL_DELIVERY_METHOD'].to_sym
   config.cache_classes = true
   config.eager_load = true
   config.consider_all_requests_local       = false
@@ -14,16 +15,18 @@ Rails.application.configure do
   config.log_formatter = ::Logger::Formatter.new
   config.active_record.dump_schema_after_migration = false
   config.sandbox_email_mode = true
-  config.action_mailer.delivery_method = ENV['MAIL_DELIVERY_METHOD']
+  config.action_mailer.delivery_method = deliver_method
   config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], protocol: 'https'}
-  config.action_mailer.smtp_settings = {
-    address: ENV['SES_SMTP_SERVER'],
-    port: 587,
-    user_name: ENV['SMTP_USERNAME'],
-    password: ENV['SMTP_PASSWORD'],
-    authentication: :login,
-    enable_starttls_auto: true,
-  }
+  if deliver_method == :smtp
+    config.action_mailer.smtp_settings = {
+      address: ENV['SMTP_SERVER'],
+      port: 587,
+      user_name: ENV['SMTP_USERNAME'],
+      password: ENV['SMTP_PASSWORD'],
+      authentication: :login,
+      enable_starttls_auto: true,
+    }
+  end
   config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours }
   config.action_controller.perform_caching = true
 end
