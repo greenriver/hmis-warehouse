@@ -1,3 +1,19 @@
+-if can_edit_users? || can_edit_translations? || can_administer_health?
+  .row
+    %ul.nav.nav-tabs
+      -if can_edit_users?
+        %li{role: "presentation", class: ('active' if controller_path == 'admin/users')}
+          = link_to 'User Accounts', admin_users_path
+      -if can_edit_translations?
+        %li{role: "presentation", class: ('active' if controller_path == 'admin/translation_keys')}
+          = link_to 'Manage Translations', admin_translation_keys_path
+      -if can_view_imports?
+        %li{role: "presentation", class: ('active' if controller_path == 'admin/dashboard/imports')}
+          = link_to 'Import Dashboard', admin_dashboard_imports_path
+      -if can_administer_health?
+        %li{role: "presentation", class: ('active' if controller_path == 'admin/health/admin')}
+          = link_to 'Healthcare Administration', admin_health_admin_index_path
+
 %h1 Dashboard
 .row
   .col-sm-4

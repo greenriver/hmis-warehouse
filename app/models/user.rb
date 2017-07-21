@@ -1,4 +1,5 @@
 class User < ActiveRecord::Base
+  include Rails.application.routes.url_helpers
   has_paper_trail
   acts_as_paranoid
 
@@ -126,6 +127,13 @@ class User < ActiveRecord::Base
     viewables.each do |viewable|
       viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
     end
+  end
+  
+  def admin_dashboard_landing_path
+    return admin_users_path if can_edit_users?
+    return admin_translation_keys_path if can_edit_translations?
+    return admin_dashboard_imports_path if can_view_imports?
+    return admin_health_admin_index_path if can_administer_health?
   end
 
   private
