@@ -23,7 +23,6 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     CHRONIC_PROJECT_TYPES = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    DMH_SITE = 38
     SO = 4
     
     attr_accessor :logger, :debug
@@ -354,12 +353,13 @@ module GrdaWarehouse::Tasks
     end
 
     def dmh_projects_filter 
-      project_source.
+      filter = project_source.
         joins(:organization).merge(GrdaWarehouse::Hud::Organization.dmh).
         pluck(:ProjectID, :data_source_id).
         map do |project_id, data_source_id|
           sh_t[:project_id].eq(project_id).and(sh_t[:data_source_id].eq(data_source_id)).to_sql
       end.join(' or ')
+      filter = "0=1" if filter.blank?
     end
 
     def dmh_clients
