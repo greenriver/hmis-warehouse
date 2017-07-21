@@ -1,3 +1,4 @@
+<% if ENV['EXCEPTION_WEBHOOK_URL'] && ENV['EXCEPTION_WEBHOOK_CHANNEL'] %>
 <%= ENV['RAILS_ENV'] %>:
   slack:
     webhook_url: <%= ENV['EXCEPTION_WEBHOOK_URL'] %>
@@ -5,3 +6,4 @@
     additional_parameters:
       mrkdwn: true
       icon_url: <%= ENV['EXCEPTION_WEBHOOK_ICON'] %>
+<% end %> 
