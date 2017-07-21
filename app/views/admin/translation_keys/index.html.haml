@@ -3,6 +3,7 @@
 .row.table-utilities
   .col-sm-4
     %p= page_entries_info @translation_keys, entry_name: _('translation')
+    %p= paginate @translation_keys
 .row 
   .col-sm-8
     - if @translation_keys.present?

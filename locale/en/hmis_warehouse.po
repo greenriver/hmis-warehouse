@@ -26,6 +26,9 @@ msgstr ""
 msgid "\"Report: #{@report.name} was successfully updated.\""
 msgstr ""
 
+msgid "Boston DND HMIS Warehouse"
+msgstr ""
+
 msgid "Boston DND Warehouse"
 msgstr ""
 
