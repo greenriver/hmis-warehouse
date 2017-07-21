@@ -71,7 +71,7 @@ module WarehouseReports
 
         end
         flash[:notice] = flashes.join('<br />').html_safe if flashes.any?
-        Cas::SyncToCasJob.perform_later
+        ::Cas::SyncToCasJob.perform_later
       else
         flash[:error] = 'Unable to set CAS flag.'
       end
