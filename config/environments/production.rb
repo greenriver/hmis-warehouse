@@ -1,5 +1,7 @@
 Rails.application.configure do
   deliver_method = ENV['MAIL_DELIVERY_METHOD'].to_sym
+  slack_config = Rails.application.config_for(:exception_notifier)['slack']
+  
   config.cache_classes = true
   config.eager_load = true
   config.consider_all_requests_local       = false
@@ -29,13 +31,16 @@ Rails.application.configure do
   end
   config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours }
   config.action_controller.perform_caching = true
-  config.middleware.use ExceptionNotification::Rack,
-    :slack => {
-      :webhook_url => Rails.application.config_for(:exception_notifier)['slack']['webhook_url'],
-      :channel => Rails.application.config_for(:exception_notifier)['slack']['channel'],
-      :additional_parameters => {
-        :mrkdwn => true,
-        :icon_url => Rails.application.config_for(:exception_notifier)['slack']['icon_url']
+  if slack_config.present?
+    config.middleware.use(ExceptionNotification::Rack,
+      :slack => {
+        :webhook_url => slack_config['webhook_url'],
+        :channel => slack_config['channel'],
+        :additional_parameters => {
+          :mrkdwn => true,
+          :icon_url => slack_config['icon_url']
+        }
       }
-    }
+    )
+  end
 end
