@@ -1160,7 +1160,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Sometimes our export fetching doesn't work correctly, see if we can load it individually
         if export.blank?
           query = GrdaWarehouse::Hud::Export.
-            where(data_source_id: enrollment[:data_source_id], export_id: enrollment[:export_id])
+            where(data_source_id: enrollment[:data_source_id], ExportID: enrollment[:export_id])
           export = query.
             pluck(*export_columns.values).
             first          
