@@ -5,5 +5,5 @@
     channel: <%= '#' + ENV['EXCEPTION_WEBHOOK_CHANNEL'] %>
     additional_parameters:
       mrkdwn: true
-      icon_url: <%= ENV['EXCEPTION_WEBHOOK_ICON'] %>
+      icon_url: <%= ENV.fetch('EXCEPTION_WEBHOOK_ICON') %>
 <% end %> 
