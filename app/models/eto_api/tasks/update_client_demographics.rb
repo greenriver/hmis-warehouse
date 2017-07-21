@@ -45,7 +45,7 @@ module EtoApi::Tasks
       # 639 = Main Outreach Counselor
       
       # Loop over all items in the config
-      api_config = YAML.load(ERB.new(File.read("#{Rails.root}config/eto_api.yml")).result)[Rails.env]
+      api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
 
