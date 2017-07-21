@@ -24,7 +24,7 @@ class ReportsController < ApplicationController
 
     if @report.save
       redirect_to action: :index
-      flash[:notice] = _("Report: #{@report.name} was successfully created.")
+      flash[:notice] = "Report: #{@report.name} was successfully created."
     else
       render :new
     end
@@ -34,7 +34,7 @@ class ReportsController < ApplicationController
   def update
     if @report.update(report_params)
       redirect_to action: :index
-      flash[:notice] = _("Report: #{@report.name} was successfully updated.")
+      flash[:notice] = "Report: #{@report.name} was successfully updated."
     else
       render :edit
     end
@@ -43,7 +43,7 @@ class ReportsController < ApplicationController
   # DELETE /services/1
   def destroy
     @report.destroy
-    redirect_to reports_url, notice: _("Report: #{@report.name} was successfully destroyed.")
+    redirect_to reports_url, notice: "Report: #{@report.name} was successfully destroyed."
   end
 
   private
