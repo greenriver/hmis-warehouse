@@ -52,7 +52,7 @@ class ClientsController < ApplicationController
     end
     if @client.update(update_params)
       flash[:notice] = 'Client updated'
-      Cas::SyncToCasJob.perform_later
+      ::Cas::SyncToCasJob.perform_later
       redirect_to action: :show
     else
       flash[:notice] = 'Unable to update client'
