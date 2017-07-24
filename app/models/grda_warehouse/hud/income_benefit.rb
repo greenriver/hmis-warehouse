@@ -78,6 +78,7 @@ module GrdaWarehouse::Hud
         "NoHIVAIDSAssistanceReason",
         "ADAP",
         "NoADAPReason",
+        "ConnectionWithSOAR",
         "DataCollectionStage",
         "DateCreated",
         "DateUpdated",
