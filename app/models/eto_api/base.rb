@@ -19,7 +19,7 @@ module EtoApi
         staff: 'https://services.etosoftware.com/API/Staff.svc',
         activity: 'https://services.etosoftware.com/API/Activity.svc',
       }
-      api_config = YAML.load(ERB.new(File.read("#{Rails.root}config/eto_api.yml")).result)[Rails.env]
+      api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
       @credentials = {
         security: {
           'Email': api_config[api_connection]['email'],

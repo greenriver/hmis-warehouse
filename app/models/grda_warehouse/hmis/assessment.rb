@@ -86,26 +86,30 @@ module GrdaWarehouse::HMIS
     end
 
     def self.fetch_touch_points
-      api_config = YAML.load(ERB.new(File.read("#{Rails.root}config/eto_api.yml")).result)[Rails.env]
+      api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
       touch_points = {}
       api_config.each do |connection_key, config|
         data_source_id = config['data_source_id']
         api = EtoApi::Base.new(trace: false, api_connection: connection_key)
         api.connect
         api.sites.each do |site_id, name|
-          api.touch_points(site_id: site_id).each do |touch_point|
-            touch_point = touch_point.with_indifferent_access
-            touch_points[
-              {
-                data_source_id: data_source_id, 
-                site_id: site_id, 
-                assessment_id: touch_point[:TouchPointID]
+          begin
+            api.touch_points(site_id: site_id).each do |touch_point|
+              touch_point = touch_point.with_indifferent_access
+              touch_points[
+                {
+                  data_source_id: data_source_id, 
+                  site_id: site_id, 
+                  assessment_id: touch_point[:TouchPointID]
+                }
+              ] = {
+                name: touch_point[:TouchPointName],
+                site_name: name,
+                active: ! touch_point[:IsDisabled],
               }
-            ] = {
-              name: touch_point[:TouchPointName],
-              site_name: name,
-              active: ! touch_point[:IsDisabled],
-            }
+            end
+          rescue RestClient::ExceptionWithResponse => e
+            Rails.logger.error "Failed to fetch assessments for #{connection_key} in site #{name} with error: #{e}"
           end
         end
       end

@@ -3,7 +3,10 @@ module GrdaWarehouse::Tasks
     include TsqlImport
     include ArelHelper
     
-    def initialize replace_all = nil
+    def initialize replace_all = nil, use_computed_project_type: true
+      @use_computed_project_type = use_computed_project_type
+      @sh_project_type_column = if @use_computed_project_type then :computed_project_type else :project_type end
+      @project_project_type_column = if @use_computed_project_type then :computed_project_type else :ProjectType end
       if replace_all.present?
         @replace_all = true
       end
@@ -66,7 +69,11 @@ module GrdaWarehouse::Tasks
               #   ds == ds2 && pi == pi2 && oi == oi2 && gender == gender2 && veteran == veteran2
               # end || [0]
               # yesterdays_count = yr.last
-              pt = project.computed_project_type
+              if @use_computed_project_type
+                pt = project.computed_project_type
+              else
+                pt = project.project_type
+              end
               values << {
                 data_source_id:   ds.to_i,
                 ProjectType:      pt,
@@ -152,7 +159,7 @@ module GrdaWarehouse::Tasks
     end
 
     def history_source
-      GrdaWarehouse::ServiceHistory.service.where.not(project_type: nil)
+      GrdaWarehouse::ServiceHistory.service.where.not(@sh_project_type_column => nil)
     end
 
     def client_source
@@ -160,7 +167,7 @@ module GrdaWarehouse::Tasks
     end
 
     def project_scope
-      GrdaWarehouse::Hud::Project.where.not(ProjectType: nil)
+      GrdaWarehouse::Hud::Project.where.not(@project_project_type_column => nil)
     end
 
     def history_for_range_by_project(start_date, end_date)
@@ -193,14 +200,14 @@ module GrdaWarehouse::Tasks
       query = history_source.joins(:client, :project).
         group( 
           ht[:date], 
-          ht[:computed_project_type], 
+          ht[@sh_project_type_column], 
           coalesced_gender, 
           coalesced_vet_status
         ).
         order(ht[:date]).
         where( ht[:date].between( start_date ... end_date ) ).select([
           ht[:date],
-          ht[:computed_project_type].as('project_type').to_sql,
+          ht[@sh_project_type_column].as('project_type').to_sql,
           coalesced_gender,
           coalesced_vet_status,
           nf( 'COUNT', [ nf( 'DISTINCT', [ht[:client_id]] ) ])

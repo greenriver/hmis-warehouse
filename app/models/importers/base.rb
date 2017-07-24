@@ -65,7 +65,8 @@ module Importers
 
           load()
           # Update service history for any projects that have changed
-          update_service_history()
+          # Don't do this, we now do it in a separate step
+          # update_service_history()
 
           @import.completed_at = Time.now
           @import.save
