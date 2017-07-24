@@ -1,3 +1,6 @@
+-if can_edit_users? || can_edit_translations? || can_view_imports?
+  = render :partial => 'menus/admin_tabs'
+  
 - title = 'Manage Healthcare'
 - content_for(:title, title)
 %h1= title

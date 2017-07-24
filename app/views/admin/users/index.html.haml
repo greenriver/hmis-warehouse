@@ -1,3 +1,5 @@
+-if can_edit_translations? || can_view_imports? || can_administer_health?
+  = render :partial => 'menus/admin_tabs'
 - content_for :title, t('.title')
 .row
   .col-sm-8

@@ -1,0 +1,5 @@
+- if can_edit_users? || can_edit_translations? || can_view_imports? || can_administer_health?
+  .vsm-group.vsm-group__group-a
+    = link_to current_user.admin_dashboard_landing_path, class: 'vsm-item-link' do
+      .vsm-item-link--description
+        Admin Dashboard

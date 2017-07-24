@@ -1,3 +1,7 @@
+-if can_edit_users? || can_view_imports? || can_administer_health?
+  = render :partial => 'menus/admin_tabs'
+
+%h1 Manage Translations
 - locales = TranslationKey.available_locales
       
 .row.table-utilities
