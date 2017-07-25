@@ -798,10 +798,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
             Hash[export_columns.keys.zip(row)]
           end
           .index_by do |row| 
-            [row[:data_source_id], row[:export_id]]
+            [row[:data_source_id], row[:export_id].to_s]
           end
       end
-      @exports_by_export_id[[data_source_id, export_id]]
+      @exports_by_export_id[[data_source_id, export_id.to_s]]
     end
 
     def services_personal_id_and_entry_id project_id, entry_id, data_source_id
@@ -1160,10 +1160,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Sometimes our export fetching doesn't work correctly, see if we can load it individually
         if export.blank?
           query = GrdaWarehouse::Hud::Export.
-            where(data_source_id: enrollment[:data_source_id], ExportID: enrollment[:export_id])
-          export = query.
-            pluck(*export_columns.values).
-            first          
+            where(data_source_id: enrollment[:data_source_id], ExportID: enrollment[:export_id]).select(*export_columns.values)
+          export = query.pluck(*export_columns.values).first         
         end
         export_date = export[:export_date].to_date
         export_end = export[:export_end_date].to_date
