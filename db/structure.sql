@@ -104,52 +104,6 @@ ALTER SEQUENCE activity_logs_id_seq OWNED BY activity_logs.id;
 
 
 --
--- Name: cas_reports; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE cas_reports (
-    id integer NOT NULL,
-    client_id integer NOT NULL,
-    match_id integer NOT NULL,
-    decision_id integer NOT NULL,
-    decision_order integer NOT NULL,
-    match_step character varying NOT NULL,
-    decision_status character varying NOT NULL,
-    current_step boolean DEFAULT false NOT NULL,
-    active_match boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    elapsed_days integer DEFAULT 0 NOT NULL,
-    client_last_seen_date timestamp without time zone,
-    criminal_hearing_date timestamp without time zone,
-    decline_reason character varying,
-    not_working_with_client_reason character varying,
-    administrative_cancel_reason character varying,
-    client_spoken_with_services_agency boolean,
-    cori_release_form_submitted boolean
-);
-
-
---
--- Name: cas_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE cas_reports_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE cas_reports_id_seq OWNED BY cas_reports.id;
-
-
---
 -- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -509,20 +463,20 @@ CREATE TABLE roles (
     can_view_imports boolean DEFAULT false,
     can_edit_roles boolean DEFAULT false,
     can_view_projects boolean DEFAULT false,
+    can_edit_projects boolean DEFAULT false,
+    can_edit_project_groups boolean DEFAULT false,
     can_view_organizations boolean DEFAULT false,
+    can_edit_organizations boolean DEFAULT false,
+    can_edit_data_sources boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
+    can_edit_translations boolean DEFAULT false,
+    can_manage_assessments boolean DEFAULT false,
+    can_edit_anything_super_user boolean DEFAULT false,
     can_administer_health boolean DEFAULT false,
     can_edit_client_health boolean DEFAULT false,
     can_view_client_health boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
-    can_edit_project_groups boolean DEFAULT false,
-    can_edit_anything_super_user boolean DEFAULT false,
-    can_edit_projects boolean DEFAULT false,
-    can_edit_organizations boolean DEFAULT false,
-    can_edit_data_sources boolean DEFAULT false,
-    can_edit_translations boolean DEFAULT false,
-    can_manage_assessments boolean DEFAULT false
+    health_role boolean DEFAULT false NOT NULL
 );
 
 
@@ -863,13 +817,6 @@ ALTER TABLE ONLY activity_logs ALTER COLUMN id SET DEFAULT nextval('activity_log
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY cas_reports ALTER COLUMN id SET DEFAULT nextval('cas_reports_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
 ALTER TABLE ONLY clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('clients_unduplicated_id_seq'::regclass);
 
 
@@ -998,14 +945,6 @@ ALTER TABLE ONLY versions ALTER COLUMN id SET DEFAULT nextval('versions_id_seq':
 
 ALTER TABLE ONLY activity_logs
     ADD CONSTRAINT activity_logs_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY cas_reports
-    ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
 
 
 --
@@ -1178,13 +1117,6 @@ CREATE INDEX index_activity_logs_on_item_model ON activity_logs USING btree (ite
 --
 
 CREATE INDEX index_activity_logs_on_user_id ON activity_logs USING btree (user_id);
-
-
---
--- Name: index_cas_reports_on_client_id_and_match_id_and_decision_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON cas_reports USING btree (client_id, match_id, decision_id);
 
 
 --
@@ -1458,8 +1390,6 @@ INSERT INTO schema_migrations (version) VALUES ('20161219184752');
 INSERT INTO schema_migrations (version) VALUES ('20170505132237');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517200539');
-
-INSERT INTO schema_migrations (version) VALUES ('20170526162435');
 
 INSERT INTO schema_migrations (version) VALUES ('20170619210146');
 

@@ -710,8 +710,14 @@ module GrdaWarehouse::Hud
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
-        where = sa[:FirstName].lower.matches("#{first.downcase}%")
-          .and(sa[:LastName].lower.matches("#{last.downcase}%"))
+        if last.present?
+          where = sa[:LastName].lower.matches("#{last.downcase}%")
+        end
+        if last.present? && first.present?
+          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%"))
+        elsif first.present?
+          where = sa[:FirstName].lower.matches("#{first.downcase}%")
+        end
       # Explicity search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
