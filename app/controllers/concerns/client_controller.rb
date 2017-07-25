@@ -107,9 +107,9 @@ module ClientController
       raise 'Rollup not in whitelist' unless rollup.present?
 
       begin
-        if request.xhr?
+        # if request.xhr?
           render partial: rollup, layout: false
-        end
+        # end
       end
     end
     
