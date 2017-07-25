@@ -338,7 +338,7 @@ module GrdaWarehouse::Hud
     end
 
     # after and before take dates, or something like 3.years.ago
-    def presented_with_family?(after: nil, before: nil)
+    def presented_with_family?(after: nil, before: nil, ignore_ages: false)
       return false unless households.present?
       raise 'After required if before specified.' if before.present? && ! after.present?
       hh = if before.present? && after.present?
@@ -369,20 +369,24 @@ module GrdaWarehouse::Hud
       else
         households
       end
-      child = false
-      adult = false
-      hh.with_indifferent_access.each do |k, h|
-        _, date = k
-        # client life stage
-        child = self.DOB.present? && age_on(date) < 18
-        adult = self.DOB.blank? || age_on(date) >= 18
-        h.map{|m| m['age']}.uniq.each do |a|
-          adult = true if a.present? && a >= 18
-          child = true if a.blank? || a < 18
+      if ignore_ages
+        return hh.values.select{|m| m.size > 1}.any?
+      else
+        child = false
+        adult = false
+        hh.with_indifferent_access.each do |k, h|
+          _, date = k
+          # client life stage
+          child = self.DOB.present? && age_on(date) < 18
+          adult = self.DOB.blank? || age_on(date) >= 18
+          h.map{|m| m['age']}.uniq.each do |a|
+            adult = true if a.present? && a >= 18
+            child = true if a.blank? || a < 18
+          end
+          return true if child && adult
         end
-        return true if child && adult
+        return child && adult
       end
-      child && adult
     end
 
     def name
