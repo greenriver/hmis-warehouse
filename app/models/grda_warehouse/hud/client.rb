@@ -370,7 +370,7 @@ module GrdaWarehouse::Hud
         households
       end
       if ignore_ages
-        return hh.values.select{|m| m.size > 1}.any?
+        return hh.values.select{|m| m.size >= 1}.any?
       else
         child = false
         adult = false
