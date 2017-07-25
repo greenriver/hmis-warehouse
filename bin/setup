@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'pathname'
+require 'fileutils'
 
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('../../',  __FILE__)
@@ -10,32 +11,49 @@ Dir.chdir APP_ROOT do
   system "bundle check || bundle install --without seven_zip"
 
   ymls = [
-    "config/secrets.yml",  
+    "secrets.yml",
   ]
   ymls.each do |file|
+    file = File.join('config', file)
     unless File.exist?(file)
       puts "\n== Creating #{file} =="
-      system "cp #{file}.sample #{file}"
+      FileUtils.cp "#{file}.sample", file
     end
   end
 
+  rake = File.join('bin', 'rake')
+
   puts "\n== Preparing Database =="
-  system "bin/rake db:create"
-  system "bin/rake db:migrate"
+  system "#{rake} db:create"
+  system "#{rake} db:migrate"
+
   puts "\n== Preparing Warehouse =="
-  system "bin/rake warehouse:db:create"
-  system "bin/rake warehouse:db:migrate"
-  system "bin/rake grda_warehouse:seed_data_sources"
+  system "#{rake} warehouse:db:create"
+  system "#{rake} warehouse:db:migrate"
+  system "#{rake} grda_warehouse:seed_data_sources"
+
   puts "\n== Preparing Health Database =="
-  system "bin/rake health:db:create"
-  system "bin/rake health:db:migrate"
+  system "#{rake} health:db:create"
+  system "#{rake} health:db:migrate"
+
   puts "\n== Seeding Database =="
-  system "bin/rake db:seed"
+  system "#{rake} db:seed"
 
   puts "\n== Removing old logs and tempfiles =="
-  system "rm -f log/*"
-  system "rm -rf tmp/cache"
+  FileUtils.rm_f Dir.glob(File.join('log', '*'))
+  FileUtils.rm_rf Dir.glob(File.join('tmp', 'cache'))
+
+  puts "\n== Creating styles/_variables.scss =="
+  styles = File.join %w(app assets stylesheets theme styles)
+  unless File.directory?(styles)
+    FileUtils.mkdir(styles)
+  end
+  variables = File.join styles, "_variables.scss"
+  unless File.exist?(variables)
+    FileUtils.touch variables
+  end
 
   puts "\n== Restarting application server =="
-  system "touch tmp/restart.txt"
+  restart = File.join %w(tmp restart.txt)
+  FileUtils.touch restart
 end
