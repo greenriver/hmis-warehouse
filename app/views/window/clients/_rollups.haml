@@ -20,7 +20,7 @@
       = render 'window/clients/ongoing_enrollments'
 .row
   .col-sm-6
-    .rollup{data: {partial: 'case-manager'}}
+    .rollup{data: {partial: 'case_manager'}}
       %h3 Case Manager
   .col-sm-6
     .rollup{data: {partial: :assessments_without_data}}
@@ -38,7 +38,7 @@
 .row
   .col-sm-6
     - if @client.signed_consent_form_fully?
-      .rollup{data: {partial: 'services-full'}}
+      .rollup{data: {partial: 'services_full'}}
         %h3 Services &mdash; Full Bed Register
 
 -# load in al the bits of aggregate statistics via ajax
