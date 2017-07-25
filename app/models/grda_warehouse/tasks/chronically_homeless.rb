@@ -156,10 +156,10 @@ module GrdaWarehouse::Tasks
     def residential_history_for_client(client_id:)
       debug_log "calculating residential history"
       homeless_reset = service_history_source.hud_residential.
-        entry_within_date_range(start_date: @date - 3.years, end_date: @date).
+        entry_within_date_range(start_date: @date - 3.years, end_date: @date). 
         where(@project_type_column => RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE).
         where.not(last_date_in_program: nil).
-        where( datediff( service_history_source, 'day', sh_t[:first_date_in_program], sh_t[:last_date_in_program] ).gteq 90 ).
+        where( datediff( service_history_source, 'day', sh_t[:last_date_in_program], sh_t[:first_date_in_program] ).gteq(90)).
         where(client_id: client_id).
         maximum(:last_date_in_program)
       # Just load up the histories for the current client, loading all takes too much RAM
@@ -397,9 +397,6 @@ module GrdaWarehouse::Tasks
     def chronic_source
       GrdaWarehouse::Chronic
     end
-  
-    def sh_t
-      service_history_source.arel_table
-    end
+
   end
 end

@@ -158,8 +158,13 @@ module ArelHelper
     def datediff(engine, type, d1, d2)
       case engine.connection.adapter_name
       when 'PostgreSQL'
-        d1, d2 = [ d1, d2 ].map{ |d| datepart engine, type, d }
-        Arel::Nodes::Subtraction.new d1, d2
+        case type
+        when 'day'
+          Arel::Nodes::Subtraction.new(d1, d2)
+        else
+          raise NotImplementedError
+        end
+
       when 'SQLServer'
         nf 'DATEDIFF', [ lit(type), d1, d2 ]
       else
@@ -172,7 +177,7 @@ module ArelHelper
     def seconds_diff(engine, d1, d2)
       case engine.connection.adapter_name
       when 'PostgreSQL'
-        delta = Arel::Nodes::Subtraction.new d1, d2
+        delta = Arel::Nodes::Subtraction.new(d1, d2)
         nf 'EXTRACT', [ lit("epoch FROM #{delta.to_sql}") ]
       else
         raise NotImplementedError
