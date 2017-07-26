@@ -3,10 +3,10 @@ module GrdaWarehouse
     after_save :invalidate_cache
 
     def self.available_cas_methods
-      [
-        'Use Available in CAS flag',
-        'Use potentially chronic report',
-      ]
+      {
+        'Use Available in CAS flag' => :cas_flag,
+        'Use potentially chronic report' => :chronic,
+      }
     end
 
     def invalidate_cache

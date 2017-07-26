@@ -164,7 +164,14 @@ module GrdaWarehouse::Hud
       where(data_source_id: data_source_id)
     end
     scope :cas_active, -> do
-      where(sync_with_cas: true)
+      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      when :cas_flag
+        where(sync_with_cas: true)
+      when :chronic
+        joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
+      else
+        raise NotImplementedError
+      end
     end
     scope :full_housing_release_on_file, -> do
       where(housing_release_status: 'Full HAN Release')
