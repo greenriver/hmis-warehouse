@@ -1,0 +1,20 @@
+- title = "Site Configuration"
+- content_for :title, title
+
+= render :partial => 'menus/admin_tabs'
+
+%h1= content_for :title
+
+= simple_form_for @config, url: admin_configs_path do |f|
+  .row
+    .col-sm-6
+      = f.input :eto_api_available, label: 'Is the ETO API available?'
+      = f.input :healthcare_available, label: 'Enable Healthcare section?'
+      = f.input :project_type_override, label: 'Override ALL project types?'
+    .col-sm-6
+      = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS'
+
+      
+      = f.submit value: 'Save Site Configuration', class: 'btn btn-primary' 
+      
+ 

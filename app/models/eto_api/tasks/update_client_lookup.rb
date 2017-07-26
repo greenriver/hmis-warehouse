@@ -22,6 +22,7 @@ module EtoApi::Tasks
     # Fetch client mapping from Gmail and replace all records for each data source with 
     # new values
     def run!
+      return unless GrdaWarehouse::Config.get(:eto_api_available)
       self.logger = Rails.logger
       logger.info "Fetching client mappings from ETO"
       @gmail = connect_to_gmail

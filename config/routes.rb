@@ -239,7 +239,9 @@ Rails.application.routes.draw do
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
-    
+    resources :configs, only: [:index] do
+      patch :update, on: :collection
+    end
     namespace :eto_api do
       resources :assessments, only: [:index, :update]
     end

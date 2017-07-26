@@ -40,5 +40,6 @@
       %h3 Data Sharing Agreement
       = @client.consent_form_status.presence ||'No consent forms on file'
     .col-sm-4
-      .client__image
-        = image_tag image_client_path(@client)
+      - if GrdaWarehouse::Config.get(:eto_api_available)
+        .client__image
+          = image_tag(image_client_path(@client))

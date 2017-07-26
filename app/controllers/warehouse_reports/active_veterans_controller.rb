@@ -9,7 +9,7 @@ module WarehouseReports
       @direction = sort_direction
       scope = service_history_source
       if ( pts = @range.project_type.select(&:present?).map(&:to_sym) ).any?
-        scope = scope.where( project_type: pts.flat_map{ |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] } )
+        scope = scope.where( service_history_source.project_type_column => pts.flat_map{ |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] } )
       end
       @served_client_ids = scope.
         service_within_date_range(start_date: @range.start, end_date: @range.end).
@@ -62,7 +62,7 @@ module WarehouseReports
     end
     private def service_history_source
       project_types = project_source::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort
-      GrdaWarehouse::ServiceHistory.where(computed_project_type: project_types)
+      service_history_source.where(service_history_source.project_type_column => project_types)
     end
 
     def project_source
@@ -78,13 +78,17 @@ module WarehouseReports
         first_date_in_program: :first_date_in_program, 
         last_date_in_program: :last_date_in_program, 
         project_name: :project_name, 
-        project_type: :computed_project_type,
+        project_type: service_history_source.project_type_column,
         data_source_id: :data_source_id,
         PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
         ds_short_name: ds_table[:short_name].as('short_name').to_sql,
       }
     end
     
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
+
     private def sort_column
       sort_options.map{|k,_| k[:column]}.uniq.
         include?(params[:sort]) ? params[:sort] : 'first_date_served'

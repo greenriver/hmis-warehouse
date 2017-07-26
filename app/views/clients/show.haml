@@ -43,15 +43,17 @@
       %h3 Other Enrollments
 .row
   .col-sm-6
-    .rollup{data: {partial: :assessments}}
-      %h3 Assessments
-    .rollup{data: {partial: :contact_information}}
-      %h3 Contact Information
+    - if GrdaWarehouse::Config.get(:eto_api_available)
+      .rollup{data: {partial: :assessments}}
+        %h3 Assessments
+      .rollup{data: {partial: :contact_information}}
+        %h3 Contact Information
     .rollup{data: {partial: :services}}
       %h3 Services &mdash; Aggregated Bed Register
   .col-sm-6
-    .rollup{data: {partial: 'case_manager'}}
-      %h3 Case Manager
+    - if GrdaWarehouse::Config.get(:eto_api_available)
+      .rollup{data: {partial: 'case_manager'}}
+        %h3 Case Manager
     .rollup{data: {partial: 'zip-map'}}
       %h3 Zip Code of Last Permanent Address
     .rollup{data: {partial: 'zip-details'}}

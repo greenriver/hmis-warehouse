@@ -47,10 +47,6 @@ module GrdaWarehouse::Tasks
       @clients = client_ids
       @limited = client_ids.present? && client_ids.any?
       @debug = debug
-      @project_type_column = :project_type
-      if use_hud_override
-        @project_type_column = :computed_project_type
-      end
     end
 
     def run!
@@ -157,7 +153,7 @@ module GrdaWarehouse::Tasks
       debug_log "calculating residential history"
       homeless_reset = service_history_source.hud_residential.
         entry_within_date_range(start_date: @date - 3.years, end_date: @date). 
-        where(@project_type_column => RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE).
+        where(service_history_source.project_type_column => RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE).
         where.not(last_date_in_program: nil).
         where( datediff( service_history_source, 'day', sh_t[:last_date_in_program], sh_t[:first_date_in_program] ).gteq(90)).
         where(client_id: client_id).
@@ -379,7 +375,7 @@ module GrdaWarehouse::Tasks
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
         enrollment_group_id: :enrollment_group_id,
-        project_type: @project_type_column,
+        project_type: service_history_source.project_type_column,
         project_id: :project_id,
         project_tracking_method: :project_tracking_method,
         project_name: :project_name,

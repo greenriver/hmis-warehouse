@@ -11,22 +11,21 @@
     .rollup{data: {partial: :demographics}}
       %h3 Demographics
 .row
-  .col-sm-6
-    .rollup{data: {partial: :contact_information}}
-      %h3 Contact Information
+  - if GrdaWarehouse::Config.get(:eto_api_available)
+    .col-sm-6
+      .rollup{data: {partial: :contact_information}}
+        %h3 Contact Information
   .col-sm-6
     .client__current-enrollments
       %h3 Current Program Enrollments
       = render 'window/clients/ongoing_enrollments'
-.row
-  .col-sm-6
-    .rollup{data: {partial: 'case_manager'}}
-      %h3 Case Manager
-  .col-sm-6
-    .rollup{data: {partial: :assessments_without_data}}
-      %h3 Assessments
-    - if false # Disabled until legal has a chance for further review @client.signed_consent_form_fully?
-      .rollup{data: {partial: :assessments}}
+- if GrdaWarehouse::Config.get(:eto_api_available)
+  .row
+    .col-sm-6
+      .rollup{data: {partial: 'case_manager'}}
+        %h3 Case Manager
+    .col-sm-6
+      .rollup{data: {partial: :assessments_without_data}}
         %h3 Assessments
 .row
   .col-sm-12
