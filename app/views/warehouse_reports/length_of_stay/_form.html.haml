@@ -11,7 +11,7 @@
         %span.input-group-addon.icon-calendar
     .col-sm-3
       .input-group
-        = f.input :org, collection: @mo.disambiguated_organizations, selected: @mo.org, label: false
+        = f.input :org, collection: @mo.disambiguated_organizations, selected: @mo.org, prompt: 'Organization', include_blank: true, label: false, input_html: {class: :select2}
     .col-sm-3
       = f.button :submit, value: 'Update View'
       = link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do

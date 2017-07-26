@@ -34,7 +34,6 @@
 
 = content_for :page_js do
   :javascript
-    $('select').select2({ placeholder: 'Organization' });
     (function(){
       var headers = #{@headers.to_json};
       var chartKeys = #{( @headers - %w(average) ).to_json};

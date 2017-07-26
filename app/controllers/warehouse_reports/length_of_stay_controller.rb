@@ -103,7 +103,7 @@ module WarehouseReports
     end
 
     class MonthAndOrganization < DateRange::MonthDefault
-      attribute :org, Integer, lazy: true, default: -> (r,_) { r.organizations.limit(1).pluck( :id, :OrganizationName ).first.first }
+      attribute :org, Integer, lazy: true, default: ''
 
       validates :org, presence: true
 
