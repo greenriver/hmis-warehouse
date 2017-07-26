@@ -8,17 +8,17 @@
   .form-group
     .row
       .col-sm-2
-        = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source' }
+        = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source', class: :select2}
       .col-sm-5
         .hideable.datas
-          = f.input :data_source, collection: @query.all_sources[:data_sources]
+          = f.input :data_source, collection: @query.all_sources[:data_sources], input_html: {class: :select2}
         .hideable.org
-          = f.input :organization, collection: @query.all_sources[:organizations]
+          = f.input :organization, collection: @query.all_sources[:organizations], input_html: {class: :select2}
         .hideable.proj
-          = f.input :project, collection: @query.all_sources[:projects]
+          = f.input :project, collection: @query.all_sources[:projects], input_html: {class: :select2}
     .row
       .col-sm-12
-        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns' }
+        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns', class: :select2}
     .row
       .col-sm-10
         = f.submit 'Count missing fields', class: 'btn btn-primary'
@@ -43,9 +43,9 @@
 - content_for :page_js do
   :javascript
     // prep UI
-    $('#new_q select').select2();
     var $ss = $('#source-source');
     function hideHideable() {
+      console.log(this);
         $('.hideable:visible').addClass('hidden');
         var v = $ss.val(), cz;
         if ( v === 'Data Source' ) {
@@ -58,7 +58,7 @@
         $('.hideable.' + cz).removeClass('hidden');
     }
     hideHideable();
-    $ss.change(hideHideable);
+    $ss.on('change', hideHideable);
 
     // queue this as a separate event to improve layout speed
     function doTheRest() {
