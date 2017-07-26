@@ -8,12 +8,12 @@ module WarehouseReports
       if @mo.valid?
         services      = GrdaWarehouse::ServiceHistory
         organizations = GrdaWarehouse::Hud::Organization
-        projects      = GrdaWarehouse::Hud::Project
+        projects      = project_source
         st = services.arel_table
         ot = organizations.arel_table
         pt = projects.arel_table
         # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
-        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, :ProjectType, :act_as_project_type]
+        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, project_source.project_type_column]
         @projects_with_counts = projects.
           joins( :service_history, :organization ).
           merge(organizations.residential).
@@ -29,6 +29,10 @@ module WarehouseReports
         @projects_with_counts = ( @mo.organization.projects.map{ |p| [ p, [] ] } rescue {} )
       end
       respond_to :html, :xlsx
+    end
+
+    def project_source
+      GrdaWarehouse::Hud::Project
     end
 
     class MonthAndOrganization < ModelForm
