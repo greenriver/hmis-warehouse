@@ -31,7 +31,6 @@ module GrdaWarehouse::Tasks
     def initialize(
       date: Date.today, 
       count_so_as_full_month: true,
-      use_hud_override: true,
       dry_run: false, 
       client_ids: nil,
       debug: false
