@@ -12,7 +12,9 @@
       = f.input :healthcare_available, label: 'Enable Healthcare section?'
       = f.input :project_type_override, label: 'Override ALL project types?'
     .col-sm-6
+      = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
       = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS'
+      = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)'
 
       
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary' 

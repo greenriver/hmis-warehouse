@@ -9,6 +9,13 @@ module GrdaWarehouse
       }
     end
 
+    def self.family_calculation_methods
+      {
+        'At least one adult & child' => :adult_child,
+        'More than one person, regardless of age' => :multiple_people,
+      }
+    end
+
     def invalidate_cache
       self.class.invalidate_cache
     end

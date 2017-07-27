@@ -1315,7 +1315,8 @@ CREATE TABLE configs (
     eto_api_available boolean DEFAULT false NOT NULL,
     cas_available_method character varying DEFAULT 'cas_flag'::character varying NOT NULL,
     healthcare_available boolean DEFAULT false NOT NULL,
-    site_coc_codes json
+    family_calculation_method character varying DEFAULT 'adult_child'::character varying,
+    site_coc_codes character varying
 );
 
 
@@ -4957,4 +4958,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170718132138');
 INSERT INTO schema_migrations (version) VALUES ('20170719172444');
 
 INSERT INTO schema_migrations (version) VALUES ('20170726140915');
+
+INSERT INTO schema_migrations (version) VALUES ('20170727231741');
 

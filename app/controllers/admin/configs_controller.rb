@@ -16,13 +16,14 @@ module Admin
     end
 
     private def config_params
-      params.require(:grda_warehouse_config).permit(
+      p = params.require(:grda_warehouse_config).permit(
         :last_name,
         :eto_api_available,
         :healthcare_available,
         :project_type_override,
         :cas_available_method,
         :site_coc_codes,
+        :family_calculation_method,
       )
     end
 

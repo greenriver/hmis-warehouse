@@ -345,7 +345,7 @@ module GrdaWarehouse::Hud
     end
 
     # after and before take dates, or something like 3.years.ago
-    def presented_with_family?(after: nil, before: nil, ignore_ages: false)
+    def presented_with_family?(after: nil, before: nil)
       return false unless households.present?
       raise 'After required if before specified.' if before.present? && ! after.present?
       hh = if before.present? && after.present?
@@ -376,7 +376,7 @@ module GrdaWarehouse::Hud
       else
         households
       end
-      if ignore_ages
+      if GrdaWarehouse::Config.get(:family_calculation_method) == :multiple_people
         return hh.values.select{|m| m.size >= 1}.any?
       else
         child = false
