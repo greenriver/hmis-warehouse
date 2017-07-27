@@ -1,15 +1,15 @@
 - if File.exist? 'app/assets/images/theme/icons/favicon-32x32.png'
-  = favicon_link_tag 'theme/favicon-32x32.png', sizes: '32x32', rel: 'icon', type: 'image/png'
+  = favicon_link_tag 'theme/icons/favicon-32x32.png', sizes: '32x32', rel: 'icon', type: 'image/png'
 - else 
   = favicon_link_tag 'favicon-32x32.png', sizes: '32x32', rel: 'icon', type: 'image/png'
 
 - if File.exist? 'app/assets/images/theme/icons/favicon-16x16.png'
-  = favicon_link_tag 'theme/favicon-16x16.png', sizes: '16x16', rel: 'icon', type: 'image/png'
+  = favicon_link_tag 'theme/icons/favicon-16x16.png', sizes: '16x16', rel: 'icon', type: 'image/png'
 - else 
   = favicon_link_tag 'favicon-16x16.png', sizes: '16x16', rel: 'icon', type: 'image/png'
 
 - if File.exist? 'app/assets/images/theme/icons/favicon.ico'
-  = favicon_link_tag 'theme/favicon.ico', rel: 'shortcut'
+  = favicon_link_tag 'theme/icons/favicon.ico', rel: 'shortcut'
   = favicon_link_tag 'favicon.ico', rel: 'icon'
 - else 
   = favicon_link_tag 'favicon.ico', rel: 'shortcut'
