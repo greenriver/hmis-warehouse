@@ -376,7 +376,7 @@ module GrdaWarehouse::Hud
       else
         households
       end
-      if GrdaWarehouse::Config.get(:family_calculation_method) == :multiple_people
+      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
         return hh.values.select{|m| m.size >= 1}.any?
       else
         child = false
