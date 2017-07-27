@@ -6,7 +6,7 @@ class ReportsController < ApplicationController
   # GET /services
   def index
     @reports = report_scope.order(weight: :asc)
-    @reports = group_reports(@reports)
+    @reports = group_reports(@reports).sort_by{|r| r.first}
   end
 
     # GET /services/new
