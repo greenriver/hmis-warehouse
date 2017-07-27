@@ -32,7 +32,7 @@ module BostonHmis
     config.generators do |generate|
       generate.helper false
       generate.assets false
-      generate.test_framework false
+      generate.test_framework :rspec
     end
 
     config.lograge.enabled = true
@@ -54,7 +54,7 @@ module BostonHmis
     # force all requests over ssl by default
     config.force_ssl = true
 
-    # serve error pages from the Rails app itself 
+    # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = self.routes
   end

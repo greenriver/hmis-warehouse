@@ -19,6 +19,9 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = false
+  
+  # time zone
+  config.time_zone = 'Eastern Time (US & Canada)'
 
   # Raise exceptions instead of rendering exception templates.
   config.action_dispatch.show_exceptions = false
@@ -39,7 +42,10 @@ Rails.application.configure do
 
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = false
-  
+
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # Devise requires a default URL
+  config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], port: ENV['PORT'] }
 end

@@ -1,0 +1,15 @@
+language: ruby
+
+before_script:
+  - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
+  - cp config/secrets.yml.sample config/secrets.yml
+  - cp .rspec.travis .rspec
+
+env:
+  - DATABASE_ADAPTER=postgresql WAREHOUSE_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_ADAPTER=postgresql DATABASE_APP_DB_TEST=boston_hmis_test WAREHOUSE_DATABASE_DB_TEST=warehouse_test HEALTH_DATABASE_DB_TEST=health_test 
+
+script:
+  - date
+  - RAILS_ENV=test bundle exec rake db:create
+  - RAILS_ENV=test bundle exec rake db:migrate --trace
+  - bundle exec rspec
