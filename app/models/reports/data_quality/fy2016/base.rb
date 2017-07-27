@@ -29,7 +29,7 @@ module Reports::DataQuality::Fy2016
     end
 
     def self.available_data_sources
-      GrdaWarehouse::DataSource.all
+      GrdaWarehouse::DataSource.importable
     end
 
     def value_for_options options

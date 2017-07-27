@@ -1,6 +1,6 @@
 = simple_form_for :report_result do |f|
   = f.error_notification
-  = f.input :project, input_html: {name: 'report_result[options][project]'}, as: :select, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering
+  = f.input :project, input_html: {name: 'report_result[options][project]', class: 'select2'}, as: :select, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering
   %label.control-lable.string.required 
     %abbr{data: {original_title: "required"}} *
     Start Date
