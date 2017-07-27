@@ -3,23 +3,23 @@ namespace :reports do
   desc "Load Available Report Types"
   task :seed => [:environment, "log:info_to_stdout"] do
       # Summary 
-      rs = ReportResultsSummaries::SystemPerformance::Fy2015.where(name: 'HUD System Performance FY 2015').first_or_create
-      rs.update(weight: 0)
+      # rs = ReportResultsSummaries::SystemPerformance::Fy2015.where(name: 'HUD System Performance FY 2015').first_or_create
+      # rs.update(weight: 0)
 
-      r = Reports::SystemPerformance::Fy2015::MeasureOne.where(name: 'HUD System Performance FY 2015 - Measure 1').first_or_create
-      r.update(weight: 1, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2015::MeasureTwo.where(name: 'HUD System Performance FY 2015 - Measure 2').first_or_create
-      r.update(weight: 2, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2015::MeasureThree.where(name: 'HUD System Performance FY 2015 - Measure 3').first_or_create
-      r.update(weight: 3, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2015::MeasureFour.where(name: 'HUD System Performance FY 2015 - Measure 4').first_or_create
-      r.update(weight: 4, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2015::MeasureFive.where(name: 'HUD System Performance FY 2015 - Measure 5').first_or_create
-      r.update(weight: 5, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2015::MeasureSix.where(name: 'HUD System Performance FY 2015 - Measure 6').first_or_create
-      r.update(weight: 6, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2015::MeasureSeven.where(name: 'HUD System Performance FY 2015 - Measure 7').first_or_create
-      r.update(weight: 7, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureOne.where(name: 'HUD System Performance FY 2015 - Measure 1').first_or_create
+      # r.update(weight: 1, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureTwo.where(name: 'HUD System Performance FY 2015 - Measure 2').first_or_create
+      # r.update(weight: 2, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureThree.where(name: 'HUD System Performance FY 2015 - Measure 3').first_or_create
+      # r.update(weight: 3, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureFour.where(name: 'HUD System Performance FY 2015 - Measure 4').first_or_create
+      # r.update(weight: 4, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureFive.where(name: 'HUD System Performance FY 2015 - Measure 5').first_or_create
+      # r.update(weight: 5, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureSix.where(name: 'HUD System Performance FY 2015 - Measure 6').first_or_create
+      # r.update(weight: 6, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2015::MeasureSeven.where(name: 'HUD System Performance FY 2015 - Measure 7').first_or_create
+      # r.update(weight: 7, report_results_summary: rs)
 
       rs = ReportResultsSummaries::SystemPerformance::Fy2016.where(name: 'HUD System Performance FY 2016').first_or_create
       rs.update(weight: 0)
