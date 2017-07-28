@@ -101,10 +101,11 @@ gem 'redis-rails'
 #AWS SDK
 gem 'aws-sdk-rails', require: false
 
+gem 'auto-session-timeout'
+
 #Translations
 gem 'gettext_i18n_rails'
 gem 'fast_gettext'
-gem 'auto-session-timeout'
 gem 'gettext', '>=3.0.2', require: false
 gem 'ruby_parser', require: false
 gem 'grosser-pomo'
