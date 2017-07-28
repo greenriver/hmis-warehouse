@@ -77,7 +77,8 @@ module GrdaWarehouse::Hud
     has_many :exits, class_name: 'GrdaWarehouse::Hud::Exit', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id']
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :client
-    has_many :services, class_name: 'GrdaWarehouse::Hud::Service', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
+    has_many :services, through: :enrollments, source: :services
+    # has_many :services, class_name: 'GrdaWarehouse::Hud::Service', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :disabilities, class_name: 'GrdaWarehouse::Hud::Disability', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :health_and_dvs, class_name: 'GrdaWarehouse::Hud::HealthAndDv', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
