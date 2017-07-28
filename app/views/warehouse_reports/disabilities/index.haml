@@ -16,7 +16,7 @@
     .col-sm-2.text-right
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
-
+%p Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
 %p= page_entries_info @clients, entry_name: _('client')
 %table.table.table-condensed.table-hover
   %thead
