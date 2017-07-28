@@ -30,7 +30,7 @@
       .row
         .col-xs-10
           %p
-            %select{name: :data_source_id}
+            %select.select2{name: :data_source_id}
               %option{value: ''} Filter by Data Source
               - GrdaWarehouse::DataSource.importable.each do |ds|
                 - selected = @data_source_id == ds.id
@@ -50,7 +50,6 @@
           %p= link_to ' Clear Filters', clients_path, class: 'btn btn-secondary icon-cross'
 = content_for :page_js do
   :javascript
-    $('select').select2();
     (function($) {
       var filter_class = '.#{filter_class}'
       function toggle_clickable(e) {

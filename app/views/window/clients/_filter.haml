@@ -42,7 +42,6 @@
           %p= link_to ' Clear Filters', window_clients_path, class: 'btn btn-secondary icon-cross'
 = content_for :page_js do
   :javascript
-    $('select').select2();
     (function($) {
       var filter_class = '.#{filter_class}'
       function toggle_clickable(e) {
