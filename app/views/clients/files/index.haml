@@ -1,0 +1,43 @@
+- title = "File Uploads for #{@client.name}"
+- content_for :title, title
+= render 'clients/breadcrumbs'
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    = link_to new_file_path(@client), class: 'btn btn-primary' do
+      %span.icon-plus
+      Upload a file
+.row
+  .col-sm-12
+    = render 'clients/tab_navigation', current: files_path(@client)
+
+- if @client.client_files.any?
+  .row.table-utilities
+    .col-sm-12
+      .table-responsive
+        %table.table.table-condensed.table-hover
+          %thead
+            %tr
+              %th Upload Name
+              %th Note
+              %th File
+              %th Uploaded By
+              %th Uploaded On
+              %th Delete
+            %tbody
+              - @files.each do |file|
+                %tr
+                  %td= file.name
+                  %td= file.note
+                  %td= file.file.to_s.split('/').last
+                  %td= file.user&.name
+                  %td= file.created_at
+                  %td
+                    .btn.btn-secondary.btn-small
+                      = link_to file_path(file), method: :delete, data: {confirm: "Would you really like to delete this file?"} do
+                        %span.icon-cross{style: 'color: rgb(64, 64, 64);'}
+- else
+  No file uploads
+
+-# %p= paginate @files

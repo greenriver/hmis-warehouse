@@ -1,0 +1,13 @@
+.row
+  .col-sm-8
+    = simple_form_for @file, url: files_path(@client) do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :name, as: :string, hint: '(Optional) Name this upload.'
+        = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
+        = f.input :file, as: :file
+        = f.hidden_field :file_cache                
+      .form-actions
+        = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
+        
+        

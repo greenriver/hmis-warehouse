@@ -13,6 +13,10 @@
       title: 'Client History',
       permission: can_edit_clients?,
     },
+    files_path(@client) => {
+      title: 'File Uploads',
+      permission: can_view_clients?,
+    },
     polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
       title: 'Health',
       permission: show_health,

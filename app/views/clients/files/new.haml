@@ -1,0 +1,12 @@
+- title = "Upload a File for #{@client.name}"
+- content_for :title, title
+= render 'clients/breadcrumbs'
+%h1= title
+.row
+  .col-sm-12
+    = render 'clients/tab_navigation', current: files_path(@client)
+
+= render 'form'
+
+= link_to files_path(@client) do
+  &laquo; Return to File Uploads

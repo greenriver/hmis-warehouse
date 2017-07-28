@@ -3,7 +3,8 @@ module GrdaWarehouse::Hud
   class Client < Base
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
-
+    has_many :client_files
+    
     self.table_name = 'Client'
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
