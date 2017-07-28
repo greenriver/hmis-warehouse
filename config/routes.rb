@@ -69,6 +69,7 @@ Rails.application.routes.draw do
     resources :really_old_enrollments, only: [:index]
     resources :service_after_exit, only: [:index]
     resources :entry_exit_service, only: [:index]
+    resources :disabilities, only: [:index]
     resources :chronic, only: [:index] do
       get :summary, on: :collection
     end

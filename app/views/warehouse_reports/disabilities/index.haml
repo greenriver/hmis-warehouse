@@ -1,0 +1,38 @@
+- title = 'Enrolled Client\'s with Disabilities'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs'
+
+= simple_form_for @filter, as: :filter, url: warehouse_reports_disabilities_path, html: {method: :get, class: 'jFilter'} do |f|
+  .row
+    .col-sm-3
+      .input-group
+        = f.input :disabilities, collection: available_disabilities, input_html: { multiple: true, data: {placeholder: "Limit by disability types"}, class: 'select2'}, label: false
+    .col-sm-3
+      .input-group
+        = f.input :project_types, collection: available_project_types, input_html: { multiple: true, data: {placeholder: "Limit by project types"}, class: 'select2'}, label: false
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+    .col-sm-2.text-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+
+%p= page_entries_info @clients, entry_name: _('client')
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Last Name
+      %th First Name
+      %th Disability & Response
+  %tbody
+    - @clients.each do |client|
+      %tr
+        %td
+          %nobr= link_to client.LastName, client_path(client)
+        %td
+          %nobr= link_to client.FirstName, client_path(client)     
+        %td
+          - disabilities = client.source_disabilities.map {|disability| "#{disability.disability_type_text}: #{disability.response}"}.uniq
+          = disabilities.join('<br />').html_safe
+            
+%p= paginate @clients
