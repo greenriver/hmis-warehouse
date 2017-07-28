@@ -23,9 +23,10 @@ wb.add_worksheet name: 'Bed Utilization' do |sheet|
   @projects_with_counts.each do |_,projects|
     values = []
     project = projects.first
+    project_type = project[GrdaWarehouse::Hud::Project.project_type_column]
     projects_by_date = projects.index_by(&:date)
     values << project.name
-    values << ::HUD.project_type_brief(project.ProjectType)
+    values << ::HUD.project_type_brief(project_type)
     values << project.ProjectID
     values << relevant_inventory( project.inventories, @mo.range.end ).try(&:BedInventory)
     i = avg_info project, projects_by_date, @mo.range

@@ -3,9 +3,6 @@ module WarehouseReports
     before_action :require_can_view_reports!
 
     def index
-      @project_type_column = :project_type
-      @project_type_column = :computed_project_type if override_project_type()
-
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
       @range = DateRange.new(date_range_options)
 
@@ -22,7 +19,7 @@ module WarehouseReports
         @project_types.reject!(&:empty?)
         if @project_types.any?
           @project_types.map!(&:to_i)
-          @clients = @clients.where(ht[@project_type_column].in(@project_types))
+          @clients = @clients.where(ht[history.project_type_column].in(@project_types))
         end
       else
         @clients = @clients.none
@@ -58,10 +55,6 @@ module WarehouseReports
 
     def project_source
       GrdaWarehouse::Hud::Project
-    end
-
-    def override_project_type
-      true
     end
   end
 end

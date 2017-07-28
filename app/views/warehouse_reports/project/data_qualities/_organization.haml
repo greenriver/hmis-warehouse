@@ -32,7 +32,7 @@
   %tr.jProject.hidden{data: {organization_id: id}}
     %td
     %td
-      = HUD.project_type_brief(project.ProjectType)
+      = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
     %td.padding-left-02
       = link_to project.ProjectName, project_data_quality_reports_path(project)
     %td

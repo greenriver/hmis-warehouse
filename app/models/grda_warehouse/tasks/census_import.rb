@@ -3,10 +3,7 @@ module GrdaWarehouse::Tasks
     include TsqlImport
     include ArelHelper
     
-    def initialize replace_all = nil, use_computed_project_type: true
-      @use_computed_project_type = use_computed_project_type
-      @sh_project_type_column = if @use_computed_project_type then :computed_project_type else :project_type end
-      @project_project_type_column = if @use_computed_project_type then :computed_project_type else :ProjectType end
+    def initialize replace_all = nil
       if replace_all.present?
         @replace_all = true
       end
@@ -21,7 +18,7 @@ module GrdaWarehouse::Tasks
         Rails.logger.info 'collecting client histories'
         # clear out the appropriate data and scope things to the appropriate date range
         if @replace_all
-          start_date = history_source.order(ht[:date]).first.date
+          start_date = history_scope.order(ht[:date]).first.date
           census_by_project_source.delete_all
         else
           end_date = Date.today
@@ -69,11 +66,7 @@ module GrdaWarehouse::Tasks
               #   ds == ds2 && pi == pi2 && oi == oi2 && gender == gender2 && veteran == veteran2
               # end || [0]
               # yesterdays_count = yr.last
-              if @use_computed_project_type
-                pt = project.computed_project_type
-              else
-                pt = project.project_type
-              end
+              pt = project[project_source.project_type_column]
               values << {
                 data_source_id:   ds.to_i,
                 ProjectType:      pt,
@@ -99,7 +92,7 @@ module GrdaWarehouse::Tasks
         Rails.logger.info "Done with census by project"
         # clear out the appropriate data and scope things to the appropriate date range
         if @replace_all
-          start_date = history_source.order(ht[:date]).first.date
+          start_date = history_scope.order(ht[:date]).first.date
           census_by_project_type_source.delete_all
         else
           end_date = Date.today
@@ -159,20 +152,28 @@ module GrdaWarehouse::Tasks
     end
 
     def history_source
-      GrdaWarehouse::ServiceHistory.service.where.not(@sh_project_type_column => nil)
+      GrdaWarehouse::ServiceHistory
+    end
+
+    def history_scope
+      history_source.service.where.not(history_source.project_type_column => nil)
     end
 
     def client_source
       GrdaWarehouse::Hud::Client
     end
 
+    def project_source
+      GrdaWarehouse::Hud::Project
+    end
+
     def project_scope
-      GrdaWarehouse::Hud::Project.where.not(@project_project_type_column => nil)
+      project_source.where.not(project_source.project_type_column => nil)
     end
 
     def history_for_range_by_project(start_date, end_date)
       Rails.logger.info "collecting histories from range #{start_date} to #{end_date}"
-      query = history_source.joins(:client).
+      query = history_scope.joins(:client).
         group( 
           ht[:date], 
           ht[:data_source_id], 
@@ -197,17 +198,17 @@ module GrdaWarehouse::Tasks
 
     def history_for_range_by_project_type(start_date, end_date)
       Rails.logger.info "collecting histories from range #{start_date} to #{end_date}"
-      query = history_source.joins(:client, :project).
+      query = history_scope.joins(:client, :project).
         group( 
           ht[:date], 
-          ht[@sh_project_type_column], 
+          ht[history_source.project_type_column], 
           coalesced_gender, 
           coalesced_vet_status
         ).
         order(ht[:date]).
         where( ht[:date].between( start_date ... end_date ) ).select([
           ht[:date],
-          ht[@sh_project_type_column].as('project_type').to_sql,
+          ht[history_source.project_type_column].as('project_type').to_sql,
           coalesced_gender,
           coalesced_vet_status,
           nf( 'COUNT', [ nf( 'DISTINCT', [ht[:client_id]] ) ])
