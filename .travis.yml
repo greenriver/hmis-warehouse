@@ -11,5 +11,7 @@ env:
 script:
   - date
   - RAILS_ENV=test bundle exec rake db:create
+  - RAILS_ENV=test bundle exec rake warehouse:db:create
+  - RAILS_ENV=test bundle exec rake warehouse:db:migrate
   - RAILS_ENV=test bundle exec rake db:migrate --trace
   - bundle exec rspec
