@@ -6,12 +6,12 @@ before_script:
   - cp .rspec.travis .rspec
 
 env:
-  - DATABASE_ADAPTER=postgresql WAREHOUSE_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_ADAPTER=postgresql DATABASE_APP_DB_TEST=boston_hmis_test WAREHOUSE_DATABASE_DB_TEST=warehouse_test HEALTH_DATABASE_DB_TEST=health_test 
+  - DATABASE_ADAPTER=postgresql WAREHOUSE_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_ADAPTER=postgresql DATABASE_APP_DB_TEST=boston_hmis_test WAREHOUSE_DATABASE_DB_TEST=warehouse_test HEALTH_DATABASE_DB_TEST=health_test DEFAULT_FROM=greenriver.testing@mailinator.com
 
 script:
   - date
   - RAILS_ENV=test bundle exec rake db:create
+  - RAILS_ENV=test bundle exec rake db:migrate
   - RAILS_ENV=test bundle exec rake warehouse:db:create
   - RAILS_ENV=test bundle exec rake warehouse:db:migrate
-  - RAILS_ENV=test bundle exec rake db:migrate --trace
   - bundle exec rspec
