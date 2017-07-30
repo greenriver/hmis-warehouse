@@ -3,8 +3,8 @@ language: ruby
 before_script:
   - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
   - cp config/secrets.yml.sample config/secrets.yml
-  - mkdir assets/stylesheets/theme/styles
-  - touch assets/stylesheets/theme/styles/_variables.scss
+  - mkdir app/assets/stylesheets/theme/styles
+  - touch app/assets/stylesheets/theme/styles/_variables.scss
   - cp .rspec.travis .rspec
 
 env:
