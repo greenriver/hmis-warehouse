@@ -15,5 +15,5 @@ script:
   - bundle exec rake db:create
   - bundle exec rake db:schema:load
   - bundle exec rake warehouse:db:create
-  - bundle exec rake warehouse:db:structure:load
+  - bundle exec rake warehouse:db:schema:load
   - bundle exec rspec
