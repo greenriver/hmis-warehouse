@@ -1429,7 +1429,8 @@ CREATE TABLE files (
     updated_at timestamp without time zone,
     deleted_at timestamp without time zone,
     note character varying,
-    name character varying
+    name character varying,
+    visible_in_window boolean
 );
 
 

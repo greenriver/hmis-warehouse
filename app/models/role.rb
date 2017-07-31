@@ -41,6 +41,8 @@ class Role < ActiveRecord::Base
       :can_edit_translations,
       :can_manage_assessments,
       :can_edit_anything_super_user,
+      # :can_manage_client_files,
+      # :can_manage_window_client_files,
     ] 
     perms += self.health_permissions unless exclude_health
     return perms

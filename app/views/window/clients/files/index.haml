@@ -1,0 +1,55 @@
+- title = "File Uploads for #{@client.name}"
+- content_for :title, title
+
+-if current_page?(new_window_client_file_path(@client))
+  = render 'window/clients/breadcrumbs'
+-elsif current_page?(new_file_path(@client))
+  = render 'clients/breadcrumbs'
+  
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    - if can_edit_clients?
+      -if current_page?(window_client_files_path(@client))
+        = link_to new_window_client_file_path(@client), class: 'btn btn-primary' do
+          %span.icon-plus
+          Upload a file
+      -elsif current_page?(files_path(@client))
+        = link_to new_file_path(@client), class: 'btn btn-primary' do
+          %span.icon-plus
+          Upload a file
+.row
+  .col-sm-12
+    -if current_page?(window_client_files_path(@client))
+      = render 'window/clients/tab_navigation', current: window_client_files_path(@client)
+    -elsif current_page?(files_path(@client))
+      = render 'clients/tab_navigation', current: files_path(@client)
+- if @client.client_files.any?
+  .row.table-utilities
+    .col-sm-12
+      .table-responsive
+        %table.table.table-condensed.table-hover
+          %thead
+            %tr
+              %th File
+              %th Note
+              %th Uploaded By
+              %th Uploaded On
+              %th Delete
+            %tbody
+              - @files.each do |file|
+                %tr
+                  %td
+                    =link_to file_path(file) do
+                      = file.name
+                  %td= file.note
+                  %td= file.user&.name
+                  %td= file.created_at
+                  %td
+                    = link_to(file_path(file), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-secondary btn-small') do
+                      %span.icon-cross
+  %p= paginate @files
+  
+- else
+  No file uploads

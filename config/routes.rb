@@ -149,6 +149,7 @@ Rails.application.routes.draw do
       get :rollup
       get :assessment
       get :image
+      resources :files, controller: 'clients/files'
     end
   end
 
