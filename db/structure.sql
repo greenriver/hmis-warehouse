@@ -478,7 +478,8 @@ CREATE TABLE roles (
     can_edit_data_sources boolean DEFAULT false,
     can_manage_assessments boolean DEFAULT false,
     can_edit_translations boolean DEFAULT false,
-    can_manage_config boolean DEFAULT false
+    can_manage_config boolean DEFAULT false,
+    can_edit_dq_grades boolean DEFAULT false
 );
 
 
@@ -1410,4 +1411,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170721143408');
 INSERT INTO schema_migrations (version) VALUES ('20170721143409');
 
 INSERT INTO schema_migrations (version) VALUES ('20170726141503');
+
+INSERT INTO schema_migrations (version) VALUES ('20170731202132');
 

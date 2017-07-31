@@ -243,6 +243,8 @@ Rails.application.routes.draw do
     resources :configs, only: [:index] do
       patch :update, on: :collection
     end
+    resources :missing_grades
+    resources :utilization_grades
     namespace :eto_api do
       resources :assessments, only: [:index, :update]
     end
