@@ -5,14 +5,17 @@ module WarehouseReports
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
       affirmative_responses = [1,2,3]
-      
-      @clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_histories).
-        where(Disabilities: {DisabilityType: @filter.disabilities, DisabilityResponse: affirmative_responses}).
-        where(Project: {project_source.project_type_column => @filter.project_types}).
-        merge(history.entry.ongoing.where(history.project_type_column => @filter.project_types)).
-        distinct.
-        includes(source_disabilities: :project)
-
+      if @filter.disabilities.empty?
+        @clients = client_source.none
+      else
+        @clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_histories).
+          where(Disabilities: {DisabilityType: @filter.disabilities, DisabilityResponse: affirmative_responses}).
+          where(Project: {project_source.project_type_column => @filter.project_types}).
+          merge(history.entry.ongoing.where(history.project_type_column => @filter.project_types)).
+          distinct.
+          includes(source_disabilities: :project).
+          order(LastName: :asc, FirstName: :asc)
+      end
       respond_to do |format|
         format.html {
           @clients = @clients.page(params[:page]).per(25)
@@ -55,8 +58,8 @@ module WarehouseReports
     end
 
     class DisabilityProjectTypeFilter < ModelForm
-      attribute :disabilities, Date, lazy: true, default: [7]
-      attribute :project_types, Date, lazy: true, default: [1]
+      attribute :disabilities, Date, lazy: true, default: []
+      attribute :project_types, Date, lazy: true, default: []
 
     end
   end
