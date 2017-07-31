@@ -162,26 +162,30 @@ module Dashboards
       raise 'Implement in sub-class'
     end
 
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
+
     def homeless_service_history_source
-      GrdaWarehouse::ServiceHistory.
+      service_history_source.
         where(
-          project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         ).
         where(client_id: client_source)
     end
 
     private def residential_service_history_source
-      GrdaWarehouse::ServiceHistory.
+      service_history_source.
         where(
-          project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+           service_history_source.project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
         ).
         where(client_id: client_source)
     end
 
     private def exits_from_homelessness
-      GrdaWarehouse::ServiceHistory.exit.
+      service_history_source.exit.
         where(
-          project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         ).
         where(client_id: client_source)
     end
