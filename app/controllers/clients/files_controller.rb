@@ -7,7 +7,7 @@ module Clients
     before_action :set_file, only: [:show, :edit, :update]
     
     def index
-      file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
+      @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
     end
     
     def show
@@ -34,7 +34,7 @@ module Clients
         flash[:alert] = _("Upload failed to queue.")
         render :new
       end
-      Importing::RunImportHudZipJob.perform_later(upload: @upload) if run_import
+      Importing::RunImportHudZipJob.perform_later(@file.id) if run_import
     end
     
     def destroy
