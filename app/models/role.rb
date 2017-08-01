@@ -15,7 +15,6 @@ class Role < ActiveRecord::Base
     where(health_role: false)
   end
 
-
   def self.permissions(exclude_health: false)
     perms = [
       :can_view_clients,
