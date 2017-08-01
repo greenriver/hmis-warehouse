@@ -16,3 +16,7 @@
       -if can_administer_health? && GrdaWarehouse::Config.get(:healthcare_available)
         %li{role: "presentation", class: ('active' if current_page?(admin_health_admin_index_path))}
           = link_to 'Healthcare Administration', admin_health_admin_index_path
+      -if can_edit_dq_grades?
+        %li{role: "presentation", class: ('active' if current_page?(admin_data_quality_grades_path))}
+          = link_to 'Grade Scale', admin_data_quality_grades_path
+      
