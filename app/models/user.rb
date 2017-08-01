@@ -43,8 +43,8 @@ class User < ActiveRecord::Base
   # user has an permission through one of its roles
   Role.permissions.each do |permission|
     define_method(permission) do
-      @permisisons ||= load_effective_permissions
-      @permisisons[permission]
+      @permissions ||= load_effective_permissions
+      @permissions[permission]
     end
 
     # Methods for determining if a user has permission
