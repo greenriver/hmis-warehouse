@@ -3,6 +3,8 @@ language: ruby
 before_script:
   - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
   - cp config/secrets.yml.sample config/secrets.yml
+  - mkdir app/assets/stylesheets/theme/styles
+  - touch app/assets/stylesheets/theme/styles/_variables.scss
   - cp .rspec.travis .rspec
 
 env:
@@ -11,7 +13,7 @@ env:
 script:
   - date
   - bundle exec rake db:create
-  - bundle exec rake db:migrate
+  - bundle exec rake db:schema:load
   - bundle exec rake warehouse:db:create
-  - bundle exec rake warehouse:db:migrate
+  - bundle exec rake warehouse:db:schema:load
   - bundle exec rspec
