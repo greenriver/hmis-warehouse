@@ -1,5 +1,10 @@
-module GrdaWarehouse
+module GrdaWarehouse::Grades
   class Base < GrdaWarehouseBase
-    validates_presence_of :letter, :low
+    self.table_name = :grades
+    validates_presence_of :grade
+
+    def self.grade_from_score score
+      raise 'Implement in sub-class'
+    end
   end
 end

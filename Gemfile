@@ -56,6 +56,7 @@ gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim'
 gem 'linefit'
+gem 'jquery-minicolors-rails'
 
 # ETO API related
 gem "rest-client", "~> 2.0"

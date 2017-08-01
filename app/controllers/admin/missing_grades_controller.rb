@@ -19,7 +19,7 @@ module Admin
     def update
       @grade.assign_attributes(grade_params)
       if @grade.save 
-        redirect_to({action: :index}, notice: 'Grade updated')
+        redirect_to(admin_data_quality_grades_path, notice: 'Grade updated')
       else
         flash[:error] = 'Please review the form problems below'
         render :edit
@@ -29,7 +29,7 @@ module Admin
     def create
       @grade = grade_source.new(grade_params)
       if @grade.save 
-        redirect_to({action: :index}, notice: 'Grade created')
+        redirect_to(admin_data_quality_grades_path, notice: 'Grade created')
       else
         flash[:error] = 'Please review the form problems below'
         render :edit
@@ -38,7 +38,7 @@ module Admin
 
     def destroy
       @grade.destroy
-      redirect_to({action: :index}, notice: 'Grade deleted')
+      redirect_to(admin_data_quality_grades_path, notice: 'Grade deleted')
     end
 
     def load_grade
@@ -56,9 +56,11 @@ module Admin
     def grade_params
       params.require(:grade).
         permit(
-          :letter,
-          :low,
-          :high
+          :grade,
+          :percentage_low,
+          :percentage_high,
+          :color,
+          :weight
         )
     end
 

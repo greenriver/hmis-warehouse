@@ -26,6 +26,8 @@
 //= require leaflet
 //= require jquery.periodicalupdater
 //= require jquery.updater
+//= require jquery.minicolors
+//= require jquery.minicolors.simple_form
 
 
 //////////////////////////
