@@ -1,24 +1,14 @@
 - title = "Upload a File for #{@client.name}"
 - content_for :title, title
 
--if current_page?(new_window_client_file_path(@client))
-  = render 'window/clients/breadcrumbs'
--elsif current_page?(new_file_path(@client))
-  = render 'clients/breadcrumbs'
+= render 'window/clients/breadcrumbs'
 
 %h1= title
 .row
   .col-sm-12
-    -if current_page?(new_window_client_file_path(@client))
-      = render 'window/clients/tab_navigation', current: window_client_files_path(@client)
-    -elsif current_page?(new_file_path(@client))
-      = render 'clients/tab_navigation', current: files_path(@client)
+    = render 'window/clients/tab_navigation', current: window_client_files_path(@client)
 
 = render 'form'
 
--if current_page?(new_window_client_file_path(@client))
-  = link_to window_client_files_path(@client) do
-    &laquo; Return to File Uploads
--elsif current_page?(new_file_path(@client))
-  = link_to files_path(@client) do
-    &laquo; Return to File Uploads
+= link_to window_client_files_path(@client) do
+  &laquo; Return to File Uploads

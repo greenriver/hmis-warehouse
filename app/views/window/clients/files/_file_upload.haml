@@ -1,0 +1,8 @@
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    - if can_edit_clients?
+      = link_to polymorphic_path([:new] + file_path_generator, client_id: @client.id), class: 'btn btn-primary' do
+        %span.icon-plus
+        Upload a file

@@ -4,18 +4,18 @@
     polymorphic_path(client_path_generator, id: @client.id) => {
       title: 'Basic Info & Programs',
       permission: true,
-    },
-    window_client_files_path(@client) => {
+     },
+    polymorphic_path(files_path_generator, client_id: @client.id) => {
       title: 'File Uploads',
       permission: can_view_clients?,
     },
     polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
-      title: 'Health',
-      permission: show_health,
+     title: 'Health',
+     permission: show_health,
     },
     polymorphic_path(careplan_path_generator, client_id: @client.id) => {
-      title: 'Care Plan',
-      permission: show_health
+     title: 'Care Plan',
+     permission: show_health
     }
   }
 

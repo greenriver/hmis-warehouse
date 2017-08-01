@@ -1,0 +1,28 @@
+- if @client.client_files.any?
+  .row.table-utilities
+    .col-sm-12
+      .table-responsive
+        %table.table.table-condensed.table-hover
+          %thead
+            %tr
+              %th File
+              %th Note
+              %th Uploaded By
+              %th Uploaded On
+              %th Delete
+            %tbody
+              - @files.each do |file|
+                %tr
+                  %td
+                    =link_to polymorphic_path(file_path_generator, id: file.id) do
+                      = file.name
+                  %td= file.note
+                  %td= file.user&.name
+                  %td= file.created_at
+                  %td
+                    = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-secondary btn-small') do
+                      %span.icon-cross
+  %p= paginate @files
+  
+- else
+  No file uploads

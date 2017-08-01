@@ -1,12 +1,11 @@
 .row
   .col-sm-8
-    = simple_form_for @file, url: window_client_files_path(@client) do |f|
+    = simple_form_for @file, url: client_files_path(@client) do |f|
       = f.error_notification
       .form-inputs
         = f.input :name, as: :string, :required => true
         = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
-        = f.input :visible_in_window_display, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }, disabled: true, hint: 'This box is automatically checked in the Window.'
-        = f.input :visible_in_window, :as => :hidden, label: "Visible in the Window?", :input_html => { :value => true }
+        = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
         = f.input :file, as: :file, :required => true
         -# = f.hidden_field :file_cache                
       .form-actions

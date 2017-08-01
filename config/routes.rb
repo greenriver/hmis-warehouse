@@ -133,9 +133,8 @@ Rails.application.routes.draw do
       patch :unmerge
       post :create_note
       resource :cas_active, only: :update
-      resources :files, controller: 'clients/files'
     end
-    
+    resources :files, controller: 'clients/files'
     healthcare_routes()
   end
   namespace :clients do

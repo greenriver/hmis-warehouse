@@ -4,6 +4,6 @@ module GrdaWarehouse
     belongs_to :user, required: true
     validates :file, presence: true
     
-    mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
+    # mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
   end
 end  

@@ -11,11 +11,7 @@ module Window::Clients
     end
     
     def show
-      if @upload = @import.upload
-        if @upload.content.present?
-          send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s))
-        end
-      end
+      download
     end
     
     def new
@@ -42,15 +38,25 @@ module Window::Clients
     end
     
     def destroy
-      @file = file_source.find(params[:client_id].to_i)
-
+      @file = file_source.find(params[:id].to_i)
+      @client = @file.client
+      
       begin
         @file.destroy!
         flash[:notice] = "File was successfully deleted."
       rescue Exception => e
         flash[:error] = "File could not be deleted."
       end
-      redirect_to files_path(@file.client)
+      redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
+    end
+    
+    def download 
+      begin
+        send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
+        flash[:notice] = "File was successfully downloaded."
+      rescue Exception => e
+        flash[:error] = "File could not be downloaded."
+      end
     end
     
     def file_params
@@ -59,6 +65,7 @@ module Window::Clients
           :file,
           :name,
           :note,
+          :visible_in_window,
         )
     end
     
@@ -67,7 +74,7 @@ module Window::Clients
     end
     
     def set_file
-      @file = file_scope.find(params[:client_id].to_i)
+      @file = file_scope.find(params[:id].to_i)
     end
     
     def set_files
