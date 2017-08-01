@@ -896,7 +896,7 @@ module GrdaWarehouse::Hud
 
     # Move source clients to this destination client
     # other_client can be a single source record or a destination record
-    # if its a destination record, all of its sources will move and it will be delete
+    # if its a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
     def merge_from(other_client, reviewed_by:, reviewed_at: , client_match_id: nil)
@@ -944,6 +944,9 @@ module GrdaWarehouse::Hud
 
           # move any client notes
           GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          
+          # move any client files
+          GrdaWarehouse::ClientFile.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
 
           # move any patients
           Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
