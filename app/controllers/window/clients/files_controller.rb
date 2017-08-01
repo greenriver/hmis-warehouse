@@ -51,12 +51,13 @@ module Window::Clients
     end
     
     def download 
-      begin
-        send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
-        flash[:notice] = "File was successfully downloaded."
-      rescue Exception => e
-        flash[:error] = "File could not be downloaded."
-      end
+      send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
+      # begin
+      #   send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
+      #   flash[:notice] = "File was successfully downloaded."
+      # rescue Exception => e
+      #   flash[:error] = "File could not be downloaded."
+      # end
     end
     
     def file_params

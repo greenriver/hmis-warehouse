@@ -1,6 +1,6 @@
 .row
   .col-sm-8
-    = simple_form_for @file, url: client_files_path(@client) do |f|
+    = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
       = f.error_notification
       .form-inputs
         = f.input :name, as: :string, :required => true
