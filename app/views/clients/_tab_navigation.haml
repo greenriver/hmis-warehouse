@@ -15,7 +15,7 @@
     },
     polymorphic_path(files_path_generator, client_id: @client.id) => {
       title: 'File Uploads',
-      permission: can_view_clients?,
+      permission: can_manage_client_files?,
     },
     polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
       title: 'Health',

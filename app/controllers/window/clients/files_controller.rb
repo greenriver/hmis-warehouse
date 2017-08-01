@@ -1,7 +1,7 @@
 module Window::Clients
   class FilesController < ApplicationController
     include WindowClientPathGenerator
-    before_action :require_can_edit_clients!
+    before_action :require_can_manage_window_client_files!
     before_action :set_client, only: [:index, :show, :new, :create, :edit, :update]
     before_action :set_files, only: [:index]
     before_action :set_file, only: [:show, :edit, :update]

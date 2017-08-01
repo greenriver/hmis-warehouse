@@ -681,7 +681,9 @@ CREATE TABLE roles (
     can_edit_organizations boolean DEFAULT false,
     can_edit_data_sources boolean DEFAULT false,
     can_edit_anything_super_user boolean DEFAULT false,
-    can_manage_assessments boolean DEFAULT false
+    can_manage_assessments boolean DEFAULT false,
+    can_manage_client_files boolean DEFAULT false,
+    can_manage_window_client_files boolean DEFAULT false
 );
 
 
@@ -1782,4 +1784,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170705123919');
 INSERT INTO schema_migrations (version) VALUES ('20170721143408');
 
 INSERT INTO schema_migrations (version) VALUES ('20170721143409');
+
+INSERT INTO schema_migrations (version) VALUES ('20170801194526');
 
