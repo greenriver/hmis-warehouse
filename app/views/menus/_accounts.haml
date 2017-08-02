@@ -1,11 +1,10 @@
-- if can_edit_users?
-  .vsm-group.vsm-group__account
-    = link_to edit_account_path, class: 'vsm-item-link' do
-      .vsm-item-link--description
-        Edit Account
-    -# = current_user.name
-    = link_to destroy_user_session_path, method: :delete, class: 'vsm-item-link' do
-      .vsm-item-link--description
-        Sign Out
-      .menu-icon
-        %i{class: "icon-exit"}
+.vsm-group.vsm-group__account
+  = link_to edit_account_path, class: 'vsm-item-link' do
+    .vsm-item-link--description
+      Edit Account
+  -# = current_user.name
+  = link_to destroy_user_session_path, method: :delete, class: 'vsm-item-link' do
+    .vsm-item-link--description
+      Sign Out
+    .menu-icon
+      %i{class: "icon-exit"}

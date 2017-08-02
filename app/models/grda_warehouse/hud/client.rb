@@ -108,7 +108,11 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
-    has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficientcy Assessment')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    has_many :health_touch_points, -> do
+      f_t = GrdaWarehouse::HmisForm.arel_table
+      where(f_t[:collection_location].matches('Social Determinants of Health%'))
+    end, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
