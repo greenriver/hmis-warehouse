@@ -909,7 +909,7 @@ module GrdaWarehouse::Hud
         elsif other_client.destination?
           other_client
         end
-        # if it had have sources then move those over to us
+        # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
           m.warehouse_client_source.update_attributes!(
