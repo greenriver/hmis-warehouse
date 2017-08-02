@@ -6,6 +6,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
 
+    # Debugging
+    attr_accessor :batch, :to_patch
+
     def initialize
       self.logger = Rails.logger
       @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
@@ -17,15 +20,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
       @sanity_check = Set.new
       @batch_size = 1000
+
+      @rows_inserted = 0
+      @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
+      @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
+      @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
+      @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
     end
 
     def run!
       begin
-        @rows_inserted = 0
-        @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
-        @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
-        @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
-        @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
         tries ||= 0
         logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
         started_at = DateTime.now

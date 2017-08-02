@@ -1,0 +1,28 @@
+%h3= _('Bed Utilization Percentages')
+= simple_form_for @utilization_grade, as: :grade, url: admin_utilization_grades_path do |f|
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th{style: 'width: 4em;'} Grade
+        %th{style: 'width: 6em;'} Under Low
+        %th{style: 'width: 6em;'} Under High
+        %th{style: 'width: 6em;'} Over Low
+        %th{style: 'width: 6em;'} Over High
+        %th{style: 'width: 10em;'} Color
+        %th
+    %tbody
+      %tr
+        %td
+          = f.input :grade, label: false
+        %td
+          = f.input :percentage_under_low, label: false
+        %td
+          = f.input :percentage_under_high, label: false
+        %td
+          = f.input :percentage_over_low, label: false
+        %td
+          = f.input :percentage_over_high, label: false
+        %td
+          = f.input :color, label: false, input_html: {class: 'colorpicker'}
+        %td
+          = f.submit value: 'Add', class: 'btn btn-primary'

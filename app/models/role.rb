@@ -42,6 +42,7 @@ class Role < ActiveRecord::Base
       :can_manage_assessments,
       :can_edit_anything_super_user,
       :can_manage_config,
+      :can_edit_dq_grades,
     ] 
     perms += self.health_permissions unless exclude_health
     return perms
