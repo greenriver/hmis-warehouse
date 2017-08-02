@@ -3,11 +3,11 @@
     = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
       = f.error_notification
       .form-inputs
-        = f.input :name, as: :string, :required => true
+        = f.input :name, as: :string
         = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
-        = f.input :visible_in_window_display, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }, disabled: true, hint: 'This box is automatically checked in the Window.'
-        = f.input :visible_in_window, :as => :hidden, label: "Visible in the Window?", :input_html => { :value => true }
-        = f.input :file, as: :file, :required => true
+        -# = f.input :visible_in_window_display, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }, disabled: true, hint: 'This box is automatically checked in the Window.'
+        -# = f.input :visible_in_window, :as => :hidden, label: "Visible in the Window?", :input_html => { :value => true }
+        = f.input :file, as: :file
         -# = f.hidden_field :file_cache                
       .form-actions
         = f.button :submit, value: 'Upload File', class: 'btn btn-primary'

@@ -24,6 +24,7 @@ module Window::Clients
         user_id: current_user.id,
         content_type: file.content_type,
         content: file.read,
+        visible_in_window: true,
         }))
       if @file.save
         flash[:notice] = _("File successfully uploaded.")
