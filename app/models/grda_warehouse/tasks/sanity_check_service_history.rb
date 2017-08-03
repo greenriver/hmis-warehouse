@@ -11,6 +11,10 @@ module GrdaWarehouse::Tasks
       @sample_size = sample_size
       @client_ids = client_ids
       setup_notifier('Sanity Checker')
+      @logger = Rails.logger
+      if @client_ids.any?
+        @sample_size = @client_ids.size
+      end
     end
 
     # Pick a sample of destination clients and compare the number of entry and exit records
@@ -30,11 +34,6 @@ module GrdaWarehouse::Tasks
     end
 
     def sanity_check
-      if send_notifications
-        slack_url = notifier_config['webhook_url']
-        channel   = notifier_config['channel']
-        notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'Service History Sanity Checker'
-      end
       messages = []
       @destinations.each do |id, counts|
         if counts[:service_history].except(:service) != counts[:source].except(:service)
@@ -63,7 +62,7 @@ module GrdaWarehouse::Tasks
           msg = "Hey, the service history counts don't match for the following #{messages.size} client(s).  Service histories have been invalidated.\n"
           msg += messages.join("\n")
           msg += "\n\n#{rebuilding_message}"
-          notifier.ping msg
+          @notifier.ping msg
         end
         logger.info rebuilding_message
         GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
