@@ -5,22 +5,15 @@ require 'charlock_holmes'
 module Health::Tasks
   class ImportEpic
     include TsqlImport
+    include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 
     def initialize(logger: Rails.logger)
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = notifier_config.present? && ( Rails.env.production? )
+      setup_notifier('HealthImporter')
+      
       @logger = logger
       @config = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
-      if @send_notifications
-        @slack_url = @notifier_config['webhook_url']
-        @channel   = @notifier_config['channel']
-        @notifier  = Slack::Notifier.new(
-          @slack_url, 
-          channel: @channel, 
-          username: 'HealthImporter'
-        )        
-      end
+      
       @to_revoke = []
       @to_restore = []
       @new_patients = []

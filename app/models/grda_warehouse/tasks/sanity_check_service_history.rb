@@ -2,6 +2,7 @@ module GrdaWarehouse::Tasks
   class SanityCheckServiceHistory
     require 'ruby-progressbar'
     include ArelHelper
+    include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
     CACHE_KEY = 'sanity_check_service_history'
@@ -9,12 +10,7 @@ module GrdaWarehouse::Tasks
     def initialize(sample_size = 10, client_ids = [])
       @sample_size = sample_size
       @client_ids = client_ids
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
-      @logger = Rails.logger
-      if @client_ids.any?
-        @sample_size = @client_ids.size
-      end
+      setup_notifier('Sanity Checker')
     end
 
     # Pick a sample of destination clients and compare the number of entry and exit records
