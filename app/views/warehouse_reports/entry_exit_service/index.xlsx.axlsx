@@ -18,7 +18,7 @@ wb.add_worksheet(name: "Entry=Exit=Service") do |sheet|
       client['DateProvided'],
       client['ProjectName'],
       client['ProjectID'],
-      client['ProjectType'],
+      client['project_type'],
       client['RecordType'],
       data_sources[client['data_source_id']].name
     ]

@@ -12,7 +12,7 @@
   directions.each {| k,v | titles[k] = @results.human_attribute_name(k)}
 .row
   .col-sm-8
-    %p= page_entries_info(entry_name: _('client'))
+    %p= page_entries_info(@results, entry_name: _('report'))
 .row.table-utilities
   .col-sm-12
     .table-responsive

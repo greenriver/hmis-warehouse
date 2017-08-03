@@ -4,9 +4,7 @@ module Reports
     def show
       pt = GrdaWarehouse::Hud::Project.arel_table
       @projects = GrdaWarehouse::Hud::Project.joins(:organization).
-        where((pt[:ProjectType].in(PROJECT_TYPES).
-          and(pt[:act_as_project_type].eq(nil))).
-          or(pt[:act_as_project_type].in(PROJECT_TYPES))).
+        where(computed_project_type: PROJECT_TYPES).
         distinct 
       respond_to do |format|
         format.html

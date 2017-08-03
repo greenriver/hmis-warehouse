@@ -61,7 +61,7 @@
         %td
           = project.name
         %td
-          - project_type = if project.act_as_project_type then project.act_as_project_type else project.ProjectType end
+          - project_type = project[GrdaWarehouse::Hud::Project.project_type_column]
           - p_type = ::HUD.project_type_brief(project_type)
           - p_class = "client__service_type_#{p_type}"
           %span{class: "client__service_type_#{project_type}"}

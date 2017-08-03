@@ -4,7 +4,3 @@
   = link_to(report_report_results_path(@report), method: :post, class: 'btn btn-primary pull-right') do
     %span.icon-plus
     Queue Report Run
-
-= content_for :page_js do
-  :javascript
-    $('select').select2();

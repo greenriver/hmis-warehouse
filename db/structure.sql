@@ -2,12 +2,11 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.3
--- Dumped by pg_dump version 9.6.3
+-- Dumped from database version 9.5.6
+-- Dumped by pg_dump version 9.5.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -102,6 +101,52 @@ CREATE SEQUENCE activity_logs_id_seq
 --
 
 ALTER SEQUENCE activity_logs_id_seq OWNED BY activity_logs.id;
+
+
+--
+-- Name: cas_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE cas_reports (
+    id integer NOT NULL,
+    client_id integer NOT NULL,
+    match_id integer NOT NULL,
+    decision_id integer NOT NULL,
+    decision_order integer NOT NULL,
+    match_step character varying NOT NULL,
+    decision_status character varying NOT NULL,
+    current_step boolean DEFAULT false NOT NULL,
+    active_match boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    elapsed_days integer DEFAULT 0 NOT NULL,
+    client_last_seen_date timestamp without time zone,
+    criminal_hearing_date timestamp without time zone,
+    decline_reason character varying,
+    not_working_with_client_reason character varying,
+    administrative_cancel_reason character varying,
+    client_spoken_with_services_agency boolean,
+    cori_release_form_submitted boolean
+);
+
+
+--
+-- Name: cas_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE cas_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE cas_reports_id_seq OWNED BY cas_reports.id;
 
 
 --
@@ -303,210 +348,6 @@ ALTER SEQUENCE letsencrypt_plugin_settings_id_seq OWNED BY letsencrypt_plugin_se
 
 
 --
--- Name: lit_incomming_localizations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE lit_incomming_localizations (
-    id integer NOT NULL,
-    translated_value text,
-    locale_id integer,
-    localization_key_id integer,
-    localization_id integer,
-    locale_str character varying,
-    localization_key_str character varying,
-    source_id integer,
-    incomming_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: lit_incomming_localizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE lit_incomming_localizations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: lit_incomming_localizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE lit_incomming_localizations_id_seq OWNED BY lit_incomming_localizations.id;
-
-
---
--- Name: lit_locales; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE lit_locales (
-    id integer NOT NULL,
-    locale character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    is_hidden boolean DEFAULT false
-);
-
-
---
--- Name: lit_locales_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE lit_locales_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: lit_locales_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE lit_locales_id_seq OWNED BY lit_locales.id;
-
-
---
--- Name: lit_localization_keys; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE lit_localization_keys (
-    id integer NOT NULL,
-    localization_key character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    is_completed boolean DEFAULT false,
-    is_starred boolean DEFAULT false
-);
-
-
---
--- Name: lit_localization_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE lit_localization_keys_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: lit_localization_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE lit_localization_keys_id_seq OWNED BY lit_localization_keys.id;
-
-
---
--- Name: lit_localization_versions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE lit_localization_versions (
-    id integer NOT NULL,
-    translated_value text,
-    localization_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: lit_localization_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE lit_localization_versions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: lit_localization_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE lit_localization_versions_id_seq OWNED BY lit_localization_versions.id;
-
-
---
--- Name: lit_localizations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE lit_localizations (
-    id integer NOT NULL,
-    locale_id integer,
-    localization_key_id integer,
-    default_value text,
-    translated_value text,
-    is_changed boolean DEFAULT false,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: lit_localizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE lit_localizations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: lit_localizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE lit_localizations_id_seq OWNED BY lit_localizations.id;
-
-
---
--- Name: lit_sources; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE lit_sources (
-    id integer NOT NULL,
-    identifier character varying,
-    url character varying,
-    api_key character varying,
-    last_updated_at timestamp without time zone,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: lit_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE lit_sources_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: lit_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE lit_sources_id_seq OWNED BY lit_sources.id;
-
-
---
 -- Name: nicknames; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -671,19 +512,19 @@ CREATE TABLE roles (
     can_view_organizations boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
     can_administer_health boolean DEFAULT false,
     can_edit_client_health boolean DEFAULT false,
     can_view_client_health boolean DEFAULT false,
+    health_role boolean DEFAULT false NOT NULL,
     can_edit_project_groups boolean DEFAULT false,
-    can_edit_translations boolean DEFAULT false,
+    can_edit_anything_super_user boolean DEFAULT false,
     can_edit_projects boolean DEFAULT false,
     can_edit_organizations boolean DEFAULT false,
     can_edit_data_sources boolean DEFAULT false,
-    can_edit_anything_super_user boolean DEFAULT false,
+    can_edit_translations boolean DEFAULT false,
     can_manage_assessments boolean DEFAULT false,
-    can_manage_client_files boolean DEFAULT false,
-    can_manage_window_client_files boolean DEFAULT false
+    can_manage_config boolean DEFAULT false,
+    can_edit_dq_grades boolean DEFAULT false
 );
 
 
@@ -757,7 +598,7 @@ ALTER SEQUENCE similarity_metrics_id_seq OWNED BY similarity_metrics.id;
 
 CREATE TABLE translation_keys (
     id integer NOT NULL,
-    key character varying NOT NULL,
+    key character varying DEFAULT ''::character varying NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -925,7 +766,7 @@ ALTER SEQUENCE user_roles_id_seq OWNED BY user_roles.id;
 CREATE TABLE users (
     id integer NOT NULL,
     last_name character varying NOT NULL,
-    email character varying DEFAULT ''::character varying NOT NULL,
+    email character varying NOT NULL,
     encrypted_password character varying DEFAULT ''::character varying NOT NULL,
     reset_password_token character varying,
     reset_password_sent_at timestamp without time zone,
@@ -1014,182 +855,147 @@ ALTER SEQUENCE versions_id_seq OWNED BY versions.id;
 
 
 --
--- Name: activity_logs id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY activity_logs ALTER COLUMN id SET DEFAULT nextval('activity_logs_id_seq'::regclass);
 
 
 --
--- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY cas_reports ALTER COLUMN id SET DEFAULT nextval('cas_reports_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('clients_unduplicated_id_seq'::regclass);
 
 
 --
--- Name: delayed_jobs id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs ALTER COLUMN id SET DEFAULT nextval('delayed_jobs_id_seq'::regclass);
 
 
 --
--- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY imports ALTER COLUMN id SET DEFAULT nextval('imports_id_seq'::regclass);
 
 
 --
--- Name: letsencrypt_plugin_challenges id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY letsencrypt_plugin_challenges ALTER COLUMN id SET DEFAULT nextval('letsencrypt_plugin_challenges_id_seq'::regclass);
 
 
 --
--- Name: letsencrypt_plugin_settings id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY letsencrypt_plugin_settings ALTER COLUMN id SET DEFAULT nextval('letsencrypt_plugin_settings_id_seq'::regclass);
 
 
 --
--- Name: lit_incomming_localizations id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_incomming_localizations ALTER COLUMN id SET DEFAULT nextval('lit_incomming_localizations_id_seq'::regclass);
-
-
---
--- Name: lit_locales id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_locales ALTER COLUMN id SET DEFAULT nextval('lit_locales_id_seq'::regclass);
-
-
---
--- Name: lit_localization_keys id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_localization_keys ALTER COLUMN id SET DEFAULT nextval('lit_localization_keys_id_seq'::regclass);
-
-
---
--- Name: lit_localization_versions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_localization_versions ALTER COLUMN id SET DEFAULT nextval('lit_localization_versions_id_seq'::regclass);
-
-
---
--- Name: lit_localizations id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_localizations ALTER COLUMN id SET DEFAULT nextval('lit_localizations_id_seq'::regclass);
-
-
---
--- Name: lit_sources id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_sources ALTER COLUMN id SET DEFAULT nextval('lit_sources_id_seq'::regclass);
-
-
---
--- Name: nicknames id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY nicknames ALTER COLUMN id SET DEFAULT nextval('nicknames_id_seq'::regclass);
 
 
 --
--- Name: report_results id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results ALTER COLUMN id SET DEFAULT nextval('report_results_id_seq'::regclass);
 
 
 --
--- Name: report_results_summaries id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results_summaries ALTER COLUMN id SET DEFAULT nextval('report_results_summaries_id_seq'::regclass);
 
 
 --
--- Name: reports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reports ALTER COLUMN id SET DEFAULT nextval('reports_id_seq'::regclass);
 
 
 --
--- Name: roles id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY roles ALTER COLUMN id SET DEFAULT nextval('roles_id_seq'::regclass);
 
 
 --
--- Name: similarity_metrics id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY similarity_metrics ALTER COLUMN id SET DEFAULT nextval('similarity_metrics_id_seq'::regclass);
 
 
 --
--- Name: translation_keys id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY translation_keys ALTER COLUMN id SET DEFAULT nextval('translation_keys_id_seq'::regclass);
 
 
 --
--- Name: translation_texts id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY translation_texts ALTER COLUMN id SET DEFAULT nextval('translation_texts_id_seq'::regclass);
 
 
 --
--- Name: unique_names id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY unique_names ALTER COLUMN id SET DEFAULT nextval('unique_names_id_seq'::regclass);
 
 
 --
--- Name: uploads id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY uploads ALTER COLUMN id SET DEFAULT nextval('uploads_id_seq'::regclass);
 
 
 --
--- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles ALTER COLUMN id SET DEFAULT nextval('user_roles_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
 
 --
--- Name: versions id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY versions ALTER COLUMN id SET DEFAULT nextval('versions_id_seq'::regclass);
 
 
 --
--- Name: activity_logs activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY activity_logs
@@ -1197,7 +1003,15 @@ ALTER TABLE ONLY activity_logs
 
 
 --
--- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: cas_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY cas_reports
+    ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY clients_unduplicated
@@ -1205,7 +1019,7 @@ ALTER TABLE ONLY clients_unduplicated
 
 
 --
--- Name: delayed_jobs delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delayed_jobs
@@ -1213,7 +1027,7 @@ ALTER TABLE ONLY delayed_jobs
 
 
 --
--- Name: imports imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY imports
@@ -1221,7 +1035,7 @@ ALTER TABLE ONLY imports
 
 
 --
--- Name: letsencrypt_plugin_challenges letsencrypt_plugin_challenges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: letsencrypt_plugin_challenges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY letsencrypt_plugin_challenges
@@ -1229,7 +1043,7 @@ ALTER TABLE ONLY letsencrypt_plugin_challenges
 
 
 --
--- Name: letsencrypt_plugin_settings letsencrypt_plugin_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: letsencrypt_plugin_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY letsencrypt_plugin_settings
@@ -1237,55 +1051,7 @@ ALTER TABLE ONLY letsencrypt_plugin_settings
 
 
 --
--- Name: lit_incomming_localizations lit_incomming_localizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_incomming_localizations
-    ADD CONSTRAINT lit_incomming_localizations_pkey PRIMARY KEY (id);
-
-
---
--- Name: lit_locales lit_locales_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_locales
-    ADD CONSTRAINT lit_locales_pkey PRIMARY KEY (id);
-
-
---
--- Name: lit_localization_keys lit_localization_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_localization_keys
-    ADD CONSTRAINT lit_localization_keys_pkey PRIMARY KEY (id);
-
-
---
--- Name: lit_localization_versions lit_localization_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_localization_versions
-    ADD CONSTRAINT lit_localization_versions_pkey PRIMARY KEY (id);
-
-
---
--- Name: lit_localizations lit_localizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_localizations
-    ADD CONSTRAINT lit_localizations_pkey PRIMARY KEY (id);
-
-
---
--- Name: lit_sources lit_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY lit_sources
-    ADD CONSTRAINT lit_sources_pkey PRIMARY KEY (id);
-
-
---
--- Name: nicknames nicknames_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: nicknames_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY nicknames
@@ -1293,7 +1059,7 @@ ALTER TABLE ONLY nicknames
 
 
 --
--- Name: report_results report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results
@@ -1301,7 +1067,7 @@ ALTER TABLE ONLY report_results
 
 
 --
--- Name: report_results_summaries report_results_summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: report_results_summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results_summaries
@@ -1309,7 +1075,7 @@ ALTER TABLE ONLY report_results_summaries
 
 
 --
--- Name: reports reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reports
@@ -1317,7 +1083,7 @@ ALTER TABLE ONLY reports
 
 
 --
--- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY roles
@@ -1325,7 +1091,7 @@ ALTER TABLE ONLY roles
 
 
 --
--- Name: similarity_metrics similarity_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: similarity_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY similarity_metrics
@@ -1333,7 +1099,7 @@ ALTER TABLE ONLY similarity_metrics
 
 
 --
--- Name: translation_keys translation_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: translation_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY translation_keys
@@ -1341,7 +1107,7 @@ ALTER TABLE ONLY translation_keys
 
 
 --
--- Name: translation_texts translation_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: translation_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY translation_texts
@@ -1349,7 +1115,7 @@ ALTER TABLE ONLY translation_texts
 
 
 --
--- Name: unique_names unique_names_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: unique_names_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY unique_names
@@ -1357,7 +1123,7 @@ ALTER TABLE ONLY unique_names
 
 
 --
--- Name: uploads uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY uploads
@@ -1365,7 +1131,7 @@ ALTER TABLE ONLY uploads
 
 
 --
--- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles
@@ -1373,7 +1139,7 @@ ALTER TABLE ONLY user_roles
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -1381,7 +1147,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: versions versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY versions
@@ -1417,73 +1183,17 @@ CREATE INDEX index_activity_logs_on_user_id ON activity_logs USING btree (user_i
 
 
 --
+-- Name: index_cas_reports_on_client_id_and_match_id_and_decision_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON cas_reports USING btree (client_id, match_id, decision_id);
+
+
+--
 -- Name: index_imports_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_imports_on_deleted_at ON imports USING btree (deleted_at);
-
-
---
--- Name: index_lit_incomming_localizations_on_incomming_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_incomming_localizations_on_incomming_id ON lit_incomming_localizations USING btree (incomming_id);
-
-
---
--- Name: index_lit_incomming_localizations_on_locale_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_incomming_localizations_on_locale_id ON lit_incomming_localizations USING btree (locale_id);
-
-
---
--- Name: index_lit_incomming_localizations_on_localization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_incomming_localizations_on_localization_id ON lit_incomming_localizations USING btree (localization_id);
-
-
---
--- Name: index_lit_incomming_localizations_on_localization_key_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_incomming_localizations_on_localization_key_id ON lit_incomming_localizations USING btree (localization_key_id);
-
-
---
--- Name: index_lit_incomming_localizations_on_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_incomming_localizations_on_source_id ON lit_incomming_localizations USING btree (source_id);
-
-
---
--- Name: index_lit_localization_keys_on_localization_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_lit_localization_keys_on_localization_key ON lit_localization_keys USING btree (localization_key);
-
-
---
--- Name: index_lit_localization_versions_on_localization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_localization_versions_on_localization_id ON lit_localization_versions USING btree (localization_id);
-
-
---
--- Name: index_lit_localizations_on_locale_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_localizations_on_locale_id ON lit_localizations USING btree (locale_id);
-
-
---
--- Name: index_lit_localizations_on_localization_key_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_lit_localizations_on_localization_key_id ON lit_localizations USING btree (localization_key_id);
 
 
 --
@@ -1634,7 +1344,7 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 
 
 --
--- Name: user_roles fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles
@@ -1642,7 +1352,7 @@ ALTER TABLE ONLY user_roles
 
 
 --
--- Name: user_roles fk_rails_3369e0d5fc; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3369e0d5fc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_roles
@@ -1650,7 +1360,7 @@ ALTER TABLE ONLY user_roles
 
 
 --
--- Name: reports fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reports
@@ -1658,7 +1368,7 @@ ALTER TABLE ONLY reports
 
 
 --
--- Name: report_results fk_rails_cd0d43bf48; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_cd0d43bf48; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY report_results
@@ -1751,31 +1461,15 @@ INSERT INTO schema_migrations (version) VALUES ('20170505132237');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517200539');
 
+INSERT INTO schema_migrations (version) VALUES ('20170526162435');
+
 INSERT INTO schema_migrations (version) VALUES ('20170619210146');
 
 INSERT INTO schema_migrations (version) VALUES ('20170619235354');
 
-INSERT INTO schema_migrations (version) VALUES ('20170626180251');
-
 INSERT INTO schema_migrations (version) VALUES ('20170627154145');
 
 INSERT INTO schema_migrations (version) VALUES ('20170627182531');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144318');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144319');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144320');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144321');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144322');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144323');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144324');
-
-INSERT INTO schema_migrations (version) VALUES ('20170628144325');
 
 INSERT INTO schema_migrations (version) VALUES ('20170703125950');
 
@@ -1785,5 +1479,7 @@ INSERT INTO schema_migrations (version) VALUES ('20170721143408');
 
 INSERT INTO schema_migrations (version) VALUES ('20170721143409');
 
-INSERT INTO schema_migrations (version) VALUES ('20170801194526');
+INSERT INTO schema_migrations (version) VALUES ('20170726141503');
+
+INSERT INTO schema_migrations (version) VALUES ('20170731202132');
 

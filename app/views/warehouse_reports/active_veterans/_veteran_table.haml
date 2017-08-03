@@ -16,7 +16,7 @@
       %th{style: 'width: 8em;'} Exit
   %tbody
     - @clients.each do |client|
-      -# next unless @enrollments[client.id].present? # Sometimes the service history is out of sync
+      - next unless @enrollments[client.id].present? # Sometimes the service history is out of sync
       - span = @enrollments[client.id].size+ 1
       %tr
         %td{rowspan: span}= client.id

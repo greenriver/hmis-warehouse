@@ -1,7 +1,9 @@
--if can_edit_users? || can_edit_translations? || can_administer_health?
-  = render :partial => 'menus/admin_tabs'
+- title = 'Dashboard'
+- content_for :title, title
 
-%h1 Dashboard
+= render partial: 'menus/admin_tabs'
+%h1= content_for(:title)
+
 .row
   .col-sm-4
     = render 'import_status'

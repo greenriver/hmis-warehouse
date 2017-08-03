@@ -45,7 +45,7 @@ module Importing
       if Date.today.day.in?([1,15])
         this_month = Date.today.beginning_of_month
         last_month = this_month - 1.month
-        if Date.today.day == 1
+        if Date.today.day < 15
           two_months_ago = this_month - 2.months
           dates = [
             this_month,

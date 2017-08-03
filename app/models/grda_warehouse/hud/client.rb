@@ -78,7 +78,8 @@ module GrdaWarehouse::Hud
     has_many :exits, class_name: 'GrdaWarehouse::Hud::Exit', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id']
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :client
-    has_many :services, class_name: 'GrdaWarehouse::Hud::Service', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
+    has_many :services, through: :enrollments, source: :services
+    # has_many :services, class_name: 'GrdaWarehouse::Hud::Service', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :disabilities, class_name: 'GrdaWarehouse::Hud::Disability', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :health_and_dvs, class_name: 'GrdaWarehouse::Hud::HealthAndDv', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
     has_many :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
@@ -108,7 +109,11 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
-    has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficientcy Assessment')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    has_many :health_touch_points, -> do
+      f_t = GrdaWarehouse::HmisForm.arel_table
+      where(f_t[:collection_location].matches('Social Determinants of Health%'))
+    end, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
@@ -165,7 +170,14 @@ module GrdaWarehouse::Hud
       where(data_source_id: data_source_id)
     end
     scope :cas_active, -> do
-      where(sync_with_cas: true)
+      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      when :cas_flag
+        where(sync_with_cas: true)
+      when :chronic
+        joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
+      else
+        raise NotImplementedError
+      end
     end
     scope :full_housing_release_on_file, -> do
       where(housing_release_status: 'Full HAN Release')
@@ -339,7 +351,7 @@ module GrdaWarehouse::Hud
     end
 
     # after and before take dates, or something like 3.years.ago
-    def presented_with_family?(after: nil, before: nil, ignore_ages: false)
+    def presented_with_family?(after: nil, before: nil)
       return false unless households.present?
       raise 'After required if before specified.' if before.present? && ! after.present?
       hh = if before.present? && after.present?
@@ -370,7 +382,7 @@ module GrdaWarehouse::Hud
       else
         households
       end
-      if ignore_ages
+      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
         return hh.values.select{|m| m.size >= 1}.any?
       else
         child = false
@@ -659,7 +671,7 @@ module GrdaWarehouse::Hud
       @service_dates_for_display ||= begin
         st = service_history.arel_table
         query = service_history.joins(:project).
-          select( :date, :record_type, :project_id, :enrollment_group_id, :first_date_in_program, :last_date_in_program, :data_source_id, st[:computed_project_type].as('project_type').to_sql).
+          select( :date, :record_type, :project_id, :enrollment_group_id, :first_date_in_program, :last_date_in_program, :data_source_id, st[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql).
           where( st[:date].gt start_date.beginning_of_week ).
           where( st[:date].lteq start_date.end_of_month.end_of_week ).
           order( date: :asc ).
@@ -711,8 +723,14 @@ module GrdaWarehouse::Hud
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
-        where = sa[:FirstName].lower.matches("#{first.downcase}%")
-          .and(sa[:LastName].lower.matches("#{last.downcase}%"))
+        if last.present?
+          where = sa[:LastName].lower.matches("#{last.downcase}%")
+        end
+        if last.present? && first.present?
+          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%"))
+        elsif first.present?
+          where = sa[:FirstName].lower.matches("#{first.downcase}%")
+        end
       # Explicity search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
@@ -1012,7 +1030,7 @@ module GrdaWarehouse::Hud
         PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
         ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
         date: service_table[:date].as('date').to_sql,
-        project_type: service_table[:computed_project_type].as('project_type').to_sql,
+        project_type: service_table[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql,
         project_name: service_table[:project_name].as('project_name').to_sql,
         project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
         household_id: service_table[:household_id].as('household_id').to_sql,

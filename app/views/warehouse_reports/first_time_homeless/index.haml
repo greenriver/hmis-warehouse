@@ -62,11 +62,6 @@
 
 - content_for :page_js do
   :javascript
-    $('select').select2({
-      placeholder: function(){
-        $(this).data('placeholder');
-      }
-    });
     (function($) {
       chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path()}');
       chart.load();
