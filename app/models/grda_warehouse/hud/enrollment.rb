@@ -13,6 +13,7 @@ module GrdaWarehouse::Hud
         "HouseholdID",
         "RelationshipToHoH",
         "ResidencePrior",
+        "OtherResidencePrior",
         "ResidencePriorLengthOfStay",
         "LOSUnderThreshold",
         "PreviousStreetESSH",
