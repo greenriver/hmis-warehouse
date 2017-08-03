@@ -89,6 +89,7 @@ ActiveRecord::Schema.define(version: 20170801120635) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -805,6 +806,22 @@ ActiveRecord::Schema.define(version: 20170801120635) do
     t.datetime "updated_at",  :null=>false
     t.text     "client_ids"
   end
+
+  create_table "files", force: :cascade do |t|
+    t.string   "type",              :null=>false
+    t.string   "file"
+    t.string   "content_type"
+    t.binary   "content"
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+    t.string   "note"
+    t.string   "name"
+    t.boolean  "visible_in_window"
+  end
+  add_index "files", ["type"], :name=>"index_files_on_type", :using=>:btree
 
   create_table "generate_service_history_log", force: :cascade do |t|
     t.datetime "started_at"
