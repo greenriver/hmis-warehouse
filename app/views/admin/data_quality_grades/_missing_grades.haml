@@ -1,0 +1,19 @@
+- if @missing_grades.any?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Grade
+        %th Low
+        %th High
+        %th
+    %tbody
+      - @missing_grades.each do |grade|
+        %tr{style: "color: #{grade.color}"}
+          %td= grade.grade
+          %td= "#{grade.percentage_low}%"
+          %td= "#{grade.percentage_high}%"
+          %td
+            = link_to admin_missing_grade_path(grade), method: :delete, class: 'btn btn-secondary' do
+              %span.icon-cross
+- else
+  %p Add some grades above.

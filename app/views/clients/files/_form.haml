@@ -1,0 +1,16 @@
+.row
+  .col-sm-8
+    = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :name, as: :string, :required => true
+        = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
+        = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
+        = f.input :file, as: :file, :required => true            
+      .form-actions
+        = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
+        .text-right
+          = link_to client_files_path(@client) do
+            &laquo; Return to File Uploads
+        
+        

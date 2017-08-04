@@ -43,8 +43,8 @@ class User < ActiveRecord::Base
   # user has an permission through one of its roles
   Role.permissions.each do |permission|
     define_method(permission) do
-      @permisisons ||= load_effective_permissions
-      @permisisons[permission]
+      @permissions ||= load_effective_permissions
+      @permissions[permission]
     end
 
     # Methods for determining if a user has permission
@@ -128,9 +128,14 @@ class User < ActiveRecord::Base
       viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
     end
   end
+
+  def can_see_admin_menu?
+    can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?
+  end
   
   def admin_dashboard_landing_path
     return admin_users_path if can_edit_users?
+    return admin_configs_path if can_manage_config?
     return admin_translation_keys_path if can_edit_translations?
     return admin_dashboard_imports_path if can_view_imports?
     return admin_health_admin_index_path if can_administer_health?

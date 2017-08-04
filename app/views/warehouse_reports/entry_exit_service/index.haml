@@ -30,7 +30,7 @@
           %td= e['ExitDate']
           %td= e['DateProvided']
           %td= link_to e['ProjectName'], project_path(id: e['ProjectID'])
-          %td= HUD.project_type e['ProjectType']
+          %td= HUD.project_type e['project_type']
           %td= HUD.record_type e['RecordType']
 - else
   %p None found.

@@ -13,7 +13,7 @@
         = f.input_field :end, name: :end, class: 'form-control', value: @end 
         %span.input-group-addon.icon-calendar
     .col-sm-3
-      = f.input :id, label: false, as: :select, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering, selected: @project_id.to_s
+      = f.input :id, label: false, as: :select, collection: available_projects, selected: @project_id.to_s, input_html: {class: :select2}
     .col-sm-3
       = f.button :submit, value: 'Update View'
 .warehouse-reports__chronic
@@ -31,7 +31,3 @@
           %td= link_to client.FirstName, client_path(client)
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
 %p= paginate @clients
-
-= content_for :page_js do
-  :javascript
-    $('select').select2();

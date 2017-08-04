@@ -328,6 +328,14 @@ module GrdaWarehouse::Hud
       'Confidential Project'
     end
 
+    def self.project_type_column
+      if GrdaWarehouse::Config.get(:project_type_override)
+        :computed_project_type
+      else
+        :ProjectType
+      end
+    end
+
     private def organization_source
       GrdaWarehouse::Hud::Organization
     end

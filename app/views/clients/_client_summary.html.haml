@@ -28,7 +28,8 @@
               on
               = decision.updated_at.to_date
     .col-sm-4
-      .client__image
-        = image_tag image_client_path
+      - if GrdaWarehouse::Config.get(:eto_api_available)
+        .client__image
+          = image_tag(image_client_path)
               
                 

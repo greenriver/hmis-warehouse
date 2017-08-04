@@ -32,7 +32,7 @@ module GrdaWarehouse::Tasks
         on( ht1[:client_id].eq(ht2[:client_id]).and( ht2[:record_type].eq 'first' ) ).   # only consider clients *who have no first residential record*
         where( ht2[:id].eq nil ).
         where( ht1[:record_type].eq 'entry' ).
-        where( ht1[:project_type].in projects ).
+        where( ht1[history.project_type_column].in projects ).
         group(ht1[:client_id]).
         as(mdt.table_name)
 
@@ -41,7 +41,7 @@ module GrdaWarehouse::Tasks
           ht[:client_id].eq(mdt[:client_id]).and( ht[:date].eq mdt[:min_date] )
         ).
         where( ht[:record_type].eq 'entry' ).
-        where( ht[:project_type].in projects ).
+        where( ht[history.project_type_column].in projects ).
         project(
           ht[:client_id], 
           ht[:date], 
@@ -53,7 +53,7 @@ module GrdaWarehouse::Tasks
           ht[:organization_id],
           ht[:household_id],
           ht[:project_name],
-          ht[:project_type],
+          ht[history.project_type_column],
           ht[:project_tracking_method],
           ht[:service_type]
         )
@@ -76,6 +76,7 @@ module GrdaWarehouse::Tasks
           household_id: household_id,
           project_name: project_name,
           project_type: project_type,
+          computed_project_type: project_type,
           project_tracking_method: project_tracking_method,
           service_type: service_type,
           record_type: 'first',
@@ -100,6 +101,7 @@ module GrdaWarehouse::Tasks
     def history
       GrdaWarehouse::ServiceHistory
     end
+
   end
 
 end

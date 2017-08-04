@@ -11,7 +11,7 @@
         %span.input-group-addon.icon-calendar
   .row(style="margin-top:1rem;")
     .col-sm-6
-      = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2' }, label: false
+      = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }, label: false
     .col-sm-6
       = f.button :submit, value: 'Update View', class: 'pull-right'
 
@@ -23,6 +23,4 @@
       setTimeout(function(){
         $form.find(':input').prop('disabled', true);
       }, 0);
-    }).find('select').select2({
-      placeholder: 'project type'
-    });
+    })

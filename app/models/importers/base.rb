@@ -18,7 +18,7 @@ module Importers
     include TsqlImport
     EXTRACT_DIRECTORY = 'tmp/grda_hud_zip'
 
-    attr_accessor :directory, :source_type, :logger
+    attr_accessor :directory, :source_type, :logger, :notifier_config
 
     def initialize( 
         data_source_id=nil, 
@@ -36,6 +36,14 @@ module Importers
       # by default we import *all* data sources that are importable via samba
       @data_source_id = data_source_id.to_i if data_source_id.present?
       @data_sources   = data_sources
+
+      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
+      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
+      if @send_notifications
+        slack_url = notifier_config['webhook_url']
+        channel   = notifier_config['channel']
+        @notifier  = Slack::Notifier.new(slack_url, channel: channel, username: 'Service History Generator')
+      end
 
       @rm_files = false
     end
@@ -431,11 +439,24 @@ module Importers
         @hud_key => row[@hud_key],
         data_source_id: @import.data_source.id
       ).first_or_create
+      stop_if_export_is_invalid(existing_export: e, new_export: row)
       e.update!(row)
       # Set Refresh Type
       @refresh_type = ::HUD.export_directive(row['ExportDirective'].to_i)
       @export_id = row['ExportID']
       @import.summary[@file_path][:lines_added] += 1
+    end
+
+    # the export id should change if the selection criteria changed
+    # if it didn't, we need to report on that and not import the data
+    def stop_if_export_is_invalid existing_export: , new_export:
+      return true if existing_export[:ExportID] != new_export[:ExportID] || existing_export[:ExportStartDate].blank?
+      if existing_export[:ExportStartDate] != new_export[:ExportStartDate] || existing_export[:ExportEndDate].to_date > new_export[:ExportEndDate].to_date
+        msg = "Refusing to process export: #{new_export[:ExportID]}, the parameters have changed, but the export id is the same. existing: #{existing_export.inspect}; new: #{new_export.inspect}"
+        @notifier.ping msg if @send_notifications
+        raise msg
+      end
+      return true
     end
 
     def reset_for_klass

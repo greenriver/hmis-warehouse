@@ -7,20 +7,24 @@ module GrdaWarehouse::Tasks::ServiceHistory
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
 
+    # Debugging
+    attr_accessor :batch, :to_patch
+
     def initialize
       self.logger = Rails.logger
       setup_notifier('Service History Generator')
       @sanity_check = Set.new
       @batch_size = 1000
+
+      @rows_inserted = 0
+      @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
+      @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
+      @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
+      @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
     end
 
     def run!
       begin
-        @rows_inserted = 0
-        @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
-        @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
-        @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
-        @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
         tries ||= 0
         logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
         started_at = DateTime.now
@@ -198,7 +202,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @enrollments_by_personal_id = nil # depends on source_client_personal_ids
       @enrollments_by_personal_id_with_deleted = nil # depends on source_client_personal_ids
       @exits_by_personal_id_and_entry_id = nil # depends on source_client_personal_ids
-      @services_personal_id_and_entry_id = nil # depends on source_client_personal_ids
+      @services_project_id_and_entry_id = nil # depends on source_client_personal_ids
       @services_personal_id = nil # depends on source_client_personal_ids
       @personal_id_of_head_of_household_by_entry_id = nil # depends on enrollments_by_personal_id
       @projects_by_project_id = nil # depends on enrollments_by_personal_id
@@ -799,15 +803,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @exports_by_export_id[[data_source_id, export_id.to_s]]
     end
 
-    def services_personal_id_and_entry_id project_id, entry_id, data_source_id
+    def services_project_id_and_entry_id project_id, entry_id, data_source_id
       lookup = [project_id, entry_id, data_source_id]
-      @services_personal_id_and_entry_id ||= begin
+      @services_project_id_and_entry_id ||= begin
         columns = service_columns.dup
         columns[:project_id] = p_t[:ProjectID].as('project_id').to_sql
-        # Fetch Exits in batches
+        # Fetch in batches
         [].tap do |m|
           source_client_personal_ids.each_slice(5000) do |ids|
-            m.concat(GrdaWarehouse::Hud::Service.joins(:project).
+            m.concat(GrdaWarehouse::Hud::Enrollment.joins(:project, :services).
               where(PersonalID: ids).
               pluck(*columns.values).
               map do |row|
@@ -823,7 +827,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           ]
         end
       end
-      @services_personal_id_and_entry_id[lookup]
+      @services_project_id_and_entry_id[lookup]
     end
 
     def services_for_personal_id personal_id, data_source_id
@@ -833,7 +837,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         [].tap do |m|
           source_client_personal_ids.each_slice(5000) do |ids|
             m.concat(
-              GrdaWarehouse::Hud::Service.with_deleted.where(PersonalID: ids).
+              GrdaWarehouse::Hud::Enrollment.joins(:project, :services).
+              where(PersonalID: ids).
               pluck(*service_columns.values).
               map do |row|
                 Hash[service_columns.keys.zip(row)]
@@ -1280,7 +1285,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       computed_project_type = project[:computed_project_type]
       project_id = project[:project_id]
 
-      services = services_personal_id_and_entry_id(project_id, data_source_id, entry_id)
+      services = services_project_id_and_entry_id(project_id, data_source_id, entry_id)
 
       default_day = {
         client_id: @client[:id],

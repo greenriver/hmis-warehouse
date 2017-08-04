@@ -6,14 +6,14 @@ module WarehouseReports
       # this is a translation of an original raw SQL query into Arel
       clients = GrdaWarehouse::Hud::Client
       ct = clients.arel_table
-      pt = GrdaWarehouse::Hud::Project.arel_table
+      pt = project_source.arel_table
       xt = GrdaWarehouse::Hud::Exit.arel_table
       st = GrdaWarehouse::Hud::Service.arel_table
       nt = GrdaWarehouse::Hud::Enrollment.arel_table
       wt = GrdaWarehouse::WarehouseClient.arel_table
       sql = clients.
         joins( :warehouse_client_source, enrollments: [ :project, :exit, :services ] ).
-        where( pt[:ProjectType].in GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS ).
+        where( pt[project_source.project_type_column].in project_source::RESIDENTIAL_PROJECT_TYPE_IDS ).
         where( xt[:ExitDate].eq st[:DateProvided] ).
         where( nt[:EntryDate].eq st[:DateProvided] ).
         select(
@@ -28,7 +28,7 @@ module WarehouseReports
           wt[:destination_id],
           nt[:ProjectID],
           pt[:ProjectName],
-          pt[:ProjectType],
+          pt[project_source.project_type_column].as('project_type'),
           st[:RecordType]
         ).distinct.to_sql
       @enrollments = if GrdaWarehouse::Hud::Service.all.engine.postgres?
@@ -44,6 +44,10 @@ module WarehouseReports
         GrdaWarehouseBase.connection.raw_connection.execute(sql).each( as: :hash )
       end
       respond_to :html, :xlsx
+    end
+
+    def project_source
+      GrdaWarehouse::Hud::Project
     end
   end
 end

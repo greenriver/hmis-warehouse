@@ -19,7 +19,7 @@ module WarehouseReports
         @project_types.reject!(&:empty?)
         if @project_types.any?
           @project_types.map!(&:to_i)
-          @clients = @clients.where(ht[:computed_project_type].in(@project_types))
+          @clients = @clients.where(ht[history.project_type_column].in(@project_types))
         end
       else
         @clients = @clients.none

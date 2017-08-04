@@ -28,8 +28,14 @@ module WarehouseReports
      
     end
 
+    def available_projects
+      project_source.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name,id,ds_id,short_name|
+        ["#{name} - #{short_name}", [id,ds_id]]
+      end
+    end
+    helper_method :available_projects
+        
     # AHAR reporting dates
-
     private def oct_1
       @oct_1 ||= begin
         d1 = Date.today

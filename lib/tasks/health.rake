@@ -73,7 +73,7 @@ namespace :health do
     }
  
     # set config variables for custom database
-    ENV['SCHEMA'] = "health/schema.rb"
+    ENV['SCHEMA'] = "db/health/schema.rb"
     Rails.application.config.paths['db'] = ["db/health"]
     Rails.application.config.paths['db/migrate'] = ["db/health/migrate"]
     Rails.application.config.paths['db/seeds'] = ["db/health/seeds.rb"]

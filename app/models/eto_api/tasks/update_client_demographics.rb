@@ -30,6 +30,7 @@ module EtoApi::Tasks
     end
 
     def run!
+      return unless GrdaWarehouse::Config.get(:eto_api_available)
       # Some useful-ish CDIDs
       # 1062 = consent form status
 

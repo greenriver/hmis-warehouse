@@ -1,4 +1,4 @@
-- show_health = @client.patient.present? && @client.patient.accessible_by_user(current_user).present?
+- show_health = @client.patient.present? && @client.patient.accessible_by_user(current_user).present? && GrdaWarehouse::Config.get(:healthcare_available)
 :ruby
   tabs = {
     client_path(@client) => {
@@ -13,23 +13,33 @@
       title: 'Client History',
       permission: can_edit_clients?,
     },
+    polymorphic_path(files_path_generator, client_id: @client.id) => {
+      title: 'File Uploads',
+      permission: can_manage_client_files?,
+    },
     polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
       title: 'Health',
       permission: show_health,
     },
     polymorphic_path(careplan_path_generator, client_id: @client.id) => {
       title: 'Care Plan',
-      permission: show_health
+      permission: show_health,
     }
   }
   
-%ul.nav.nav-tabs.margin-bottom-01
-  - tabs.each do |action, details|
-    - if action == current
-      - if details[:permission]
-        %li.active.active-tab{role: 'presentation'}
-          %a{href: '#'} 
-            = details[:title]
-    - else
-      - if details[:permission]
-        %li= link_to details[:title], action
+- can_see_tabs = false
+- tabs.each do |action, details|
+  - if details[:permission]
+    - can_see_tabs = true
+
+- if can_see_tabs
+  %ul.nav.nav-tabs.margin-bottom-01
+    - tabs.each do |action, details|
+      - if action == current
+        - if details[:permission]
+          %li.active.active-tab{role: 'presentation'}
+            %a{href: '#'} 
+              = details[:title]
+      - else
+        - if details[:permission]
+          %li= link_to details[:title], action

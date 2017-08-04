@@ -1,0 +1,22 @@
+%h3= _('Missing Data Percentages')
+= simple_form_for @missing_grade, as: :grade, url: admin_missing_grades_path do |f|
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th{style: 'width: 4em;'} Grade
+        %th{style: 'width: 6em;'} Low
+        %th{style: 'width: 6em;'} High
+        %th{style: 'width: 10em;'} Color
+        %th
+    %tbody
+      %tr
+        %td
+          = f.input :grade, label: false
+        %td
+          = f.input :percentage_low, label: false
+        %td
+          = f.input :percentage_high, label: false
+        %td
+          = f.input :color, label: false, input_html: {class: 'colorpicker'}
+        %td
+          = f.submit value: 'Add', class: 'btn btn-primary'

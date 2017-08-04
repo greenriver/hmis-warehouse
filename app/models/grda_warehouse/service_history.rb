@@ -223,4 +223,12 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     date
   end
 
+  def self.project_type_column
+    if GrdaWarehouse::Config.get(:project_type_override)
+      :computed_project_type
+    else
+      :project_type
+    end
+  end
+
 end

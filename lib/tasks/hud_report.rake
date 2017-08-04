@@ -1,18 +1,18 @@
 namespace :hud_report do
-  desc "Cleanup Bad Head of Households"
-  task :cleanup_bad_head_of_households => [:environment, "log:info_to_stdout"] do
-    OldWarehouse::CleanupBadHeadOfHouseholds.new.run!
-  end
+  # desc "Cleanup Bad Head of Households"
+  # task :cleanup_bad_head_of_households => [:environment, "log:info_to_stdout"] do
+  #   OldWarehouse::CleanupBadHeadOfHouseholds.new.run!
+  # end
 
-  desc "NEW Generate Unique Client IDs"
-  task :generate_client_unique_ids => [:environment, "log:info_to_stdout"] do
-    OldWarehouse::GenerateClientUniqueIds.new.run!
-  end
+  # desc "NEW Generate Unique Client IDs"
+  # task :generate_client_unique_ids => [:environment, "log:info_to_stdout"] do
+  #   OldWarehouse::GenerateClientUniqueIds.new.run!
+  # end
 
-  desc "NEW Generate daily client housing"
-  task :generate_all_daily_client_housing, [:newest_date] => [:environment, "log:info_to_stdout"] do |t, args|
-    OldWarehouse::GenerateDailyClientHousing.new(args.newest_date).run!
-  end
+  # desc "NEW Generate daily client housing"
+  # task :generate_all_daily_client_housing, [:newest_date] => [:environment, "log:info_to_stdout"] do |t, args|
+  #   OldWarehouse::GenerateDailyClientHousing.new(args.newest_date).run!
+  # end
 
   # desc "Import CSV of Client Housing History"
   # task :import_client_housing_history_csv => [:environment, "log:info_to_stdout"] do |t, args|

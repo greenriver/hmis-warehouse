@@ -69,6 +69,7 @@ Rails.application.routes.draw do
     resources :really_old_enrollments, only: [:index]
     resources :service_after_exit, only: [:index]
     resources :entry_exit_service, only: [:index]
+    resources :disabilities, only: [:index]
     resources :chronic, only: [:index] do
       get :summary, on: :collection
     end
@@ -134,7 +135,7 @@ Rails.application.routes.draw do
       post :create_note
       resource :cas_active, only: :update
     end
-    
+    resources :files, controller: 'clients/files'
     healthcare_routes()
   end
   namespace :clients do
@@ -148,6 +149,7 @@ Rails.application.routes.draw do
       get :rollup
       get :assessment
       get :image
+      resources :files, controller: 'clients/files'
     end
   end
 
@@ -239,7 +241,12 @@ Rails.application.routes.draw do
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
-    
+    resources :configs, only: [:index] do
+      patch :update, on: :collection
+    end
+    resources :data_quality_grades, only: [:index]
+    resources :missing_grades, only: [:create, :update, :destroy]
+    resources :utilization_grades, only: [:create, :update, :destroy]
     namespace :eto_api do
       resources :assessments, only: [:index, :update]
     end

@@ -7,9 +7,8 @@
         .col-sm-8
           %p.small.text-muted
             Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
-        .col-sm-4.text-right
-          .btn.btn-secondary.btn-small
-            = link_to clients_note_path(note), method: :delete, data: {confirm: "Would you really like to delete this note?"} do
-              %span.icon-cross{style: 'color: rgb(64, 64, 64);'}
+        .col-sm-4.text-right          
+          = link_to(clients_note_path(note), method: :delete, data: {confirm: "Would you really like to delete this note?"}, class: 'btn btn-secondary btn-small') do
+            %span.icon-cross
 - else
   No notes on file

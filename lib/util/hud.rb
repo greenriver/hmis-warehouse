@@ -172,7 +172,12 @@ module HUD
 
   # 1.3
   def disability_type(id, reverse=false)
-    map = {
+    map = disability_types
+    _translate map, id, reverse
+  end
+
+  def disability_types
+    {
       5 => 'Physical disability',
       6 => 'Developmental disability',
       7 => 'Chronic health condition',
@@ -180,8 +185,6 @@ module HUD
       9 => 'Mental health problem',
       10 => 'Substance abuse',
     }
-
-    _translate map, id, reverse
   end
 
   # 1.4
