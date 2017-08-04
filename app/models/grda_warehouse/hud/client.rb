@@ -360,14 +360,11 @@ module GrdaWarehouse::Hud
           # all entries will have the same date and last_date_in_program
           entry = entries.first
           (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
-          en_1_start = entry_date
-          en_1_end = exit_date
-          en_2_start = after
-          en_2_end = before
-          
+
           # Excellent discussion of why this works:
           # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
-          en_1_start < en_2_end && en_1_end > en_2_start rescue true # this catches empty exit dates
+          # en_1_start < en_2_end && en_1_end > en_2_start rescue true # this catches empty exit dates
+          dates_overlap(entry_date, exit_date, after, before)
         end
       elsif after.present?
         recent_households = households.select do |_, entries|

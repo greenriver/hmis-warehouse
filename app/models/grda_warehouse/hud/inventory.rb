@@ -3,6 +3,7 @@ module GrdaWarehouse::Hud
     self.table_name = 'Inventory'
     self.hud_key = 'InventoryID'
     acts_as_paranoid column: :DateDeleted
+    include ArelHelper
     require 'csv'
     
     def self.hud_csv_headers(version: nil)
@@ -39,6 +40,13 @@ module GrdaWarehouse::Hud
     alias_attribute :end_date, :InventoryEndDate
     alias_attribute :beds, :BedInventory
 
+    scope :within_range, -> (range) do
+      where(
+        i_t[:InventoryStartDate].eq(nil).and(i_t[:InventoryEndDate].eq(nil)).
+        or(i_t[:InventoryStartDate].lt(range.last).and(i_t[:InventoryEndDate].gt(range.first)))
+      )
+    end
+
     # when we export, we always need to replace InventoryID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
@@ -70,6 +78,16 @@ module GrdaWarehouse::Hud
             end 
           end
         end
+      end
+    end
+
+    def self.relevant_inventory(inventories:, date:)
+      inventories = inventories.select{ |inv| inv.BedInventory.present? }
+      if inventories.any?
+        ref = date.to_time.to_i
+        inventories.sort_by do |inv|
+          ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
+        end.first
       end
     end
   end

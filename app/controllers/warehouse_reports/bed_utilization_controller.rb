@@ -4,38 +4,22 @@ module WarehouseReports
     before_action :require_can_view_reports!
 
     def index
-      @mo = ::Filters::MonthAndOrganization.new params[:mo]
+      options = {}
+      if params[:mo].present?
+        start_date = Date.parse "#{params[:mo][:year]}-#{params[:mo][:month]}-1"
+        end_date = start_date.end_of_month
+        options = params[:mo]
+        options[:start] = start_date
+        options[:end] = end_date
+      end
+      @mo = ::Filters::MonthAndOrganization.new options
       if @mo.valid?
-        console
-        services      = GrdaWarehouse::ServiceHistory
-        organizations = GrdaWarehouse::Hud::Organization
-        projects      = project_source
-        st = services.arel_table
-        ot = organizations.arel_table
-        pt = projects.arel_table
-        # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
-        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, project_source.project_type_column]
-        @projects_with_counts = projects.
-          joins( :service_history, :organization ).
-          merge(organizations.residential).
-          where( ot[:OrganizationID].eq @mo.organization.OrganizationID ).
-          where( ot[:data_source_id].eq @mo.organization.data_source_id ).
-          where( st[:date].between(@mo.range) ).
-          group( *project_cols.map{ |cn| pt[cn] }, st[:date] ).
-          order( pt[:ProjectName].asc, st[:date].asc ).
-          select( *project_cols.map{ |cn| pt[cn] }, st[:date].as('date'), nf( 'COUNT', [nf( 'DISTINCT', [st[:client_id]] )] ).as('client_count') ).
-          includes(:inventories).
-          group_by(&:id)
+        @projects_with_counts = GrdaWarehouse::Hud::Organization.bed_utilization_by_project(filter: @mo)
       else
         @projects_with_counts = ( @mo.organization.projects.map{ |p| [ p, [] ] } rescue {} )
       end
       respond_to :html, :xlsx
     end
-
-    def project_source
-      GrdaWarehouse::Hud::Project
-    end
-
     
     def info project, projects_by_date, date
       ri = relevant_inventory project.inventories, date
@@ -69,13 +53,7 @@ module WarehouseReports
     # this might not be the approved way to deal with it -- perhaps we only want the closest preceding inventory -- but
     # our inventory information is exceedingly spotty
     def relevant_inventory inventories, date
-      inventories = inventories.select{ |inv| inv.BedInventory.present? }
-      if inventories.any?
-        ref = date.to_time.to_i
-        inventories.sort_by do |inv|
-          ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
-        end.first
-      end
+      GrdaWarehouse::Hud::Inventory.relevant_inventory(inventories: inventories, date: date)
     end
     helper_method :relevant_inventory
 

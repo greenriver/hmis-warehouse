@@ -16,6 +16,19 @@ module Filters
       self.start .. self.end
     end
 
+    def first
+      range.begin
+    end
+
+    # fifteenth of relevant month
+    def ides
+      first + 14.days
+    end
+
+    def last
+      range.end
+    end
+
     def default_start
       self.end - 1.week
     end

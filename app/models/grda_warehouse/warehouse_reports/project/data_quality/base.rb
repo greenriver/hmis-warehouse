@@ -92,11 +92,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def beds 
-      @beds ||= projects.flat_map(&:inventories).map(&:BedInventory).reduce(:+) || 0
+      @beds ||= projects.flat_map(&:inventories).map{|i| i[:BedInventory] || 0}.reduce(:+) || 0
     end
 
     def hmis_beds
-      @hmis_beds ||= projects.flat_map(&:inventories).map(&:HMISParticipatingBeds).reduce(:+) || 0
+      @hmis_beds ||= projects.flat_map(&:inventories).map{|i| i[:HMISParticipatingBeds] || 0}.reduce(:+) || 0
     end
 
     def income_columns

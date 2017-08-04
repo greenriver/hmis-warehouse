@@ -5,7 +5,8 @@
         %th Grade
         %th Percentage Under Capacity
         %th Percentage Over Capacity
-        %th
+        - if show_delete
+          %th
     %tbody
       - @utilization_grades.each do |grade|
         %tr{style: "color: #{grade.color}"}
@@ -17,8 +18,8 @@
               = "#{grade.percentage_over_low}% - #{grade.percentage_over_high}%"
             - else
               = "#{grade.percentage_over_low}% + "
-          %td
-            - if can_edit_dq_grades?
+          - if show_delete
+            %td
               = link_to admin_utilization_grade_path(grade), method: :delete, class: 'btn btn-secondary' do
                 %span.icon-cross
 - else

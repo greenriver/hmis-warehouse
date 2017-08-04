@@ -33,6 +33,12 @@ module ApplicationHelper
     #dob.try(:strftime, '%m/%d/%Y')
   end
 
+  def dates_overlap d_1_start, d_1_end, d_2_start, d_2_end
+    # Excellent discussion of why this works:
+    # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+    d_1_start < d_2_end && d_1_end > d_2_start rescue true # this catches empty
+  end 
+
   # returns the class associated with the current sort order of a column
   def current_sort_order(columns)
     columns[sort_column] = sort_direction

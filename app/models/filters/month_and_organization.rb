@@ -2,7 +2,7 @@ module Filters
   class MonthAndOrganization < ::Filters::DateRange::MonthDefault
     attribute :org, Integer, default: -> (s,_) {s.default_org}
     attribute :month, Integer, default: Date.today.month
-    attribute :year,  Integer, default: Date.today.year
+    attribute :year, Integer, default: Date.today.year
 
     validates :org, presence: true
 
@@ -67,35 +67,7 @@ module Filters
       @latest_year ||= Date.today.year
     end
 
-    def range
-      @range ||= begin
-        day = Date.parse "#{year}-#{month}-1"
-        day .. day.end_of_month
-      end
-    end
-
-    def first
-      range.begin
-    end
-
-    # fifteenth of relevant month
-    def ides
-      first + 14.days
-    end
-
-    def last
-      range.end
-    end
-
     validate do
-      if year > latest_year
-        errors.add :year, "The year cannot be greater than #{latest_year}."
-      elsif year < earliest_year
-        errors.add :year, "The year cannot be less than #{earliest_year}."
-      end
-      unless month.in? 1..12
-        errors.add :month, "This does not appear to be a month of the year."
-      end
       unless organization.present?
         errors.add :org, 'Organization required.'
       end

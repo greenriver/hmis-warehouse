@@ -70,10 +70,12 @@ module ClientEntryCalculations
           project_type,
           clients.map do |id, enrollments|
             ongoing = enrollments.select do |enrollment|
+              enrollment_end = enrollment[:last_date_in_program] || Date.today
               # Excellent discussion of why this works:
               # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overla
-              enrollment_end = enrollment[:last_date_in_program] || Date.today
-              start_date < enrollment_end && end_date > enrollment[:first_date_in_program]
+              # start_date < enrollment_end && end_date > enrollment[:first_date_in_program]
+              dates_overlap(start_date, end_date, enrollment[:first_date_in_program], enrollment_end)
+              
             end
             [id, ongoing]
           end.select do |_, enrollments|

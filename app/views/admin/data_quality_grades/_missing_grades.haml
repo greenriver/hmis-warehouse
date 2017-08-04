@@ -4,7 +4,8 @@
       %tr
         %th Grade
         %th Percentage
-        %th
+        - if show_delete
+          %th
     %tbody
       - @missing_grades.each do |grade|
         %tr{style: "color: #{grade.color}"}
@@ -14,8 +15,8 @@
               = "#{grade.percentage_low}% - #{grade.percentage_high}%"
             - else
               = "#{grade.percentage_low}% + "
-          %td
-            - if can_edit_dq_grades?
+          - if show_delete
+            %td
               = link_to admin_missing_grade_path(grade), method: :delete, class: 'btn btn-secondary' do
                 %span.icon-cross
 - else
