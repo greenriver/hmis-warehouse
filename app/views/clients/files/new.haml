@@ -7,7 +7,4 @@
   .col-sm-12
     = render 'clients/tab_navigation', current: client_files_path(@client)
 
-= render 'form'
-
-= link_to client_files_path(@client) do
-  &laquo; Return to File Uploads
+    = render 'form'

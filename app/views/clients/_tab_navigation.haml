@@ -23,11 +23,16 @@
     },
     polymorphic_path(careplan_path_generator, client_id: @client.id) => {
       title: 'Care Plan',
-      permission: show_health
+      permission: show_health,
     }
   }
+  
+- can_see_tabs = false
+- tabs.each do |action, details|
+  - if details[:permission]
+    - can_see_tabs = true
 
-- if can_edit_clients? || can_manage_client_files? || show_health
+- if can_see_tabs
   %ul.nav.nav-tabs.margin-bottom-01
     - tabs.each do |action, details|
       - if action == current

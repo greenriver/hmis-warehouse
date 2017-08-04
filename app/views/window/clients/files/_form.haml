@@ -8,5 +8,8 @@
         = f.input :file, as: :file           
       .form-actions
         = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
+        .text-right
+          = link_to window_client_files_path(@client) do
+            &laquo; Return to File Uploads
         
         
