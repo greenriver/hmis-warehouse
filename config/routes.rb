@@ -135,7 +135,7 @@ Rails.application.routes.draw do
       post :create_note
       resource :cas_active, only: :update
     end
-    
+    resources :files, controller: 'clients/files'
     healthcare_routes()
   end
   namespace :clients do
@@ -149,6 +149,7 @@ Rails.application.routes.draw do
       get :rollup
       get :assessment
       get :image
+      resources :files, controller: 'clients/files'
     end
   end
 

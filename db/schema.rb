@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170731202132) do
+ActiveRecord::Schema.define(version: 20170801194526) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,6 +38,28 @@ ActiveRecord::Schema.define(version: 20170731202132) do
   add_index "activity_logs", ["item_model"], :name=>"index_activity_logs_on_item_model", :using=>:btree
   add_index "activity_logs", ["user_id"], :name=>"index_activity_logs_on_user_id", :using=>:btree
 
+  create_table "cas_reports", force: :cascade do |t|
+    t.integer  "client_id",                          :null=>false
+    t.integer  "match_id",                           :null=>false
+    t.integer  "decision_id",                        :null=>false
+    t.integer  "decision_order",                     :null=>false
+    t.string   "match_step",                         :null=>false
+    t.string   "decision_status",                    :null=>false
+    t.boolean  "current_step",                       :default=>false, :null=>false
+    t.boolean  "active_match",                       :default=>false, :null=>false
+    t.datetime "created_at",                         :null=>false
+    t.datetime "updated_at",                         :null=>false
+    t.integer  "elapsed_days",                       :default=>0, :null=>false
+    t.datetime "client_last_seen_date"
+    t.datetime "criminal_hearing_date"
+    t.string   "decline_reason"
+    t.string   "not_working_with_client_reason"
+    t.string   "administrative_cancel_reason"
+    t.boolean  "client_spoken_with_services_agency"
+    t.boolean  "cori_release_form_submitted"
+  end
+  add_index "cas_reports", ["client_id", "match_id", "decision_id"], :name=>"index_cas_reports_on_client_id_and_match_id_and_decision_id", :unique=>true, :using=>:btree
+
   create_table "client_service_history", id: false, force: :cascade do |t|
     t.integer "unduplicated_client_id"
     t.date    "date"
@@ -61,13 +83,13 @@ ActiveRecord::Schema.define(version: 20170731202132) do
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
   end
-  add_index "client_service_history", ["unduplicated_client_id"], :name=>"unduplicated_clients_unduplicated_client_id", :using=>:btree
 
   create_table "clients_unduplicated", force: :cascade do |t|
-    t.string  "client_unique_id"
-    t.integer "unduplicated_client_id"
+    t.string  "client_unique_id",       :null=>false
+    t.integer "unduplicated_client_id", :null=>false
     t.integer "dc_id"
   end
+  add_index "clients_unduplicated", ["unduplicated_client_id"], :name=>"unduplicated_clients_unduplicated_client_id", :using=>:btree
 
   create_table "delayed_jobs", force: :cascade do |t|
     t.integer  "priority",   :default=>0, :null=>false
@@ -152,40 +174,41 @@ ActiveRecord::Schema.define(version: 20170731202132) do
   add_index "reports", ["report_results_summary_id"], :name=>"index_reports_on_report_results_summary_id", :using=>:btree
 
   create_table "roles", force: :cascade do |t|
-    t.string   "name",                         :null=>false
+    t.string   "name",                           :null=>false
     t.string   "verb"
-    t.datetime "created_at",                   :null=>false
-    t.datetime "updated_at",                   :null=>false
-    t.boolean  "can_view_clients",             :default=>false
-    t.boolean  "can_edit_clients",             :default=>false
-    t.boolean  "can_view_reports",             :default=>false
-    t.boolean  "can_edit_users",               :default=>false
-    t.boolean  "can_view_full_ssn",            :default=>false
-    t.boolean  "can_view_full_dob",            :default=>false
-    t.boolean  "can_view_imports",             :default=>false
-    t.boolean  "can_edit_roles",               :default=>false
-    t.boolean  "can_view_censuses",            :default=>false
-    t.boolean  "can_view_census_details",      :default=>false
-    t.boolean  "can_view_projects",            :default=>false
-    t.boolean  "can_view_organizations",       :default=>false
-    t.boolean  "can_view_client_window",       :default=>false
-    t.boolean  "can_upload_hud_zips",          :default=>false
-    t.boolean  "can_view_hiv_status",          :default=>false
-    t.boolean  "can_view_dmh_status",          :default=>false
-    t.boolean  "health_role",                  :default=>false, :null=>false
-    t.boolean  "can_administer_health",        :default=>false
-    t.boolean  "can_edit_client_health",       :default=>false
-    t.boolean  "can_view_client_health",       :default=>false
-    t.boolean  "can_edit_project_groups",      :default=>false
-    t.boolean  "can_view_everything",          :default=>false
-    t.boolean  "can_edit_anything_super_user", :default=>false
-    t.boolean  "can_edit_projects",            :default=>false
-    t.boolean  "can_edit_organizations",       :default=>false
-    t.boolean  "can_edit_data_sources",        :default=>false
-    t.boolean  "can_manage_assessments",       :default=>false
-    t.boolean  "can_edit_translations",        :default=>false
-    t.boolean  "can_manage_config",            :default=>false
-    t.boolean  "can_edit_dq_grades",           :default=>false
+    t.datetime "created_at",                     :null=>false
+    t.datetime "updated_at",                     :null=>false
+    t.boolean  "can_view_clients",               :default=>false
+    t.boolean  "can_edit_clients",               :default=>false
+    t.boolean  "can_view_reports",               :default=>false
+    t.boolean  "can_view_censuses",              :default=>false
+    t.boolean  "can_view_census_details",        :default=>false
+    t.boolean  "can_edit_users",                 :default=>false
+    t.boolean  "can_view_full_ssn",              :default=>false
+    t.boolean  "can_view_full_dob",              :default=>false
+    t.boolean  "can_view_hiv_status",            :default=>false
+    t.boolean  "can_view_dmh_status",            :default=>false
+    t.boolean  "can_view_imports",               :default=>false
+    t.boolean  "can_edit_roles",                 :default=>false
+    t.boolean  "can_view_projects",              :default=>false
+    t.boolean  "can_view_organizations",         :default=>false
+    t.boolean  "can_view_client_window",         :default=>false
+    t.boolean  "can_upload_hud_zips",            :default=>false
+    t.boolean  "can_administer_health",          :default=>false
+    t.boolean  "can_edit_client_health",         :default=>false
+    t.boolean  "can_view_client_health",         :default=>false
+    t.boolean  "health_role",                    :default=>false, :null=>false
+    t.boolean  "can_edit_project_groups",        :default=>false
+    t.boolean  "can_edit_anything_super_user",   :default=>false
+    t.boolean  "can_edit_projects",              :default=>false
+    t.boolean  "can_edit_organizations",         :default=>false
+    t.boolean  "can_edit_data_sources",          :default=>false
+    t.boolean  "can_edit_translations",          :default=>false
+    t.boolean  "can_manage_assessments",         :default=>false
+    t.boolean  "can_manage_config",              :default=>false
+    t.boolean  "can_edit_dq_grades",             :default=>false
+    t.boolean  "can_manage_client_files",        :default=>false
+    t.boolean  "can_manage_window_client_files", :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 

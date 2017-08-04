@@ -3,7 +3,8 @@ module GrdaWarehouse::Hud
   class Client < Base
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
-
+    has_many :client_files
+    
     self.table_name = 'Client'
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
@@ -913,7 +914,7 @@ module GrdaWarehouse::Hud
 
     # Move source clients to this destination client
     # other_client can be a single source record or a destination record
-    # if its a destination record, all of its sources will move and it will be delete
+    # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
     def merge_from(other_client, reviewed_by:, reviewed_at: , client_match_id: nil)
@@ -926,7 +927,7 @@ module GrdaWarehouse::Hud
         elsif other_client.destination?
           other_client
         end
-        # if it had have sources then move those over to us
+        # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
           m.warehouse_client_source.update_attributes!(
@@ -961,6 +962,9 @@ module GrdaWarehouse::Hud
 
           # move any client notes
           GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          
+          # move any client files
+          GrdaWarehouse::ClientFile.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
 
           # move any patients
           Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
