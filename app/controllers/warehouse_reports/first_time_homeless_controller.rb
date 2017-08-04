@@ -4,7 +4,7 @@ module WarehouseReports
 
     def index
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
-      @range = DateRange.new(date_range_options)
+      @range = ::Filters::DateRange.new(date_range_options)
 
       @clients = client_source
       if @range.valid?
@@ -34,7 +34,7 @@ module WarehouseReports
 
     # Present a chart of the counts from the previous year
     def summary
-      @range = DateRange.new({start: 1.year.ago, end: 1.day.ago})
+      @range = ::Filters::DateRange.new({start: 1.year.ago, end: 1.day.ago})
       @counts = history.
         first_date.
         select(:date).

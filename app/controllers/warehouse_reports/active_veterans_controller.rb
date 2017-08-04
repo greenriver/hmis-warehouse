@@ -4,7 +4,7 @@ module WarehouseReports
     def index
       @sort_options = sort_options
       date_range_options = params.permit(range: [:start, :end, project_type: []])[:range]
-      @range = DateRangeAndProject.new(date_range_options)
+      @range = ::Filters::DateRangeAndProject.new(date_range_options)
       @column = sort_column
       @direction = sort_direction
       scope = service_history_source
@@ -46,14 +46,6 @@ module WarehouseReports
             end.
             group_by{|m| m[:client_id]}
         end
-      end
-    end
-
-    class DateRangeAndProject < DateRange
-      attribute :project_type, Array[String]
-
-      def project_types
-        GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.map(&:reverse)
       end
     end
     

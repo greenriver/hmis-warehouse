@@ -6,7 +6,7 @@ module WarehouseReports::Project
     def show
       start_date = Date.new(Date.today.year-2,10,1)
       end_date = Date.new(Date.today.year-1,9,30)
-      @range = DateRange.new(start: start_date, end: end_date)
+      @range = ::Filters::DateRange.new(start: start_date, end: end_date)
     end
 
     def create
@@ -16,7 +16,7 @@ module WarehouseReports::Project
       if date_range_params[:start].blank? || date_range_params[:end].blank?
         errors << 'A date range is required'
       end
-      @range = DateRange.new(date_range_params)
+      @range = ::Filters::DateRange.new(date_range_params)
       @range.validate
       begin
         @project_ids = project_params rescue []

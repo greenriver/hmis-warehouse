@@ -10,7 +10,7 @@ module WarehouseReports::VeteranDetails
 
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
-      @range = DateRange.new(date_range_options)
+      @range = ::Filters::DateRange.new(date_range_options)
       
       @start_date = @range.start
       @end_date = @range.end
