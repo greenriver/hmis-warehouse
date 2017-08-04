@@ -914,7 +914,7 @@ module GrdaWarehouse::Hud
 
     # Move source clients to this destination client
     # other_client can be a single source record or a destination record
-    # if its a destination record, all of its sources will move and it will be deleted
+    # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
     def merge_from(other_client, reviewed_by:, reviewed_at: , client_match_id: nil)
