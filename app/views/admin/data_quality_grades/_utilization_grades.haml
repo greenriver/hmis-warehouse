@@ -3,21 +3,23 @@
     %thead
       %tr
         %th Grade
-        %th Under Capacity Low
-        %th Under Capacity High
-        %th Over Capacity Low
-        %th Over Capacity High
+        %th Percentage Under Capacity
+        %th Percentage Over Capacity
         %th
     %tbody
       - @utilization_grades.each do |grade|
         %tr{style: "color: #{grade.color}"}
           %td= grade.grade
-          %td= "#{grade.percentage_under_low}%"
-          %td= "#{grade.percentage_under_high}%"
-          %td= "#{grade.percentage_over_low}%"
-          %td= "#{grade.percentage_over_high}%"
           %td
-            = link_to admin_utilization_grade_path(grade), method: :delete, class: 'btn btn-secondary' do
-              %span.icon-cross
+            = "#{grade.percentage_under_low}% - #{grade.percentage_under_high}%"
+          %td
+            - if grade.percentage_over_high.present?
+              = "#{grade.percentage_over_low}% - #{grade.percentage_over_high}%"
+            - else
+              = "#{grade.percentage_over_low}% + "
+          %td
+            - if can_edit_dq_grades?
+              = link_to admin_utilization_grade_path(grade), method: :delete, class: 'btn btn-secondary' do
+                %span.icon-cross
 - else
   %p Add some grades above.
