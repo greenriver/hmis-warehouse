@@ -243,5 +243,9 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+  
+  def user_can_view_confidential_names?
+    can_view_projects?
+  end
 
 end

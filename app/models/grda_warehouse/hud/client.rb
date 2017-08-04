@@ -7,6 +7,9 @@ module GrdaWarehouse::Hud
     self.table_name = 'Client'
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
+    
+    CACHE_EXPIRY = if Rails.env == [:production] then 4.hours else 2.minutes end
+    
 
     def self.hud_csv_headers(version: nil)
       [
@@ -215,6 +218,30 @@ module GrdaWarehouse::Hud
           project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
         ).select(:client_id).distinct
       )
+    end
+    
+    def scope_for_ongoing_residential_enrollments
+      source_enrollments.
+      residential.
+      joins( project: :organization ).
+      preload( :client, :exit, project: :organization ).
+      order(EntryDate: :desc)
+    end
+    
+    def scope_for_other_enrollments
+      source_enrollments.
+      hud_non_residential.
+      joins( project: :organization ).
+      preload( :client, :exit, project: :organization ).
+      order(EntryDate: :desc)
+    end
+    
+    def scope_for_residential_enrollments
+      source_enrollments.
+      hud_residential.
+      joins( project: :organization ).
+      preload( :client, :exit, project: :organization ).
+      order(EntryDate: :desc)
     end
     
     attr_accessor :merge
@@ -430,7 +457,7 @@ module GrdaWarehouse::Hud
     # finds an image for the client. there may be more then one availabe but this
     # method will select one more or less at random. returns no_image_on_file_image
     # if none is found. returns that actual image bytes
-    # FIXME: invalidate the cached image if any aspect of the client changes
+    # FIXME: invalidate the _d image if any aspect of the client changes
     def image(cache_for=10.minutes)
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
@@ -995,91 +1022,117 @@ module GrdaWarehouse::Hud
 
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
-      conn = ActiveRecord::Base.connection
-      exit_table = GrdaWarehouse::Hud::Exit.arel_table
-      enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
-      project_table = GrdaWarehouse::Hud::Project.arel_table
-      organization_table = GrdaWarehouse::Hud::Organization.arel_table
-      service_table = GrdaWarehouse::ServiceHistory.arel_table
-      client_table = GrdaWarehouse::Hud::Client.arel_table
-      columns = {
-        ProjectEntryID: enrollment_table[:ProjectEntryID].as('ProjectEntryID').to_sql,
-        EntryDate: enrollment_table[:EntryDate].as('EntryDate').to_sql,
-        PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
-        ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
-        date: service_table[:date].as('date').to_sql,
-        project_type: service_table[:computed_project_type].as('project_type').to_sql,
-        project_name: service_table[:project_name].as('project_name').to_sql,
-        project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
-        household_id: service_table[:household_id].as('household_id').to_sql,
-        record_type: service_table[:record_type].as('record_type').to_sql,
-        data_source_id: service_table[:data_source_id].as('data_source_id').to_sql,
-        OrganizationName: organization_table[:OrganizationName].as('OrganizationName').to_sql,
-        ProjectID: project_table[:ProjectID].as('ProjectID').to_sql,
-        project_id: project_table[:id].as('project_id').to_sql,
-        confidential: project_table[:confidential].as('confidential').to_sql,
-        client_source_id: client_table[:id].as('client_source_id').to_sql,
-      }
-      exit_join = enrollment_table.join(exit_table, Arel::Nodes::OuterJoin).
-        on(enrollment_table[:ProjectEntryID].eq(exit_table[:ProjectEntryID]).
-          and(enrollment_table[:data_source_id].eq(exit_table[:data_source_id]))
-        )
-      enrollments = scope.
-        joins(exit_join.join_sources).
-        joins(:service_histories, :project).
-        where(service_table[:record_type].in(['service', 'entry'])).
-        select(*columns.values).
-        pluck(*columns.values).
-        map do |row|
-          Hash[columns.keys.zip(row)]
-        end
-      enrollments_by_project_entry = enrollments.group_by do |m|
-        [m[:ProjectEntryID], m[:ProjectID], m[:EntryDate], m[:data_source_id]]
-      end
-
-      enrollments_by_project_entry.map do |_, e|
-        e.sort_by!{|m| m[:date]}
-        meta = e.select{|m| m[:record_type] == 'entry'}.first
-        # Hide confidential program names, if appropriate
-        meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
-        unless include_confidential_names
-          meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if meta[:confidential] 
-        end
-        dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
-        # days that are not also served by a later enrollment of the same project type
-        # unless this is a bed-night style project, in which case we count all nights
-        count_until = if meta[:project_tracking_method] == 3
-          meta[:ExitDate]
-        else
-          next_enrollment(enrollments: enrollments, type: meta[:project_type], start: meta[:EntryDate]).try(:[], :EntryDate) || meta[:ExitDate]
-        end
-        # days included in adjusted days that are not also served by a residential project
-        adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-
-        homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
-
-        {
-          client_source_id: meta[:client_source_id],
-          project_id: meta[:project_id],
-          ProjectID: meta[:ProjectID],
-          project_name: meta[:project_name],
-          entry_date: meta[:EntryDate],
-          exit_date: meta[:ExitDate],
-          days: dates_served.count,
-          homeless: meta[:project_type].in?(Project::CHRONIC_PROJECT_TYPES),
-          homeless_days: homeless_dates_for_enrollment.count,
-          adjusted_days: adjusted_dates_for_similar_programs.count,
-          months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
-          household: self.household(meta[:household_id], meta[:EntryDate]),
-          project_type: ::HUD::project_type_brief(meta[:project_type]),
-          class: "client__service_type_#{meta[:project_type]}",
-          most_recent_service: e.select{|m| m[:record_type] == 'service'}.last.try(:[], :date),
-          new_episode: new_episode?(enrollments: enrollments, project_type: meta[:project_type], entry_date: meta[:EntryDate]),
-          # support: dates_served,
+      Rails.cache.fetch([scope.to_sql, include_confidential_names], expires_at: CACHE_EXPIRY) do
+        conn = ActiveRecord::Base.connection
+        exit_table = GrdaWarehouse::Hud::Exit.arel_table
+        enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
+        project_table = GrdaWarehouse::Hud::Project.arel_table
+        organization_table = GrdaWarehouse::Hud::Organization.arel_table
+        service_table = GrdaWarehouse::ServiceHistory.arel_table
+        client_table = GrdaWarehouse::Hud::Client.arel_table
+        columns = {
+          ProjectEntryID: enrollment_table[:ProjectEntryID].as('ProjectEntryID').to_sql,
+          EntryDate: enrollment_table[:EntryDate].as('EntryDate').to_sql,
+          PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
+          ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
+          date: service_table[:date].as('date').to_sql,
+          project_type: service_table[:computed_project_type].as('project_type').to_sql,
+          project_name: service_table[:project_name].as('project_name').to_sql,
+          project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
+          household_id: service_table[:household_id].as('household_id').to_sql,
+          record_type: service_table[:record_type].as('record_type').to_sql,
+          data_source_id: service_table[:data_source_id].as('data_source_id').to_sql,
+          OrganizationName: organization_table[:OrganizationName].as('OrganizationName').to_sql,
+          ProjectID: project_table[:ProjectID].as('ProjectID').to_sql,
+          project_id: project_table[:id].as('project_id').to_sql,
+          confidential: project_table[:confidential].as('confidential').to_sql,
+          client_source_id: client_table[:id].as('client_source_id').to_sql,
         }
+        exit_join = enrollment_table.join(exit_table, Arel::Nodes::OuterJoin).
+          on(enrollment_table[:ProjectEntryID].eq(exit_table[:ProjectEntryID]).
+            and(enrollment_table[:data_source_id].eq(exit_table[:data_source_id]))
+          )
+        enrollments = scope.
+          joins(exit_join.join_sources).
+          joins(:service_histories, :project).
+          where(service_table[:record_type].in(['service', 'entry'])).
+          select(*columns.values).
+          pluck(*columns.values).
+          map do |row|
+            Hash[columns.keys.zip(row)]
+          end
+        enrollments_by_project_entry = enrollments.group_by do |m|
+          [m[:ProjectEntryID], m[:ProjectID], m[:EntryDate], m[:data_source_id]]
+        end
+
+        enrollments_by_project_entry.map do |_, e|
+          e.sort_by!{|m| m[:date]}
+          meta = e.select{|m| m[:record_type] == 'entry'}.first
+          # Hide confidential program names, if appropriate
+          meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
+          unless include_confidential_names
+            meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if meta[:confidential] 
+          end
+          dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
+          # days that are not also served by a later enrollment of the same project type
+          # unless this is a bed-night style project, in which case we count all nights
+          count_until = if meta[:project_tracking_method] == 3
+            meta[:ExitDate]
+          else
+            next_enrollment(enrollments: enrollments, type: meta[:project_type], start: meta[:EntryDate]).try(:[], :EntryDate) || meta[:ExitDate]
+          end
+          # days included in adjusted days that are not also served by a residential project
+          adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
+
+          homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
+
+          {
+            client_source_id: meta[:client_source_id],
+            project_id: meta[:project_id],
+            ProjectID: meta[:ProjectID],
+            project_name: meta[:project_name],
+            entry_date: meta[:EntryDate],
+            exit_date: meta[:ExitDate],
+            days: dates_served.count,
+            homeless: meta[:project_type].in?(Project::CHRONIC_PROJECT_TYPES),
+            homeless_days: homeless_dates_for_enrollment.count,
+            adjusted_days: adjusted_dates_for_similar_programs.count,
+            months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
+            household: self.household(meta[:household_id], meta[:EntryDate]),
+            project_type: ::HUD::project_type_brief(meta[:project_type]),
+            class: "client__service_type_#{meta[:project_type]}",
+            most_recent_service: e.select{|m| m[:record_type] == 'service'}.last.try(:[], :date),
+            new_episode: new_episode?(enrollments: enrollments, project_type: meta[:project_type], entry_date: meta[:EntryDate]),
+            # support: dates_served,
+          }
+        end
       end
     end
-
+    
+    def enrollments_for_rollup scope: scope, include_confidential_names: false, only_ongoing: false
+      Rails.cache.fetch([scope.to_sql, include_confidential_names, only_ongoing], expires_in: CACHE_EXPIRY) do
+        enrollments = enrollments_for(scope, include_confidential_names: include_confidential_names)
+        enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
+        enrollments || []
+      end
+    end
+    
+    def total_days enrollments
+      enrollments.map{|m| m[:days]}.sum
+    end
+    
+    def total_homeless enrollments
+      enrollments.map{ |m| m[:homeless_days] }.sum
+    end
+    
+    def total_adjusted_days enrollments
+      enrollments.map{|m| m[:adjusted_days]}.sum
+    end
+    
+    def total_months enrollments
+      enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
+    end
+    
     private def next_enrollment enrollments:, type:, start:
       entry_dates = entry_dates(enrollments: enrollments)
       entry_dates_for_type(entry_dates: entry_dates, type: type).reverse.find do |m|

@@ -81,11 +81,15 @@
               = client.consent_form_status.presence
         .col-sm-5
           .client__view_client
-            = link_to 'View', client_path(client), class: 'btn btn-secondary'
+            = link_to 'View', client_path(client), class: 'btn btn-secondary'  
           - days_served = client.processed_service_history.try(:days_served) || 0
+          
+          - scope = client.scope_for_residential_enrollments
+          - enrollments = client.enrollments_for_rollup(scope: scope, include_confidential_names: @include_confidential_names)
+          - total_homeless = client.total_homeless(enrollments)
           %p 
-            %strong Served:
-            = pluralize(days_served, 'day')
+            %strong Days Homeless:
+            = pluralize(total_homeless, 'day')
             %br
             %strong Between:
             = client.processed_service_history.try(:first_date_served)
