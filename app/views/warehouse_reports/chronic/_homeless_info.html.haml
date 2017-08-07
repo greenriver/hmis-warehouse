@@ -1,0 +1,31 @@
+#chronic-accordion.panel-group
+  .panel.panel-default
+    .panel-heading
+      %h4.panel-title
+        %a{"data-parent" => "#chronic-accordion", "data-toggle" => "collapse", href: "#chronic-info"}
+          Clients are considered chronically homeless if they...
+    #chronic-info.panel-collapse.collapse
+      .panel-body
+        .row
+          .col-sm-6
+            %p
+              %ol
+                %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
+                %li are disabled
+                %li have been homeless in 12 of the last 36 months.
+                %li have had 4 or more episodes of homelessness if they haven't been continuously homeless for the last 12 months.
+                %li are not enrolled in a DMH project on the day specified
+              %strong OR
+              %ol
+                %li are enrolled in a DMH project on the day specified
+                %li are disabled
+                %li have been homeless for 365 or more nights in the past three years
+                %li have been homeless in mainstream projects ES (1), SH (8) or SO (4) for 90 or more nights
+          .col-sm-6
+            %p
+              %strong Please note:
+            %ol
+              - if GrdaWarehouse::Config.get(:project_type_override)
+                %li Chronic calculations are done using the Project Type Overrides
+              %li Individuals only option limits the clients included to those who didn't present for an enrollment with anyone else during the report period
+              %li A single Street Outreach day within a month counts the entire month of days toward the days homeless

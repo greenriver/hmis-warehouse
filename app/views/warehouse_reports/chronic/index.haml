@@ -1,48 +1,34 @@
 - title = "Potentially Chronic Clients on #{@filter.date}"
 - content_for :title, title
-%h1= title
+%h1
+  = title
+  %hr
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
-.row
-  .col-sm-6
-    %p 
-      Clients are considered chronically homeless if they:
-      %ol
-        %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
-        %li are disabled
-        %li have been homeless in 12 of the last 36 months.
-        %li have had 4 or more episodes of homelessness if they haven't been continuously homeless for the last 12 months.
-        %li are not enrolled in a DMH project on the day specified
-      OR
-      %ol
-        %li are enrolled in a DMH project on the day specified
-        %li are disabled
-        %li have been homeless for 365 or more nights in the past three years
-        %li have been homeless in mainstream projects ES (1), SH (8) or SO (4) for 90 or more nights
-  .col-sm-6
-    %p Please note:
-    %ol
-      - if GrdaWarehouse::Config.get(:project_type_override)
-        %li Chronic calculations are done using the Project Type Overrides
-      %li Individuals only option limits the clients included to those who didn't present for an enrollment with anyone else during the report period
-      %li A single Street Outreach day within a month counts the entire month of days toward the days homeless 
-
+= render 'homeless_info'
 
 .warehouse-reports__chronic
   .row
-    .col-sm-10
-      %h4 Chronic Clients
+    .col-sm-12
+      %h4
+        .pull-left
+          Chronic Clients
+      .clearfix
       %p.text-muted
         Chart does not take into account "Received Homeless Service After."
       .jCharts
         %p.jLoading.text-center Loading...
-    .col-sm-2.text-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
 
-  .pagination
-    %p= page_entries_info @clients, entry_name: _('client')
-    %p= paginate @clients
+
+  .row(style="padding: 1em 1em 0 1em")
+    .col-sm-6
+      .pagination
+        %p= page_entries_info @clients, entry_name: _('client')
+        %p= paginate @clients
+      = render('sort', sort_options: GrdaWarehouse::Chronic.sort_options) if @clients.any?
+    .col-sm-6.text-right
+      = link_to "Download Excel", params.merge(format: :xlsx), class: 'btn btn-secondary'
+
   - @clients.each do |client|
     - chronic = client.chronics.first # we can do this because we scope to only the day in question in the controller
     - source_clients = client.source_clients
@@ -71,7 +57,7 @@
               %dd= checkmark(client.veteran?)
             - if chronic.trigger.present?
               %dt Chronic trigger
-              %dd= chronic.trigger 
+              %dd= chronic.trigger
             - if so_enrolled = @so_clients.include?(client.id)
               %dt Enrolled in SO
               %dd= checkmark(so_enrolled)

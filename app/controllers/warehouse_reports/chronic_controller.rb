@@ -1,13 +1,13 @@
 module WarehouseReports
   class ChronicController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!, :load_filter
+    before_action :require_can_view_reports!, :load_filter, :set_sort
+
     def index
-      at = chronic_source.arel_table
       @clients = @clients.includes(:chronics).
         preload(source_clients: :data_source).
         merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
-        order( at[:homeless_since].asc, at[:days_in_last_three_years].desc )
+        order( @order )
       @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
       respond_to do |format|
         format.html do
@@ -67,6 +67,15 @@ module WarehouseReports
         has_homeless_service_after_date(date: (@filter.date - @filter.last_service_after.days))
     end
 
+    private def set_sort
+      chronic_at = chronic_source.arel_table
+      client_at = client_source.arel_table
+      @column = params[:sort] || 'homeless_since'
+      @direction = params[:direction] || 'asc'
+      table = %w(FirstName LastName).include?( @column ) ? client_at : chronic_at
+      @order = table[@column].send(@direction)
+    end
+
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end
@@ -101,7 +110,7 @@ module WarehouseReports
       end
 
       def date
-        @date ||= begin   
+        @date ||= begin
           if dates.include?(on)
             on
           else
