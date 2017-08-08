@@ -1,9 +1,10 @@
 FactoryGirl.define do
   factory :grda_warehouse_client_notes_chronic_justification, class: 'GrdaWarehouse::ClientNotes::ChronicJustification' do
-    client_id '16544'
-    user_id '1' 
+    client_id '456'
+    user_id '8' 
     note 'Test'
-    created_at Date.current
+    # type 'GrdaWarehouse::ClientNotes::ChronicJustification'
+    # created_at Date.current
     # updated_at
     # deleted_at
   end
