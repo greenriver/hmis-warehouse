@@ -45,6 +45,22 @@ RSpec.describe GrdaWarehouse::ClientNotes::Base, type: :model do
    it { should belong_to( :client ) }
  end
  
+ # describe 'scopes' do
+ #   let(:chronic_justification1) { create :grda_warehouse_client_notes_chronic_justification}
+ #   let(:chronic_justification2) { create :grda_warehouse_client_notes_chronic_justification}
+ #   let(:window_note1) { create :grda_warehouse_client_notes_window_note}
+ #   
+ #   it 'returns all Chronic Justifications' do
+ #     expect.GrdaWarehouse::ClientNotes::Base.chronic_justifications.to include(chronic_justification1, chronic_justification2)
+ #     expect.GrdaWarehouse::ClientNotes::Base.chronic_justifications.to_not include(window_note1)
+ #   end
+ #   
+ #   it 'returns all Window Notes' do
+ #     expect.GrdaWarehouse::ClientNotes::Base.window_notes.to_not include(chronic_justification1, chronic_justification2)
+ #     expect.GrdaWarehouse::ClientNotes::Base.window_notes.to include(window_note1)
+ #   end
+ # end
+ 
  describe 'instance methods' do
     describe 'user_can_destroy?(user)' do
       let(:chronic_justification_written_by_bob) { create :grda_warehouse_client_notes_chronic_justification, user: bob}
