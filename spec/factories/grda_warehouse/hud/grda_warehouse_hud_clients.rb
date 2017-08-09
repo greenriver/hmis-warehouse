@@ -1,5 +1,6 @@
 FactoryGirl.define do
   factory :grda_warehouse_hud_client, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
     # PersonalID
     FirstName 'Bob'
     # MiddleName
