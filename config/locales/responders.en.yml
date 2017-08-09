@@ -1,0 +1,29 @@
+en:
+  flash:
+    actions:
+      create:
+        notice: '%{resource_name} was successfully created.'
+        # alert: '%{resource_name} could not be created.'
+      update:
+        notice: '%{resource_name} was successfully updated.'
+        # alert: '%{resource_name} could not be updated.'
+      destroy:
+        notice: '%{resource_name} was successfully destroyed.'
+        alert: '%{resource_name} could not be destroyed.'
+    clients:
+      vispdats:
+        create:
+          notice: 'VI-SPDAT successfully created.'
+        update:
+          notice: 'VI-SPDAT successfully updated.'
+        destroy:
+          notice: 'VI-SPDAT deleted.'
+    window:
+      clients:
+        vispdats:
+          create:
+            notice: 'VI-SPDAT successfully created.'
+          update:
+            notice: 'VI-SPDAT successfully updated.'
+          destroy:
+            notice: 'VI-SPDAT deleted.'

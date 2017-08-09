@@ -1,4 +1,9 @@
+require "application_responder"
+
 class ApplicationController < ActionController::Base
+  self.responder = ApplicationResponder
+  respond_to :html, :js, :json, :csv
+
   include ControllerAuthorization
   include ActivityLogger
   # Prevent CSRF attacks by raising an exception.
@@ -6,7 +11,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
-  
+
   before_filter :set_paper_trail_whodunnit
   before_filter :set_notification
 
@@ -16,7 +21,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :locale
   before_filter :set_gettext_locale
-  
+
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
       yield
@@ -38,14 +43,14 @@ class ApplicationController < ActionController::Base
     default_locale = 'en'
     params[:locale] || session[:locale] || default_locale
   end
-  
+
   private
-  
+
   def set_gettext_locale
     session[:locale] = I18n.locale = FastGettext.set_locale(locale)
     super
   end
-  
+
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
       user == Rails.application.secrets.basic_auth_user && \

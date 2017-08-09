@@ -10,15 +10,15 @@
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
     = stylesheet_link_tag 'application', media: 'all'
     = stylesheet_link_tag 'print', media: 'print'
-    
+
     = cache('theme', expires_in: 4.hours) do
       - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
         - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
         = stylesheet_link_tag(theme_styles, media: 'all')
-    
+
     = render 'layouts/favicon'
     = csrf_meta_tags
-    
+
   %body{class: body_classes}
     %header
       .container{class: container_classes}
@@ -64,7 +64,8 @@
 
     = render 'pjax_modal_frame'
     = javascript_include_tag 'application'
-    
+    = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js') if Rails.env.development?
+
     = yield :page_js
     - if current_user
       = auto_session_timeout_js(frequency: 60)

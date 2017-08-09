@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
-  end  
+  end
 
   def healthcare_routes
     namespace :health do
@@ -126,6 +126,7 @@ Rails.application.routes.draw do
       get :month_of_service
       get :service_range
       get :history
+      get :vispdat
       get :rollup
       get :assessment
       get :image
@@ -135,9 +136,11 @@ Rails.application.routes.draw do
       post :create_note
       resource :cas_active, only: :update
     end
+    resources :vispdats, controller: 'clients/vispdats'
     resources :files, controller: 'clients/files'
     healthcare_routes()
   end
+
   namespace :clients do
     resources :notes, only: [:destroy]
   end
@@ -149,6 +152,7 @@ Rails.application.routes.draw do
       get :rollup
       get :assessment
       get :image
+      resources :vispdats, controller: 'clients/vispdats'
       resources :files, controller: 'clients/files'
     end
   end
@@ -205,7 +209,7 @@ Rails.application.routes.draw do
       get :support, on: :member
     end
   end
-  
+
   resources :weather, only: [:index]
 
   resources :notifications, only: [:show] do
@@ -252,7 +256,7 @@ Rails.application.routes.draw do
     end
   end
   resource :account, only: [:edit, :update]
-  
+
   unless Rails.env.production?
     resource :style_guide, only: :none do
       get :careplan
