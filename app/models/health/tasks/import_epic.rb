@@ -23,7 +23,7 @@ module Health::Tasks
       fetch_files()
       import_files()
       update_consent()
-      notify_health_admin_of_changes()
+      return change_counts()
     end
 
     def import klass:, file:
@@ -58,18 +58,26 @@ module Health::Tasks
       end
     end
 
-    def notify_health_admin_of_changes
-      if @new_patients.size > 0 || @to_revoke.any? || @to_restore.any?
-        User.can_administer_health.each do |user|
-          HealthConsentChangeMailer.consent_changed(
-            new_patients: @new_patients.size,
-            consented: @to_restore.size, 
-            revoked_consent: @to_revoke.size, 
-            user: user
-          ).deliver_later
-        end 
-      end
+    def change_counts
+      {
+        new_patients: @new_patients.size,
+        consented: @to_restore.size, 
+        revoked_consent: @to_revoke.size,
+      }
     end
+
+    # def notify_health_admin_of_changes
+    #   if @new_patients.size > 0 || @to_revoke.any? || @to_restore.any?
+    #     User.can_administer_health.each do |user|
+    #       HealthConsentChangeMailer.consent_changed(
+    #         new_patients: @new_patients.size,
+    #         consented: @to_restore.size, 
+    #         revoked_consent: @to_revoke.size, 
+    #         user: user
+    #       ).deliver_later
+    #     end 
+    #   end
+    # end
 
     def update_consent
       klass = Health::Patient
