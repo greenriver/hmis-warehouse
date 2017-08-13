@@ -9,7 +9,7 @@ module GrdaWarehouse::Hud
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
     
-    CACHE_EXPIRY = if Rails.env == [:production] then 4.hours else 2.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 2.minutes end
     
 
     def self.hud_csv_headers(version: nil)
@@ -470,7 +470,7 @@ module GrdaWarehouse::Hud
     # finds an image for the client. there may be more then one availabe but this
     # method will select one more or less at random. returns no_image_on_file_image
     # if none is found. returns that actual image bytes
-    # FIXME: invalidate the _d image if any aspect of the client changes
+    # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for=10.minutes)
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
@@ -1058,7 +1058,7 @@ module GrdaWarehouse::Hud
           PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
           ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
           date: service_table[:date].as('date').to_sql,
-          project_type: service_table[:computed_project_type].as('project_type').to_sql,
+          project_type: service_table[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql,
           project_name: service_table[:project_name].as('project_name').to_sql,
           project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
           household_id: service_table[:household_id].as('household_id').to_sql,
