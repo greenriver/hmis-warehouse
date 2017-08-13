@@ -769,7 +769,8 @@ module GrdaWarehouse::Hud
       elsif social
         where = sa[:SSN].eq(text.gsub('-',''))
       elsif date
-        where = sa[:DOB].eq(text)
+        (month, day, year) = text.split('/')
+        where = sa[:DOB].eq("#{year}-#{month}-#{day}")
       elsif numeric
         where = sa[:PersonalID].eq(text).or(sa[:id].eq(text))
       else
