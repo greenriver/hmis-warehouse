@@ -3,6 +3,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include TsqlImport
     include ActiveSupport::Benchmarkable
     include ArelHelper
+    include NotifierConfig
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
 
@@ -11,13 +12,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def initialize
       self.logger = Rails.logger
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
-      if @send_notifications
-        slack_url = notifier_config['webhook_url']
-        channel   = notifier_config['channel']
-        @notifier  = Slack::Notifier.new(slack_url, channel: channel, username: 'Service History Generator')
-      end
+      setup_notifier('Service History Generator')
       @sanity_check = Set.new
       @batch_size = 1000
 

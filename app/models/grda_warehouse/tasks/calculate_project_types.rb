@@ -1,15 +1,10 @@
 module GrdaWarehouse::Tasks
   class CalculateProjectTypes
     include ArelHelper
-    attr_accessor :logger, :send_notifications
+    include NotifierConfig
+    attr_accessor :logger, :send_notifications, :notifier_config
     def initialize(bogus_notifier=false, debug: false)
-      exception_notifier_config = Rails.application.config_for(:exception_notifier)['slack']
-      @send_notifications = (Rails.env.development? || Rails.env.production?) && exception_notifier_config.present?
-      if @send_notifications
-        slack_url = exception_notifier_config['webhook_url']
-        channel = exception_notifier_config['channel']
-        @notifier = Slack::Notifier.new slack_url, channel: channel, username: 'ProjectTypeCalculator'
-      end
+      setup_notifier('Project Type Calculator')
       self.logger = Rails.logger
       @debug = debug
     end

@@ -3,6 +3,7 @@
 module EtoApi::Tasks
   class UpdateClientDemographics
     include ActionView::Helpers::DateHelper
+    include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
 
     # optionally pass an array of client source ids
@@ -16,13 +17,8 @@ module EtoApi::Tasks
       @stop_time = Time.now + run_time
       @one_off = one_off
 
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
-      if send_notifications
-        slack_url = notifier_config['webhook_url']
-        channel   = notifier_config['channel']
-        @notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'ETO API Importer'
-      end
+      setup_notifier('ETO API Importer')
+      
       #@api.trace = false
     end
 
@@ -281,4 +277,3 @@ module EtoApi::Tasks
 
   end
 end
-
