@@ -1482,6 +1482,44 @@ ALTER SEQUENCE generate_service_history_log_id_seq OWNED BY generate_service_his
 
 
 --
+-- Name: grades; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE grades (
+    id integer NOT NULL,
+    type character varying NOT NULL,
+    grade character varying NOT NULL,
+    percentage_low integer,
+    percentage_high integer,
+    percentage_under_low integer,
+    percentage_under_high integer,
+    percentage_over_low integer,
+    percentage_over_high integer,
+    color character varying DEFAULT '#000000'::character varying,
+    weight integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: grades_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE grades_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grades_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE grades_id_seq OWNED BY grades.id;
+
+
+--
 -- Name: hmis_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2865,6 +2903,13 @@ ALTER TABLE ONLY generate_service_history_log ALTER COLUMN id SET DEFAULT nextva
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY grades ALTER COLUMN id SET DEFAULT nextval('grades_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY hmis_assessments ALTER COLUMN id SET DEFAULT nextval('hmis_assessments_id_seq'::regclass);
 
 
@@ -3225,6 +3270,14 @@ ALTER TABLE ONLY fake_data
 
 ALTER TABLE ONLY generate_service_history_log
     ADD CONSTRAINT generate_service_history_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: grades_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY grades
+    ADD CONSTRAINT grades_pkey PRIMARY KEY (id);
 
 
 --
@@ -3638,10 +3691,10 @@ CREATE INDEX "index_Disabilities_on_data_source_id" ON "Disabilities" USING btre
 
 
 --
--- Name: index_Disabilities_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Disabilities_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Disabilities_on_data_source_id_and_PersonalID" ON "Disabilities" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_Disabilities_on_data_source_id_PersonalID" ON "Disabilities" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3659,10 +3712,10 @@ CREATE INDEX "index_EmploymentEducation_on_data_source_id" ON "EmploymentEducati
 
 
 --
--- Name: index_EmploymentEducation_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_EmploymentEducation_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_EmploymentEducation_on_data_source_id_and_PersonalID" ON "EmploymentEducation" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_EmploymentEducation_on_data_source_id_PersonalID" ON "EmploymentEducation" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3680,10 +3733,10 @@ CREATE INDEX "index_EnrollmentCoC_on_data_source_id" ON "EnrollmentCoC" USING bt
 
 
 --
--- Name: index_EnrollmentCoC_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_EnrollmentCoC_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_EnrollmentCoC_on_data_source_id_and_PersonalID" ON "EnrollmentCoC" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_EnrollmentCoC_on_data_source_id_PersonalID" ON "EnrollmentCoC" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3729,10 +3782,10 @@ CREATE INDEX "index_Enrollment_on_data_source_id" ON "Enrollment" USING btree (d
 
 
 --
--- Name: index_Enrollment_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Enrollment_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON "Enrollment" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_Enrollment_on_data_source_id_PersonalID" ON "Enrollment" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3771,10 +3824,10 @@ CREATE INDEX "index_Exit_on_data_source_id" ON "Exit" USING btree (data_source_i
 
 
 --
--- Name: index_Exit_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Exit_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Exit_on_data_source_id_and_PersonalID" ON "Exit" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_Exit_on_data_source_id_PersonalID" ON "Exit" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3806,10 +3859,10 @@ CREATE INDEX "index_HealthAndDV_on_data_source_id" ON "HealthAndDV" USING btree 
 
 
 --
--- Name: index_HealthAndDV_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_HealthAndDV_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_HealthAndDV_on_data_source_id_and_PersonalID" ON "HealthAndDV" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_HealthAndDV_on_data_source_id_PersonalID" ON "HealthAndDV" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -3827,10 +3880,10 @@ CREATE INDEX "index_IncomeBenefits_on_data_source_id" ON "IncomeBenefits" USING 
 
 
 --
--- Name: index_IncomeBenefits_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+-- Name: index_IncomeBenefits_on_data_source_id_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_IncomeBenefits_on_data_source_id_and_PersonalID" ON "IncomeBenefits" USING btree (data_source_id, "PersonalID");
+CREATE INDEX "index_IncomeBenefits_on_data_source_id_PersonalID" ON "IncomeBenefits" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -4041,6 +4094,13 @@ CREATE INDEX index_contacts_on_entity_id ON contacts USING btree (entity_id);
 --
 
 CREATE INDEX index_contacts_on_type ON contacts USING btree (type);
+
+
+--
+-- Name: index_grades_on_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_grades_on_type ON grades USING btree (type);
 
 
 --
@@ -4960,4 +5020,6 @@ INSERT INTO schema_migrations (version) VALUES ('20170719172444');
 INSERT INTO schema_migrations (version) VALUES ('20170726140915');
 
 INSERT INTO schema_migrations (version) VALUES ('20170727231741');
+
+INSERT INTO schema_migrations (version) VALUES ('20170801120635');
 

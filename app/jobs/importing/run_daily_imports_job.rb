@@ -1,16 +1,11 @@
 module Importing
   class RunDailyImportsJob < ActiveJob::Base
     include ActionView::Helpers::DateHelper
+    include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
 
     def initialize
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
-      if @send_notifications
-        slack_url = notifier_config['webhook_url']
-        channel   = notifier_config['channel']
-        @notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'DailyImporter'
-      end
+      setup_notifier('DailyImporter')
     end
 
     def perform
@@ -45,7 +40,7 @@ module Importing
       if Date.today.day.in?([1,15])
         this_month = Date.today.beginning_of_month
         last_month = this_month - 1.month
-        if Date.today.day == 1
+        if Date.today.day < 15
           two_months_ago = this_month - 2.months
           dates = [
             this_month,

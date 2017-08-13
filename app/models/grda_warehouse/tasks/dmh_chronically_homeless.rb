@@ -31,7 +31,7 @@ module GrdaWarehouse::Tasks
           count
         mainstream_days_homeless = service_history_source.service.
           where(client_id: client_id).
-          where(@project_type_column => CHRONIC_PROJECT_TYPES).
+          where(service_history_source.project_type_column => CHRONIC_PROJECT_TYPES).
           where.not(dmh_projects_filter).
           select(:date).
           distinct.

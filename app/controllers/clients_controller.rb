@@ -193,7 +193,7 @@ class ClientsController < ApplicationController
     expires_in max_age, public: false
     send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
   end
-
+  
   protected def client_source
     GrdaWarehouse::Hud::Client
   end
@@ -243,5 +243,9 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+  
+  def user_can_view_confidential_names?
+    can_view_projects?
+  end
 
 end
