@@ -7,7 +7,7 @@ module WarehouseReports
       @range = DateRangeAndProject.new(date_range_options)
       @column = sort_column
       @direction = sort_direction
-      scope = service_history_source
+      scope = service_history_scope
       if ( pts = @range.project_type.select(&:present?).map(&:to_sym) ).any?
         scope = scope.where( service_history_source.project_type_column => pts.flat_map{ |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] } )
       end
@@ -60,7 +60,7 @@ module WarehouseReports
     private def client_source
       GrdaWarehouse::Hud::Client.destination.veteran
     end
-    private def service_history_source
+    private def service_history_scope
       project_types = project_source::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort
       service_history_source.where(service_history_source.project_type_column => project_types)
     end
