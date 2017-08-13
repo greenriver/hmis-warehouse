@@ -85,7 +85,7 @@
           - days_served = client.processed_service_history.try(:days_served) || 0
           
           - scope = client.scope_for_residential_enrollments
-          - enrollments = client.enrollments_for_rollup(scope: scope, include_confidential_names: @include_confidential_names)
+          - enrollments = client.enrollments_for_rollup(en_scope: scope, include_confidential_names: @include_confidential_names)
           - total_homeless = client.total_homeless(enrollments)
           %p 
             %strong Days Homeless:
