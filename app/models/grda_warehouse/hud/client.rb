@@ -1144,7 +1144,9 @@ module GrdaWarehouse::Hud
     end
     
     def total_homeless enrollments
-      enrollments.map{ |m| m[:homeless_days] }.sum
+      enrollments.select do |enrollment| 
+        enrollment[:homeless]
+      end.map{ |m| m[:homeless_days] }.sum
     end
     
     def total_adjusted_days enrollments
