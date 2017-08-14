@@ -1,15 +1,10 @@
 module GrdaWarehouse::Tasks
   class PushClientsToCas
     require 'ruby-progressbar'
-    attr_accessor :logger, :send_notifications
+    include NotifierConfig
+    attr_accessor :logger, :send_notifications, :notifier_config
     def initialize()
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = @notifier_config.present? && Rails.env.production?
-      if @send_notifications
-        slack_url = @notifier_config['webhook_url']
-        channel = @notifier_config['channel']
-        @notifier = Slack::Notifier.new slack_url, channel: channel, username: 'ClientCleanup'
-      end
+      setup_notifier('Warehouse-CAS Sync')
       self.logger = Rails.logger
     end
 

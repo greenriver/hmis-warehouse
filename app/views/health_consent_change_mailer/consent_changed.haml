@@ -3,23 +3,15 @@
   During a recent import to the warehouse the following changes were made to patient consent:
 %ul
   - if @new_patients > 0
-    %li
-      = @new_patients
-      - if @new_patients == 1
-        new patient has been added
-      - else
-        new patients have been added
+    %li= "#{pluralize(@new_patients, 'new patient')} added"
   - if @consented > 0
-    %li
-      = @consented
-      - if @consented == 1
-        patient consented to be included
-      - else
-        patients consented to be included
+    %li= "#{pluralize(@consented, 'patient')} consented to be included"
   - if @revoked_consent > 0
+    %li= "#{pluralize(@revoked_consent, 'patient')} revoked consent"
+  - if @unmatched > 0
     %li
-      = @revoked_consent
-      - if @revoked_consent == 1
-        patient revoked consent
+      = @unmatched
+      - if @unmatched == 1
+        patient remains unmatched
       - else
-        patients revoked consent
+        patients remain unmatched  

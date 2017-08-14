@@ -7,11 +7,18 @@ module Health::Tasks
       unprocessed.each do |patient|
         match_patient_to_client(patient)
       end
+      return unmatched()
     end
 
     # figure out who doesn't yet have an entry in warehouse clients
     def unprocessed
       @unprocessed ||= hashed(Health::Patient.unprocessed.pluck(*patient_columns), patient_columns)
+    end
+
+    def unmatched
+      {
+        unmatched: Health::Patient.unprocessed.count
+      }
     end
 
     def patient_columns

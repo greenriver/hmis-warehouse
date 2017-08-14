@@ -38,5 +38,9 @@ module Window
     def set_client_from_client_id
       @client = client_source.find(params[:client_id].to_i)
     end
+    
+    def user_can_view_confidential_names?
+      false
+    end
   end
 end
