@@ -138,7 +138,7 @@ module GrdaWarehouse::Tasks
       @client_details[client.id][:days_in_last_three_years] = days_served.length
       @client_details[client.id][:age] = client.age_on(@date)
       @client_details[client.id][:individual] = ! client.presented_with_family?(after: @date - 3.years, before: @date)
-      @client_details[client.id][:homeless_since] = client.processed_service_history.try(:first_date_served)
+      @client_details[client.id][:homeless_since] = client.service_history.first_date&.first.try(:date)
       @client_details[client.id][:months_in_last_three_years] = months_homeless
       @client_details[client.id][:trigger] = chronic_trigger
       @client_details[client.id][:dmh] = dmh
