@@ -1,6 +1,6 @@
 module GrdaWarehouse::Tasks
 
-  # for accelerating queries asking for clients who entered the system within a particular date range
+  # for accelerating queries asking for clients who entered homelessness within a particular date range
   class EarliestResidentialService
     include TsqlImport
     
@@ -95,7 +95,7 @@ module GrdaWarehouse::Tasks
     end
 
     def projects
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
 
     def history

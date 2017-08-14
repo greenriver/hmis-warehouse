@@ -1,2 +1,2 @@
-= cache(['clients', 'residential_enrollments', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
-  = render 'enrollments', scope: @client.source_enrollments.hud_residential.joins( project: :organization ).preload( :client, :exit, project: :organization ).order(EntryDate: :desc)
+-# = render 'enrollments', scope: @client.source_enrollments.hud_residential.joins( project: :organization ).preload( :client, :exit, project: :organization ).order(EntryDate: :desc)
+= render 'enrollments', scope: @client.scope_for_residential_enrollments

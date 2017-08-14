@@ -1,16 +1,11 @@
 module Importing
   class RunDailyImportsJob < ActiveJob::Base
     include ActionView::Helpers::DateHelper
+    include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
 
     def initialize
-      @notifier_config = Rails.application.config_for(:exception_notifier)['slack'] rescue nil
-      @send_notifications = notifier_config.present? && ( Rails.env.development? || Rails.env.production? )
-      if @send_notifications
-        slack_url = notifier_config['webhook_url']
-        channel   = notifier_config['channel']
-        @notifier  = Slack::Notifier.new slack_url, channel: channel, username: 'DailyImporter'
-      end
+      setup_notifier('DailyImporter')
     end
 
     def perform

@@ -1,17 +1,12 @@
 
 module GrdaWarehouse::Tasks
   class ClientCleanup
+    include NotifierConfig
     require 'ruby-progressbar'
-    attr_accessor :logger, :send_notifications
+    attr_accessor :logger, :send_notifications, :notifier_config
     def initialize(max_allowed=200, bogus_notifier=false, debug: false)
       @max_allowed = max_allowed
-      exception_notifier_config = Rails.application.config_for(:exception_notifier)['slack']
-      @send_notifications = (Rails.env.development? || Rails.env.production?) && exception_notifier_config.present?
-      if @send_notifications
-        slack_url = exception_notifier_config['webhook_url']
-        channel = exception_notifier_config['channel']
-        @notifier = Slack::Notifier.new slack_url, channel: channel, username: 'ClientCleanup'
-      end
+      setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
     end

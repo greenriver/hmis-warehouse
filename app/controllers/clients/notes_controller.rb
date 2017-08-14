@@ -11,6 +11,7 @@ module Clients
       rescue Exception => e
         flash[:error] = "Note could not be deleted."
       end
+      # Redirect will not work correctly in the Window
       redirect_to client_path(client)
     end
   end

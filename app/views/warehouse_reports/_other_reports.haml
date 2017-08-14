@@ -20,31 +20,30 @@
   %br
   .row
     .col-sm-4
-      = link_to warehouse_reports_manage_cas_flags_path do
-        Manage CAS Flags
-      %br
-      Use this report to bulk update 
-      %strong available in cas, disability verification on file, and HAN release on file
-    .col-sm-4
       = link_to warehouse_reports_client_in_project_during_date_range_index_path do
         Clients in a project for a given date range
       %br
-          
+      Who was enrolled at a specific project during a given time.
     .col-sm-4
       = link_to warehouse_reports_active_veterans_path do
         Active Veterans for a given date range
       %br
-  %br
-  .row
+      Find veterans who were homeless during a date range, limitable by project type.
     .col-sm-4
       = link_to warehouse_reports_find_by_id_index_path do
         Bulk Find Client Details by ID
+      %br
+      Lookup clients by warehouse ID.  Useful for doing research outside of the warehouse and then reconnecting clients.
+  .row
+    
     .col-sm-4
       = link_to warehouse_reports_veteran_details_exits_path do
         Veteran Exits
       %br
-        Details of veterans who exited from homelessness during a given date range.
+      Details of veterans who exited from homelessness during a given date range.
     .col-sm-4
       = link_to warehouse_reports_disabilities_path do
         Enrolled clients with selected disabilities
+      %br
+      Find currently enrolled clients based on disabilities 
 

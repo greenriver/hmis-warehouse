@@ -77,6 +77,7 @@ module ClientController
 
     # ajaxy method to render a particular rollup table
     def rollup
+      @include_confidential_names = user_can_view_confidential_names?
       allowed_rollups = [
         "/clients/rollup/assessments",
         "/clients/rollup/assessments_without_data",
@@ -118,7 +119,7 @@ module ClientController
       type = "GrdaWarehouse::ClientNotes::ChronicJustification"
       @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
       begin
-        raise "Note type note found" unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
+        raise "Note type not found" unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
         @client.notes.create!(note_params.merge({user_id: current_user.id, type: type}))
         flash[:notice] = "Added new note"
         redirect_to action: :show

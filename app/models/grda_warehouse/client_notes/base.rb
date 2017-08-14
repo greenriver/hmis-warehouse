@@ -7,11 +7,11 @@ module GrdaWarehouse::ClientNotes
     belongs_to :user
     
     scope :window_notes, -> do
-      where(type: GrdaWarehouse::WindowNote)
+      where(type: GrdaWarehouse::ClientNotes::WindowNote)
     end
     
     scope :chronic_justifications, -> do
-      where(type: GrdaWarehouse::ChronicJustification)
+      where(type: GrdaWarehouse::ClientNotes::ChronicJustification)
     end 
     
     def self.type_name
