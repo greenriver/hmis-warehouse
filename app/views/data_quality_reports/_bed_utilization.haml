@@ -39,7 +39,10 @@
           %td= project[:capacity]
           - [:average_daily, :first_of_month, :fifteenth_of_month, :last_of_month].each_with_index do |measure, index|
             - odd_class = if index % 2 == 1 then '' else 'lightest-gray' end 
-            %td{class: odd_class}= project[measure]
+            %td{class: odd_class}
+              - key = "bed_utilization_#{project[:id]}_#{measure}"
+              = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                = project[measure]
             %td{class: odd_class}
               - if project[measure] != 0 && project[:capacity] != 0
                 = "#{(project[measure].to_f  / project[:capacity] * 100).round(1) rescue 0}%"

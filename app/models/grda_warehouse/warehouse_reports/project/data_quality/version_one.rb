@@ -50,14 +50,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def add_bed_utilization
       bed_utilization = []
+      support = {}
+      client_columns = [:client_id, c_t[:FirstName].as('first_name').to_sql, c_t[:LastName].as('last_name').to_sql]
       filter = ::Filters::DateRange.new(start: self.start, end: self.end)
       projects.each do |project|
         inventory_count = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
-        average_count = project.service_history.where(date: filter.range).count / filter.range.count
-        first_of_month = project.service_history.where(date: filter.first).count
-        fifteenth_of_month = project.service_history.where(date: filter.ides).count
-        last_of_month = project.service_history.where(date: filter.last).count
+        average_clients = project.service_history.where(date: filter.range).
+          joins(:client).
+          pluck(*client_columns)
+        average_count = average_clients.count / filter.range.count
+        first_clients = project.service_history.where(date: filter.first).
+          joins(:client).
+          pluck(*client_columns)
+        first_of_month = first_clients.count
+        fifteenth_clients = project.service_history.where(date: filter.ides).
+          joins(:client).
+          pluck(*client_columns)
+        fifteenth_of_month = fifteenth_clients.count
+        last_clients = project.service_history.where(date: filter.last).
+          joins(:client).
+          pluck(*client_columns)
+        last_of_month = last_clients.count
         project_counts = {
+          id: project.id,
           name: project.name,
           project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
           capacity: inventory_count,
@@ -67,10 +82,30 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           last_of_month: last_of_month,
         }
         bed_utilization << project_counts
+        support["bed_utilization_#{project.id}_average_daily"] = {
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: average_clients.uniq
+        }
+        support["bed_utilization_#{project.id}_first_of_month"] = {
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: first_clients.uniq
+        }
+        support["bed_utilization_#{project.id}_fifteenth_of_month"] = {
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: fifteenth_clients.uniq
+        }
+        support["bed_utilization_#{project.id}_last_of_month"] = {
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: last_clients.uniq
+        }
       end
-      add_answers({
-        bed_utilization: bed_utilization
-      })
+      add_answers(
+        {
+          bed_utilization: bed_utilization
+        },
+        support
+      )
+      
     end
 
     def set_bed_coverage_data      
