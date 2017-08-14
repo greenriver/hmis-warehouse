@@ -1,6 +1,12 @@
 .warehouse-reports__data-quality-reports
   %h3 Coordinated Access System Reports
-  .row
+  .row.margin-bottom-02
+    .col-sm-4
+      = link_to warehouse_reports_manage_cas_flags_path do
+        Manage CAS Flags
+      %br
+      Use this report to bulk update 
+      %strong available in cas, disability verification on file, and HAN release on file
     .col-sm-4
       = link_to warehouse_reports_cas_decision_efficiency_index_path do
         Decision Efficiency
@@ -11,6 +17,7 @@
         Decline Reason
       %br
       Why CAS matches were declined.
+  .row
     .col-sm-4
       = link_to warehouse_reports_cas_chronic_reconciliation_index_path do
         Chronic Reconcilliation
