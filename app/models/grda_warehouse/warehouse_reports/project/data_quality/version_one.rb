@@ -14,6 +14,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_capacity_answers()
       meets_data_quality_benchmark()
       add_bed_utilization()
+      add_missing_values()
       finish_report()
     end
 
@@ -46,6 +47,156 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         coc_program_component: coc_program_components.join(', '),
         target_population: target_populations.join(', '),
       })
+    end
+
+    def add_missing_values
+      projects.each do |project|
+        missing_name = Set.new
+        missing_ssn = Set.new
+        missing_dob = Set.new
+        missing_veteran = Set.new
+        missing_ethnicity = Set.new
+        missing_race = Set.new
+        missing_gender = Set.new
+
+        refused_name = Set.new
+        refused_ssn = Set.new
+        refused_dob = Set.new
+        refused_veteran = Set.new
+        refused_ethnicity = Set.new
+        refused_race = Set.new
+        refused_gender = Set.new
+
+        clients_for_project = client_scope.where(Project: {id: project.id}).
+          select(*client_columns.values).
+          distinct.
+          pluck(*client_columns.values).
+          map do |row|
+            Hash[client_columns.keys.zip(row)]
+          end
+        clients_for_project.each do |client|
+          if client[:first_name].blank? || client[:last_name].blank? || missing?(client[:name_data_quality])
+            missing_name << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:ssn].blank? || missing?(client[:ssn_data_quality])
+            missing_ssn << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:dob].blank? || missing?(client[:dob_data_quality])
+            missing_dob << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:veteran_status].blank? || missing?(client[:veteran_status])
+            missing_veteran << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:ethnicity].blank? || missing?(client[:ethnicity])
+            missing_ethnicity << [client[:id], client[:first_name], client[:last_name]]
+          end
+          # If we have no race info, whatsoever
+          if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
+            missing_race << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:gender].blank? || missing?(client[:gender])
+            missing_gender << [client[:id], client[:first_name], client[:last_name]]
+          end
+  
+          if client[:first_name].blank? || client[:last_name].blank? || refused?(client[:name_data_quality])
+            refused_name << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:ssn].blank? || refused?(client[:ssn_data_quality])
+            refused_ssn << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:dob].blank? || refused?(client[:dob_data_quality])
+            refused_dob << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:veteran_status].blank? || refused?(client[:veteran_status])
+            refused_veteran << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:ethnicity].blank? || refused?(client[:ethnicity])
+            refused_ethnicity << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if refused?(client[:race_none])
+            refused_race << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if client[:gender].blank? || refused?(client[:gender])
+            refused_gender << [client[:id], client[:first_name], client[:last_name]]
+          end
+        end
+        answers = {
+          "project_#{project.id}_missing_name" => missing_name.size,   
+          "project_#{project.id}_missing_ssn" => missing_ssn.size,   
+          "project_#{project.id}_missing_dob" => missing_dob.size,     
+          "project_#{project.id}_missing_veteran" => missing_veteran.size,       
+          "project_#{project.id}_missing_ethnicity" => missing_ethnicity.size,       
+          "project_#{project.id}_missing_race" => missing_race.size,
+          "project_#{project.id}_missing_gender" => missing_gender.size,
+          "project_#{project.id}_refused_name" => refused_name.size,
+          "project_#{project.id}_refused_ssn" => refused_ssn.size,
+          "project_#{project.id}_refused_dob" => refused_dob.size,
+          "project_#{project.id}_refused_veteran" => refused_veteran.size,
+          "project_#{project.id}_refused_ethnicity" => refused_ethnicity.size,
+          "project_#{project.id}_refused_race" => refused_race.size,
+          "project_#{project.id}_refused_gender" => refused_gender.size,
+        }
+        support = {
+          "project_#{project.id}_missing_name" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_name.to_a
+          },   
+          "project_#{project.id}_missing_ssn" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_ssn.to_a
+          },   
+          "project_#{project.id}_missing_dob" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_dob.to_a
+          },     
+          "project_#{project.id}_missing_veteran" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_veteran.to_a
+          },       
+          "project_#{project.id}_missing_ethnicity" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_ethnicity.to_a
+          },       
+          "project_#{project.id}_missing_race" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_race.to_a
+          },
+          "project_#{project.id}_missing_gender" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: missing_gender.to_a
+          },
+          "project_#{project.id}_refused_name" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_name.to_a
+          },
+          "project_#{project.id}_refused_ssn" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_ssn.to_a
+          },
+          "project_#{project.id}_refused_dob" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_dob.to_a
+          },
+          "project_#{project.id}_refused_veteran" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_veteran.to_a
+          },
+          "project_#{project.id}_refused_ethnicity" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_ethnicity.to_a
+          },
+          "project_#{project.id}_refused_race" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_race.to_a
+          },
+          "project_#{project.id}_refused_gender" => {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: refused_gender.to_a
+          },
+        }
+        add_answers(answers, support)
+      end
+      
     end
 
     def add_bed_utilization
