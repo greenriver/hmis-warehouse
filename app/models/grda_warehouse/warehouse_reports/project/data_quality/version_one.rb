@@ -51,6 +51,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def add_missing_values
       totals = {}
+      answers = {project_missing: {}}
+      support = {}
       self.class.missing_refused_names.each do |word|
         totals["missing_#{word}"] = Set.new
         totals["refused_#{word}"] = Set.new
@@ -62,15 +64,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           counts["missing_#{word}"] = Set.new
           counts["refused_#{word}"] = Set.new
         end
-        
-        clients_for_project = client_scope.where(Project: {id: project.id}).
-          select(*client_columns.values).
-          distinct.
-          pluck(*client_columns.values).
-          map do |row|
-            Hash[client_columns.keys.zip(row)]
-          end
-        clients_for_project.each do |client|
+        clients_in_project = clients_for_project(project.id)
+        clients_in_project.each do |client|
           if client[:first_name].blank? || client[:last_name].blank? || missing?(client[:name_data_quality])
             counts['missing_name'] << [client[:id], client[:first_name], client[:last_name]]
           end
@@ -116,19 +111,72 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             counts['refused_gender'] << [client[:id], client[:first_name], client[:last_name]]
           end
         end
-        answers = {project_missing: {}}
-        support = {}
+        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)
+        if enrollments_in_project.any?
+          enrollments_in_project.each do |client_id, enrollments|
+            if enrollments.present?
+              enrollments.each do |enrollment|
+                if missing?(enrollment[:disabling_condition])
+                  counts['missing_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if missing?(enrollment[:residence_prior])
+                  counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if refused?(enrollment[:disabling_condition])
+                  counts['missing_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if refused?(enrollment[:residence_prior])
+                  counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+              end
+            end
+            leavers_in_project = leavers_for_project(project.ProjectID, project.data_source_id)
+            if leavers_in_project.any?
+              leavers_in_project.each do |client_id|
+                enrollments_in_project[client_id].each do |enrollment|
+                  if missing?(enrollment[:destination])
+                    counts['missing_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                  end
+                  if refused?(enrollment[:destination])
+                    counts['refused_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                  end
+                end
+              end
+            end
+          end
+        end
         counts.each do |key, value|
           totals[key] += value
-          answers[:project_missing][key] ||= []
-          answers[:project_missing][key] << value.size
+          answers[:project_missing][project.id] ||= {}
+          answers[:project_missing][project.id][key] = value.size
+          answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size) 
           support["project_missing_#{project.id}_#{key}"] = {
             headers: ['Client ID', 'First Name', 'Last Name'],
             counts: value.to_a
           }
         end
-        add_answers(answers, support)
+        answers[:project_missing][project.id][:total_clients] = clients_in_project.size
+        missing_clients = counts.values.reduce(&:+)
+        totals[:total_missing] ||= Set.new
+        totals[:total_missing] += missing_clients
+        answers[:project_missing][project.id][:total_missing] = missing_clients.size
+        answers[:project_missing][project.id][:total_missing_percentage] = in_percentage(missing_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:score] = in_percentage(missing_clients.size, clients_in_project.size)
       end
+      answers[:project_missing][:totals] = totals.map do |key, clients|
+        [key, clients.count]
+      end.to_h
+      answers[:project_missing][:totals][:score] = in_percentage(totals.values.map(&:size).max, clients.size)
+      totals[:total_clients] = clients
+      answers[:project_missing][:totals][:total_clients] = totals[:total_clients].size
+      totals.each do |key, value|
+        answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
+        support["project_missing_totals_#{key}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: value.to_a
+        }
+      end
+      add_answers(answers, support)
     end
 
     def self.missing_refused_names
@@ -140,67 +188,83 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :ethnicity,
         :race,
         :gender,
+        :disabling_condition,
+        :residence_prior,
+        :destination,
       ]
     end
 
     def add_bed_utilization
       bed_utilization = []
       support = {}
+      totals = {counts: Hash.new(0), data: Hash.new(Set.new)}
+      
       client_columns = [:client_id, c_t[:FirstName].as('first_name').to_sql, c_t[:LastName].as('last_name').to_sql]
       filter = ::Filters::DateRange.new(start: self.start, end: self.end)
       projects.each do |project|
-        inventory_count = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
-        average_clients = project.service_history.where(date: filter.range).
+        counts = {}
+        data = {}
+        counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
+        data[:average_daily] = project.service_history.where(date: filter.range).
           joins(:client).
           pluck(*client_columns)
-        average_count = average_clients.count / filter.range.count
-        first_clients = project.service_history.where(date: filter.first).
+          counts[:average_daily] = data[:average_daily].count / filter.range.count
+        data[:first_of_month] = project.service_history.where(date: filter.first).
           joins(:client).
           pluck(*client_columns)
-        first_of_month = first_clients.count
-        fifteenth_clients = project.service_history.where(date: filter.ides).
+          counts[:first_of_month] = data[:first_of_month].count
+        data[:fifteenth_of_month] = project.service_history.where(date: filter.ides).
           joins(:client).
           pluck(*client_columns)
-        fifteenth_of_month = fifteenth_clients.count
-        last_clients = project.service_history.where(date: filter.last).
+        counts[:fifteenth_of_month] = data[:fifteenth_of_month].count
+        data[:last_of_month] = project.service_history.where(date: filter.last).
           joins(:client).
           pluck(*client_columns)
-        last_of_month = last_clients.count
+        counts[:last_of_month] = data[:last_of_month].count
         project_counts = {
           id: project.id,
           name: project.name,
           project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
-          capacity: inventory_count,
-          average_daily: average_count,
-          first_of_month: first_of_month,
-          fifteenth_of_month: fifteenth_of_month,
-          last_of_month: last_of_month,
-        }
+        }.merge(counts)
+        totals[:counts][:capacity] += counts[:capacity]
+        self.class.bed_utilization_attributes.each do |attr|
+          project_counts["#{attr}_percentage"] = in_percentage(counts[attr], counts[:capacity])
+          totals[:counts][attr] += counts[attr]
+          totals[:data][attr] += data[attr]
+          support["bed_utilization_#{project.id}_#{attr}"] = {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: data[attr].uniq
+          }
+        end
+        
         bed_utilization << project_counts
-        support["bed_utilization_#{project.id}_average_daily"] = {
+
+      end
+      self.class.bed_utilization_attributes.each do |attr|
+        totals[:counts]["#{attr}_percentage"] = in_percentage(totals[:counts][attr], totals[:counts][:capacity])
+        support["bed_utilization_totals_#{attr}"] = {
           headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: average_clients.uniq
-        }
-        support["bed_utilization_#{project.id}_first_of_month"] = {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: first_clients.uniq
-        }
-        support["bed_utilization_#{project.id}_fifteenth_of_month"] = {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: fifteenth_clients.uniq
-        }
-        support["bed_utilization_#{project.id}_last_of_month"] = {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: last_clients.uniq
+          counts: totals[:data][attr].uniq
         }
       end
+      
       add_answers(
         {
-          bed_utilization: bed_utilization
+          bed_utilization: bed_utilization,
+          bed_utilization_totals: totals,
         },
         support
       )
       
+    end
+
+    def self.bed_utilization_attributes
+      [
+        :average_daily, 
+        :first_of_month, 
+        :fifteenth_of_month,
+        :last_of_month,
+      ]
     end
 
     def set_bed_coverage_data      

@@ -43,6 +43,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    def clients_for_project project_id
+      client_scope.where(Project: {id: project_id}).
+        select(*client_columns.values).
+        distinct.
+        pluck(*client_columns.values).
+        map do |row|
+          Hash[client_columns.keys.zip(row)]
+        end
+    end
+
     def enrollments
       @enrollments ||= begin
         client_scope.pluck(*enrollment_columns.values).
@@ -51,6 +61,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end.
         group_by{|m| m[:id]}
       end
+    end
+
+    def enrollments_for_project project_id, data_source_id
+      enrollments_in_project = {}
+      enrollments.each do |client_id, involved_enrollment|
+        enrollments_in_project[client_id] = involved_enrollment.select do |en| 
+          en[:project_id] == project_id && en[:data_source_id] == data_source_id
+        end
+      end
+      enrollments_in_project
     end
 
     def incomes
@@ -74,6 +94,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
         incomes
       end
+    end
+
+    def leavers_for_project project_id, data_source_id
+      leavers = Set.new
+      enrollments_in_project = enrollments_for_project(project_id, data_source_id)
+      if enrollments_in_project.any?
+        enrollments_in_project.each do |client_id, enrollments|
+          leaver = true
+          if enrollments.present?
+            enrollments.each do |enrollment|
+              leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] > self.end
+            end
+          end
+          leavers << client_id if leaver
+        end
+      end
+      leavers
     end
 
     def leavers
@@ -141,6 +178,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
         residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,
         disabling_condition: e_t[:DisablingCondition].as('disabling_condition').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
       }
     end
 
@@ -207,6 +246,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def missing?(value)
       return true if value.blank?
       [99].include?(value.to_i)
+    end
+
+    def in_percentage numerator, denominator
+      ((numerator.to_f/denominator) * 100).round(2) rescue 0
     end
 
     # Display methods

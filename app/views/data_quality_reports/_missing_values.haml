@@ -55,7 +55,7 @@
             %td{class: odd_class}
               - if any_clients
                 - key = "project_missing_#{project.id}_missing_#{word}"
-                = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                   = counts["#{project.id}"]["missing_#{word}"]
             %td{class: odd_class}
               - if any_clients
@@ -63,7 +63,7 @@
             %td{class: odd_class}
               - if any_clients
                 - key = "project_missing_#{project.id}_refused_#{word}"
-                = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                   = counts["#{project.id}"]["refused_#{word}"]
             %td{class: odd_class}
               - if any_clients
