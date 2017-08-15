@@ -113,6 +113,7 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
     has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    has_many :case_management_notes, -> { where(name: 'SDH Case Management Note')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :health_touch_points, -> do
       f_t = GrdaWarehouse::HmisForm.arel_table
       where(f_t[:collection_location].matches('Social Determinants of Health%'))
@@ -1156,6 +1157,30 @@ module GrdaWarehouse::Hud
     
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
+    end
+
+    def health_housing_stati
+      case_management_notes.map do |form|
+        answer = form.answers[:sections].first[:questions].select do |question|
+          question[:question] == "A-6. Where did you sleep last night?"
+        end
+        [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer)]
+      end.to_h
+    end
+
+    def self.health_housing_positive_outcomes
+      [    
+        #Doubling Up
+        #Shelter
+        #Street
+        #Transitional Housing / Residential Treatment Program
+        #Motel
+        'Supportive Housing',
+        'Housing with No Supports',
+        'Assisted Living / Nursing Home / Rest Home',
+        # Unknown
+        # Other
+      ]
     end
     
     private def next_enrollment enrollments:, type:, start:
