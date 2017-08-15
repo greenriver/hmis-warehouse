@@ -1,4 +1,6 @@
-.btn-group.client__sort
+.pull-right
+  = link_to "Download Excel", params.merge(format: :xlsx), class: 'btn btn-secondary'
+.btn-group.client__sort.form-inline
   %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
     Sort
     %span.caret

@@ -65,6 +65,9 @@ module WarehouseReports
         preload(:source_disabilities).
         where(filter_query).
         has_homeless_service_after_date(date: (@filter.date - @filter.last_service_after.days))
+      if @filter.name&.present?
+        @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
+      end
     end
 
     private def set_sort
@@ -100,6 +103,7 @@ module WarehouseReports
       attribute :dmh, Boolean, default: false
       attribute :veteran, Boolean, default: false
       attribute :last_service_after, Integer, default: 30
+      attribute :name, String
 
       def dates
         @dates ||= GrdaWarehouse::Chronic.select(:date).distinct.order(date: :desc).pluck(:date)

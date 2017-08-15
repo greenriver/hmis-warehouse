@@ -21,13 +21,14 @@
 
 
   .row(style="padding: 1em 1em 0 1em")
-    .col-sm-6
+    .col-sm-12
+      %hr
       .pagination
         %p= page_entries_info @clients, entry_name: _('client')
         %p= paginate @clients
+  .row(style="padding: 0 1em")
+    .col-sm-12
       = render('sort', sort_options: GrdaWarehouse::Chronic.sort_options) if @clients.any?
-    .col-sm-6.text-right
-      = link_to "Download Excel", params.merge(format: :xlsx), class: 'btn btn-secondary'
 
   - @clients.each do |client|
     - chronic = client.chronics.first # we can do this because we scope to only the day in question in the controller
