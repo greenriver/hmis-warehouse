@@ -451,7 +451,7 @@ module Importers
     # if it didn't, we need to report on that and not import the data
     def stop_if_export_is_invalid existing_export: , new_export:
       return true if existing_export[:ExportID] != new_export[:ExportID] || existing_export[:ExportStartDate].blank?
-      if existing_export[:ExportStartDate] != new_export[:ExportStartDate] || existing_export[:ExportEndDate].to_date > new_export[:ExportEndDate].to_date
+      if existing_export[:ExportStartDate].to_date != new_export[:ExportStartDate].to_date || existing_export[:ExportEndDate].to_date > new_export[:ExportEndDate].to_date
         msg = "Refusing to process export: #{new_export[:ExportID]}, the parameters have changed, but the export id is the same. existing: #{existing_export.inspect}; new: #{new_export.inspect}"
         @notifier.ping msg if @send_notifications
         raise msg
