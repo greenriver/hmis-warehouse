@@ -53,6 +53,6 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      census = new App.Census.CensusByProgram('#{date_range_censuses_path(project_id: @project.ProjectID, data_source_id: @project.data_source_id)}', 'Censuses::CensusByProgram', '#{Date.today - 1.year}', '#{Date.today - 1.day}');
+      census = new App.Census.CensusByProgram('#{date_range_censuses_path(project_id: @project.ProjectID, data_source_id: @project.data_source_id)}', 'Censuses::CensusByProgram', '#{Date.today - 3.years}', '#{Date.today - 1.day}');
       census.load();
     })(jQuery);
