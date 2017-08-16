@@ -9,7 +9,7 @@ module Window::Clients
     before_action :set_vispdat, only: [:show, :edit, :update, :destroy]
 
     def index
-      @vispdats = @client.vispdats
+      @vispdats = @client.vispdats.order(created_at: :desc)
       respond_with(@vispdats)
     end
 
@@ -17,22 +17,30 @@ module Window::Clients
       respond_with(@vispdat)
     end
 
-    def new
-      @vispdat = @client.vispdats.build
-      respond_with(@vispdat)
-    end
+    # def new
+    #   @vispdat = @client.vispdats.build
+    #   @vispdat.save(validate: false)
+    #   respond_with(@vispdat, action: :edit)
+    # end
 
     def edit
     end
 
     def create
-      @vispdat = @client.vispdats.build(vispdat_params)
-      @vispdat.save
+      if @client.vispdats.in_progress.none?
+        @vispdat = @client.vispdats.build
+        @vispdat.save(validate: false)
+      end
       respond_with(@vispdat, location: polymorphic_path(vispdats_path_generator, client_id: @client.id))
     end
 
     def update
-      @vispdat.update(vispdat_params)
+      if params[:commit]=='Complete'
+        @vispdat.update(vispdat_params.merge(submitted_at: Time.now))
+      else
+        @vispdat.assign_attributes(vispdat_params)
+        @vispdat.save(validate: false)
+      end
       respond_with(@vispdat, location: polymorphic_path(vispdats_path_generator, client_id: @client.id))
     end
 

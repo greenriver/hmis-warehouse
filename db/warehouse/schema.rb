@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170816205625) do
+ActiveRecord::Schema.define(version: 20170817150519) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1560,6 +1560,7 @@ SELECT "Services"."ServicesID",
     t.string   "recommendation"
     t.datetime "created_at",                   :null=>false
     t.datetime "updated_at",                   :null=>false
+    t.datetime "submitted_at"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
 

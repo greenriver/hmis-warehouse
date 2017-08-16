@@ -4,7 +4,7 @@
   = f.error_notification
 
   %h2 Basic Information
-  .well
+  .well.vispdat.vispdat-basic-information
     .row
       .col-sm-4
         %label.control-label First Name
@@ -29,9 +29,12 @@
       .col-sm-12
         %label Consent to Participate?
         = f.input :consent, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
 
   %h2 History of Housing & Homelessness
-  .well
+  .well.vispdat.vispdat-history
     .row
       .col-sm-4
         = f.input :sleep_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.sleep_options, label: "Where do you sleep most frequently? (check one)"
@@ -42,9 +45,12 @@
       .col-sm-4
         = f.input :episodes_homeless, label: "In the last three years, how many times have you been homeless?"
         = f.input :episodes_homeless_refused, label: "Refused"
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
 
   %h2 Risks
-  .well
+  .well.vispdat.vispdat-risks-1
     %h4 In the past six months, how many times have you...
     %br
     .row
@@ -89,7 +95,10 @@
         = f.input :jail, label: false
       .col-sm-1
         = f.input :jail_refused, label: "Refused"
-  .well
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
+  .well.vispdat.vispdat-risks-2
     .row
       .col-sm-9
         %label Have you been attacked or beaten up since you've become homeless?
@@ -115,9 +124,12 @@
         %label Do you ever do things that may be considered to be risky like exchange sex for money, run drugs for someone, have unprotected sex with someone you don’t know, share a needle, or anything like that?
       .col-sm-3
         = f.input :risky_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:risky_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
 
   %h2 Socialization & Daily Functioning
-  .well
+  .well.vispdat.vispdat-social
     .row
       .col-sm-9
         %label Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you owe them money?
@@ -143,9 +155,12 @@
         %label Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?
       .col-sm-3
         = f.input :abusive_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:abusive_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
 
   %h2 Wellness
-  .well
+  .well.vispdat.vispdat-wellness-1
     .row
       .col-sm-9
         %label Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?
@@ -188,7 +203,11 @@
         %label Will drinking or drug use make it difficult for you to stay housed or afford your housing?
       .col-sm-3
         = f.input :drinking_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:drinking_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
-  .well
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
+
+  .well.vispdat.vispdat-wellness-2
     %h4 Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:
     %br
     .row
@@ -206,7 +225,11 @@
         %label A learning disability, developmental disability, or other impairment?
       .col-sm-3
         = f.input :learning_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:learning_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
-  .well
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
+
+  .well.vispdat.vispdat-wellness-3
     .row
       .col-sm-9
         %label Do you have any mental health or brain issues that would make it hard for you to live independently because you’d need help?
@@ -228,6 +251,9 @@
         %label Has your current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you have experienced?
       .col-sm-3
         = f.input :trauma_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:trauma_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+    .row
+      .col-sm-12.text-right
+        = render 'save_progress_button'
 
   %h2 Follow-Up Questions
   .well
@@ -258,4 +284,6 @@
 
 
   %hr
-  = f.submit 'Save', class: 'btn btn-primary'
+    .row
+      .col-sm-12.text-right
+        = f.submit 'Complete', class: 'btn btn-primary'

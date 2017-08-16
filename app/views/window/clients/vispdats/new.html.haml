@@ -5,7 +5,7 @@
 
 %h1
   .pull-right
-    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'View', data: { toggle: 'tooltip' }
+    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'Back', data: { toggle: 'tooltip' }
   = title
   %small VI-SPDAT
   %hr
@@ -15,5 +15,3 @@
     = render 'window/clients/tab_navigation', current: window_client_vispdats_path(@client)
 
 = render 'form', readonly: false
-
-= render 'autofill' if Rails.env.development? && action_name=='new'

@@ -1,0 +1,11 @@
+%tr{ id: "vispdat-#{vispdat.id}" }
+  %td
+    %h2
+      - if vispdat.completed?
+        = link_to vispdat.created_at, polymorphic_path(vispdat_path_generator, id: vispdat.id)
+      - else
+        = link_to vispdat.created_at, polymorphic_path([:edit] + vispdat_path_generator, id: vispdat.id)
+      %br
+      %small= vispdat.completed? ? 'Complete' : '(in progress)'
+  %td.text-center
+    %h1= vispdat.score

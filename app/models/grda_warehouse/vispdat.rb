@@ -50,8 +50,8 @@ module GrdaWarehouse
     validates :find_location, length: { in: 0..100 }
     validates :find_time, length: { in: 0..10 }
     validates :when_answer, inclusion: { in: when_answers.keys }, allow_blank: true
-    validates :phone, format: { with: US_PHONE_NUMBERS }
-    validates_email_format_of :email
+    validates :phone, format: { with: US_PHONE_NUMBERS }, allow_blank: true
+    validates_email_format_of :email, allow_blank: true
 
     # Require the refused checkbox to be checked if no answer given
     # Require an answer if the refused checkbox not checked.
@@ -74,6 +74,12 @@ module GrdaWarehouse
       # if refused checked and answer given
       validates field.to_sym, absence: { message: 'cannot have an entry if refusing to answer' }, if: -> { send([field, '_refused?'].join.to_sym) }
     end
+
+    ####################
+    # Scopes
+    ####################
+
+    scope :in_progress, -> { where(submitted_at: nil) }
 
     ####################
     # Callbacks
@@ -142,6 +148,14 @@ module GrdaWarehouse
     def answer_for enum
       return '-' if send(enum).blank?
       send(enum).titleize.split.last
+    end
+
+    def completed?
+      submitted_at.present?
+    end
+
+    def in_progress?
+      !completed
     end
 
     ####################

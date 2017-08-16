@@ -37,6 +37,7 @@
 //= require pjax-modals
 //= require util
 //= require site_menu
+//= require vispdats
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps
