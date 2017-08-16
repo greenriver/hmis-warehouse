@@ -11,7 +11,7 @@
     .pull-right
       = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit', data: { toggle: 'tooltip' } do
         %span.icon-pencil
-      = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-danger', title: 'Delete', method: :delete, data: { toggle: 'tooltip', confirm: 'Are you sure?' } do
+      = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-danger', title: 'Delete', method: :delete, data: { toggle: 'tooltip', confirm: "Are you sure you want to delete the VI-SPDAT for #{@client.full_name}?" } do
         %span.icon-cross
       = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default'
     = content_for :title
