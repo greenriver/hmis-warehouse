@@ -189,7 +189,7 @@ module GrdaWarehouse
     ####################
     def dob_score
       return 0 unless dob.present?
-      dob < 60.years.ago ? 0 : 1
+      dob > 60.years.ago ? 0 : 1
     end
     def sleep_score
       (sleep_outdoors? || sleep_other? || sleep_refused?) ? 1 : 0
