@@ -28,6 +28,13 @@
   margin: 0;
   line-height: 1.2;
 }
+.section-expander-block__header a:link,
+.section-expander-block__header a:visited,
+.section-expander-block__header a:hover,
+.section-expander-block__header a:active
+{
+  color: $gray-070;
+}
 .section-expander-block__expander-region {
   text-align: right;
   vertical-align: middle;
@@ -78,4 +85,8 @@
 .health__team-member__action a:focus
  {
   color: darken($cob-sg-blue-006, 20);
+}
+.panel-heading [class^="icon-"], [class*=" icon-"]
+{
+  font-size: 22px;
 }
