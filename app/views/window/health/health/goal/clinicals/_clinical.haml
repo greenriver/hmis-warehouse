@@ -1,47 +1,53 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 - goal = clinical
-.well.section-expander-block.open.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
-  .row
-    .col-md-7
-      %h3.section-expander-block__header
-        = goal.name
-    .col-md-5
-      .section-expander-block__expander-region
-        .section-expander-block__metadata.text-small
-          Last Modified: 
-          %strong
-            = goal.updated_at.to_date
-            - if goal.editor.present?
-              = " by #{goal.editor&.name}"
-        - unless @readonly
-          %a.section-expander-block__expander-arrow.open
-            %i.icon-arrow-circled-right
-  .row.section-expander-block__action-row
-    .col-sm-12
-      .goal-form
-        = simple_form_for(goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: goal.id), remote: true, wrapper: wrapper) do |f|
-          .row
-            .col-sm-6
-              = f.input :name, label: 'Goal'
-              = f.input :associated_dx, label: 'Associated DX'
-              = f.input :barriers
-            .col-sm-6
-              %h3.goal__team-plan-title Team Plan
-              = f.input :provider_plan, label: 'Provider'
-              = f.input :case_manager_plan, label: 'SDH Case Manager'
-              = f.input :rn_plan, label: 'RN'
-              = f.input :bh_plan, label: 'BH'
-          - unless @readonly
-            .row
-              .col-sm-6
-                .form-actions
-                  = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
-                    Delete Goal
-                  = f.button :submit, value: 'Update Goal'
-              .col-sm-6
-                .status
-      - if goal.versions.count > 1 && ! @readonly
-        .pull-right
-          = link_to(polymorphic_path(careplan_path_generator + [:goal, :previous], goal_id: goal.id)) do 
-            < past versions
-    
+.panel-group.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
+  .panel.panel-default
+    .panel-heading
+      .row
+        .col-md-7
+          %h3.section-expander-block__header
+            %a.toggle.collapsed{data: {parent: "#goal-#{goal.id}", toggle: 'collapse'}, href: "#goal-content-#{goal.id}"}
+              = goal.name
+        .col-md-5
+          .section-expander-block__expander-region
+            .section-expander-block__metadata.text-small
+              Last Modified: 
+              %strong
+                = goal.updated_at.to_date
+                - if goal.editor.present?
+                  = " by #{goal.editor&.name}"
+            - unless @readonly
+              %a.toggle.collapsed{data: {parent: "#goal-#{goal.id}", toggle: 'collapse'}, href: "#goal-content-#{goal.id}"}
+                %i.arrow-icon.icon-arrow-circled-right
+                %i.arrow-icon.icon-arrow-circled-down.hide              
+    .panel-collapse.collapse{id: "goal-content-#{goal.id}"}
+      .panel-body
+        .row
+          .col-sm-12
+            .goal-form
+              = simple_form_for(goal, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: goal.id), remote: true, wrapper: wrapper) do |f|
+                .row
+                  .col-sm-6
+                    = f.input :name, label: 'Goal'
+                    = f.input :associated_dx, label: 'Associated DX'
+                    = f.input :barriers
+                  .col-sm-6
+                    %h3.goal__team-plan-title Team Plan
+                    = f.input :provider_plan, label: 'Provider'
+                    = f.input :case_manager_plan, label: 'SDH Case Manager'
+                    = f.input :rn_plan, label: 'RN'
+                    = f.input :bh_plan, label: 'BH'
+                - unless @readonly
+                  .row
+                    .col-sm-6
+                      .form-actions
+                        = link_to polymorphic_path(careplan_path_generator + [:goal], id: goal.id), method: :delete, class: 'btn btn-secondary' do 
+                          Delete Goal
+                        = f.button :submit, value: 'Update Goal'
+                    .col-sm-6
+                      .status
+            - if goal.versions.count > 1 && ! @readonly
+              .pull-right
+                = link_to(polymorphic_path(careplan_path_generator + [:goal, :previous], goal_id: goal.id)) do 
+                  < past versions
+          

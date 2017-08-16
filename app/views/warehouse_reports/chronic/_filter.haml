@@ -6,18 +6,18 @@
         = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'select2 jFilterOn'}
       .col-sm-2
         = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
-      .col-sm-2
-        = f.input :min_days_homeless, label: 'Min. Days Homeless', as: :integer, class: 'form-control'
       .col-sm-3
+        = f.input :min_days_homeless, label: 'Min. Days Homeless', as: :integer, class: 'form-control'
+      .col-sm-4
         = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
         = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
         = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00'}
     .row
-      .col-sm-3
+      .col-sm-4
         = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false
-      .col-sm-3
+      .col-sm-4
         = f.input :name, label: 'Client Name'
-      .col-sm-2
+      .col-sm-4.text-right
         %label.control-label &nbsp;
         %div
           = f.button :submit, value: 'Update View'

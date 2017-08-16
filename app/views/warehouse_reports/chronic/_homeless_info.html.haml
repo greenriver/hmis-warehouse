@@ -1,9 +1,15 @@
 #chronic-accordion.panel-group
   .panel.panel-default
     .panel-heading
-      %h4.panel-title
-        %a{"data-parent" => "#chronic-accordion", "data-toggle" => "collapse", href: "#chronic-info"}
-          Clients are considered chronically homeless if they...
+      .row
+        .col-xs-8
+          %h4.panel-title
+            %a.toggle.collapsed{data: {parent: '#chronic-accordion', toggle: 'collapse'}, href: '#chronic-info'}
+              Clients are considered chronically homeless if they...
+        .col-xs-4.text-right
+          %a.toggle.collapsed{data: {parent: '#chronic-accordion', toggle: 'collapse'}, href: '#chronic-info'}
+            %i.icon-arrow-circled-right
+            %i.icon-arrow-circled-down.hide
     #chronic-info.panel-collapse.collapse
       .panel-body
         .row
@@ -29,3 +35,19 @@
                 %li Chronic calculations are done using the Project Type Overrides
               %li Individuals only option limits the clients included to those who didn't present for an enrollment with anyone else during the report period
               %li A single Street Outreach day within a month counts the entire month of days toward the days homeless
+= content_for :page_js do
+  :javascript
+    $('.panel-heading').on('click', '.toggle', function(e) {
+      var $button = $(e.currentTarget);
+      var $collapsed_arrow = $(e.currentTarget).closest('.panel-heading').find('.icon-arrow-circled-right');
+      var $expanded_arrow = $(e.currentTarget).closest('.panel-heading').find('.icon-arrow-circled-down');
+      console.log($collapsed_arrow);
+      if($button.hasClass('collapsed')) {
+        $collapsed_arrow.addClass('hide');
+        $expanded_arrow.removeClass('hide');
+      }
+      else {
+        $collapsed_arrow.removeClass('hide');
+        $expanded_arrow.addClass('hide');
+      }
+    });
