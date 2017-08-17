@@ -731,6 +731,7 @@ ActiveRecord::Schema.define(version: 20170816205625) do
     t.date    "homeless_since"
     t.boolean "dmh",                        :default=>false
     t.string  "trigger"
+    t.string  "project_names"
   end
   add_index "chronics", ["client_id"], :name=>"index_chronics_on_client_id", :using=>:btree
   add_index "chronics", ["date"], :name=>"index_chronics_on_date", :using=>:btree

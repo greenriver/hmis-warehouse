@@ -115,6 +115,12 @@ module EtoApi
     end
     memoize :get_site_creds
 
+    def set_program site_id:, program_id:
+      creds = get_site_creds(site_id)
+      api_post_json "#{@endpoints[:security]}/UpdateCurrentProgram/", {ProgramID: program_id}, creds
+    end
+    memoize :set_program
+
     def client_demographic client_id:, site_id:
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:actor]}/participant/#{client_id}", creds
@@ -329,7 +335,7 @@ module EtoApi
 
     # "HUD Assessment (Entry/Update/Annual/Exit)" is TouchPointID: 75, it doesn't show up in the lists
     # by site
-    def touch_points(site_id:)
+    def touch_points(site_id:, program_id: nil)
       api_get_json "#{@endpoints[:touch_pount]}/ListTouchPoint", get_site_creds(site_id)
     end
     memoize :touch_points
