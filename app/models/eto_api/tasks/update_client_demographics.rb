@@ -202,6 +202,8 @@ module EtoApi::Tasks
             end                
           end
         end
+        # Save off the last section
+        answers[:sections] << section if section.present?
         staff = @api.staff(site_id: site_id, id: response['AuditStaffID'])
         hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
         hmis_form.collected_at = @api.parse_date(response['AuditDate'])
