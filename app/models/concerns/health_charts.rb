@@ -6,8 +6,8 @@ module HealthCharts
       case_management_notes.map do |form|
         answer = form.answers[:sections].first[:questions].select do |question|
           question[:question] == "A-6. Where did you sleep last night?"
-        end
-        [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer)]
+        end.first
+        [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer[:answer])]
       end.to_h
     end
 
