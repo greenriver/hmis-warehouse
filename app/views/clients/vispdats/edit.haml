@@ -1,0 +1,17 @@
+- title = "Edit VISPDAT for #{@client.name} on #{@vispdat.created_at}"
+- content_for :title, title
+
+= render 'clients/breadcrumbs'
+
+.row
+  .col-sm-12
+    = render 'clients/tab_navigation', current: client_vispdats_path(@client)
+
+%h1
+  .pull-right
+    = link_to 'Back', polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-default', title: 'View', data: { toggle: 'tooltip' }
+  = title
+  .clearfix
+%hr
+
+= render 'form', readonly: false

@@ -24,7 +24,7 @@ class ClientsController < ApplicationController
       client_scope
     end
     sort_filter_index()
-    
+
   end
 
   def show
@@ -62,14 +62,14 @@ class ClientsController < ApplicationController
 
   def history
   end
-  
+
   # display an assessment form in a modal
   def assessment
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
     render 'assessment_form'
   end
 
-  
+
   # Merge clients into this client
   # If the client is a destination
   #   find its source clients
@@ -173,7 +173,7 @@ class ClientsController < ApplicationController
       chronics.
       #where(date: 1.year.ago.to_date..Date.today).
       order(date: :asc).
-      map do |c| 
+      map do |c|
         [c[:date], c[:days_in_last_three_years]]
       end.to_h
     respond_to do |format|
@@ -193,11 +193,11 @@ class ClientsController < ApplicationController
     expires_in max_age, public: false
     send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
   end
-  
+
   protected def client_source
     GrdaWarehouse::Hud::Client
   end
-    
+
   private def client_scope
     client_source.destination
   end
@@ -230,7 +230,7 @@ class ClientsController < ApplicationController
         :hues_eligible,
         :hiv_positive,
         :housing_release_status,
-        merge: [], 
+        merge: [],
         unmerge: []
       )
   end
@@ -243,7 +243,7 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
-  
+
   def user_can_view_confidential_names?
     can_view_projects?
   end

@@ -2,7 +2,7 @@ class Role < ActiveRecord::Base
   has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :users, through: :user_roles
   validates :name, presence: true
-  
+
   def role_name
     name.to_s.humanize.gsub('Dnd', 'DND')
   end
@@ -44,8 +44,9 @@ class Role < ActiveRecord::Base
       :can_manage_window_client_files,
       :can_manage_config,
       :can_edit_dq_grades,
-
-    ] 
+      :can_view_vspdat,
+      :can_edit_vspdat
+    ]
     perms += self.health_permissions unless exclude_health
     return perms
   end

@@ -1,0 +1,8 @@
+- content_for :title, "VISPDATs for #{@client.name}"
+= render 'window/clients/breadcrumbs'
+
+.row
+  .col-sm-12
+    = render 'window/clients/tab_navigation', current: window_client_vispdats_path(client_id: @client.id)
+
+= render 'list'

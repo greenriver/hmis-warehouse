@@ -7,7 +7,28 @@ module ApplicationHelper
     end
   end
   # END Permissions
-  
+
+  def yes_no boolean
+    case boolean
+    when nil
+      "Not Specified"
+    when true
+      capture do
+        concat content_tag :span, nil, class: 'icon-checkmark', style: 'color:green'
+        concat " Yes"
+      end
+    when false
+      capture do
+        concat content_tag :span, nil, class: 'icon-cross', style: 'color:red'
+        concat " No"
+      end
+    when "Refused"
+      capture do
+        concat content_tag :span, nil, class: 'icon-warning', style: 'color:#8a6d3b'
+      end
+    end
+  end
+
   def yn(boolean)
     boolean ? 'Y': 'N'
   end
@@ -55,7 +76,7 @@ module ApplicationHelper
     params.merge!(sort)
     link_to(link_text, params)
   end
-  
+
   def enable_responsive?
     @enable_responsive  = true
   end
@@ -80,7 +101,7 @@ module ApplicationHelper
       value
     end
   end
-  
+
   def container_classes
     [].tap do |result|
       result << 'non-responsive' unless enable_responsive?
@@ -105,7 +126,7 @@ module ApplicationHelper
     end
 
   end
-  
+
   def human_locale(locale)
     translations = {
       en: 'Text adjustments'
