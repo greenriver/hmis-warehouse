@@ -30,11 +30,7 @@ module GrdaWarehouse
     ####################
     # Validations
     ####################
-    validates :first_name, presence: true, length: { in: 2..30 }
     validates :nickname, length: { in: 2..30 }, allow_blank: true
-    validates :last_name, presence: true, length: { in: 2..30 }
-    validates :dob, presence: true
-    validate :dob_is_reasonable
     validates :language_answer, inclusion: { in: language_answers.keys }, allow_blank: true
 
     validates :sleep_answer, inclusion: { in: sleep_answers.keys }, allow_blank: true
@@ -140,12 +136,7 @@ module GrdaWarehouse
     end
 
     def full_name
-      [first_name, last_name].join ' '
-    end
-
-    def age
-      return unless dob.present?
-      ((Date.today - dob).to_i / 365.25).to_i
+      client.full_name
     end
 
     def answer_for enum
@@ -188,8 +179,9 @@ module GrdaWarehouse
     # Question Scoring Formulas
     ####################
     def dob_score
-      return 0 unless dob.present?
-      dob > 60.years.ago ? 0 : 1
+      age = client.age
+      return 0 unless age.present?
+      age >= 60 ? 1 : 0
     end
     def sleep_score
       (sleep_outdoors? || sleep_other? || sleep_refused?) ? 1 : 0
@@ -213,10 +205,10 @@ module GrdaWarehouse
       (owe_money_answer_yes? || get_money_answer_no?) ? 1 : 0
     end
     def meaningful_activity_score
-      activities_answer_yes? ? 0 : 1
+      activities_answer_no? ? 1 : 0
     end
     def self_care_score
-      basic_needs_answer_yes? ? 0 : 1
+      basic_needs_answer_no? ? 1 : 0
     end
     def social_relationship_score
       abusive_answer_yes? ? 1 : 0
@@ -238,14 +230,6 @@ module GrdaWarehouse
     end
     def abuse_and_trauma_score
       trauma_answer_yes? ? 1 : 0
-    end
-
-    private
-
-    def dob_is_reasonable
-      unless dob.present? && dob.between?(100.years.ago, 1.day.ago)
-        errors.add :dob, "date of birth is missing / too old / too young"
-      end
     end
 
   end

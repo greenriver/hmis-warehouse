@@ -4,6 +4,8 @@
 = render 'window/clients/breadcrumbs'
 
 %h1
+  .pull-right
+    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'View', data: { toggle: 'tooltip' }
   = title
   %small VI-SPDAT
   %hr

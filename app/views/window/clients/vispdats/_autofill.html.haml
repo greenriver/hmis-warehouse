@@ -13,9 +13,7 @@
     first_name = chance.first()
     nickname = chance.pickone(['Lil', 'Big', 'Ice']) + " " + first_name[0]
     last_name = chance.last()
-    -# el("first_name").val first_name
     el("nickname").val nickname
-    -# el("last_name").val last_name
     el("language_answer").val chance.pickone(['language_english', 'language_spanish', 'language_french'])
     -# el("ssn").val chance.ssn()
     el("dob_1i").val chance.year(min: 1930, max: (new Date().getFullYear()))

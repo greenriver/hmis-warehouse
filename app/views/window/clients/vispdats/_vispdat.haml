@@ -4,23 +4,25 @@
   .row
     .col-sm-4
       %dt First Name
-      %dd= @vispdat.first_name
+      %dd= @client.first_name
     .col-sm-4
       %dt Nick Name
       %dd= @vispdat.nickname
     .col-sm-4
       %dt Last Name
-      %dd= @vispdat.last_name
+      %dd= @client.last_name
   .row
     .col-sm-4
       %dt Language
       %dd= @vispdat.answer_for :language_answer
     .col-sm-4
       %dt SSN
-      %dd= @vispdat.ssn
+      %dd= @client.SSN
     .col-sm-4
       %dt Date of Birth
-      %dd= @vispdat.dob
+      %dd
+        = @client.DOB
+        = "(#{@client.age})"
   .row
     .col-sm-12
       %dt Conset to Participate?
@@ -277,5 +279,5 @@
       %label Ok, now I'd like to take your picture so that it is easier to find you and confirm your identity in the future. May I do so?
     .col-sm-8
       %dd= @vispdat.answer_for :picture_answer
-      
+
 %hr
