@@ -1,0 +1,25 @@
+.row
+  .col-sm-4
+    .jHousedChart
+      .jLoading Loading
+  .col-sm-4
+    .jIncomeChart
+      .jLoading Loading
+  .col-sm-4
+    .jMatrixScoreChart
+      .jLoading Loading
+- console
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      chart = new App.ChartsScatterByDate.MatrixScoreForClient(
+        $('.jMatrixScoreChart'), 
+        #{@client.health_self_sufficiency_scores.to_json}
+      );
+      chart.load();
+      chart = new App.ChartsScatterByDate.IncomeForClient(
+        $('.jIncomeChart'), 
+        #{@client.health_income_benefits_over_time.map{ |k,row| [k, row[:total]]}.to_h.to_json}
+      );
+      chart.load();
+    });

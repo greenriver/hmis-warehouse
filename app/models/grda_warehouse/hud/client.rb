@@ -3,6 +3,7 @@ module GrdaWarehouse::Hud
   class Client < Base
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
+    include HealthCharts
     has_many :client_files
     
     self.table_name = 'Client'
@@ -1157,30 +1158,6 @@ module GrdaWarehouse::Hud
     
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
-    end
-
-    def health_housing_stati
-      case_management_notes.map do |form|
-        answer = form.answers[:sections].first[:questions].select do |question|
-          question[:question] == "A-6. Where did you sleep last night?"
-        end
-        [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer)]
-      end.to_h
-    end
-
-    def self.health_housing_positive_outcomes
-      [    
-        #Doubling Up
-        #Shelter
-        #Street
-        #Transitional Housing / Residential Treatment Program
-        #Motel
-        'Supportive Housing',
-        'Housing with No Supports',
-        'Assisted Living / Nursing Home / Rest Home',
-        # Unknown
-        # Other
-      ]
     end
     
     private def next_enrollment enrollments:, type:, start:
