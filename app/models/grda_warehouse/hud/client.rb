@@ -1160,35 +1160,6 @@ module GrdaWarehouse::Hud
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
     end
-<<<<<<< HEAD
-
-    def health_housing_stati
-      case_management_notes.map do |form|
-        answer = form.answers[:sections].first[:questions].select do |question|
-          question[:question] == "A-6. Where did you sleep last night?"
-        end
-        [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer)]
-      end.to_h
-    end
-
-    def self.health_housing_positive_outcomes
-      [
-        #Doubling Up
-        #Shelter
-        #Street
-        #Transitional Housing / Residential Treatment Program
-        #Motel
-        'Supportive Housing',
-        'Housing with No Supports',
-        'Assisted Living / Nursing Home / Rest Home',
-        # Unknown
-        # Other
-      ]
-    end
-
-=======
-    
->>>>>>> stories/client-dashboard-150273443
     private def next_enrollment enrollments:, type:, start:
       entry_dates = entry_dates(enrollments: enrollments)
       entry_dates_for_type(entry_dates: entry_dates, type: type).reverse.find do |m|
