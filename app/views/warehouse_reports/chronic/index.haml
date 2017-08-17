@@ -66,8 +66,13 @@
             %dd= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
         .col-xs-9
           .rollup{data: {partial: :residential_enrollments, rollup_path: rollup_client_path(client), clients: source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name ] ] }.to_h.to_json, many_clients: source_clients.many?.to_json, high: client.source_clients.size + 1, client_id: client.id}, class: "jClientID-#{client.id}"}
-            %button.btn.btn-secondary.jLoadEnrollments
-              Load Residential Enrollment
+            .rollup-content
+              - if chronic.project_names.present?
+                .project_names
+                  %h3 Projects Involved in Chronic Determiniation
+                  %p= chronic.project_names.sub('|', '; ')
+              %button.btn.btn-secondary.jLoadEnrollments
+                Load Residential Enrollment
           -# client.service_history_entry_in_last_three_years.map{ |m| "#{m.project_name} from #{m.first_date_in_program} to #{m.last_date_in_program}"}.join('<br />').html_safe
 %p= paginate @clients
 
@@ -87,6 +92,6 @@
         var high = $(this).closest('.rollup').data('high');
         var clientID = $(this).closest('.rollup').data('clientId');
         new App.Rollups.Loader($('.jClientID-' + clientID), rollupPath, manyClients, clients, high);
-        $(this).replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
+        $(this).closest('.rollup-content').replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
       });
     })(jQuery);
