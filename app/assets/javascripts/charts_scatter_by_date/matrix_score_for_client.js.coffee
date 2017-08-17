@@ -3,14 +3,14 @@
 class App.ChartsScatterByDate.MatrixScoreForClient extends App.ChartsScatterByDate.Base
   constructor: (@element, @data, @start_date, @end_date) ->
     @charts = {}
-    @height = 100
+    @height = 200
     @width = 300
 
   load: =>
     if Object.keys(@data).length
       @_build_charts()
     else
-      $(@element).append("<h4 class='text-center'>No Records Found</h4>")
+      $(@element).append("<h4 class='text-center'>No Self-Sufficiency Matrix Assessments on File</h4>")
     $(@element).find('.jLoading').remove()
   _build_chart: () ->
     id = 0
@@ -20,6 +20,7 @@ class App.ChartsScatterByDate.MatrixScoreForClient extends App.ChartsScatterByDa
       datasets: [{
           label: 'Self-Sufficiency Matrix Scores',
           data: scatter_data
+          pointRadius: 4,
       }],
       title: 
         display: false, 
@@ -41,6 +42,9 @@ class App.ChartsScatterByDate.MatrixScoreForClient extends App.ChartsScatterByDa
       title:
         display: true
         text: 'Self-Sufficiency Matrix Scores'
+        fontSize: 17
+        fontFamily: "'Open Sans Condensed', sans-serif"
+        fontColor: '#404040'
     @_individual_chart(data, id, options)
 
   _format_tooltip_label: (tool_tip) =>

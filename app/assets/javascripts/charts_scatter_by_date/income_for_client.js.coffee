@@ -3,14 +3,14 @@
 class App.ChartsScatterByDate.IncomeForClient extends App.ChartsScatterByDate.Base
   constructor: (@element, @data, @start_date, @end_date) ->
     @charts = {}
-    @height = 100
+    @height = 200
     @width = 300
 
   load: =>
     if Object.keys(@data).length
       @_build_charts()
     else
-      $(@element).append("<h4 class='text-center'>No Records Found</h4>")
+      $(@element).append("<h4 class='text-center'>No Income Records On File</h4>")
     $(@element).find('.jLoading').remove()
   _build_chart: () ->
     id = 0
@@ -40,7 +40,16 @@ class App.ChartsScatterByDate.IncomeForClient extends App.ChartsScatterByDate.Ba
           label: @_format_tooltip_label
       title:
         display: true
-        text: 'Income'
+        text: 'Total Monthly Income'
+        fontSize: 17
+        fontFamily: "'Open Sans Condensed', sans-serif"
+        fontColor: '#404040'
+      scales:
+        yAxes: [
+          ticks: 
+            callback: (label, index, labels) ->
+              "$#{label}"
+        ]
     @_individual_chart(data, id, options)
 
   _format_tooltip_label: (tool_tip) =>
