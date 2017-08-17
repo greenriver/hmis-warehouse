@@ -8,6 +8,7 @@
     %h2 Patient Summary
     - if @patient.present?
       = render 'patient_summary'
+      = render 'patient_dashboard'
       = render 'patient_details'
 
       = render 'patient_js'

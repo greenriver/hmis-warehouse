@@ -1,30 +1,29 @@
 #= require ./namespace
 
-class App.ChartsScatterByDate.ChronicForClient extends App.ChartsScatterByDate.Base
-  constructor: (@element, @url, @start_date, @end_date) ->
-    @data = {}
+class App.ChartsScatterByDate.IncomeForClient extends App.ChartsScatterByDate.Base
+  constructor: (@element, @data, @start_date, @end_date) ->
     @charts = {}
-    @height = 100
+    @height = 200
     @width = 300
 
-  load: ->
-    $.get @url, (data) =>
-      @data = data
-      if Object.keys(data).length
-        @_build_charts()
-      else
-        $(@element).append("<h4 class='text-center'>No Records Found</h4>")
-      $(@element).find('.jLoading').remove()
+  load: =>
+    if Object.keys(@data).length
+      @_build_charts()
+    else
+      $(@element).append("<h4 class='text-center'>No Income Records On File</h4>")
+    $(@element).find('.jLoading').remove()
   _build_chart: () ->
     id = 0
     scatter_data = $.map @data, (count,date) ->
       {x: date, y: count}
     data = {
       datasets: [{
-          label: 'Chronic days',
+          label: 'Total Monthly Income',
           data: scatter_data
       }],
-      title: {display: false, text: 'Counts by day'}
+      title: 
+        display: false, 
+        text: 'Income'
     }
 
     util = window.App.util.new
@@ -39,6 +38,18 @@ class App.ChartsScatterByDate.ChronicForClient extends App.ChartsScatterByDate.B
       tooltips: 
         callbacks: 
           label: @_format_tooltip_label
+      title:
+        display: true
+        text: 'Total Monthly Income'
+        fontSize: 17
+        fontFamily: "'Open Sans Condensed', sans-serif"
+        fontColor: '#404040'
+      scales:
+        yAxes: [
+          ticks: 
+            callback: (label, index, labels) ->
+              "$#{label}"
+        ]
     @_individual_chart(data, id, options)
 
   _format_tooltip_label: (tool_tip) =>
@@ -47,5 +58,5 @@ class App.ChartsScatterByDate.ChronicForClient extends App.ChartsScatterByDate.B
     date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
     tool_tip.label = [
       date_string,
-      "Chronic days: #{tool_tip.yLabel}"
+      "Total Monthly Income: #{tool_tip.yLabel}"
     ]

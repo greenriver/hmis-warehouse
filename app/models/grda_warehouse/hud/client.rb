@@ -3,6 +3,7 @@ module GrdaWarehouse::Hud
   class Client < Base
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
+    include HealthCharts
     has_many :client_files
     has_many :vispdats
 
@@ -1159,6 +1160,7 @@ module GrdaWarehouse::Hud
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
     end
+<<<<<<< HEAD
 
     def health_housing_stati
       case_management_notes.map do |form|
@@ -1184,6 +1186,9 @@ module GrdaWarehouse::Hud
       ]
     end
 
+=======
+    
+>>>>>>> stories/client-dashboard-150273443
     private def next_enrollment enrollments:, type:, start:
       entry_dates = entry_dates(enrollments: enrollments)
       entry_dates_for_type(entry_dates: entry_dates, type: type).reverse.find do |m|

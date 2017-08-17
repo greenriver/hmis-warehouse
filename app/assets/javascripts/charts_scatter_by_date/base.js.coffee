@@ -35,7 +35,6 @@ class App.ChartsScatterByDate.Base
     chart_id = "chart-chart-#{id}" 
     @element.append("<canvas id='#{chart_id}' height='#{@height}' width='#{@width}' class='chart-chart'>")
     chart_canvas = $("\##{chart_id}")
-
     default_options = 
       bezierCurve: false,
       scales: 
@@ -50,7 +49,7 @@ class App.ChartsScatterByDate.Base
           ticks: 
             beginAtZero: true
         ],
-    options = $.extend(options, default_options)
+    options = $.extend(true, options, default_options)
     @charts[id] = new Chart chart_canvas, 
       type: 'scatter',
       data: data,
