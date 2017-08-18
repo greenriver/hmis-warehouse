@@ -11,19 +11,21 @@
         $('.goal-form input[type=submit]').on('click', function(e) {
           $(this).closest('.goal-form').find('.status').html('<div class="alert alert-info">Saving...</div>')
         });
-        // goal expansion & contraction
-        $('.jGoals').on('click', '.section-expander-block__expander-arrow', function(e) {
-          var $button = $(e.currentTarget)
-          var $container = $button.closest('.section-expander-block');
-          var $row = $container.find('.section-expander-block__action-row')
-          $row.slideToggle();
-          $container.toggleClass('open');
-          $button.toggleClass('open')
-
+        $('.panel-heading').on('click', '.toggle', function(e) {
+          var $button = $(e.currentTarget);
+          var $collapsed_arrow = $(e.currentTarget).closest('.panel-heading').find('.icon-arrow-circled-right');
+          var $expanded_arrow = $(e.currentTarget).closest('.panel-heading').find('.icon-arrow-circled-down');
+          console.log($collapsed_arrow);
+          if($button.hasClass('collapsed')) {
+            $collapsed_arrow.addClass('hide');
+            $expanded_arrow.removeClass('hide');
+          }
+          else {
+            $collapsed_arrow.removeClass('hide');
+            $expanded_arrow.addClass('hide');
+          }
         });
-        // default to all goals closed
-        $('.jGoal .section-expander-block__expander-arrow').trigger('click');
-
+        
         // Enable the confidence slider
         $('.jGoals').bind('DOMSubtreeModified', function() {
           if($('.confidence_slider.ui-slider').length == 0) {

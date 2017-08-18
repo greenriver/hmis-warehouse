@@ -3,11 +3,11 @@ module Window
     include PjaxModalController
     include ClientController
     include WindowClientPathGenerator
-    
+
     before_action :require_can_view_client_window!
     before_action :set_client, only: [:show]
     before_action :set_client_from_client_id, only: [:image, :rollup]
-    
+
     def index
       # search
       @clients = if params[:q].present?
@@ -16,7 +16,7 @@ module Window
         client_scope.none
       end
       sort_filter_index()
-      
+
     end
 
     def show
@@ -38,7 +38,7 @@ module Window
     def set_client_from_client_id
       @client = client_source.find(params[:client_id].to_i)
     end
-    
+
     def user_can_view_confidential_names?
       false
     end

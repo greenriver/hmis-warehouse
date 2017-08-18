@@ -1,0 +1,37 @@
+%h1
+  .pull-right
+    = link_to polymorphic_path([:new] + vispdat_path_generator, client_id: @client.id), class: 'btn btn-primary', title: 'New', data: { toggle: 'tooltip' } do
+      %span.icon-plus
+  = content_for :title
+  .clearfix
+%hr
+
+%table.table
+  %thead
+    %tr
+      %th.text-left Created On
+      %th.text-center Pre-Survey
+      %th.text-center History
+      %th.text-center Risks
+      %th.text-center Social
+      %th.text-center Wellness
+      %th.text-center Total Score
+
+  %tbody
+    - @vispdats.each do |vt|
+      %tr
+        %td
+          %h2
+            = link_to vt.created_at, polymorphic_path(vispdat_path_generator, id: vt.id)
+        %td.text-center
+          %h2= vt.pre_survey_score
+        %td.text-center
+          %h2= vt.history_score
+        %td.text-center
+          %h2= vt.risk_score
+        %td.text-center
+          %h2= vt.social_score
+        %td.text-center
+          %h2= vt.wellness_score
+        %td.text-center
+          %h2.text-primary= vt.score

@@ -2,7 +2,7 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since','Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources'], :style => title)
+  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since','Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Involved Projects', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources'], :style => title)
   @clients.each do |client|
     chronic = client.chronics.find_by_date(@filter.date)
     sheet.add_row([
@@ -14,6 +14,7 @@ wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
       chronic.days_in_last_three_years, 
       chronic.months_in_last_three_years, 
       chronic.trigger,
+      chronic.project_names.sub('|', '; '),
       @most_recent_services[client.id], 
       client.source_disabilities.
         select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.

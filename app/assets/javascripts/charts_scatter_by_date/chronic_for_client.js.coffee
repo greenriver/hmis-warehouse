@@ -18,7 +18,6 @@ class App.ChartsScatterByDate.ChronicForClient extends App.ChartsScatterByDate.B
   _build_chart: () ->
     id = 0
     scatter_data = $.map @data, (count,date) ->
-      console.log date
       {x: date, y: count}
     data = {
       datasets: [{

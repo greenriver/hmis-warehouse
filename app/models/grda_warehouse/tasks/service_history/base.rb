@@ -36,6 +36,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
           return
         end
         # # Add MSSQL support to https://github.com/mceachen/with_advisory_lock see local gem
+        # When thins gets stuck, this is fun to read:
+        # https://stackoverflow.com/questions/25213808/using-pgadmin-to-check-status-of-postgres-advisory-locks
         service_history_source.with_advisory_lock('service_history') do
           remove_stale_history()
           build_history()

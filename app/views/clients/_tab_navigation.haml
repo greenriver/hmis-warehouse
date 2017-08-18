@@ -13,6 +13,10 @@
       title: 'Client History',
       permission: can_edit_clients?,
     },
+    polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
+      title: 'VI-SPDAT',
+      permission: can_view_vspdat?
+    },
     polymorphic_path(files_path_generator, client_id: @client.id) => {
       title: 'File Uploads',
       permission: can_manage_client_files?,
@@ -26,7 +30,7 @@
       permission: show_health,
     }
   }
-  
+
 - can_see_tabs = false
 - tabs.each do |action, details|
   - if details[:permission]
@@ -38,7 +42,7 @@
       - if action == current
         - if details[:permission]
           %li.active.active-tab{role: 'presentation'}
-            %a{href: '#'} 
+            %a{href: '#'}
               = details[:title]
       - else
         - if details[:permission]

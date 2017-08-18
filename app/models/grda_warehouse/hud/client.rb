@@ -3,14 +3,16 @@ module GrdaWarehouse::Hud
   class Client < Base
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
+    include HealthCharts
     has_many :client_files
-    
+    has_many :vispdats
+
     self.table_name = 'Client'
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
-    
+
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 2.minutes end
-    
+
 
     def self.hud_csv_headers(version: nil)
       [
@@ -113,6 +115,7 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
     has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    has_many :case_management_notes, -> { where(name: 'SDH Case Management Note')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :health_touch_points, -> do
       f_t = GrdaWarehouse::HmisForm.arel_table
       where(f_t[:collection_location].matches('Social Determinants of Health%'))
@@ -120,7 +123,7 @@ module GrdaWarehouse::Hud
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
-    has_one :patient, class_name: Health::Patient.name  
+    has_one :patient, class_name: Health::Patient.name
 
     has_many :notes, class_name: GrdaWarehouse::ClientNotes::Base.name, inverse_of: :client
     has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
@@ -212,7 +215,7 @@ module GrdaWarehouse::Hud
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       c_t = arel_table
       sh_t = GrdaWarehouse::ServiceHistory.arel_table
-      where(id: 
+      where(id:
         GrdaWarehouse::ServiceHistory.service.
         where(sh_t[:date].gt(date)).
         where(
@@ -224,7 +227,7 @@ module GrdaWarehouse::Hud
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
       c_t = arel_table
       sh_t = GrdaWarehouse::ServiceHistory.arel_table
-      where(id: 
+      where(id:
         GrdaWarehouse::ServiceHistory.service.
         where(date: (start_date..end_date)).
         where(
@@ -232,7 +235,7 @@ module GrdaWarehouse::Hud
         ).select(:client_id).distinct
       )
     end
-    
+
     def scope_for_ongoing_residential_enrollments
       source_enrollments.
       residential.
@@ -240,7 +243,7 @@ module GrdaWarehouse::Hud
       preload( :client, :exit, project: :organization ).
       order(EntryDate: :desc)
     end
-    
+
     def scope_for_other_enrollments
       source_enrollments.
       hud_non_residential.
@@ -248,7 +251,7 @@ module GrdaWarehouse::Hud
       preload( :client, :exit, project: :organization ).
       order(EntryDate: :desc)
     end
-    
+
     def scope_for_residential_enrollments
       source_enrollments.
       hud_residential.
@@ -256,7 +259,7 @@ module GrdaWarehouse::Hud
       preload( :client, :exit, project: :organization ).
       order(EntryDate: :desc)
     end
-    
+
     attr_accessor :merge
     attr_accessor :unmerge
 
@@ -387,6 +390,10 @@ module GrdaWarehouse::Hud
           # all entries will have the same date and last_date_in_program
           entry = entries.first
           (entry_date, exit_date) = entry.with_indifferent_access.values_at('date', 'last_date_in_program')
+          en_1_start = entry_date
+          en_1_end = exit_date
+          en_2_start = after
+          en_2_end = before
 
           # Excellent discussion of why this works:
           # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -647,7 +654,7 @@ module GrdaWarehouse::Hud
         pluck(:date, :project_name, :confidential).
         group_by(&:first).
         max_by(&:first)
-      return [] unless sh.present?  
+      return [] unless sh.present?
       sh.last.map do |_,project_name, confidential|
         if ! confidential || include_confidential_names
           project_name
@@ -987,7 +994,7 @@ module GrdaWarehouse::Hud
 
           # move any client notes
           GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
-          
+
           # move any client files
           GrdaWarehouse::ClientFile.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
 
@@ -1015,7 +1022,7 @@ module GrdaWarehouse::Hud
         .map(&:new_episode?)
         .count(true)
     end
-    
+
     def months_served_since date:
       service_history.
         service
@@ -1027,7 +1034,7 @@ module GrdaWarehouse::Hud
         .uniq
         .count
     end
-    
+
     def months_served_between start_date:, end_date:
       service_history.
         service
@@ -1091,7 +1098,7 @@ module GrdaWarehouse::Hud
           # Hide confidential program names, if appropriate
           meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
           unless include_confidential_names
-            meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if meta[:confidential] 
+            meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if meta[:confidential]
           end
           dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
           # days that are not also served by a later enrollment of the same project type
@@ -1128,7 +1135,7 @@ module GrdaWarehouse::Hud
         end
       end
     end
-    
+
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
       Rails.cache.fetch([en_scope.to_sql, include_confidential_names, only_ongoing], expires_in: CACHE_EXPIRY) do
         enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
@@ -1136,25 +1143,24 @@ module GrdaWarehouse::Hud
         enrollments || []
       end
     end
-    
+
     def total_days enrollments
       enrollments.map{|m| m[:days]}.sum
     end
-    
+
     def total_homeless enrollments
-      enrollments.select do |enrollment| 
+      enrollments.select do |enrollment|
         enrollment[:homeless]
       end.map{ |m| m[:homeless_days] }.sum
     end
-    
+
     def total_adjusted_days enrollments
       enrollments.map{|m| m[:adjusted_days]}.sum
     end
-    
+
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
     end
-    
     private def next_enrollment enrollments:, type:, start:
       entry_dates = entry_dates(enrollments: enrollments)
       entry_dates_for_type(entry_dates: entry_dates, type: type).reverse.find do |m|

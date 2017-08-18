@@ -33,5 +33,7 @@ FactoryGirl.define do
     can_manage_client_files true
     can_manage_window_client_files true
     can_edit_dq_grades true
+    can_view_vspdat true
+    can_edit_vspdat true
   end
 end

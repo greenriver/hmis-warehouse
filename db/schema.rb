@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170801194526) do
+ActiveRecord::Schema.define(version: 20170815161947) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,28 +37,6 @@ ActiveRecord::Schema.define(version: 20170801194526) do
   add_index "activity_logs", ["controller_name"], :name=>"index_activity_logs_on_controller_name", :using=>:btree
   add_index "activity_logs", ["item_model"], :name=>"index_activity_logs_on_item_model", :using=>:btree
   add_index "activity_logs", ["user_id"], :name=>"index_activity_logs_on_user_id", :using=>:btree
-
-  create_table "cas_reports", force: :cascade do |t|
-    t.integer  "client_id",                          :null=>false
-    t.integer  "match_id",                           :null=>false
-    t.integer  "decision_id",                        :null=>false
-    t.integer  "decision_order",                     :null=>false
-    t.string   "match_step",                         :null=>false
-    t.string   "decision_status",                    :null=>false
-    t.boolean  "current_step",                       :default=>false, :null=>false
-    t.boolean  "active_match",                       :default=>false, :null=>false
-    t.datetime "created_at",                         :null=>false
-    t.datetime "updated_at",                         :null=>false
-    t.integer  "elapsed_days",                       :default=>0, :null=>false
-    t.datetime "client_last_seen_date"
-    t.datetime "criminal_hearing_date"
-    t.string   "decline_reason"
-    t.string   "not_working_with_client_reason"
-    t.string   "administrative_cancel_reason"
-    t.boolean  "client_spoken_with_services_agency"
-    t.boolean  "cori_release_form_submitted"
-  end
-  add_index "cas_reports", ["client_id", "match_id", "decision_id"], :name=>"index_cas_reports_on_client_id_and_match_id_and_decision_id", :unique=>true, :using=>:btree
 
   create_table "client_service_history", id: false, force: :cascade do |t|
     t.integer "unduplicated_client_id"
@@ -131,69 +109,6 @@ ActiveRecord::Schema.define(version: 20170801194526) do
     t.datetime "updated_at",  :null=>false
   end
 
-  create_table "lit_incomming_localizations", force: :cascade do |t|
-    t.text     "translated_value"
-    t.integer  "locale_id"
-    t.integer  "localization_key_id"
-    t.integer  "localization_id"
-    t.string   "locale_str"
-    t.string   "localization_key_str"
-    t.integer  "source_id"
-    t.integer  "incomming_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-  add_index "lit_incomming_localizations", ["incomming_id"], :name=>"index_lit_incomming_localizations_on_incomming_id", :using=>:btree
-  add_index "lit_incomming_localizations", ["locale_id"], :name=>"index_lit_incomming_localizations_on_locale_id", :using=>:btree
-  add_index "lit_incomming_localizations", ["localization_id"], :name=>"index_lit_incomming_localizations_on_localization_id", :using=>:btree
-  add_index "lit_incomming_localizations", ["localization_key_id"], :name=>"index_lit_incomming_localizations_on_localization_key_id", :using=>:btree
-  add_index "lit_incomming_localizations", ["source_id"], :name=>"index_lit_incomming_localizations_on_source_id", :using=>:btree
-
-  create_table "lit_locales", force: :cascade do |t|
-    t.string   "locale"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.boolean  "is_hidden",  :default=>false
-  end
-
-  create_table "lit_localization_keys", force: :cascade do |t|
-    t.string   "localization_key"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.boolean  "is_completed",     :default=>false
-    t.boolean  "is_starred",       :default=>false
-  end
-  add_index "lit_localization_keys", ["localization_key"], :name=>"index_lit_localization_keys_on_localization_key", :unique=>true, :using=>:btree
-
-  create_table "lit_localization_versions", force: :cascade do |t|
-    t.text     "translated_value"
-    t.integer  "localization_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-  add_index "lit_localization_versions", ["localization_id"], :name=>"index_lit_localization_versions_on_localization_id", :using=>:btree
-
-  create_table "lit_localizations", force: :cascade do |t|
-    t.integer  "locale_id"
-    t.integer  "localization_key_id"
-    t.text     "default_value"
-    t.text     "translated_value"
-    t.boolean  "is_changed",          :default=>false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-  add_index "lit_localizations", ["locale_id"], :name=>"index_lit_localizations_on_locale_id", :using=>:btree
-  add_index "lit_localizations", ["localization_key_id"], :name=>"index_lit_localizations_on_localization_key_id", :using=>:btree
-
-  create_table "lit_sources", force: :cascade do |t|
-    t.string   "identifier"
-    t.string   "url"
-    t.string   "api_key"
-    t.datetime "last_updated_at"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "nicknames", force: :cascade do |t|
     t.string  "name"
     t.integer "nickname_id"
@@ -254,24 +169,26 @@ ActiveRecord::Schema.define(version: 20170801194526) do
     t.boolean  "can_view_imports",               :default=>false
     t.boolean  "can_edit_roles",                 :default=>false
     t.boolean  "can_view_projects",              :default=>false
+    t.boolean  "can_edit_projects",              :default=>false
+    t.boolean  "can_edit_project_groups",        :default=>false
     t.boolean  "can_view_organizations",         :default=>false
+    t.boolean  "can_edit_organizations",         :default=>false
+    t.boolean  "can_edit_data_sources",          :default=>false
     t.boolean  "can_view_client_window",         :default=>false
     t.boolean  "can_upload_hud_zips",            :default=>false
+    t.boolean  "can_edit_translations",          :default=>false
+    t.boolean  "can_manage_assessments",         :default=>false
+    t.boolean  "can_edit_anything_super_user",   :default=>false
     t.boolean  "can_administer_health",          :default=>false
     t.boolean  "can_edit_client_health",         :default=>false
     t.boolean  "can_view_client_health",         :default=>false
     t.boolean  "health_role",                    :default=>false, :null=>false
-    t.boolean  "can_edit_project_groups",        :default=>false
-    t.boolean  "can_edit_anything_super_user",   :default=>false
-    t.boolean  "can_edit_projects",              :default=>false
-    t.boolean  "can_edit_organizations",         :default=>false
-    t.boolean  "can_edit_data_sources",          :default=>false
-    t.boolean  "can_edit_translations",          :default=>false
-    t.boolean  "can_manage_assessments",         :default=>false
     t.boolean  "can_manage_config",              :default=>false
-    t.boolean  "can_edit_dq_grades",             :default=>false
     t.boolean  "can_manage_client_files",        :default=>false
     t.boolean  "can_manage_window_client_files", :default=>false
+    t.boolean  "can_edit_dq_grades",             :default=>false
+    t.boolean  "can_view_vspdat",                :default=>false
+    t.boolean  "can_edit_vspdat",                :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 

@@ -603,6 +603,7 @@ DEPENDENCIES
   rb-readline
   redcarpet
   redis-rails
+  responders
   rest-client (~> 2.0)
   roo
   rspec-mocks
