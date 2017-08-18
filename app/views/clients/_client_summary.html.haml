@@ -27,9 +27,10 @@
               = decision.decision_status
               on
               = decision.updated_at.to_date
+      %h3 VI-SPDAT Scores
+      - @client.vispdats.completed.scores.each do |vispdat|
+        %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
     .col-sm-4
       - if GrdaWarehouse::Config.get(:eto_api_available)
         .client__image
           = image_tag(image_client_path)
-              
-                

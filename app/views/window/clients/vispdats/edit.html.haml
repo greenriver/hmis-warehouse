@@ -9,7 +9,10 @@
 
 %h1
   .pull-right
-    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'View', data: { toggle: 'tooltip' }
+    = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Show', data: { toggle: 'tooltip' } do
+      %span.icon-eye
+    = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
+      %span.icon-menu
   = title
   .clearfix
 %hr

@@ -12,12 +12,12 @@ module ApplicationHelper
     case boolean
     when nil
       "Not Specified"
-    when true
+    when true, "Yes"
       capture do
         concat content_tag :span, nil, class: 'icon-checkmark', style: 'color:green'
         concat " Yes"
       end
-    when false
+    when false, "No"
       capture do
         concat content_tag :span, nil, class: 'icon-cross', style: 'color:red'
         concat " No"

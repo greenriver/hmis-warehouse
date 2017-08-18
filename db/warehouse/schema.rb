@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170817150519) do
+ActiveRecord::Schema.define(version: 20170818140329) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -270,7 +270,7 @@ ActiveRecord::Schema.define(version: 20170817150519) do
   add_index "Enrollment", ["ProjectEntryID"], :name=>"index_Enrollment_on_ProjectEntryID", :using=>:btree
   add_index "Enrollment", ["ProjectID"], :name=>"index_Enrollment_on_ProjectID", :using=>:btree
   add_index "Enrollment", ["data_source_id", "PersonalID"], :name=>"index_Enrollment_on_data_source_id_PersonalID", :using=>:btree
-  add_index "Enrollment", ["data_source_id", "ProjectEntryID"], :name=>"unk_Enrollment", :unique=>true, :using=>:btree
+  add_index "Enrollment", ["data_source_id", "ProjectEntryID", "PersonalID"], :name=>"unk_Enrollment", :unique=>true, :using=>:btree
   add_index "Enrollment", ["data_source_id"], :name=>"index_Enrollment_on_data_source_id", :using=>:btree
 
   create_table "EnrollmentCoC", force: :cascade do |t|
@@ -1506,11 +1506,11 @@ SELECT "Services"."ServicesID",
     t.integer  "client_id"
     t.string   "nickname"
     t.integer  "language_answer"
-    t.boolean  "consent"
+    t.boolean  "hiv_release"
     t.integer  "sleep_answer"
     t.string   "sleep_answer_other"
-    t.integer  "years_homeless"
-    t.boolean  "years_homeless_refused"
+    t.integer  "homeless"
+    t.boolean  "homeless_refused"
     t.integer  "episodes_homeless"
     t.boolean  "episodes_homeless_refused"
     t.integer  "emergency_healthcare"
@@ -1561,6 +1561,9 @@ SELECT "Services"."ServicesID",
     t.datetime "created_at",                   :null=>false
     t.datetime "updated_at",                   :null=>false
     t.datetime "submitted_at"
+    t.integer  "homeless_period"
+    t.date     "release_signed_on"
+    t.boolean  "drug_release"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
 

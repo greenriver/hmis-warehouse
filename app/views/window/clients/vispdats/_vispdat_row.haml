@@ -6,6 +6,14 @@
       - else
         = link_to vispdat.created_at, polymorphic_path([:edit] + vispdat_path_generator, id: vispdat.id)
       %br
-      %small= vispdat.completed? ? 'Complete' : '(in progress)'
+      %small
+        - if vispdat.completed?
+          %span.label.label-success Complete
+        - else
+          %span.label.label-warning In Progress
+
+        - if vispdat.expired?
+          %span.label.label-danger Expired
+
   %td.text-center
     %h1= vispdat.score

@@ -9,13 +9,12 @@ $ ->
     button = well.find('.save-progress')
     button.css('visibility', 'hidden')
 
-  $(document).on 'click', '.save-progress', (e) ->
-    button = $(e.target).closest('button')
-    button.text('Saving...').prop('disabled', true)
+  $(document).on 'change', '.vispdat-form', (e) ->
+    form = $(e.target).closest('form')
     $.ajax
-      url: button.data('url'),
+      url: form.data('url'),
       type: 'PATCH',
-      data: $(e.target).closest('form').serialize()
+      data: form.serialize()
     .done (e) ->
       console.log 'done'
     .fail (e) ->
