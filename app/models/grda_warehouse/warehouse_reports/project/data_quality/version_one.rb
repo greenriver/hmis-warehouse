@@ -51,7 +51,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_enrolled_length_of_stay
-      averages = projects.map{|project| [project.id, 0}.to_h
+      averages = projects.map{|project| [project.id, 0]}.to_h
       totals = self.class.length_of_stay_buckets.map do |title, range|
         [range, {title: title, clients: Set.new}]
       end.to_h
