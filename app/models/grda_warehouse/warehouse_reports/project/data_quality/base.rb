@@ -181,6 +181,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         last_permanent_zip: e_t[:LastPermanentZIP].as('last_permanent_zip').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
+        dob: c_t[:DOB].as('dob').to_sql,
       }
     end
 
@@ -280,6 +281,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def days(value)
       "#{value} days"
+    end
+
+    def destination_id_for_client source_id
+      @destination_ids ||= begin
+        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.select(c_t[:id])).
+          pluck(:source_id, :destination_id).
+          to_h
+      end
+      @destination_ids[source_id]
     end
 
     def client_source

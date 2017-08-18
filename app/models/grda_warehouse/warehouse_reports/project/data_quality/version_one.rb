@@ -16,6 +16,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_bed_utilization()
       add_missing_values()
       add_enrolled_length_of_stay()
+      add_clients_dob_enrollment_date()
+      add_night_by_night_missing()
       finish_report()
     end
 
@@ -48,6 +50,57 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         coc_program_component: coc_program_components.join(', '),
         target_population: target_populations.join(', '),
       })
+    end
+
+    def add_night_by_night_missing
+      missing_nights = {}
+      projects.each do |project|
+        if project.TrackingMethod == 3
+          missing_nights[project.id] = service_scope.entry.
+            where(Project: {id: project.id}).
+            where.not(
+              client_id: service_scope.service.
+              where(Project: {id: project.id}).
+              where(date: (self.end - 30.days..self.end)).
+              distinct.select(:client_id)
+            ).pluck(*service_columns.values).
+            map do |row|
+              Hash[service_columns.keys.zip(row)]
+            end
+        end
+      end
+      
+    end
+
+    def add_clients_dob_enrollment_date
+      dob_entry = {}
+      projects.each do |project|
+        dob_entry[project.id] ||= Set.new
+        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id).values.flatten(1)
+        if enrollments_in_project.any?
+          enrollments_in_project.each do |enrollment|
+            if enrollment[:dob].present? && enrollment[:dob] >= enrollment[:first_date_in_program]
+              dob_entry[project.id] << [
+                enrollment[:id], 
+                enrollment[:first_name], 
+                enrollment[:last_name],
+                enrollment[:dob],
+                enrollment[:project_name],
+                enrollment[:first_date_in_program],
+              ]
+            end
+          end
+        end
+      end
+      support = {}
+      dob_entry.each do |project_id, clients|
+        support["incorrect_dob_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Project', 'Entry Date'],
+          counts: clients.to_a
+        }
+      end
+      answers = {incorrect_dob: dob_entry.map{|project_id, clients| [project_id, clients.count]}.to_h}
+      add_answers(answers, support)
     end
 
     def add_enrolled_length_of_stay
@@ -109,14 +162,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         buckets[:buckets].each do |range, services|
           support["enrolled_length_of_stay_#{project_id}_#{range}"] = {
             headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
-            counts: services.to_a
+            counts: services.map do |service|
+              [service[:id], service[:first_name], service[:last_name], service[:project_name], service[:first_date_in_program], service[:last_date_in_program]]
+            end
           }
         end
       end
       totals[:buckets].each do |range, services|
         support["enrolled_length_of_stay_totals_#{range}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
-          counts: services.to_a
+          counts: services.map do |service|
+            [service[:id], service[:first_name], service[:last_name], service[:project_name], service[:first_date_in_program], service[:last_date_in_program]]
+          end
         }
       end
       add_answers(answers, support)
@@ -266,7 +323,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size) 
           support["project_missing_#{project.id}_#{key}"] = {
             headers: ['Client ID', 'First Name', 'Last Name'],
-            counts: value.to_a
+            counts: value.to_a.map do |row|
+              # puts 'ROW2ROW'
+              # puts row.inspect
+              # row[0] = destination_id_for_client(row.first)
+              # puts row.inspect
+              row << destination_id_for_client(row.first)
+            end
           }
         end
         answers[:project_missing][project.id][:total_clients] = clients_in_project.size
@@ -283,13 +346,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers[:project_missing][:totals][:score] = in_percentage(totals.values.map(&:size).max, clients.size)
       totals[:total_clients] = clients
       answers[:project_missing][:totals][:total_clients] = totals[:total_clients].size
-      totals.each do |key, value|
+      totals.each do |key, value|        
         answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
-        support["project_missing_totals_#{key}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: value.to_a
-        }
+        if ! [:total_clients, :total_missing].include?(key)
+          puts key.inspect
+          puts value.inspect
+          support["project_missing_totals_#{key}"] = {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: value.to_a.map do |row|
+              # puts 'ROWROW'
+              # puts row.inspect
+              # row[0] = destination_id_for_client(row.first)
+              row << destination_id_for_client(row.first)
+              # [destination_id_for_client(row[:id]), row[:first_name], row[:last_name]]
+            end
+          }
+        end
       end
+
       add_answers(answers, support)
     end
 
