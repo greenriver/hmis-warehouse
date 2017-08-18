@@ -1,10 +1,8 @@
 %h3 Grading System
 .row
-  .col-sm-2
+  .col-sm-4
     %h4 Missing Data
     = render 'admin/data_quality_grades/missing_grades', show_delete: false
-  .col-sm-5
+  .col-sm-8
     %h4 Bed Utilization
     = render 'admin/data_quality_grades/utilization_grades', show_delete: false
-  .col-sm-5
-    = _('Bed utilization percentages are based upon the bed capacities your agency reported for its individual programs in the most recent Point-in-Time Survey (Annual Homeless Census) conducted by the Boston Emergency Shelter Commission. The aggregate number of client-nights over the entire month, divided by the product of bed capacity and nights in the month, gives the percentage utilization for each program for the month. Also, counts of sheltered persons for each individual program are computed on the first, fifteenth, and last night of each month and used to determine utilization percentages for these nights.')

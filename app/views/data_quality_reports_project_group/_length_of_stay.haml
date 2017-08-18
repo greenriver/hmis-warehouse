@@ -1,0 +1,57 @@
+- if @report.report.with_indifferent_access[:enrolled_length_of_stay].present?
+  - project_counts = @report.report.with_indifferent_access[:enrolled_length_of_stay][:projects]
+  - totals = @report.report.with_indifferent_access[:enrolled_length_of_stay][:totals]
+  - buckets = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.length_of_stay_buckets
+  .row
+    .col-sm-4
+      %h3 Length of Stay
+    .col-sm-8
+      = render 'length_of_stay_description'  
+  .well.overflow-scroll
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Project Name
+          %th Project Type
+          %th.page-bg-color= "Average Length of Stay (over #{(@report.end - @report.start).to_i} days)"
+          - buckets.each_with_index do |(title, _), index|
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+            %th{class: odd_class}= title
+      %tbody
+        - @report.projects.each do |project|
+          - p_type = ::HUD.project_type_brief(project.ProjectType)
+          - p_class = "client__service_type_#{p_type}"
+          %tr
+            %td
+              = project.ProjectName
+            %td
+              %span{class: "client__service_type_#{project.ProjectType}"}
+                .enrollment__project_type{class: p_class}
+                  %em.service-type__program-type= p_type
+            %td.page-bg-color
+              = project_counts[project.id.to_s][:average]
+            - buckets.each_with_index do |(_, range), index|
+              - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+              %td{class: odd_class}
+                - measure = project_counts[project.id.to_s][:counts][range.to_s]
+                - key = "enrolled_length_of_stay_#{project.id}_#{range}"
+                - if measure > 0
+                  = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
+                  = measure
+      %tfoot
+        %tr
+          %th.text-right{colspan: 2} Totals
+          %td.page-bg-color
+            = totals[:average]
+          - buckets.each_with_index do |(_, range), index|
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+            %td{class: odd_class}
+              - measure = totals[:buckets][range.to_s]
+              - key = "enrolled_length_of_stay_totals_#{range}"
+              - if measure > 0
+                = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = measure
+              - else
+                = measure

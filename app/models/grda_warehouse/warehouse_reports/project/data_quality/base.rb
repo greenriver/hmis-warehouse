@@ -212,7 +212,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
         project_name: sh_t[:project_name].as('project_name').to_sql,
-        date: sh_t[:date].as('date').to_sql,
+        # date: sh_t[:date].as('date').to_sql,
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
       }

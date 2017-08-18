@@ -51,35 +51,75 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_enrolled_length_of_stay
-      averages = projects.map{|project| [project.id, 0]}.to_h
-      totals = self.class.length_of_stay_buckets.map do |title, range|
-        [range, {title: title, clients: Set.new}]
+      project_counts = projects.map do |project| 
+        [
+          project.id, 
+          {
+            average: 0,
+            buckets: {}
+          }
+        ]
       end.to_h
+      totals = {
+        buckets: self.class.length_of_stay_buckets.map do |title, range|
+          [range, Set.new]
+        end.to_h,
+        counts: {
+          total_days: 0,
+          average_days: 0,
+        },
+      }
 
       projects.each do |project|
         counts = self.class.length_of_stay_buckets.map do |title, range|
-          [range, {title: title, clients: Set.new}]
+          [range, Set.new]
         end.to_h
         service_histories = service_scope.service.
           where(Project: {id: project.id}).
           order(date: :asc).
-          pluck(*service_columns).
+          pluck(*service_columns.values).
           map do |row|
-            Hash[service_columns.zip(row)]
+            Hash[service_columns.keys.zip(row)]
           end
-        averages[project.id] = (service_histories.count.to_f / (self.end - self.start).to_i).round
-        service_histories.group_by!{|m| m[:client_id]}
+        project_counts[project.id][:average] = (service_histories.count.to_f / (self.end - self.start).to_i).round
+        totals[:counts][:total_days] += service_histories.count
+        service_histories = service_histories.group_by{|m| m[:client_id]}
         service_histories.each do |client_id, services|
           counts.each do |range, _|
             meta = services.first
             if range.include?(services.count)
               counts[range] << meta.values
-              totals[range] << meta.values
+              totals[:buckets][range] << meta.values
             end
           end
         end
+        project_counts[project.id][:counts] = counts.map{|range,services| [range, services.count]}.to_h
+        project_counts[project.id][:buckets] = counts
       end
-      averages
+      totals[:counts][:average] = (totals[:counts][:total_days].to_f / (self.end - self.start).to_i).round
+      totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
+      answers = {
+        enrolled_length_of_stay: {
+          projects: project_counts,
+          totals: totals[:counts],
+        }
+      }
+      support = {}
+      project_counts.each do |project_id, buckets|
+        buckets[:buckets].each do |range, services|
+          support["enrolled_length_of_stay_#{project_id}_#{range}"] = {
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+            counts: services.to_a
+          }
+        end
+      end
+      totals[:buckets].each do |range, services|
+        support["enrolled_length_of_stay_totals_#{range}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+          counts: services.to_a
+        }
+      end
+      add_answers(answers, support)
     end
 
     def add_missing_values
