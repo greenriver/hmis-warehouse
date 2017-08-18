@@ -78,6 +78,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             end
         end
       end
+      averages
     end
 
     def add_missing_values

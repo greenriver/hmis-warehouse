@@ -216,6 +216,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
       }
+    end
 
     def start_report
       self.started_at = Time.now

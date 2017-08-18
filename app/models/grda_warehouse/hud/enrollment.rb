@@ -176,13 +176,17 @@ module GrdaWarehouse::Hud
         street, city, state, zip = ADDRESS_FIELDS.map{ |f| send f }.map(&:presence)
         prezip = [ street, city, state ].compact.join(', ').presence
         zip = zip.try(:rjust, 5, '0')
-        if prezip
-          if zip
-            "#{prezip} #{zip}"
+        if Rails.env.production?
+          if prezip
+            if zip
+              "#{prezip} #{zip}"
+            else
+              prezip
+            end
           else
-            prezip
+            zip
           end
-        else
+        else # just use zip in development and staging, data is faked
           zip
         end
       end
