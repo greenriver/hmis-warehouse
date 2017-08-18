@@ -1,60 +1,65 @@
 - if @report.report.with_indifferent_access[:bed_utilization].present?
   - totals = @report.report.with_indifferent_access[:bed_utilization_totals]
-  %h3 Bed Utilization
-  %table.table.table-condensed
-    %thead
-      %tr
-        %th{colspan: 4}
-        %th{colspan: 2, class: 'lightest-gray'} Average Daily
-        %th{colspan: 2}= @report.start
-        %th{colspan: 2, class: 'lightest-gray'} 15th of Month
-        %th{colspan: 2}= @report.end
-      %tr
-        %th Project Name
-        %th Project Type
-        %th Grade
-        %th Capacity
-        %th{class: 'lightest-gray'} Persons
-        %th{class: 'lightest-gray'} % Capacity
-        %th Persons
-        %th % Capacity
-        %th{class: 'lightest-gray'} Persons
-        %th{class: 'lightest-gray'} % Capacity
-        %th Persons
-        %th % Capacity
-    %tbody
-      - @report.report.with_indifferent_access[:bed_utilization].each do |project|
-        - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project[:average_daily])
-        - p_type = ::HUD.project_type_brief(project[:project_type])
-        - p_class = "client__service_type_#{p_type}"
+  .row
+    .col-sm-6
+      %h3 Bed Utilization
+    .col-sm-6
+      = render 'bed_utilization_description'  
+  .well.overflow-scroll
+    %table.table.table-condensed
+      %thead
         %tr
-          %td= project[:name]
-          %td
-            %span{class: "client__service_type_#{project[:project_type]}"}
-              .enrollment__project_type{class: p_class}
-                %em.service-type__program-type= p_type
-          %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
-          
-          %td= project[:capacity]
-          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.bed_utilization_attributes.each_with_index do |measure, index|
-            - odd_class = if index % 2 == 1 then '' else 'lightest-gray' end 
-            %td{class: odd_class}
-              - key = "bed_utilization_#{project[:id]}_#{measure}"
-              - if project[measure] > 0
-                = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
-                  = project[measure]
-            %td{class: odd_class}
-              = project["#{measure}_percentage"]
+          %th{colspan: 4}
+          %th.page-bg-color{colspan: 2} Average Daily
+          %th{colspan: 2}= @report.start
+          %th.page-bg-color{colspan: 2} 15th of Month
+          %th{colspan: 2}= @report.end
+        %tr
+          %th Project Name
+          %th Project Type
+          %th Grade
+          %th Capacity
+          %th.page-bg-color Persons
+          %th.page-bg-color % Capacity
+          %th Persons
+          %th % Capacity
+          %th.page-bg-color Persons
+          %th.page-bg-color % Capacity
+          %th Persons
+          %th % Capacity
+      %tbody
+        - @report.report.with_indifferent_access[:bed_utilization].each do |project|
+          - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project[:average_daily])
+          - p_type = ::HUD.project_type_brief(project[:project_type])
+          - p_class = "client__service_type_#{p_type}"
+          %tr
+            %td= project[:name]
+            %td
+              %span{class: "client__service_type_#{project[:project_type]}"}
+                .enrollment__project_type{class: p_class}
+                  %em.service-type__program-type= p_type
+            %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+            
+            %td= project[:capacity]
+            - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.bed_utilization_attributes.each_with_index do |measure, index|
+              - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end 
+              %td{class: odd_class}
+                - key = "bed_utilization_#{project[:id]}_#{measure}"
+                - if project[measure] > 0
+                  = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = project[measure]
+              %td{class: odd_class}
+                = project["#{measure}_percentage"]
 
-      %tr
-        - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts][:average_daily_percentage])
-        %th.text-right{colspan: 2} Totals
-        %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
-        %td= totals[:counts][:capacity]
-        - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.bed_utilization_attributes.each_with_index do |measure, index|
-          - key = "bed_utilization_totals_#{measure}"
-          - odd_class = if index % 2 == 1 then '' else 'lightest-gray' end 
-          %td{class: odd_class}
-            = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
-              = totals[:counts][measure]
-          %td{class: odd_class}= totals[:counts]["#{measure}_percentage"]
+        %tr
+          - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts][:average_daily_percentage])
+          %th.text-right{colspan: 2} Totals
+          %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+          %td= totals[:counts][:capacity]
+          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.bed_utilization_attributes.each_with_index do |measure, index|
+            - key = "bed_utilization_totals_#{measure}"
+            - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end 
+            %td{class: odd_class}
+              = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                = totals[:counts][measure]
+            %td{class: odd_class}= totals[:counts]["#{measure}_percentage"]

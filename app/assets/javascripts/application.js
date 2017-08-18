@@ -46,5 +46,6 @@
 //= require_directory ./dashboards
 //= require_directory ./dashboards/veterans
 //= require_directory ./warehouse_reports/cas
+//= require_directory ./warehouse_reports
 
 //= require init
