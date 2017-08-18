@@ -76,6 +76,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               counts[range] << meta.values
               totals[range] << meta.values
             end
+          end
         end
       end
       averages
