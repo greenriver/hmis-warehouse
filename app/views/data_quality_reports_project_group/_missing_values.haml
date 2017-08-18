@@ -1,8 +1,11 @@
 - if @report.report.with_indifferent_access[:project_missing].present?
   - counts = @report.report.with_indifferent_access[:project_missing]
-  %h3 Missing Values
+  .row
+    .col-sm-4
+      %h3 Missing Values
+    .col-sm-8
+      = render 'missing_values_description'  
   .well.overflow-scroll
-    
     %table.table.table-condensed.table-responsive
       %thead
         %tr
@@ -11,7 +14,7 @@
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
             - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
-            %th{class: odd_class, colspan: 4}= title
+            %th.text-center{class: odd_class, colspan: 6}= title
         %tr
           %th{colspan: 4}
           %th.page-bg-color{colspan: 2}
@@ -20,6 +23,7 @@
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th{class: odd_class, colspan: 2} Missing
             %th{class: odd_class, colspan: 2} Refused
+            %th{class: odd_class, colspan: 2} Doesn't Know
         %tr
           %th Project Name
           %th Project Type
@@ -29,6 +33,8 @@
           %th.page-bg-color %
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+            %th{class: odd_class} #
+            %th{class: odd_class} %
             %th{class: odd_class} #
             %th{class: odd_class} %
             %th{class: odd_class} #
@@ -70,6 +76,14 @@
               %td{class: odd_class}
                 - if any_clients
                   = counts["#{project.id}"]["refused_#{word}_percentage"]
+              %td{class: odd_class}
+                - if any_clients
+                  - key = "project_missing_#{project.id}_unknown_#{word}"
+                  = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = counts["#{project.id}"]["unknown_#{word}"]
+              %td{class: odd_class}
+                - if any_clients
+                  = counts["#{project.id}"]["unknown_#{word}_percentage"]
         %tr
           - totals = counts['totals'].with_indifferent_access
           - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals['score'])
@@ -84,4 +98,6 @@
             %td{class: odd_class}= totals["missing_#{word}_percentage"]
             %td{class: odd_class}= totals["refused_#{word}"]
             %td{class: odd_class}= totals["refused_#{word}_percentage"]
+            %td{class: odd_class}= totals["unknown_#{word}"]
+            %td{class: odd_class}= totals["unknown_#{word}_percentage"]
   

@@ -1,9 +1,9 @@
 - if @report.report.with_indifferent_access[:bed_utilization].present?
   - totals = @report.report.with_indifferent_access[:bed_utilization_totals]
   .row
-    .col-sm-6
+    .col-sm-4
       %h3 Bed Utilization
-    .col-sm-6
+    .col-sm-8
       = render 'bed_utilization_description'  
   .well.overflow-scroll
     %table.table.table-condensed

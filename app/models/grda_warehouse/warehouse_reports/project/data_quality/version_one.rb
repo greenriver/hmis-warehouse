@@ -15,6 +15,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       meets_data_quality_benchmark()
       add_bed_utilization()
       add_missing_values()
+      add_enrolled_length_of_stay()
       finish_report()
     end
 
@@ -49,6 +50,36 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
+    def add_enrolled_length_of_stay
+      averages = projects.map{|project| [project.id, 0}.to_h
+      totals = self.class.length_of_stay_buckets.map do |title, range|
+        [range, {title: title, clients: Set.new}]
+      end.to_h
+
+      projects.each do |project|
+        counts = self.class.length_of_stay_buckets.map do |title, range|
+          [range, {title: title, clients: Set.new}]
+        end.to_h
+        service_histories = service_scope.service.
+          where(Project: {id: project.id}).
+          order(date: :asc).
+          pluck(*service_columns).
+          map do |row|
+            Hash[service_columns.zip(row)]
+          end
+        averages[project.id] = (service_histories.count.to_f / (self.end - self.start).to_i).round
+        service_histories.group_by!{|m| m[:client_id]}
+        service_histories.each do |client_id, services|
+          counts.each do |range, _|
+            meta = services.first
+            if range.include?(services.count)
+              counts[range] << meta.values
+              totals[range] << meta.values
+            end
+        end
+      end
+    end
+
     def add_missing_values
       totals = {}
       answers = {project_missing: {}}
@@ -56,6 +87,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       self.class.missing_refused_names.each do |word|
         totals["missing_#{word}"] = Set.new
         totals["refused_#{word}"] = Set.new
+        totals["unknown_#{word}"] = Set.new
       end
       
       projects.each do |project|
@@ -63,6 +95,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         self.class.missing_refused_names.each do |word|
           counts["missing_#{word}"] = Set.new
           counts["refused_#{word}"] = Set.new
+          counts["unknown_#{word}"] = Set.new
         end
         clients_in_project = clients_for_project(project.id)
         clients_in_project.each do |client|
@@ -89,26 +122,47 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             counts['missing_gender'] << [client[:id], client[:first_name], client[:last_name]]
           end
   
-          if client[:first_name].blank? || client[:last_name].blank? || refused?(client[:name_data_quality])
+          if refused?(client[:name_data_quality])
             counts['refused_name'] << [client[:id], client[:first_name], client[:last_name]]
           end
-          if client[:ssn].blank? || refused?(client[:ssn_data_quality])
+          if refused?(client[:ssn_data_quality])
             counts['refused_ssn'] << [client[:id], client[:first_name], client[:last_name]]
           end
-          if client[:dob].blank? || refused?(client[:dob_data_quality])
+          if refused?(client[:dob_data_quality])
             counts['refused_dob'] << [client[:id], client[:first_name], client[:last_name]]
           end
-          if client[:veteran_status].blank? || refused?(client[:veteran_status])
+          if refused?(client[:veteran_status])
             counts['refused_veteran'] << [client[:id], client[:first_name], client[:last_name]]
           end
-          if client[:ethnicity].blank? || refused?(client[:ethnicity])
+          if refused?(client[:ethnicity])
             counts['refused_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
           end
           if refused?(client[:race_none])
             counts['refused_race'] << [client[:id], client[:first_name], client[:last_name]]
           end
-          if client[:gender].blank? || refused?(client[:gender])
+          if refused?(client[:gender])
             counts['refused_gender'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:name_data_quality])
+            counts['unknown_name'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:ssn_data_quality])
+            counts['unknown_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:dob_data_quality])
+            counts['unknown_dob'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:veteran_status])
+            counts['unknown_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:ethnicity])
+            counts['unknown_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:race_none])
+            counts['unknown_race'] << [client[:id], client[:first_name], client[:last_name]]
+          end
+          if unknown?(client[:gender])
+            counts['unknown_gender'] << [client[:id], client[:first_name], client[:last_name]]
           end
         end
         enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)
@@ -122,11 +176,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                 if missing?(enrollment[:residence_prior])
                   counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
                 end
+                if missing?(enrollment[:last_permanent_zip])
+                  counts['missing_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
                 if refused?(enrollment[:disabling_condition])
-                  counts['missing_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                  counts['refused_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
                 end
                 if refused?(enrollment[:residence_prior])
-                  counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                  counts['refused_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if refused?(enrollment[:last_permanent_zip])
+                  counts['refused_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if unknown?(enrollment[:disabling_condition])
+                  counts['unknown_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if unknown?(enrollment[:residence_prior])
+                  counts['unknown_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                end
+                if unknown?(enrollment[:last_permanent_zip])
+                  counts['unknown_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
                 end
               end
             end
@@ -139,6 +208,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                   end
                   if refused?(enrollment[:destination])
                     counts['refused_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+                  end
+                  if unknown?(enrollment[:destination])
+                    counts['unknown_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
                   end
                 end
               end
@@ -191,6 +263,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :disabling_condition,
         :residence_prior,
         :destination,
+        :last_permanent_zip,
       ]
     end
 

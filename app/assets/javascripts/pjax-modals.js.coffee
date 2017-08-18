@@ -31,7 +31,7 @@ $ ->
         @loading.hide()
 
     _registerLinks: ->
-      $(document).pjax @linkTriggers.selector, @container.selector, timeout: false, push: false
+      $(document).pjax @linkTriggers.selector, @container.selector, timeout: false, push: false, scrollTo: false
       $(document).on 'click', @linkTriggers.selector, (e) =>
         @body.hide()
         @footer.hide()

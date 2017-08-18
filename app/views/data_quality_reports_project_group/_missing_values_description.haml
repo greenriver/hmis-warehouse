@@ -1,0 +1,37 @@
+#missing-values-accordion.panel-group.panel-collapsible
+  .panel.panel-default
+    .panel-heading
+      .row
+        .col-xs-8
+          %h4.panel-title
+            %a.toggle.collapsed{data: {parent: '#missing-values-accordion', toggle: 'collapse'}, href: '#missing-values-info'}
+              Information
+        .col-xs-4.text-right
+          %a.toggle.collapsed{data: {parent: '#missing-values-accordion', toggle: 'collapse'}, href: '#missing-values-info'}
+            %i.icon-arrow-circled-right
+            %i.icon-arrow-circled-down.hide
+    #missing-values-info.panel-collapse.collapse
+      .panel-body
+        %p
+          This report shows the number of clients missing each required Universal Data Element in each program at your agency, along with the percentage of all clients served by that program represented by that number. This report tracks twelve required data elements:
+        .row
+          .col-sm-4
+            %ul
+              %li Name
+              %li Social Security Number
+              %li SSN Quality
+              %li Date of Birth
+          .col-sm-4
+            %ul
+              %li Veteran Status
+              %li Ethnicity
+              %li Race
+              %li Gender
+          .col-sm-4
+            %ul
+              %li Disabling Conditions
+              %li Prior Residence
+              %li Last Permanent ZIP Code
+              %li Destination (leavers only)
+        %p
+          The report also computes the total number of records for each program and the number of clients in each program missing at least one Universal Data Element, producing a percentage of these clients missing one or more data elements as a proportion of the total number of clients served. The grade assigned to each program is based upon that percentage; please refer to the Grading System summary at the beginning of this report. Also, the numbers of clients missing data elements are summarized for the agency as a whole at the end of the Missing Values Summary table.

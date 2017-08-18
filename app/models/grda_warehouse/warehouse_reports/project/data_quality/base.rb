@@ -178,6 +178,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
         residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,
         disabling_condition: e_t[:DisablingCondition].as('disabling_condition').to_sql,
+        last_permanent_zip: e_t[:LastPermanentZIP].as('last_permanent_zip').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
       }
@@ -204,6 +205,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         white: c_t[:White].as('white').to_sql,
       }
     end
+
+    def service_columns
+      {
+        client_id: c_t[:id].as('client_id').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
+        date: sh_t[:date].as('date').to_sql,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+      }
 
     def start_report
       self.started_at = Time.now
@@ -240,7 +252,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def refused?(value)
-      [8,9].include?(value.to_i)
+      value.to_i == 9
+    end
+
+    def unknown?(value)
+      value.to_i == 8
     end
 
     def missing?(value)
@@ -289,6 +305,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def projects
       return project_group.projects if self.project_group_id.present?
       return [project]
+    end
+
+    def self.length_of_stay_buckets
+      {
+        '0 days' => (0..0),
+        '1 - 90 days'  => (1..90),
+        '91 - 364 days' => (91..364),
+        '1 - 2 years' => (365..729),
+        '2 - 3 years' => (730..1094),
+        '3 years or more' => (1095..1.0/0),
+      }
     end
 
     def c_t
