@@ -2,7 +2,7 @@
   = "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName} - Supporting Data"
 - if @data.any?
   .pull-right
-    = link_to support_data_quality_report_path(@project, @report, {key: @key, format: :xlsx}) do
+    = link_to support_project_data_quality_report_path(@project, @report, {key: @key, format: :xlsx}) do
       Download
       %span.icon-download2 
   %table.table.table-condensed.table-hover

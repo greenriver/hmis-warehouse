@@ -170,6 +170,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       {
         id: c_t[:id].as('id').to_sql,
         project_id: sh_t[:project_id].as('project_id').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
         enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
@@ -209,7 +210,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def service_columns
       {
-        client_id: c_t[:id].as('client_id').to_sql,
+        id: c_t[:id].as('client_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
         project_name: sh_t[:project_name].as('project_name').to_sql,

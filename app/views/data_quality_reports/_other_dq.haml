@@ -27,7 +27,7 @@
               - measure = incorrect_counts[project.id.to_s]
               - key = "incorrect_dob_#{project.id}"
               - if measure > 0
-                = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                   = measure
               - else
                 = measure
@@ -35,7 +35,7 @@
               - measure = no_service_counts[project.id.to_s]
               - key = "missing_nights_#{project.id}"
               - if measure > 0
-                = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                   = measure
               - else
                 = measure

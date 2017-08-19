@@ -83,11 +83,15 @@
           %td.page-bg-color= totals['total_missing']
           %td.page-bg-color= totals['total_missing_percentage']
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
-            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
-            %td{class: odd_class}= totals["missing_#{word}"]
-            %td{class: odd_class}= totals["missing_#{word}_percentage"]
-            %td{class: odd_class}= totals["refused_#{word}"]
-            %td{class: odd_class}= totals["refused_#{word}_percentage"]
-            %td{class: odd_class}= totals["unknown_#{word}"]
-            %td{class: odd_class}= totals["unknown_#{word}_percentage"]
-  
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
+            - [:missing, :refused, :unknown].each do |type|
+              %td{class: odd_class}
+                - measure = totals["#{type}_#{word}"]
+                - key = "project_missing_totals_#{type}_#{word}"
+                - if measure > 0
+                  = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else 
+                  = measure
+              %td{class: odd_class}
+                = totals["#{type}_#{word}_percentage"]
