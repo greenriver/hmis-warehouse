@@ -16,6 +16,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_bed_utilization()
       add_missing_values()
       add_enrolled_length_of_stay()
+      add_clients_dob_enrollment_date()
+      add_night_by_night_missing()
       finish_report()
     end
 
@@ -50,36 +52,168 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
-    def add_enrolled_length_of_stay
-      averages = projects.map{|project| [project.id, 0]}.to_h
-      totals = self.class.length_of_stay_buckets.map do |title, range|
-        [range, {title: title, clients: Set.new}]
-      end.to_h
-
+    def add_night_by_night_missing
+      missing_nights = {}
       projects.each do |project|
-        counts = self.class.length_of_stay_buckets.map do |title, range|
-          [range, {title: title, clients: Set.new}]
+        if project.TrackingMethod == 3
+          missing_nights[project.id] = service_scope.entry.
+            where(Project: {id: project.id}).
+            where.not(
+              client_id: service_scope.service.
+              where(Project: {id: project.id}).
+              where(date: (self.end - 30.days..self.end)).
+              distinct.select(:client_id)
+            ).pluck(*service_columns.values).
+            map do |row|
+              Hash[service_columns.keys.zip(row)]
+            end
+        else
+          missing_nights[project.id] = []
+        end
+      end
+      answers = {
+        missing_nights: missing_nights.map do |project_id, clients|
+          [project_id, clients.count]
         end.to_h
-        service_histories = service_scope.service.
-          where(Project: {id: project.id}).
-          order(date: :asc).
-          pluck(*service_columns).
-          map do |row|
-            Hash[service_columns.zip(row)]
+      }
+      support = {}
+      missing_nights.each do |project_id, clients|
+        support["missing_nights_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Project', 'Entry Date'],
+          counts: clients.map do |service|
+            [
+              destination_id_for_client(service[:id]),
+              service[:first_name], 
+              service[:last_name], 
+              service[:project_name], 
+              service[:first_date_in_program],
+              service[:last_date_in_program],
+            ]
           end
-        averages[project.id] = (service_histories.count.to_f / (self.end - self.start).to_i).round
-        service_histories.group_by!{|m| m[:client_id]}
-        service_histories.each do |client_id, services|
-          counts.each do |range, _|
-            meta = services.first
-            if range.include?(services.count)
-              counts[range] << meta.values
-              totals[range] << meta.values
+        }
+      end
+      add_answers(answers, support)
+    end
+
+    def add_clients_dob_enrollment_date
+      dob_entry = {}
+      projects.each do |project|
+        dob_entry[project.id] ||= Set.new
+        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id).values.flatten(1)
+        if enrollments_in_project.any?
+          enrollments_in_project.each do |enrollment|
+            if enrollment[:dob].present? && enrollment[:dob] >= enrollment[:first_date_in_program]
+              dob_entry[project.id] << [
+                destination_id_for_client(enrollment[:id]), 
+                enrollment[:first_name], 
+                enrollment[:last_name],
+                enrollment[:dob],
+                enrollment[:project_name],
+                enrollment[:first_date_in_program],
+              ]
             end
           end
         end
       end
-      averages
+      support = {}
+      dob_entry.each do |project_id, clients|
+        support["incorrect_dob_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Project', 'Entry Date'],
+          counts: clients.to_a
+        }
+      end
+      answers = {incorrect_dob: dob_entry.map{|project_id, clients| [project_id, clients.count]}.to_h}
+      add_answers(answers, support)
+    end
+
+    def add_enrolled_length_of_stay
+      project_counts = projects.map do |project| 
+        [
+          project.id, 
+          {
+            average: 0,
+            buckets: {}
+          }
+        ]
+      end.to_h
+      totals = {
+        buckets: self.class.length_of_stay_buckets.map do |title, range|
+          [range, Set.new]
+        end.to_h,
+        counts: {
+          total_days: 0,
+          average_days: 0,
+        },
+      }
+
+      projects.each do |project|
+        counts = self.class.length_of_stay_buckets.map do |title, range|
+          [range, Set.new]
+        end.to_h
+        service_histories = service_scope.service.
+          where(Project: {id: project.id}).
+          order(date: :asc).
+          pluck(*service_columns.values).
+          map do |row|
+            Hash[service_columns.keys.zip(row)]
+          end
+        project_counts[project.id][:average] = (service_histories.count.to_f / (self.end - self.start).to_i).round
+        totals[:counts][:total_days] += service_histories.count
+        service_histories = service_histories.group_by{|m| m[:client_id]}
+        service_histories.each do |client_id, services|
+          counts.each do |range, _|
+            meta = services.first
+            if range.include?(services.count)
+              counts[range] << meta
+              totals[:buckets][range] << meta
+            end
+          end
+        end
+        project_counts[project.id][:counts] = counts.map{|range,services| [range, services.count]}.to_h
+        project_counts[project.id][:buckets] = counts
+      end
+      totals[:counts][:average] = (totals[:counts][:total_days].to_f / (self.end - self.start).to_i).round
+      totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
+      answers = {
+        enrolled_length_of_stay: {
+          projects: project_counts,
+          totals: totals[:counts],
+        }
+      }
+      support = {}
+      project_counts.each do |project_id, buckets|
+        buckets[:buckets].each do |range, services|
+          support["enrolled_length_of_stay_#{project_id}_#{range}"] = {
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+            counts: services.map do |service|
+              [
+                destination_id_for_client(service[:id]), 
+                service[:first_name], 
+                service[:last_name], 
+                service[:project_name], 
+                service[:first_date_in_program],
+                service[:last_date_in_program],
+              ]
+            end
+          }
+        end
+      end
+      totals[:buckets].each do |range, services|
+        support["enrolled_length_of_stay_totals_#{range}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+          counts: services.map do |service|
+            [
+              destination_id_for_client(service[:id]), 
+              service[:first_name], 
+              service[:last_name], 
+              service[:project_name], 
+              service[:first_date_in_program],
+              service[:last_date_in_program],
+            ]
+          end
+        }
+      end
+      add_answers(answers, support)
     end
 
     def add_missing_values
@@ -101,119 +235,27 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
         clients_in_project = clients_for_project(project.id)
         clients_in_project.each do |client|
-          if client[:first_name].blank? || client[:last_name].blank? || missing?(client[:name_data_quality])
-            counts['missing_name'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if client[:ssn].blank? || missing?(client[:ssn_data_quality])
-            counts['missing_ssn'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if client[:dob].blank? || missing?(client[:dob_data_quality])
-            counts['missing_dob'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if client[:veteran_status].blank? || missing?(client[:veteran_status])
-            counts['missing_veteran'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if client[:ethnicity].blank? || missing?(client[:ethnicity])
-            counts['missing_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          # If we have no race info, whatsoever
-          if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
-            counts['missing_race'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if client[:gender].blank? || missing?(client[:gender])
-            counts['missing_gender'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-  
-          if refused?(client[:name_data_quality])
-            counts['refused_name'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if refused?(client[:ssn_data_quality])
-            counts['refused_ssn'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if refused?(client[:dob_data_quality])
-            counts['refused_dob'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if refused?(client[:veteran_status])
-            counts['refused_veteran'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if refused?(client[:ethnicity])
-            counts['refused_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if refused?(client[:race_none])
-            counts['refused_race'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if refused?(client[:gender])
-            counts['refused_gender'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:name_data_quality])
-            counts['unknown_name'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:ssn_data_quality])
-            counts['unknown_ssn'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:dob_data_quality])
-            counts['unknown_dob'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:veteran_status])
-            counts['unknown_veteran'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:ethnicity])
-            counts['unknown_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:race_none])
-            counts['unknown_race'] << [client[:id], client[:first_name], client[:last_name]]
-          end
-          if unknown?(client[:gender])
-            counts['unknown_gender'] << [client[:id], client[:first_name], client[:last_name]]
-          end
+          counts = add_missing_demo(client: client, counts: counts)
+          counts = add_refused_demo(client: client, counts: counts)
+          counts = add_unknown_demo(client: client, counts: counts)
         end
         enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)
         if enrollments_in_project.any?
           enrollments_in_project.each do |client_id, enrollments|
             if enrollments.present?
               enrollments.each do |enrollment|
-                if missing?(enrollment[:disabling_condition])
-                  counts['missing_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if missing?(enrollment[:residence_prior])
-                  counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if missing?(enrollment[:last_permanent_zip])
-                  counts['missing_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if refused?(enrollment[:disabling_condition])
-                  counts['refused_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if refused?(enrollment[:residence_prior])
-                  counts['refused_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if refused?(enrollment[:last_permanent_zip])
-                  counts['refused_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if unknown?(enrollment[:disabling_condition])
-                  counts['unknown_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if unknown?(enrollment[:residence_prior])
-                  counts['unknown_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
-                if unknown?(enrollment[:last_permanent_zip])
-                  counts['unknown_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                end
+                counts = add_missing_enrollment(client_id: client_id, enrollment: enrollment, counts: counts)
+                counts = add_refused_enrollment(client_id: client_id, enrollment: enrollment, counts: counts)
+                counts = add_unknown_enrollment(client_id: client_id, enrollment: enrollment, counts: counts)
               end
             end
             leavers_in_project = leavers_for_project(project.ProjectID, project.data_source_id)
             if leavers_in_project.any?
               leavers_in_project.each do |client_id|
                 enrollments_in_project[client_id].each do |enrollment|
-                  if missing?(enrollment[:destination])
-                    counts['missing_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                  end
-                  if refused?(enrollment[:destination])
-                    counts['refused_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                  end
-                  if unknown?(enrollment[:destination])
-                    counts['unknown_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
-                  end
+                  counts = add_missing_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
+                  counts = add_refused_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
+                  counts = add_unknown_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
                 end
               end
             end
@@ -226,7 +268,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size) 
           support["project_missing_#{project.id}_#{key}"] = {
             headers: ['Client ID', 'First Name', 'Last Name'],
-            counts: value.to_a
+            counts: value.to_a.map do |row|
+              # use the destination id for the client for support
+              row[0] = destination_id_for_client(row.first)
+              row
+            end
           }
         end
         answers[:project_missing][project.id][:total_clients] = clients_in_project.size
@@ -243,13 +289,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers[:project_missing][:totals][:score] = in_percentage(totals.values.map(&:size).max, clients.size)
       totals[:total_clients] = clients
       answers[:project_missing][:totals][:total_clients] = totals[:total_clients].size
-      totals.each do |key, value|
+      totals.each do |key, value|        
         answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
-        support["project_missing_totals_#{key}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: value.to_a
-        }
+        if ! [:total_clients, :total_missing].include?(key)
+          support["project_missing_totals_#{key}"] = {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: value.to_a
+          }
+        end
       end
+
       add_answers(answers, support)
     end
 
@@ -269,6 +318,142 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       ]
     end
 
+    def add_missing_destinations client_id:, enrollment:, counts:
+      if missing?(enrollment[:destination])
+        counts['missing_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      return counts
+    end
+    
+    def add_refused_destinations client_id:, enrollment:, counts:
+      if refused?(enrollment[:destination])
+        counts['refused_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      return counts
+    end
+    
+    def add_unknown_destinations client_id:, enrollment:, counts:
+      if unknown?(enrollment[:destination])
+        counts['unknown_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      return counts
+    end
+
+    def add_missing_enrollment client_id:, enrollment:, counts:
+      if missing?(enrollment[:disabling_condition])
+        counts['missing_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      if missing?(enrollment[:residence_prior])
+        counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      if missing?(enrollment[:last_permanent_zip])
+        counts['missing_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      return counts
+    end
+
+    def add_refused_enrollment client_id:, enrollment:, counts:
+      if refused?(enrollment[:disabling_condition])
+        counts['refused_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      if refused?(enrollment[:residence_prior])
+        counts['refused_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      if refused?(enrollment[:last_permanent_zip])
+        counts['refused_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      return counts
+    end
+
+    def add_unknown_enrollment client_id:, enrollment:, counts:
+      if unknown?(enrollment[:disabling_condition])
+        counts['unknown_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      if unknown?(enrollment[:residence_prior])
+        counts['unknown_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      if unknown?(enrollment[:last_permanent_zip])
+        counts['unknown_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+      end
+      return counts
+    end
+
+    def add_missing_demo client:, counts:
+      if client[:first_name].blank? || client[:last_name].blank? || missing?(client[:name_data_quality])
+        counts['missing_name'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if client[:ssn].blank? || missing?(client[:ssn_data_quality])
+        counts['missing_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if client[:dob].blank? || missing?(client[:dob_data_quality])
+        counts['missing_dob'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if client[:veteran_status].blank? || missing?(client[:veteran_status])
+        counts['missing_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if client[:ethnicity].blank? || missing?(client[:ethnicity])
+        counts['missing_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      # If we have no race info, whatsoever
+      if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
+        counts['missing_race'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if client[:gender].blank? || missing?(client[:gender])
+        counts['missing_gender'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      return counts
+    end
+
+    def add_refused_demo client:, counts:
+      if refused?(client[:name_data_quality])
+        counts['refused_name'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if refused?(client[:ssn_data_quality])
+        counts['refused_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if refused?(client[:dob_data_quality])
+        counts['refused_dob'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if refused?(client[:veteran_status])
+        counts['refused_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if refused?(client[:ethnicity])
+        counts['refused_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if refused?(client[:race_none])
+        counts['refused_race'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if refused?(client[:gender])
+        counts['refused_gender'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      return counts
+    end
+
+    def add_unknown_demo client:, counts:
+      if unknown?(client[:name_data_quality])
+        counts['unknown_name'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if unknown?(client[:ssn_data_quality])
+        counts['unknown_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if unknown?(client[:dob_data_quality])
+        counts['unknown_dob'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if unknown?(client[:veteran_status])
+        counts['unknown_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if unknown?(client[:ethnicity])
+        counts['unknown_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if unknown?(client[:race_none])
+        counts['unknown_race'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      if unknown?(client[:gender])
+        counts['unknown_gender'] << [client[:id], client[:first_name], client[:last_name]]
+      end
+      return counts
+    end
+
     def add_bed_utilization
       bed_utilization = []
       support = {}
@@ -280,20 +465,32 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts = {}
         data = {}
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
-        data[:average_daily] = project.service_history.where(date: filter.range).
-          joins(:client).
+        data[:average_daily] = project.service_history.service.
+          joins(:client, :project).
+          where(Project: {id: project.id}).
+          where(date: filter.range).
+          distinct.
           pluck(*client_columns)
           counts[:average_daily] = data[:average_daily].count / filter.range.count
-        data[:first_of_month] = project.service_history.where(date: filter.first).
-          joins(:client).
+        data[:first_of_month] = project.service_history.service.
+          joins(:client, :project).
+          where(Project: {id: project.id}).
+          where(date: filter.first).
+          distinct.
           pluck(*client_columns)
           counts[:first_of_month] = data[:first_of_month].count
-        data[:fifteenth_of_month] = project.service_history.where(date: filter.ides).
-          joins(:client).
+        data[:fifteenth_of_month] = project.service_history.service.
+          joins(:client, :project).
+          where(Project: {id: project.id}).
+          where(date: filter.ides).
+          distinct.
           pluck(*client_columns)
         counts[:fifteenth_of_month] = data[:fifteenth_of_month].count
-        data[:last_of_month] = project.service_history.where(date: filter.last).
-          joins(:client).
+        data[:last_of_month] = project.service_history.service.
+          joins(:client, :project).
+          where(Project: {id: project.id}).
+          where(date: filter.last).
+          distinct.
           pluck(*client_columns)
         counts[:last_of_month] = data[:last_of_month].count
         project_counts = {
@@ -308,7 +505,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           totals[:data][attr] += data[attr]
           support["bed_utilization_#{project.id}_#{attr}"] = {
             headers: ['Client ID', 'First Name', 'Last Name'],
-            counts: data[attr].uniq
+            counts: data[attr]
           }
         end
         
@@ -319,7 +516,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         totals[:counts]["#{attr}_percentage"] = in_percentage(totals[:counts][attr], totals[:counts][:capacity])
         support["bed_utilization_totals_#{attr}"] = {
           headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: totals[:data][attr].uniq
+          counts: totals[:data][attr]
         }
       end
       
