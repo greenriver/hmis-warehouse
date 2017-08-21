@@ -4,11 +4,14 @@ module HealthCharts
 
     def health_housing_stati
       case_management_notes.map do |form|
-        answer = form.answers[:sections].first[:questions].select do |question|
-          question[:question] == "A-6. Where did you sleep last night?"
-        end.first
-        [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer[:answer])]
-      end.to_h
+        first_section = form.answers[:sections].first
+        if first_section.present?
+          answer = form.answers[:sections].first[:questions].select do |question|
+            question[:question] == "A-6. Where did you sleep last night?"
+          end.first
+          [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer[:answer])]
+        end
+      end.compact.to_h
     end
 
     def self.health_housing_positive_outcomes
