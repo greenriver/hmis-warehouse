@@ -7,32 +7,30 @@
     # returns all the inputs with the given name
     named = (name) -> $("input[name='\#{vt}[\#{name}]']")
     # returns element with id
-    el = (name) -> $("#\#{vt}_\#{name}")
+    el = (name, value) ->
+      input = $("#\#{vt}_\#{name}")
+      input.val( value ) if input.val().length==0
 
     # Basic Information
     first_name = chance.first()
     nickname = chance.pickone(['Lil', 'Big', 'Ice']) + " " + first_name[0]
     last_name = chance.last()
-    el("nickname").val nickname
-    el("language_answer").val chance.pickone(['language_english', 'language_spanish', 'language_french'])
-    -# el("ssn").val chance.ssn()
-    el("dob_1i").val chance.year(min: 1930, max: (new Date().getFullYear()))
-    el("dob_2i").val chance.integer(min: 1, max: 12)
-    el("dob_3i").val chance.integer(min: 1, max: 28)
+    el "nickname", nickname
+    el "language_answer", chance.pickone(['language_english', 'language_spanish', 'language_french'])
 
     # History
     sleeps = chance.pickone( named 'sleep_answer' )
     check radio for radio in [sleeps]
-    el('years_homeless').val chance.integer(min: 0, max: 3)
-    el('episodes_homeless').val chance.integer(min: 0, max: 36)
+    el 'years_homeless', chance.integer(min: 0, max: 3)
+    el 'episodes_homeless', chance.integer(min: 0, max: 36)
 
     # Risks / Socialization / Wellness
-    el('emergency_healthcare').val chance.integer(min: 0, max: 25)
-    el('ambulance').val chance.integer(min: 0, max: 25)
-    el('inpatient').val chance.integer(min: 0, max: 25)
-    el('crisis_service').val chance.integer(min: 0, max: 25)
-    el('talked_to_police').val chance.integer(min: 0, max: 25)
-    el('jail').val chance.integer(min: 0, max: 25)
+    el 'emergency_healthcare', chance.integer(min: 0, max: 25)
+    el 'ambulance', chance.integer(min: 0, max: 25)
+    el 'inpatient', chance.integer(min: 0, max: 25)
+    el 'crisis_service', chance.integer(min: 0, max: 25)
+    el 'talked_to_police', chance.integer(min: 0, max: 25)
+    el 'jail', chance.integer(min: 0, max: 25)
     answers = [
       chance.pickone named('attacked_answer')
       chance.pickone named('threatened_answer')
@@ -64,8 +62,8 @@
     check radio for radio in answers
 
     # Follow Up Questions
-    el('find_location').val chance.address()
-    el('find_time').val chance.hour() + ' ' + chance.ampm()
-    el('when_answer').val chance.pickone(['morning', 'afternoon', 'evening', 'night'])
-    el('phone').val chance.phone()
-    el('email').val "\#{first_name}.\#{last_name}@mailinator.com"
+    el 'find_location', chance.address()
+    el 'find_time', chance.hour() + ' ' + chance.ampm()
+    el 'when_answer', chance.pickone(['morning', 'afternoon', 'evening', 'night'])
+    el 'phone', chance.phone()
+    el 'email', "\#{first_name}.\#{last_name}@mailinator.com"

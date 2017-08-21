@@ -8,7 +8,7 @@ module GrdaWarehouse::Tasks
       self.logger = Rails.logger
     end
 
-    # Update the ProjectClient table in the CAS with clients flagged with sync_with_cas 
+    # Update the ProjectClient table in the CAS with clients flagged with sync_with_cas
     def sync!
       @client_ids = client_source.pluck(:id)
       updated_clients = Cas::ProjectClient.transaction do
@@ -21,6 +21,7 @@ module GrdaWarehouse::Tasks
           project_client_columns.map do |destination, source|
             project_client[destination] = client.send(source)
           end
+          project_client.vispdat_score = client.vispdats.completed.scores.first&.score
           project_client.needs_update = true
           project_client.save!
         end

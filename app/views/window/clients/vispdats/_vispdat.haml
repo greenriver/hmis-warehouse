@@ -17,16 +17,28 @@
       %dd= @vispdat.answer_for :language_answer
     .col-sm-4
       %dt SSN
-      %dd= @client.SSN
+      %dd= ssn @client.SSN
     .col-sm-4
       %dt Date of Birth
       %dd
         = @client.DOB
         = "(#{@client.age})"
   .row
-    .col-sm-12
-      %dt Conset to Participate?
-      %dd= yes_no @vispdat.consent
+    .col-sm-4
+      %dt Release Signed On?
+      %dd
+        = @vispdat.release_signed_on
+        - if @vispdat.expired?
+          %span.label.label-danger Expired
+        - else
+          %span.label.label-success
+            %span.icon-checkmark
+    .col-sm-4
+      %dt Drug & Alcohol Release?
+      %dd= yes_no @vispdat.drug_release
+    .col-sm-4
+      %dt HIV/AIDS Release?
+      %dd= yes_no @vispdat.hiv_release
 
 %h2 History of Housing & Homelessness
 .well
@@ -42,8 +54,9 @@
     .col-sm-4
       %dt How long has it been since you lived in permanent stable housing? (in years)
       %dd
-        = @vispdat.years_homeless
-        = "Refused" if @vispdat.years_homeless_refused?
+        = @vispdat.homeless
+        = @vispdat.homeless_period
+        = "Refused" if @vispdat.homeless_refused?
     .col-sm-4
       %dt In the last three years, how many times have you been homeless?
       %dd
@@ -101,27 +114,27 @@
     .col-sm-9
       %label Have you been attacked or beaten up since you've become homeless?
     .col-sm-3
-      %dd= @vispdat.answer_for :attacked_answer
+      %dd= yes_no @vispdat.answer_for :attacked_answer
   .row
     .col-sm-9
       %label Have you threatened to or tried to harm yourself or anyone else in the last year?
     .col-sm-3
-      %dd= @vispdat.answer_for :threatened_answer
+      %dd= yes_no @vispdat.answer_for :threatened_answer
   .row
     .col-sm-9
       %label Do you have any legal stuff going on right now that may result in you being locked up, having to pay fines, or that make it more difficult to rent a place to live?
     .col-sm-3
-      %dd= @vispdat.answer_for :legal_answer
+      %dd= yes_no @vispdat.answer_for :legal_answer
   .row
     .col-sm-9
       %label Does anybody force or trick you to do things that you do not want to do?
     .col-sm-3
-      %dd= @vispdat.answer_for :tricked_answer
+      %dd= yes_no @vispdat.answer_for :tricked_answer
   .row
     .col-sm-9
       %label Do you ever do things that may be considered to be risky like exchange sex for money, run drugs for someone, have unprotected sex with someone you don’t know, share a needle, or anything like that?
     .col-sm-3
-      %dd= @vispdat.answer_for :risky_answer
+      %dd= yes_no @vispdat.answer_for :risky_answer
 
 %h2 Socialization & Daily Functioning
 .well
@@ -129,27 +142,27 @@
     .col-sm-9
       %label Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you owe them money?
     .col-sm-3
-      %dd= @vispdat.answer_for :owe_money_answer
+      %dd= yes_no @vispdat.answer_for :owe_money_answer
   .row
     .col-sm-9
       %label Do you get any money from the government, a pension, an inheritance, working under the table, a regular job, or anything like that?
     .col-sm-3
-      %dd= @vispdat.answer_for :get_money_answer
+      %dd= yes_no @vispdat.answer_for :get_money_answer
   .row
     .col-sm-9
       %label Do you have planned activities, other than just surviving, that make you feel happy and fulfilled?
     .col-sm-3
-      %dd= @vispdat.answer_for :activities_answer
+      %dd= yes_no @vispdat.answer_for :activities_answer
   .row
     .col-sm-9
       %label Are you currently able to take care of basic needs like bathing, changing clothes, using a restroom, getting food and clean water and other things like that?
     .col-sm-3
-      %dd= @vispdat.answer_for :basic_needs_answer
+      %dd= yes_no @vispdat.answer_for :basic_needs_answer
   .row
     .col-sm-9
       %label Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?
     .col-sm-3
-      %dd= @vispdat.answer_for :abusive_answer
+      %dd= yes_no @vispdat.answer_for :abusive_answer
 
 %h2 Wellness
 .well
@@ -158,31 +171,31 @@
       %label Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :leave_answer
+        = yes_no @vispdat.answer_for :leave_answer
   .row
     .col-sm-9
       %label Do you have any chronic health issues with your liver, kidneys, stomach, lungs or heart?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :chronic_answer
+        = yes_no @vispdat.answer_for :chronic_answer
   .row
     .col-sm-9
       %label If there was space available in a program that specically assists people that live with HIV or AIDS, would that be of interest to you?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :hiv_answer
+        = yes_no @vispdat.answer_for :hiv_answer
   .row
     .col-sm-9
       %label Do you have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :disability_answer
+        = yes_no @vispdat.answer_for :disability_answer
   .row
     .col-sm-9
       %label When you are sick or not feeling well, do you avoid getting help?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :avoid_help_answer
+        = yes_no @vispdat.answer_for :avoid_help_answer
   .row
     .col-sm-9
       %label.alert-danger
@@ -190,19 +203,19 @@
       %label Are you currently pregnant?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :pregnant_answer
+        = yes_no @vispdat.answer_for :pregnant_answer
   .row
     .col-sm-9
       %label Has your drinking or drug use led you to being kicked out of an apartment or program where you were staying in the past?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :eviction_answer
+        = yes_no @vispdat.answer_for :eviction_answer
   .row
     .col-sm-9
       %label Will drinking or drug use make it difficult for you to stay housed or afford your housing?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :drinking_answer
+        = yes_no @vispdat.answer_for :drinking_answer
 .well
   %h4 Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:
   %br
@@ -211,45 +224,45 @@
       %label A mental health issue or concern?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :mental_answer
+        = yes_no @vispdat.answer_for :mental_answer
   .row
     .col-sm-8.col-md-offset-1
       %label A past head injury?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :head_answer
+        = yes_no @vispdat.answer_for :head_answer
   .row
     .col-sm-8.col-md-offset-1
       %label A learning disability, developmental disability, or other impairment?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :learning_answer
+        = yes_no @vispdat.answer_for :learning_answer
 .well
   .row
     .col-sm-9
       %label Do you have any mental health or brain issues that would make it hard for you to live independently because you’d need help?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :brain_answer
+        = yes_no @vispdat.answer_for :brain_answer
   .row
     .col-sm-9
       %label Are there any medications that a doctor said you should be taking that, for whatever reason, you are not taking?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :medication_answer
+        = yes_no @vispdat.answer_for :medication_answer
   .row
     .col-sm-9
       %label Are there any medications like painkillers that you don’t take the way the doctor prescribed or where you sell the medication?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :sell_answer
+        = yes_no @vispdat.answer_for :sell_answer
   .row
     .col-sm-9
       %label.alert-danger YES OR NO:
       %label Has your current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you have experienced?
     .col-sm-3
       %dd
-        = @vispdat.answer_for :trauma_answer
+        = yes_no @vispdat.answer_for :trauma_answer
 
 %h2 Follow-Up Questions
 .well
@@ -278,6 +291,6 @@
     .col-sm-4
       %label Ok, now I'd like to take your picture so that it is easier to find you and confirm your identity in the future. May I do so?
     .col-sm-8
-      %dd= @vispdat.answer_for :picture_answer
+      %dd= yes_no @vispdat.answer_for :picture_answer
 
 %hr

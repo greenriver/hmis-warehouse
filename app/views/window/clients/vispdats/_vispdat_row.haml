@@ -1,0 +1,17 @@
+%tr.vspdat-row{ id: "vispdat-#{vispdat.id}" }
+  %td.vspdat-row__created_on
+    - if vispdat.completed?
+      = link_to vispdat.created_at, polymorphic_path(vispdat_path_generator, id: vispdat.id)
+    - else
+      = link_to vispdat.created_at, polymorphic_path([:edit] + vispdat_path_generator, id: vispdat.id)
+      
+  %td
+    - if vispdat.completed?
+      %span.label.label-success Complete
+    - else
+      %span.label.label-warning In Progress
+
+    - if vispdat.expired?
+      %span.label.label-danger Expired
+  %td.vspdat-row__score.text-center
+    = vispdat.score

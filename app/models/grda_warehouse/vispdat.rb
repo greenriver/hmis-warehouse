@@ -8,8 +8,23 @@ module GrdaWarehouse
     ####################
     # enums
     ####################
-    enum language_answer: [:language_english, :language_spanish, :language_french]
+    enum language_answer: [
+      :language_english,
+      :language_spanish,
+      :language_french,
+      :language_chinese,
+      :language_hindi,
+      :language_arabic,
+      :language_portuguese,
+      :language_bengali,
+      :language_russian,
+      :language_japanese,
+      :language_punjabi,
+      :language_german
+    ]
     enum sleep_answer: [:sleep_shelters, :sleep_transitional_housing, :sleep_safe_haven, :sleep_outdoors, :sleep_other, :sleep_refused]
+
+    enum homeless_period: [:days, :weeks, :months, :years]
 
     %w(attacked threatened legal tricked risky owe_money get_money activities basic_needs abusive leave chronic hiv disability avoid_help pregnant eviction drinking mental head learning brain medication sell trauma picture).each do |field|
       enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
@@ -35,8 +50,9 @@ module GrdaWarehouse
 
     validates :sleep_answer, inclusion: { in: sleep_answers.keys }, allow_blank: true
     validates :sleep_answer_other, length: { in: 2..100 }, presence: true, if: -> { sleep_other? }
-    validates :years_homeless, numericality: { only_integer: true }, inclusion: { in: 0..30, message: 'should be between 0 and 30' }, unless: -> { years_homeless_refused? }
-    validates :episodes_homeless, numericality: { onlyt_integer: true }, inclusion: { in: 0..36, message: 'should be between 0 and 36'}, unless: -> { episodes_homeless_refused? }
+    validates :homeless, numericality: { only_integer: true }, inclusion: { in: 0..30, message: 'should be between 0 and 30' }, unless: -> { homeless_refused? }
+    validates :homeless_period, presence: true, if: -> { homeless.present? }
+    validates :episodes_homeless, numericality: { only_integer: true }, inclusion: { in: 0..36, message: 'should be between 0 and 36'}, unless: -> { episodes_homeless_refused? }
 
     with_options numericality: { only_integer: true }, inclusion: { in: 0..25, message: 'should be between 0 and 25' } do |number_of_times|
       number_of_times.validates :emergency_healthcare, unless: -> { emergency_healthcare_refused? }
@@ -50,13 +66,13 @@ module GrdaWarehouse
     validates :find_location, length: { in: 0..100 }
     validates :find_time, length: { in: 0..10 }
     validates :when_answer, inclusion: { in: when_answers.keys }, allow_blank: true
-    validates :phone, format: { with: US_PHONE_NUMBERS }
-    validates_email_format_of :email
+    validates :phone, format: { with: US_PHONE_NUMBERS }, allow_blank: true
+    validates_email_format_of :email, allow_blank: true
 
     # Require the refused checkbox to be checked if no answer given
     # Require an answer if the refused checkbox not checked.
     %w(
-      years_homeless
+      homeless
       episodes_homeless
       emergency_healthcare
       ambulance
@@ -74,6 +90,14 @@ module GrdaWarehouse
       # if refused checked and answer given
       validates field.to_sym, absence: { message: 'cannot have an entry if refusing to answer' }, if: -> { send([field, '_refused?'].join.to_sym) }
     end
+
+    ####################
+    # Scopes
+    ####################
+
+    scope :in_progress, -> { where(submitted_at: nil) }
+    scope :completed, -> { where.not(submitted_at: nil) }
+    scope :scores, -> { order(submitted_at: :desc).select(:score) }
 
     ####################
     # Callbacks
@@ -109,6 +133,19 @@ module GrdaWarehouse
       save
     end
 
+    def score_class
+      case score
+      when 0..3
+        'success'
+      when 4..7
+        'warning'
+      when 8..Float::INFINITY
+        'danger'
+      else
+        'default'
+      end
+    end
+
     def version
       2
     end
@@ -131,6 +168,12 @@ module GrdaWarehouse
       end
     end
 
+    def self.homeless_period_options
+      homeless_periods.map do |k,_|
+        [k.capitalize, k]
+      end
+    end
+
     def self.options_for enum
       ['Yes', 'No', 'Refused'].zip self.send(enum).keys
     end
@@ -142,6 +185,19 @@ module GrdaWarehouse
     def answer_for enum
       return '-' if send(enum).blank?
       send(enum).titleize.split.last
+    end
+
+    def completed?
+      submitted_at.present?
+    end
+
+    def in_progress?
+      !completed
+    end
+
+    def expired?
+      return true unless release_signed_on
+      release_signed_on && release_signed_on < 1.year.ago
     end
 
     ####################
@@ -230,6 +286,81 @@ module GrdaWarehouse
     end
     def abuse_and_trauma_score
       trauma_answer_yes? ? 1 : 0
+    end
+
+    def years_homeless
+      case homeless_period
+      when 'days'
+        homeless.to_i/365
+      when 'weeks'
+        homeless.to_i/52
+      when 'months'
+        homeless.to_i/12
+      when 'years'
+        homeless.to_i
+      else
+        0
+      end
+    end
+
+    def self.allowed_parameters
+      [
+        :nickname,
+        :language_answer,
+        :release_signed_on,
+        :hiv_release,
+        :drug_release,
+        :sleep_answer,
+        :sleep_answer_other,
+        :homeless,
+        :homeless_refused,
+        :homeless_period,
+        :episodes_homeless,
+        :episodes_homeless_refused,
+        :emergency_healthcare,
+        :emergency_healthcare_refused,
+        :ambulance,
+        :ambulance_refused,
+        :inpatient,
+        :inpatient_refused,
+        :crisis_service,
+        :crisis_service_refused,
+        :talked_to_police,
+        :talked_to_police_refused,
+        :jail,
+        :jail_refused,
+        :attacked_answer,
+        :threatened_answer,
+        :legal_answer,
+        :tricked_answer,
+        :risky_answer,
+        :owe_money_answer,
+        :get_money_answer,
+        :activities_answer,
+        :basic_needs_answer,
+        :abusive_answer,
+        :leave_answer,
+        :chronic_answer,
+        :hiv_answer,
+        :disability_answer,
+        :avoid_help_answer,
+        :pregnant_answer,
+        :eviction_answer,
+        :drinking_answer,
+        :mental_answer,
+        :head_answer,
+        :learning_answer,
+        :brain_answer,
+        :medication_answer,
+        :sell_answer,
+        :trauma_answer,
+        :find_location,
+        :find_time,
+        :when_answer,
+        :phone,
+        :email,
+        :picture_answer
+      ]
     end
 
   end

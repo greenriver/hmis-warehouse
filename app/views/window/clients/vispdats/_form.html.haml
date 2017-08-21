@@ -1,95 +1,104 @@
-- path = (action_name=='new' || action_name=='create') ? polymorphic_path(vispdats_path_generator, client_id: @client.id) : polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id)
+- path = polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id)
 
-= simple_form_for @vispdat, url: path, wrapper: (readonly || SimpleForm.default_wrapper)  do |f|
+= simple_form_for @vispdat, url: path, wrapper: (readonly || SimpleForm.default_wrapper), html: { class: 'vispdat-form', data: { url: polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id, format: :js) }}  do |f|
   = f.error_notification
 
   %h2 Basic Information
-  .well
+  .well.vispdat.vispdat-basic-information
     .row
-      .col-sm-4
-        %label.control-label First Name
-        %p.form-control-static= @client.first_name
-      .col-sm-4
-        = f.input :nickname
-      .col-sm-4
-        %label.control-label Last Name
-        %p.form-control-static= @client.last_name
-    .row
-      .col-sm-4
-        = f.input :language_answer, collection: GrdaWarehouse::Vispdat.language_options, label: "Language"
       .col-sm-4
         %label.control-label SSN #
-        %p.form-control-static= @client.SSN
+        %p.form-control-static= ssn @client.SSN
       .col-sm-4
         %label.control-label Date of Birth
         %p.form-control-static
           = @client.DOB
           = "(#{@client.age})"
     .row
-      .col-sm-12
-        %label Consent to Participate?
-        = f.input :consent, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+      .col-sm-4
+        = f.input :nickname
+      .col-sm-4
+        = f.input :language_answer, collection: GrdaWarehouse::Vispdat.language_options, label: "Language", input_html: { class: 'select2' }
+    .row
+      .col-sm-4
+        = f.input :release_signed_on, label: "Release Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
+      .col-sm-4
+        %label Drug & Alcohol Release?
+        = f.input :drug_release, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+      .col-sm-4
+        %label HIV/AIDS Release?
+        = f.input :hiv_release, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
 
   %h2 History of Housing & Homelessness
-  .well
+  .well.vispdat.vispdat-history
     .row
       .col-sm-4
         = f.input :sleep_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.sleep_options, label: "Where do you sleep most frequently? (check one)"
         = f.input :sleep_answer_other, label: "Other (specify)"
       .col-sm-4
-        = f.input :years_homeless, label: "How long has it been since you lived in permanent stable housing? (in years)"
-        = f.input :years_homeless_refused, label: "Refused"
+        .row
+          .col-sm-12
+            = f.label :homeless, "How long has it been since you lived in permanent stable housing?"
+        .row
+          .col-sm-6
+            = f.input :homeless, label: false
+          .col-sm-6
+            = f.input :homeless_period, label: false, collection: GrdaWarehouse::Vispdat.homeless_period_options
+        .row
+          .col-sm-12
+            = f.input :homeless_refused, label: "Refused", as: :boolean
       .col-sm-4
         = f.input :episodes_homeless, label: "In the last three years, how many times have you been homeless?"
         = f.input :episodes_homeless_refused, label: "Refused"
 
   %h2 Risks
-  .well
+  .well.vispdat.vispdat-risks-1
     %h4 In the past six months, how many times have you...
     %br
     .row
       .col-sm-8.col-md-offset-1
         %label Received health care at an emergency department/room?
       .col-sm-1
-        = f.input :emergency_healthcare, label: false
+        = f.input :emergency_healthcare, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :emergency_healthcare_refused, label: "Refused"
     .row
       .col-sm-8.col-md-offset-1
         %label Taken an ambulance to the hospital?
       .col-sm-1
-        = f.input :ambulance, label: false
+        = f.input :ambulance, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :ambulance_refused, label: "Refused"
     .row
       .col-sm-8.col-md-offset-1
         %label Been hospitalized as an inpatient?
       .col-sm-1
-        = f.input :inpatient, label: false
+        = f.input :inpatient, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :inpatient_refused, label: "Refused"
     .row
       .col-sm-8.col-md-offset-1
         %label Used a crisis service, including sexual assault crisis, mental health crisis, family/intimate violence, distress centers and suicide prevention hotlines?
       .col-sm-1
-        = f.input :crisis_service, label: false
+        = f.input :crisis_service, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :crisis_service_refused, label: "Refused"
     .row
       .col-sm-8.col-md-offset-1
         %label Talked to police because you witnessed a crime, were the victim of a crime, or the alleged perpetrator of a crime or because the police told you that you must move along?
       .col-sm-1
-        = f.input :talked_to_police, label: false
+        = f.input :talked_to_police, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :talked_to_police_refused, label: "Refused"
     .row
       .col-sm-8.col-md-offset-1
         %label Stayed one or more nights in a holding cell, jail or prison, whether that was a short-term stay like the drunk tank, a longer stay for a more serious offence, or anything in between?
       .col-sm-1
-        = f.input :jail, label: false
+        = f.input :jail, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :jail_refused, label: "Refused"
-  .well
+
+  .well.vispdat.vispdat-risks-2
     .row
       .col-sm-9
         %label Have you been attacked or beaten up since you've become homeless?
@@ -117,7 +126,7 @@
         = f.input :risky_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:risky_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
 
   %h2 Socialization & Daily Functioning
-  .well
+  .well.vispdat.vispdat-social
     .row
       .col-sm-9
         %label Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you owe them money?
@@ -145,7 +154,7 @@
         = f.input :abusive_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:abusive_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
 
   %h2 Wellness
-  .well
+  .well.vispdat.vispdat-wellness-1
     .row
       .col-sm-9
         %label Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?
@@ -188,7 +197,8 @@
         %label Will drinking or drug use make it difficult for you to stay housed or afford your housing?
       .col-sm-3
         = f.input :drinking_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:drinking_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
-  .well
+
+  .well.vispdat.vispdat-wellness-2
     %h4 Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:
     %br
     .row
@@ -206,7 +216,8 @@
         %label A learning disability, developmental disability, or other impairment?
       .col-sm-3
         = f.input :learning_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:learning_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
-  .well
+
+  .well.vispdat.vispdat-wellness-3
     .row
       .col-sm-9
         %label Do you have any mental health or brain issues that would make it hard for you to live independently because you’d need help?
@@ -258,4 +269,6 @@
 
 
   %hr
-  = f.submit 'Save', class: 'btn btn-primary'
+    .row
+      .col-sm-12.text-right
+        = f.submit 'Complete', class: 'btn btn-primary'
