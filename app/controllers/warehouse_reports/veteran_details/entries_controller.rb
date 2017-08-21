@@ -9,7 +9,7 @@ module WarehouseReports::VeteranDetails
 
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
-      @range = DateRange.new(date_range_options)
+      @range = ::Filters::DateRange.new(date_range_options)
       @project_type_code = params[:project_type]&.to_sym || :es
       @project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[@project_type_code]
 

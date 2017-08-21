@@ -96,49 +96,9 @@ module WarehouseReports
         'average'
       ]
       @mo = if params[:mo].present?
-        MonthAndOrganization.new params.require(:mo)
+        ::Filters::MonthAndOrganization.new params.require(:mo)
       else
-        MonthAndOrganization.new
-      end
-    end
-
-    class MonthAndOrganization < DateRange::MonthDefault
-      attribute :org, Integer, lazy: true, default: ''
-
-      validates :org, presence: true
-
-      def organizations
-        @organizations ||= GrdaWarehouse::Hud::Organization.residential.distinct.order(:OrganizationName)
-      end
-
-      def disambiguated_organizations
-        @disambiguated_organizations ||= organizations.
-          includes(:data_source).
-          group_by(&:name).
-          flat_map do |name, orgs|
-            if orgs.many?
-              orgs.map do |org|
-                [ disambiguated_name(org), org.id ]
-              end
-            else
-              [[ name, orgs.first.id ]]
-            end
-        end
-      end
-
-      def disambiguated_name(org)
-        "#{org.name} < #{org.data_source.short_name}"
-      end
-
-      def organization
-        @organization ||= organizations.where( id: org ).first
-      end
-
-      validate do
-        # make sure org is residential
-        unless organization.present?
-          errors.add :org, 'Organization required.'
-        end
+        ::Filters::MonthAndOrganization.new
       end
     end
   end

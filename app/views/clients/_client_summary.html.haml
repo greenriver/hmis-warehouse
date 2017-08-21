@@ -24,13 +24,14 @@
         %ul
           - decisions.each do |decision|
             %li
-              = decision.decision_status
+              = decision.decision_status.sub('Dnd', 'DND')
               on
               = decision.updated_at.to_date
-      %h3 VI-SPDAT Scores
-      - @client.vispdats.completed.scores.each do |vispdat|
-        %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
+      - if can_view_vspdat? && @client.vispdats.completed.any?
+        %h3 VI-SPDAT Scores
+        - @client.vispdats.completed.scores.each do |vispdat|
+          %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
     .col-sm-4
-      - if GrdaWarehouse::Config.get(:eto_api_available)
+      - if GrdaWarehouse::Config.get(:eto_api_available) || ! Rails.env.production?
         .client__image
           = image_tag(image_client_path)

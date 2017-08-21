@@ -43,6 +43,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    def clients_for_project project_id
+      client_scope.where(Project: {id: project_id}).
+        select(*client_columns.values).
+        distinct.
+        pluck(*client_columns.values).
+        map do |row|
+          Hash[client_columns.keys.zip(row)]
+        end
+    end
+
     def enrollments
       @enrollments ||= begin
         client_scope.pluck(*enrollment_columns.values).
@@ -51,6 +61,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end.
         group_by{|m| m[:id]}
       end
+    end
+
+    def enrollments_for_project project_id, data_source_id
+      enrollments_in_project = {}
+      enrollments.each do |client_id, involved_enrollment|
+        enrollments_in_project[client_id] = involved_enrollment.select do |en| 
+          en[:project_id] == project_id && en[:data_source_id] == data_source_id
+        end
+      end
+      enrollments_in_project
     end
 
     def incomes
@@ -76,6 +96,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    def leavers_for_project project_id, data_source_id
+      leavers = Set.new
+      enrollments_in_project = enrollments_for_project(project_id, data_source_id)
+      if enrollments_in_project.any?
+        enrollments_in_project.each do |client_id, enrollments|
+          leaver = true
+          if enrollments.present?
+            enrollments.each do |enrollment|
+              leaver = false if enrollment[:last_date_in_program].blank? || enrollment[:last_date_in_program] > self.end
+            end
+          end
+          leavers << client_id if leaver
+        end
+      end
+      leavers
+    end
+
     def leavers
       @leavers ||= begin 
         leavers = Set.new
@@ -92,11 +129,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def beds 
-      @beds ||= projects.flat_map(&:inventories).map(&:BedInventory).reduce(:+) || 0
+      @beds ||= projects.flat_map(&:inventories).map{|i| i[:BedInventory] || 0}.reduce(:+) || 0
     end
 
     def hmis_beds
-      @hmis_beds ||= projects.flat_map(&:inventories).map(&:HMISParticipatingBeds).reduce(:+) || 0
+      @hmis_beds ||= projects.flat_map(&:inventories).map{|i| i[:HMISParticipatingBeds] || 0}.reduce(:+) || 0
     end
 
     def income_columns
@@ -133,6 +170,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       {
         id: c_t[:id].as('id').to_sql,
         project_id: sh_t[:project_id].as('project_id').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
         enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
@@ -141,6 +179,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
         residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,
         disabling_condition: e_t[:DisablingCondition].as('disabling_condition').to_sql,
+        last_permanent_zip: e_t[:LastPermanentZIP].as('last_permanent_zip').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
+        dob: c_t[:DOB].as('dob').to_sql,
       }
     end
 
@@ -163,6 +205,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         black_af_american: c_t[:BlackAfAmerican].as('black_af_american').to_sql,
         native_hi_other_pacific: c_t[:NativeHIOtherPacific].as('native_hi_other_pacific').to_sql,
         white: c_t[:White].as('white').to_sql,
+      }
+    end
+
+    def service_columns
+      {
+        id: c_t[:id].as('client_id').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
+        # date: sh_t[:date].as('date').to_sql,
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
       }
     end
 
@@ -201,12 +255,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def refused?(value)
-      [8,9].include?(value.to_i)
+      value.to_i == 9
+    end
+
+    def unknown?(value)
+      value.to_i == 8
     end
 
     def missing?(value)
       return true if value.blank?
       [99].include?(value.to_i)
+    end
+
+    def in_percentage numerator, denominator
+      ((numerator.to_f/denominator) * 100).round(2) rescue 0
     end
 
     # Display methods
@@ -220,6 +282,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def days(value)
       "#{value} days"
+    end
+
+    def destination_id_for_client source_id
+      @destination_ids ||= begin
+        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.select(c_t[:id])).
+          pluck(:source_id, :destination_id).
+          to_h
+      end
+      @destination_ids[source_id]
     end
 
     def client_source
@@ -246,6 +317,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def projects
       return project_group.projects if self.project_group_id.present?
       return [project]
+    end
+
+    def self.length_of_stay_buckets
+      {
+        '0 days' => (0..0),
+        '1 - 90 days'  => (1..90),
+        '91 - 364 days' => (91..364),
+        '1 - 2 years' => (365..729),
+        '2 - 3 years' => (730..1094),
+        '3 years or more' => (1095..1.0/0),
+      }
     end
 
     def c_t

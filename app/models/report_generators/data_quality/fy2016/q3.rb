@@ -251,7 +251,8 @@ module ReportGenerators::DataQuality::Fy2016
       en_2_end = en_2[:last_date_in_program] || Date.today
       # Excellent discussion of why this works:
       # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
-      en_1_start < en_2_end && en_1_end > en_2_start
+      # en_1_start < en_2_end && en_1_end > en_2_start
+      dates_overlap(en_1_start, en_1_end, en_2_start, en_2_end)
     end
 
     def household_members(enrollment)

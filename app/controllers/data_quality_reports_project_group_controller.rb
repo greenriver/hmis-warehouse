@@ -1,14 +1,12 @@
-class DataQualityReportsProjectGroupController < ApplicationController
+class DataQualityReportsProjectGroupController < DataQualityReportsController
   include PjaxModalController
   # Autorize by either access to projects OR access by token
   skip_before_action :authenticate_user!
+  skip_before_action :set_project
   before_action :require_valid_token_or_project_access!
   before_action :set_report, only: [:show, :support]
   before_action :set_project_group, only: [:show, :support]
 
-  def show
-
-  end
 
   def support
     raise 'Key required' if params[:key].blank?
@@ -28,10 +26,6 @@ class DataQualityReportsProjectGroupController < ApplicationController
     @reports = @project_group.data_quality_reports.order(started_at: :desc)
   end
 
-  def report_scope
-    GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
-  end
-
   def project_group_source
     GrdaWarehouse::ProjectGroup
   end
@@ -46,14 +40,4 @@ class DataQualityReportsProjectGroupController < ApplicationController
     @project_group = @report.project_group
   end
 
-  def require_valid_token_or_project_access!
-    if params[:notification_id].present?
-      token = GrdaWarehouse::ReportToken.find_by_token(params[:notification_id])
-      raise ActionController::RoutingError.new('Not Found') if token.blank?
-      return true if token.valid?
-    else
-      return require_can_view_projects!
-    end
-    raise ActionController::RoutingError.new('Not Found')
-  end
 end

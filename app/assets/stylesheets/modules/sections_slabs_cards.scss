@@ -86,7 +86,8 @@
  {
   color: darken($cob-sg-blue-006, 20);
 }
-.panel-heading [class^="icon-"], [class*=" icon-"]
+.panel-collapsible .panel-heading [class^="icon-"], 
+.panel-collapsible .panel-heading [class*=" icon-"]
 {
   font-size: 22px;
 }

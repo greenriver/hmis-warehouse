@@ -4,7 +4,7 @@ module WarehouseReports
     def index
       @sort_options = sort_options
       date_range_options = params.permit(range: [:start, :end])[:range]
-      @range = DateRange.new(date_range_options)
+      @range = ::Filters::DateRange.new(date_range_options)
       @column = sort_column
       @direction = sort_direction
 
