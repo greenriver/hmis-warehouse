@@ -24,10 +24,10 @@
         %ul
           - decisions.each do |decision|
             %li
-              = decision.decision_status
+              = decision.decision_status.sub('Dnd', 'DND')
               on
               = decision.updated_at.to_date
-      - if @client.vispdats.completed.any?
+      - if can_view_vspdat? && @client.vispdats.completed.any?
         %h3 VI-SPDAT Scores
         - @client.vispdats.completed.scores.each do |vispdat|
           %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score

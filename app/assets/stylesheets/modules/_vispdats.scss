@@ -1,3 +1,15 @@
+.vspdat-row
+{
+  font-size: 2em;
+}
+.vspdat-row__created_on
+{
+  width: 12em;
+}
+.vspdat-row__score
+{
+  font-weight: bold;
+}
 @keyframes highlight {
   0% { background: #ffff99; }
   100% { background: none; }
