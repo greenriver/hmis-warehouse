@@ -1,6 +1,10 @@
 = content_for :modal_title do
   = "Project Data Quality Report for #{@project_group.name} - Supporting Data"
 - if @data.any?
+  .pull-right
+    = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: @key, format: :xlsx}) do
+      Download
+      %span.icon-download2 
   %table.table.table-condensed.table-hover
     %thead
       %tr

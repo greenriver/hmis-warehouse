@@ -5,11 +5,11 @@ module Admin
     def index
       @utilization_grade = utilization_grade_source.new
       @utilization_grades = utilization_grade_scope.
-        order(weight: :asc)
+        order(percentage_over_low: :asc)
 
       @missing_grade = missing_grade_source.new
       @missing_grades = missing_grade_scope.
-        order(weight: :asc)
+        order(percentage_low: :asc)
     end
 
     def missing_grade_scope

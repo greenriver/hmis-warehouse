@@ -10,7 +10,7 @@ module WarehouseReports::Cas
           end: 1.months.ago.to_date,
         }
       end
-      @range = DateRange.new(date_range_options)
+      @range = ::Filters::DateRange.new(date_range_options)
       @raw_reasons = GrdaWarehouse::CasReport.where.not( decline_reason: nil ).
         started_between(start_date: @range.start, end_date: @range.end + 1.day)
       @reasons = @raw_reasons.map do|row| 

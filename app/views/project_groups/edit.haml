@@ -4,6 +4,8 @@
 
 = simple_form_for @project_group, url: project_group_path(@project_group) do |f|
   = render 'form', f: f
+  .form-actions
+  = f.button :submit, class: 'btn btn-primary', value: 'Save Project Group'
 
 - if @project_group.contacts.any? || @project_group.organization_contacts.any?
   %h3 Contacts

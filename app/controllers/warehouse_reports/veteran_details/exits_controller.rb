@@ -9,12 +9,12 @@ module WarehouseReports::VeteranDetails
       # Also handle month based requests from javascript
       if params[:month].present?
         month = params.permit(:month)
-        @range = DateRange.new(
+        @range = ::Filters::DateRange.new(
           start: Date.strptime(month[:month], "%B %Y").beginning_of_month,
           end: Date.strptime(month[:month], "%B %Y").end_of_month,
         )
       else
-        @range = DateRange.new(date_range_options)
+        @range = ::Filters::DateRange.new(date_range_options)
       end
       columns = {
         client_id: sh_t[:client_id].as('client_id').to_sql,

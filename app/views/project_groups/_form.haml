@@ -3,6 +3,3 @@
 .form-inputs
   = f.input :name
   = f.input :projects, collection: GrdaWarehouse::ProjectGroup.available_projects,  selected: @project_group.project_ids,  input_html: {class: 'select2', multiple: :multiple}
-
-.form-actions
-  = f.button :submit, class: 'btn btn-primary'

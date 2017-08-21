@@ -1,0 +1,8 @@
+%h3 Grading System
+.row
+  .col-sm-4
+    %h4 Missing Data
+    = render 'admin/data_quality_grades/missing_grades', show_delete: false
+  .col-sm-8
+    %h4 Bed Utilization
+    = render 'admin/data_quality_grades/utilization_grades', show_delete: false

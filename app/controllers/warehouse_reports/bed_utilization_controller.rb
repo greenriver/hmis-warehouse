@@ -4,136 +4,23 @@ module WarehouseReports
     before_action :require_can_view_reports!
 
     def index
-      @mo = MonthAndOrganization.new params[:mo]
+      options = {}
+      if params[:mo].present?
+        start_date = Date.parse "#{params[:mo][:year]}-#{params[:mo][:month]}-1"
+        end_date = start_date.end_of_month
+        options = params[:mo]
+        options[:start] = start_date
+        options[:end] = end_date
+      end
+      @mo = ::Filters::MonthAndOrganization.new options
       if @mo.valid?
-        services      = GrdaWarehouse::ServiceHistory
-        organizations = GrdaWarehouse::Hud::Organization
-        projects      = project_source
-        st = services.arel_table
-        ot = organizations.arel_table
-        pt = projects.arel_table
-        # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
-        project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, project_source.project_type_column]
-        @projects_with_counts = projects.
-          joins( :service_history, :organization ).
-          merge(organizations.residential).
-          where( ot[:OrganizationID].eq @mo.organization.OrganizationID ).
-          where( ot[:data_source_id].eq @mo.organization.data_source_id ).
-          where( st[:date].between(@mo.range) ).
-          group( *project_cols.map{ |cn| pt[cn] }, st[:date] ).
-          order( pt[:ProjectName].asc, st[:date].asc ).
-          select( *project_cols.map{ |cn| pt[cn] }, st[:date].as('date'), nf( 'COUNT', [nf( 'DISTINCT', [st[:client_id]] )] ).as('client_count') ).
-          includes(:inventories).
-          group_by(&:id)
+        @projects_with_counts = GrdaWarehouse::Hud::Organization.bed_utilization_by_project(filter: @mo)
       else
         @projects_with_counts = ( @mo.organization.projects.map{ |p| [ p, [] ] } rescue {} )
       end
       respond_to :html, :xlsx
     end
-
-    def project_source
-      GrdaWarehouse::Hud::Project
-    end
-
-    class MonthAndOrganization < ModelForm
-      attribute :org, Integer, default: -> (s,_) {s.default_org}
-      attribute :month, Integer, default: Date.today.month
-      attribute :year,  Integer, default: Date.today.year
-
-      validates :org, presence: true
-
-      def months
-        @months = %w( January February March April May June July August September October November December ).each_with_index.to_a.map{ |m,i| [ m, i + 1 ] }
-      end
-
-      def organizations
-        @organizations ||= GrdaWarehouse::Hud::Organization.
-          residential.
-          distinct.
-          order(:OrganizationName).
-          includes(:data_source).
-          group_by(&:name).
-          flat_map do |name, orgs|
-            if orgs.many?
-              orgs.map do |org|
-                [ disambiguated_name(org), org.id ]
-              end
-            else
-              [[ name, orgs.first.id ]]
-            end
-        end.to_h
-      end
-
-      def disambiguated_name(org)
-        "#{org.name} < #{org.data_source.short_name}"
-      end
-
-      def organization_name
-        if organizations.has_key?(organization.name)
-          organization.name
-        elsif organizations.has_key?(disambiguated_name(organization))
-          disambiguated_name(organization)
-        else
-          Rails.logger.error "this needs some work; there's an organization not individuated by its disambiguated name"
-        end
-      end
-
-      def default_org
-        GrdaWarehouse::Hud::Organization.residential.
-        order(:OrganizationName).
-        distinct.
-        limit(1).
-        pluck(:id, :OrganizationName).first.first rescue 0
-      end
-
-      def organization
-        @organization ||= GrdaWarehouse::Hud::Organization.find org
-      end
-
-      def years
-        ( earliest_year .. latest_year ).to_a
-      end
-
-      def earliest_year
-        @earliest_year ||= GrdaWarehouse::Hud::Inventory.order(:DateCreated).limit(1).pluck(:DateCreated).first.year
-      end
-
-      def latest_year
-        @latest_year ||= Date.today.year
-      end
-
-      def range
-        @range ||= begin
-          day = Date.parse "#{year}-#{month}-1"
-          day .. day.end_of_month
-        end
-      end
-
-      def first
-        range.begin
-      end
-
-      # fifteenth of relevant month
-      def ides
-        first + 14.days
-      end
-
-      def last
-        range.end
-      end
-
-      validate do
-        if year > latest_year
-          errors.add :year, "The year cannot be greater than #{latest_year}."
-        elsif year < earliest_year
-          errors.add :year, "The year cannot be less than #{earliest_year}."
-        end
-        unless month.in? 1..12
-          errors.add :month, "This does not appear to be a month of the year."
-        end
-      end
-    end
-
+    
     def info project, projects_by_date, date
       ri = relevant_inventory project.inventories, date
       capacity = ri.try(&:BedInventory)
@@ -166,13 +53,7 @@ module WarehouseReports
     # this might not be the approved way to deal with it -- perhaps we only want the closest preceding inventory -- but
     # our inventory information is exceedingly spotty
     def relevant_inventory inventories, date
-      inventories = inventories.select{ |inv| inv.BedInventory.present? }
-      if inventories.any?
-        ref = date.to_time.to_i
-        inventories.sort_by do |inv|
-          ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
-        end.first
-      end
+      GrdaWarehouse::Hud::Inventory.relevant_inventory(inventories: inventories, date: date)
     end
     helper_method :relevant_inventory
 

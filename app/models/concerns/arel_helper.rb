@@ -86,6 +86,9 @@ module ArelHelper
   def o_t
     GrdaWarehouse::Hud::Organization.arel_table
   end
+  def i_t
+    GrdaWarehouse::Hud::Inventory.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -243,6 +246,9 @@ module ArelHelper
     end
     def o_t
       GrdaWarehouse::Hud::Organization.arel_table
+    end
+    def i_t
+      GrdaWarehouse::Hud::Inventory.arel_table
     end
   end
 end

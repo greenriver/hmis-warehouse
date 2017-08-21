@@ -7,7 +7,11 @@ class DataQualityReportsController < ApplicationController
   before_action :set_project, only: [:show, :support]
 
   def show
+    @utilization_grades = utilization_grade_scope.
+      order(percentage_over_low: :asc)
 
+    @missing_grades = missing_grade_scope.
+      order(percentage_low: :asc)
   end
 
   def index
@@ -53,5 +57,21 @@ class DataQualityReportsController < ApplicationController
       return require_can_view_projects!
     end
     raise ActionController::RoutingError.new('Not Found')
+  end
+
+  def missing_grade_scope
+    missing_grade_source.all
+  end
+
+  def missing_grade_source
+    GrdaWarehouse::Grades::Missing
+  end
+      
+  def utilization_grade_scope
+    utilization_grade_source.all
+  end
+
+  def utilization_grade_source
+    GrdaWarehouse::Grades::Utilization
   end
 end

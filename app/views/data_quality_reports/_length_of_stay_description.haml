@@ -1,0 +1,18 @@
+#length-of-stay-accordion.panel-group.panel-collapsible
+  .panel.panel-default
+    .panel-heading
+      .row
+        .col-xs-8
+          %h4.panel-title
+            %a.toggle.collapsed{data: {parent: '#length-of-stay-accordion', toggle: 'collapse'}, href: '#length-of-stay-info'}
+              Information
+        .col-xs-4.text-right
+          %a.toggle.collapsed{data: {parent: '#length-of-stay-accordion', toggle: 'collapse'}, href: '#length-of-stay-info'}
+            %i.icon-arrow-circled-right
+            %i.icon-arrow-circled-down.hide
+    #length-of-stay-info.panel-collapse.collapse
+      .panel-body
+        %p
+          This report displays Length of Stay for enrolled clients at your agency during the covered month, separated into several time increments. The chart at left summarizes the total number of clients in each time increment. This report can help identify clients who should be exited from a program, as well as long-term stayers in a program.
+        %p
+          The first section of this report summarizes the average Length of Stay at each program in your agency, while the second section details Length of Stay for each individual served by your agency, broken down by program and time increment.

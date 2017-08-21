@@ -1,6 +1,6 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 - goal = clinical
-.panel-group.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
+.panel-group.panel-collapsible.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
   .panel.panel-default
     .panel-heading
       .row

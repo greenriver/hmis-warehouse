@@ -1,6 +1,7 @@
 # these are also sometimes called agencies
 module GrdaWarehouse::Hud
   class Organization < Base
+    include ArelHelper
     self.table_name = 'Organization'
     self.hud_key = 'OrganizationID'
     acts_as_paranoid column: :DateDeleted
@@ -54,6 +55,22 @@ module GrdaWarehouse::Hud
           has_access_to_organization_through_data_source(user, q, qc)
         ].join ' OR '
       end
+    end
+
+    def self.bed_utilization_by_project filter:
+      # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
+      project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, GrdaWarehouse::Hud::Project.project_type_column]
+      GrdaWarehouse::Hud::Project.
+        joins( :service_history, :organization ).
+        merge(self.residential).
+        where( o_t[:OrganizationID].eq filter.organization.OrganizationID ).
+        where( o_t[:data_source_id].eq filter.organization.data_source_id ).
+        where( sh_t[:date].between(filter.range) ).
+        group( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date] ).
+        order( p_t[:ProjectName].asc, sh_t[:date].asc ).
+        select( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date].as('date'), nf( 'COUNT', [nf( 'DISTINCT', [sh_t[:client_id]] )] ).as('client_count') ).
+        includes(:inventories).
+        group_by(&:id)
     end
 
     private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)

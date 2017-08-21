@@ -1,0 +1,97 @@
+- if @report.report.with_indifferent_access[:project_missing].present?
+  - counts = @report.report.with_indifferent_access[:project_missing]
+  .row
+    .col-sm-4
+      %h3 Missing Values
+    .col-sm-8
+      = render 'missing_values_description'  
+  .well.overflow-scroll
+    %table.table.table-condensed.table-responsive
+      %thead
+        %tr
+          %th{colspan: 4}
+          %th.page-bg-color{colspan: 2} Records Missing
+          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+            - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+            %th.text-center{class: odd_class, colspan: 6}= title
+        %tr
+          %th{colspan: 4}
+          %th.page-bg-color{colspan: 2}
+          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+            - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+            %th{class: odd_class, colspan: 2} Missing
+            %th{class: odd_class, colspan: 2} Refused
+            %th{class: odd_class, colspan: 2} Doesn't Know
+        %tr
+          %th Project Name
+          %th Project Type
+          %th Grade
+          %th Total Clients
+          %th.page-bg-color #
+          %th.page-bg-color %
+          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+            %th{class: odd_class} #
+            %th{class: odd_class} %
+            %th{class: odd_class} #
+            %th{class: odd_class} %
+            %th{class: odd_class} #
+            %th{class: odd_class} %
+      %tbody
+        - @report.projects.each do |project|
+          - any_clients = counts["#{project.id}"]['total_clients'] > 0
+          - p_type = ::HUD.project_type_brief(project.ProjectType)
+          - p_class = "client__service_type_#{p_type}"
+          - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]['score'])
+          %tr
+            %td= project.ProjectName
+            %td
+              %span{class: "client__service_type_#{project.ProjectType}"}
+                .enrollment__project_type{class: p_class}
+                  %em.service-type__program-type= p_type
+            - if any_clients 
+              %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+            - else
+              %td
+            %td= counts["#{project.id}"]['total_clients']
+            %td.page-bg-color= counts["#{project.id}"]['total_missing']
+            %td.page-bg-color= counts["#{project.id}"]['total_missing_percentage']
+            - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+              - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
+              - [:missing, :refused, :unknown].each do |type|
+                %td{class: odd_class}
+                  - if any_clients
+                    - key = "project_missing_#{project.id}_missing_#{word}"
+                    - measure = counts["#{project.id}"]["#{type}_#{word}"]
+                    - if measure > 0
+                      = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                        = measure
+                    - else
+                      = measure
+                %td{class: odd_class}
+                  - if any_clients
+                    = counts["#{project.id}"]["#{type}_#{word}_percentage"]
+              
+        %tr
+          - totals = counts['totals'].with_indifferent_access
+          - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals['score'])
+          %th.text-right{colspan: 2} Totals
+          %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+          %td= totals[:total_clients]
+          %td.page-bg-color= totals['total_missing']
+          %td.page-bg-color= totals['total_missing_percentage']
+          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+            - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
+            - [:missing, :refused, :unknown].each do |type|
+              %td{class: odd_class}
+                - measure = totals["#{type}_#{word}"]
+                - key = "project_missing_totals_#{type}_#{word}"
+                - if measure > 0
+                  = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else 
+                  = measure
+              %td{class: odd_class}
+                = totals["#{type}_#{word}_percentage"]
