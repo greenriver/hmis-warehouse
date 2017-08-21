@@ -91,7 +91,7 @@ module Importers
       end
     end
 
-    private def calculate_newest_updated_at(data_source)
+    def calculate_newest_updated_at(data_source)
       logger.info "Calculating most-recent updated date"
       @import.files.to_h.keys.map do |k|
         next if k.include?('Export')
@@ -108,7 +108,7 @@ module Importers
 
     # more or less a munging of fetch_over_samba, though note the file deletion step -- this is to keep
     # leftover files from one source directory from polluting the next data source
-    private def fetch_from_directory data_source
+    def fetch_from_directory data_source
       dir = directory[data_source.id]
       logger.info "Copying files to temporary location..."
       FileUtils.mkdir_p extract_path unless File.exists?(extract_path)
@@ -124,7 +124,7 @@ module Importers
     end
 
     # copy files from SMB location to local extract directory (equivalent of unzip)
-    private def fetch_over_samba data_source
+    def fetch_over_samba data_source
       attempts = 1 # samba can be finnicky and sometimes needs a few seconds to wake up, we'll give it five attempts with 2 * attempts seconds between
       while attempts < 5 
         @import.zip = "/#{data_source.file_path.split('/').last}"
@@ -152,7 +152,7 @@ module Importers
     # loop over each entry in unzipped_files, attempt to load them into tables with the
     # same names as the files.
     # Every record should be appended with the import_id column (id of @import)
-    private def load
+    def load
       return unless @import.files.present?
       files = @import.files.to_h
       # Always import the export table first since we have foreign keys
@@ -170,7 +170,7 @@ module Importers
       @rm_files = true
     end
 
-    private def extract_path entry=nil
+    def extract_path entry=nil
       if entry.present?
         "#{EXTRACT_DIRECTORY}#{@import.zip}/#{entry.name}"
       else
@@ -178,12 +178,12 @@ module Importers
       end
     end
 
-    private def model_for_filename file_name
+    def model_for_filename file_name
       return unless file_name.present?
       GrdaWarehouse::Hud.hud_filename_to_model(file_name)
     end
 
-    private def import klass:, file_path:
+    def import klass:, file_path:
       @klass = klass
       @file_path = file_path
       # reset some things
@@ -262,7 +262,7 @@ module Importers
     end
 
 
-    private def remove_files
+    def remove_files
       # If the file was extracted successfully, delete the source file
       # FIXME: this isn't working, so using rm_f so it fails gracefully.  Need a better permissions scheme
       FileUtils.rm_f(@import.zip) if @import.zip.present? && File.exist?(@import.zip)
@@ -271,7 +271,7 @@ module Importers
       @import.files.to_h.values.each{|m| File.delete("#{Rails.root}/#{m}")}
     end
 
-    private def process_add_queue
+    def process_add_queue
       @to_add.each do |a|
         if @import.summary[@file_path][:lines_added] % @batch_size == 0 && @import.summary[@file_path][:lines_added] > 0
           logger.info "Added #{@import.summary[@file_path][:lines_added]} lines"
@@ -295,7 +295,7 @@ module Importers
       @to_add = []
     end
 
-    private def process_update_queue
+    def process_update_queue
       @to_update.each do |a|
         if @import.summary[@file_path][:lines_updated] % (@batch_size/10) == 0 && @import.summary[@file_path][:lines_updated] > 0
           logger.info "Updated #{@import.summary[@file_path][:lines_updated]} lines"
@@ -320,7 +320,7 @@ module Importers
       @to_update = []
     end
 
-    private def update_service_history
+    def update_service_history
       return unless @changed_projects.any?
       logger.info "Updating Service Histories for #{@changed_projects.size} projects"
       @changed_projects.each do |project|

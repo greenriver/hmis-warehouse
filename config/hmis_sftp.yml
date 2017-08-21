@@ -1,0 +1,11 @@
+<%= ENV['RAILS_ENV'] %>:
+  DND:
+    host: <%= ENV['BOSTON_ETO_SFTP_HOST'] %>
+    path: <%= ENV['BOSTON_ETO_SFTP_PATH'] %>
+    username: <%= ENV['BOSTON_ETO_SFTP_USER'] %>
+    password: <%= ENV['BOSTON_ETO_SFTP_PASS'] %>
+  BPHC:
+    host: <%= ENV['BPHC_ETO_SFTP_HOST'] %>
+    path: <%= ENV['BPHC_ETO_SFTP_PATH'] %>
+    username: <%= ENV['BPHC_ETO_SFTP_USER'] %>
+    password: <%= ENV['BPHC_ETO_SFTP_PASS'] %>
