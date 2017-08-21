@@ -320,3 +320,15 @@ $client-match-action-row-height: 22px;
   background-color: $brand-info;
   border-color: $brand-info;
 }
+.vspdat-row
+{
+  font-size: 2em;
+}
+.vspdat-row__created_on
+{
+  width: 12em;
+}
+.vspdat-row__score
+{
+  font-weight: bold;
+}
