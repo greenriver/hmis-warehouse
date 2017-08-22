@@ -1,4 +1,4 @@
-- if @report.report.with_indifferent_access[:enrolled_length_of_stay].present?
+- if @report&.report.try(:[], 'enrolled_length_of_stay').present?
   - project_counts = @report.report.with_indifferent_access[:enrolled_length_of_stay][:projects]
   - totals = @report.report.with_indifferent_access[:enrolled_length_of_stay][:totals]
   - buckets = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.length_of_stay_buckets

@@ -57,12 +57,11 @@ module Importers
           # @start_date = d.newest_updated_at || calculate_newest_updated_at(d)
           load()
           # Update service history for any projects that have changed
-          update_service_history()
-          
+          # Don't do this, we now do it in a separate step
+          # update_service_history()
+
           @import.completed_at = Time.now
           @import.save
-
-          @upload.update(percent_complete: 100, completed_at: @import.completed_at)
 
           # You can't trust the End Date from the Export table, so go fetch the most recent updated_date from the various tables
           d.newest_updated_at = calculate_newest_updated_at(d)

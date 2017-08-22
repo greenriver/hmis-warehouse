@@ -163,7 +163,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         service_histories.each do |client_id, services|
           counts.each do |range, _|
             meta = services.first
-            if range.include?(services.count)
+            meta[:service_count] = services.count
+            if range.include?(meta[:service_count])
               counts[range] << meta
               totals[:buckets][range] << meta
             end
@@ -184,7 +185,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       project_counts.each do |project_id, buckets|
         buckets[:buckets].each do |range, services|
           support["enrolled_length_of_stay_#{project_id}_#{range}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Days Served'],
             counts: services.map do |service|
               [
                 destination_id_for_client(service[:id]), 
@@ -193,6 +194,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                 service[:project_name], 
                 service[:first_date_in_program],
                 service[:last_date_in_program],
+                service[:service_count]
               ]
             end
           }
@@ -267,7 +269,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           answers[:project_missing][project.id][key] = value.size
           answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size) 
           support["project_missing_#{project.id}_#{key}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
             counts: value.to_a.map do |row|
               # use the destination id for the client for support
               row[0] = destination_id_for_client(row.first)
@@ -293,7 +295,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
         if ! [:total_clients, :total_missing].include?(key)
           support["project_missing_totals_#{key}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
             counts: value.to_a
           }
         end
@@ -385,76 +387,76 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def add_missing_demo client:, counts:
       if client[:first_name].blank? || client[:last_name].blank? || missing?(client[:name_data_quality])
-        counts['missing_name'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_name'] << columns_for_missing_support(client)
       end
       if client[:ssn].blank? || missing?(client[:ssn_data_quality])
-        counts['missing_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_ssn'] << columns_for_missing_support(client)
       end
       if client[:dob].blank? || missing?(client[:dob_data_quality])
-        counts['missing_dob'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_dob'] << columns_for_missing_support(client)
       end
       if client[:veteran_status].blank? || missing?(client[:veteran_status])
-        counts['missing_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_veteran'] << columns_for_missing_support(client)
       end
       if client[:ethnicity].blank? || missing?(client[:ethnicity])
-        counts['missing_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_ethnicity'] << columns_for_missing_support(client)
       end
       # If we have no race info, whatsoever
       if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
-        counts['missing_race'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_race'] << columns_for_missing_support(client)
       end
       if client[:gender].blank? || missing?(client[:gender])
-        counts['missing_gender'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['missing_gender'] << columns_for_missing_support(client)
       end
       return counts
     end
 
     def add_refused_demo client:, counts:
       if refused?(client[:name_data_quality])
-        counts['refused_name'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_name'] << columns_for_missing_support(client)
       end
       if refused?(client[:ssn_data_quality])
-        counts['refused_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_ssn'] << columns_for_missing_support(client)
       end
       if refused?(client[:dob_data_quality])
-        counts['refused_dob'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_dob'] << columns_for_missing_support(client)
       end
       if refused?(client[:veteran_status])
-        counts['refused_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_veteran'] << columns_for_missing_support(client)
       end
       if refused?(client[:ethnicity])
-        counts['refused_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_ethnicity'] << columns_for_missing_support(client)
       end
       if refused?(client[:race_none])
-        counts['refused_race'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_race'] << columns_for_missing_support(client)
       end
       if refused?(client[:gender])
-        counts['refused_gender'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['refused_gender'] << columns_for_missing_support(client)
       end
       return counts
     end
 
     def add_unknown_demo client:, counts:
       if unknown?(client[:name_data_quality])
-        counts['unknown_name'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_name'] << columns_for_missing_support(client)
       end
       if unknown?(client[:ssn_data_quality])
-        counts['unknown_ssn'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_ssn'] << columns_for_missing_support(client)
       end
       if unknown?(client[:dob_data_quality])
-        counts['unknown_dob'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_dob'] << columns_for_missing_support(client)
       end
       if unknown?(client[:veteran_status])
-        counts['unknown_veteran'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_veteran'] << columns_for_missing_support(client)
       end
       if unknown?(client[:ethnicity])
-        counts['unknown_ethnicity'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_ethnicity'] << columns_for_missing_support(client)
       end
       if unknown?(client[:race_none])
-        counts['unknown_race'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_race'] << columns_for_missing_support(client)
       end
       if unknown?(client[:gender])
-        counts['unknown_gender'] << [client[:id], client[:first_name], client[:last_name]]
+        counts['unknown_gender'] << columns_for_missing_support(client)
       end
       return counts
     end
@@ -470,13 +472,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts = {}
         data = {}
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
+        total_count = project.service_history.service.
+        joins(:client, :project).
+        where(Project: {id: project.id}).
+        where(date: filter.range).count
         data[:average_daily] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).
           where(date: filter.range).
           distinct.
           pluck(*client_columns)
-          counts[:average_daily] = data[:average_daily].count / filter.range.count
+          counts[:average_daily] = total_count / filter.range.count
         data[:first_of_month] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).

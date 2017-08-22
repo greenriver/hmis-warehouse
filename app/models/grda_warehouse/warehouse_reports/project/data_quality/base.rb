@@ -182,7 +182,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         last_permanent_zip: e_t[:LastPermanentZIP].as('last_permanent_zip').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
+        name_data_quality: c_t[:NameDataQuality].as('name_data_quality').to_sql,
+        ssn: c_t[:SSN].as('ssn').to_sql,
+        ssn_data_quality: c_t[:SSNDataQuality].as('ssn_data_quality').to_sql,
         dob: c_t[:DOB].as('dob').to_sql,
+        dob_data_quality: c_t[:DOBDataQuality].as('dob_data_quality').to_sql,
       }
     end
 
@@ -299,7 +303,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def client_scope
       GrdaWarehouse::ServiceHistory.entry.
-        open_between(start_date: self.start,
+        open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
         where(Project: {id: projects.map(&:id)})
@@ -307,7 +311,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def service_scope
       GrdaWarehouse::ServiceHistory.service.
-        open_between(start_date: self.start,
+        open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         where(date: self.start..self.end).
         joins(:project, enrollment: :client).
