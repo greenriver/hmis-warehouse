@@ -1,4 +1,4 @@
-- if @report&.report&.with_indifferent_access&[:project_missing].present?
+- if @report&.report.try(:[], 'project_missing').present?
   - counts = @report.report.with_indifferent_access[:project_missing]
   .row
     .col-sm-4
