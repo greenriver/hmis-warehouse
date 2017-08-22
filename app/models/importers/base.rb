@@ -24,7 +24,9 @@ module Importers
         data_source_id=nil, 
         data_sources=GrdaWarehouse::DataSource.importable_via_samba,
         logger: Rails.logger,
-        directory: nil   # for importing a set of plain CSV files, should be a map from data source ids to directories
+        directory: nil,   # for importing a set of plain CSV files, should be a map from data source ids to directories
+        rm_files: false, 
+        munge_export_id: false
       )
       if @directory = directory
         @source_type  = :directory
@@ -45,7 +47,7 @@ module Importers
         @notifier  = Slack::Notifier.new(slack_url, channel: channel, username: 'Service History Generator')
       end
 
-      @rm_files = false
+      @rm_files = rm_files
     end
 
     def run!

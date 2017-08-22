@@ -17,6 +17,18 @@ module Importers
   class Sftp < Base
     EXTRACT_DIRECTORY='tmp/hmis_sftp'
 
+    def initialize(
+      data_source_id=nil, 
+      data_sources=GrdaWarehouse::DataSource.importable_via_sftp,
+      logger: Rails.logger,
+      directory: nil,
+      rm_files: true, 
+      munge_export_id: true)
+      @munge_export_id = munge_export_id
+
+      super
+    end
+
     def run!
       @config = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_sftp.yml"))).result)[Rails.env]
       logger.info "Looking at #{@data_sources.count} data sources"
@@ -34,33 +46,32 @@ module Importers
           download_from_sftp(data_source: d)
           # Sometimes the export id is reused even when the start date is changed.
           # To help smooth this along, we'll tack on the year and date to the end
-          munge_export_id()
+          munge_export_id() if @munge_export_id
           
-          # # Keep track of changed projects for this data source
-          # @changed_projects = []
-          # load_file_locations()
-
-          # # Load the newest updated date from the last time we ran this import
-          # # This is used to speed import (anything with a created date that is
-          # # newer is simply imported, the rest are issued as upserts)
-          # # @start_date = d.newest_updated_at || calculate_newest_updated_at(d)
-          # load()
-          # # Update service history for any projects that have changed
-          # update_service_history()
+          # Keep track of changed projects for this data source
+          @changed_projects = []
           
-          # @import.completed_at = Time.now
-          # @import.save
+          # Load the newest updated date from the last time we ran this import
+          # This is used to speed import (anything with a created date that is
+          # newer is simply imported, the rest are issued as upserts)
+          # @start_date = d.newest_updated_at || calculate_newest_updated_at(d)
+          load()
+          # Update service history for any projects that have changed
+          update_service_history()
+          
+          @import.completed_at = Time.now
+          @import.save
 
-          # @upload.update(percent_complete: 100, completed_at: @import.completed_at)
+          @upload.update(percent_complete: 100, completed_at: @import.completed_at)
 
-          # # You can't trust the End Date from the Export table, so go fetch the most recent updated_date from the various tables
-          # d.newest_updated_at = calculate_newest_updated_at(d)
+          # You can't trust the End Date from the Export table, so go fetch the most recent updated_date from the various tables
+          d.newest_updated_at = calculate_newest_updated_at(d)
 
-          # d.last_imported_at = Time.now
-          # d.save
-          # if @rm_files
-          #   remove_files
-          # end
+          d.last_imported_at = Time.now
+          d.save
+          if @rm_files
+            remove_files
+          end
         end
       end
     end
@@ -79,6 +90,7 @@ module Importers
             munged_file << row
           end
         end
+        FileUtils.mv(munged_file_path, file)
       end
     end
 
@@ -106,11 +118,13 @@ module Importers
       @import.zip = File.basename(file, '.*')
       logger.info "Found #{file}"
       destination = "#{EXTRACT_DIRECTORY}/#{data_source.short_name}"
-      FileUtils.mkdir_p(destination) unless File.exists? destination
+      # atool has trouble overwriting, so blow away whatever we had before
+      FileUtils.rmtree(destination) if File.exists? destination
+      FileUtils.mkdir_p(destination) 
       sftp.download!("#{path}/#{file}", "#{destination}/#{file}")
       # Use atool to extract the files.  The 7zip gem is flaky
       file_path = "#{Rails.root.to_s}/#{destination}/#{file}"
-      system_call = "arepack --force --extract-to=#{extract_path(data_source: data_source)} #{file_path}"
+      system_call = "atool --force -q --extract-to=#{extract_path(data_source: data_source)} #{file_path}"
       logger.info "Asking the system to: #{system_call}"
       success = system(system_call)
       return unless success
@@ -124,7 +138,7 @@ module Importers
         entry = OpenStruct.new({name: File.basename(f)})
         files << [model_for_filename(entry.name).name, extract_path(data_source: data_source, entry: entry)] if f.include?('.csv')
       end
-      puts files.inspect
+
       logger.info "Found #{files.count} files"
       @import.files = files
 

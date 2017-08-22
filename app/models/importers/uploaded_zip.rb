@@ -15,7 +15,7 @@ I18n.reload!
 
 module Importers
   class UploadedZip < Base
-    def initialize(upload_id:, logger: Rails.logger)
+    def initialize(upload_id:, rm_files: false, logger: Rails.logger)
       raise 'Upload Required' unless upload_id.present?
       @logger = logger
       @refresh_type = 'Delta refresh'
@@ -25,7 +25,7 @@ module Importers
       @data_sources = GrdaWarehouse::DataSource.where(id: @data_source_id)
       # Process the oldest upload file for this datasource
       
-      @rm_files = false
+      @rm_files = rm_files
     end
 
     def run!

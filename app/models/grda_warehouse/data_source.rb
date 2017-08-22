@@ -23,6 +23,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   scope :importable, -> { where.not(source_type: nil)}
   scope :destination, -> { where(source_type: nil)}
   scope :importable_via_samba, -> { importable.where(source_type: "samba")}
+  scope :importable_via_sftp, -> { importable.where(source_type: "sftp")}
   scope :viewable_by, -> (user) do
     if user.can_edit_anything_super_user?
       current_scope
