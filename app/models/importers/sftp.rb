@@ -139,20 +139,10 @@ module Importers
       end
       export_file = files.to_h['GrdaWarehouse::Hud::Export']
       export = CSV.read(export_file, headers: true).first
-      @export_id_addition = export['ExportStartDate'].sub('-','')
+      @export_id_addition = export['ExportStartDate'].gsub('-','')
 
       logger.info "Found #{files.count} files"
       @import.files = files
-
-      # convert from 7zip to zip
-      # if file.include?('.7z')
-      #   logger.info "Converting #{file} from 7zip to zip"
-      #   zip_file = file.sub('7z', 'zip')
-      #   system_call = "arepack -rv --format=zip #{Rails.root.to_s}/#{destination}/#{file} #{Rails.root.to_s}/#{destination}/#{zip_file}"
-      #   logger.info "Asking the system to: #{system_call}"
-      #   success = system(system_call)
-      #   puts success
-      # end
     end
 
     def extract_path data_source:, entry: nil

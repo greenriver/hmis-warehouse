@@ -70,7 +70,7 @@
               - if chronic.project_names.present?
                 .project_names
                   %h3 Projects Involved in Chronic Determiniation
-                  %p= chronic.project_names.sub('|', '; ')
+                  %p= chronic.project_names.gsub('|', '; ')
               %button.btn.btn-secondary.jLoadEnrollments
                 Load Residential Enrollment
           -# client.service_history_entry_in_last_three_years.map{ |m| "#{m.project_name} from #{m.first_date_in_program} to #{m.last_date_in_program}"}.join('<br />').html_safe
