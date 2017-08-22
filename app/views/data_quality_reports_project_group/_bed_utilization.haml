@@ -29,7 +29,7 @@
           %th % Capacity
       %tbody
         - @report.report.with_indifferent_access[:bed_utilization].each do |project|
-          - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project[:average_daily])
+          - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project[:average_daily_percentage])
           - p_type = ::HUD.project_type_brief(project[:project_type])
           - p_class = "client__service_type_#{p_type}"
           %tr

@@ -15,8 +15,6 @@
           %th Project Type
           %th.page-bg-color
             Average Length of Stay
-            %br
-            = "(over #{(@report.end - @report.start).to_i} days)"
           - buckets.each_with_index do |(title, _), index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th{class: odd_class}= title

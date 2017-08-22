@@ -27,9 +27,9 @@
         %tr
           %th Project Name
           %th Project Type
-          %th Grade
           %th Open Enrollments
           %th Clients with service during the range
+          %th Grade
           %th.page-bg-color #
           %th.page-bg-color %
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
@@ -52,14 +52,15 @@
               %span{class: "client__service_type_#{project.ProjectType}"}
                 .enrollment__project_type{class: p_class}
                   %em.service-type__program-type= p_type
+            %td= counts["#{project.id}"]['total_open_enrollments']
+            %td= counts["#{project.id}"]['clients_served_during_range']
             - if any_clients 
               %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
             - else
               %td
-            %td= counts["#{project.id}"]['total_open_enrollments']
-            %td= counts["#{project.id}"]['clients_served_during_range']
             %td.page-bg-color= counts["#{project.id}"]['total_missing']
-            %td.page-bg-color= counts["#{project.id}"]['total_missing_percentage']
+            %td.page-bg-color{style: "border-top-width: 3px; border-top-color: #{grade.color};"}
+              = counts["#{project.id}"]['total_missing_percentage']
             - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
               - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
               - [:missing, :refused, :unknown].each do |type|
@@ -83,11 +84,12 @@
           - totals = counts['totals'].with_indifferent_access
           - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals['score'])
           %th.text-right{colspan: 2} Totals
-          %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
           %td= totals[:total_open_enrollments]
           %td= totals[:clients_served_during_range]
+          %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
           %td.page-bg-color= totals['total_missing']
-          %td.page-bg-color= totals['total_missing_percentage']
+          %td.page-bg-color{style: "border-top-width: 3px; border-top-color: #{grade.color};"}
+            = totals['total_missing_percentage']
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
             - [:missing, :refused, :unknown].each do |type|
