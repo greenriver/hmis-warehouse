@@ -277,7 +277,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             end
           }
         end
-        answers[:project_missing][project.id][:total_clients] = clients_in_project.size
+        answers[:project_missing][project.id][:total_open_enrollments] = clients_in_project.size
+        answers[:project_missing][project.id][:clients_served_during_range] = service_scope.
+          where(Project: {id: project.id}).
+          service_within_date_range(start_date: self.start, end_date: self.end).
+          select(:client_id).
+          distinct.
+          count
         missing_clients = counts.values.reduce(&:+)
         totals[:total_missing] ||= Set.new
         totals[:total_missing] += missing_clients
@@ -289,11 +295,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [key, clients.count]
       end.to_h
       answers[:project_missing][:totals][:score] = in_percentage(totals.values.map(&:size).max, clients.size)
-      totals[:total_clients] = clients
-      answers[:project_missing][:totals][:total_clients] = totals[:total_clients].size
+      totals[:total_open_enrollments] = clients
+      answers[:project_missing][:totals][:total_open_enrollments] = totals[:total_open_enrollments].size
+      answers[:project_missing][:totals][:clients_served_during_range] = service_scope.
+        service_within_date_range(start_date: self.start, end_date: self.end).
+        select(:client_id).
+        distinct.
+        count
       totals.each do |key, value|        
         answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
-        if ! [:total_clients, :total_missing].include?(key)
+        if ! [:total_open_enrollments, :total_missing, :clients_served_during_range].include?(key)
           support["project_missing_totals_#{key}"] = {
             headers: ['Client ID', 'First Name', 'Last Name', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
             counts: value.to_a

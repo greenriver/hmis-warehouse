@@ -9,14 +9,14 @@
     %table.table.table-condensed.table-responsive
       %thead
         %tr
-          %th{colspan: 4}
+          %th{colspan: 5}
           %th.page-bg-color{colspan: 2} Records Missing
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
             - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th.text-center{class: odd_class, colspan: 6}= title
         %tr
-          %th{colspan: 4}
+          %th{colspan: 5}
           %th.page-bg-color{colspan: 2}
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
             - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
@@ -28,7 +28,8 @@
           %th Project Name
           %th Project Type
           %th Grade
-          %th Total Clients
+          %th Enrolled Clients
+          %th Clients with service during the range
           %th.page-bg-color #
           %th.page-bg-color %
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
@@ -41,7 +42,7 @@
             %th{class: odd_class} %
       %tbody
         - @report.projects.each do |project|
-          - any_clients = counts["#{project.id}"]['total_clients'] > 0
+          - any_clients = counts["#{project.id}"]['total_open_enrollments'] > 0 rescue true
           - p_type = ::HUD.project_type_brief(project.ProjectType)
           - p_class = "client__service_type_#{p_type}"
           - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]['score'])
@@ -55,7 +56,8 @@
               %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
             - else
               %td
-            %td= counts["#{project.id}"]['total_clients']
+            %td= counts["#{project.id}"]['total_open_enrollments']
+            %td= counts["#{project.id}"]['clients_served_during_range']
             %td.page-bg-color= counts["#{project.id}"]['total_missing']
             %td.page-bg-color= counts["#{project.id}"]['total_missing_percentage']
             - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
@@ -82,7 +84,8 @@
           - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals['score'])
           %th.text-right{colspan: 2} Totals
           %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
-          %td= totals[:total_clients]
+          %td= totals[:total_open_enrollments]
+          %td= totals[:clients_served_during_range]
           %td.page-bg-color= totals['total_missing']
           %td.page-bg-color= totals['total_missing_percentage']
           - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
