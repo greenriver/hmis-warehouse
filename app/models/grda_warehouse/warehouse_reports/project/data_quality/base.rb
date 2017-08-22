@@ -313,7 +313,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::ServiceHistory.service.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
-        where(date: self.start..self.end).
         joins(:project, enrollment: :client).
         where(Project: {id: projects.map(&:id)})
     end

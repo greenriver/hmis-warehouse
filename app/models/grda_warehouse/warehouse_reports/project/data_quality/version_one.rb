@@ -56,10 +56,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       missing_nights = {}
       projects.each do |project|
         if project.TrackingMethod == 3
-          missing_nights[project.id] = service_scope.entry.
+          missing_nights[project.id] = client_scope.
             where(Project: {id: project.id}).
             where.not(
-              client_id: service_scope.service.
+              client_id: service_scope.
               where(Project: {id: project.id}).
               where(date: (self.end - 30.days..self.end)).
               distinct.select(:client_id)
@@ -150,16 +150,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts = self.class.length_of_stay_buckets.map do |title, range|
           [range, Set.new]
         end.to_h
-        service_histories = service_scope.service.
+        service_histories = service_scope.
           where(Project: {id: project.id}).
           order(date: :asc).
           pluck(*service_columns.values).
           map do |row|
             Hash[service_columns.keys.zip(row)]
           end
-        project_counts[project.id][:average] = (service_histories.count.to_f / (self.end - self.start).to_i).round
+        service_history_count = service_histories.count
         totals[:counts][:total_days] += service_histories.count
         service_histories = service_histories.group_by{|m| m[:id]}
+        # days/client
+        project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round
         service_histories.each do |client_id, services|
           counts.each do |range, _|
             meta = services.first
@@ -1002,7 +1004,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_capacity_answers
-      total_services_provided = service_scope.select(:client_id, :date).distinct.to_a.count
+      total_services_provided = service_scope.service_within_date_range(start_date: self.start, end_date: self.end).select(:client_id, :date).distinct.to_a.count
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
       average_stay_length = (total_services_provided.to_f/clients.size).round(2)
