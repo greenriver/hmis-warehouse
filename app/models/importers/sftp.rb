@@ -112,7 +112,7 @@ module Importers
       return if files.empty?
       # Fetch the most recent file
       file = files.max
-      @export_id_addition = file.match(/(\d{6})\d{2}\./)&.captures&.first
+      # @export_id_addition = file.match(/(\d{6})\d{2}\./)&.captures&.first
 
       @import.zip = File.basename(file, '.*')
       logger.info "Found #{file}"
@@ -137,6 +137,9 @@ module Importers
         entry = OpenStruct.new({name: File.basename(f)})
         files << [model_for_filename(entry.name).name, extract_path(data_source: data_source, entry: entry)] if f.include?('.csv')
       end
+      export_file = files.to_h['GrdaWarehouse::Hud::Export']
+      export = CSV.read(export_file, headers: true).first
+      @export_id_addition = export['ExportStartDate'].sub('-','')
 
       logger.info "Found #{files.count} files"
       @import.files = files
