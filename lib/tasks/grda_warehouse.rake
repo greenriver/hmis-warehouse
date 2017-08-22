@@ -137,7 +137,7 @@ namespace :grda_warehouse do
 
   desc "Import HUD Zips from all Data Sources"
   task :import_data_sources, [:data_source_id] => [:environment] do |t, args|
-    Importers::Samba.new(args.data_source_id).run!
+    Importers::Sftp.new(args.data_source_id).run!
   end
 
   desc "Identify duplicates"
