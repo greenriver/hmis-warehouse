@@ -159,7 +159,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end
         project_counts[project.id][:average] = (service_histories.count.to_f / (self.end - self.start).to_i).round
         totals[:counts][:total_days] += service_histories.count
-        service_histories = service_histories.group_by{|m| m[:client_id]}
+        service_histories = service_histories.group_by{|m| m[:id]}
         service_histories.each do |client_id, services|
           counts.each do |range, _|
             meta = services.first
@@ -317,63 +317,68 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :last_permanent_zip,
       ]
     end
+    
+    def columns_for_missing_support enrollment
+      [enrollment[:id], enrollment[:first_name], enrollment[:last_name], enrollment[:ssn], enrollment[:ssn_data_quality], enrollment[:dob], enrollment[:dob_data_quality]]
+    end
+
 
     def add_missing_destinations client_id:, enrollment:, counts:
       if missing?(enrollment[:destination])
-        counts['missing_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['missing_destination'] << columns_for_missing_support(enrollment)
       end
       return counts
     end
     
     def add_refused_destinations client_id:, enrollment:, counts:
       if refused?(enrollment[:destination])
-        counts['refused_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['refused_destination'] << columns_for_missing_support(enrollment)
       end
       return counts
     end
     
     def add_unknown_destinations client_id:, enrollment:, counts:
       if unknown?(enrollment[:destination])
-        counts['unknown_destination'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['unknown_destination'] << columns_for_missing_support(enrollment)
       end
       return counts
     end
 
     def add_missing_enrollment client_id:, enrollment:, counts:
       if missing?(enrollment[:disabling_condition])
-        counts['missing_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['missing_disabling_condition'] << columns_for_missing_support(enrollment)
       end
       if missing?(enrollment[:residence_prior])
-        counts['missing_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['missing_residence_prior'] << columns_for_missing_support(enrollment)
       end
       if missing?(enrollment[:last_permanent_zip])
-        counts['missing_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['missing_last_permanent_zip'] << columns_for_missing_support(enrollment)
       end
       return counts
     end
 
     def add_refused_enrollment client_id:, enrollment:, counts:
       if refused?(enrollment[:disabling_condition])
-        counts['refused_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['refused_disabling_condition'] << columns_for_missing_support(enrollment)
       end
       if refused?(enrollment[:residence_prior])
-        counts['refused_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['refused_residence_prior'] << columns_for_missing_support(enrollment)
       end
       if refused?(enrollment[:last_permanent_zip])
-        counts['refused_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['refused_last_permanent_zip'] << columns_for_missing_support(enrollment)
       end
       return counts
     end
 
     def add_unknown_enrollment client_id:, enrollment:, counts:
       if unknown?(enrollment[:disabling_condition])
-        counts['unknown_disabling_condition'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['unknown_disabling_condition'] << columns_for_missing_support(enrollment)
       end
       if unknown?(enrollment[:residence_prior])
-        counts['unknown_residence_prior'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['unknown_residence_prior'] << columns_for_missing_support(enrollment)
       end
       if unknown?(enrollment[:last_permanent_zip])
-        counts['unknown_last_permanent_zip'] << [client_id, enrollment[:first_name], enrollment[:last_name]]
+        counts['unknown_last_permanent_zip'] << columns_for_missing_support(enrollment)
       end
       return counts
     end
