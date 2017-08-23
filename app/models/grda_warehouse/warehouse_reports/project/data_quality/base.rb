@@ -1,6 +1,7 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
     include ApplicationHelper
+    include ArelHelper
     self.table_name = :project_data_quality
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
     belongs_to :project_group, class_name: GrdaWarehouse::ProjectGroup.name

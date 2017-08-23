@@ -1,6 +1,7 @@
 - if @report&.report.try(:[], 'incorrect_dob').present?
   - incorrect_counts = @report.report.with_indifferent_access[:incorrect_dob]
   - no_service_counts = @report.report.with_indifferent_access[:missing_nights]
+  - service_after_close_counts = @report.report.with_indifferent_access[:service_after_close]
   .row
     .col-sm-4
       %h3 Other Data Quality Measures
@@ -11,7 +12,8 @@
           %th Project Name
           %th Project Type
           %th.page-bg-color DOB on or before entry date
-          %th Clients with no service in the final month of range
+          %th No service in the final month of range
+          %th Service after exit
       %tbody
         - @report.projects.each do |project|
           - p_type = ::HUD.project_type_brief(project.ProjectType)
@@ -23,19 +25,30 @@
               %span{class: "client__service_type_#{project.ProjectType}"}
                 .enrollment__project_type{class: p_class}
                   %em.service-type__program-type= p_type
-            %td.page-bg-color
-              - measure = incorrect_counts[project.id.to_s]
-              - key = "incorrect_dob_#{project.id}"
-              - if measure > 0
-                = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+            - if incorrect_counts.present?
+              %td.page-bg-color
+                - measure = incorrect_counts[project.id.to_s]
+                - key = "incorrect_dob_#{project.id}"
+                - if measure > 0
+                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
                   = measure
-              - else
-                = measure
-            %td
-              - measure = no_service_counts[project.id.to_s]
-              - key = "missing_nights_#{project.id}"
-              - if measure > 0
-                = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+            - if no_service_counts.present?
+              %td
+                - measure = no_service_counts[project.id.to_s]
+                - key = "missing_nights_#{project.id}"
+                - if measure > 0
+                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
                   = measure
-              - else
-                = measure
+            - if service_after_close_counts.present?
+              %td
+                - measure = service_after_close_counts[project.id.to_s]
+                - key = "service_after_close_#{project.id}"
+                - if measure > 0
+                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
+                  = measure

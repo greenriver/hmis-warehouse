@@ -18,6 +18,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_enrolled_length_of_stay()
       add_clients_dob_enrollment_date()
       add_night_by_night_missing()
+      add_service_after_close()
       finish_report()
     end
 
@@ -52,6 +53,49 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
+    def add_service_after_close
+      service_after_close = {}
+      projects.each do |project|
+        service_after_close[project.id] = client_scope.
+          where(Project: {id: project.id}).
+          where(client_id: service_scope.
+            where(Project: {id: project.id}).
+            where.not(last_date_in_program: nil).
+            where(sh_t[:date].gt(sh_t[:last_date_in_program])).
+            distinct.
+            select(:client_id)
+          ).pluck(*service_columns.values).
+          map do |row|
+            Hash[service_columns.keys.zip(row)]
+          end
+      end
+      max_dates = service_scope.where(Project: {id: project.id}).service.group(:client_id).maximum(:date)
+      answers = {
+        service_after_close: service_after_close.map do |project_id, clients|
+          [project_id, clients.count]
+        end.to_h
+      }
+      support = {}
+      service_after_close.each do |project_id, clients|
+        support["service_after_close_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
+          counts: clients.map do |service|
+            client_id = destination_id_for_client(service[:id])
+            [
+              client_id,
+              service[:first_name], 
+              service[:last_name], 
+              service[:project_name], 
+              service[:first_date_in_program],
+              service[:last_date_in_program],
+              max_dates[client_id],
+            ]
+          end
+        }
+      end
+      add_answers(answers, support)
+    end
+
     def add_night_by_night_missing
       missing_nights = {}
       projects.each do |project|
@@ -71,6 +115,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_nights[project.id] = []
         end
       end
+      max_dates = service_scope.where(Project: {id: project.id}).service.group(:client_id).maximum(:date)
       answers = {
         missing_nights: missing_nights.map do |project_id, clients|
           [project_id, clients.count]
@@ -79,15 +124,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       support = {}
       missing_nights.each do |project_id, clients|
         support["missing_nights_#{project_id}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Project', 'Entry Date'],
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
           counts: clients.map do |service|
+            client_id = destination_id_for_client(service[:id])
             [
-              destination_id_for_client(service[:id]),
+              client_id,
               service[:first_name], 
               service[:last_name], 
               service[:project_name], 
               service[:first_date_in_program],
               service[:last_date_in_program],
+              max_dates[client_id],
             ]
           end
         }
@@ -271,7 +318,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           answers[:project_missing][project.id][key] = value.size
           answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size) 
           support["project_missing_#{project.id}_#{key}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Name Data Quality', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
             counts: value.to_a.map do |row|
               # use the destination id for the client for support
               row[0] = destination_id_for_client(row.first)
@@ -308,7 +355,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
         if ! [:total_open_enrollments, :total_missing, :clients_served_during_range].include?(key)
           support["project_missing_totals_#{key}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Name Data Quality', 'SSN', 'SSN Quality', 'DOB', 'DOB Quality'],
             counts: value.to_a
           }
         end
@@ -334,7 +381,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
     
     def columns_for_missing_support enrollment
-      [enrollment[:id], enrollment[:first_name], enrollment[:last_name], enrollment[:ssn], enrollment[:ssn_data_quality], enrollment[:dob], enrollment[:dob_data_quality]]
+      [enrollment[:id], enrollment[:first_name], enrollment[:last_name], enrollment[:name_data_quality], enrollment[:ssn], enrollment[:ssn_data_quality], enrollment[:dob], enrollment[:dob_data_quality]]
     end
 
 
