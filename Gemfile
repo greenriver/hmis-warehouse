@@ -158,5 +158,7 @@ group :test do
 end
 
 group :development, :staging do
+  # Faker queries translations db in development to look for user overrides of fake data
+  # There is no way to disable this
   gem 'faker', '>= 1.7.2', require: false
 end
