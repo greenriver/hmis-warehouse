@@ -2,10 +2,12 @@
   DND:
     host: <%= ENV['BOSTON_ETO_SFTP_HOST'] %>
     path: <%= ENV['BOSTON_ETO_SFTP_PATH'] %>
+    api_match_file: <%= ENV['BOSTON_ETO_SFTP_MATCH_FILE'] %>
     username: <%= ENV['BOSTON_ETO_SFTP_USER'] %>
     password: <%= ENV['BOSTON_ETO_SFTP_PASS'] %>
   BPHC:
     host: <%= ENV['BPHC_ETO_SFTP_HOST'] %>
     path: <%= ENV['BPHC_ETO_SFTP_PATH'] %>
+    api_match_file: <%= ENV['BPHC_ETO_SFTP_MATCH_FILE'] %>
     username: <%= ENV['BPHC_ETO_SFTP_USER'] %>
     password: <%= ENV['BPHC_ETO_SFTP_PASS'] %>
