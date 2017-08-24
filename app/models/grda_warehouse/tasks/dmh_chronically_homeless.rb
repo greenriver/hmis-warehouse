@@ -13,22 +13,34 @@ module GrdaWarehouse::Tasks
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
   
     def run!
-      Rails.logger.info "Updating status of DMH chronically homeless clients on #{@date}"
-      @clients = dmh_clients.pluck(:client_id)
-      Rails.logger.info "Found #{@clients.size} DMH clients who are currently homeless"
+      logger.info "====DRY RUN====" if @dry_run
+      logger.info "Updating status of DMH chronically homeless clients on #{@date}"
+      if @clients.present?
+        # limit to those we provided where it intersects with actual DMH clients
+        @clients = @clients #dmh_clients.pluck(:client_id) && @clients
+      else
+        @clients = dmh_clients.pluck(:client_id)
+      end
+      logger.info "Found #{@clients.size} DMH clients who are currently homeless"
       @chronically_homeless = []
       @client_details = {}
       extra_work = 0
       @clients.each_with_index do |client_id, index|
+        debug_log "Calculating chronicity for #{client_id}"
         reset_for_batch()
-        dmh_days_homeless = service_history_source.
+        dmh_client_scope = service_history_source.
           hud_currently_homeless(date: @date).
           where(client_id: client_id).
           where(dmh_projects_filter).
-          service_within_date_range(start_date: @date - 3.years, end_date: @date).
-          select(:date).
+          service_within_date_range(start_date: @date - 3.years, end_date: @date)
+        if homeless_reset(client_id: client_id)
+          debug_log "Found previous residential history, using #{homeless_reset(client_id: client_id)} instead of #{@date - 3.years} as beginning of calculation"
+          dmh_client_scope = dmh_client_scope.where(date: homeless_reset(client_id: client_id)..@date)
+        end
+        dmh_days_homeless = dmh_client_scope.select(:date).
           distinct.
           count
+          debug_log "Found #{dmh_days_homeless} DMH homeless days"
         mainstream_days_homeless = service_history_source.service.
           where(client_id: client_id).
           where(service_history_source.project_type_column => CHRONIC_PROJECT_TYPES).
@@ -36,10 +48,13 @@ module GrdaWarehouse::Tasks
           select(:date).
           distinct.
           count
-        if dmh_days_homeless + mainstream_days_homeless >= 365 && mainstream_days_homeless >= 90
+        if dmh_days_homeless > 0 && dmh_days_homeless + mainstream_days_homeless >= 365 && mainstream_days_homeless >= 90
           adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
           @chronic_trigger = "#{dmh_days_homeless + mainstream_days_homeless} days total #{mainstream_days_homeless} of which were mainstream, DMH client"
           homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
+          debug_log "Found #{homeless_months.size} homeless months"
+          debug_log "Chronic Triggers: "
+          debug_log @chronic_trigger.inspect
           @chronically_homeless << client_id
           # Add details for any chronically homeless client
           client = GrdaWarehouse::Hud::Client.find(client_id)
@@ -52,17 +67,21 @@ module GrdaWarehouse::Tasks
           )
          
         end
-        @progress.format = "#{@progress_format}Found DMH chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}"
+        @progress.format = "#{@progress_format}Found DMH chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
       end
-      Rails.logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"
-      
-      chronic_source.transaction do
-        chronic_source.where(date: @date, dmh: true).delete_all
-        if @client_details.present?
-          insert_batch(chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values))
+      logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"
+      if @dry_run
+        logger.info @client_details.inspect
+      else
+        chronic_source.transaction do
+          chronic_source.where(date: @date, dmh: true).delete_all
+          if @client_details.present?
+            insert_batch(chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values))
+          end
         end
+        logger.info 'Done updating status of chronically homeless clients'
       end
-      Rails.logger.info 'Done updating status of chronically homeless clients'
+      logger.info 'Completed chronic calculations'
     end   
   end
 end

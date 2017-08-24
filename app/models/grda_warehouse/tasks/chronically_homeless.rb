@@ -120,6 +120,7 @@ module GrdaWarehouse::Tasks
       @residential_dates = nil
       @homeless_dates = nil
       @project_names = []
+      @homeless_reset = nil
     end
 
     def load_active_clients
@@ -146,26 +147,29 @@ module GrdaWarehouse::Tasks
       @client_details[client.id][:project_names] = @project_names.join('|')
     end
 
-    # Fetch the history for a client over the past three years
-    # First check to see if any of that includes a 90+ day non-homeless residential
-    # project stay.  If there is, limit the full request to only the days after the stay
-    def residential_history_for_client(client_id:)
-      debug_log "calculating residential history"
-      homeless_reset = service_history_source.hud_residential.
+    def homeless_reset(client_id:)
+      @homeless_reset ||= service_history_source.hud_residential.
         entry_within_date_range(start_date: @date - 3.years, end_date: @date).
         where(service_history_source.project_type_column => RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE).
         where.not(last_date_in_program: nil).
         where( datediff( service_history_source, 'day', sh_t[:last_date_in_program], sh_t[:first_date_in_program] ).gteq(90)).
         where(client_id: client_id).
         maximum(:last_date_in_program)
+    end
+
+    # Fetch the history for a client over the past three years
+    # First check to see if any of that includes a 90+ day non-homeless residential
+    # project stay.  If there is, limit the full request to only the days after the stay
+    def residential_history_for_client(client_id:)
+      debug_log "calculating residential history"
       # Just load up the histories for the current client, loading all takes too much RAM
       scope = service_history_source.hud_residential.
         joins(:project).
         service_within_date_range(start_date: @date - 3.years, end_date: @date).
         where(client_id: client_id)
-      if homeless_reset.present?
-        debug_log "Found previous residential history, using #{homeless_reset} instead of #{@date - 3.years} as beginning of calculation"
-        scope = scope.where(date: homeless_reset..@date)
+      if homeless_reset(client_id: client_id).present?
+        debug_log "Found previous residential history, using #{homeless_reset(client_id: client_id)} instead of #{@date - 3.years} as beginning of calculation"
+        scope = scope.where(date: homeless_reset(client_id: client_id)..@date)
       end
       all_dates = scope.pluck(*service_history_columns.values).map do |row|
         service_history_columns.keys.zip(row).to_h
@@ -216,7 +220,13 @@ module GrdaWarehouse::Tasks
         # otherwise ignore overlapping dates (this allows for overlapping SO from two sources)
         # We dedup dates later, none will be double counted
         if count_all_dates?(meta)
-          adj_dates = adjusted_dates(dates: dates_served, stop_date: @hard_stop)
+          # never count past the end of the enrollment
+          count_until = if meta[:last_date_in_program].present? && meta[:last_date_in_program].to_date < @hard_stop
+            meta[:last_date_in_program]
+          else
+            @hard_stop
+          end
+          adj_dates = adjusted_dates(dates: dates_served, stop_date: count_until)
           debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}"
           all_homeless_dates += adj_dates
         else
@@ -357,7 +367,7 @@ module GrdaWarehouse::Tasks
     end
 
     def dmh_projects_filter
-      filter = project_source.
+      filter = project_source.chronic.
         joins(:organization).merge(GrdaWarehouse::Hud::Organization.dmh).
         pluck(:ProjectID, :data_source_id).
         map do |project_id, data_source_id|
