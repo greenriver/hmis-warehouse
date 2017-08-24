@@ -57,12 +57,11 @@ module Importers
           # @start_date = d.newest_updated_at || calculate_newest_updated_at(d)
           load()
           # Update service history for any projects that have changed
-          update_service_history()
-          
+          # Don't do this, we now do it in a separate step
+          # update_service_history()
+
           @import.completed_at = Time.now
           @import.save
-
-          @upload.update(percent_complete: 100, completed_at: @import.completed_at)
 
           # You can't trust the End Date from the Export table, so go fetch the most recent updated_date from the various tables
           d.newest_updated_at = calculate_newest_updated_at(d)
@@ -113,7 +112,7 @@ module Importers
       return if files.empty?
       # Fetch the most recent file
       file = files.max
-      @export_id_addition = file.match(/(\d{6})\d{2}\./)&.captures&.first
+      # @export_id_addition = file.match(/(\d{6})\d{2}\./)&.captures&.first
 
       @import.zip = File.basename(file, '.*')
       logger.info "Found #{file}"
@@ -138,19 +137,12 @@ module Importers
         entry = OpenStruct.new({name: File.basename(f)})
         files << [model_for_filename(entry.name).name, extract_path(data_source: data_source, entry: entry)] if f.include?('.csv')
       end
+      export_file = files.to_h['GrdaWarehouse::Hud::Export']
+      export = CSV.read(export_file, headers: true).first
+      @export_id_addition = export['ExportStartDate'].gsub('-','')
 
       logger.info "Found #{files.count} files"
       @import.files = files
-
-      # convert from 7zip to zip
-      # if file.include?('.7z')
-      #   logger.info "Converting #{file} from 7zip to zip"
-      #   zip_file = file.sub('7z', 'zip')
-      #   system_call = "arepack -rv --format=zip #{Rails.root.to_s}/#{destination}/#{file} #{Rails.root.to_s}/#{destination}/#{zip_file}"
-      #   logger.info "Asking the system to: #{system_call}"
-      #   success = system(system_call)
-      #   puts success
-      # end
     end
 
     def extract_path data_source:, entry: nil

@@ -1,4 +1,4 @@
-- if @report.report.with_indifferent_access[:incorrect_dob].present?
+- if @report&.report.try(:[], 'incorrect_dob').present?
   - incorrect_counts = @report.report.with_indifferent_access[:incorrect_dob]
   - no_service_counts = @report.report.with_indifferent_access[:missing_nights]
   .row
@@ -11,7 +11,7 @@
           %th Project Name
           %th Project Type
           %th.page-bg-color DOB on or before entry date
-          %th Clients with no enrollment in the final month of range
+          %th Clients with no service in the final month of range
       %tbody
         - @report.projects.each do |project|
           - p_type = ::HUD.project_type_brief(project.ProjectType)

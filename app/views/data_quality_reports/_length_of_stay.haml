@@ -1,4 +1,4 @@
-- if @report.report.with_indifferent_access[:enrolled_length_of_stay].present?
+- if @report&.report.try(:[], 'enrolled_length_of_stay').present?
   - project_counts = @report.report.with_indifferent_access[:enrolled_length_of_stay][:projects]
   - totals = @report.report.with_indifferent_access[:enrolled_length_of_stay][:totals]
   - buckets = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.length_of_stay_buckets
@@ -13,7 +13,8 @@
         %tr
           %th Project Name
           %th Project Type
-          %th.page-bg-color= "Average Length of Stay (over #{(@report.end - @report.start).to_i} days)"
+          %th.page-bg-color
+            Average Length of Stay
           - buckets.each_with_index do |(title, _), index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th{class: odd_class}= title
