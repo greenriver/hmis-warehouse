@@ -858,7 +858,8 @@ module ReportGenerators::Ahar::Fy2016
       fam_ids_by_ds.each do |ds_id, values|
         # values consists of 
         # [household_id, data_source_id]
-        fam_wheres << "([warehouse_client_service_history].data_source_id = #{ds_id} and household_id in ('#{values.map(&:first).join("','")}'))"
+        fam_wheres << sh_t[:data_source_id].eq(ds_id).and(sh_t[:household_id].in(values.map(&:first))).to_sql
+        # "([warehouse_client_service_history].data_source_id = #{ds_id} and household_id in ('#{values.map(&:first).join("','")}'))"
       end
       fam_where = fam_wheres.join(' or ')
 
@@ -878,12 +879,13 @@ module ReportGenerators::Ahar::Fy2016
       project_counts = {}
       groups.each do |slug, project_type|
         family_served = if fam_ids_by_ds.any?
-          family_scope = involved_entries_scope
-            .where(['(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)', project_type, project_type])
-            .where(record_type: 'service')
-            .where("[date] >= ?", @report_start)
-            .where("[date] <= ?", @report_end)
-            .where(fam_where)
+          family_scope = involved_entries_scope.
+            hud_project_type(project_type).
+            service_within_date_range(
+              start_date: @report_start.to_date - 1.day,
+              end_date: @report_end
+            ).
+            where(fam_where)
             # Save off some supporing info
             family_scope.pluck(*sh_cols).each do |sh|
               project_name = sh[service_history_project_name_index]
@@ -900,11 +902,12 @@ module ReportGenerators::Ahar::Fy2016
           else
             0
           end
-        individuals_served = involved_entries_scope
-          .where(['(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)', project_type, project_type])
-          .where( record_type: 'service')
-          .where("[date] >= ?", @report_start)
-          .where("[date] <= ?", @report_end)
+        individuals_served = involved_entries_scope.
+          hud_project_type(project_type).
+          service_within_date_range(
+            start_date: @report_start.to_date - 1.day,
+            end_date: @report_end
+          )
         if fam_ids_by_ds.any? 
           individuals_served = individuals_served.where.not(fam_where)
         end
@@ -1687,7 +1690,12 @@ module ReportGenerators::Ahar::Fy2016
 
     def involved_entries_scope
        # make sure we include any project that is acting as one of our housing related projects
-      GrdaWarehouse::ServiceHistory.joins(:project).where("(first_date_in_program <= ? and last_date_in_program >= ? ) or (first_date_in_program <= ? and last_date_in_program is null) or (first_date_in_program >= ? and first_date_in_program <= ?)", @report_start, @report_start, @report_start, @report_start, @report_end).where("(Project.act_as_project_type in (#{(PH + TH + ES).join(', ')})) or (project_type in (#{(PH + TH + ES).join(', ')}) and Project.act_as_project_type is null)")
+      GrdaWarehouse::ServiceHistory.joins(:project).
+        open_between(start_date: @report_start, end_date: @report_end).
+        where(p_t[:act_as_project_type].in(PH + TH + ES).
+          or(sh_t[:project_type].in((PH + TH + ES)).
+          and(p_t[:act_as_project_type].eq(nil)))
+        )
     end
 
     def involved_entries
@@ -1701,9 +1709,11 @@ module ReportGenerators::Ahar::Fy2016
         {}.tap do |m|
           project_entries = involved_entries.map{|m| m[service_history_enrollment_group_id_index]}
           project_entries.each_slice(5000) do |entries|
-            m.merge!(GrdaWarehouse::Hud::Enrollment.where(ProjectEntryID: entries).pluck(*enrollment_columns).index_by do |m| 
-              [m[enrollment_project_entry_id_index], m[enrollment_data_source_id_index]]
-            end)
+            m.merge!(GrdaWarehouse::Hud::Enrollment.where(ProjectEntryID: entries).
+              pluck(*enrollment_columns).index_by do |m| 
+                [m[enrollment_project_entry_id_index], m[enrollment_data_source_id_index]]
+              end
+            )
           end
         end
       end

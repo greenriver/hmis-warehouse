@@ -16,6 +16,7 @@
 # bring in client information to limit them to veterans only
 module ReportGenerators::Ahar::Fy2016
   class Veteran < Base
+    include ArelHelper
     def report_class
       Reports::Ahar::Fy2016::Veteran
     end
@@ -37,25 +38,25 @@ module ReportGenerators::Ahar::Fy2016
     end
 
     def vet_or_related_client_ids(scope:)
-      vet_ids = scope.joins(:client).where(client: {VeteranStatus: 1}).
-        select(:client_id, :VeteranStatus, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)').
-        where(record_type: 'entry').
+      vet_ids = scope.joins(:client).where(Client: {VeteranStatus: 1}).
+        select(:client_id, c_t[:VeteranStatus].as('VeteranStatus').to_sql, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)').
+        entry.
         distinct.
-        pluck(:client_id, :VeteranStatus, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)')
+        pluck(:client_id, c_t[:VeteranStatus].as('VeteranStatus').to_sql, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)')
       # filter out anyone with a nil household_id when looking for related
       # folks since that implies an individual (which we should have in the vet_ids above)
       original = scope.joins(:client).
-        where(client: {VeteranStatus: 1}).
+        where(Client: {VeteranStatus: 1}).
         where.not(household_id: nil).
         where.not(household_id: '').
         select("concat(warehouse_client_service_history.household_id, '__', warehouse_client_service_history.data_source_id, '__', warehouse_client_service_history.project_id)")
       related_ids = scope.
         joins(:client).
         where(['concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id) in (?)', original]).
-        where(record_type: 'entry').
-        select(:client_id, :VeteranStatus, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)').
+        entry.
+        select(:client_id, c_t[:VeteranStatus].as('VeteranStatus').to_sql, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)').
         distinct.
-        pluck(:client_id, :VeteranStatus, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)')
+        pluck(:client_id, c_t[:VeteranStatus].as('VeteranStatus').to_sql, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)')
       # Return only the client_ids (we've selected some other bits for verification)
       (vet_ids + related_ids).uniq.map(&:first)
     end
