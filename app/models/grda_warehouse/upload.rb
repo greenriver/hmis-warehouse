@@ -12,6 +12,18 @@ module GrdaWarehouse
     validates :data_source, presence: true
     validates :file, presence: true, on: :create
 
+    def has_import_log?
+      @has_import_log ||= GrdaWarehouse::ImportLog.where.not(completed_at: nil).
+        where(data_source_id: data_source_id, completed_at: completed_at).
+        exists?
+    end
+
+    def import_log_id
+      return nil unless has_import_log?
+      GrdaWarehouse::ImportLog.where.not(completed_at: nil).
+      where(data_source_id: data_source_id, completed_at: completed_at).pluck(:id).first
+    end
+
     def status
       if percent_complete == 0
         'Queued'

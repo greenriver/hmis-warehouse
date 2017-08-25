@@ -4,7 +4,9 @@ class UploadsController < ApplicationController
   before_action :set_upload, only: [:show, :edit]
 
   def index
-    @uploads = upload_source.where(data_source_id: @data_source.id)
+    attributes = GrdaWarehouse::Upload.column_names - ['import_errors', 'content']
+    @uploads = upload_source.select(*attributes).
+      where(data_source_id: @data_source.id)
       .page(params[:page].to_i).per(20).order(created_at: :desc)
   end
 
@@ -58,7 +60,7 @@ class UploadsController < ApplicationController
     @upload = upload_source.find(params[:id].to_i)
   end
 
-  def upload_source
+  def upload_source 
     GrdaWarehouse::Upload
   end
 end
