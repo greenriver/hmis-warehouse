@@ -2,6 +2,8 @@
   - incorrect_counts = @report.report.with_indifferent_access[:incorrect_dob]
   - no_service_counts = @report.report.with_indifferent_access[:missing_nights]
   - service_after_close_counts = @report.report.with_indifferent_access[:service_after_close]
+  - individual_at_family = @report.report.with_indifferent_access[:individuals_at_family_projects]
+  - family_at_individual = @report.report.with_indifferent_access[:families_at_individual_projects]
   .row
     .col-sm-4
       %h3 Other Data Quality Measures
@@ -14,6 +16,8 @@
           %th.page-bg-color DOB on or before entry date
           %th No service in the final month of range
           %th Service after exit
+          %th Individuals at a Family Project
+          %th Families at an Individual Project
       %tbody
         - @report.projects.each do |project|
           - p_type = ::HUD.project_type_brief(project.ProjectType)
@@ -47,6 +51,24 @@
               %td
                 - measure = service_after_close_counts[project.id.to_s]
                 - key = "service_after_close_#{project.id}"
+                - if measure > 0
+                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
+                  = measure
+            - if individual_at_family.present?
+              %td
+                - measure = individual_at_family[project.id.to_s]
+                - key = "individuals_at_family_projects_#{project.id}"
+                - if measure > 0
+                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
+                  = measure
+            - if family_at_individual.present?
+              %td
+                - measure = family_at_individual[project.id.to_s]
+                - key = "families_at_individual_projects_#{project.id}"
                 - if measure > 0
                   = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure

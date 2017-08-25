@@ -19,6 +19,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_clients_dob_enrollment_date()
       add_night_by_night_missing()
       add_service_after_close()
+      add_individuals_at_family_projects()
+      add_families_at_individual_projects()
       finish_report()
     end
 
@@ -53,6 +55,94 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
+    def add_individuals_at_family_projects
+      individuals = {}
+      projects.each do |project|
+        if project.serves_families?
+          family_enrollments = enrollments_for_project(
+            project.ProjectID, project.data_source_id
+          ).values.
+            flatten(1).
+            group_by do |m| 
+              [m[:data_source_id], m[:household_id]]
+            end.select do |(_, hh_id), m| 
+              hh_id.nil? || m.size == 1
+            end
+          individuals[project.id] = family_enrollments.values.flatten(1)
+        else
+          individuals[project.id] = []
+        end
+      end
+      answers = {
+        individuals_at_family_projects: {}
+      }
+      support = {}
+      individuals.each do |project_id, clients|
+        answers[:individuals_at_family_projects][project_id] = clients.count
+        support["individuals_at_family_projects_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+          counts: clients.map do |service|
+            client_id = destination_id_for_client(service[:id])
+            [
+              client_id,
+              service[:first_name], 
+              service[:last_name], 
+              service[:project_name], 
+              service[:first_date_in_program],
+              service[:last_date_in_program],
+            ]
+          end
+        }
+      end
+      add_answers(answers, support)
+    end
+
+    def add_families_at_individual_projects
+      families = {}
+      projects.each do |project|
+        if project.serves_only_individuals?
+          family_enrollments = enrollments_for_project(
+            project.ProjectID, project.data_source_id
+          ).values.
+            flatten(1).
+            group_by do |m| 
+              [m[:data_source_id], m[:household_id]]
+            end.select do |(_, hh_id), m| 
+              hh_id.nil? || m.size > 1
+            end
+            families[project.id] = family_enrollments.values.flatten(1)
+        else
+          families[project.id] = []
+        end
+      end
+      answers = {
+        families_at_individual_projects: {}
+      }
+      support = {}
+      families.each do |project_id, clients|
+        # Count of families, not clients
+        answers[:families_at_individual_projects][project_id] = clients.map do |client|
+          client[:household_id]
+        end.uniq.count
+        support["families_at_individual_projects_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Household ID','Project', 'Entry Date', 'Exit Date'],
+          counts: clients.map do |service|
+            client_id = destination_id_for_client(service[:id])
+            [
+              client_id,
+              service[:first_name], 
+              service[:last_name],
+              service[:household_id],
+              service[:project_name], 
+              service[:first_date_in_program],
+              service[:last_date_in_program],
+            ]
+          end
+        }
+      end
+      add_answers(answers, support)
+    end
+
     def add_service_after_close
       service_after_close = {}
       projects.each do |project|
@@ -69,7 +159,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             Hash[service_columns.keys.zip(row)]
           end
       end
-      max_dates = service_scope.where(Project: {id: project.id}).service.group(:client_id).maximum(:date)
       answers = {
         service_after_close: service_after_close.map do |project_id, clients|
           [project_id, clients.count]
@@ -77,6 +166,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
       support = {}
       service_after_close.each do |project_id, clients|
+        max_dates = service_scope.where(Project: {id: project_id}).service.group(:client_id).maximum(:date)
         support["service_after_close_#{project_id}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
           counts: clients.map do |service|
@@ -115,7 +205,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_nights[project.id] = []
         end
       end
-      max_dates = service_scope.where(Project: {id: project.id}).service.group(:client_id).maximum(:date)
       answers = {
         missing_nights: missing_nights.map do |project_id, clients|
           [project_id, clients.count]
@@ -123,6 +212,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
       support = {}
       missing_nights.each do |project_id, clients|
+        max_dates = service_scope.where(Project: {id: project_id}).service.group(:client_id).maximum(:date)
         support["missing_nights_#{project_id}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
           counts: clients.map do |service|
@@ -208,7 +298,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         totals[:counts][:total_days] += service_histories.count
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
-        project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round
+        project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round rescue 0
         service_histories.each do |client_id, services|
           counts.each do |range, _|
             meta = services.first

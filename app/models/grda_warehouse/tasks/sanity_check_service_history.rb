@@ -12,9 +12,11 @@ module GrdaWarehouse::Tasks
       @client_ids = client_ids
       setup_notifier('Sanity Checker')
       @logger = Rails.logger
+      @dirty = false
       if @client_ids.any?
         @sample_size = @client_ids.size
       end
+      @batch_size = 1000
     end
 
     # Pick a sample of destination clients and compare the number of entry and exit records
@@ -23,14 +25,18 @@ module GrdaWarehouse::Tasks
       logger.info "Sanity checking #{@sample_size} random clients..."
       choose_sample()
       # load_personal_ids()
-      load_service_history_enrollments()
-      load_service_history_exits()
-      load_source_enrollments()
-      load_source_exits()
-      load_service_counts()
-      load_source_service_counts()
+      # Load all of the data in batches, sometimes the massive queries are slow
+      @destinations.keys.each_slice(@batch_size) do |batch|
+        load_service_history_enrollments(batch)
+        load_service_history_exits(batch)
+        load_source_enrollments(batch)
+        load_source_exits(batch)
+        load_service_counts(batch)
+        load_source_service_counts(batch)
+      end
       sanity_check()
       logger.info "...sanity check complete"
+      @dirty
     end
 
     def sanity_check
@@ -57,6 +63,7 @@ module GrdaWarehouse::Tasks
       end
       update_attempts()
       if messages.any?
+        @dirty = true
         rebuilding_message = "Rebuilding service history for #{messages.size} invalidated clients."
         if send_notifications
           msg = "Hey, the service history counts don't match for the following #{messages.size} client(s).  Service histories have been invalidated.\n"
@@ -99,17 +106,19 @@ module GrdaWarehouse::Tasks
       destinations.reject! do |id|
         max_attempts_reached(id)
       end
-      @destinations = destinations.map{ |m| [m, {
-        service_history: {
-          enrollments: 0,
-          exits: 0,
-        },
-        source: {
-          enrollments: 0,
-          exits: 0,
-        },
-        source_personal_ids: []
-      }] }.to_h
+      @destinations = destinations.map do |m| 
+        [m, {
+          service_history: {
+            enrollments: 0,
+            exits: 0,
+          },
+          source: {
+            enrollments: 0,
+            exits: 0,
+          },
+          source_personal_ids: []
+        }] 
+      end.to_h
     end
 
     def load_personal_ids
@@ -128,9 +137,9 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_service_history_enrollments
+    def load_service_history_enrollments(batch)
       service_history_source.entry.
-        where(client_id: @destinations.keys).
+        where(client_id: batch).
         group(:client_id).
         pluck(:client_id, nf( 'COUNT', [sh_t[:enrollment_group_id]] ).to_sql).
       each do |id, enrollment_count|
@@ -138,9 +147,9 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_service_history_exits
+    def load_service_history_exits(batch)
       service_history_source.exit.
-        where(client_id: @destinations.keys).
+        where(client_id: batch).
         group(:client_id).
         pluck(:client_id, nf( 'COUNT', [sh_t[:enrollment_group_id]] ).to_sql).
       each do |id, exit_count|
@@ -148,10 +157,10 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_source_enrollments
+    def load_source_enrollments(batch)
       # Limit to only enrollments that have projects
       client_source.joins(source_enrollments: :project).
-        where(id: @destinations.keys).
+        where(id: batch).
         group(:id).
         pluck(:id, nf( 'COUNT', [enrollment_source.arel_table[:ProjectEntryID]] ).to_sql).
       each do |id, source_enrollment_count|
@@ -159,12 +168,12 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_source_exits
+    def load_source_exits(batch)
       # this is a bit nasty, but we sometimes have two exits for a single enrollment
       # which shouldn't happen.  We'll get around it by counting carefully.
       # Also limit to only exits with enrollments that have projects
       client_source.joins(source_exits: {enrollment: :project}).
-        where(id: @destinations.keys).
+        where(id: batch).
         group(:id).
         pluck(
           :id, 
@@ -175,9 +184,9 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_service_counts
+    def load_service_counts(batch)
       service_history_source.service.bed_night.
-        where(client_id: @destinations.keys).
+        where(client_id: batch).
         group(:client_id).
         pluck(
           :client_id, 
@@ -188,11 +197,11 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_source_service_counts
+    def load_source_service_counts(batch)
       # Sometimes we see a service record duplicated, make sure we don't count
       # the duplicates
       st = GrdaWarehouse::Hud::Service.arel_table
-      @destinations.keys.each_slice(250) do |ids|
+      batch.each_slice(250) do |ids|
         client_source.joins(source_enrollments: [:services, :project]).
           where(id: ids, Project: {TrackingMethod: 3}).
           group(:id).

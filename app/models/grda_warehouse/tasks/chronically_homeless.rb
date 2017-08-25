@@ -124,13 +124,22 @@ module GrdaWarehouse::Tasks
     end
 
     def load_active_clients
-      @clients ||= service_history_source.
-        hud_currently_homeless(date: @date).
-        where.not(client_id: dmh_clients).
-        joins(:processed_client).
-        select(:client_id).
-        distinct.
-        pluck(:client_id)
+      @clients = active_client_scope unless @limited
+      # before we return, sanity check these clients, then load them again if 
+      # any don't pass
+      if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, @clients).run!
+        @clients = active_client_scope unless @limited
+      end
+    end
+
+    def active_client_scope
+      service_history_source.
+      hud_currently_homeless(date: @date).
+      where.not(client_id: dmh_clients).
+      joins(:processed_client).
+      select(:client_id).
+      distinct.
+      pluck(:client_id)
     end
 
     def add_client_details(client:, days_served:, months_homeless:, chronic_trigger:, dmh: false)
@@ -174,7 +183,12 @@ module GrdaWarehouse::Tasks
       all_dates = scope.pluck(*service_history_columns.values).map do |row|
         service_history_columns.keys.zip(row).to_h
       end
+      # Throw out any dates that fall outside of the enrollment
+      all_dates.reject! do |m| 
+        m[:last_date_in_program].present?&& m[:last_date_in_program] < m[:date]
+      end
       debug_log "Found #{all_dates.size} days in the residential history"
+      
       # group by enrollment and then calculated adjusted dates for each enrollment
       enrollments_by_project_entry = all_dates.group_by do |m|
         [m[:enrollment_group_id], m[:project_id], m[:data_source_id]]
@@ -220,13 +234,7 @@ module GrdaWarehouse::Tasks
         # otherwise ignore overlapping dates (this allows for overlapping SO from two sources)
         # We dedup dates later, none will be double counted
         if count_all_dates?(meta)
-          # never count past the end of the enrollment
-          count_until = if meta[:last_date_in_program].present? && meta[:last_date_in_program].to_date < @hard_stop
-            meta[:last_date_in_program]
-          else
-            @hard_stop
-          end
-          adj_dates = adjusted_dates(dates: dates_served, stop_date: count_until)
+          adj_dates = adjusted_dates(dates: dates_served, stop_date: @hard_stop)
           debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}"
           all_homeless_dates += adj_dates
         else

@@ -47,6 +47,18 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :serves_families, -> do
+      where(HouseholdType: 3)
+    end
+
+    scope :serves_individuals, -> do
+      where.not(HouseholdType: 3)
+    end
+
+    scope :serves_children, -> do
+      where(HouseholdType: 4)
+    end
+
     # when we export, we always need to replace InventoryID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)

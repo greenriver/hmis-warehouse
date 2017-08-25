@@ -142,6 +142,35 @@ module GrdaWarehouse::Hud
         or(arel_table[:hud_continuum_funded].eq(true))
       )
     end
+
+    # NOTE: Careful, this returns duplicates as it joins inventories.
+    # You may want to tack on a distinct, depending on what you need. 
+    scope :serves_families, -> do
+      joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_families)
+    end
+    def serves_families?
+      self.class.serves_families.where(id: id).exists?
+    end
+
+    # NOTE: Careful, this returns duplicates as it joins inventories.
+    # You may want to tack on a distinct, depending on what you need.
+    scope :serves_individuals, -> do
+      joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_individuals)
+    end
+    def serves_individuals?
+      self.class.serves_individuals.where(id: id).exists?
+    end
+
+    # NOTE: Careful, this returns duplicates as it joins inventories.
+    # You may want to tack on a distinct, depending on what you need.
+    scope :serves_individuals_only, -> do
+      joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_individuals).
+      where.not(Inventory: {id: GrdaWarehouse::Hud::Inventory.serves_families})
+    end
+    def serves_only_individuals?
+      self.class.serves_individuals_only.where(id: id).exists?
+    end
+
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope

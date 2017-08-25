@@ -176,6 +176,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
         destination: sh_t[:destination].as('destination').to_sql,
+        household_id: sh_t[:household_id].as('household_id').to_sql,
         personal_id: c_t[:PersonalID].as('personal_id').to_sql,
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
         residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,

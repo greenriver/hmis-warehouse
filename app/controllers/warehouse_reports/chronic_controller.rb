@@ -64,7 +64,7 @@ module WarehouseReports
         preload(:chronics).
         preload(:source_disabilities).
         where(filter_query).
-        has_homeless_service_after_date(date: (@filter.date - @filter.last_service_after.days))
+        has_homeless_service_between_dates(start_date: (@filter.date - @filter.last_service_after.days), end_date: @filter.date)
       if @filter.name&.present?
         @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
       end
