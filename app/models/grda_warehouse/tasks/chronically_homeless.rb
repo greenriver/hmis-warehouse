@@ -33,7 +33,8 @@ module GrdaWarehouse::Tasks
       count_so_as_full_month: true,
       dry_run: false,
       client_ids: nil,
-      debug: false
+      debug: false,
+      sanity_check: false,
     )
       self.logger = Rails.logger
       @progress_format = '%a: '
@@ -45,6 +46,7 @@ module GrdaWarehouse::Tasks
       @dry_run = dry_run
       @clients = client_ids
       @limited = client_ids.present? && client_ids.any?
+      @sanity_check = sanity_check
       @debug = debug
     end
 
@@ -127,8 +129,10 @@ module GrdaWarehouse::Tasks
       @clients = active_client_scope unless @limited
       # before we return, sanity check these clients, then load them again if 
       # any don't pass
-      if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, @clients).run!
-        @clients = active_client_scope unless @limited
+      if @sanity_check
+        if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, @clients).run!
+          @clients = active_client_scope unless @limited
+        end
       end
     end
 

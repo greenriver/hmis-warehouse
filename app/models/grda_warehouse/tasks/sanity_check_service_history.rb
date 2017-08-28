@@ -201,7 +201,7 @@ module GrdaWarehouse::Tasks
       # Sometimes we see a service record duplicated, make sure we don't count
       # the duplicates
       st = GrdaWarehouse::Hud::Service.arel_table
-      batch.each_slice(250) do |ids|
+      batch.each_slice(200) do |ids|
         client_source.joins(source_enrollments: [:services, :project]).
           where(id: ids, Project: {TrackingMethod: 3}).
           group(:id).
