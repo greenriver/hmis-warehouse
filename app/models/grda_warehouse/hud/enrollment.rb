@@ -144,6 +144,9 @@ module GrdaWarehouse::Hud
     scope :hud_chronic, -> do
       joins(:project).merge(Project.hud_chronic)
     end
+    scope :homeless, -> do
+      joins(:project).merge(Project.homeless)
+    end
     scope :residential_non_homeless, -> do
       joins(:project).merge(Project.residential_non_homeless)
     end

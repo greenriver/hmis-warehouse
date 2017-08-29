@@ -40,5 +40,10 @@ module GrdaWarehouse::Hud
     belongs_to :data_source, inverse_of: :exits
     belongs_to :enrollment, **hud_belongs(Enrollment), inverse_of: :exit
     belongs_to :export, **hud_belongs(Export), inverse_of: :exits
+    has_one :project, through: :enrollment
+
+    scope :permanent, -> do
+      where(Destination: ::HUD.permanent_destinations)
+    end
   end
 end

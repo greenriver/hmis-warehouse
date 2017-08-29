@@ -1,7 +1,7 @@
 - title = 'Clients Housed, Previously on the Chronic List'
 - content_for :title, title
 %h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'other-reports'
 .row
   .col-sm-10
     %p
@@ -14,9 +14,26 @@
 .row
   .col-sm-12
     .warehouse-reports
+      - if @clients.any?
+        %p
+          Found
+          %strong
+            = @clients.size
+          clients housed in permanent destinations and on the chronic lists between: 
+          %strong
+            = "#{@range.start} and #{@range.end}."
       %table.table.table-condensed.table-hover
         %thead
           %tr
-            %th Client          
+            %th Client
+            %th{style: 'width: 10em;'} On Lists
+            %th Housed On
         %tbody
-          
+          - @clients.each do |_,exits|
+            - client = exits.first
+            %tr
+              %td= "#{client.first_name} #{client.last_name}"
+              %td
+                = exits.map(&:chronic_date).uniq.join('<br />').html_safe
+              %td
+                = exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join('<br />').html_safe

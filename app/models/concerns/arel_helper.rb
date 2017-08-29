@@ -89,6 +89,9 @@ module ArelHelper
   def i_t
     GrdaWarehouse::Hud::Inventory.arel_table
   end
+  def ch_t
+    GrdaWarehouse::Chronic.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -249,6 +252,9 @@ module ArelHelper
     end
     def i_t
       GrdaWarehouse::Hud::Inventory.arel_table
+    end
+    def ch_t
+      GrdaWarehouse::Chronic.arel_table
     end
   end
 end

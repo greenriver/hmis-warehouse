@@ -103,6 +103,14 @@ module GrdaWarehouse::Hud
     has_many :source_disabilities, through: :source_clients, source: :disabilities
     has_many :source_enrollment_disabilities, through: :source_enrollments, source: :disabilities
     has_many :source_exits, through: :source_enrollments, source: :exit
+    has_many :source_projects, through: :source_enrollments, source: :project
+    has_many :permanent_source_exits, -> do
+      permanent
+    end, through: :source_enrollments, source: :exit
+    has_many :permanent_source_exits_from_homelessness, -> do
+      permanent.joins(:project).merge(GrdaWarehouse::Hud::Project.homeless)
+    end, through: :source_enrollments, source: :exit
+
     has_many :source_health_and_dvs, through: :source_clients, source: :health_and_dvs
     has_many :source_enrollment_health_and_dvs, through: :source_enrollments, source: :health_and_dvs
     has_many :source_income_benefits, through: :source_clients, source: :income_benefits
@@ -124,6 +132,9 @@ module GrdaWarehouse::Hud
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
+    has_many :chronics_in_range, -> (range) do
+      where(date: range)
+    end, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
     has_one :patient, class_name: Health::Patient.name
 
     has_many :notes, class_name: GrdaWarehouse::ClientNotes::Base.name, inverse_of: :client
