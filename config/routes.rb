@@ -73,6 +73,7 @@ Rails.application.routes.draw do
     resources :chronic, only: [:index] do
       get :summary, on: :collection
     end
+    resources :chronic_housed, only: [:index]
     resources :first_time_homeless, only: [:index] do
       get :summary, on: :collection
     end
