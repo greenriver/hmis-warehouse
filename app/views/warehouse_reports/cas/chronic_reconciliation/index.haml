@@ -7,7 +7,7 @@
     .col-sm-3
       = f.input :date, collection: @filter.chronic_days, label: 'Chronic date',input_html: {class: 'select2'}
     .col-sm-3
-      = f.input :homeless_service_after, as: :date_picker
+      = f.input :homeless_service_after, as: :date_picker, label: 'Homeless service between this date and chronic date'
     .col-sm-3
       = button_tag('Update View', class: 'btn btn-primary')
 .row

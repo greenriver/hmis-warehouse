@@ -9,13 +9,14 @@ module WarehouseReports::Cas
       chronic_ids = client_source.joins(:chronics).
         where(ch_t[:date].eq(@filter.date)).
         where(ch_t[:days_in_last_three_years].gteq(365)).
-        has_homeless_service_after_date(date: @filter.homeless_service_after).
+        has_homeless_service_between_dates(start_date: @filter.homeless_service_after, end_date: @filter.date).
         pluck(:id)
 
       cas_ids = client_source.cas_active.pluck(:id)
       @missing_in_cas = client_source.joins(:chronics).
         where(chronics: {date: @filter.date}).
         where(id: (chronic_ids - cas_ids)).
+        order(last_name: :asc, first_name: :asc).
         pluck(*client_columns.values).
         map do |row|
           Hash[client_columns.keys.zip(row)]
@@ -23,6 +24,7 @@ module WarehouseReports::Cas
 
       @not_on_list = client_source.
         where(id: (cas_ids - chronic_ids)).
+        order(last_name: :asc, first_name: :asc).
         includes(:chronics)
     end
 
