@@ -38,11 +38,11 @@ module Filters
         
         followups.select do |_, followup_steps|
           followup_steps.any? 
-        end.sort_by do |a,_| 
-          step_order[a] 
-        end.map do |a,followup_steps|
+        end.sort_by do |step,_| 
+          step_order[step] 
+        end.map do |step,followup_steps|
           [
-            "(#{step_order[a]}) #{a}", followup_steps.sort
+            "(#{step_order[step]}) #{step}", followup_steps.sort
           ] 
         end.to_h
       end
