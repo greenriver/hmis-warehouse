@@ -34,7 +34,7 @@ module GrdaWarehouse::Tasks
       dry_run: false,
       client_ids: nil,
       debug: false,
-      sanity_check: false,
+      sanity_check: false
     )
       self.logger = Rails.logger
       @progress_format = '%a: '
