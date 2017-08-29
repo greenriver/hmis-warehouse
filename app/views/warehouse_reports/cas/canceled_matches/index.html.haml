@@ -1,0 +1,54 @@
+- title = 'Coordinated Access System Canceled Matches'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+.row
+  .col-sm-10
+    %p
+      Limit to matches canceled within a date range.
+    = render 'filter'
+  .col-sm-2
+    .pull-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+.row
+  .col-sm-12
+    .warehouse-reports
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Match ID
+            %th Started On
+            %th Canceled On Step
+            %th Canceled On
+            %th Canceled Reason
+            %th Previous Step
+            %th Previous Step Completed On
+            %th= "#{_('Shelter Agency Contacts')}"
+            %th= "#{_('HSA Contacts')}"
+          
+        %tbody
+          - if @matches.empty?
+            %tr
+              %td.text-center{colspan: 8}
+                %em No Canceled Matches
+          - else
+            - @matches.each do |match|
+              - previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
+
+              %tr
+                %td= match.match_id
+                %td= match.match_started_at.to_date
+                %td= "(#{match.decision_order}) #{match.match_step}"
+                %td= match.updated_at.to_date
+                %td= match.administrative_cancel_reason
+                %td= previous_step&.match_step
+                %td= previous_step&.updated_at&.to_date
+                %td
+                  - match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
+                    = contact
+                    %br
+                %td
+                  - match.hsa_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
+                    = contact
+                    %br

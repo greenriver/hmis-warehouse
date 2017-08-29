@@ -10,6 +10,14 @@ module GrdaWarehouse
       where(match_started_at: (start_date..end_date))
     end
 
+    scope :canceled, -> do
+      where.not(administrative_cancel_reason: nil)
+    end
+
+    scope :canceled_between, -> (start_date:, end_date:) do
+      canceled.where(updated_at: (start_date..end_date))
+    end
+
     def self.reason_attributes
       {
         client_id: 'Client',
