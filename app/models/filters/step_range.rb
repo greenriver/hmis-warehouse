@@ -16,7 +16,9 @@ module Filters
     def ordered_steps
       @ordered_steps ||= begin
         scope = GrdaWarehouse::CasReport#.started_between(start_date: @range.start, end_date: @range.end + 1.day)
-        steps = scope.uniq.order(:match_step).pluck :match_step
+        step_order = scope.distinct.
+          pluck(:match_step, :decision_order).to_h
+        steps = step_order.keys
         at = scope.arel_table
         at2 = Arel::Table.new at.table_name
         at2.table_alias = 'at2'
@@ -28,19 +30,21 @@ module Filters
               where( at2[:decision_order]. lt at[:decision_order] ).
               where( at2[:match_step].     eq step ).
               exists
-          ).distinct.pluck(:match_step)
+          ).distinct.pluck(:match_step, :decision_order).map do |match_step, decision_order|
+            "(#{decision_order}) #{match_step}"
+          end
           [ step, followups ]
         end.to_h
-        step_order = followups.keys.sort do |a,b|
-          if followups[a].include?(b)
-            -1
-          elsif followups[b].include?(a)
-            1
-          else
-            0
-          end
-        end.each_with_index.to_h
-        followups.select{ |_,ar| ar.any? }.sort_by{ |a,_| step_order[a] }.map{ |a,ar| [ "(#{step_order[a] + 1}) #{a}", ar.sort_by{ |s| step_order[s] }.map{|s| "(#{step_order[s] + 1}) #{s}"} ] }.to_h
+        
+        followups.select do |_, followup_steps|
+          followup_steps.any? 
+        end.sort_by do |a,_| 
+          step_order[a] 
+        end.map do |a,followup_steps|
+          [
+            "(#{step_order[a]}) #{a}", followup_steps.sort
+          ] 
+        end.to_h
       end
     end
   end
