@@ -15,7 +15,7 @@ module ClientMatchHelper
     exact_match = Array(fields).all? do |fld|
       match.destination_client.send(fld) == match.source_client.send(fld)
     end
-    match_flag match.score_contribution(fields), exact_match
+    match_flag(match.score_contribution(fields), exact_match)
   end
 
   private def match_flag(score, exact_match, threshold: 2)

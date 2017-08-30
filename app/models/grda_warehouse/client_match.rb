@@ -56,14 +56,15 @@ module GrdaWarehouse
     # contribution to the overall score
     # expressed as a weighted average of the z-scores for those fields only
     def score_contribution(fields)
-      fields = Array(fields).map(&:to_s)
+      fields = Array(fields).map(&:to_sym)
       weight_sum = 0.0;
       score_sum = 0.0;
-      if score_details['metrics_with_scores'].present?
-        score_details['metrics_with_scores'].each do |detail|
-          if detail['field'].in? fields
-            weight_sum += detail['weight']
-            score_sum += detail['score']
+      if score_details.with_indifferent_access[:metrics_with_scores].present?
+        score_details.with_indifferent_access[:metrics_with_scores].each do |detail|
+          detail = detail.with_indifferent_access
+          if detail[:field].in? fields
+            weight_sum += detail[:weight]
+            score_sum += detail[:score]
           end
         end
       end
