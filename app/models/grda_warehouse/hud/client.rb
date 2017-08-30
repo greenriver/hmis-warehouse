@@ -1020,6 +1020,7 @@ module GrdaWarehouse::Hud
       end
       Rails.cache.delete_matched("*clients/#{self.id}/*")
       Rails.cache.delete_matched("*clients/#{other_client.id}/*")
+      # un-match anyone who we just moved so they don't show up in the matching again until they'be been checked
       moved.each do |m|
         GrdaWarehouse::ClientMatch.where(source_client_id: m.id).destroy_all
         GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all

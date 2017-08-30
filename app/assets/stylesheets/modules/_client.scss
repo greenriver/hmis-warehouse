@@ -137,10 +137,24 @@
 }
 #client__previous-addresses { height: 250px; }
 
+.merge-row {
+  border-left: 2px solid #d2d2d2;
+  padding-left: 10px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+.merge-card {
+  border: 1px solid #d2d2d2;
+  margin: 0.2em;
+  float: left;
+}
+.merge-card.slab {
+  padding: 0;
+}
 $client-match-action-row-height: 22px;
 .client-match {
   position: relative;
-  padding: 0 0.5em;
+  padding: 0 1em;
   padding-bottom: $client-match-action-row-height;
   min-width: 420px;
   .client-match--factors {
@@ -156,9 +170,7 @@ $client-match-action-row-height: 22px;
     }
   }
   .client-match--actions {
-    position: absolute;
-    overflow: hidden;
-    padding: 0.5em;
+    padding: 0;
     bottom: 0;
     left: 0;
     font-size: $client-match-action-row-height/2;

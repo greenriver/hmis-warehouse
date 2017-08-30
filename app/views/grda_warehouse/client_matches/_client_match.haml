@@ -2,6 +2,7 @@
   match = client_match
   client_a = match.destination_client
   client_b = match.source_client
+
 .client-match{data: {id: match.id}}
   %h6
     - if !match.candidate?
@@ -14,21 +15,29 @@
       %th
       %th
         Existing
+        %br
+        = client_a.data_source.short_name
         - unless match.accepted?
-          = link_to edit_client_path(client_a.destination_client), target: 'client_a' do
-            = "#{client_a.data_source.short_name}-#{client_a.PersonalID.slice(0,4)}"
+          = link_to edit_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
+            = client_a.PersonalID.slice(0,4)
+          source for: 
+          = client_a.destination_client.id
         - else
-          = "#{client_a.data_source.short_name}-#{client_a.PersonalID.slice(0,4)}"
+          = client_a.PersonalID.slice(0,4)
       %th
       %th
 
       %th
         Proposed
+        %br
+        = client_b.data_source.short_name
         - unless match.accepted?
-          = link_to edit_client_path(client_b.destination_client), target: 'client_b' do
-            = "#{client_b.data_source.short_name}-#{client_b.PersonalID.slice(0,4)}"
+          = link_to edit_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
+            = client_b.PersonalID.slice(0,4)
+          source for: 
+          = client_b.destination_client.id
         - else
-          = "#{client_b.data_source.short_name}-#{client_b.PersonalID.slice(0,4)}"
+          = client_b.PersonalID.slice(0,4)
       %th
     %tr
       %th Name
@@ -78,16 +87,17 @@
       %td
       %td
       %td= client_b.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
-  .client-match--actions
-    - if match.candidate?
-      = link_to 'Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-success', style: 'position: absolute; top: 0; left: 0'
-      .text-center
-        = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default', style: 'position: absolute; top: 0; left: 46%'
-      = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger', style: 'position: absolute; top: 0; right: 0'
-    - elsif match.accepted?
-      = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"
-      = link_to edit_client_path(client_a.destination_client) do
-        View Result
-    - elsif match.rejected?
-      = "Rejected: #{match.updated_at} by #{match.updated_by.try(:name)}"
-      = link_to '(undo)', client_match_path(match, format: :json, client_match: {status: 'candidate'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch
+.client-match--actions
+  - if match.candidate?
+    = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success pull-left'})
+    = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger pull-right'
+    .text-center
+      = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default'
+    
+  - elsif match.accepted?
+    = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"
+    = link_to edit_client_path(client_a.destination_client) do
+      View Result
+  - elsif match.rejected?
+    = "Rejected: #{match.updated_at} by #{match.updated_by.try(:name)}"
+    = link_to '(undo)', client_match_path(match, format: :json, client_match: {status: 'candidate'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch

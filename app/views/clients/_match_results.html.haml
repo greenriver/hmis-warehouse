@@ -33,7 +33,7 @@
               %tr
                 %td{style: 'width: 2em;'}
                 %td.client__source-client
-                  = f.input :merge, label: false, as: :boolean, checked_value: sc.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}, inline_label: "#{sc.full_name} in #{sc.data_source.short_name}"
+                  = f.input :merge, label: false, as: :boolean, checked_value: sc.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}, inline_label: "#{sc.full_name} in #{sc.data_source.short_name} <br /> #{sc.uuid}".html_safe
                 %td
                   = sc.DOB
                 %td
