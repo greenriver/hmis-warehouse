@@ -61,9 +61,9 @@ module GrdaWarehouse
       score_sum = 0.0;
       if score_details.with_indifferent_access[:metrics_with_scores].present?
         score_details.with_indifferent_access[:metrics_with_scores].each do |detail|
-          if detail.with_indifferent_access[:field].in? fields
-            weight_sum += detail[:weight]
-            score_sum += detail[:score]
+          if detail.with_indifferent_access[:field].to_sym.in?(fields)
+            weight_sum += detail.with_indifferent_access[:weight]
+            score_sum += detail.with_indifferent_access[:score]
           end
         end
       end
