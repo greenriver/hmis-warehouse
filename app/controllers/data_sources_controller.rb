@@ -32,6 +32,9 @@ class DataSourcesController < ApplicationController
 
   def create
     @data_source = data_source_source.new(new_data_source_params)
+    if new_data_source_params[:authoritative]
+      @data_source.source_type = :authoritative
+    end
     if @data_source.save
       current_user.add_viewable @data_source
       flash[:notice] = "#{@data_source.name} created."

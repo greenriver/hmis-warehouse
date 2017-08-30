@@ -229,13 +229,17 @@ module HUD
 
   # 1.7
   def no_yes_missing(id, reverse=false)
-    map = {
+    map = yes_no_missing_options
+
+    _translate map, id, reverse
+  end
+
+  def yes_no_missing_options
+    {
       0 => 'No',
       1 => 'Yes',
       99 => 'Data not collected*',
     }
-
-    _translate map, id, reverse
   end
 
   def ad_hoc_yes_no_1(id, reverse=false)
@@ -252,16 +256,21 @@ module HUD
 
   # 1.8
   def no_yes_reasons_for_missing_data(id, reverse=false)
-    map = {
+    map = no_yes_reasons_for_missing_data_options
+
+    _translate map, id, reverse
+  end
+
+  def no_yes_reasons_for_missing_data_options
+    {
       0 => 'No',
       1 => 'Yes',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
+
   def vertern_status(*args)
     no_yes_reasons_for_missing_data *args
   end
@@ -498,7 +507,12 @@ module HUD
 
   # 3.6.1
   def gender(id, reverse=false)
-    map = {
+    map = genders
+    _translate map, id, reverse
+  end
+
+  def genders
+    {
       0 => 'Female',
       1 => 'Male',
       2 => 'Transgender male to female',
@@ -508,8 +522,6 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.917.1

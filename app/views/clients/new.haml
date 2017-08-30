@@ -2,7 +2,37 @@
 - content_for :title, title
 
 %h1= content_for :title
-= simple_form_for :client, url: clients_path do |f|
+- if @existing_matches.any?
+  %h2 Existing Clients
+  .slab
+    %p 
+      It appears there may be existing clients in the warehouse that match the client you are attempting to add.  To prevent duplicate records in the warehouse, please review the following to determine if any are the client you are attempting to add.  If none are, click 
+      %strong
+        Add Client
+      below, if any match, choose the match and use the existing client to add a VI-SPDAT.
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th
+          %th Client
+          %th DOB
+          %th SSN
+      %tbody
+        - @existing_matches.each do |client|
+          %tr
+            %td
+              - sn = client.data_source.short_name
+              %em{class: "ds-#{sn.downcase}"}
+                = sn
+            %td
+              = link_to client_path(id: client.warehouse_client_source.destination_id) do
+                = client.full_name
+            %td
+              = client.DOB
+            %td
+              = client.SSN
+          
+= simple_form_for @client, as: :client, url: clients_path do |f|
   .row
     .col-sm-3
       = f.input :FirstName, label: 'First Name'
@@ -12,6 +42,10 @@
       = f.input :DOB, label: 'DOB', as: :date_picker
     .col-sm-3
       = f.input :SSN, label: 'SSN', input_html: {maxlength: 9}
-  
+  .row
+    .col-sm-3
+      = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative, include_blank: false, label: 'Create client in Data Source'
   .form-actions
+    - if @bypass_search
+      = f.input :bypass_search, as: :hidden, input_html: {value: 1}
     = f.submit value: 'Add Client', class: 'btn btn-primary'

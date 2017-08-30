@@ -123,6 +123,7 @@ Rails.application.routes.draw do
     post :defer, on: :collection
     post :defer, on: :member
   end
+  resources :source_clients, only: [:update]
   resources :clients do
     member do
       get :month_of_service
