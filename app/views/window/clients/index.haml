@@ -16,6 +16,7 @@
     = render 'filter'
     = render 'sort', sort_options: sort_options
 - if params[:q].present?
+  = render 'new_client'
   .row.table-utilities
     .col-sm-4
       %p= page_entries_info @clients, entry_name: _('client')

@@ -149,6 +149,7 @@ Rails.application.routes.draw do
   end
 
   namespace :window do
+    resources :source_clients, only: [:update]
     resources :clients do
       resources :print, only: [:index]
       healthcare_routes()

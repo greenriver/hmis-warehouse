@@ -41,7 +41,6 @@ class ClientsController < ApplicationController
 
   def update
     update_params = client_params
-    raise update_params.inspect
     update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
       @client.disability_verified_on || Time.now
     else
@@ -62,53 +61,6 @@ class ClientsController < ApplicationController
     end
   end
 
-  def new
-    @existing_matches ||= []
-    @client = client_source.new
-  end
-
-  def create
-    existing_matches = look_for_existing_match(client_create_params)
-    @bypass_search = false
-    @client = client_source.new(client_create_params)
-    if existing_matches.any? && ! client_create_params[:bypass_search].present?
-      # Show the new page with the option to go to an existing client
-      # add bypass_search as a hidden field so we don't end up here again
-      # raise @existing_matches.inspect
-      @bypass_search = true
-      @existing_matches = client_source.where(id: existing_matches).
-        joins(:warehouse_client_source).
-        includes(:warehouse_client_source, :data_source)
-      render action: :new
-    elsif client_create_params[:bypass_search].present? || existing_matches.empty?
-      # Create a new source and destination client
-      # and redirect to the new client show page
-      client_source.transaction do
-        destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
-        @client.save
-        @client.update(PersonalID: @client.id)
-        destination_client = client_source.create(client_create_params.
-          merge({
-            data_source_id: destination_ds_id,
-            PersonalID: @client.id
-          }))
-        warehouse_client = GrdaWarehouse::WarehouseClient.create(
-          id_in_source: @client.id,
-          source_id: @client.id,
-          destination_id: destination_client.id,
-          data_source_id: @client.data_source_id
-        )
-        if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
-          flash[:notice] = "Client #{@client.full_name} created."
-          redirect_to client_path(id: destination_client.id)
-        else
-          flash[:error] = "Unable to create client"
-          render action: :new
-        end
-      end
-    end
-  end
-
   def history
   end
 
@@ -117,33 +69,6 @@ class ClientsController < ApplicationController
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
     render 'assessment_form'
   end
-
-  def look_for_existing_match attr
-    name_matches = client_source.source.
-      where(
-        nf('lower', [c_t[:FirstName]]).eq(attr[:FirstName].downcase).
-        and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase))
-      ).
-      pluck(:id)
-    
-    ssn_matches = []
-    ssn = attr[:SSN].gsub('-','')
-    if ::HUD.valid_social?(ssn)
-      ssn_matches = client_source.source.
-        where(c_t[:SSN].eq(ssn)).
-        pluck(:id)
-    end
-    birthdate_matches = client_source.source.
-      where(DOB: attr[:DOB]).
-      pluck(:id)
-    all_matches = ssn_matches + birthdate_matches + name_matches
-    obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
-    if obvious_matches.any?
-      return obvious_matches
-    end
-    return []
-  end
-
 
   # Merge clients into this client
   # If the client is a destination
@@ -307,18 +232,6 @@ class ClientsController < ApplicationController
         :housing_release_status,
         merge: [],
         unmerge: []
-      )
-  end
-
-  def client_create_params
-    params.require(:client).
-      permit(
-        :FirstName,
-        :LastName,
-        :SSN,
-        :DOB,
-        :bypass_search,
-        :data_source_id
       )
   end
 

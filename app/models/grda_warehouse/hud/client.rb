@@ -1013,6 +1013,9 @@ module GrdaWarehouse::Hud
 
           # move any patients
           Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+
+          # move any vi-spdats
+          GrdaWarehouse::Vispdat.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
         end
         # and invaldiate our own service history
         invalidate_service_history

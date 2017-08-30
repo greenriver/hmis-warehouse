@@ -24,7 +24,7 @@
       Currently sorted by:
       %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
 .clients__list
-  = render 'new_client'
+  = render 'window/clients/new_client'
   - @clients.preload(:source_clients).each do |client|
     - if ( akas = client_aliases client ).empty?
       - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)

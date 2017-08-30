@@ -7,6 +7,7 @@ module Window
     before_action :require_can_view_client_window!
     before_action :set_client, only: [:show]
     before_action :set_client_from_client_id, only: [:image, :rollup]
+    before_action :require_can_create_clients!, only: [:new, :create]
 
     def index
       # search
