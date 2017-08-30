@@ -1015,6 +1015,14 @@ module GrdaWarehouse::Hud
         end
         # and invaldiate our own service history
         invalidate_service_history
+        # and invalidate any cache for these clients
+        Rails.cache.delete_matched("*clients/#{prev_destination_client.id}/*")
+      end
+      Rails.cache.delete_matched("*clients/#{self.id}/*")
+      Rails.cache.delete_matched("*clients/#{other_client.id}/*")
+      moved.each do |m|
+        GrdaWarehouse::ClientMatch.where(source_client_id: m.id).destroy_all
+        GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all
       end
       moved
     end
@@ -1061,7 +1069,7 @@ module GrdaWarehouse::Hud
 
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
-      Rails.cache.fetch([scope.to_sql, include_confidential_names], expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch("clients/#{id}/enrollments_for/#{scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
         conn = ActiveRecord::Base.connection
         exit_table = GrdaWarehouse::Hud::Exit.arel_table
         enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
@@ -1149,7 +1157,7 @@ module GrdaWarehouse::Hud
     end
 
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
-      Rails.cache.fetch([en_scope.to_sql, include_confidential_names, only_ongoing], expires_in: CACHE_EXPIRY) do
+      Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}", expires_in: CACHE_EXPIRY) do
         enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
         enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
         enrollments || []
