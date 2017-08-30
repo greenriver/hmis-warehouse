@@ -1,0 +1,10 @@
+- if GrdaWarehouse::DataSource.authoritative.any? && params[:q].present?
+  .slab
+    %p
+      .row
+        .col-sm-6
+          Don't see the client you are looking for?
+        .col-sm-6.text-right
+          = link_to new_client_path, class: 'btn btn-secondary' do
+            %span.icon-plus
+            Add a Client

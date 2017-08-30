@@ -123,7 +123,7 @@ Rails.application.routes.draw do
     post :defer, on: :collection
     post :defer, on: :member
   end
-  resources :clients, only: [:index, :show, :edit, :update] do
+  resources :clients do
     member do
       get :month_of_service
       get :service_range
@@ -148,7 +148,7 @@ Rails.application.routes.draw do
   end
 
   namespace :window do
-    resources :clients, only: [:index, :show] do
+    resources :clients do
       resources :print, only: [:index]
       healthcare_routes()
       get :rollup

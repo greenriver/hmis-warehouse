@@ -51,6 +51,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  scope :authoritative, -> do
+    where(authoritative: true)
+  end
+
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name

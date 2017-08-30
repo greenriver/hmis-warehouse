@@ -1,0 +1,17 @@
+- title = "Add a Client"
+- content_for :title, title
+
+%h1= content_for :title
+= simple_form_for :client, url: clients_path do |f|
+  .row
+    .col-sm-3
+      = f.input :FirstName, label: 'First Name'
+    .col-sm-3
+      = f.input :LastName, label: 'Last Name'
+    .col-sm-3
+      = f.input :DOB, label: 'DOB', as: :date_picker
+    .col-sm-3
+      = f.input :SSN, label: 'SSN', input_html: {maxlength: 9}
+  
+  .form-actions
+    = f.submit value: 'Add Client', class: 'btn btn-primary'

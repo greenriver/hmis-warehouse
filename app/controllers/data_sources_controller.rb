@@ -109,6 +109,7 @@ class DataSourcesController < ApplicationController
         :munged_personal_id, 
         :source_type,
         :visible_in_window,
+        :authoritative,
       )
   end
 

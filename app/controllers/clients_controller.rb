@@ -9,6 +9,7 @@ class ClientsController < ApplicationController
   before_action :require_can_view_clients!, only: [:show, :index, :month_of_service, :service_range, :history]
   before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
+  before_action :require_can_create_clients!, only: [:new, :create]
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :month_of_service, :service_range, :history, :rollup, :image, :chronic_days, :update, :create_note]
   before_action :set_client_start_date, only: [:show, :edit, :history, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -60,6 +61,15 @@ class ClientsController < ApplicationController
     end
   end
 
+  def new
+
+  end
+
+  def create
+    @existing_matches = look_for_existing_match(client_create_params)
+    raise @existing_matches.inspect
+  end
+
   def history
   end
 
@@ -67,6 +77,32 @@ class ClientsController < ApplicationController
   def assessment
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
     render 'assessment_form'
+  end
+
+  def look_for_existing_match attr
+    name_matches = client_source.source.
+      where(
+        nf('lower', [c_t[:FirstName]]).eq(attr[:FirstName].downcase).
+        and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase))
+      ).
+      pluck(:id)
+    
+    ssn_matches = []
+    ssn = attr[:SSN].gsub('-','')
+    if ::HUD.valid_social?(ssn)
+      ssn_matches = client_source.source.
+        where(c_t[:SSN].eq(ssn)).
+        pluck(:id)
+    end
+    birthdate_matches = client_source.source.
+      where(DOB: attr[:DOB]).
+      pluck(:id)
+    all_matches = ssn_matches + birthdate_matches + name_matches
+    obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
+    if obvious_matches.any?
+      return obvious_matches
+    end
+    return nil
   end
 
 
@@ -232,6 +268,16 @@ class ClientsController < ApplicationController
         :housing_release_status,
         merge: [],
         unmerge: []
+      )
+  end
+
+  def client_create_params
+    params.require(:client).
+      permit(
+        :FirstName,
+        :LastName,
+        :SSN,
+        :DOB
       )
   end
 
