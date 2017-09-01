@@ -223,6 +223,29 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :api do
+    namespace :health do
+      namespace :claims do
+        resources :patient, only: [] do
+          resources :amount_paid, only: [:index]
+          resources :claims_volume, only: [:index]
+          resources :ed_nyu_severity, only: [:index]
+          resources :roster, only: [:index]
+          resources :top_conditions, only: [:index]
+          resources :top_ip_conditions, only: [:index]
+          resources :top_providers, only: [:index]
+        end
+        resources :amount_paid, only: [:index]
+        resources :claims_volume, only: [:index]
+        resources :ed_nyu_severity, only: [:index]
+        resources :roster, only: [:index]
+        resources :top_conditions, only: [:index]
+        resources :top_ip_conditions, only: [:index]
+        resources :top_providers, only: [:index]
+      end
+    end
+  end
+
   namespace :admin do
     # resolves route clash w/ devise
     resources :users, except: [:show, :new, :create] do
