@@ -32,7 +32,9 @@
           - @clients.each do |_,exits|
             - client = exits.first
             %tr
-              %td= "#{client.first_name} #{client.last_name}"
+              %td
+                = link_to client_path(id: client.client_id) do
+                  = "#{client.first_name} #{client.last_name}"
               %td
                 = exits.map(&:chronic_date).uniq.join('<br />').html_safe
               %td
