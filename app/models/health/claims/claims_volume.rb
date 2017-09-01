@@ -1,7 +1,7 @@
-module Health::ClaimsImporter
-  class AmountPaid < Base
-    self.table_name = :claims_amount_paid_location_month
-
+module Health::Claims
+  class ClaimsVolume < Base
+    self.table_name = :claims_claim_volume_location_month
+    
     def column_headers 
       {
         medicaid_id: "ID_Medicaid",

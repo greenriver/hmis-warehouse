@@ -8,5 +8,17 @@ module Health
     def self.source_key 
       @source_key
     end
+
+    def self.known_sub_classes
+      [
+        Health::Appointment,
+        Health::Careplan,
+        Health::Medication,
+        Health::Patient,
+        Health::Problem,
+        Health::Team,
+        Health::Visit,
+      ]
+    end
   end
 end

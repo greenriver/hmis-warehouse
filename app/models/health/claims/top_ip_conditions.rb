@@ -1,4 +1,4 @@
-module Health::ClaimsImporter
+module Health::Claims
   class TopIpConditions < Base
     self.table_name = :claims_top_ip_conditions
 

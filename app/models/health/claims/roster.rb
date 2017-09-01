@@ -1,4 +1,4 @@
-module Health::ClaimsImporter
+module Health::Claims
   class Roster < Base
     self.table_name = :claims_roster
 

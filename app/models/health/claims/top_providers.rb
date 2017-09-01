@@ -1,12 +1,12 @@
-module Health::ClaimsImporter
-  class TopConditions < Base
-    self.table_name = :claims_top_conditions
+module Health::Claims
+  class TopProviders < Base
+    self.table_name = :claims_top_providers
 
     def column_headers 
       {
         medicaid_id: "ID_Medicaid",
         rank: "Rank",
-        description: "Description",
+        provider_name: "Provider name",
         indiv_pct: "Indiv_pct",
         sdh_pct: "SDH_pct",
       }

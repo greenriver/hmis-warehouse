@@ -1,5 +1,5 @@
 require 'roo'
-module Health::ClaimsImporter
+module Health::Claims
   class Base < HealthBase
     include TsqlImport
     attr_accessor :sheet
@@ -12,7 +12,7 @@ module Health::ClaimsImporter
       raise 'Implement in Sub-class'
     end
 
-    def run!
+    def import!
       validate_headers
       clean_sheet = clean_rows(sheet.drop(1))
       transaction do
@@ -28,6 +28,18 @@ module Health::ClaimsImporter
 
     def validate_headers
       raise 'Unexpected headers' if sheet.first != column_headers.values
+    end
+
+    def self.known_sub_classes
+      [
+        Health::Claims::AmountPaid,
+        Health::Claims::ClaimsVolume,
+        Health::Claims::EdNyuSeverity,
+        Health::Claims::Roster,
+        Health::Claims::TopConditions,
+        Health::Claims::TopIpConditions,
+        Health::Claims::TopProviders,
+      ]
     end
   end
 end

@@ -36,31 +36,31 @@ module Health::Tasks
     end
 
     def process_claim_volume(sheet)
-      Health::ClaimsImporter::ClaimsVolume.new(sheet).run!
+      Health::Claims::ClaimsVolume.new(sheet).import!
     end
 
     def process_amount_paid(sheet)
-      Health::ClaimsImporter::AmountPaid.new(sheet).run!
+      Health::Claims::AmountPaid.new(sheet).import!
     end
 
     def process_top_providers(sheet)
-      Health::ClaimsImporter::TopProviders.new(sheet).run!
+      Health::Claims::TopProviders.new(sheet).import!
     end
 
     def process_top_conditions(sheet)
-      Health::ClaimsImporter::TopConditions.new(sheet).run!
+      Health::Claims::TopConditions.new(sheet).import!
     end
 
     def process_top_ip_conditions(sheet)
-      Health::ClaimsImporter::TopIpConditions.new(sheet).run!
+      Health::Claims::TopIpConditions.new(sheet).import!
     end
 
     def process_ed_nyu_severity(sheet)
-      Health::ClaimsImporter::EdNyuSeverity.new(sheet).run!
+      Health::Claims::EdNyuSeverity.new(sheet).import!
     end
 
     def process_roster(sheet)
-      Health::ClaimsImporter::Roster.new(sheet).run!
+      Health::Claims::Roster.new(sheet).import!
     end
   end
 end

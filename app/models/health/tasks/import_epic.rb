@@ -8,19 +8,19 @@ module Health::Tasks
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 
-    def initialize(logger: Rails.logger)
+    def initialize(logger: Rails.logger, load_locally: false)
       setup_notifier('HealthImporter')
       
       @logger = logger
       @config = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
-      
+      @load_locally = load_locally
       @to_revoke = []
       @to_restore = []
       @new_patients = []
     end
 
     def run!
-      fetch_files()
+      fetch_files() unless @load_locally
       import_files()
       update_consent()
       return change_counts()

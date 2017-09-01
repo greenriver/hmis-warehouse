@@ -1,4 +1,4 @@
-module Health::ClaimsImporter
+module Health::Claims
   class EdNyuSeverity < Base
     self.table_name = :claims_ed_nyu_severity
 
