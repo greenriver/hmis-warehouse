@@ -625,7 +625,7 @@ module GrdaWarehouse::Hud
       @consent_form_status ||= source_hmis_clients.joins(:client).
         where.not(consent_form_status: nil).
         merge(Client.order(DateUpdated: :desc)).
-        first.try(&:consent_form_status)
+        pluck(:consent_form_status).first
     end
     # Find the most-recently updated source_hmis_client with a non-null consent_form
     def signed_consent_form_fully?
