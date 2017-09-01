@@ -79,7 +79,7 @@ module Health
 
     def name
       full_name = "#{first_name} #{middle_name} #{last_name}"
-      full_name << "(#{aliases})" if aliases.present?
+      full_name << " (#{aliases})" if aliases.present?
       return full_name
     end
 

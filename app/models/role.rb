@@ -45,7 +45,7 @@ class Role < ActiveRecord::Base
       :can_manage_config,
       :can_edit_dq_grades,
       :can_view_vspdat,
-      :can_edit_vspdat
+      :can_edit_vspdat,
     ]
     perms += self.health_permissions unless exclude_health
     return perms
@@ -56,6 +56,7 @@ class Role < ActiveRecord::Base
       :can_administer_health,
       :can_edit_client_health,
       :can_view_client_health,
+      :can_view_aggregate_health,
     ]
   end
 
