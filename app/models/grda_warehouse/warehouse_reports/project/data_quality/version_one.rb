@@ -21,6 +21,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_service_after_close()
       add_individuals_at_family_projects()
       add_families_at_individual_projects()
+      add_enrollments_with_no_service()
       finish_report()
     end
 
@@ -53,6 +54,50 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         coc_program_component: coc_program_components.join(', '),
         target_population: target_populations.join(', '),
       })
+    end
+
+    def add_enrollments_with_no_service
+      empty_enrollments = {}
+      projects.each do |project|
+        if project.TrackingMethod == 3
+          enrollments_in_project = enrollments_for_project(
+            project.ProjectID, project.data_source_id
+          ).values.flatten(1).group_by do |row|
+            [row[:data_source_id], row[:enrollment_group_id]]
+          end
+          enrollment_groups = enrollments_in_project.keys.map(&:last)
+          services = GrdaWarehouse::Hud::Service.where(ProjectEntryID: enrollment_groups).distinct.pluck(:data_source_id, :ProjectEntryID)
+          empties = enrollments_in_project.keys - services
+          empty_enrollments[project.id] = enrollments_in_project.values_at(*empties)
+        else
+          empty_enrollments[project.id] = []
+        end
+      end
+      answers = {
+        enrollments_with_no_service: {}
+      }
+      support = {}
+      empty_enrollments.each do |project_id, ens|
+        # NOTE: we are counting enrollments not distinct clients
+        answers[:enrollments_with_no_service][project_id] = ens.count
+        support["enrollments_with_no_service_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+          counts: ens.flatten(1).
+            index_by{|m| [m[:personal_id],m[:data_source_id]]}.
+            map do |_, enrollment|
+              client_id = destination_id_for_client(enrollment[:id])
+              [
+                client_id,
+                enrollment[:first_name], 
+                enrollment[:last_name], 
+                enrollment[:project_name], 
+                enrollment[:first_date_in_program],
+                enrollment[:last_date_in_program],
+              ]
+            end
+        }
+      end
+      add_answers(answers, support)
     end
 
     def add_individuals_at_family_projects
@@ -107,8 +152,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             flatten(1).
             group_by do |m| 
               [m[:data_source_id], m[:household_id]]
-            end.select do |(_, hh_id), m| 
-              hh_id.nil? || m.size > 1
+            end.select do |(_, hh_id), m|
+              unique_clients = m.map do |enrollment|
+                enrollment[:id]
+              end.uniq
+              hh_id.present? && unique_clients.size > 1
             end
             families[project.id] = family_enrollments.values.flatten(1)
         else
