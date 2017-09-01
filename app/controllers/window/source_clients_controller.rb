@@ -6,6 +6,9 @@ module Window
 
     def update
       if @client.update!(client_params)
+        # also update the destination client, we're assuming this is authoritative 
+        # for this bit of data
+        @destination_client.update(client_params)
         flash[:notice] = "Client saved successfully"
         client_source.clear_view_cache(@destination_client.id)
       else

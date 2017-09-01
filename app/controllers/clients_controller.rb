@@ -235,6 +235,10 @@ class ClientsController < ApplicationController
       )
   end
 
+  def client_search_scope
+    client_source.source
+  end
+
   private def log_client
     log_item(@client)
   end

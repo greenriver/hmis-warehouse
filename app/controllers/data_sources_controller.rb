@@ -50,7 +50,7 @@ class DataSourcesController < ApplicationController
     begin
       GrdaWarehouse::Hud::Project.transaction do
         @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
-        data_source_params[:projects_attributes].each do |_, project_attributes|
+        data_source_params.try(:[], :projects_attributes)&.each do |_, project_attributes|
           id = project_attributes[:id]
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i

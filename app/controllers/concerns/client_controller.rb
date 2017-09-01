@@ -127,7 +127,7 @@ module ClientController
     end
 
     def look_for_existing_match attr
-      name_matches = client_source.source.
+      name_matches = client_search_scope.
         where(
           nf('lower', [c_t[:FirstName]]).eq(attr[:FirstName].downcase).
           and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase))
@@ -137,11 +137,11 @@ module ClientController
       ssn_matches = []
       ssn = attr[:SSN].gsub('-','')
       if ::HUD.valid_social?(ssn)
-        ssn_matches = client_source.source.
+        ssn_matches = client_search_scope.
           where(c_t[:SSN].eq(ssn)).
           pluck(:id)
       end
-      birthdate_matches = client_source.source.
+      birthdate_matches = client_search_scope.
         where(DOB: attr[:DOB]).
         pluck(:id)
       all_matches = ssn_matches + birthdate_matches + name_matches
