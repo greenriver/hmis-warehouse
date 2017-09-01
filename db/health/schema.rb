@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170713184156) do
+ActiveRecord::Schema.define(version: 20170831233204) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -44,6 +44,90 @@ ActiveRecord::Schema.define(version: 20170713184156) do
   end
   add_index "careplans", ["patient_id"], :name=>"index_careplans_on_patient_id", :using=>:btree
   add_index "careplans", ["user_id"], :name=>"index_careplans_on_user_id", :using=>:btree
+
+  create_table "claims_amount_paid_location_month", force: :cascade do |t|
+    t.string  "medicaid_id", :null=>false
+    t.integer "year"
+    t.integer "month"
+    t.integer "ip"
+    t.integer "emerg"
+    t.integer "respite"
+    t.integer "op"
+    t.integer "rx"
+    t.integer "other"
+    t.integer "total"
+  end
+  add_index "claims_amount_paid_location_month", ["medicaid_id"], :name=>"index_claims_amount_paid_location_month_on_medicaid_id", :using=>:btree
+
+  create_table "claims_claim_volume_location_month", force: :cascade do |t|
+    t.string  "medicaid_id", :null=>false
+    t.integer "year"
+    t.integer "month"
+    t.integer "ip"
+    t.integer "emerg"
+    t.integer "respite"
+    t.integer "op"
+    t.integer "rx"
+    t.integer "other"
+    t.integer "total"
+  end
+  add_index "claims_claim_volume_location_month", ["medicaid_id"], :name=>"index_claims_claim_volume_location_month_on_medicaid_id", :using=>:btree
+
+  create_table "claims_ed_nyu_severity", force: :cascade do |t|
+    t.string  "medicaid_id", :null=>false
+    t.integer "rank"
+    t.string  "category"
+    t.float   "indiv_pct"
+    t.float   "sdh_pct"
+  end
+  add_index "claims_ed_nyu_severity", ["medicaid_id"], :name=>"index_claims_ed_nyu_severity_on_medicaid_id", :using=>:btree
+
+  create_table "claims_roster", force: :cascade do |t|
+    t.string  "medicaid_id",             :null=>false
+    t.string  "last_name"
+    t.string  "first_name"
+    t.string  "gender"
+    t.date    "dob"
+    t.string  "race"
+    t.string  "primary_language"
+    t.boolean "disability_flag"
+    t.float   "norm_risk_score"
+    t.integer "mbr_months"
+    t.integer "total_ty"
+    t.integer "ed_visits"
+    t.integer "acute_ip_admits"
+    t.integer "average_days_to_readmit"
+    t.string  "pcp"
+    t.string  "epic_team"
+  end
+  add_index "claims_roster", ["medicaid_id"], :name=>"index_claims_roster_on_medicaid_id", :using=>:btree
+
+  create_table "claims_top_conditions", force: :cascade do |t|
+    t.string  "medicaid_id", :null=>false
+    t.integer "rank"
+    t.string  "description"
+    t.float   "indiv_pct"
+    t.float   "sdh_pct"
+  end
+  add_index "claims_top_conditions", ["medicaid_id"], :name=>"index_claims_top_conditions_on_medicaid_id", :using=>:btree
+
+  create_table "claims_top_ip_conditions", force: :cascade do |t|
+    t.string  "medicaid_id", :null=>false
+    t.integer "rank"
+    t.string  "description"
+    t.float   "indiv_pct"
+    t.float   "sdh_pct"
+  end
+  add_index "claims_top_ip_conditions", ["medicaid_id"], :name=>"index_claims_top_ip_conditions_on_medicaid_id", :using=>:btree
+
+  create_table "claims_top_providers", force: :cascade do |t|
+    t.string  "medicaid_id",   :null=>false
+    t.integer "rank"
+    t.string  "provider_name"
+    t.float   "indiv_pct"
+    t.float   "sdh_pct"
+  end
+  add_index "claims_top_providers", ["medicaid_id"], :name=>"index_claims_top_providers_on_medicaid_id", :using=>:btree
 
   create_table "health_goals", force: :cascade do |t|
     t.integer  "careplan_id"
