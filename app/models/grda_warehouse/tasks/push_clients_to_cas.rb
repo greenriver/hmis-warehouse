@@ -10,6 +10,8 @@ module GrdaWarehouse::Tasks
 
     # Update the ProjectClient table in the CAS with clients flagged with sync_with_cas
     def sync!
+      # Fail gracefully if there's no CAS database setup
+      return unless CasBase.db_exists?
       @client_ids = client_source.pluck(:id)
       updated_clients = Cas::ProjectClient.transaction do
         Cas::ProjectClient.update_all(sync_with_cas: false)

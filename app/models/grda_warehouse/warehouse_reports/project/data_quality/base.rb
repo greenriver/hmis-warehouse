@@ -303,8 +303,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::Hud::Client.source
     end
 
+    def service_source
+      GrdaWarehouse::ServiceHistory
+    end
+
     def client_scope
-      GrdaWarehouse::ServiceHistory.entry.
+      service_source.entry.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
@@ -312,7 +316,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_scope
-      GrdaWarehouse::ServiceHistory.service.
+      service_source.service.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, enrollment: :client).
@@ -340,7 +344,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def sh_t
-      GrdaWarehouse::ServiceHistory.arel_table
+      service_source.arel_table
     end
 
     def e_t

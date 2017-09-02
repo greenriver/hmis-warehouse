@@ -4,6 +4,7 @@
   - service_after_close_counts = @report.report.with_indifferent_access[:service_after_close]
   - individual_at_family = @report.report.with_indifferent_access[:individuals_at_family_projects]
   - family_at_individual = @report.report.with_indifferent_access[:families_at_individual_projects]
+  - enrollments_missing_service = @report.report.with_indifferent_access[:enrollments_with_no_service]
   .row
     .col-sm-4
       %h3 Other Data Quality Measures
@@ -18,6 +19,7 @@
           %th Service after exit
           %th Individuals at a Family Project
           %th Families at an Individual Project
+          %th Enrollments with no Service
       %tbody
         - @report.projects.each do |project|
           - p_type = ::HUD.project_type_brief(project.ProjectType)
@@ -69,6 +71,15 @@
               %td
                 - measure = family_at_individual[project.id.to_s]
                 - key = "families_at_individual_projects_#{project.id}"
+                - if measure > 0
+                  = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
+                  = measure
+            - if enrollments_missing_service.present?
+              %td
+                - measure = enrollments_missing_service[project.id.to_s]
+                - key = "enrollments_with_no_service_#{project.id}"
                 - if measure > 0
                   = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure

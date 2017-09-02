@@ -10,6 +10,37 @@ namespace :health do
     Importing::RunHealthImportJob.new.perform
   end
 
+  
+  desc "Import development data"
+  task :dev_import, [:reset] => [:environment, "log:info_to_stdout"] do |task, args|
+    unless Rails.env.development?
+      Rails.logger.warn 'Refusing to import development data into non-development environment'
+    else
+      # clear out any previous patients and associated data
+      if args.reset.present?
+        Rails.logger.info 'Removing all health data'
+        Health::Base.known_sub_classes.each do |klass|
+          klass.delete_all
+        end
+        Health::Claims::Base.known_sub_classes.each do |klass|
+          klass.delete_all
+        end
+      end
+      Health::Tasks::ImportEpic.new(load_locally: true).run!
+      Health::Tasks::ImportClaims.new().run!
+      # pick some new clients for the new patients
+      Health::Tasks::PatientClientMatcher.new.run!
+      # if anyone didn't get matched, just pick a random one, this IS development
+      Health::Patient.unprocessed.each do |patient|
+        client_id = GrdaWarehouse::Hud::Client.destination.
+          where.not(id: Health::Patient.pluck(:client_id)).
+          order('RANDOM()').limit(5).sample.id
+        patient.update(client_id: client_id)
+      end
+    end
+  end
+
+
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
  
