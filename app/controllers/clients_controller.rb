@@ -9,6 +9,7 @@ class ClientsController < ApplicationController
   before_action :require_can_view_clients!, only: [:show, :index, :month_of_service, :service_range, :history]
   before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
+  before_action :require_can_create_clients!, only: [:new, :create]
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :month_of_service, :service_range, :history, :rollup, :image, :chronic_days, :update, :create_note]
   before_action :set_client_start_date, only: [:show, :edit, :history, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -68,7 +69,6 @@ class ClientsController < ApplicationController
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
     render 'assessment_form'
   end
-
 
   # Merge clients into this client
   # If the client is a destination
@@ -233,6 +233,10 @@ class ClientsController < ApplicationController
         merge: [],
         unmerge: []
       )
+  end
+
+  def client_search_scope
+    client_source.source
   end
 
   private def log_client

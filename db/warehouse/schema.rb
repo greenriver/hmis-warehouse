@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170829131400) do
+ActiveRecord::Schema.define(version: 20170830171507) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -89,6 +89,7 @@ ActiveRecord::Schema.define(version: 20170829131400) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -803,6 +804,7 @@ ActiveRecord::Schema.define(version: 20170829131400) do
     t.boolean  "munged_personal_id", :default=>false, :null=>false
     t.string   "short_name"
     t.boolean  "visible_in_window",  :default=>false, :null=>false
+    t.boolean  "authoritative",      :default=>false
   end
 
   create_table "fake_data", force: :cascade do |t|

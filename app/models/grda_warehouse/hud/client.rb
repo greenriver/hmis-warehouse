@@ -274,6 +274,7 @@ module GrdaWarehouse::Hud
 
     attr_accessor :merge
     attr_accessor :unmerge
+    attr_accessor :bypass_search # Used for creating new clients
 
     alias_attribute :last_name, :LastName
     alias_attribute :first_name, :FirstName
@@ -624,7 +625,7 @@ module GrdaWarehouse::Hud
       @consent_form_status ||= source_hmis_clients.joins(:client).
         where.not(consent_form_status: nil).
         merge(Client.order(DateUpdated: :desc)).
-        first.try(&:consent_form_status)
+        pluck(:consent_form_status).first
     end
     # Find the most-recently updated source_hmis_client with a non-null consent_form
     def signed_consent_form_fully?
@@ -1012,20 +1013,27 @@ module GrdaWarehouse::Hud
 
           # move any patients
           Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+
+          # move any vi-spdats
+          GrdaWarehouse::Vispdat.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
         end
         # and invaldiate our own service history
         invalidate_service_history
         # and invalidate any cache for these clients
-        Rails.cache.delete_matched("*clients/#{prev_destination_client.id}/*")
+        self.class.clear_view_cache(prev_destination_client.id)
       end
-      Rails.cache.delete_matched("*clients/#{self.id}/*")
-      Rails.cache.delete_matched("*clients/#{other_client.id}/*")
+      self.class.clear_view_cache(self.id)
+      self.class.clear_view_cache(other_client.id)
       # un-match anyone who we just moved so they don't show up in the matching again until they'be been checked
       moved.each do |m|
         GrdaWarehouse::ClientMatch.where(source_client_id: m.id).destroy_all
         GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all
       end
       moved
+    end
+
+    def self.clear_view_cache(id)
+      Rails.cache.delete_matched("*clients/#{id}/*")
     end
 
     def homeless_episodes_since date:

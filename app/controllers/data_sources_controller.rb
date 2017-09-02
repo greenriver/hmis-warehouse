@@ -32,6 +32,9 @@ class DataSourcesController < ApplicationController
 
   def create
     @data_source = data_source_source.new(new_data_source_params)
+    if new_data_source_params[:authoritative]
+      @data_source.source_type = :authoritative
+    end
     if @data_source.save
       current_user.add_viewable @data_source
       flash[:notice] = "#{@data_source.name} created."
@@ -47,7 +50,7 @@ class DataSourcesController < ApplicationController
     begin
       GrdaWarehouse::Hud::Project.transaction do
         @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
-        data_source_params[:projects_attributes].each do |_, project_attributes|
+        data_source_params.try(:[], :projects_attributes)&.each do |_, project_attributes|
           id = project_attributes[:id]
           if project_attributes[:act_as_project_type].present?
             act_as_project_type = project_attributes[:act_as_project_type].to_i
@@ -109,6 +112,7 @@ class DataSourcesController < ApplicationController
         :munged_personal_id, 
         :source_type,
         :visible_in_window,
+        :authoritative,
       )
   end
 
