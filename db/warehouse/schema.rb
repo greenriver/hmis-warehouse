@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170904132001) do
+ActiveRecord::Schema.define(version: 20170904140427) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -85,7 +85,7 @@ ActiveRecord::Schema.define(version: 20170904132001) do
     t.boolean  "chronically_homeless_for_cas",           :default=>false, :null=>false
     t.boolean  "us_citizen",                             :default=>false, :null=>false
     t.boolean  "assylee",                                :default=>false, :null=>false
-    t.boolean  "ineligible_immigrant",                    :default=>false, :null=>false
+    t.boolean  "ineligible_immigrant",                   :default=>false, :null=>false
     t.boolean  "lifetime_sex_offender",                  :default=>false, :null=>false
     t.boolean  "meth_production_conviction",             :default=>false, :null=>false
     t.boolean  "family_member",                          :default=>false, :null=>false
