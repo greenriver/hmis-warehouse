@@ -85,7 +85,7 @@ ActiveRecord::Schema.define(version: 20170904132001) do
     t.boolean  "chronically_homeless_for_cas",           :default=>false, :null=>false
     t.boolean  "us_citizen",                             :default=>false, :null=>false
     t.boolean  "assylee",                                :default=>false, :null=>false
-    t.boolean  "ineligible_imigrant",                    :default=>false, :null=>false
+    t.boolean  "ineligible_immigrant",                    :default=>false, :null=>false
     t.boolean  "lifetime_sex_offender",                  :default=>false, :null=>false
     t.boolean  "meth_production_conviction",             :default=>false, :null=>false
     t.boolean  "family_member",                          :default=>false, :null=>false

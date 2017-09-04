@@ -82,7 +82,7 @@ module GrdaWarehouse::Tasks
         housing_release_status: :housing_release_status,
         us_citizen: :us_citizen,
         assylee: :assylee,
-        ineligible_imigrant: :ineligible_imigrant,
+        ineligible_immigrant: :ineligible_immigrant,
         lifetime_sex_offender: :lifetime_sex_offender,
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,

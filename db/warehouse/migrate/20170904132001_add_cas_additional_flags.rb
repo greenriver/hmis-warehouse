@@ -4,7 +4,7 @@ class AddCasAdditionalFlags < ActiveRecord::Migration
       :chronically_homeless_for_cas,
       :us_citizen,
       :assylee,
-      :ineligible_imigrant,
+      :ineligible_immigrant,
       :lifetime_sex_offender,
       :meth_production_conviction,
       :family_member,
