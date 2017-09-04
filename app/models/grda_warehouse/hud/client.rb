@@ -592,6 +592,7 @@ module GrdaWarehouse::Hud
         meth_production_conviction: _('Meth Production Conviction'),
         family_member: _('Part of a family'),
         child_in_household: _('Children under age 18 in household'),
+        ha_eligible: _('Housing Authority Eligible')
       }
     end
 
@@ -620,6 +621,7 @@ module GrdaWarehouse::Hud
         :meth_production_conviction,
         :family_member,
         :child_in_household,
+        :ha_eligible,
       ]
     end
 

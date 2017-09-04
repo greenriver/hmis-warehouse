@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170904140427) do
+ActiveRecord::Schema.define(version: 20170904202838) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,6 +90,7 @@ ActiveRecord::Schema.define(version: 20170904140427) do
     t.boolean  "meth_production_conviction",             :default=>false, :null=>false
     t.boolean  "family_member",                          :default=>false, :null=>false
     t.boolean  "child_in_household",                     :default=>false, :null=>false
+    t.boolean  "ha_eligible",                            :default=>false, :null=>false
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
