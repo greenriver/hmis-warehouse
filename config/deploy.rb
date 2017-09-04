@@ -34,6 +34,7 @@ end
 set :linked_files, fetch(:linked_files, []).push(
   'config/secrets.yml', 
   '.env',
+  'app/views/root/_homepage_content.haml'
 )
 
 # Default value for linked_dirs is []

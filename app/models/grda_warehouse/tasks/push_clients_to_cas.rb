@@ -15,15 +15,13 @@ module GrdaWarehouse::Tasks
       @client_ids = client_source.pluck(:id)
       updated_clients = Cas::ProjectClient.transaction do
         Cas::ProjectClient.update_all(sync_with_cas: false)
-        @client_ids.each do |id|
-          client = client_source.find(id)
+        client_source.where(id: @client_ids).each do |client|
           project_client = Cas::ProjectClient.
-            where(data_source_id: data_source.id, id_in_data_source: id).
+            where(data_source_id: data_source.id, id_in_data_source: client.id).
             first_or_initialize
           project_client_columns.map do |destination, source|
             project_client[destination] = client.send(source)
           end
-          project_client.vispdat_score = client.vispdats.completed.scores.first&.score
           project_client.needs_update = true
           project_client.save!
         end
@@ -87,6 +85,8 @@ module GrdaWarehouse::Tasks
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,
         child_in_household: :child_in_household,
+        days_homeless: :days_homeless_in_last_three_years,
+        vispdat_score: :most_recent_vispdat_score
       }
     end
   end

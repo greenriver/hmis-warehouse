@@ -680,10 +680,6 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      # TODO: This will need to be re-written when the Warehouse moves to postgres
-      # service_history.homeless.
-      #   from("#{GrdaWarehouse::ServiceHistory.quoted_table_name} with(index(index_warehouse_client_service_history_on_client_id))").
-      #   maximum(:date)
       service_history.homeless.
         from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
@@ -1063,6 +1059,16 @@ module GrdaWarehouse::Hud
 
     def self.clear_view_cache(id)
       Rails.cache.delete_matched("*clients/#{id}/*")
+    end
+
+    def most_recent_vispdat_score
+      vispdats.completed.scores.first&.score
+    end
+
+    def days_homeless_in_last_three_years
+      service_history.homeless.
+        service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+        count
     end
 
     def homeless_episodes_since date:
