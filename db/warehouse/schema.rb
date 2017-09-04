@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170830171507) do
+ActiveRecord::Schema.define(version: 20170904132001) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -82,6 +82,14 @@ ActiveRecord::Schema.define(version: 20170830171507) do
     t.boolean  "hues_eligible",                          :default=>false, :null=>false
     t.boolean  "hiv_positive",                           :default=>false, :null=>false
     t.string   "housing_release_status"
+    t.boolean  "chronically_homeless_for_cas",           :default=>false, :null=>false
+    t.boolean  "us_citizen",                             :default=>false, :null=>false
+    t.boolean  "assylee",                                :default=>false, :null=>false
+    t.boolean  "ineligible_imigrant",                    :default=>false, :null=>false
+    t.boolean  "lifetime_sex_offender",                  :default=>false, :null=>false
+    t.boolean  "meth_production_conviction",             :default=>false, :null=>false
+    t.boolean  "family_member",                          :default=>false, :null=>false
+    t.boolean  "child_in_household",                     :default=>false, :null=>false
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree

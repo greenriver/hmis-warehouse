@@ -40,25 +40,25 @@ class ClientsController < ApplicationController
   end
 
   def update
-    update_params = client_params
-    update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
-      @client.disability_verified_on || Time.now
-    else
-      nil
-    end
-    if update_params[:housing_release_status].present?
-      update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
-    else
-      update_params[:housing_assistance_network_released_on] = nil
-    end
-    if @client.update(update_params)
-      flash[:notice] = 'Client updated'
-      ::Cas::SyncToCasJob.perform_later
-      redirect_to action: :show
-    else
-      flash[:notice] = 'Unable to update client'
-      render :show
-    end
+    # update_params = client_params
+    # update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
+    #   @client.disability_verified_on || Time.now
+    # else
+    #   nil
+    # end
+    # if update_params[:housing_release_status].present?
+    #   update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
+    # else
+    #   update_params[:housing_assistance_network_released_on] = nil
+    # end
+    # if @client.update(update_params)
+    #   flash[:notice] = 'Client updated'
+    #   ::Cas::SyncToCasJob.perform_later
+    #   redirect_to action: :show
+    # else
+    #   flash[:notice] = 'Unable to update client'
+    #   render :show
+    # end
   end
 
   def history
@@ -222,14 +222,14 @@ class ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
-        :disability_verified_on,
-        :housing_assistance_network_released_on,
-        :sync_with_cas,
-        :dmh_eligible,
-        :va_eligible,
-        :hues_eligible,
-        :hiv_positive,
-        :housing_release_status,
+        # :disability_verified_on,
+        # :housing_assistance_network_released_on,
+        # :sync_with_cas,
+        # :dmh_eligible,
+        # :va_eligible,
+        # :hues_eligible,
+        # :hiv_positive,
+        # :housing_release_status,
         merge: [],
         unmerge: []
       )

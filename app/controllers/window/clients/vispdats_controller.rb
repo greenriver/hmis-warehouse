@@ -49,11 +49,11 @@ module Window::Clients
     protected
 
       def set_client
-        @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
+        @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       end
 
       def set_vispdat
-        @vispdat = vispdat_source.find(params[:id])
+        @vispdat = vispdat_source.find(params[:id].to_i)
       end
 
       def vispdat_params

@@ -575,15 +575,23 @@ module GrdaWarehouse::Hud
 
     def self.cas_columns
       {
-        disability_verified_on: 'Disability Verification on File',
-        housing_release_status: 'Housing Release Status',
-        full_housing_release: 'Full HAN Release on File',
-        limited_cas_release: 'Limited CAS Release on File',
-        sync_with_cas: 'Available in CAS',
-        dmh_eligible: 'DMH Eligible',
-        va_eligible: 'VA Eligible',
-        hues_eligible: 'HUES Eligible',
-        hiv_positive: 'HIV+'
+        disability_verified_on: _('Disability Verification on File'),
+        housing_release_status: _('Housing Release Status'),
+        full_housing_release: _('Full HAN Release on File'),
+        limited_cas_release: _('Limited CAS Release on File'),
+        sync_with_cas: _('Available for matching in CAS'),
+        dmh_eligible: _('DMH Eligible'),
+        va_eligible: _('VA Eligible'),
+        hues_eligible: _('HUES Eligible'),
+        hiv_positive: _('HIV+'),
+        chronically_homeless_for_cas: _('Chronically Homeless for CAS'),
+        us_citizen: _('U.S Citizen or Permanent Resident'),
+        assylee: _('Assylee, Refugee'),
+        ineligible_imigrant: _('Ineligible Immigrant (Including Undocumented)'),
+        lifetime_sex_offender: _('Life-Time Sex Offender Status'),
+        meth_production_conviction: _('Meth Production Conviction'),
+        family_member: _('Part of a family'),
+        child_in_household: _('Children under age 18 in household'),
       }
     end
 
@@ -591,6 +599,27 @@ module GrdaWarehouse::Hud
       [
        'Full HAN Release',
        'Limited CAS Release',
+      ]
+    end
+
+    def self.cas_readiness_parameters
+      [
+        :hues_eligible,
+        :va_eligible,
+        :dmh_eligible,
+        :sync_with_cas,
+        :hiv_positive,
+        :housing_release_status,
+        :disability_verified_on,
+        :housing_assistance_network_released_on,
+        :chronically_homeless_for_cas,
+        :us_citizen,
+        :assylee,
+        :ineligible_imigrant,
+        :lifetime_sex_offender,
+        :meth_production_conviction,
+        :family_member,
+        :child_in_household,
       ]
     end
 

@@ -68,7 +68,7 @@ module GrdaWarehouse::Tasks
         developmental_disability: :developmental_response?,
         physical_disability: :physical_response?,
         # calculated_chronic_homelessness: :chronic?, # using sync_with_cas as a manual proxy
-        calculated_chronic_homelessness: :sync_with_cas,
+        calculated_chronic_homelessness: :chronically_homeless_for_cas,
         calculated_first_homeless_night: :date_of_first_service,
         calculated_last_homeless_night: :date_of_last_homeless_service,
         domestic_violence: :domestic_violence?,
@@ -80,6 +80,13 @@ module GrdaWarehouse::Tasks
         hues_eligible: :hues_eligible,
         hiv_positive: :hiv_positive,
         housing_release_status: :housing_release_status,
+        us_citizen: :us_citizen,
+        assylee: :assylee,
+        ineligible_imigrant: :ineligible_imigrant,
+        lifetime_sex_offender: :lifetime_sex_offender,
+        meth_production_conviction: :meth_production_conviction,
+        family_member: :family_member,
+        child_in_household: :child_in_household,
       }
     end
   end

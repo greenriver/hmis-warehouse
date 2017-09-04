@@ -9,7 +9,12 @@ module ClientPathGenerator
     helper_method :vispdat_path_generator
     helper_method :vispdats_path_generator
     helper_method :source_client_path_generator
-
+    helper_method :cas_readiness_path_generator
+    helper_method :edit_cas_readiness_path_generator
+    helper_method :client_note_path_generator
+    helper_method :client_notes_path_generator
+    helper_method :client_chronic_path_generator
+    
     def careplan_path_generator
       health_path_generator + [:careplan]
     end
@@ -32,6 +37,26 @@ module ClientPathGenerator
 
     def vispdats_path_generator
       client_path_generator + [:vispdats]
+    end
+
+    def edit_cas_readiness_path_generator
+      [:edit] + client_path_generator + [:cas_readiness]
+    end
+
+    def cas_readiness_path_generator
+      client_path_generator + [:cas_readiness]
+    end
+
+    def client_note_path_generator
+      client_path_generator + [:note]
+    end
+
+    def client_notes_path_generator
+      client_path_generator + [:notes]
+    end
+
+    def client_chronic_path_generator
+      [:edit] + client_path_generator + [:chronic]
     end
 
     def source_client_path_generator

@@ -4,8 +4,8 @@
     %thead
       %tr
         %th ID
-        %th{style: 'width: 18em;'} Name
-        %th SSN
+        %th{style: 'width: 15em;'} Name
+        %th{style: 'width: 10em;'} SSN
         %th{style: 'width: 11em;'} Age
         %th Gender
         %th Race
@@ -28,13 +28,10 @@
         %td= HUD::gender @client.Gender
         %td= @client.race_fields.map{ |f| HUD::race f }.join ', '
         %td= HUD::ethnicity @client.Ethnicity
-        %td= HUD::no_yes_missing @client.VeteranStatus
+        %td= HUD::no_yes_reasons_for_missing_data @client.VeteranStatus
       - if controller_path.include?('window')
         - source_clients = @client.source_clients.visible_in_window
       - else
         - source_clients = @client.source_clients
       - source_clients.each do |client|
-        - if authoritative_data_source_ids.include?(client.data_source_id) && can_create_clients?
-          = render 'clients/demographic_row_form', client: client
-        - else
-          = render 'clients/demographic_row', client: client
+        = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids

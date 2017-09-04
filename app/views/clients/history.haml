@@ -1,8 +1,9 @@
 - title = "Service History for #{@client.name}"
 - content_for :title, title
 = render 'breadcrumbs'
-%h1= title
 = render 'tab_navigation', current: history_client_path(@client)
+%h1= title
+
 .row
   .col-sm-12.all-service-dates
     #client-history
