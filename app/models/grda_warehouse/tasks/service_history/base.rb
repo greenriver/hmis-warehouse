@@ -979,7 +979,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             ds_id = GrdaWarehouse::ServiceHistory.column_types['data_source_id'].type_cast_from_database(ds_id)
             max_updated = GrdaWarehouse::Hud::Service.column_types['DateUpdated'].type_cast_from_database(max_updated)
             max_deleted = GrdaWarehouse::Hud::Service.column_types['DateDeleted'].type_cast_from_database(max_deleted)
-            res[[personal_id, ds_id]] = ActiveSupport::TimeWithZone.new([max_updated, max_deleted].compact.max, Time.zone)
+            res[[personal_id, ds_id]] = ActiveSupport::TimeWithZone.new([max_updated, max_deleted].compact.max, Time.zone) rescue '2000-01-01'.to_date
           end
         end
       end
