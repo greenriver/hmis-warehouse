@@ -25,6 +25,7 @@ module ApplicationHelper
     when "Refused"
       capture do
         concat content_tag :span, nil, class: 'icon-warning', style: 'color:#8a6d3b'
+        concat " Refused/Unsure"
       end
     end
   end

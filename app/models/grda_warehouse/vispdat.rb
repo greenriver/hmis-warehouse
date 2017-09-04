@@ -175,7 +175,7 @@ module GrdaWarehouse
     end
 
     def self.options_for enum
-      ['Yes', 'No', 'Refused'].zip self.send(enum).keys
+      ['Yes', 'No', 'Refused/Unsure'].zip self.send(enum).keys
     end
 
     def full_name
