@@ -919,21 +919,24 @@ module GrdaWarehouse::Hud
     # takes an array of tags representing the types of documents needed to be document ready
     # returns an array of hashes representing the state of each required document
     def document_readiness(required_documents)
-      @document_readiness ||= []
-      required_documents.each do |tag|
-        file_added = client_files.tagged_with(tag.name).maximum(:updated_at)
-        file = OpenStruct.new({
-          updated_at: file_added,
-          available: file_added.present?,
-          name: tag.name,
-        })
-        @document_readiness << file
+      return [] unless required_documents.any?
+      @document_readiness ||= begin
+        @document_readiness = []
+        required_documents.each do |tag|
+          file_added = client_files.tagged_with(tag.name).maximum(:updated_at)
+          file = OpenStruct.new({
+            updated_at: file_added,
+            available: file_added.present?,
+            name: tag.name,
+          })
+          @document_readiness << file
+        end
+        @document_readiness.sort_by!(&:name)
       end
-      @document_readiness.sort_by!(&:name)
     end
 
-    def document_ready?
-
+    def document_ready?(required_documents)  
+      @document_ready ||= required_documents.size == document_readiness(required_documents).select{|m| m.available}.size 
     end
 
     # Build a set of potential client matches grouped by criteria
