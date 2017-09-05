@@ -46,6 +46,8 @@ class Role < ActiveRecord::Base
       :can_edit_dq_grades,
       :can_view_vspdat,
       :can_edit_vspdat,
+      :can_create_clients,
+      :can_view_client_history_calendar,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

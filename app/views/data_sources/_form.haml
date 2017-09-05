@@ -10,7 +10,9 @@
 
     = f.input :visible_in_window, label: 'Should this data source be visible in the window into the warehouse?'
 
-    = f.input :source_type, as: :hidden, value: 'manual' 
+    = f.input :source_type, as: :hidden, value: 'manual'
+
+    = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually'
 
 
   .form-actions

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170831233204) do
+ActiveRecord::Schema.define(version: 20170901195912) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -74,11 +74,10 @@ ActiveRecord::Schema.define(version: 20170831233204) do
   add_index "claims_claim_volume_location_month", ["medicaid_id"], :name=>"index_claims_claim_volume_location_month_on_medicaid_id", :using=>:btree
 
   create_table "claims_ed_nyu_severity", force: :cascade do |t|
-    t.string  "medicaid_id", :null=>false
-    t.integer "rank"
-    t.string  "category"
-    t.float   "indiv_pct"
-    t.float   "sdh_pct"
+    t.string "medicaid_id", :null=>false
+    t.string "category"
+    t.float  "indiv_pct"
+    t.float  "sdh_pct"
   end
   add_index "claims_ed_nyu_severity", ["medicaid_id"], :name=>"index_claims_ed_nyu_severity_on_medicaid_id", :using=>:btree
 

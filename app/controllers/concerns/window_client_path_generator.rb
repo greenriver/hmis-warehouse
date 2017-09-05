@@ -8,6 +8,7 @@ module WindowClientPathGenerator
     helper_method :files_path_generator
     helper_method :vispdat_path_generator
     helper_method :vispdats_path_generator
+    helper_method :source_client_path_generator
 
     def careplan_path_generator
       health_path_generator + [:careplan]
@@ -31,6 +32,10 @@ module WindowClientPathGenerator
 
     def vispdats_path_generator
       client_path_generator + [:vispdats]
+    end
+
+    def source_client_path_generator
+      [:window, :source_client]
     end
 
     def client_path_generator

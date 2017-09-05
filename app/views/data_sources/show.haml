@@ -13,7 +13,7 @@
           %td
             - if data_span = @data_source.data_span
               = "#{data_span[:start_date]}-#{data_span[:end_date]}"
-        -if @data_source.uploads.any? && can_view_imports?
+        -if ! @data_source.authoritative? && @data_source.uploads.any? && can_view_imports?
           %tr
             %th Uploads
             %td
@@ -26,7 +26,7 @@
             %td
               = f.input :visible_in_window, label: false
     .col-sm-4
-      - if can_upload_hud_zips?
+      - if ! @data_source.authoritative? && can_upload_hud_zips?
         = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
           %span.icon-plus
           Upload HUD HMIS ZIP
@@ -95,5 +95,5 @@
                         = checkmark(project.sites.present? )
                       %td
                         = checkmark(project.inventories.present? )
-        - unless @readonly
-          = f.button :submit, value: _('Update Data Source')
+  - unless @readonly
+    = f.button :submit, value: _('Update Data Source')
