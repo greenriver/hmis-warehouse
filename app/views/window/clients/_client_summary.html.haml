@@ -40,21 +40,7 @@
       = render 'clients/chronic_flags', client: @client
     - if required_documents.any?
       .col-sm-4
-        %h4 Document Ready?
-        %table.table.table-condensed
-          %thead
-            %tr
-              %th File
-              %th Uploaded
-          %tbody
-            - @client.document_readiness(required_documents).each do |file|
-              %tr
-                %td
-                  = file.name
-                %td
-                  - if file.available
-                    = checkmark('Y')
-                    = file.updated_at&.to_date
+        = render 'window/clients/required_documents'
 
     - if eto_available
       .col-sm-4.client__data-sharing-agreement

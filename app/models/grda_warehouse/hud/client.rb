@@ -932,6 +932,10 @@ module GrdaWarehouse::Hud
       @document_readiness.sort_by!(&:name)
     end
 
+    def document_ready?
+
+    end
+
     # Build a set of potential client matches grouped by criteria
     # FIXME: consolidate this logic with merge_candidates below
     def potential_matches

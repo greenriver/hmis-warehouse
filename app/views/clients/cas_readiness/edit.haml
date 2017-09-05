@@ -21,4 +21,5 @@
         = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible]
       = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas]
       = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas]
+  = render 'window/clients/required_documents'
   = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'
