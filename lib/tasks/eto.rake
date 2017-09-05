@@ -16,7 +16,7 @@ namespace :eto do
     desc "Import Client Demographics via API"
     task update_ids_and_demographics: [:environment, "log:info_to_stdout"] do
       EtoApi::Tasks::UpdateClientLookupViaSftp.new.run!
-      GrdaWarehouse::HMIS::Assessment.update_touch_points
+      # GrdaWarehouse::HMIS::Assessment.update_touch_points
       EtoApi::Tasks::UpdateClientDemographics.new.run!
     end
 
