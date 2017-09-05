@@ -32,6 +32,7 @@ module Window::Clients
           note: file_params[:note],
           name: file_params[:name],
         )
+        @file.tag_list.add(file_params[:tag_list].select(&:present?))
         @file.save!
       rescue Exception => e
         flash[:error] = e.message
@@ -65,6 +66,7 @@ module Window::Clients
           :name,
           :note,
           :visible_in_window,
+          tag_list: [],
         )
     end
     

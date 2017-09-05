@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170830223244) do
+ActiveRecord::Schema.define(version: 20170901153110) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -213,6 +213,7 @@ ActiveRecord::Schema.define(version: 20170830223244) do
     t.boolean  "can_edit_vspdat",                  :default=>false
     t.boolean  "can_create_clients",               :default=>false
     t.boolean  "can_view_client_history_calendar", :default=>false
+    t.boolean  "can_view_aggregate_health",        :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 

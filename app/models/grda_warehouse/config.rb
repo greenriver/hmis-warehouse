@@ -1,6 +1,8 @@
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
     after_save :invalidate_cache
+    acts_as_taggable
+    acts_as_taggable_on :document_ready
 
     def self.available_cas_methods
       {

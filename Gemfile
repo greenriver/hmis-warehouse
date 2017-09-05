@@ -23,6 +23,7 @@ gem 'memoist', require: false
 
 # File processing
 gem 'carrierwave'
+gem 'acts-as-taggable-on', '~> 4.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 # gem 'seven_zip_ruby', group: :seven_zip
