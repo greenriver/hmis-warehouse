@@ -381,6 +381,7 @@ module Importers
           # Sometimes we have a return within the row.  We'll do some really simple
           # cleanup to try and grab the next line and append it to avoid most errors
           if @line_commas > 0 && @line_commas < @header_commas
+            logger.warn "Found a short line in #{@file_path}"
             file.seek(+1, IO::SEEK_CUR)
             line += file.readline
           end

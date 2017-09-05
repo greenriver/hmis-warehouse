@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170830171507) do
+ActiveRecord::Schema.define(version: 20170905202611) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -89,7 +89,6 @@ ActiveRecord::Schema.define(version: 20170830171507) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
-  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -913,6 +912,8 @@ ActiveRecord::Schema.define(version: 20170830171507) do
     t.string   "assessment_type"
     t.string   "collection_location"
     t.integer  "assessment_id"
+    t.integer  "data_source_id",      :null=>false
+    t.integer  "site_id"
   end
   add_index "hmis_forms", ["assessment_id"], :name=>"index_hmis_forms_on_assessment_id", :using=>:btree
   add_index "hmis_forms", ["client_id"], :name=>"index_hmis_forms_on_client_id", :using=>:btree
