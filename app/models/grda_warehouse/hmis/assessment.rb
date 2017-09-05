@@ -8,15 +8,17 @@ module GrdaWarehouse::HMIS
       where(confidential: true)
     end
     scope :non_confidential, -> do
-      where.not(confidential: true)
+      where(confidential: false)
+    end
+    scope :window, -> do
+      active.where(exclude_from_window: false)
+    end
+    scope :active, -> do
+      where(active: true)
     end
 
     scope :fetch_for_data_source, -> (ds_id) do
-      if ds_id == 1
-        where(fetch: true)
-      else
-        where(assessment_id: 75)
-      end
+      where(fetch: true)
     end
     
     def self.update_touch_points

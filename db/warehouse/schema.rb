@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170905122918) do
+ActiveRecord::Schema.define(version: 20170905202611) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -82,15 +82,6 @@ ActiveRecord::Schema.define(version: 20170905122918) do
     t.boolean  "hues_eligible",                          :default=>false, :null=>false
     t.boolean  "hiv_positive",                           :default=>false, :null=>false
     t.string   "housing_release_status"
-    t.boolean  "chronically_homeless_for_cas",           :default=>false, :null=>false
-    t.boolean  "us_citizen",                             :default=>false, :null=>false
-    t.boolean  "assylee",                                :default=>false, :null=>false
-    t.boolean  "ineligible_immigrant",                   :default=>false, :null=>false
-    t.boolean  "lifetime_sex_offender",                  :default=>false, :null=>false
-    t.boolean  "meth_production_conviction",             :default=>false, :null=>false
-    t.boolean  "family_member",                          :default=>false, :null=>false
-    t.boolean  "child_in_household",                     :default=>false, :null=>false
-    t.boolean  "ha_eligible",                            :default=>false, :null=>false
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
@@ -98,7 +89,6 @@ ActiveRecord::Schema.define(version: 20170905122918) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
-  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -922,6 +912,8 @@ ActiveRecord::Schema.define(version: 20170905122918) do
     t.string   "assessment_type"
     t.string   "collection_location"
     t.integer  "assessment_id"
+    t.integer  "data_source_id",      :null=>false
+    t.integer  "site_id"
   end
   add_index "hmis_forms", ["assessment_id"], :name=>"index_hmis_forms_on_assessment_id", :using=>:btree
   add_index "hmis_forms", ["client_id"], :name=>"index_hmis_forms_on_client_id", :using=>:btree
@@ -1492,31 +1484,6 @@ SELECT "Services"."ServicesID",
   end
   add_index "report_tokens", ["contact_id"], :name=>"index_report_tokens_on_contact_id", :using=>:btree
   add_index "report_tokens", ["report_id"], :name=>"index_report_tokens_on_report_id", :using=>:btree
-
-  create_table "taggings", force: :cascade do |t|
-    t.integer  "tag_id"
-    t.integer  "taggable_id"
-    t.string   "taggable_type"
-    t.integer  "tagger_id"
-    t.string   "tagger_type"
-    t.string   "context",       :limit=>128
-    t.datetime "created_at"
-  end
-  add_index "taggings", ["context"], :name=>"index_taggings_on_context", :using=>:btree
-  add_index "taggings", ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], :name=>"taggings_idx", :unique=>true, :using=>:btree
-  add_index "taggings", ["tag_id"], :name=>"index_taggings_on_tag_id", :using=>:btree
-  add_index "taggings", ["taggable_id", "taggable_type", "context"], :name=>"index_taggings_on_taggable_id_and_taggable_type_and_context", :using=>:btree
-  add_index "taggings", ["taggable_id", "taggable_type", "tagger_id", "context"], :name=>"taggings_idy", :using=>:btree
-  add_index "taggings", ["taggable_id"], :name=>"index_taggings_on_taggable_id", :using=>:btree
-  add_index "taggings", ["taggable_type"], :name=>"index_taggings_on_taggable_type", :using=>:btree
-  add_index "taggings", ["tagger_id", "tagger_type"], :name=>"index_taggings_on_tagger_id_and_tagger_type", :using=>:btree
-  add_index "taggings", ["tagger_id"], :name=>"index_taggings_on_tagger_id", :using=>:btree
-
-  create_table "tags", force: :cascade do |t|
-    t.string  "name"
-    t.integer "taggings_count", :default=>0
-  end
-  add_index "tags", ["name"], :name=>"index_tags_on_name", :unique=>true, :using=>:btree
 
   create_table "uploads", force: :cascade do |t|
     t.integer  "data_source_id"
