@@ -1210,7 +1210,7 @@ module GrdaWarehouse::Hud
             entry_date: meta[:EntryDate],
             exit_date: meta[:ExitDate],
             days: dates_served.count,
-            homeless: meta[:project_type].in?(Project::CHRONIC_PROJECT_TYPES),
+            homeless: meta[:project_type].in?(Project::HOMELESS_PROJECT_TYPES),
             homeless_days: homeless_dates_for_enrollment.count,
             adjusted_days: adjusted_dates_for_similar_programs.count,
             months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
@@ -1282,7 +1282,7 @@ module GrdaWarehouse::Hud
     end
 
     private def residential_dates enrollments:
-      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
       @residential_dates ||= enrollments.select do |e|
         e[:record_type] == 'service' && e[:project_type].in?(@non_homeless_types)
       end.map do |e|
