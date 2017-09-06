@@ -93,7 +93,7 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :client
     has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
     has_many :non_confidential_hmis_forms, -> do
-      joins(:hmis_forms).where(id: GrdaWarehouse::HmisForm.non_confidential.select(:id))
+      joins(:hmis_forms).where(id: GrdaWarehouse::HmisForm.window.non_confidential.select(:id))
     end, class_name: GrdaWarehouse::HmisForm.name
 
     has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments

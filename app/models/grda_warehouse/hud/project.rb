@@ -346,7 +346,7 @@ module GrdaWarehouse::Hud
     # protect those
     def self.confidentialize(name:)
       @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).pluck(:ProjectName).map(&:downcase).map(&:strip)
-      if @confidential_project_names.include?(name.downcase.strip)
+      if @confidential_project_names.include?(name.downcase.strip) || /healthcare/i.match(name).present?
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
         name

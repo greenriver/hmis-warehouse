@@ -1,4 +1,5 @@
-- assessments = @client.source_hmis_forms.sort.group_by(&:assessment_type)
+- assessment_columms = (GrdaWarehouse::HmisForm.column_names - ['response', 'answers']).map(&:to_sym)
+- assessments = @client.source_hmis_forms.select(*assessment_columms).sort.group_by(&:assessment_type)
 - if @client.source_hmis_forms.any?
   %table.table
     %thead
