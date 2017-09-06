@@ -2,6 +2,31 @@
 - content_for :title, title
 %h1= content_for :title
 
+.d3-claims-stacked-bar#claims__amount-paid{data: {url: '/api/health/claims/amount_paid'}}
+
 - content_for :page_js do
   :javascript
-    console.log(d3)
+    $(document).ready(function() {
+      var margin = {top: 40, right: 100, bottom: 80, left: 60};
+      var claimsKeys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
+      //var claimsAmountPaid = new ClaimsStackedBar('#claims__amount-paid', margin, claimsKeys)
+      //claimsAmountPaid.draw()
+
+      //var d3Chart = new App.D3Chart.Base('#claims__amount-paid', margin, claimsKeys, 'date')
+
+      //var d3ChartTest = new App.D3Chart.VerticalStackBar('#claims__amount-paid', margin)
+
+      console.log('hello world')
+      $('.d3-claims-stacked-bar').each(function() {
+        var url = $(this).data('url')
+        var id = '#'+$(this).attr('id')
+        if(url) {
+          $.get(url, function(data) {
+            console.log(data)
+            var stackBar = new App.D3Chart.ClaimsStackedBar(id, margin, claimsKeys, data)
+            stackBar.draw()
+          })
+        }
+      })
+
+    })
