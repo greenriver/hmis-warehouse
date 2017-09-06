@@ -73,15 +73,20 @@ module GrdaWarehouse::HMIS
 
     # This touch point doesn't show up in the API when a list is requested
     # but can be pulled down for each client, and contains the HUD touch point data
-    def self.hud_touch_point
+    def self.hud_touch_point(site_id:, data_source_id:, site_name:)
+      assessment_id = if data_source_id == 1
+        75
+      elsif data_source_id == 3
+        128
+      end
       {
         {
-          data_source_id: 1, 
-          site_id: 0, 
-          assessment_id: 75
+          data_source_id: data_source_id, 
+          site_id: site_id, 
+          assessment_id: assessment_id
         } => {
           name: "HUD Assessment (Entry/Update/Annual/Exit)", 
-          site_name: "All", 
+          site_name: site_name, 
           active: true
         }
       }
@@ -95,6 +100,7 @@ module GrdaWarehouse::HMIS
         api = EtoApi::Base.new(trace: true, api_connection: connection_key)
         api.connect
         api.sites.each do |site_id, name|
+          touch_points.merge!(hud_touch_point(site_id: site_id, data_source_id: data_source_id, site_name: name))
           api.programs(site_id: site_id).each do |program_id, program_name|
             api.set_program(site_id: site_id, program_id: program_id)
             begin
@@ -103,7 +109,7 @@ module GrdaWarehouse::HMIS
                 # puts "#{touch_point[:TouchPointName]} at site #{name} in progam #{program_name}"
                 touch_points[
                   {
-                    data_source_id: data_source_id, 
+                    data_source_id: data_source_id,
                     site_id: site_id, 
                     assessment_id: touch_point[:TouchPointID]
                   }
@@ -119,7 +125,7 @@ module GrdaWarehouse::HMIS
           end
         end
       end
-      return touch_points.merge(hud_touch_point)
+      return touch_points
     end
   end
 end
