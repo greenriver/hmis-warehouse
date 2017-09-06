@@ -358,7 +358,7 @@ module GrdaWarehouse::Hud
         pluck(:ProjectName).
         map(&:downcase).
         map(&:strip)
-      if @confidential_project_names.include?(name&.downcase&.strip)
+      if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
         name
