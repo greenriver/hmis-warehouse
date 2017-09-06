@@ -21,8 +21,8 @@
                   - project = service.project
                   .client__full-service-project
                     %span.id-sqr.br{ 'data-id' => service.client.id }
-                    %span{ data: { toggle: 'tooltip', title: project&.organization_and_name, project: projects[project] } }
-                      = project&.name || 'Unable to determine project name'
+                    %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(include_confidential_names: show_confidential_programs), project: projects[project] } }
+                      = GrdaWarehouse::Hud::Project.confidentialize(name: project&.name) || 'Unable to determine project name'
 
   - else
     No services on file

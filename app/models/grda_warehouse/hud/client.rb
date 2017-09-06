@@ -364,17 +364,15 @@ module GrdaWarehouse::Hud
       @households ||= begin
         hids = service_history_entry.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id).uniq
         if hids.any?
-          service_table = GrdaWarehouse::ServiceHistory.arel_table
-          client_table = GrdaWarehouse::Hud::Client.arel_table
           columns = {
-            household_id: service_table[:household_id].as('household_id').to_sql,
-            date: service_table[:date].as('date').to_sql,
-            client_id: service_table[:client_id].as('client_id').to_sql,
-            age: service_table[:age].as('age').to_sql,
-            enrollment_group_id: service_table[:enrollment_group_id].as('enrollment_group_id').to_sql,
-            FirstName: client_table[:FirstName].as('FirstName').to_sql,
-            LastName: client_table[:LastName].as('LastName').to_sql,
-            last_date_in_program: service_table[:last_date_in_program].as('last_date_in_program').to_sql,
+            household_id: sh_t[:household_id].as('household_id').to_sql,
+            date: sh_t[:date].as('date').to_sql,
+            client_id: sh_t[:client_id].as('client_id').to_sql,
+            age: sh_t[:age].as('age').to_sql,
+            enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+            FirstName: c_t[:FirstName].as('FirstName').to_sql,
+            LastName: c_t[:LastName].as('LastName').to_sql,
+            last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
           }
           hh_where = hids.map{|hh_id, ds_id| "(household_id = '#{hh_id}' and #{GrdaWarehouse::ServiceHistory.quoted_table_name}.data_source_id = #{ds_id})"}.join(' or ')
           entries = GrdaWarehouse::ServiceHistory.entry
@@ -1139,39 +1137,36 @@ module GrdaWarehouse::Hud
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
-        conn = ActiveRecord::Base.connection
-        exit_table = GrdaWarehouse::Hud::Exit.arel_table
-        enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
-        project_table = GrdaWarehouse::Hud::Project.arel_table
-        organization_table = GrdaWarehouse::Hud::Organization.arel_table
-        service_table = GrdaWarehouse::ServiceHistory.arel_table
-        client_table = GrdaWarehouse::Hud::Client.arel_table
+        sh_t = GrdaWarehouse::ServiceHistory.arel_table
+        c_t = GrdaWarehouse::Hud::Client.arel_table
         columns = {
-          ProjectEntryID: enrollment_table[:ProjectEntryID].as('ProjectEntryID').to_sql,
-          EntryDate: enrollment_table[:EntryDate].as('EntryDate').to_sql,
-          PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
-          ExitDate: exit_table[:ExitDate].as('ExitDate').to_sql,
-          date: service_table[:date].as('date').to_sql,
-          project_type: service_table[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql,
-          project_name: service_table[:project_name].as('project_name').to_sql,
-          project_tracking_method: service_table[:project_tracking_method].as('project_tracking_method').to_sql,
-          household_id: service_table[:household_id].as('household_id').to_sql,
-          record_type: service_table[:record_type].as('record_type').to_sql,
-          data_source_id: service_table[:data_source_id].as('data_source_id').to_sql,
-          OrganizationName: organization_table[:OrganizationName].as('OrganizationName').to_sql,
-          ProjectID: project_table[:ProjectID].as('ProjectID').to_sql,
-          project_id: project_table[:id].as('project_id').to_sql,
-          confidential: project_table[:confidential].as('confidential').to_sql,
-          client_source_id: client_table[:id].as('client_source_id').to_sql,
+          ProjectEntryID: e_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
+          EntryDate: e_t[:EntryDate].as('EntryDate').to_sql,
+          living_situation: e_t[:ResidencePrior].as('living_situation').to_sql,
+          PersonalID: e_t[:PersonalID].as('PersonalID').to_sql,
+          ExitDate: ex_t[:ExitDate].as('ExitDate').to_sql,
+          destination: ex_t[:Destination].as('Destination').to_sql,
+          date: sh_t[:date].as('date').to_sql,
+          project_type: sh_t[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql,
+          project_name: sh_t[:project_name].as('project_name').to_sql,
+          project_tracking_method: sh_t[:project_tracking_method].as('project_tracking_method').to_sql,
+          household_id: sh_t[:household_id].as('household_id').to_sql,
+          record_type: sh_t[:record_type].as('record_type').to_sql,
+          data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+          OrganizationName: o_t[:OrganizationName].as('OrganizationName').to_sql,
+          ProjectID: p_t[:ProjectID].as('ProjectID').to_sql,
+          project_id: p_t[:id].as('project_id').to_sql,
+          confidential: p_t[:confidential].as('confidential').to_sql,
+          client_source_id: c_t[:id].as('client_source_id').to_sql,
         }
-        exit_join = enrollment_table.join(exit_table, Arel::Nodes::OuterJoin).
-          on(enrollment_table[:ProjectEntryID].eq(exit_table[:ProjectEntryID]).
-            and(enrollment_table[:data_source_id].eq(exit_table[:data_source_id]))
+        exit_join = e_t.join(ex_t, Arel::Nodes::OuterJoin).
+          on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
+            and(e_t[:data_source_id].eq(ex_t[:data_source_id]))
           )
         enrollments = scope.
           joins(exit_join.join_sources).
           joins(:service_histories, :project).
-          where(service_table[:record_type].in(['service', 'entry'])).
+          where(sh_t[:record_type].in(['service', 'entry'])).
           select(*columns.values).
           pluck(*columns.values).
           map do |row|
@@ -1208,7 +1203,9 @@ module GrdaWarehouse::Hud
             ProjectID: meta[:ProjectID],
             project_name: meta[:project_name],
             entry_date: meta[:EntryDate],
+            living_situation: meta[:living_situation],
             exit_date: meta[:ExitDate],
+            destination: meta[:destination],
             days: dates_served.count,
             homeless: meta[:project_type].in?(Project::HOMELESS_PROJECT_TYPES),
             homeless_days: homeless_dates_for_enrollment.count,
