@@ -1,0 +1,12 @@
+- title = "Service History for #{@client.name}"
+- content_for :title, title
+= render 'window/clients/breadcrumbs'
+= render 'window/clients/tab_navigation', current: polymorphic_path(history_path_generator, client_id: @client)
+%h1= title
+
+.row
+  .col-sm-12.all-service-dates
+    #client-history
+
+= render 'month_loader'
+    

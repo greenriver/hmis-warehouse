@@ -7,6 +7,7 @@ module Window::Health
     include HealthPatient
     include WindowClientPathGenerator
     
+    
     def careplan
 
     end

@@ -10,6 +10,7 @@ module Window::Health::Careplan::Team
     include PjaxModalController
     include HealthPatient
     include WindowClientPathGenerator
+    
 
     def index
       @member = Health::Team::Member.new

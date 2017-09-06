@@ -33,7 +33,7 @@
         %h3 VI-SPDAT Scores
         - @client.vispdats.completed.scores.each do |vispdat|
           %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
-        = render 'window/clients/required_documents'
+      = render 'window/clients/required_documents'
     .col-sm-4
       - if eto_available || ! Rails.env.production?
         .client__image

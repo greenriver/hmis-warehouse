@@ -2,6 +2,7 @@ module Clients
   class FilesController < Window::Clients::FilesController
     include ClientPathGenerator
     
+    
     def create
       @file = file_source.new
       begin

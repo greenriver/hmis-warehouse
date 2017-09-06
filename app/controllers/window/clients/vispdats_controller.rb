@@ -1,6 +1,7 @@
 module Window::Clients
   class VispdatsController < ApplicationController
     include WindowClientPathGenerator
+    
 
     before_action :require_can_view_vspdat!, only: [:index, :show]
     before_action :require_can_edit_vspdat!, only: [:new, :create, :edit, :update, :destroy]

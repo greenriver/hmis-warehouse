@@ -79,7 +79,7 @@ module GrdaWarehouse::Tasks
         hiv_positive: :hiv_positive,
         housing_release_status: :housing_release_status,
         us_citizen: :us_citizen,
-        assylee: :assylee,
+        asylee: :asylee,
         ineligible_immigrant: :ineligible_immigrant,
         lifetime_sex_offender: :lifetime_sex_offender,
         meth_production_conviction: :meth_production_conviction,

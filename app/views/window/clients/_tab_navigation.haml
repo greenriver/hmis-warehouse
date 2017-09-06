@@ -5,6 +5,10 @@
       title: 'Basic Info & Programs',
       permission: true,
      },
+    polymorphic_path(history_path_generator, client_id: @client) => {
+      title: 'History',
+      permission: can_view_client_window?,
+    },
     polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
       title: 'VI-SPDAT',
       permission: can_view_vspdat?

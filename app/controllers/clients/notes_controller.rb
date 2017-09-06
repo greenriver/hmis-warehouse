@@ -1,6 +1,7 @@
 module Clients
   class NotesController < ApplicationController
     include ClientPathGenerator
+    
     before_action :require_can_edit_clients!
     before_action :set_note, only: [:destroy]
     before_action :set_client

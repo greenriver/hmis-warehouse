@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-msgid "Assylee, Refugee"
+msgid "Asylee, Refugee"
 msgstr ""
 
 msgid "Available for matching in CAS"

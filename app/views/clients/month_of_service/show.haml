@@ -29,6 +29,6 @@
                       %em.service-type__program-type
                         = e[:service_type]
                       - unless e[:record_type] == 'service'
-                        = "#{@programs[[e[:database_id],e[:program_id]]].first.organization.OrganizationName}:"
+                        = "#{@programs[[e[:database_id],e[:program_id]]]&.first&.organization&.OrganizationName}:"
                       = @programs[[e[:database_id],e[:program_id]]].first.ProjectName
 

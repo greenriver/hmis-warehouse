@@ -1,6 +1,7 @@
 module Clients
   class ChronicController < ApplicationController
     include ClientPathGenerator
+    
     before_action :require_can_edit_clients!
     before_action :set_client
 
