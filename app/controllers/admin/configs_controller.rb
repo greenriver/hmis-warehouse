@@ -10,7 +10,8 @@ module Admin
     def update
       tag_list = config_params[:tag_list].select(&:present?)
       @config.assign_attributes(config_params)
-      @config.document_ready_list.add(tag_list)
+      @config.document_ready_list = tag_list    
+      config_source.invalidate_cache
       if @config.save
         redirect_to({action: :index}, notice: 'Configuration updated')
       else

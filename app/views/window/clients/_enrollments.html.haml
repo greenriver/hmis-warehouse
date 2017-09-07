@@ -51,8 +51,18 @@
             = link_to e[:project_name], project_path(id: e[:project_id])
           - else 
             = e[:project_name]
-        %td= e[:entry_date]
-        %td= e[:exit_date]
+        %td
+          - living_situation = HUD.living_situation(e[:living_situation])
+          - if living_situation == e[:living_situation]
+            - living_situation = 'Unknown'
+          %span{data: {toggle: :tooltip, title: "Prior Living Situation: #{living_situation}"}}
+            = e[:entry_date]
+        %td
+          - destination = HUD.destination(e[:destination])
+          - if destination == e[:destination]
+            - destination = 'Unknown'
+          %span{data: {toggle: :tooltip, title: "Destination: #{destination}"}}
+            = e[:exit_date]
         %td= e[:most_recent_service]
         %td.num-cell= e[:days]
         %td.num-cell
