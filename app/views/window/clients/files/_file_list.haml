@@ -15,7 +15,7 @@
               - @files.each do |file|
                 %tr
                   %td
-                    =link_to polymorphic_path(file_path_generator, id: file.id) do
+                    = link_to polymorphic_path(file_path_generator, id: file.id) do
                       = file.name
                   %td= file.tag_list.join(', ')
                   %td= file.note
