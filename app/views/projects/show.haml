@@ -28,6 +28,9 @@
       %tr
         %th Project Contacts
         %td= link_to 'View/Edit', project_contacts_path(@project)
+      %tr
+        %th Confidential Project?
+        %td= checkmark @project.confidential?
       - if @project.data_quality_reports.any?
         %tr
           %th Project Data Quality Reports

@@ -285,7 +285,15 @@ $client-match-action-row-height: 22px;
   background-color: $cob-sg-blue-002;
   padding: 2px 5px;
 }
-
+.confidential_project
+{
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 0.2em 0.4em;
+  color: white;
+  background-color: orange;
+}
 
 .client__chronic
 {

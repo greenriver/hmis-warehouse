@@ -1181,8 +1181,15 @@ module GrdaWarehouse::Hud
           meta = e.select{|m| m[:record_type] == 'entry'}.first
           # Hide confidential program names, if appropriate
           meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
-          unless include_confidential_names
-            meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if meta[:confidential]
+          if meta[:confidential]
+            if include_confidential_names
+              # Flag the project name, but still show it
+              # moved to the view
+              # meta[:project_name] = "#{meta[:project_name]}"
+            else
+              # hide the name
+              meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name
+            end
           end
           dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
           # days that are not also served by a later enrollment of the same project type
@@ -1202,6 +1209,7 @@ module GrdaWarehouse::Hud
             project_id: meta[:project_id],
             ProjectID: meta[:ProjectID],
             project_name: meta[:project_name],
+            confidential_project: meta[:confidential],
             entry_date: meta[:EntryDate],
             living_situation: meta[:living_situation],
             exit_date: meta[:ExitDate],
@@ -1213,6 +1221,7 @@ module GrdaWarehouse::Hud
             months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
             household: self.household(meta[:household_id], meta[:EntryDate]),
             project_type: ::HUD::project_type_brief(meta[:project_type]),
+            project_type_id: meta[:project_type],
             class: "client__service_type_#{meta[:project_type]}",
             most_recent_service: e.select{|m| m[:record_type] == 'service'}.last.try(:[], :date),
             new_episode: new_episode?(enrollments: enrollments, project_type: meta[:project_type], entry_date: meta[:EntryDate]),
