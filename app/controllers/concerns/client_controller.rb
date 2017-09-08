@@ -81,10 +81,19 @@ module ClientController
     end
   
     def create
-      existing_matches = look_for_existing_match(client_create_params)
+      clean_params = client_create_params
+      clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+      existing_matches = look_for_existing_match(clean_params)
       @bypass_search = false
-      @client = client_source.new(client_create_params)
-      if existing_matches.any? && ! client_create_params[:bypass_search].present?
+      @client = client_source.new(clean_params)
+
+      params_valid = validate_new_client_params(clean_params)
+
+      @existing_matches ||= []
+      if ! params_valid
+        flash[:error] = "Unable to create client"
+        render action: :new
+      elsif existing_matches.any? && ! clean_params[:bypass_search].present?
         # Show the new page with the option to go to an existing client
         # add bypass_search as a hidden field so we don't end up here again
         # raise @existing_matches.inspect
@@ -93,14 +102,14 @@ module ClientController
           joins(:warehouse_client_source).
           includes(:warehouse_client_source, :data_source)
         render action: :new
-      elsif client_create_params[:bypass_search].present? || existing_matches.empty?
+      elsif clean_params[:bypass_search].present? || existing_matches.empty?
         # Create a new source and destination client
         # and redirect to the new client show page
         client_source.transaction do
           destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
           @client.save
           @client.update(PersonalID: @client.id)
-          destination_client = client_source.create(client_create_params.
+          destination_client = client_source.create(clean_params.
             merge({
               data_source_id: destination_ds_id,
               PersonalID: @client.id
@@ -124,6 +133,27 @@ module ClientController
           end
         end
       end
+    end
+
+    def validate_new_client_params(clean_params)
+      valid = true
+      unless [0,9].include?(clean_params[:SSN].length)
+        @client.errors[:SSN] = 'SSN must contain 9 digits'
+        valid = false
+      end
+      if clean_params[:FirstName].blank?
+        @client.errors[:FirstName] = 'First name is required'
+        valid = false
+      end
+      if clean_params[:LastName].blank?
+        @client.errors[:LastName] = 'Last name is required'
+        valid = false
+      end
+      if clean_params[:DOB].blank?
+        @client.errors[:DOB] = 'Date of birth is required'
+        valid = false
+      end
+      valid
     end
 
     def look_for_existing_match attr

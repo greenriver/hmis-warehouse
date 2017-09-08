@@ -12,16 +12,22 @@ module Window
     end
 
     def update
-      if @client.update!(client_params)
+      clean_params = client_params
+      clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+      valid_params = validate_new_client_params(clean_params)
+      if valid_params
+        @client.update(clean_params)
         # also update the destination client, we're assuming this is authoritative 
         # for this bit of data
-        @destination_client.update(client_params)
+        @destination_client.update(clean_params)
         flash[:notice] = "Client saved successfully"
         client_source.clear_view_cache(@destination_client.id)
+        redirect_to redirect_to_path
       else
         flash[:error] = 'Unable to save client'
+        render action: :edit
       end
-      redirect_to redirect_to_path
+      
     end
 
     def redirect_to_path
@@ -50,6 +56,27 @@ module Window
     end
     def client_source
       GrdaWarehouse::Hud::Client
+    end
+
+    def validate_new_client_params(clean_params)
+      valid = true
+      unless [0,9].include?(clean_params[:SSN].length)
+        @client.errors[:SSN] = 'SSN must contain 9 digits'
+        valid = false
+      end
+      if clean_params[:FirstName].blank?
+        @client.errors[:FirstName] = 'First name is required'
+        valid = false
+      end
+      if clean_params[:LastName].blank?
+        @client.errors[:LastName] = 'Last name is required'
+        valid = false
+      end
+      if clean_params[:DOB].blank?
+        @client.errors[:DOB] = 'Date of birth is required'
+        valid = false
+      end
+      valid
     end
   end
 end

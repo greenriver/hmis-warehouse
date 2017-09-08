@@ -586,7 +586,7 @@ module GrdaWarehouse::Hud
         us_citizen: _('U.S Citizen or Permanent Resident'),
         asylee: _('Asylee, Refugee'),
         ineligible_immigrant: _('Ineligible Immigrant (Including Undocumented)'),
-        lifetime_sex_offender: _('Life-Time Sex Offender Status'),
+        lifetime_sex_offender: _('Life-Time Sex Offender'),
         meth_production_conviction: _('Meth Production Conviction'),
         family_member: _('Part of a family'),
         child_in_household: _('Children under age 18 in household'),

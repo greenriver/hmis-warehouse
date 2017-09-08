@@ -20,6 +20,7 @@
       - if can_view_dmh_status?
         = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible]
       = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas]
-      = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas]
+      
   = render 'window/clients/required_documents'
+  = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas], hint: 'Checking "Available for matching in CAS" will push this client to CAS and make them available for matching'
   = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'
