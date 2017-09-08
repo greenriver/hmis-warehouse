@@ -12,7 +12,10 @@ module Window::Clients
         @start = @client.date_of_first_service.beginning_of_month
       end
   
-      @days = @client.service_dates_for_display(@start)
+      @days = @client.service_dates_for_display(
+        service_scope: service_history_service_scope,
+        start_date: @start
+      )
       @programs = project_scope.preload(:organization).distinct.group_by{|m| [m.data_source_id, m.ProjectID]}
       # Prevent layout over ajax
       render layout: !request.xhr?
@@ -39,7 +42,7 @@ module Window::Clients
     end
 
     def service_history_service_scope
-      GrdaWarehouse::ServiceHistory.service
+      GrdaWarehouse::ServiceHistory.visible_in_window
     end
   end
 end

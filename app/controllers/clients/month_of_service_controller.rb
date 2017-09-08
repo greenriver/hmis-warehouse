@@ -11,6 +11,10 @@ module Clients
     def project_scope
       project_source
     end
+
+    def service_history_service_scope
+      GrdaWarehouse::ServiceHistory.all
+    end
   
   end
 end

@@ -736,10 +736,10 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown'
     end
 
-    def service_dates_for_display start_date
+    def service_dates_for_display service_scope:, start_date:
       @service_dates_for_display ||= begin
         st = service_history.arel_table
-        query = service_history.joins(:project).
+        query = self.service_history.merge(service_scope).joins(:project).
           select( :date, :record_type, :project_id, :enrollment_group_id, :first_date_in_program, :last_date_in_program, :data_source_id, st[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql).
           where( st[:date].gt start_date.beginning_of_week ).
           where( st[:date].lteq start_date.end_of_month.end_of_week ).
