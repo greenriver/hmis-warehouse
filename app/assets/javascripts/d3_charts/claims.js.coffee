@@ -1,30 +1,106 @@
 #= require ./namespace
 #= require ./stacked
 
+class App.D3Chart.Claims
+  constructor: (selector) ->
+    @legendKeyCssClass = selector+'__key'
+    @colors = ['#002A45', '#2C9CFF', '#B9DEFF', '#32DEFF', '#008DA8', '#B9B098']
+    
+    @container = d3.select('#'+selector)
+    @legend = @container.select('.'+selector+'__legend')
+    @charts = @container.selectAll('.'+selector+'__chart')
+    @date = @container.select('.'+selector+'__dates')
+
+    @margin = {top: 0, right: 10, bottom: 60, left: 40}
+    @keys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
+    @scale = @_loadScale()
+  
+  _loadTickFormat: (id) ->
+    if id == '#claims__amount-paid' 
+      '$.2s'
+    else
+      '.2s'
+
+  _loadScale: () ->
+    keyLabel = (d) ->
+      keyLabels = {ip: 'IP', emerg: 'Emerg', respite: 'Respite', op: 'OP', rx: 'Rx', other: 'Other'}
+      keyLabels[d]
+    {
+      color: d3.scaleOrdinal().domain(@keys).range(@colors),
+      keyLabel: keyLabel
+    }
+
+  _drawLegend: () ->
+    key = @legend.selectAll(@legendKeyCssClass)
+      .data(@keys)
+      .enter()
+      .append('div')
+        .attr('class', @legendKeyCssClass)
+        .text((d) => @scale.keyLabel(d)) 
+        .append('div')
+          .attr('class', 'ho-chart__swatch')
+          .style('background-color', (d) => @scale.color(d))
+          .style('opacity', '0.6')
+
+  _loadMonthName: (date) ->
+    months = [
+      "January", "February", "March",
+      "April", "May", "June", "July",
+      "August", "September", "October",
+      "November", "December"
+    ]
+    months[date.getMonth()]
+
+  draw: ->
+    date = @date
+    @_drawLegend()
+    that = @
+    @charts.each(() ->
+      url = $(@).data('url')
+      id = '#'+$(@).attr('id')
+      $.get(url, (data) ->
+        if date
+          dates = d3.extent(data, (d) -> 
+            [year, month, day] = d.date.split('-')
+            new Date(year, month-1, day)
+          )
+          date.text(that._loadMonthName(dates[0])+' '+dates[0].getFullYear()+' - '+that._loadMonthName(dates[1])+' '+dates[1].getFullYear())
+          date = null
+        attrs = {
+          margin: that.margin, 
+          keys: that.keys, 
+          yTickFormat: that._loadTickFormat(id),
+          colors: that.colors
+        }
+        chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
+        chart.draw()
+      )
+    )
+
+
 class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
-  constructor: (container_selector, margin, keys, claims) ->
-    super(container_selector, margin, keys, 'date')
+  constructor: (container_selector, claims, attrs) ->  
+    super(container_selector, attrs.margin, attrs.keys, 'date')
+    @yTickFormat = attrs.yTickFormat
+    @colors = attrs.colors
     @claims = @_loadClaims(claims)
     @domain = @_loadDomain()
     @range = @_loadRange()
-    console.log(@domain)
-    console.log(@range)
 
     @scale = @_loadScale()
-    console.log(@scale)
     @stackData = @claims.bars
 
   _loadClaims: (claims)->
     bars = claims.map((bar) => @_loadBar(bar))
     byYear = d3.nest()
       .key((d) -> d.date.getFullYear())
-      .map(bars)
-    byMonth = d3.nest()
+      .entries(bars)
+    byDate = d3.nest()
       .key((d) -> d.date)
       .map(bars)
     {
       byYear: byYear,
-      byDate: byMonth,
+      byDate: byDate,
       bars: bars
     }
 
@@ -33,139 +109,125 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     bar.date = new Date(year, month-1, day)
     bar
 
-  # _loadScale: ->
-  #   super
-
   _loadRange: ->
     {
       x: [0, @dimensions.width],
       y: [@dimensions.height, 0],
-      color: ['#002A45', '#2C9CFF', '#B9DEFF', '#32DEFF', '#008DA8', '#B9B098']
+      color: @colors
     }
 
   _loadDomain: -> 
-    max = d3.max(@claims.bars, (d) =>
-      values = @keys.map((key) -> d[key])
-      values.reduce((value, currentValue) -> value + currentValue)
-    )
-    if max > 100 
-      max = Math.ceil(max/100)*100
     {
       x: @claims.bars.map((claim) -> claim.date),
-      y: [0, max],
+      y: [0, d3.max(@claims.bars, (d) -> d.total)],
       color: @keys,
     }
 
+  _loadYearAxesCenter: (months) ->
+    start = months[0]
+    end = months[1]+@scale.x.bandwidth()
+    start + ((end - start)/2)
+
+  _drawYearAxis: ->
+    generateLine = d3.line()
+    scale = @scale
+    y = scale.y(0)
+    center = @_loadYearAxesCenter.bind(@)
+    yearAxis = @chart.append('g')
+      .attr('class', 'year-axis')
+    @claims.byYear.forEach((year) =>
+      months = d3.extent(
+        year.values.map((value) -> value.date)
+      ).map((month) ->
+        scale.x(month)
+      )
+      d = generateLine([
+        [months[0], y], 
+        [months[0], y+35],
+        [months[1]+scale.x.bandwidth(), y+35],
+        [months[1]+scale.x.bandwidth(), y]
+      ])
+      yearAxis.append('path')
+        .attr('d', d)
+        .attr('stroke-width', '1px')
+        .attr('stroke', '#000000')
+        .attr('fill', 'none')
+      yearAxis.append('text')
+        .text(year.key)
+        .attr('x', center(months))
+        .attr('y', y+55)
+        .attr('fill', '#000000')
+        .attr('text-anchor', 'middle')
+        .style('font-size', '10px')
+    )
+
+  _customizeXaxis: ->
+    @chart.selectAll('g.x-axis text').remove()
+    @chart.selectAll('g.x-axis .domain').remove()
+    ticks = @chart.selectAll('g.x-axis g.tick')
+    ticks.each((tick) ->
+      tickEle = d3.select(this)
+      tickEle.selectAll('line').remove()
+      tickEle.append('circle')
+        .attr('cy', 14)
+        .attr('cx', 0)
+        .attr('r', 9)
+        .attr('fill', '#f1f1f1')
+      tickEle.append('text')
+        .text(tick.getMonth()+1)
+        .attr('y', 10)
+        .attr('x', 0)
+        .attr('dy', '0.71em')
+        .attr('fill', '#000000')
+        .attr('text-anchor', 'middle')
+    )
+
+  _customizeYaxis: ->
+    generateLine = d3.line()
+    @chart.selectAll('g.y-axis .domain').remove()
+    @chart.selectAll('g.y-axis .tick:first-child text').remove()
+    ticks = @chart.selectAll('g.y-axis g.tick')
+    scale = @scale
+    domain = @domain
+    ticks.each((tick) ->
+      tickEle = d3.select(this)
+      tickEle.selectAll('line').remove()
+      tickEle.selectAll('text')
+        .attr('x', 0)
+      tickEle.append('path')
+        .attr('d', generateLine([[scale.x(domain.x[0]), 0], [scale.x(domain.x[domain.x.length-1])+scale.x.bandwidth(), 0]]))
+        .attr('stroke', '#000000')
+        .attr('stroke-width', '0.5px')
+    )
+  
+  _drawAxes: ->
+    xAxis = d3.axisBottom()
+      .tickFormat((tick) -> 
+        tick.getMonth()+1
+      ).scale(@scale.x)
+    yAxis = d3. axisLeft()
+      .tickFormat(d3.format(@yTickFormat))
+      .scale(@scale.y).ticks(5)
+    @chart.append('g')
+      .attr('transform', 'translate(0, '+@dimensions.height+')')
+      .attr('class', 'x-axis')
+      .call(xAxis)
+    @chart.append('g')
+      .attr('class', 'y-axis')
+      .call(yAxis)
+    @_customizeXaxis()
+    @_customizeYaxis()
+    @_drawYearAxis()
+
   draw: ->
+    @chart.append('rect')
+      .attr('x', @scale.x(@domain.x[0]))
+      .attr('y', @scale.y(@domain.y[1]))
+      .attr('width', @scale.x(@domain.x[@domain.x.length-1]) - @scale.x(@domain.x[0]))
+      .attr('height', @dimensions.height)
+      .attr('fill', '#f1f1f1')
+      .attr('opacity', '0.4')
     super
-
-
-
-# // class d3Chart.ClaimsStackedBar extends d3Chart.VerticalStackedBar {
-# //   constructor(container_selector, margin, keys) {
-# //     super(container_selector, margin, keys, 'date')
-# //     this.claims = new ClaimsData(container_selector)
-
-# //     this.domain = this.loadDomain()
-# //     this.range = this.loadRange()
-# //     this.scale = this.loadScale()
-
-# //     this.stackData = this.claims.bars()
-# //     this.tooltipData = this.claims.byMonth()
-# //     this.tooltip = this.drawTooltip()
-# //   }
-# // }
-
-
-
-# // class ClaimsStackedBar extends VerticalStackedBar {
-# //   constructor(container_selector, margin, keys, claims) {
-# //     super(container_selector, margin, keys, 'date')
-# //     // var data = new ClaimData(keys, claims)
-# //     // this.claims = data.loadClaims()
-# //     this.claims = claims
-# //     this.domain = this.loadDomain()
-# //     this.range = this.loadRange()
-# //     this.scale = this.loadScale()
-
-# //     this.stackData = this.claims.byMonth
-# //   }
-
-# //   draw() {
-# //     this.drawAxes()
-# //     super.draw()
-# //   }
-
-# //   loadYearAxesCenter(months) {
-# //     var start = months[0]
-# //     var end = months[1]+this.scale.x.bandwidth()
-# //     return start + ((end - start)/2)
-# //   }
-
-# //   drawAxes() {
-# //     var chart = this.chart
-# //     var scale = this.scale
-# //     var margin = this.margin
-# //     var line = d3.line()
-# //     var xAxis = d3.axisBottom().tickFormat(function(tick) {return tick.getMonth()+1}).scale(scale.x)
-# //     var yAxis = d3. axisLeft().scale(scale.y).ticks(5)
-# //     chart.append('g')
-# //       .attr('transform', 'translate(0,'+this.dimensions.height+')')
-# //       .attr('class', 'x-axis')
-# //       .call(xAxis)
-# //     chart.append('g')
-# //       .call(yAxis)
-# //     var center = this.loadYearAxesCenter.bind(this)
-# //     this.claims.byYear.forEach(function(year) {
-# //       var all = year.value.map(function(d) {return +d.key})
-# //       var months = d3.extent(all).map(function(month) {
-# //         return scale.x(new Date(year.key, month-1))
-# //       })
-# //       var y = scale.y(0)
-# //       var d = line([
-# //         [months[0], y],
-# //         [months[0], y+35],
-# //         [months[1]+scale.x.bandwidth(), y+35],
-# //         [months[1]+scale.x.bandwidth(), y]
-# //       ])
-# //       var yearAxis = chart.append('g')
-# //         .attr('class', 'year-axis')
-# //       yearAxis.append('path')
-# //         .attr('d', d)
-# //         .attr('stroke-width', '1px')
-# //         .attr('stroke', '#cccccc')
-# //         .attr('fill', 'none')
-# //       yearAxis.append('text')
-# //         .text(year.key)
-# //         .attr('x', center(months))
-# //         .attr('y', y+55)
-# //         .attr('fill', '#cccccc')
-# //         .attr('text-anchor', 'middle')
-# //     })
-    
-# //   }
-
-# //   loadDomain() {
-# //     var keys = this.keys
-# //     var max = d3.max(this.claims.byMonth, function(d) {
-# //       var values = keys.map(function(key) {return d[key]})
-# //       return values.reduce(function(value, currentValue) {return value + currentValue})
-# //     })
-# //     if(max > 100) {
-# //       max = Math.ceil(max/100)*100
-# //     }
-# //     return {
-# //       x: this.claims.byMonth.map(function(claim) {return claim.date}),
-# //       y: [0, max],
-# //       color: this.keys,
-# //     }
-# //   }
-
-# //   loadRange() {
-# //     return {
-# //       x: [0, this.dimensions.width],
-# //       y: [this.dimensions.height, 0],
-# //       color: ['#002A45', '#2C9CFF', '#B9DEFF', '#32DEFF', '#008DA8', '#B9B098']
-# //     }
-# //   }
-# // }
+    @chart.selectAll('g.bar rect')
+      .attr('opacity', 0.6)
+    @_drawAxes()

@@ -32,7 +32,7 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
             .append('rect')
               .attr('x', (d) => @scale.x(d.data[@xKey]))
               .attr('y', (d) => @scale.y(d[1]))
-              .attr('height', (d) => @scale.y(d[0])-@scale.y(d[1]))
+              .attr('height', (d) => @scale.y(d[0]) - @scale.y(d[1]))
               .attr('width', (d) => @scale.x.bandwidth())
     else 
-      console.log('Please add data && scale!')
+      console.log('Please add data & scale!')
