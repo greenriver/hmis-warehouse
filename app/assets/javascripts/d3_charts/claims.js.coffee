@@ -11,7 +11,7 @@ class App.D3Chart.Claims
     @charts = @container.selectAll('.'+selector+'__chart')
     @date = @container.select('.'+selector+'__dates')
 
-    @margin = {top: 0, right: 10, bottom: 60, left: 40}
+    @margin = {top: 0, right: 0, bottom: 60, left: 30}
     @keys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
     @scale = @_loadScale()
   

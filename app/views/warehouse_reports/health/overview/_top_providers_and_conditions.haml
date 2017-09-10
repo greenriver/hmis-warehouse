@@ -1,0 +1,30 @@
+.ho-chart__container
+  .ho-chart__header
+    .row
+      .col-xs-12
+        %h3 
+          Top Providers and Clinical Conditions
+          %br
+          %small
+            (all claims & medical/BH claims only)
+  .ho-chart__content
+    .row
+      .ho-chart__section.col-xs-12.col-md-6
+        .d3-top__chart#top-providers{data: {types: {all: '/api/health/claims/top_providers'}}}
+          %h4 Top Providers: All Participants
+      .ho-chart__section.col-xs-12.col-md-6
+        .d3-top__chart#top-conditions{data: {types: {all: '/api/health/claims/top_conditions'}}}
+          %h4 Top Conditions: All Participants
+
+- content_for :page_js do
+  :javascript
+    var all_conditions = $('#top-conditions').data('types-all')
+      $.get(all_conditions, function(data) {
+        var chart = new App.D3Chart.OneBar('#top-conditions', data, 'description', 'of med/BH cost', 'all')
+        chart.draw()
+      })
+      var all_providers = $('#top-providers').data('types-all')
+      $.get(all_providers, function(data) {
+        var chart = new App.D3Chart.OneBar('#top-providers', data, 'provider_name', 'of total cost', 'all')
+        chart.draw()
+      })

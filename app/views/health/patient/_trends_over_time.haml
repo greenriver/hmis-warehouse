@@ -1,0 +1,17 @@
+.ho-chart__container#d3-claims
+  .ho-chart__header
+    .row
+      .col-xs-12
+        %h3 
+          Trends Over Time
+          %br
+          %small.d3-claims__dates
+        .d3-claims__legend.pull-right
+  .ho-chart__content
+    .row  
+      .ho-chart__section.col-xs-12.col-md-6
+        %h4 Amount Paid by Location and Month
+        .d3-claims__chart#claims__amount-paid{data: {url: "/api/health/claims/patients/#{@patient.id}/amount_paid"}}
+      .ho-chart__section.col-xs-12.col-md-6
+        %h4 Claims Volume by Location and Month
+        .d3-claims__chart#claims__volume{data: {url: "/api/health/claims/patients/#{@patient.id}/claims_volume"}}

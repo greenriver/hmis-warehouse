@@ -9,9 +9,21 @@
     - if @patient.present?
       = render 'patient_summary'
       = render 'patient_dashboard'
+      .row
+        .col-xs-12.col-md-8
+          = render 'trends_over_time'
+          = render 'top_providers_and_conditions'
+        .col-xs-12.col-md-4
+          = render 'drilldown'
       = render 'patient_details'
 
       = render 'patient_js'
     - else
       %p No patient record found.
 
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var claimsCharts = new App.D3Chart.Claims('d3-claims')
+      claimsCharts.draw()
+    })

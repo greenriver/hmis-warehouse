@@ -1,24 +1,31 @@
 #= require ./namespace
 
 class App.D3Chart.OneBar
-  constructor: (container_selector, data, yAttr, yLabel) ->
+  constructor: (container_selector, data, yAttr, yLabel, mainType) ->
+    @attrs = {all: 'sdh_pct', patient: 'indiv_pct'}
+    @mainType = mainType
+    @subType = if mainType == 'patient' then 'all'
     @yAttr = yAttr
     @yLabel = yLabel
     @data = data
-    @bars_data = @_loadBarData()
+    @_loadBarData()
     @container = d3.select(container_selector)
     @chart = @container
     @margin = {top: 0, right: 0, bottom: 0, left: 0}
     @dimensions = @_loadDimensions()
     @range = @_loadRange()
     @domain = @_loadDomain()
-    console.log(@domain)
     @scale = @_loadScale()
 
-  _loadBarData: () ->
-    @data.map((d) ->
-      d.sdh_pct = [{type: 'all', value:d.sdh_pct}]
-      d
+  _loadBarData: () -> 
+    @data.forEach((d) =>
+      mainAttr = @attrs[@mainType]
+      subAttr = @attrs[@subType]
+      d.pct = [
+        {type: @mainType, value: d[mainAttr]}
+      ]
+      if @subType
+        d.pct.push({type: @subType, value: d[subAttr]})
     )
 
   _loadDimensions: () ->
@@ -40,23 +47,19 @@ class App.D3Chart.OneBar
       color: ['#008DA8', '#00549E']
     }
 
+  _loadXDomain: () ->
+    type = @mainType
+    total = @data.map((v) =>
+      Math.round(v[@attrs[type]]*100)
+    ).reduce((total, v) ->
+      total + v
+    )/100
+    [0, total] 
+
   _loadDomain: () ->
-    values = @data.map((d) -> 
-      d.sdh_pct.map((p) -> 
-        if p.type == 'all'
-          p.value
-        else
-          0
-      )
-    )
-    values = d3.merge(values).map((v) -> Math.round(v*100))
-    values = values.reduce((total, v) -> (total + v))
     {
-      x: [0, values/100],
-      y: @data.map((bar) =>
-        console.log(bar)
-        bar[@yAttr]
-      ),
+      x: @_loadXDomain(),
+      y: @data.map((bar) => bar[@yAttr]),
       height: 1,
       color: ['all', 'patient']
     }
@@ -88,7 +91,7 @@ class App.D3Chart.OneBar
       .append('div')
         .attr('class', 'd3-top__bar')
       .selectAll('.d3-top__bar-inner')
-        .data((d) -> d.sdh_pct)
+        .data((d) -> d.pct)
         .enter()
         .append('div')
           .attr('class', 'd3-top__bar-inner')
@@ -100,7 +103,7 @@ class App.D3Chart.OneBar
 
   _drawKeyBars: () ->
     @chart.selectAll('.d3-top__key-bar')
-      .data(@bars_data)
+      .data(@data)
       .enter()
       .append('div')
         .attr('class', 'd3-top__key-bar')
@@ -128,7 +131,7 @@ class App.D3Chart.OneBar
       .attr('class', 'x-axis')
     xAxis.append('span')
       .attr('class', 'x-axis__max')
-      .style('color', @scale.color('all'))
+      .style('color', @scale.color(@mainType))
       .text(Math.ceil(@domain.x[1]*100)+'%')
     xAxis.append('span').text(@yLabel)
 

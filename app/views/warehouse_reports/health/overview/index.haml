@@ -3,82 +3,15 @@
 %h1= content_for :title
 
 .row
-  .col-xs-12
-    .ho-chart__container#d3-claims
-      .ho-chart__header
-        .row
-          .col-xs-12
-            %h3 
-              Trends Over Time
-              %br
-              %small.d3-claims__dates
-            .d3-claims__legend.pull-right
-      .ho-chart__content
-        .row
-          .ho-chart__section.col-xs-6
-            %h4 Amount Paid by Location and Month
-            .d3-claims__chart#claims__amount-paid{data: {url: '/api/health/claims/amount_paid'}}
-          .ho-chart__section.col-xs-6
-            %h4 Claims Volume by Location and Month
-            .d3-claims__chart#claims__volume{data: {url: '/api/health/claims/claims_volume'}}
-.row
-  .col-xs-12
-    .ho-chart__container
-      .ho-chart__header
-        .row
-          .col-xs-12
-            %h3 
-              Top Providers and Clinical Conditions
-              %br
-              %small
-                (all claims & medical/BH claims only)
-      .ho-chart__content
-        .row
-          .ho-chart__section.col-xs-6
-            .d3-top__chart#top-providers{data: {types: {all: '/api/health/claims/top_providers'}}}
-              %h4 Top Providers: All Participants
-          .ho-chart__section.col-xs-6
-            .d3-top__chart#top-conditions{data: {types: {all: '/api/health/claims/top_conditions'}}}
-              %h4 Top Conditions: All Participants
-.row  
-  .col-xs-12
-    .ho-chart__container#d3-drilldown
-      .ho-chart__header
-        .row
-          .col-xs-12
-            %h3 
-              Drilldown: Emergency and Inpatient
-      .ho-chart__content
-        .row
-          .ho-chart__section.col-xs-5
-            %h4 ED Visit Severity 
-            %small(NYU Alogithm)
-            .d3-drilldown__chart#drilldown__severity
-              TODO
-          .ho-chart__section.col-xs-7
-            .d3-top__chart#top-ip-condition{data: {types: {all: '/api/health/claims/top_ip_conditions'}}}
-              %h4 Top Inpatient Conditions: All Participants
+  .col-xs-12.col-md-8
+    .row
+      .col-xs-12
+        = render 'trends_over_time'
+    .row
+      .col-xs-12
+        = render 'top_providers_and_conditions'
+  .col-xs-12.col-md-4
+    .row  
+      .col-xs-12
+        = render 'drilldown'
 
-- content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var claimsCharts = new App.D3Chart.Claims('d3-claims')
-      claimsCharts.draw()
-
-      var all = $('#top-ip-condition').data('types-all')
-      $.get(all, function(data) {
-        var chart = new App.D3Chart.OneBar('#top-ip-condition', data, 'description', 'of IP cost')
-        chart.draw()
-      })
-
-      var all_conditions = $('#top-conditions').data('types-all')
-      $.get(all_conditions, function(data) {
-        var chart = new App.D3Chart.OneBar('#top-conditions', data, 'description', 'of med/BH cost')
-        chart.draw()
-      })
-      var all_providers = $('#top-providers').data('types-all')
-      $.get(all_providers, function(data) {
-        var chart = new App.D3Chart.OneBar('#top-providers', data, 'provider_name', 'of total cost')
-        chart.draw()
-      })
-    })

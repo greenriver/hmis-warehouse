@@ -1,0 +1,26 @@
+.ho-chart__container#d3-drilldown
+  .ho-chart__header
+    .row
+      .col-xs-12
+        %h3 
+          Drilldown: Emergency and Inpatient
+  .ho-chart__content
+    .row
+      .ho-chart__section.col-xs-12
+        %h4 ED Visit Severity 
+        %small(NYU Alogithm)
+        .d3-drilldown__chart#drilldown__severity
+          TODO
+      .ho-chart__section.col-xs-12
+        .d3-top__chart#top-ip-condition{data: {url: "/api/health/claims/patients/#{@patient.id}/top_ip_conditions"}}
+          %h4 Top Inpatient Conditions
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var ip = $('#top-ip-condition').data('url')
+      $.get(ip, function(data) {
+        var chart = new App.D3Chart.OneBar('#top-ip-condition', data, 'description', 'of IP cost', 'patient')
+        chart.draw()
+      })
+    })
