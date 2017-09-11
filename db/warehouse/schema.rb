@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170906161906) do
+ActiveRecord::Schema.define(version: 20170911124040) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -769,13 +769,14 @@ ActiveRecord::Schema.define(version: 20170906161906) do
   add_index "client_matches", ["updated_by_id"], :name=>"index_client_matches_on_updated_by_id", :using=>:btree
 
   create_table "client_notes", force: :cascade do |t|
-    t.integer  "client_id",  :null=>false
-    t.integer  "user_id",    :null=>false
-    t.string   "type",       :null=>false
+    t.integer  "client_id",         :null=>false
+    t.integer  "user_id",           :null=>false
+    t.string   "type",              :null=>false
     t.text     "note"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "deleted_at"
+    t.string   "migrated_username"
   end
   add_index "client_notes", ["client_id"], :name=>"index_client_notes_on_client_id", :using=>:btree
   add_index "client_notes", ["user_id"], :name=>"index_client_notes_on_user_id", :using=>:btree
@@ -837,6 +838,7 @@ ActiveRecord::Schema.define(version: 20170906161906) do
     t.string   "note"
     t.string   "name"
     t.boolean  "visible_in_window"
+    t.string   "migrated_username"
   end
   add_index "files", ["type"], :name=>"index_files_on_type", :using=>:btree
 
@@ -1608,6 +1610,10 @@ SELECT "Services"."ServicesID",
     t.integer  "homeless_period"
     t.date     "release_signed_on"
     t.boolean  "drug_release"
+    t.string   "migrated_case_manager"
+    t.string   "migrated_interviewer_name"
+    t.string   "migrated_interviewer_email"
+    t.string   "migrated_filed_by"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
 
