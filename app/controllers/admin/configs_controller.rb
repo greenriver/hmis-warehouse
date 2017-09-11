@@ -8,7 +8,11 @@ module Admin
     end
 
     def update
-      if @config.update(config_params)
+      tag_list = config_params[:tag_list].select(&:present?)
+      @config.assign_attributes(config_params)
+      @config.document_ready_list = tag_list    
+      config_source.invalidate_cache
+      if @config.save
         redirect_to({action: :index}, notice: 'Configuration updated')
       else
         render action: :index, error: 'The configuration failed to save.'
@@ -24,6 +28,7 @@ module Admin
         :cas_available_method,
         :site_coc_codes,
         :family_calculation_method,
+        tag_list: [],
       )
     end
 

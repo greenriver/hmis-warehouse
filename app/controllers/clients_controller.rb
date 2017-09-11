@@ -2,16 +2,16 @@ class ClientsController < ApplicationController
   include PjaxModalController
   include ClientController
   include ArelHelper
-  include ClientPathGenerator
+  include ClientPathGenerator   
 
   helper ClientMatchHelper
 
-  before_action :require_can_view_clients!, only: [:show, :index, :month_of_service, :service_range, :history]
+  before_action :require_can_view_clients!, only: [:show, :index, :service_range]
   before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :month_of_service, :service_range, :history, :rollup, :image, :chronic_days, :update, :create_note]
-  before_action :set_client_start_date, only: [:show, :edit, :history, :rollup]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :update, :create_note]
+  before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
   after_action :log_client, only: [:show, :edit, :update, :destroy, :merge, :unmerge]
 
@@ -40,28 +40,25 @@ class ClientsController < ApplicationController
   end
 
   def update
-    update_params = client_params
-    update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
-      @client.disability_verified_on || Time.now
-    else
-      nil
-    end
-    if update_params[:housing_release_status].present?
-      update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
-    else
-      update_params[:housing_assistance_network_released_on] = nil
-    end
-    if @client.update(update_params)
-      flash[:notice] = 'Client updated'
-      ::Cas::SyncToCasJob.perform_later
-      redirect_to action: :show
-    else
-      flash[:notice] = 'Unable to update client'
-      render :show
-    end
-  end
-
-  def history
+    # update_params = client_params
+    # update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
+    #   @client.disability_verified_on || Time.now
+    # else
+    #   nil
+    # end
+    # if update_params[:housing_release_status].present?
+    #   update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
+    # else
+    #   update_params[:housing_assistance_network_released_on] = nil
+    # end
+    # if @client.update(update_params)
+    #   flash[:notice] = 'Client updated'
+    #   ::Cas::SyncToCasJob.perform_later
+    #   redirect_to action: :show
+    # else
+    #   flash[:notice] = 'Unable to update client'
+    #   render :show
+    # end
   end
 
   # display an assessment form in a modal
@@ -146,19 +143,6 @@ class ClientsController < ApplicationController
     end
   end
 
-  def month_of_service
-    if params[:start].present?
-      @start = params[:start].to_date
-    else
-      @start = @client.date_of_first_service.beginning_of_month
-    end
-
-    @days = @client.service_dates_for_display(@start)
-    @programs = project_scope.preload(:organization).distinct.group_by{|m| [m.data_source_id, m.ProjectID]}
-    # Prevent layout over ajax
-    render layout: !request.xhr?
-  end
-
   def service_range
     @range = @client.service_date_range
     respond_to do |format|
@@ -222,14 +206,14 @@ class ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
-        :disability_verified_on,
-        :housing_assistance_network_released_on,
-        :sync_with_cas,
-        :dmh_eligible,
-        :va_eligible,
-        :hues_eligible,
-        :hiv_positive,
-        :housing_release_status,
+        # :disability_verified_on,
+        # :housing_assistance_network_released_on,
+        # :sync_with_cas,
+        # :dmh_eligible,
+        # :va_eligible,
+        # :hues_eligible,
+        # :hiv_positive,
+        # :housing_release_status,
         merge: [],
         unmerge: []
       )

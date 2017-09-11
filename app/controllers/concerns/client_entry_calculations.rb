@@ -3,7 +3,7 @@ module ClientEntryCalculations
   
   included do
     include ArelHelper
-
+    include ApplicationHelper
 
     def entered_columns 
       [

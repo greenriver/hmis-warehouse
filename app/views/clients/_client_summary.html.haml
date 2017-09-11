@@ -1,3 +1,4 @@
+- eto_available = GrdaWarehouse::Config.get(:eto_api_available)
 .client__summary
   .row
     .col-sm-4
@@ -15,10 +16,11 @@
               = "#{@client.total_homeless(@client.enrollments_for_rollup(en_scope: @client.scope_for_residential_enrollments, include_confidential_names: false, only_ongoing: false))} days homeless between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
         - else
           %p None
-      = render 'chronic_flags', client: @client
+      = render 'chronic_flags', client: @client        
     .col-sm-4
-      %h3 Data Sharing Agreement
-      = @client.consent_form_status.presence ||'No consent forms on file'
+      - if eto_available
+        %h3 Data Sharing Agreement
+        = @client.consent_form_status.presence ||'No consent forms on file'
       - if ( decisions = @client.cas_reports.where( current_step: true ).order(:updated_at) ).any?
         %h3 Housing Matches
         %ul
@@ -31,7 +33,8 @@
         %h3 VI-SPDAT Scores
         - @client.vispdats.completed.scores.each do |vispdat|
           %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
+      = render 'window/clients/required_documents'
     .col-sm-4
-      - if GrdaWarehouse::Config.get(:eto_api_available) || ! Rails.env.production?
+      - if eto_available || ! Rails.env.production?
         .client__image
           = image_tag(image_client_path)

@@ -3,6 +3,7 @@ module ReportGenerators::DataQuality::Fy2016
   class Base
     ADULT = 18
     include ArelHelper
+    include ApplicationHelper
     attr_reader :all_clients
 
     def add_filters scope:

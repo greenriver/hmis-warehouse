@@ -1,6 +1,8 @@
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
     after_save :invalidate_cache
+    acts_as_taggable
+    acts_as_taggable_on :document_ready
 
     def self.available_cas_methods
       {
@@ -25,7 +27,7 @@ module GrdaWarehouse
     end
 
     def self.get(config)
-      @settings ||= Rails.cache.fetch(self.name) do
+      @settings = Rails.cache.fetch(self.name) do
         self.first_or_create
       end
       @settings.public_send(config)

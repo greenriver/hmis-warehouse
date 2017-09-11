@@ -1,6 +1,6 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
-  belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: :assessment_id, foreign_key: :assessment_id
+  belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
   serialize :response, Hash
   serialize :answers, Hash
 
@@ -11,6 +11,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
   scope :non_confidential, -> do 
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.non_confidential)
+  end
+  scope :window, -> do
+    joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
   end
 
   def primary_language

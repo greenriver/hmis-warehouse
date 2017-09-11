@@ -50,7 +50,7 @@ module GrdaWarehouse
 
     validates :sleep_answer, inclusion: { in: sleep_answers.keys }, allow_blank: true
     validates :sleep_answer_other, length: { in: 2..100 }, presence: true, if: -> { sleep_other? }
-    validates :homeless, numericality: { only_integer: true }, inclusion: { in: 0..30, message: 'should be between 0 and 30' }, unless: -> { homeless_refused? }
+    validates :homeless, numericality: { only_integer: true }, unless: -> { homeless_refused? }
     validates :homeless_period, presence: true, if: -> { homeless.present? }
     validates :episodes_homeless, numericality: { only_integer: true }, inclusion: { in: 0..36, message: 'should be between 0 and 36'}, unless: -> { episodes_homeless_refused? }
 
@@ -175,7 +175,7 @@ module GrdaWarehouse
     end
 
     def self.options_for enum
-      ['Yes', 'No', 'Refused'].zip self.send(enum).keys
+      ['Yes', 'No', 'Refused/Unsure'].zip self.send(enum).keys
     end
 
     def full_name

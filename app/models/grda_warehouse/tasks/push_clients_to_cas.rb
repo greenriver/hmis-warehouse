@@ -15,15 +15,13 @@ module GrdaWarehouse::Tasks
       @client_ids = client_source.pluck(:id)
       updated_clients = Cas::ProjectClient.transaction do
         Cas::ProjectClient.update_all(sync_with_cas: false)
-        @client_ids.each do |id|
-          client = client_source.find(id)
+        client_source.where(id: @client_ids).each do |client|
           project_client = Cas::ProjectClient.
-            where(data_source_id: data_source.id, id_in_data_source: id).
+            where(data_source_id: data_source.id, id_in_data_source: client.id).
             first_or_initialize
           project_client_columns.map do |destination, source|
             project_client[destination] = client.send(source)
           end
-          project_client.vispdat_score = client.vispdats.completed.scores.first&.score
           project_client.needs_update = true
           project_client.save!
         end
@@ -68,7 +66,7 @@ module GrdaWarehouse::Tasks
         developmental_disability: :developmental_response?,
         physical_disability: :physical_response?,
         # calculated_chronic_homelessness: :chronic?, # using sync_with_cas as a manual proxy
-        calculated_chronic_homelessness: :sync_with_cas,
+        calculated_chronic_homelessness: :chronically_homeless_for_cas,
         calculated_first_homeless_night: :date_of_first_service,
         calculated_last_homeless_night: :date_of_last_homeless_service,
         domestic_violence: :domestic_violence?,
@@ -80,6 +78,16 @@ module GrdaWarehouse::Tasks
         hues_eligible: :hues_eligible,
         hiv_positive: :hiv_positive,
         housing_release_status: :housing_release_status,
+        us_citizen: :us_citizen,
+        asylee: :asylee,
+        ineligible_immigrant: :ineligible_immigrant,
+        lifetime_sex_offender: :lifetime_sex_offender,
+        meth_production_conviction: :meth_production_conviction,
+        family_member: :family_member,
+        child_in_household: :child_in_household,
+        days_homeless: :days_homeless_in_last_three_years,
+        vispdat_score: :most_recent_vispdat_score,
+        ha_eligible: :ha_eligible
       }
     end
   end

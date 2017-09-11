@@ -1,0 +1,27 @@
+- title = "Chronic Details for #{@client.full_name}"
+- content_for :title, title
+= render 'clients/tab_navigation', current: edit_client_chronic_path(@client)
+%h1= content_for :title
+= render 'clients/breadcrumbs'
+= render 'clients/chronic_flags', client: @client
+.row
+  .col-sm-6
+    - if @client.processed_service_history.present? && @client.ever_chronic?
+      .rollup{data: {partial: :chronic}}
+        %h3 Chronic Days
+  .col-sm-6
+    =render "clients/note_form"
+    .rollup{data: {partial: :client_notes}}
+      %h3 Notes
+.rollup{data: {partial: :residential_enrollments}}
+  %h3 Residential Enrollments
+-# load in all the bits of aggregate statistics via ajax
+= content_for :page_js do
+  - source_clients = @client.source_clients.preload(:data_source, :organizations)
+  :javascript
+    var rollupPath = #{rollup_client_path(@client).to_json};
+    var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json};
+    var manyClients = #{source_clients.many?.to_json};
+    var high = #{@client.source_clients.size + 1};
+    var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
+    rollups.collapsible('.jAssessmentTypeToggle');

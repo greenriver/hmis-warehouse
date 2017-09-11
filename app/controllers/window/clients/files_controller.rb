@@ -1,6 +1,7 @@
 module Window::Clients
   class FilesController < ApplicationController
     include WindowClientPathGenerator
+    
     before_action :require_can_manage_these_client_files!
     before_action :set_client, only: [:index, :show, :new, :create, :edit, :update]
     before_action :set_files, only: [:index]
@@ -32,6 +33,7 @@ module Window::Clients
           note: file_params[:note],
           name: file_params[:name],
         )
+        @file.tag_list.add(file_params[:tag_list].select(&:present?))
         @file.save!
       rescue Exception => e
         flash[:error] = e.message
@@ -65,6 +67,7 @@ module Window::Clients
           :name,
           :note,
           :visible_in_window,
+          tag_list: [],
         )
     end
     

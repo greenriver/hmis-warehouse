@@ -1,3 +1,5 @@
+- eto_available = GrdaWarehouse::Config.get(:eto_api_available)
+- required_documents = GrdaWarehouse::Config.get(:document_ready)
 .client__summary
   .row
     .col-sm-4
@@ -36,10 +38,14 @@
         %strong
           = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
       = render 'clients/chronic_flags', client: @client
-    .col-sm-4.client__data-sharing-agreement
-      %h3 Data Sharing Agreement
-      = @client.consent_form_status.presence ||'No consent forms on file'
-    .col-sm-4
-      - if GrdaWarehouse::Config.get(:eto_api_available)
+    - if required_documents.any?
+      .col-sm-4
+        = render 'window/clients/required_documents'
+
+    - if eto_available
+      .col-sm-4.client__data-sharing-agreement
+        %h3 Data Sharing Agreement
+        = @client.consent_form_status.presence ||'No consent forms on file'
+      .col-sm-4
         .client__image
           = image_tag(image_client_path(@client))

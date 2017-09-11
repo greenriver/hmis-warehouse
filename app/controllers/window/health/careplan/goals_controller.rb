@@ -3,6 +3,7 @@ module Window::Health::Careplan
     include PjaxModalController
     include HealthPatient
     include WindowClientPathGenerator
+    
 
     before_action :require_can_edit_client_health!
     before_action :set_client

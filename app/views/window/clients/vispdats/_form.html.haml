@@ -46,10 +46,10 @@
             = f.input :homeless_period, label: false, collection: GrdaWarehouse::Vispdat.homeless_period_options
         .row
           .col-sm-12
-            = f.input :homeless_refused, label: "Refused", as: :boolean
+            = f.input :homeless_refused, label: "Refused/Unsure", as: :boolean
       .col-sm-4
         = f.input :episodes_homeless, label: "In the last three years, how many times have you been homeless?"
-        = f.input :episodes_homeless_refused, label: "Refused"
+        = f.input :episodes_homeless_refused, label: "Refused/Unsure"
 
   %h2 Risks
   .well.vispdat.vispdat-risks-1
@@ -61,42 +61,42 @@
       .col-sm-1
         = f.input :emergency_healthcare, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
-        = f.input :emergency_healthcare_refused, label: "Refused"
+        = f.input :emergency_healthcare_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
         %label Taken an ambulance to the hospital?
       .col-sm-1
         = f.input :ambulance, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
-        = f.input :ambulance_refused, label: "Refused"
+        = f.input :ambulance_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
         %label Been hospitalized as an inpatient?
       .col-sm-1
         = f.input :inpatient, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
-        = f.input :inpatient_refused, label: "Refused"
+        = f.input :inpatient_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
         %label Used a crisis service, including sexual assault crisis, mental health crisis, family/intimate violence, distress centers and suicide prevention hotlines?
       .col-sm-1
         = f.input :crisis_service, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
-        = f.input :crisis_service_refused, label: "Refused"
+        = f.input :crisis_service_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
         %label Talked to police because you witnessed a crime, were the victim of a crime, or the alleged perpetrator of a crime or because the police told you that you must move along?
       .col-sm-1
         = f.input :talked_to_police, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
-        = f.input :talked_to_police_refused, label: "Refused"
+        = f.input :talked_to_police_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
         %label Stayed one or more nights in a holding cell, jail or prison, whether that was a short-term stay like the drunk tank, a longer stay for a more serious offence, or anything in between?
       .col-sm-1
         = f.input :jail, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
-        = f.input :jail_refused, label: "Refused"
+        = f.input :jail_refused, label: "Refused/Unsure"
 
   .well.vispdat.vispdat-risks-2
     .row

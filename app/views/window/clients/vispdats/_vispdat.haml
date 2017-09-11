@@ -52,16 +52,16 @@
           = @vispdat.sleep_answer_other
           )
     .col-sm-4
-      %dt How long has it been since you lived in permanent stable housing? (in years)
+      %dt How long has it been since you lived in permanent stable housing?
       %dd
         = @vispdat.homeless
         = @vispdat.homeless_period
-        = "Refused" if @vispdat.homeless_refused?
+        = "Refused/Unsure" if @vispdat.homeless_refused?
     .col-sm-4
       %dt In the last three years, how many times have you been homeless?
       %dd
         = @vispdat.episodes_homeless
-        = "Refused" if @vispdat.episodes_homeless_refused?
+        = "Refused/Unsure" if @vispdat.episodes_homeless_refused?
 
 %h2 Risks
 .well
@@ -73,42 +73,42 @@
     .col-sm-1
       %dd
         = @vispdat.emergency_healthcare
-        = "Refused" if @vispdat.emergency_healthcare_refused
+        = "Refused/Unsure" if @vispdat.emergency_healthcare_refused
   .row
     .col-sm-8.col-md-offset-1
       %label Taken an ambulance to the hospital?
     .col-sm-1
       %dd
         = @vispdat.ambulance
-        = "Refused" if @vispdat.ambulance_refused
+        = "Refused/Unsure" if @vispdat.ambulance_refused
   .row
     .col-sm-8.col-md-offset-1
       %label Been hospitalized as an inpatient?
     .col-sm-1
       %dd
         = @vispdat.inpatient
-        = "Refused" if @vispdat.inpatient_refused
+        = "Refused/Unsure" if @vispdat.inpatient_refused
   .row
     .col-sm-8.col-md-offset-1
       %label Used a crisis service, including sexual assault crisis, mental health crisis, family/intimate violence, distress centers and suicide prevention hotlines?
     .col-sm-1
       %dd
         = @vispdat.crisis_service
-        = "Refused" if @vispdat.crisis_service_refused
+        = "Refused/Unsure" if @vispdat.crisis_service_refused
   .row
     .col-sm-8.col-md-offset-1
       %label Talked to police because you witnessed a crime, were the victim of a crime, or the alleged perpetrator of a crime or because the police told you that you must move along?
     .col-sm-1
       %dd
         = @vispdat.talked_to_police
-        = "Refused" if @vispdat.talked_to_police_refused
+        = "Refused/Unsure" if @vispdat.talked_to_police_refused
   .row
     .col-sm-8.col-md-offset-1
       %label Stayed one or more nights in a holding cell, jail or prison, whether that was a short-term stay like the drunk tank, a longer stay for a more serious offence, or anything in between?
     .col-sm-1
       %dd
         = @vispdat.jail
-        = "Refused" if @vispdat.jail_refused
+        = "Refused/Unsure" if @vispdat.jail_refused
 .well
   .row
     .col-sm-9

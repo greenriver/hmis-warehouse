@@ -1,0 +1,19 @@
+- required_documents = GrdaWarehouse::Config.get(:document_ready)
+- if required_documents.any?
+  %h3
+    = link_to polymorphic_path(files_path_generator, client_id: @client.id) do
+      Document Ready?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th File
+        %th Uploaded
+    %tbody
+      - @client.document_readiness(required_documents).each do |file|
+        %tr
+          %td
+            = file.name
+          %td
+            - if file.available
+              = checkmark('Y')
+              = file.updated_at&.to_date

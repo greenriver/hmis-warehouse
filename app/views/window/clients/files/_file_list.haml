@@ -6,6 +6,7 @@
           %thead
             %tr
               %th File
+              %th Contains
               %th Note
               %th Uploaded By
               %th Uploaded On
@@ -14,8 +15,12 @@
               - @files.each do |file|
                 %tr
                   %td
-                    =link_to polymorphic_path(file_path_generator, id: file.id) do
+                    - if file.content.present?
+                      = link_to polymorphic_path(file_path_generator, id: file.id) do
+                        = file.name
+                    - else
                       = file.name
+                  %td= file.tag_list.join(', ')
                   %td= file.note
                   %td= file.user&.name
                   %td= file.created_at

@@ -2,6 +2,7 @@ module Clients
   class FilesController < Window::Clients::FilesController
     include ClientPathGenerator
     
+    
     def create
       @file = file_source.new
       begin
@@ -16,6 +17,7 @@ module Clients
           note: file_params[:note],
           name: file_params[:name],
         )
+        @file.tag_list.add(file_params[:tag_list].select(&:present?))
         @file.save!
       rescue Exception => e
         flash[:error] = e.message

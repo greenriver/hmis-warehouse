@@ -9,10 +9,8 @@
   }
 
 = render 'breadcrumbs'
+= render 'tab_navigation', current: client_path(@client)
 %h1= title
-.row
-  .col-sm-12
-    = render 'tab_navigation', current: client_path(@client)
 
 = render 'client_summary'
 
@@ -21,20 +19,6 @@
   .col-sm-12
     .rollup{data: {partial: :demographics}}
       %h3 Demographics
-    .row
-      .col-sm-4.client__cas_flags
-        = render 'cas_flags'
-      .col-sm-4
-        - if @client.processed_service_history.present? && @client.ever_chronic?
-          .rollup{data: {partial: :chronic}}
-            %h3 Chronic Days
-      .col-sm-4
-        =render "note_form"
-        .rollup{data: {partial: :client_notes}}
-          %h3 Notes
-    -# This has been moved to the enrollments section
-    -# .rollup#family
-    -#   %h3 Family Members
     .rollup{data: {partial: 'special-populations'}}
       %h3 Special Populations
     .rollup{data: {partial: :residential_enrollments}}

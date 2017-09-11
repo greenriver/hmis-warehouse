@@ -126,12 +126,12 @@ Rails.application.routes.draw do
     post :defer, on: :collection
     post :defer, on: :member
   end
-  resources :source_clients, only: [:update]
+  resources :source_clients, only: [:edit, :update]
   resources :clients do
     member do
-      get :month_of_service
+      # get :month_of_service
       get :service_range
-      get :history
+      # get :history
       get :vispdat
       get :rollup
       get :assessment
@@ -139,26 +139,28 @@ Rails.application.routes.draw do
       get :chronic_days
       patch :merge
       patch :unmerge
-      post :create_note
       resource :cas_active, only: :update
     end
+    resource :history, only: [:show], controller: 'clients/history'
+    resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
+    resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
+    resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats'
     resources :files, controller: 'clients/files'
+    resources :notes, only: [:destroy, :create], controller: 'clients/notes'
     healthcare_routes()
   end
 
-  namespace :clients do
-    resources :notes, only: [:destroy]
-  end
-
   namespace :window do
-    resources :source_clients, only: [:update]
+    resources :source_clients, only: [:edit, :update]
     resources :clients do
       resources :print, only: [:index]
       healthcare_routes()
       get :rollup
       get :assessment
       get :image
+      resource :history, only: [:show], controller: 'clients/history'
+      resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
       resources :vispdats, controller: 'clients/vispdats'
       resources :files, controller: 'clients/files'
     end

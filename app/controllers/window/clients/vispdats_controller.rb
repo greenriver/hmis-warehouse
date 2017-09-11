@@ -1,6 +1,7 @@
 module Window::Clients
   class VispdatsController < ApplicationController
     include WindowClientPathGenerator
+    
 
     before_action :require_can_view_vspdat!, only: [:index, :show]
     before_action :require_can_edit_vspdat!, only: [:new, :create, :edit, :update, :destroy]
@@ -49,11 +50,11 @@ module Window::Clients
     protected
 
       def set_client
-        @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
+        @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       end
 
       def set_vispdat
-        @vispdat = vispdat_source.find(params[:id])
+        @vispdat = vispdat_source.find(params[:id].to_i)
       end
 
       def vispdat_params

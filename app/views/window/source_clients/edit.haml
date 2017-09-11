@@ -1,0 +1,23 @@
+- title = "Edit #{@client.name} at #{@client.data_source.name}"
+- content_for :modal_title, title
+= simple_form_for(@client, as: :client, url: polymorphic_path(source_client_path_generator, id: @client.id)) do |f|
+  = f.input :FirstName, wrapper_html: {class: 'client-name-input'}, label: 'First Name'
+  = f.input :MiddleName, wrapper_html: {class: 'client-name-input'}, label: 'Middle Name'
+  = f.input :LastName, wrapper_html: {class: 'client-name-input'}, label: 'Last Name'
+  .row
+    .col-sm-6
+      - if can_view_full_ssn?
+        = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
+      - else
+        = masked_ssn(@client.SSN)
+
+      = f.input :DOB, as: :date_picker, label: 'DOB'
+    .col-sm-6
+      = f.input :Gender, collection: HUD::genders.invert
+      = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status'
+
+  = f.submit value: 'Save', class: 'btn btn-secondary'
+
+= content_for :page_js do
+  :javascript
+    $('.jSSN').inputmask("999-99-9999");

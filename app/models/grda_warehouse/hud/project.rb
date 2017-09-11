@@ -283,7 +283,16 @@ module GrdaWarehouse::Hud
     end
 
     def organization_and_name(include_confidential_names: false)
-      "#{organization.name} / #{name}"
+      if include_confidential_names
+        "#{organization.name} / #{name}"
+      else
+        project_name = self.class.confidentialize(name: name)
+        if project_name == self.class.confidential_project_name
+          "#{project_name}"
+        else
+          "#{organization.name} / #{name}"
+        end
+      end
     end
 
     def bed_night_tracking?
@@ -345,8 +354,11 @@ module GrdaWarehouse::Hud
     # Sometimes all we have is a name, we still want to try and 
     # protect those
     def self.confidentialize(name:)
-      @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).pluck(:ProjectName).map(&:downcase).map(&:strip)
-      if @confidential_project_names.include?(name.downcase.strip)
+      @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).
+        pluck(:ProjectName).
+        map(&:downcase).
+        map(&:strip)
+      if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
         name

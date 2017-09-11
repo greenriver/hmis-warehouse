@@ -29,6 +29,8 @@
 //= require jquery.minicolors
 //= require jquery.minicolors.simple_form
 //= require d3.min
+//= require inputmask/jquery.inputmask.bundle.min
+//= require inputmask/inputmask/bindings/inputmask.binding.min
 
 
 //////////////////////////

@@ -12,5 +12,7 @@
   %td= HUD::gender client.Gender
   %td= client.race_fields.map{ |f| HUD::race f }.join ', '
   %td= HUD::ethnicity client.Ethnicity
-  %td= HUD::no_yes_missing client.VeteranStatus
+  %td= HUD::no_yes_reasons_for_missing_data client.VeteranStatus
   %th
+    - if authoritative_data_source_ids.include?(client.data_source_id) && can_create_clients?
+      = link_to 'Edit', polymorphic_path([:edit] + source_client_path_generator, id: client.id), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
