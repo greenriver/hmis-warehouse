@@ -13,5 +13,9 @@
 
     - if vispdat.expired?
       %span.label.label-danger Expired
+    
+    - if vispdat.migrated?
+      %span.label.label-danger Migrated
+
   %td.vspdat-row__score.text-center
     = vispdat.score
