@@ -10,21 +10,17 @@
   .ho-chart__content
     .row
       .ho-chart__section.col-xs-12.col-md-6
-        .d3-top__chart#top-providers{data: {types: {all: '/api/health/claims/top_providers'}}}
+        .d3-top__chart#top-providers{data: {url: '/api/health/claims/top_providers', yattr: 'provider_name', ylabel: 'of Total Cost', maintype: 'all'}}
           %h4 Top Providers: All Participants
       .ho-chart__section.col-xs-12.col-md-6
-        .d3-top__chart#top-conditions{data: {types: {all: '/api/health/claims/top_conditions'}}}
+        .d3-top__chart#top-conditions{data: {url: '/api/health/claims/top_conditions', yattr: 'description', ylabel: 'of med/BH cost', maintype: 'all'}}
           %h4 Top Conditions: All Participants
 
 - content_for :page_js do
   :javascript
-    var all_conditions = $('#top-conditions').data('types-all')
-      $.get(all_conditions, function(data) {
-        var chart = new App.D3Chart.OneBar('#top-conditions', data, 'description', 'of med/BH cost', 'all')
-        chart.draw()
-      })
-      var all_providers = $('#top-providers').data('types-all')
-      $.get(all_providers, function(data) {
-        var chart = new App.D3Chart.OneBar('#top-providers', data, 'provider_name', 'of total cost', 'all')
-        chart.draw()
-      })
+    $(document).ready(function() {
+      var ids = ['#top-providers', '#top-conditions']
+      var topBars = new App.D3Chart.TopBarCharts(ids)
+      topBars.draw()
+    })
+

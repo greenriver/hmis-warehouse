@@ -7,26 +7,22 @@
           %br
           %small
             (all claims & medical/BH claims only)
+        #d3-top-legend__pc.pull-right
   .ho-chart__content
     .row
       .ho-chart__section.col-xs-12.col-md-6
-        .d3-top__chart#top-providers{data: {url: "/api/health/claims/patients/#{@patient.id}/top_providers"}}
-          %h4 Top Providers
+        .d3-top__chart#top-providers{data: {url: "/api/health/claims/patients/#{@patient.id}/top_providers", yattr: 'provider_name', ylabel: 'of Total Cost', maintype: 'patient'}}
+          %h4 Top Providers: Current Patient
       .ho-chart__section.col-xs-12.col-md-6
-        .d3-top__chart#top-conditions{data: {url: "/api/health/claims/patients/#{@patient.id}/top_conditions"}}
-          %h4 Top Conditions
+        .d3-top__chart#top-conditions{data: {url: "/api/health/claims/patients/#{@patient.id}/top_conditions", yAttr: 'description', yLabel: 'of med/BH Cost', mainType: 'patient'}}
+          %h4 Top Conditions: Current Patient
 
 - content_for :page_js do
   :javascript
-    var top_providers = $('#top-providers').data('url')
-    $.get(top_providers, function(data) {
-      console.log(data)
-      var chart = new App.D3Chart.OneBar('#top-providers', data, 'provider_name', 'of Total Cost', 'patient')
-      chart.draw()
+    $(document).ready(function() {
+      var ids = ['#top-providers', '#top-conditions']
+      var legendSelector = '#d3-top-legend__pc'
+      var topBars = new App.D3Chart.TopBarCharts(ids, legendSelector, true)
+      topBars.draw()
     })
-    var top_conditions = $('#top-conditions').data('url')
-    $.get(top_conditions, function(data) {
-      var chart = new App.D3Chart.OneBar('#top-conditions', data, 'description', 'of med/BH Cost', 'patient')
-      chart.draw()
-    })
-    
+      

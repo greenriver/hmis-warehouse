@@ -1,6 +1,53 @@
 #= require ./namespace
+class App.D3Chart.TopBarCharts
+  constructor: (chartIds, legendSelector=null, drawLegend=false) ->
+    @chartIds = chartIds
+    if legendSelector
+      @legend = d3.select(legendSelector)
+    @drawLegend = drawLegend
 
-class App.D3Chart.OneBar
+  _drawLegend: (chart, types) ->
+    keyClass = 'd3-top-leged-pc__key'
+    labels = {all: 'All Participants', patient: 'Current Patient'}
+    @legend.selectAll(keyClass)
+      .data(types)
+      .enter()
+      .append('div')
+        .attr('class', keyClass)
+        .text((d) => labels[d])
+        .append('div')
+          .attr('class', 'ho-chart__swatch')
+          .style('background-color', (d) => chart.scale.color(d))
+
+
+  draw: () ->
+    legend = @legend
+    drawLegend = @drawLegend
+    @chartIds.forEach((id) =>
+      that = @
+      url = $(id).data('url')
+      yAttr = $(id).data('yattr')
+      yLabel = $(id).data('ylabel')
+      mainType = $(id).data('maintype')
+      $.get(url, (data) ->
+        if data.length > 0
+          chart = new App.D3Chart.TopBar(id, data, yAttr, yLabel, mainType)
+          chart.draw()
+          if drawLegend && legend
+            drawLegend = false
+            that._drawLegend(chart, ['patient', 'all'])            
+        else
+          d3.select(id)
+            .style('height', 'auto')
+            .style('border-right', 'none')
+            .style('margin-top', '0px')
+            .append('p')
+              .text('No Data')
+      )
+    )
+    
+
+class App.D3Chart.TopBar
   constructor: (container_selector, data, yAttr, yLabel, mainType) ->
     @attrs = {all: 'sdh_pct', patient: 'indiv_pct'}
     @mainType = mainType

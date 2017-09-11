@@ -59,21 +59,28 @@ class App.D3Chart.Claims
       url = $(@).data('url')
       id = '#'+$(@).attr('id')
       $.get(url, (data) ->
-        if date
+        if date && data.length > 0
           dates = d3.extent(data, (d) -> 
             [year, month, day] = d.date.split('-')
             new Date(year, month-1, day)
           )
           date.text(that._loadMonthName(dates[0])+' '+dates[0].getFullYear()+' - '+that._loadMonthName(dates[1])+' '+dates[1].getFullYear())
-          date = null
-        attrs = {
-          margin: that.margin, 
-          keys: that.keys, 
-          yTickFormat: that._loadTickFormat(id),
-          colors: that.colors
-        }
-        chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
-        chart.draw()
+          date = null  
+        if data.length > 0
+          attrs = {
+            margin: that.margin, 
+            keys: that.keys, 
+            yTickFormat: that._loadTickFormat(id),
+            colors: that.colors
+          }
+          chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
+          chart.draw()
+        else
+          d3.select(id)
+            .style('height', 'auto')
+            .append('p')
+            .text('No Data')
+              .style('text-align', 'center')
       )
     )
 

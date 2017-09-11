@@ -12,18 +12,13 @@
         .d3-drilldown__chart#drilldown__severity
           TODO
       .ho-chart__section.col-xs-12
-        .d3-top__chart#top-ip-condition{data: {types: {all: '/api/health/claims/top_ip_conditions'}}}
+        .d3-top__chart#top-ip-condition{data: {url: '/api/health/claims/top_ip_conditions', yattr: 'description', ylabel: 'of IP Cost', maintype: 'all'}}
           %h4 Top Inpatient Conditions: All Participants
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-
-      var all = $('#top-ip-condition').data('types-all')
-      $.get(all, function(data) {
-        var chart = new App.D3Chart.OneBar('#top-ip-condition', data, 'description', 'of IP cost', 'all')
-        chart.draw()
-      })
-
-      
+      var ids = ['#top-ip-condition']
+      var topBars = new App.D3Chart.TopBarCharts(ids)
+      topBars.draw()
     })
