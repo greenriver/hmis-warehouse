@@ -21,6 +21,8 @@ module GrdaWarehouse
         'Homeless Verification',
         'Veteran Verification',
         'Income Verification',
+        'Client Photo',
+        'Other',
       ]
     end
 
