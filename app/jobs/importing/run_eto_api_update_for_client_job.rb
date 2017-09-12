@@ -27,7 +27,7 @@ module Importing
     end
 
     # don't allow someone to queue a refresh if it's been less than 30 minutes
-    def stale?(destination_id)
+    def requires_api_update?(destination_id)
       client = GrdaWarehouse::Hud::Client.find(destination_id)
       client.requires_api_update?(check_period: 30.minutes)
     end
