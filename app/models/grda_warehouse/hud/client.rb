@@ -493,7 +493,10 @@ module GrdaWarehouse::Hud
         if Rails.env.production?
           source_api_ids.detect do |api_id|
             api ||= EtoApi::Base.new.tap{|api| api.connect}
-            image_data = api.client_image(client_id: api_id.id_in_data_source, site_id: api_id.site_id_in_data_source) rescue nil
+            image_data = api.client_image(
+              client_id: api_id.id_in_data_source, 
+              site_id: api_id.site_id_in_data_source
+            ) rescue nil
             (image_data && image_data.length > 0)
           end
         else
@@ -509,6 +512,31 @@ module GrdaWarehouse::Hud
           end
         end
         image_data || self.class.no_image_on_file_image
+      end
+    end
+
+    def image_for_source_client(cache_for=8.hours)
+      return unless source?
+      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
+        logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
+        if Rails.env.production?
+          api ||= EtoApi::Base.new.tap{|api| api.connect}
+          api.client_image(
+            client_id: api_id.id_in_data_source, 
+            site_id: api_id.site_id_in_data_source
+          ) rescue nil
+        else
+          if [0,1].include?(self[:Gender])
+            num = id % 99
+            gender = if self[:Gender] == 1
+              'men'
+            else
+              'women'
+            end
+            response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
+            response.body
+          end
+        end
       end
     end
 

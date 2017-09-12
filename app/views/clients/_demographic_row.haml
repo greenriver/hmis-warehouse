@@ -1,6 +1,11 @@
 %tr
   %td.id-sqr{ data: { id: client.id, always: 1 } }
-  %td= client.name
+  %td
+    = client.name
+    - if client.image_for_source_client.present?
+      - image = image_tag(image_source_client_path(id: client.id), width: "125", style: 'opacity: 1;').html_safe
+      %span.icon-info{data: {toggle: :tooltip, html: :true, placement: :right, title: image}}
+
   %td
     - if can_view_full_ssn?
       = ssn(client.SSN)

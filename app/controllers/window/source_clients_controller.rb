@@ -27,7 +27,17 @@ module Window
         flash[:error] = 'Unable to save client'
         render action: :edit
       end
-      
+    end
+
+    def image
+      max_age = if request.headers['Cache-Control'].to_s.include? 'no-cache'
+        0
+      else
+        30.minutes
+      end
+      response.headers['Last-Modified'] = Time.zone.now.httpdate
+      expires_in max_age, public: false
+      send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image_for_source_client), disposition: 'inline'
     end
 
     def redirect_to_path

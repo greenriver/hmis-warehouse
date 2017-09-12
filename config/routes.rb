@@ -123,7 +123,11 @@ Rails.application.routes.draw do
     post :defer, on: :collection
     post :defer, on: :member
   end
-  resources :source_clients, only: [:edit, :update]
+  resources :source_clients, only: [:edit, :update] do
+    member do
+      get :image
+    end
+  end
   resources :clients do
     member do
       # get :month_of_service
@@ -150,7 +154,11 @@ Rails.application.routes.draw do
   end
 
   namespace :window do
-    resources :source_clients, only: [:edit, :update]
+    resources :source_clients, only: [:edit, :update] do
+      member do
+        get :image
+      end
+    end
     resources :clients do
       resources :print, only: [:index]
       healthcare_routes()
