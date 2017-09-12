@@ -487,6 +487,7 @@ module GrdaWarehouse::Hud
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for=10.minutes)
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
@@ -516,7 +517,7 @@ module GrdaWarehouse::Hud
     end
 
     def image_for_source_client(cache_for=8.hours)
-      return unless source?
+      return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         if Rails.env.production?
@@ -542,7 +543,7 @@ module GrdaWarehouse::Hud
 
 
     def accessible_via_api?
-      source_api_ids.exists?
+      GrdaWarehouse::Config.get(:eto_api_available) && source_api_ids.exists?
     end
     # If we have source_api_ids, but are lacking hmis_clients
     # or our hmis_clients are out of date
