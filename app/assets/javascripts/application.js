@@ -17,6 +17,9 @@
 //= require bootstrap
 //= require vis.min
 //= require jquery_ujs
+//= require dataTables/jquery.dataTables
+//= require dataTables/bootstrap/3/jquery.dataTables.bootstrap
+//= require dataTables/jquery.dataTables
 //= require handlebars.runtime
 //= require select2-full
 //= require bootstrap-datepicker

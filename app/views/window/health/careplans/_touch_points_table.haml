@@ -1,5 +1,5 @@
 - if @client.health_touch_points.any?
-  %table.table.table-condensed
+  %table.table.table-condensed.datatable
     %thead
       %tr
         %th Assessment
@@ -13,3 +13,13 @@
           %td= form.staff
 - else
   No Self-Sufficiency Assessment on file
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 20,
+      lengthChange: false,
+      pagingType: 'simple'
+    })

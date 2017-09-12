@@ -24,3 +24,9 @@ th[class^="sort-"] {
 .table-responsive span[class*="icon-"] {
   font-size: rem(12);
 }
+
+// DataTables
+ul.pagination
+{
+  margin: 0;
+}

@@ -58,6 +58,7 @@ gem 'jquery-ui-rails'
 gem 'nominatim'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
+gem 'jquery-datatables-rails'
 
 # ETO API related
 gem "rest-client", "~> 2.0"
