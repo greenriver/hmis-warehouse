@@ -6,7 +6,8 @@
 *= require jquery-ui/slider
 *= require leaflet
 *= require jquery.minicolors
-
+*= require dataTables/jquery.dataTables
+*= require dataTables/bootstrap/3/jquery.dataTables.bootstrap
 */
 
 @import 'bootstrap-custom';

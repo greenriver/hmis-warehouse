@@ -11,3 +11,13 @@
       = render 'medications_table', medications: @medications
     - else
       %p No medications on file.
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 15,
+      lengthChange: false,
+      pagingType: 'simple'
+    });

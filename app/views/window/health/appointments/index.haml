@@ -1,4 +1,4 @@
-- upcoming = @appointments.select{|m| m.appointment_time > Time.now}
+- upcoming = @appointments.select{|m| m.appointment_time > Time.now}.sort{|a,b| a.appointment_time <=> b.appointment_time }
 - past = @appointments.select{|m| m.appointment_time <= Time.now}
 
 - title = 'Appointments'
@@ -8,17 +8,27 @@
 - else
   %h2= content_for :title
 
-.row
-  .col-sm-12
-    - if @patient.present?
+- if @patient.present?
+  .row
+    .col-sm-6
       %h3 Upcoming Appointments
       - if upcoming.any?
         = render 'appointments_table', appointments: upcoming
       - else
         %p No upcoming appointments scheduled.
-
+    .col-sm-6
       %h3 Past Appointments
       - if past.any?
         = render 'appointments_table', appointments: past
       - else
         %p No past appointments.
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 15,
+      lengthChange: false,
+      pagingType: 'simple'
+    });

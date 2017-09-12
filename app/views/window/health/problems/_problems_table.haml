@@ -1,16 +1,17 @@
-%table.table.table-condensed
-  %thead
-    %tr
-      %th{style: 'width: 8em;'} Onset Date
-      %th{style: 'width: 8em;'} Last Assessed
-      %th Problem
-      %th Comment
-      %th ICD10 List
-  %tbody
-    - problems.each do |problem|
+.slab
+  %table.table.table-condensed.datatable
+    %thead
       %tr
-        %td= problem.onset_date
-        %td= problem.last_assessed
-        %td= problem.name
-        %td= problem.comment
-        %td= problem.icd10_list
+        %th{style: 'width: 8em;'} Onset Date
+        %th{style: 'width: 8em;'} Last Assessed
+        %th Problem
+        %th Comment
+        %th ICD10 List
+    %tbody
+      - problems.each do |problem|
+        %tr
+          %td= problem.onset_date
+          %td= problem.last_assessed
+          %td= problem.name
+          %td= problem.comment
+          %td= problem.icd10_list
