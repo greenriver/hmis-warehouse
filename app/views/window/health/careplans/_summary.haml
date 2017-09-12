@@ -18,26 +18,8 @@
     .row
       .col-md-5.col-sm-3
         - unless @readonly
-          .slab__header.margin-top-03
-            - if @client.health_touch_points.any?
-              %table.table.table-condensed
-                %thead
-                  %tr
-                    %th Assessment
-                    %th Submitted
-                    %th Case Worker
-                %tbody
-                  - @client.health_touch_points.order(collected_at: :desc).each do |form|
-                    %tr
-                      %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
-                      %td= form.collected_at.to_date
-                      %td= form.staff
-                  
-              - if false
-                = link_to(polymorphic_path([:self_sufficiency_assessment] + careplan_path_generator), data: { loads_in_pjax_modal: true }) do
-                  Self-Sufficiency Assessment
-            - else
-              No Self-Sufficiency Assessment on file
+          .slab__base.margin-top-03
+            = render 'assessments'                  
       .col-md-3.col-sm-4
         .slab__base-dates
           = f.input :sdh_enroll_date, label: 'SDH Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}

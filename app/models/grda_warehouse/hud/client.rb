@@ -512,24 +512,45 @@ module GrdaWarehouse::Hud
       end
     end
 
+
+    def accessible_via_api?
+      source_api_ids.exists?
+    end
     # If we have source_api_ids, but are lacking hmis_clients
     # or our hmis_clients are out of date
-    def requires_api_update?
+    def requires_api_update?(check_period: 1.day)
+      return false unless accessible_via_api?
       api_ids = source_api_ids.count
-      return false if api_ids == 0
       return true if api_ids > source_hmis_clients.count
       last_updated = source_hmis_clients.pluck(:updated_at).max
       if last_updated.present?
-        return last_updated < 1.week.ago
+        return last_updated < check_period.ago
       end
       true
     end
 
     def update_via_api
+      return nil unless accessible_via_api?
       client_ids = source_api_ids.pluck(:client_id)
       if client_ids.any?
-        EtoApi::Tasks::UpdateClientDemographics.new(client_ids: client_ids, run_time: 15.minutes, one_off: true).run!
+        Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids)
       end
+    end
+
+    def api_status
+      return nil unless accessible_via_api?
+      most_recent_update = (source_hmis_clients.pluck(:updated_at) + [api_last_updated_at]).compact.max
+      updating = api_update_in_process
+      # if we think we're updating, but we've been at it for more than 15 minutes
+      # something probably got stuck
+      if updating
+        updating = api_update_started_at > 15.minutes.ago
+      end
+      {
+        started_at: api_update_started_at,
+        updated_at: most_recent_update,
+        updating: updating,
+      }
     end
 
     # A useful array of hashes from API data
