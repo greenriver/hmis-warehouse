@@ -1115,12 +1115,21 @@ module GrdaWarehouse::Hud
         count
     end
 
+    def homeless_dates_for_chronic_in_past_three_years(date: Date.today)
+      GrdaWarehouse::Tasks::ChronicallyHomeless.new(
+        date: date, 
+        dry_run: true, 
+        client_ids: [id]
+        ).residential_history_for_client(client_id: id)
+    end
+
+    # Add one to the number of new episodes
     def homeless_episodes_since date:
       source_enrollments
         .chronic
         .where(EntryDate: date..Date.today)
         .map(&:new_episode?)
-        .count(true)
+        .count(true) + 1 
     end
 
     def homeless_episodes_between start_date:, end_date:
