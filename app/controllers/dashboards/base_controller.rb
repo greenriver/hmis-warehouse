@@ -1,7 +1,6 @@
 module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
-    include ArelTable
     include ClientEntryCalculations
     include ClientActiveCalculations
 
@@ -67,51 +66,54 @@ module Dashboards
     def _housed(all_exits_key:, all_exits_instance_key:, start_date: 3.years.ago.beginning_of_month.to_date)
       @start_date = start_date
       @end_date = 1.month.ago.end_of_month.to_date
-      sh = GrdaWarehouse::ServiceHistory.arel_table
-      
       columns = [:date, :destination, :client_id]
       all_exits = Rails.cache.fetch(all_exits_key, expires_in: CACHE_EXPIRY) do
         exits_from_homelessness.
-          ended_between(start_date: @start_date, end_date: @end_date).
+          ended_between(start_date: @start_date, end_date: @end_date + 1.day).
           order(date: :asc).
           pluck(*columns).map do |date, destination, client_id|
             destination = 99 unless HUD.valid_destinations.keys.include?(destination)
             Hash[columns.zip([date, destination, client_id])]
           end
       end
-      first_date = all_exits.first[:date]
-      last_date = all_exits.last[:date]
+
+      all_destinations = all_exits.map{|m| m[:destination]}.uniq
+      all_date_buckets = (@start_date...@end_date).map{|date| date.strftime('%b %Y')}.uniq;
+      all_date_buckets = all_date_buckets.zip(Array.new(all_date_buckets.size, 0)).to_h
       
-      @all_exits = Rails.cache.fetch(all_exits_instance_key, expires_in: CACHE_EXPIRY) do
-        @all_exits = {}
-        # all_exits = all_exits.group_by{|m| m[:destination] || 99}
-        all_exits.map{|m| m[:destination]}.uniq.each do |destination|
-          label = HUD::destination(destination).to_s
-          if label.is_a? Numeric
-            label = HUD::destination(99)
-          end
-          @all_exits[destination] ||= {
-            source_data: Hash.new(0),
-            label: label.truncate(45),
-            backgroundColor: colorize(label),
-            ph: HUD.permanent_destinations.include?(destination),
-          }
-          (first_date...last_date).each do |date|
-            @all_exits[destination][:source_data]["#{date.to_time.strftime('%b')} #{date.year}"] += all_exits.select do |m|
-              m[:destination] == destination && m[:date] == date
-            end.count
-          end
-        end
-        @all_exits
-      end
-      @all_exits_labels = @all_exits.values.first[:source_data].keys
-      @ph_exits = @all_exits.deep_dup.select{|_,m| m[:ph]}
       @ph_clients = all_exits.select{|m| HUD.permanent_destinations.include?(m[:destination])}.map{|m| m[:client_id]}.uniq
+
+      @buckets = {}
+      
+      all_destinations.each do |destination|
+        label = HUD::destination(destination).to_s
+        if label.is_a? Numeric
+          label = HUD::destination(99)
+        end
+        @buckets[destination] ||= {
+          source_data: all_date_buckets.deep_dup,
+          label: label.truncate(45),
+          backgroundColor: colorize(label),
+          ph: HUD.permanent_destinations.include?(destination),
+        }
+      end
+      
+      # Count up all of the exits into buckets
+      all_exits.each do |row|
+        destination = row[:destination]
+        date = row[:date].to_date
+        @buckets[destination][:source_data][date.strftime('%b %Y')] += 1 
+      end
+
+      @all_exits_labels = @buckets.values.first[:source_data].keys
+      @ph_exits = @buckets.deep_dup.select{|_,m| m[:ph]}
+      
+      # Add some chart.js friendly counts
       @ph_exits.each do |destination, group|
         @ph_exits[destination][:data] = group[:source_data].values
       end
-      @all_exits.each do |destination, group|
-        @all_exits[destination][:data] = group[:source_data].values
+      @buckets.each do |destination, group|
+        @buckets[destination][:data] = group[:source_data].values
       end
     end
 
@@ -174,7 +176,7 @@ module Dashboards
         where(client_id: client_source)
     end
 
-    private def residential_service_history_source
+    def residential_service_history_source
       service_history_source.
         where(
            service_history_source.project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
@@ -182,8 +184,9 @@ module Dashboards
         where(client_id: client_source)
     end
 
-    private def exits_from_homelessness
+    def exits_from_homelessness
       service_history_source.exit.
+        joins(:client).
         where(
           service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         ).
