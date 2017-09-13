@@ -33,9 +33,13 @@ module WarehouseReports::VeteranDetails
       GrdaWarehouse::Hud::Client.destination.veteran
     end
 
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
+
     def homeless_service_history_source
-      GrdaWarehouse::ServiceHistory.
-        where(project_type: @project_type).
+      service_history_source.
+        where(service_history_source.project_type_column => @project_type).
         where(client_id: client_source)
     end
   end

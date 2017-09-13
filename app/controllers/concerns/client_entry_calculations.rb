@@ -6,13 +6,15 @@ module ClientEntryCalculations
     include ApplicationHelper
 
     def entered_columns 
-      [
-        :project_type, 
-        :first_date_in_program,
-        :last_date_in_program, 
-        :client_id,
-        :project_name,
-      ]
+      {
+        project_type: sh_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        client_id: sh_t[:client_id].as('client_id').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
+      }
     end
      
     def setup_data_structure start_date:
@@ -88,13 +90,14 @@ module ClientEntryCalculations
     # all enrollments for clients who were active during the date range
     def entered_enrollments_by_type start_date:, end_date:
       enrollments_by_type = homeless_service_history_source.entry.
+        joins(:client).
         where(client_id: 
           homeless_service_history_source.service_within_date_range(start_date: start_date, end_date: end_date + 1.day).select(:client_id)
         ).
         order(date: :asc).
-        pluck(*entered_columns).
+        pluck(*entered_columns.values).
         map do |row| 
-          Hash[entered_columns.zip(row)]
+          Hash[entered_columns.keys.zip(row)]
         end.
         group_by{ |m| m[:project_type]}
         {}.tap do |m|

@@ -9,8 +9,10 @@ module ClientActiveCalculations
         first_date_in_program:  sh_t[:first_date_in_program].as('first_date_in_program').to_sql, 
         last_date_in_program:  sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
         project_name:  sh_t[:project_name].as('project_name').to_sql, 
-        project_type:  sh_t[:project_type].as('project_type').to_sql, 
-        organization_id:  sh_t[:organization_id].as('organization_id').to_sql, 
+        project_type:  sh_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        organization_id:  sh_t[:organization_id].as('organization_id').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
       }
     end
 
@@ -29,10 +31,15 @@ module ClientActiveCalculations
         group_by{|m| m[:client_id]}
     end
 
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
+
     def homeless_service_history_source
-      GrdaWarehouse::ServiceHistory.
+      service_history_source.
+        joins(:client).
         where(
-          project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         ).
         where(client_id: client_source)
     end

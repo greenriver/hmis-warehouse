@@ -35,7 +35,7 @@
           - enrollments.each do |enrollment|
             %tr
               %td
-                = link_to client_id, client_path(client_id)
+                = link_to "#{enrollment[:first_name]} #{enrollment[:last_name]}", client_path(id: client_id)
               %td
                 = HUD.project_type(enrollment[:project_type])
               %td
