@@ -14,6 +14,8 @@ module Health
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
+    has_one :claims_roster, class_name: Health::Claims::Roster.name, primary_key: :medicaid_id, :foreign_key: :medicaid_id
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
