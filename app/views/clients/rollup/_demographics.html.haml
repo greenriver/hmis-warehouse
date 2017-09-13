@@ -36,3 +36,12 @@
         - source_clients = @client.source_clients
       - source_clients.each do |client|
         = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids
+
+
+:css
+  .client-name .tooltip-inner {
+    max-width: 300px;
+  }
+  .client-name .tooltip.in {
+    opacity: 1;
+  }

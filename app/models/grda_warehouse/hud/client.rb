@@ -1146,7 +1146,7 @@ module GrdaWarehouse::Hud
 
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)
       GrdaWarehouse::Tasks::ChronicallyHomeless.new(
-        date: date, 
+        date: date.to_date, 
         dry_run: true, 
         client_ids: [id]
         ).residential_history_for_client(client_id: id)
