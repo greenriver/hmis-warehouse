@@ -18,6 +18,7 @@ module ClientActiveCalculations
 
     def active_client_service_history range: 
       homeless_service_history_source.entry.
+        joins(:client).
         open_between(start_date: range.start, end_date: range.end + 1.day).
         where(client_id: homeless_service_history_source.service_within_date_range(start_date: range.start, end_date: range.end + 1.day).select(:client_id)
         ).
