@@ -37,6 +37,7 @@
     %tr
       %th Last Name
       %th First Name
+      %th Age at entry
       %th Date of First Service
       %th Project Type
       %th Project
@@ -49,6 +50,7 @@
           %nobr= link_to client.LastName, client_path(client)
         %td
           %nobr= link_to client.FirstName, client_path(client)
+        %td= client.first_service_history.age
         %td= client.first_service_history.date
         %td
           = ::HUD.project_type(client.first_service_history.project_type)
@@ -63,6 +65,6 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path()}');
+      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path(start: @range.start, end: @range.end, project_types: @project_types.to_json)}');
       chart.load();
     })(jQuery);

@@ -11,12 +11,12 @@ module GrdaWarehouse::Tasks
     def run!
       if @replace_all
         Rails.logger.info 'Removing first residential history record for all clients'
-        history.where( record_type: 'first' ).delete_all
+        service_history_source.where( record_type: 'first' ).delete_all
       end
 
       Rails.logger.info 'Finding records to update'
 
-      ht = history.arel_table
+      ht = service_history_source.arel_table
 
       # construct inner table to find minimum dates per client
       ct = GrdaWarehouse::Hud::Client.arel_table
@@ -32,7 +32,7 @@ module GrdaWarehouse::Tasks
         on( ht1[:client_id].eq(ht2[:client_id]).and( ht2[:record_type].eq 'first' ) ).   # only consider clients *who have no first residential record*
         where( ht2[:id].eq nil ).
         where( ht1[:record_type].eq 'entry' ).
-        where( ht1[history.project_type_column].in projects ).
+        where( ht1[service_history_source.project_type_column].in projects ).
         group(ht1[:client_id]).
         as(mdt.table_name)
 
@@ -41,45 +41,44 @@ module GrdaWarehouse::Tasks
           ht[:client_id].eq(mdt[:client_id]).and( ht[:date].eq mdt[:min_date] )
         ).
         where( ht[:record_type].eq 'entry' ).
-        where( ht[history.project_type_column].in projects ).
-        project(
-          ht[:client_id], 
-          ht[:date], 
-          ht[:age], 
-          ht[:data_source_id], 
-          ht[:last_date_in_program],
-          ht[:enrollment_group_id],
-          ht[:project_id],
-          ht[:organization_id],
-          ht[:household_id],
-          ht[:project_name],
-          ht[history.project_type_column],
-          ht[:project_tracking_method],
-          ht[:service_type]
-        )
-      values = history.connection.select_rows(query.to_sql).group_by(&:first).values.map(&:first).map do |id, date, age, data_source_id, last_date_in_program, enrollment_group_id, project_id, organization_id, household_id, project_name, project_type, project_tracking_method, service_type|
+        where( ht[service_history_source.project_type_column].in projects ).
+        project(*columns.values)
+      history = service_history_source.connection.select_rows(query.to_sql).map do |row|
+        ::OpenStruct.new(Hash[columns.keys.zip(row)])
+      end
+      history_by_client_id = history.group_by(&:client_id)
+      history_by_household = history.group_by{|row| [row.date, row.project_id, row.household_id]}
+
+      values = history_by_client_id.values.map(&:first).map do |id, date, age, data_source_id, last_date_in_program, enrollment_group_id, project_id, organization_id, household_id, project_name, project_type, project_tracking_method, service_type|
          # Fix the column type, select_rows now returns all strings
-        date = GrdaWarehouse::ServiceHistory.column_types['date'].type_cast_from_database(date)
-        last_date_in_program = GrdaWarehouse::ServiceHistory.column_types['last_date_in_program'].type_cast_from_database(last_date_in_program)
-        age = GrdaWarehouse::ServiceHistory.column_types['age'].type_cast_from_database(age)
-        project_tracking_method = GrdaWarehouse::ServiceHistory.column_types['project_tracking_method'].type_cast_from_database(project_tracking_method)
+        date = service_history_source.column_types['date'].type_cast_from_database(row.date)
+        last_date_in_program = service_history_source.column_types['last_date_in_program'].type_cast_from_database(row.last_date_in_program)
+        age = service_history_source.column_types['age'].type_cast_from_database(row.age)
+        project_tracking_method = service_history_source.column_types['project_tracking_method'].type_cast_from_database(row.project_tracking_method)
+        presented_as_individual = if household_id.blank?
+          true
+        else
+          key = [row.date, row.project_id, row.household_id]
+          history_by_household[key].count > 1
+        end
         {
-          client_id: id.to_i,
+          client_id: row.id.to_i,
           date: date,
           first_date_in_program: date,
           last_date_in_program: last_date_in_program,
           age: age,
-          data_source_id: data_source_id.to_i,
-          enrollment_group_id: enrollment_group_id,
-          project_id: project_id,
-          organization_id: organization_id,
-          household_id: household_id,
-          project_name: project_name,
-          project_type: project_type,
-          computed_project_type: project_type,
+          data_source_id: row.data_source_id.to_i,
+          enrollment_group_id: row.enrollment_group_id,
+          project_id: row.project_id,
+          organization_id: row.organization_id,
+          household_id: row.household_id,
+          project_name: row.project_name,
+          project_type: row.project_type,
+          computed_project_type: row.project_type,
           project_tracking_method: project_tracking_method,
-          service_type: service_type,
+          service_type: row.service_type,
           record_type: 'first',
+          presented_as_individual: presented_as_individual,
         }
       end
 
@@ -88,17 +87,35 @@ module GrdaWarehouse::Tasks
       else
         Rails.logger.info "creating #{values.size} records in batches"
         cols = values.first.keys
-        insert_batch history, cols, values.map(&:values)
+        insert_batch service_history_source, cols, values.map(&:values)
       end
 
       Rails.logger.info 'done'
+    end
+
+    def columns
+      {
+        client_id: ht[:client_id], 
+        date: ht[:date], 
+        age: ht[:age], 
+        data_source_id: ht[:data_source_id], 
+        last_date_in_program: ht[:last_date_in_program],
+        enrollment_group_id: ht[:enrollment_group_id],
+        project_id: ht[:project_id],
+        organization_id: ht[:organization_id],
+        household_id: ht[:household_id],
+        project_name: ht[:project_name],
+        project_type: ht[service_history_source.project_type_column],
+        project_tracking_method: ht[:project_tracking_method],
+        service_type: ht[:service_type]
+      }
     end
 
     def projects
       GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
 
-    def history
+    def service_history_source
       GrdaWarehouse::ServiceHistory
     end
 
