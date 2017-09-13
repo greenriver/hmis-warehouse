@@ -1,14 +1,15 @@
-%table.table.table-condensed
-  %thead
-    %tr
-      %th{style: 'width: 8em;'} Start Date
-      %th{style: 'width: 8em;'} Ordered Date
-      %th Medication
-      %th Instructions
-  %tbody
-    - medications.each do |medication|
+.slab
+  %table.table.table-condensed.datatable
+    %thead
       %tr
-        %td= medication.start_date
-        %td= medication.ordered_date
-        %td= medication.name
-        %td= medication.instructions
+        %th{style: 'width: 8em;'} Start Date
+        %th{style: 'width: 8em;'} Ordered Date
+        %th Medication
+        %th Instructions
+    %tbody
+      - medications.each do |medication|
+        %tr
+          %td= medication.start_date
+          %td= medication.ordered_date
+          %td= medication.name
+          %td= medication.instructions

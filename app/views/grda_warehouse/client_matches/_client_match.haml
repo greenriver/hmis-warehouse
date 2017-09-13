@@ -40,6 +40,17 @@
           = client_b.PersonalID.slice(0,4)
       %th
     %tr
+      %th
+      %td
+        - if client_a.image_for_source_client.present?
+          = image_tag(polymorphic_path(source_client_image_path_generator, id: client_a.id), style: 'width: 125px;')
+      %td
+      %td
+      %td
+        - if client_b.image_for_source_client.present?
+          = image_tag(polymorphic_path(source_client_image_path_generator, id: client_b.id), style: 'width: 125px;')
+      %td
+    %tr
       %th Name
       %td= client_a.full_name
       %td= data_qaulity_warning :name, client_a.NameDataQuality

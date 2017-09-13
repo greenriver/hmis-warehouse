@@ -1,5 +1,6 @@
 class ClientMatchesController < ApplicationController
   before_action :require_can_edit_clients!
+  include ClientPathGenerator  
   helper ClientMatchHelper
 
   def index

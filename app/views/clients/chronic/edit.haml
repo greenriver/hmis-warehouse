@@ -6,9 +6,8 @@
 = render 'clients/chronic_flags', client: @client
 .row
   .col-sm-6
-    - if @client.processed_service_history.present? && @client.ever_chronic?
-      .rollup{data: {partial: :chronic}}
-        %h3 Chronic Days
+    .rollup{data: {partial: :chronic}}
+      %h3 Chronic Days
   .col-sm-6
     =render "clients/note_form"
     .rollup{data: {partial: :client_notes}}

@@ -12,3 +12,13 @@
       = render 'visit_table', visits: @visits
     - else
       %p No past visits.
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 15,
+      lengthChange: false,
+      pagingType: 'simple'
+    });

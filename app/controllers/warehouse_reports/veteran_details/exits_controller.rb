@@ -26,29 +26,27 @@ module WarehouseReports::VeteranDetails
       }
       @buckets = Hash.new(0)
 
-      @clients = exits_from_homelessness.
-        ended_between(start_date: @range.start, end_date: @range.end + 1.day).
+      @clients = exits_from_homelessness
+      if params[:ph]
+        @clients = @clients.where(destination: HUD.permanent_destinations)
+      end
+      @clients = @clients.ended_between(start_date: @range.start, end_date: @range.end + 1.day).
         order(date: :asc).
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          include_exit = true
-          include_exit = HUD.permanent_destinations.include?(row[:destination]) if params[:ph].present?
-          row[:include] = include_exit
-          row[:destination] = 99 unless HUD.valid_destinations.keys.include?(row[:destination]) if include_exit
-          @buckets[row[:destination]] += 1 if include_exit
+          destination = row[:destination]
+          destination = 99 unless HUD.valid_destinations.keys.include?(row[:destination])
+          @buckets[destination] += 1
         end
-      if params[:ph].present?
-        @clients.select!{|m| m[:include]}
-      end
     end
 
-     def exits_from_homelessness
-      GrdaWarehouse::ServiceHistory.exit.
+    def exits_from_homelessness
+      service_history_source.exit.
         joins(:client).
         where(
-          project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         ).
         where(client_id: client_source)
     end
@@ -57,16 +55,8 @@ module WarehouseReports::VeteranDetails
       GrdaWarehouse::Hud::Client.destination.veteran
     end
 
-    def sh_t
-      GrdaWarehouse::ServiceHistory.arel_table
-    end
-
-    def c_t
-      GrdaWarehouse::Hud::Client.arel_table
-    end
-
-    def p_t
-      GrdaWarehouse::Hud::Project.arel_table
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
     end
   end
 end

@@ -208,7 +208,7 @@ module EtoApi::Tasks
         answers[:sections] << section if section.present?
         staff = @api.staff(site_id: site_id, id: response['AuditStaffID'])
         hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
-        hmis_form.collected_at = @api.parse_date(response['AuditDate'])
+        hmis_form.collected_at = @api.parse_date(response['ResponseCreatedDate'])
         hmis_form.name = assessment_name
         hmis_form.collection_location = @api.program(site_id: site_id, id: program_id)
         hmis_form.response = response

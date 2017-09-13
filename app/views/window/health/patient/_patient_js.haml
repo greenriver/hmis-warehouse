@@ -12,6 +12,8 @@
       $utilization.load($utilization.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jUtilization .datatable'));
         }
       });
 
@@ -19,6 +21,8 @@
       $appointments.load($appointments.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jAppointments .datatable'));
         }
       });
 
@@ -26,6 +30,8 @@
       $problems.load($problems.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jProblems .datatable'));
         }
       });
 
@@ -33,6 +39,17 @@
       $medications.load($medications.data('path'), function(response, status, xhr) {
         if (status == 'error') {
           error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jMedications .datatable'));
         }
       });
     })(jQuery);
+
+    var add_data_table = function(element) {
+      $(element).DataTable({
+        ordering: false,
+        pageLength: 15,
+        lengthChange: false,
+        pagingType: 'simple'
+      });
+    };

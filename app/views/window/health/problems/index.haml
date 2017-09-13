@@ -11,3 +11,13 @@
       = render 'problems_table', problems: @problems
     - else
       %p No problems.
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 15,
+      lengthChange: false,
+      pagingType: 'simple'
+    });

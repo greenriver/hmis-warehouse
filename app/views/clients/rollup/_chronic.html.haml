@@ -1,14 +1,15 @@
-.jChronic-chart
-  .jLoading Loading
+- if @client.processed_service_history.present? && @client.ever_chronic?
+  .jChronic-chart
+    .jLoading Loading
 
-:javascript
-  $(document).ready(function() {
-    chart = new App.ChartsScatterByDate.ChronicForClient(
-      $('.jChronic-chart'), 
-      '#{chronic_days_client_path(@client)}'
-    );
-    chart.load();
-  });
+  :javascript
+    $(document).ready(function() {
+      chart = new App.ChartsScatterByDate.ChronicForClient(
+        $('.jChronic-chart'), 
+        '#{chronic_days_client_path(@client)}'
+      );
+      chart.load();
+    });
   
 %table.table.table-striped.margin-top-03
   %tbody
@@ -25,5 +26,10 @@
     %tr
       %td= 'Homeless episodes in the last 3 years'
       %td= @client.homeless_episodes_since(date: 3.years.ago.to_date)
+    %tr
+      %td 
+        Days homeless in the last 3 years
+        %span.icon-info{data: { toggle: 'tooltip', title: "Using the chronic calculator algorithm for #{Date.today}" } }
+      %td= @client.homeless_dates_for_chronic_in_past_three_years.count
         
         

@@ -24,3 +24,40 @@ th[class^="sort-"] {
 .table-responsive span[class*="icon-"] {
   font-size: rem(12);
 }
+
+// DataTables
+ul.pagination
+{
+  margin: 0;
+}
+.dataTables_filter
+{
+  font-size: 0.8rem;
+  input {
+    width: 8em;
+    margin-left: 1em;
+  }
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button
+{
+  padding: 0;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:active,
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover
+{
+  background-color: transparent;
+  background: linear-gradient(to bottom, transparent 0%, transparent 100%);
+  box-shadow: inset 0 0 3px #transparent;
+  border: 1px solid transparent; 
+  background-color: transparent; 
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, transparent), color-stop(100%, transparent));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, transparent 0%, transparent 100%); 
+  /* Chrome10+,Safari5.1+ */
+  /* FF3.6+ */
+  /* IE10+ */
+  /* Opera 11.10+ */
+   background: linear-gradient(to bottom, transparent 0%, transparent 100%); 
+  /* W3C */
+  box-shadow: inset 0 0 3px transparent;
+}
