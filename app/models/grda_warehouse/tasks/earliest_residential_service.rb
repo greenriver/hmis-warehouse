@@ -3,6 +3,7 @@ module GrdaWarehouse::Tasks
   # for accelerating queries asking for clients who entered homelessness within a particular date range
   class EarliestResidentialService
     include TsqlImport
+    include ArelHelper
     
     def initialize(replace_all=false)
       @replace_all = replace_all.present?
@@ -49,20 +50,20 @@ module GrdaWarehouse::Tasks
       history_by_client_id = history.group_by(&:client_id)
       history_by_household = history.group_by{|row| [row.date, row.project_id, row.household_id]}
 
-      values = history_by_client_id.values.map(&:first).map do |id, date, age, data_source_id, last_date_in_program, enrollment_group_id, project_id, organization_id, household_id, project_name, project_type, project_tracking_method, service_type|
+      values = history_by_client_id.values.map(&:first).map do |row|
          # Fix the column type, select_rows now returns all strings
         date = service_history_source.column_types['date'].type_cast_from_database(row.date)
         last_date_in_program = service_history_source.column_types['last_date_in_program'].type_cast_from_database(row.last_date_in_program)
         age = service_history_source.column_types['age'].type_cast_from_database(row.age)
         project_tracking_method = service_history_source.column_types['project_tracking_method'].type_cast_from_database(row.project_tracking_method)
-        presented_as_individual = if household_id.blank?
+        presented_as_individual = if row.household_id.blank?
           true
         else
           key = [row.date, row.project_id, row.household_id]
-          history_by_household[key].count > 1
+          history_by_household[key].count == 1
         end
         {
-          client_id: row.id.to_i,
+          client_id: row.client_id.to_i,
           date: date,
           first_date_in_program: date,
           last_date_in_program: last_date_in_program,
@@ -81,7 +82,6 @@ module GrdaWarehouse::Tasks
           presented_as_individual: presented_as_individual,
         }
       end
-
       if values.empty?
         Rails.logger.info 'No records to update'
       else
@@ -95,19 +95,19 @@ module GrdaWarehouse::Tasks
 
     def columns
       {
-        client_id: ht[:client_id], 
-        date: ht[:date], 
-        age: ht[:age], 
-        data_source_id: ht[:data_source_id], 
-        last_date_in_program: ht[:last_date_in_program],
-        enrollment_group_id: ht[:enrollment_group_id],
-        project_id: ht[:project_id],
-        organization_id: ht[:organization_id],
-        household_id: ht[:household_id],
-        project_name: ht[:project_name],
-        project_type: ht[service_history_source.project_type_column],
-        project_tracking_method: ht[:project_tracking_method],
-        service_type: ht[:service_type]
+        client_id: sh_t[:client_id], 
+        date: sh_t[:date], 
+        age: sh_t[:age], 
+        data_source_id: sh_t[:data_source_id], 
+        last_date_in_program: sh_t[:last_date_in_program],
+        enrollment_group_id: sh_t[:enrollment_group_id],
+        project_id: sh_t[:project_id],
+        organization_id: sh_t[:organization_id],
+        household_id: sh_t[:household_id],
+        project_name: sh_t[:project_name],
+        project_type: sh_t[service_history_source.project_type_column],
+        project_tracking_method: sh_t[:project_tracking_method],
+        service_type: sh_t[:service_type]
       }
     end
 
