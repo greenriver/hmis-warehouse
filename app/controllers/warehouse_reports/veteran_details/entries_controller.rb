@@ -5,7 +5,7 @@ module WarehouseReports::VeteranDetails
     before_action :require_can_view_reports!
     before_action :require_can_view_clients!
 
-    CACHE_EXPIRY = if Rails.env.production? then 8.hours else 2.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
@@ -20,13 +20,13 @@ module WarehouseReports::VeteranDetails
       end
 
       @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: @enrollments_by_type)
-
+      
       @entries_in_range_by_type = entries_in_range_from_enrollments(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
 
       @client_entry_totals_by_type = client_totals_from_enrollments(enrollments: @entries_in_range_by_type)
       
       @buckets = bucket_clients(entries: @entries_in_range_by_type)
-      @data = setup_data_structure(start_date: @start_date)     
+      @data = setup_data_structure(start_date: @start_date)
     end
 
     def client_source

@@ -12,7 +12,11 @@
 .row
   .col-sm-12
     %p
-      Clients with at least one day of service between
+      The following
+      = @enrollments.count
+      clients with
+      = @enrollments.values.flatten(1).count
+      enrollments, have at least one day of service between
       = @start_date
       and
       = "#{@end_date}."

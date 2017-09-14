@@ -30,5 +30,9 @@ module Dashboards
     def client_source
       GrdaWarehouse::Hud::Client.destination.veteran
     end
+
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
   end
 end

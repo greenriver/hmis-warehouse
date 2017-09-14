@@ -12,7 +12,8 @@
 .row
   .col-sm-12
     %p
-      Entries in 
+      = @buckets.values.map(&:values).flatten.map(&:keys).flatten.count
+      Clients have entries in 
       = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[@project_type_code]
       between
       = @start_date

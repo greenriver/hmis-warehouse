@@ -7,6 +7,13 @@ class App.Dashboards.Veterans.Exits
     Chart.defaults.global.elements.rectangle.borderColor = '#45789C'
     Chart.defaults.global.elements.rectangle.borderWidth = 1
 
+    Chart.Tooltip.positioners.custom = (elements, position) ->
+      if !elements.length
+        return false
+      {
+        x: position.x
+        y: elements[0]._chart.chartArea.bottom
+      }
     data = 
       labels: (v for k, v of @labels),
       datasets: (v for k, v of @data),
@@ -29,7 +36,7 @@ class App.Dashboards.Veterans.Exits
           position: 'right'
         tooltips:
           mode: 'index'
-          position: 'nearest'
+          position: 'custom'
           callbacks:
             label: (tooltipItem, data) ->
               text = data.datasets[tooltipItem.datasetIndex].label
@@ -45,7 +52,7 @@ class App.Dashboards.Veterans.Exits
                 text + " :" + value
               else # .. else, you display the dataset and the total, using an array
                 [text + " :" + value, "Total : " + total]
-
+          
   _follow_link: (event) =>
     if target = @exits_chart.getElementAtEvent(event)[0]
       # console.log(target)

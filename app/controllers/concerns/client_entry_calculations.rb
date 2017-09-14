@@ -92,7 +92,10 @@ module ClientEntryCalculations
       enrollments_by_type = homeless_service_history_source.entry.
         joins(:client).
         where(client_id: 
-          homeless_service_history_source.service_within_date_range(start_date: start_date, end_date: end_date + 1.day).select(:client_id)
+          homeless_service_history_source.
+          where(record_type: [:service, :entry]). # this catches the situation where we have an open enrollment but no service and the enrollment opens within the date
+          where(sh_t[:date].gteq(start_date).and(sh_t[:date].lteq(end_date))).
+          select(:client_id)
         ).
         order(date: :asc).
         pluck(*entered_columns.values).
