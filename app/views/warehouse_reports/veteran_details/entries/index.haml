@@ -41,6 +41,8 @@
                 Project Type
               %th
                 Project
+              %th
+                Organization
           %tbody
             - clients.each do |client_id, enrollments|
               - meta = enrollments.first
@@ -60,5 +62,7 @@
                     = HUD.project_type(enrollment[:project_type])
                   %td
                     = enrollment[:project_name]
+                  %td
+                    = enrollment[:organization_name]
                   
             

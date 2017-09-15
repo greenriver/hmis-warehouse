@@ -14,6 +14,7 @@ module ClientEntryCalculations
         project_name: sh_t[:project_name].as('project_name').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
+        organization_name: o_t[:OrganizationName].as('organization_name').to_sql,
       }
     end
      
@@ -90,7 +91,7 @@ module ClientEntryCalculations
     # all enrollments for clients who were active during the date range
     def entered_enrollments_by_type start_date:, end_date:
       enrollments_by_type = homeless_service_history_source.entry.
-        joins(:client).
+        joins(:client, :organization).
         where(client_id: 
           homeless_service_history_source.
           where(record_type: [:service, :entry]). # this catches the situation where we have an open enrollment but no service and the enrollment opens within the date

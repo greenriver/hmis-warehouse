@@ -13,7 +13,7 @@ module WarehouseReports
           joins(:first_service_history).
           preload(:first_service_history, first_service_history: [:organization, :project], source_clients: :data_source).
           entered_in_range(@range.range).
-          select( :id, :FirstName, :LastName, sh_t[:date] ).
+          select( :id, :FirstName, :LastName, sh_t[:date], :VeteranStatus ).
           order( sh_t[:date], :LastName, :FirstName )
         @project_types = params.try(:[], :first_time_homeless).try(:[], :project_types) || []
         @project_types.reject!(&:empty?)
@@ -27,6 +27,8 @@ module WarehouseReports
           @clients = @clients.where(warehouse_client_service_history: {presented_as_individual: true})
         when 'family-only'
           @clients = @clients.where(warehouse_client_service_history: {presented_as_individual: false})
+        when 'veterans'
+          @clients = @clients.where(VeteranStatus: 1)
         end
       else
         @clients = @clients.none
@@ -63,6 +65,8 @@ module WarehouseReports
         @counts = @counts.where(presented_as_individual: true)
       when 'family-only'
         @counts = @counts.where(presented_as_individual: false)
+      when 'veterans'
+        @counts = @counts.joins(:client).where(c_t[:VeteranStatus].eq(1))
       end
       @counts = @counts.
         order(date: :asc).
