@@ -520,12 +520,14 @@ module GrdaWarehouse::Hud
       return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
+        image_data = nil
         if Rails.env.production?
           api ||= EtoApi::Base.new.tap{|api| api.connect}
-          api.client_image(
+          image_data = api.client_image(
             client_id: api_id.id_in_data_source, 
             site_id: api_id.site_id_in_data_source
           ) rescue nil
+          (image_data && image_data.length > 0)
         else
           if [0,1].include?(self[:Gender])
             num = id % 99
@@ -535,9 +537,10 @@ module GrdaWarehouse::Hud
               'women'
             end
             response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-            response.body
+            image_data = response.body
           end
         end
+        image_data
       end
     end
 
