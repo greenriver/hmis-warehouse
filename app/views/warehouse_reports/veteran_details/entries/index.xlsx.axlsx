@@ -9,6 +9,7 @@ wb.add_worksheet(name: "Veteran Entry Detail") do |sheet|
     'Entry Date',
     'Exit Date',
     'Project',
+    'Organization',
     'Project Type',
   ], :style => title)
   @entries_in_range_by_type.each do |project_type, clients|
@@ -21,6 +22,7 @@ wb.add_worksheet(name: "Veteran Entry Detail") do |sheet|
           enrollment[:first_date_in_program],
           enrollment[:last_date_in_program],
           enrollment[:project_name],
+          enrollment[:organization_name],
           HUD.project_type(enrollment[:project_type]),
         ] 
         sheet.add_row(row)

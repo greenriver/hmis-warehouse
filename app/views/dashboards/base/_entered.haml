@@ -36,6 +36,7 @@
           clients appeared for the first time in one of the project types above. Of those 
           = "#{@first_time_total_deduplicated}," 
           %strong
-            = @first_time_ever
+            = link_to warehouse_reports_first_time_homeless_index_path(first_time_homeless: {start: @start_date, end: @end_date, cohort: :veterans, project_types: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES}) do
+              = @first_time_ever
           had no prior record of any type in the system.
         
