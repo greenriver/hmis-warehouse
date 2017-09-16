@@ -36,6 +36,10 @@ module Import::HMISFiveOne::Shared
       existing.blank?
     end
 
+    def should_restore? row:, existing:
+      row['DateUpdated'] == existing.updated_at
+    end
+
     def needs_update? row:, existing:
       row['DateUpdated'] > existing.updated_at
     end
@@ -47,6 +51,75 @@ module Import::HMISFiveOne::Shared
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
           update_all(DateDeleted: Time.now)
       end
+    end
+
+    # Load up HUD Key and DateUpdated for existing in same data source
+    # Loop over incoming, see if the key is there with a newer DateUpdated
+    # Update if newer, create if it isn't there, otherwise do nothing
+      def import_project_related!(data_source_id:, file_path:)
+        stats = {
+          lines_added: 0, 
+          lines_updated: 0, 
+        }
+        to_add = []
+        existing_items = self.where(data_source_id: data_source_id).
+          pluck(self.hud_key, :DateUpdated, :id).map do |key, updated_at, id|
+            [key, OpenStruct.new({updated_at: updated_at, id: id})]
+          end.to_h
+  
+        CSV.read(
+          "#{file_path}/#{data_source_id}/#{file_name}", 
+          headers: true
+        ).each do |row|
+          existing = existing_items[row[self.hud_key.to_s]]
+          if should_add?(existing) 
+            to_add << clean_row_for_import(row).merge({data_source_id: data_source_id})
+          elsif needs_update?(row: row, existing: existing) 
+            hud_fields = clean_row_for_import(row)
+            self.where(id: existing.id).update_all(hud_fields)
+            stats[:lines_updated] += 1
+          end
+        end
+        headers = hud_csv_headers + [:data_source_id]
+        self.new.insert_batch(self, headers, to_add.map(&:values))
+        stats[:lines_added] = to_add.size
+        stats
+      end
+
+    def import_enrollment_related!(data_source_id:, file_path:)
+      stats = {
+        lines_added: 0, 
+        lines_updated: 0, 
+      }
+      to_add = []
+      to_restore = []
+      existing_items = self.with_deleted.where(data_source_id: data_source_id).
+        pluck(self.hud_key, :DateUpdated, :id).map do |key, updated_at, id|
+          [key, OpenStruct.new({updated_at: updated_at, id: id})]
+        end.to_h
+
+      CSV.read(
+        "#{file_path}/#{data_source_id}/#{file_name}", 
+        headers: true
+      ).each do |row|
+        existing = existing_items[row[self.hud_key.to_s]]
+        if should_add?(existing) 
+          to_add << clean_row_for_import(row).merge({data_source_id: data_source_id})
+        elsif should_restore?(row: row, existing: existing)
+          to_restore << existing.id
+        elsif needs_update?(row: row, existing: existing)
+          hud_fields = clean_row_for_import(row)
+          self.where(id: existing.id).update_all(hud_fields)
+          stats[:lines_updated] += 1
+        end
+      end
+      headers = hud_csv_headers + [:data_source_id]
+      to_restore.each_slice(1000) do |ids|
+        self.where(id: ids).update_all(DateDeleted: nil)
+      end
+      self.new.insert_batch(self, headers, to_add.map(&:values))
+      stats[:lines_added] = to_add.size
+      stats
     end
 
     def hud_csv_headers
