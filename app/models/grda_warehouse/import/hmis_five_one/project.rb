@@ -21,13 +21,15 @@ module GrdaWarehouse::Import::HMISFiveOne
         :ExportID
       ]
     )
+
+    attr_accessor :existing
+    self.hud_key = :ProjectID
     
     def import!
-      look_for_existing()
       return if existing_is_newer()
-      if @existing.present?
+      if existing.present?
         # update any of the hud values coming from the import
-        @existing.update_attributes(attributes.slice(*hud_csv_headers.map(&:to_s)))
+        self.class.where(id: existing.id).update_all(attributes.slice(*hud_csv_headers.map(&:to_s)))
       else
         save
       end
@@ -36,8 +38,7 @@ module GrdaWarehouse::Import::HMISFiveOne
     # Determine if the project type has changed and update
     # any service history records involving this project
     def update_changed_project_types
-      look_for_existing()
-      return if @existing.blank?
+      return if existing.blank?
       return if project_type_unchanged()
       return if existing_is_newer()
       log("Updating Service Histories for #{project_name}, project type has changed")
@@ -55,26 +56,28 @@ module GrdaWarehouse::Import::HMISFiveOne
     end
 
     def existing_is_newer
-      look_for_existing()
-      @existing.date_updated > date_updated
+      existing.present? && existing.updated_at >= date_updated
     end
 
     def project_type_unchanged
-      look_for_existing()
-      @existing.project_type == project_type
-    end
-
-    def look_for_existing
-      @existing ||= self.class.find_by(ProjectID: project_id, data_source_id: data_source_id)
+      existing.project_type == project_type
     end
     
     def self.load_from_csv(file_path: , data_source_id: )
+      existing_projects = self.where(data_source_id: data_source_id).pluck(self.hud_key, :DateUpdated, :ProjectType, :id).map do |key, updated_at, project_type, id|
+        [key, {updated_at: updated_at, project_type: project_type, id: id}]
+      end.to_h
       [].tap do |m|
         CSV.read(
           "#{file_path}/#{data_source_id}/#{file_name}", 
           headers: true
         ).each do |row|
-          m << new(row.to_h.merge({file_path: file_path, data_source_id: data_source_id}))
+          extra = {
+            file_path: file_path, 
+            data_source_id: data_source_id,
+            existing: OpenStruct.new(existing_projects[row[self.hud_key.to_s]]),
+          }
+          m << new(row.to_h.merge(extra))
         end
       end
     end

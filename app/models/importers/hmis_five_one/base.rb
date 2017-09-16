@@ -54,6 +54,9 @@ module Importers::HMISFiveOne
     end
 
     def import_organizations
+      # Maybe load up HUD Key and DateUpdated for existing in same data source
+      # Loop over incoming, see if the key is there with a newer DateUpdated
+      # Update if newer, create if it isn't there, otherwise do nothing
     end
 
     def import_inventories
@@ -105,38 +108,50 @@ module Importers::HMISFiveOne
         source_file_path = "#{@file_path}/#{@data_source.id}/#{file_name}"
         next unless File.file?(source_file_path)
         destination_file_path = "#{source_file_path}_updating"
-        destination_file = File.new(destination_file_path, 'w')
-        csv = CSV.new(destination_file)
         file = open_csv_file(source_file_path)
-        clean_source_file(write_to: destination_file, read_from: file, klass: klass)
+        clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
         FileUtils.mv(destination_file_path, source_file_path)
       end
     end
 
-    def clean_source_file write_to:, read_from:, klass:
+    def clean_source_file destination_path:, read_from:, klass:
       header_row = read_from.readline
       comma_count = nil
       if header_valid?(header_row, klass)
         comma_count = header_row.count(',')
-        write_to << header_row
+        header = CSV.parse(header_row).first
+        write_to = CSV.open(
+          destination_path, 
+          'wb', 
+          headers: header, 
+          write_headers: true,
+          force_quotes: true
+          )
       else
-        @import.import_errors[File.basename(read_from.path)] ||= []
-        @import.import_errors[File.basename(read_from.path)] << "Unable to import #{File.basename(read_from.path)}, header invalid"
+        msg = "Unable to import #{File.basename(read_from.path)}, header invalid"
+        add_error(file_path: read_from.path, message: msg)
         return
       end
-      read_from.each_line.drop(1) do |line|
-        if short_line?(line, comma_count)
+      read_from.each_line do |line|
+        while short_line?(line, comma_count)
           logger.warn "Found a short line in #{read_from.path}"
+          line = line.gsub(/[\r\n]*/, '')
           read_from.seek(+1, IO::SEEK_CUR)
-          line += read_from.readline
-          row = CSV.parse(line)
-          puts row.inspect
+          next_line = read_from.readline
+          line += next_line
+          if long_line?(line, comma_count)
+            bad_line = line.gsub(next_line, '')
+            msg = "Unable to fix a line, not importing: #{bad_line}"
+            add_error(file_path: read_from.path, message: msg)
+            line = '"' + next_line
+          end
         end
+        row = CSV.parse_line(line, headers: header)
         row = set_useful_export_id(row: row, export_id: export_id_addition)
-        puts row.inspect
         write_to << row
+        log_processed_line(file_path: read_from.path)
       end
-      binding.pry
+      write_to.close
     end
 
     def header_valid?(line, klass)
@@ -147,6 +162,10 @@ module Importers::HMISFiveOne
       line.count(',') < comma_count
     end
 
+    def long_line?(line, comma_count)
+      line.count(',') > comma_count
+    end
+
     def export_id_addition
       @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
@@ -155,6 +174,7 @@ module Importers::HMISFiveOne
     # reflects the start date of the export
     def set_useful_export_id(row:, export_id:)
       row['ExportID'] = "#{row['ExportID']}_#{export_id_addition}"
+      row
     end
 
     def open_csv_file(file_path)
@@ -166,7 +186,7 @@ module Importers::HMISFiveOne
       log("Processing #{file_lines} lines in: #{file_path}")
 
       @import.summary[File.basename(file_path)] = {
-        total_lines: -1, 
+        total_lines: -1,
         lines_added: 0, 
         lines_updated: 0, 
         total_errors: 0
@@ -176,23 +196,23 @@ module Importers::HMISFiveOne
 
     def importable_files
       {
-        # 'Affiliation.csv' => GrdaWarehouse::Import::HMISFiveOne::Affiliation,
+        'Affiliation.csv' => GrdaWarehouse::Import::HMISFiveOne::Affiliation,
         'Client.csv' => GrdaWarehouse::Import::HMISFiveOne::Client,
-        # 'Disabilities.csv' => GrdaWarehouse::Import::HMISFiveOne::Disability,
-        # 'EmploymentEducation.csv' => GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation,
-        # 'Enrollment.csv' => GrdaWarehouse::Import::HMISFiveOne::Enrollment,
-        # 'EnrollmentCoC.csv' => GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc,
-        # 'Exit.csv' => GrdaWarehouse::Import::HMISFiveOne::Exit,
+        'Disabilities.csv' => GrdaWarehouse::Import::HMISFiveOne::Disability,
+        'EmploymentEducation.csv' => GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation,
+        'Enrollment.csv' => GrdaWarehouse::Import::HMISFiveOne::Enrollment,
+        'EnrollmentCoC.csv' => GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc,
+        'Exit.csv' => GrdaWarehouse::Import::HMISFiveOne::Exit,
         'Export.csv' => GrdaWarehouse::Import::HMISFiveOne::Export,
-        # 'Funder.csv' => GrdaWarehouse::Import::HMISFiveOne::Funder,
-        # 'HealthAndDV.csv' => GrdaWarehouse::Import::HMISFiveOne::HealthAndDv,
-        # 'IncomeBenefits.csv' => GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit,
-        # 'Inventory.csv' => GrdaWarehouse::Import::HMISFiveOne::Inventory,
-        # 'Organization.csv' => GrdaWarehouse::Import::HMISFiveOne::Organization,
+        'Funder.csv' => GrdaWarehouse::Import::HMISFiveOne::Funder,
+        'HealthAndDV.csv' => GrdaWarehouse::Import::HMISFiveOne::HealthAndDv,
+        'IncomeBenefits.csv' => GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit,
+        'Inventory.csv' => GrdaWarehouse::Import::HMISFiveOne::Inventory,
+        'Organization.csv' => GrdaWarehouse::Import::HMISFiveOne::Organization,
         'Project.csv' => GrdaWarehouse::Import::HMISFiveOne::Project,
-        # 'ProjectCoC.csv' => GrdaWarehouse::Import::HMISFiveOne::ProjectCoc,
-        # 'Services.csv' => GrdaWarehouse::Import::HMISFiveOne::Service,
-        # 'Site.csv' => GrdaWarehouse::Import::HMISFiveOne::Site
+        'ProjectCoC.csv' => GrdaWarehouse::Import::HMISFiveOne::ProjectCoc,
+        'Services.csv' => GrdaWarehouse::Import::HMISFiveOne::Service,
+        'Site.csv' => GrdaWarehouse::Import::HMISFiveOne::Site
       }.freeze
     end
 
@@ -204,9 +224,21 @@ module Importers::HMISFiveOne
       @import.import_errors = {}
     end
 
+    def log_processed_line file_path:
+      file = File.basename(file_path)
+      @import.summary[file][:total_lines] += 1
+    end
     def log(message)
       @notifier.ping message if @notifier
       logger.info message if @debug
+    end
+
+    def add_error(file_path:, message:)
+      file = File.basename(file_path)
+      @import.import_errors[file] ||= []
+      @import.import_errors[file] << message
+      @import.summary[file][:total_errors] += 1
+      log(message)
     end
   end
 end
