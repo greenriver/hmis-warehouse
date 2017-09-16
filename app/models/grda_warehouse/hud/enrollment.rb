@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Enrollment < Base
+    include ArelHelper
     self.table_name = 'Enrollment'
     self.hud_key = 'ProjectEntryID'
     acts_as_paranoid column: :DateDeleted
@@ -119,16 +120,16 @@ module GrdaWarehouse::Hud
     has_one :exit, foreign_key: ['ProjectEntryID', 'PersonalID', 'data_source_id'], primary_key: ['ProjectEntryID', 'PersonalID', 'data_source_id'], inverse_of: :enrollment
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: ['ProjectID', :data_source_id], primary_key: ['ProjectID', :data_source_id], inverse_of: :enrollments
     has_one :organization, through: :project
-    has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id], inverse_of: :enrollment
-    has_many :health_and_dvs, class_name: GrdaWarehouse::Hud::HealthAndDv.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id], inverse_of: :enrollment
-    has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id], inverse_of: :enrollment
+    has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :health_and_dvs, class_name: GrdaWarehouse::Hud::HealthAndDv.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
     has_many :services, class_name: GrdaWarehouse::Hud::Service.name, foreign_key: ['ProjectEntryID', 'data_source_id'], primary_key: ['ProjectEntryID', 'data_source_id'], inverse_of: :enrollment
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :enrollment
     has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, **hud_one(EnrollmentCoc)
-    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
-    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
-    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
-    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: ['ProjectEntryID',  :data_source_id], foreign_key: ['ProjectEntryID', :data_source_id]
+    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
     has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :enrollment
     belongs_to :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :enrollment_group_id, :project_id], foreign_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
 
@@ -162,6 +163,16 @@ module GrdaWarehouse::Hud
 
     scope :visible_in_window, -> do
       joins(:data_source).where(data_sources: {visible_in_window: true})
+    end
+
+    scope :open_during_range, -> (range) do
+      d_1_start = range.start
+      d_1_end = range.end
+      d_2_start = e_t[:EntryDate]
+      d_2_end = ex_t[:ExitDate]
+      # Currently does not count as an overlap if one starts on the end of the other
+      includes(:exit).references(:exit).
+      where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
     end
 
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze

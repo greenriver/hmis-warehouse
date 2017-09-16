@@ -88,9 +88,9 @@ module GrdaWarehouse::Hud
       ]
     end
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :income_benefits
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', primary_key: ['ProjectID',  :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :income_benefits
-    belongs_to :enrollment, **hud_belongs(Enrollment), inverse_of: :income_benefits
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :income_benefits
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', primary_key: [:ProjectID,  :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :income_benefits
+    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :income_benefits
     belongs_to :export, **hud_belongs(Export), inverse_of: :income_benefits
 
     scope :any_benefits, -> {

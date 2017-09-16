@@ -17,6 +17,10 @@ module GrdaWarehouse::Import::HMISFiveOne
     )
     
     self.hud_key = :OrganizationID
+
+    def self.file_name
+      'Organization.csv'
+    end
     
     # Load up HUD Key and DateUpdated for existing in same data source
     # Loop over incoming, see if the key is there with a newer DateUpdated
@@ -27,7 +31,7 @@ module GrdaWarehouse::Import::HMISFiveOne
         lines_updated: 0, 
       }
       to_add = []
-      existing_organizations = self.where(data_source_id: data_source_id).
+      existing_items = self.where(data_source_id: data_source_id).
         pluck(self.hud_key, :DateUpdated, :id).map do |key, updated_at, id|
           [key, OpenStruct.new({updated_at: updated_at, id: id})]
         end.to_h
@@ -36,16 +40,11 @@ module GrdaWarehouse::Import::HMISFiveOne
         "#{file_path}/#{data_source_id}/#{file_name}", 
         headers: true
       ).each do |row|
-        existing = existing_organizations[row[self.hud_key.to_s]]
+        existing = existing_items[row[self.hud_key.to_s]]
         if should_add?(existing) 
-          to_add << row.map do |k,v| 
-            [k, v.presence]
-          end.to_h.slice(*hud_csv_headers.map(&:to_s)).
-            merge({data_source_id: data_source_id})
+          to_add << clean_row_for_import(row).merge({data_source_id: data_source_id})
         elsif needs_update?(row: row, existing: existing) 
-          hud_fields = row.map do |k,v| 
-            [k, v.presence]
-          end.to_h.slice(*hud_csv_headers.map(&:to_s))
+          hud_fields = clean_row_for_import(row)
           self.where(id: existing.id).update_all(hud_fields)
           stats[:lines_updated] += 1
         end
@@ -54,18 +53,6 @@ module GrdaWarehouse::Import::HMISFiveOne
       self.new.insert_batch(self, headers, to_add.map(&:values))
       stats[:lines_added] = to_add.size
       stats
-    end
-
-    def self.should_add? existing
-      existing.blank?
-    end
-
-    def self.needs_update? row:, existing:
-      row['DateUpdated'] > existing.updated_at
-    end
-
-    def self.file_name
-      'Organization.csv'
     end
   end
 end

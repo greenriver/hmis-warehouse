@@ -26,14 +26,39 @@ module Import::HMISFiveOne::Shared
   end
 
   class_methods do
+    def clean_row_for_import(row)
+      row.map do |k,v| 
+        [k, v.presence]
+      end.to_h.slice(*hud_csv_headers.map(&:to_s))
+    end
+
+    def should_add? existing
+      existing.blank?
+    end
+
+    def needs_update? row:, existing:
+      row['DateUpdated'] > existing.updated_at
+    end
+
+    def delete_involved(projects:, range:, data_source_id:)
+      projects.each do |project|
+        self.joins(:project, :enrollment).
+          where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
+          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
+          update_all(DateDeleted: Time.now)
+      end
+    end
+
     def hud_csv_headers
       @hud_csv_headers
     end
+    
     def setup_hud_column_access(columns)
       @hud_csv_headers = columns
       columns.each do |column|
         alias_attribute(column.to_s.underscore.to_sym, column)
       end
     end
+
   end
 end

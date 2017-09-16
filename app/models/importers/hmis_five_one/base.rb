@@ -48,9 +48,26 @@ module Importers::HMISFiveOne
           import_project_cocs()
           import_sites()
           import_funders()
+          import_affiliations()
+          remove_enrollment_related_data()
         end
       end # end with_advisory_lock
       binding.pry
+    end
+
+    # This dump should be authoriative for any enrollment that was open during the 
+    # specified date range at any of the involved projexts
+    # Models this needs to handle
+    # Enrollment
+    # EnrollmentCoc
+    # Disability
+    # EmploymentEducation
+    # Exit
+    # HealthAndDv
+    # IncomeBenefit
+    # Services
+    def remove_enrollment_related_data
+      GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
     end
 
     def import_organizations
@@ -58,19 +75,32 @@ module Importers::HMISFiveOne
       # Loop over incoming, see if the key is there with a newer DateUpdated
       # Update if newer, create if it isn't there, otherwise do nothing
       klass = GrdaWarehouse::Import::HMISFiveOne::Organization
-      @import.summary[klass.file_name].merge klass.import!(data_source_id: @data_source.id, file_path: @file_path)
+      @import.summary[klass.file_name].merge! klass.import!(data_source_id: @data_source.id, file_path: @file_path)
     end
 
     def import_inventories
+      klass = GrdaWarehouse::Import::HMISFiveOne::Inventory
+      @import.summary[klass.file_name].merge! klass.import!(data_source_id: @data_source.id, file_path: @file_path)
     end
 
     def import_project_cocs
+      klass = GrdaWarehouse::Import::HMISFiveOne::ProjectCoc
+      @import.summary[klass.file_name].merge! klass.import!(data_source_id: @data_source.id, file_path: @file_path)
     end
 
     def import_sites
+      klass = GrdaWarehouse::Import::HMISFiveOne::Site
+      @import.summary[klass.file_name].merge! klass.import!(data_source_id: @data_source.id, file_path: @file_path)
     end
     
     def import_funders
+      klass = GrdaWarehouse::Import::HMISFiveOne::Funder
+      @import.summary[klass.file_name].merge! klass.import!(data_source_id: @data_source.id, file_path: @file_path)
+    end
+
+    def import_affiliations
+      klass = GrdaWarehouse::Import::HMISFiveOne::Affiliation
+      @import.summary[klass.file_name].merge! klass.import!(data_source_id: @data_source.id, file_path: @file_path)
     end
 
     def set_involved_projects

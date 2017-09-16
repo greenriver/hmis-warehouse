@@ -32,8 +32,8 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :disabilities
-    belongs_to :enrollment, **hud_belongs(Enrollment), inverse_of: :disabilities
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :disabilities
+    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :disabilities
     has_one :project, through: :enrollment
     belongs_to :export, **hud_belongs(Export), inverse_of: :disabilities
     has_one :destination_client, through: :client
