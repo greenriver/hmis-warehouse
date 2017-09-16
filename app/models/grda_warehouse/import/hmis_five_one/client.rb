@@ -22,6 +22,7 @@ module GrdaWarehouse::Import::HMISFiveOne
             :RaceNone,
             :Ethnicity,
             :Gender,
+            :OtherGender,
             :VeteranStatus,
             :YearEnteredService,
             :YearSeparated,

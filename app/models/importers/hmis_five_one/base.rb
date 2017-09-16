@@ -57,6 +57,8 @@ module Importers::HMISFiveOne
       # Maybe load up HUD Key and DateUpdated for existing in same data source
       # Loop over incoming, see if the key is there with a newer DateUpdated
       # Update if newer, create if it isn't there, otherwise do nothing
+      klass = GrdaWarehouse::Import::HMISFiveOne::Organization
+      @import.summary[klass.file_name].merge klass.import!(data_source_id: @data_source.id, file_path: @file_path)
     end
 
     def import_inventories
@@ -119,7 +121,7 @@ module Importers::HMISFiveOne
       comma_count = nil
       if header_valid?(header_row, klass)
         comma_count = header_row.count(',')
-        header = CSV.parse(header_row).first
+        header = CSV.parse_line(header_row)
         write_to = CSV.open(
           destination_path, 
           'wb', 
@@ -155,7 +157,8 @@ module Importers::HMISFiveOne
     end
 
     def header_valid?(line, klass)
-      CSV.parse(line)&.first&.map(&:to_sym) == klass.hud_csv_headers
+      # just make sure we don't have anything we don't know how to process
+      (CSV.parse_line(line)&.map(&:to_sym) - klass.hud_csv_headers).blank?
     end
 
     def short_line?(line, comma_count)
