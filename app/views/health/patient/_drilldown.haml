@@ -7,11 +7,11 @@
         
   .ho-chart__content
     .row
-      .ho-chart__section.col-xs-12
-        %h4 ED Visit Severity 
-        %small(NYU Alogithm)
-        .d3-drilldown__chart#drilldown__severity
-          TODO
+      -#
+        .ho-chart__section.col-xs-12
+          %h4 ED Visit Severity 
+          %small(NYU Alogithm)
+          .d3-drilldown__chart#drilldown__severity{data: {url: "/api/health/claims/patients/#{@patient.id}/ed_nyu_severity"}}
       .ho-chart__section.col-xs-12
         .d3-top__chart#top-ip-condition{data: {url: "/api/health/claims/patients/#{@patient.id}/top_ip_conditions", yattr: 'description', ylabel: 'of IP Cost', maintype: 'patient'}}
           %h4 Top Inpatient Conditions: Current Patient
@@ -22,4 +22,5 @@
       var ids = ['#top-ip-condition']
       var topBars = new App.D3Chart.TopBarCharts(ids, '#d3-top-legend__dd', true)
       topBars.draw()
+      
     })

@@ -124,45 +124,51 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     }
 
   _loadDomain: -> 
-    {
+    domain = {
       x: @claims.bars.map((claim) -> claim.date),
-      y: [0, d3.max(@claims.bars, (d) -> d.total)],
+      y: [0, d3.max(@claims.bars, (d) -> d.total)], 
       color: @keys,
     }
+    domain.year = {}
+    @claims.byYear.forEach((year) =>
+      months = d3.extent(year.values, (v) -> v.date)
+      domain.year[year.key] = months
+    )
+    domain
 
   _loadYearAxesCenter: (months) ->
     start = months[0]
     end = months[1]+@scale.x.bandwidth()
     start + ((end - start)/2)
 
-  _drawYearAxis: ->
+  _loadYearAxesPath: (year)->
     generateLine = d3.line()
-    scale = @scale
-    y = scale.y(0)
+    months = @domain.year[year.key].map((month) => @scale.x(month))
+    y = @scale.y(0)
+    x1 = (months[0]+(@scale.x.bandwidth()/2))
+    x2 = (months[1]+(@scale.x.bandwidth()/2))
+    y1 = y+25
+    y2 = y+35
+    d = generateLine([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])
+
+
+  _drawYearAxis: ->
+    y = @scale.y(0)
     center = @_loadYearAxesCenter.bind(@)
     yearAxis = @chart.append('g')
       .attr('class', 'year-axis')
     @claims.byYear.forEach((year) =>
-      months = d3.extent(
-        year.values.map((value) -> value.date)
-      ).map((month) ->
-        scale.x(month)
-      )
-      d = generateLine([
-        [months[0], y], 
-        [months[0], y+35],
-        [months[1]+scale.x.bandwidth(), y+35],
-        [months[1]+scale.x.bandwidth(), y]
-      ])
+      months = @domain.year[year.key].map((month) => @scale.x(month))
+      d = @_loadYearAxesPath(year)
       yearAxis.append('path')
         .attr('d', d)
         .attr('stroke-width', '1px')
-        .attr('stroke', '#000000')
+        .attr('stroke', '#CCCCCC')
         .attr('fill', 'none')
       yearAxis.append('text')
         .text(year.key)
         .attr('x', center(months))
-        .attr('y', y+55)
+        .attr('y', y+50)
         .attr('fill', '#000000')
         .attr('text-anchor', 'middle')
         .style('font-size', '10px')
@@ -172,13 +178,14 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     @chart.selectAll('g.x-axis text').remove()
     @chart.selectAll('g.x-axis .domain').remove()
     ticks = @chart.selectAll('g.x-axis g.tick')
+    that = @
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
       tickEle.append('circle')
         .attr('cy', 14)
         .attr('cx', 0)
-        .attr('r', 9)
+        .attr('r', (that.scale.x.bandwidth()/2))
         .attr('fill', '#f1f1f1')
       tickEle.append('text')
         .text(tick.getMonth()+1)

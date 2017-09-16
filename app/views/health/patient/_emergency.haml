@@ -1,0 +1,37 @@
+%h4 
+  ED Visit Severity 
+  %small (NYU Alogithm)
+.d3-drilldown__chart#drilldown__severity{data: {url: "/api/health/claims/patients/#{@patient.id}/ed_nyu_severity", legend: '#drilldown__severity-legend'}}
+#drilldown__severity-legend
+-#
+  .ho-chart__container
+    .ho-chart__header
+      .row
+        .col-xs-12
+          %h3 
+            Emergency
+    .ho-chart__content
+      .row
+        .ho-chart__section.col-xs-12
+          %h4 
+            ED Visit Severity 
+          %small (NYU Alogithm)
+          .d3-drilldown__chart#drilldown__severity{data: {url: "/api/health/claims/patients/#{@patient.id}/ed_nyu_severity"}}
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var severityId = '#drilldown__severity'
+      var severityUrl = $(severityId).data('url')
+      var attrs = {
+        margin: {top: 20, right: 36, bottom: 40, left: 36},
+        keys: ['Non-emerg', 'Emerg, PCP treat', 'Emerg, prev/ avoid', 'Emerg, not prev/ avoid*', 'Unclassified'],
+        colors: ['#FFC5C5', '#FF8989', '#FF3B3B', '#CC0000', '#D9D9D9'],
+        legend: $(severityId).data('legend')
+      }
+      $.get(severityUrl, function(data) {
+        var severity = new App.D3Chart.Severity(severityId, data, attrs)
+        severity.draw()
+      })
+      
+    })

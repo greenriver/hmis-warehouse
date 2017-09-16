@@ -7,7 +7,8 @@ module Api::Health::Claims::Patients
         sdh = {group: 'SDH Pilot'}
         scope.map do |row|
           individual[row.category] = row.indiv_pct
-          sdh[row.category] = row.indiv_pct
+          # sdh[row.category] = row.indiv_pct
+          sdh[row.category] = row.sdh_pct
         end
         [individual, sdh]
       end

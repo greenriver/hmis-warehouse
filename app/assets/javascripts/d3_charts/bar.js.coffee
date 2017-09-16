@@ -171,9 +171,6 @@ class App.D3Chart.TopBar
             .text((d) => @scale.yText(d))
  
   draw: () ->
-    @_drawKeyBars()
-    @_drawKeys()
-    @_drawBars()
     xAxis = @chart.append('div')
       .attr('class', 'x-axis')
     xAxis.append('span')
@@ -181,4 +178,7 @@ class App.D3Chart.TopBar
       .style('color', @scale.color(@mainType))
       .text(Math.ceil(@domain.x[1]*100)+'%')
     xAxis.append('span').text(@yLabel)
+    @_drawKeyBars()
+    @_drawKeys()
+    @_drawBars()
 

@@ -1,0 +1,92 @@
+.ho-compare__container
+  .ho-compare__header
+    .text-left
+      .ho-compare__key{style: 'color: #00549E; font-weight: bold;'}
+        %i.icon-user
+        = @patient.client.name
+      .ho-compare__key{style: 'color: #777777;'}
+        %i.icon-users
+        SDH Pilot
+  .row
+    .col-xs-12.col-md-8
+      %h4 Cost
+      %table.ho-compare__table-1
+        %tr
+          %td
+            .ho-compare
+              .ho-compare__label Total Cost
+              .ho-compare__content 
+                $61,123
+                .ho-compare__to
+                  $113,700
+              Variance: -46%
+          %td
+            .ho-compare
+              .ho-compare__label Months
+              .ho-compare__content 
+                12
+                .ho-compare__to
+                  11.5
+              Variance: 5%
+          %td
+            .ho-compare
+              .ho-compare__label Cost PMPM
+              .ho-compare__content 
+                $5,103
+                .ho-compare__to
+                  $9,920
+              Variance: -49%
+      %h4 Key Metrics
+      %div{style: 'padding: 0px 10px;'}
+        %table.ho-compare__table-2
+          %tr
+            %th Normalized Risk
+            %th 
+              .ho-compare__th-marker.ed-visits
+              ED Visits 
+              %small (past 6 months)
+            %th 
+              .ho-compare__th-marker.ip-admits
+              IP Admits 
+              %small (past 6 months)
+            %th 
+              .ho-compare__th-marker.readmit
+              Average Days to Readmit
+          %tr.ho-compare__current-patient
+            %td 
+              1.6
+            %td 
+              4
+            %td 
+              0
+            %td 
+              N/A
+          %tr.ho-compare__pilot-average
+            %td 
+              3.5
+            %td 
+              4
+            %td 
+              1
+            %td 
+              28
+          %tr.ho-compare__label-row
+            %td{colspan: 4} Variance
+          %tr.ho-compare__variance
+            %td -54%
+            %td -9%
+            %td -100%
+            %td N/A 
+      .ho-compare__hints
+        .ho-compare__hint
+          .ho-compare__marker.ed-visits
+          %small ED Visits that did not result in IP Admissions
+        .ho-compare__hint
+          .ho-compare__marker.ip-admits
+          %small Acute IP Admissions only (i.e. no SNF/Rehab/Respite/Psych)
+        .ho-compare__hint
+          .ho-compare__marker.readmit
+          %small For readmits, average only for those who had at least two admissions
+    .col-xs-12.col-md-4.ho-compare__fc
+      = render 'emergency'
+

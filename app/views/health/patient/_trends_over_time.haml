@@ -10,10 +10,10 @@
   .ho-chart__content
     .row  
       .ho-chart__section.col-xs-12.col-md-6
-        %h4 Amount Paid by Location and Month
+        %h4.text-center Amount Paid by Location and Month
         .d3-claims__chart#claims__amount-paid{data: {url: "/api/health/claims/patients/#{@patient.id}/amount_paid"}}
       .ho-chart__section.col-xs-12.col-md-6
-        %h4 Claims Volume by Location and Month
+        %h4.text-center Claims Volume by Location and Month
         .d3-claims__chart#claims__volume{data: {url: "/api/health/claims/patients/#{@patient.id}/claims_volume"}}
 
 - content_for :page_js do

@@ -1,5 +1,238 @@
 $ho-padding: 10px;
+$ho-color-0: #0C2639;
+
+// greys
 $ho-color-1: #f1f1f1;
+$ho-color-2: #d2d2d2;
+$ho-color-3: #777777;
+
+$ho-current-patient: #00549E;
+
+// Patient Summary
+.ho-patient__container {
+  border: 2px solid $ho-color-2;
+  padding: $ho-padding;
+}
+.ho-patient__name {
+  margin-top: 0px;
+  border-bottom: 1px solid $ho-color-2;
+  padding: 5px 0px;
+  color: $ho-current-patient;
+  span {
+    vertical-align: middle;
+  }
+  i {
+    font-size: 150%;
+    // color: $ho-color-3;
+  }
+}
+.ho-patient__details {
+  display: inline-block;
+  background-color: $ho-color-1;
+  padding-right: 4px;
+  margin-right: $ho-padding;
+  margin-bottom: $ho-padding;
+  border-radius: 2px;
+  span {
+    padding: 0px 4px;
+    @include open-sans-condensed-bold;
+    color: $ho-color-3;
+  }
+}
+.ho-patient__content {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  tr:first-child td {
+    border-top: 2px solid $ho-color-1;
+  }
+  td {
+    padding: 4px $ho-padding;
+    font-weight: bold;
+    vertical-align: top;
+    border-bottom: 2px solid $ho-color-1;
+  }
+  td small {
+    font-weight: normal;
+    text-transform: uppercase;
+  }
+}
+
+// Cost and Key Metrics tables
+.ho-compare__container {
+  margin-top: 40px;
+  // border: 2px solid $ho-color-2;
+  padding: $ho-padding;
+  background-color: rgba(241, 241, 241, 0.4);
+}
+
+.ho-compare__fc {
+  border-left: 1px solid $ho-color-2;
+  @media(max-width: $screen-sm-max) {
+    border-left: none;
+    margin-top: 20px;
+  }
+}
+
+.ho-compare__header {
+  border-bottom: 1px solid $ho-color-2;
+  margin-bottom: 10px;
+  h3 {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-bottom: 5px;
+  }
+}
+
+.ho-compare {
+  padding: $ho-padding;
+  text-align: center;
+  background-color: $ho-color-1;
+  margin-bottom: 10px;
+}
+
+.ho-compare__content {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00549E;
+}
+
+.ho-compare__to {
+  border-top: 1px solid $ho-color-2;
+  font-weight: normal;
+  font-size: 22px;
+  color: #777777;
+  span {
+    padding-top: 5px;
+    display: block;
+    font-size: 16px;
+    @include open-sans-condensed-bold;
+  }
+}
+
+.ho-compare__table-1 {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 10px 0px;
+}
+
+.ho-compare__table-2 {
+  width: 100%;
+  table-layout: fixed;
+  padding: 0px 10px;
+  th, td {
+    text-align: center;
+    border-bottom: 1px solid $ho-color-2;
+  }
+  th {
+    font-weight: normal;
+    background-color: $ho-color-1;
+    position: relative;
+    small {
+      display: block;
+    }
+  }
+  td {
+    border-bottom: 1px solid $ho-color-2;
+  }
+}
+
+.ho-compare__label-row td {
+  font-size: 12px;
+  border-bottom: none;
+  background-color: $ho-color-1;
+}
+
+.ho-compare__variance td {
+  background-color: $ho-color-1;
+}
+
+.ho-compare__current-patient td {
+  font-size: 22px;
+  font-weight: bold;
+  background-color: darken(#FFFFFF, 1%);
+  color: #00549E;
+}
+
+.ho-compare__pilot-average td {
+  font-size: 22px;
+  background-color: darken(#FFFFFF, 1%);
+  color: #777777;
+}
+
+.ho-compare__th-marker,
+.ho-compare__marker {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.ho-compare__th-marker {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  margin-left: -4px;
+}
+
+.ho-compare__hints {
+  margin-top: 20px;
+}
+
+.ed-visits {
+  background-color: #48F04a;
+}
+
+.ip-admits {
+  background-color: #36B337;
+}
+
+.readmit {
+  background-color: #007101;
+}
+
+.ho-compare__swatch {
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.ho-compare__swatch-text {
+  display: inline-block;
+}
+
+.ho-compare__key {
+  display: inline-block;
+  margin-bottom: 5px;
+  @media(max-width: $screen-xs-max) {
+    display: block;
+    margin-bottom: 10px;
+    // text-align: right;
+  }
+}
+
+.ho-compare__key:not(:last-child) {
+  margin-right: 30px;
+  @media(max-width: $screen-xs-max) {
+    margin-right: 0px;
+  }
+}
+
+#drilldown__severity {
+  position: relative;
+}
+
+
+
+
+
+
 .ho-chart__container {
   margin-top: 40px;
 }
@@ -12,31 +245,121 @@ $ho-color-1: #f1f1f1;
     margin-top: 0px;
     margin-bottom: 0px;
     display: inline-block;
-    small {
-      // font-weight: normal;
-      @include open-sans-normal;
-      color: $gray-070;
-    }
+  }
+  small {
+    @include open-sans-normal;
+    color: $gray-070;
   }
 }
 
 .ho-chart__content {
   padding: $ho-padding;
   border: 2px solid $ho-color-1;
-  h4 {
-    text-align: center;
+}
+
+.removebox .ho-chart__content {
+  border: none;
+  padding: $ho-padding 0px;
+}
+
+.ho-chart__sub-header {
+  display: block;
+  position: relative;
+  z-index: 0;
+  h3, h4 {
+    display: inline-block;
+    background-color: #FFFFFF;
+    margin: 10px;
+    margin-left: 0px;
+    padding: 0px 5px 0px 0px;
   }
-  small {
-    display: block;
-    text-align: center;
-    margin-top: -10px;
-    margin-bottom: 10px;
+  &:before {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background-color: #CCCCCC;
+    position: absolute;
+    top: 50%;
+    margin-top: 2px;
+    left: 0px;
+    right: 0px;
+    z-index: -1;
   }
 }
 
-// .ho-chart__content .row .ho-chart__section:not(:last-child) {
-//   border-right: 1px solid $ho-color-1;
-// }
+.ho-chart__sub-content {
+  padding-left: 16px;
+  table {
+    table-layout: fixed;
+    width: 100%;
+    position: relative;
+    top: -30px;
+    @media(max-width: $screen-xs-max) {
+      top: 0px;
+    }
+  }
+  th {
+    padding-bottom: 20px;
+    vertical-align: top;
+  }
+  th span {
+    padding: 0px 5px;
+    background-color: #FFFFFF;
+    @include open-sans-normal;
+  }
+  td {
+    padding: 5px;
+    border-bottom: 1px solid #CCCCCC;
+  }
+  th, td {
+    text-align: center;
+  }
+  tr.ho-chart__ss-label {
+    @media(min-width: $screen-sm-min) {
+      display: none;
+    }
+  }
+  tr:not(.ho-chart__ss-label) th:first-child {
+    width: 166px;
+    @media(max-width: $screen-xs-max) {
+      display: none;
+    }
+  }
+  tr:not(.ho-chart__ss-label) td:first-child {
+    text-align: right;
+    padding-right: 20px;
+    border-bottom: none;
+    @media(max-width: $screen-xs-max) {
+      display: none;
+    }
+  }
+}
+
+.demo-content {
+  padding-left: 132px;
+  @media(max-width: $screen-xs-max) {
+    padding-left: 16px;
+  } 
+}
+
+.ho-chart__patient-summary {
+  padding-top: 4px;
+  @media (max-width: $screen-xs-max) {
+    padding-top: 12px;
+  }
+}
+
+.ho-chart__ps-item {
+  margin-bottom: 10px;
+  b {
+    @include open-sans-condensed-bold;
+  }
+}
+
+.ho-demo-table {
+  table-layout: fixed;
+  width: 100%;
+}
 
 .ho-chart__swatch {
   width: 10px;
@@ -77,33 +400,25 @@ $ho-color-1: #f1f1f1;
   margin-right: 30px;
 }
 
-// .d3-top__chart-legend {
-//   text-align: center;
-// }
-
 .d3-top__chart {
   padding-top: 10px;
   margin-top: 30px;
-  border-right: 1px solid #000000;
+  border-right: 1px solid #CCCCCC;
   position: relative;
   margin-bottom: 20px;
   h4 {
-    // position: absolute;
-    // left: 0px;
-    // top: 10px;
-    // margin-top: 0px;
     text-align: left;
   }
   .x-axis {
     position: absolute;
-    top: -28px;
+    top: -29px;
     right: 0px;
-    border-bottom: 1px solid #000000;
-    .x-axis__max {
-      font-size: 20px;
-      margin-right: 5px;
-      @include open-sans-condensed-bold;
-    }
+    border-bottom: 1px solid #CCCCCC;
+  }
+  .x-axis__max {
+    font-size: 20px;
+    margin-right: 5px;
+    @include open-sans-condensed-bold;
   }
 }
 
@@ -113,12 +428,16 @@ $ho-color-1: #f1f1f1;
   padding-bottom: 5px;
 }
 
+.d3-top__key-bar:last-child {
+  padding-bottom: 0px;
+}
+
 .d3-top__bar {
   display: block;
-  background-color: darken(#f1f1f1, 2%);
-  -moz-box-shadow:    inset 0 0 4px #999;
-  -webkit-box-shadow: inset 0 0 4px #999;
-  box-shadow:         inset 0 0 4px #999;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid #CCCCCC;
+  border-bottom: 1px solid #CCCCCC;
+  border-left: 1px solid #CCCCCC;
 }
 
 .d3-top__bar-inner {
