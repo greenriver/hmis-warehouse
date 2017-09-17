@@ -16,7 +16,7 @@ module GrdaWarehouse::Import::HMISFiveOne
       ]
     )
     
-    self.hud_key = :OrganizationID
+    self.hud_key = :AffiliationID
 
     def self.file_name
       'Affiliation.csv'

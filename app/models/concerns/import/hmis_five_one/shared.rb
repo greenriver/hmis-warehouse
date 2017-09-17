@@ -33,7 +33,7 @@ module Import::HMISFiveOne::Shared
     end
 
     def should_add? existing
-      existing.blank?
+      existing.to_h.blank?
     end
 
     def should_restore? row:, existing:
@@ -46,7 +46,7 @@ module Import::HMISFiveOne::Shared
 
     def delete_involved(projects:, range:, data_source_id:)
       projects.each do |project|
-        self.joins(:project, :enrollment).
+        self.joins(enrollment: :project).
           where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
           update_all(DateDeleted: Time.now)
@@ -57,54 +57,64 @@ module Import::HMISFiveOne::Shared
     # Loop over incoming, see if the key is there with a newer DateUpdated
     # Update if newer, create if it isn't there, otherwise do nothing
       def import_project_related!(data_source_id:, file_path:)
+        import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
         stats = {
           lines_added: 0, 
           lines_updated: 0, 
         }
+        return stats unless File.exists?(import_file_path)
         to_add = []
+        headers = nil
         existing_items = self.where(data_source_id: data_source_id).
           pluck(self.hud_key, :DateUpdated, :id).map do |key, updated_at, id|
             [key, OpenStruct.new({updated_at: updated_at, id: id})]
           end.to_h
-  
         CSV.read(
-          "#{file_path}/#{data_source_id}/#{file_name}", 
+          import_file_path, 
           headers: true
         ).each do |row|
           existing = existing_items[row[self.hud_key.to_s]]
-          if should_add?(existing) 
-            to_add << clean_row_for_import(row).merge({data_source_id: data_source_id})
+          if should_add?(existing)
+            clean_row = clean_row_for_import(row).merge({data_source_id: data_source_id})
+            headers ||= clean_row.keys
+            to_add << clean_row
           elsif needs_update?(row: row, existing: existing) 
             hud_fields = clean_row_for_import(row)
             self.where(id: existing.id).update_all(hud_fields)
             stats[:lines_updated] += 1
           end
         end
-        headers = hud_csv_headers + [:data_source_id]
-        self.new.insert_batch(self, headers, to_add.map(&:values))
-        stats[:lines_added] = to_add.size
+        if to_add.any?
+          self.new.insert_batch(self, headers, to_add.map(&:values))
+          stats[:lines_added] = to_add.size
+        end
         stats
       end
 
     def import_enrollment_related!(data_source_id:, file_path:)
+      import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
       stats = {
         lines_added: 0, 
         lines_updated: 0, 
       }
+      return stats unless File.exists?(import_file_path)
       to_add = []
       to_restore = []
+      headers = nil
       existing_items = self.with_deleted.where(data_source_id: data_source_id).
         pluck(self.hud_key, :DateUpdated, :id).map do |key, updated_at, id|
           [key, OpenStruct.new({updated_at: updated_at, id: id})]
         end.to_h
 
       CSV.read(
-        "#{file_path}/#{data_source_id}/#{file_name}", 
+        import_file_path, 
         headers: true
       ).each do |row|
         existing = existing_items[row[self.hud_key.to_s]]
-        if should_add?(existing) 
-          to_add << clean_row_for_import(row).merge({data_source_id: data_source_id})
+        if should_add?(existing)
+          clean_row = clean_row_for_import(row).merge({data_source_id: data_source_id})
+          headers ||= clean_row.keys
+          to_add << clean_row
         elsif should_restore?(row: row, existing: existing)
           to_restore << existing.id
         elsif needs_update?(row: row, existing: existing)
@@ -113,7 +123,6 @@ module Import::HMISFiveOne::Shared
           stats[:lines_updated] += 1
         end
       end
-      headers = hud_csv_headers + [:data_source_id]
       to_restore.each_slice(1000) do |ids|
         self.where(id: ids).update_all(DateDeleted: nil)
       end

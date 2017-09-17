@@ -60,9 +60,26 @@ module Importers::HMISFiveOne
           import_health_and_dvs()
           import_income_benefits()
           import_services()
+
+          # Clients
+          import_clients()
+
+          remove_import_files()
+          complete_import()
         end
       end # end with_advisory_lock
       binding.pry
+    end
+
+    def remove_import_files
+      import_file_path = "#{@file_path}/#{@data_source.id}"
+      Rails.logger.info "Removing #{import_file_path}"
+      FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
+    end
+
+    def complete_import
+      @import.completed_at = Time.now
+      @import.save
     end
     
     def import_enrollments()
@@ -114,7 +131,7 @@ module Importers::HMISFiveOne
       GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
       GrdaWarehouse::Import::HMISFiveOne::HealthAndDv.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
       GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
-      GrdaWarehouse::Import::HMISFiveOne::Services.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
+      GrdaWarehouse::Import::HMISFiveOne::Service.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
 
       # TODO: Need to figure out how to remove exits in a way that we can still use them
       # To determine if the enrollments should be removed.
@@ -127,6 +144,11 @@ module Importers::HMISFiveOne
       involved_enrollment_ids.each_slice(1000) do |ids|
         GrdaWarehouse::Import::HMISFiveOne::Enrollment.where(id: ids).update_all(DateDeleted: Time.now)
       end
+    end
+
+    def import_clients
+      klass = GrdaWarehouse::Import::HMISFiveOne::Client
+      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
     end
 
     def import_organizations
@@ -201,7 +223,13 @@ module Importers::HMISFiveOne
         destination_file_path = "#{source_file_path}_updating"
         file = open_csv_file(source_file_path)
         clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
-        FileUtils.mv(destination_file_path, source_file_path)
+        if File.exists?(destination_file_path)
+          FileUtils.mv(destination_file_path, source_file_path)
+        else
+          # We failed at cleaning the import file, delete the source
+          # So we don't accidentally import an unclean file
+          File.delete(source_file_path) if File.exists?(source_file_path)
+        end
       end
     end
 
@@ -219,28 +247,43 @@ module Importers::HMISFiveOne
           force_quotes: true
           )
       else
-        msg = "Unable to import #{File.basename(read_from.path)}, header invalid"
+        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{header_row}; expected a subset of: #{klass.hud_csv_headers}"
         add_error(file_path: read_from.path, message: msg)
         return
       end
       read_from.each_line do |line|
-        while short_line?(line, comma_count)
-          logger.warn "Found a short line in #{read_from.path}"
-          line = line.gsub(/[\r\n]*/, '')
-          read_from.seek(+1, IO::SEEK_CUR)
-          next_line = read_from.readline
-          line += next_line
-          if long_line?(line, comma_count)
-            bad_line = line.gsub(next_line, '')
-            msg = "Unable to fix a line, not importing: #{bad_line}"
-            add_error(file_path: read_from.path, message: msg)
-            line = '"' + next_line
+        begin
+          while short_line?(line, comma_count)
+            logger.warn "Found a short line in #{read_from.path}"
+            line = line.gsub(/[\r\n]*/, '')
+            read_from.seek(+1, IO::SEEK_CUR)
+            next_line = read_from.readline
+            line += next_line
+            if long_line?(line, comma_count)
+              bad_line = line.gsub(next_line, '')
+              msg = "Unable to fix a line, not importing: #{bad_line}"
+              add_error(file_path: read_from.path, message: msg)
+              line = '"' + next_line
+            end
           end
+          begin
+            row = CSV.parse_line(line, headers: header)
+            if row.count == header.count
+              row = set_useful_export_id(row: row, export_id: export_id_addition)
+              write_to << row
+              log_processed_line(file_path: read_from.path)
+            else
+              msg = "Line length is incorrect, unable to import: #{line}"
+              add_error(file_path: read_from.path, message: msg)
+            end
+          rescue CSV::MalformedCSVError => exception
+            message = "Failed to process line, #{exception.message}: #{line}"
+            add_error(file_path: read_from.path, message: message)
+          end
+        rescue Exception => exception
+          message = "Failed while processing #{read_from.path}, #{exception.message}: #{line}"
+          add_error(file_path: read_from.path, message: message)
         end
-        row = CSV.parse_line(line, headers: header)
-        row = set_useful_export_id(row: row, export_id: export_id_addition)
-        write_to << row
-        log_processed_line(file_path: read_from.path)
       end
       write_to.close
     end

@@ -116,7 +116,7 @@ module GrdaWarehouse::Import::HMISFiveOne
       'Enrollment.csv'
     end
 
-    def involved_enrollments(projects:, range:, data_source_id:)
+    def self.involved_enrollments(projects:, range:, data_source_id:)
       ids = []
       projects.each do |project|
         ids += self.joins(:project).

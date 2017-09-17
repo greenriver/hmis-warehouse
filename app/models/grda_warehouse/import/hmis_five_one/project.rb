@@ -27,7 +27,7 @@ module GrdaWarehouse::Import::HMISFiveOne
     
     def import!
       return if existing_is_newer()
-      if existing.present?
+      if existing.to_h.present?
         # update any of the hud values coming from the import
         self.class.where(id: existing.id).update_all(attributes.slice(*hud_csv_headers.map(&:to_s)))
       else
@@ -56,7 +56,7 @@ module GrdaWarehouse::Import::HMISFiveOne
     end
 
     def existing_is_newer
-      existing.present? && existing.updated_at >= date_updated
+      existing.to_h.present? && existing.updated_at >= date_updated
     end
 
     def project_type_unchanged

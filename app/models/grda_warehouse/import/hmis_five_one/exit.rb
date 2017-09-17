@@ -42,12 +42,13 @@ module GrdaWarehouse::Import::HMISFiveOne
       'Exit.csv'
     end
 
-    def involved_exits(projects:, range:, data_source_id:)
+    def self.involved_exits(projects:, range:, data_source_id:)
       ids = []
       projects.each do |project|
+        # This uses a subquery to avoid duplicate joins to itself
         ids += self.joins(:project, :enrollment).
           where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
-          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
+          where(Enrollment: {id: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:id)}).
           pluck(:id)
       end
       ids
