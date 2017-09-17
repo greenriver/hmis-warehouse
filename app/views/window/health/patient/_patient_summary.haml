@@ -2,12 +2,12 @@
 .ho-patient__container
   .ho-patient__header
     %h3.ho-patient__name
-      -#%i.icon-user
-      %span= @patient.client.name
-    - @patient_summary[:details].each do |detail|
-      .ho-patient__details
-        %span= "#{detail[0]}: "
-        = detail[1]
+      = @patient.client.name
+    .ho-patient__details
+      - @patient_summary[:details].each do |detail|
+        .ho-patient__detail
+          %span= "#{detail[0]}: "
+          = detail[1]
   .ho-patient__content
     %h4
       Demographics

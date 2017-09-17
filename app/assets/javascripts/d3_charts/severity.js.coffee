@@ -4,7 +4,7 @@
 class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
   constructor: (container_selector, claims, attrs) ->
     super(container_selector, attrs.margin, attrs.keys, 'group')
-    @legend = d3.select(attrs.legend)
+    @legend = new App.D3Chart.StackedLegend(attrs.legend, attrs.keys, attrs.colors)
     @claims = @_loadClaims(claims)
     @colors = attrs.colors
     @range = @_loadRange()
@@ -39,6 +39,13 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
       color: @keys
     }
 
+  _styleAxisText: ->
+    @chart.selectAll('g.tick text')
+      .attr('fill', '#777777')
+      .style('font-family', "'Open Sans Condensed', sans-serif")
+      .style('font-size', '12px')
+
+
   _customizeYaxis: ->
     generateLine = d3.line()
     @chart.selectAll('g.y-axis__right .domain').remove()
@@ -60,13 +67,35 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
         .attr('x', 0)
       tickEle.append('path')
         .attr('d', generateLine([[x1, 0], [x22, 0]]))
-        .attr('stroke', '#CCCCCC')
+        .attr('stroke', '#d2d2d2')
         .attr('stroke-width', '0.5px')
     )
 
   _customizeXaxis: ->
     @chart.selectAll('g.x-axis .domain').remove()
     ticks = @chart.selectAll('g.x-axis g.tick line').remove()
+    ticks = @chart.selectAll('.x-axis')
+      .selectAll('.tick')
+    @container.selectAll('i')
+      .data(ticks.nodes())
+      .enter()
+      .append('i')
+        .attr('class', (tick) ->
+          text = d3.select(tick).select('text').text()
+          if text == 'Current Patient' then 'icon-user' else 'icon-users'
+        )
+        .style('position', 'absolute')
+        .style('bottom', '0px')
+        .style('font-size', '30px')
+        .style('color', (tick) =>
+          text = d3.select(tick).select('text').text()
+          if text == 'Current Patient' then '#00549E' else '#777777'
+        )
+        .style('left', (tick) =>
+          translate = +d3.select(tick).attr('transform').split(',')[0].replace('translate(', '')
+          translate + @margin.left - 15 + 'px'
+        )
+    ticks.remove()
 
   _drawAxes: ->
     xAxis = d3.axisBottom().scale(@scale.x)
@@ -86,9 +115,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @_customizeYaxis()
     @_customizeXaxis()
 
-  draw: ->
-    @_drawAxes()
-    super
+  _drawConnectors: ->
     stackGenerator = d3.stack()
       .keys(this.keys)
       .order(d3.stackOrderNone)
@@ -116,50 +143,14 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
           @scale.color(d.key)
         )
         .attr('fill', 'none')
-    ticks = @chart.selectAll('.x-axis')
-      .selectAll('.tick')
-    @container.selectAll('i')
-      .data(ticks.nodes())
-      .enter()
-      .append('i')
-        .attr('class', (tick) ->
-          text = d3.select(tick).select('text').text()
-          if text == 'Current Patient' then 'icon-user' else 'icon-users'
-        )
-        .style('position', 'absolute')
-        .style('bottom', '0px')
-        .style('font-size', '30px')
-        .style('color', (tick) =>
-          text = d3.select(tick).select('text').text()
-          if text == 'Current Patient' then '#00549E' else '#777777'
-        )
-        .style('left', (tick) =>
-          translate = +d3.select(tick).attr('transform').split(',')[0].replace('translate(', '')
-          translate + @margin.left - 15 + 'px'
-        )
-    ticks.remove()
-    # @legend.style('padding-left', @margin.left+'px')
-    hints = @legend.append('div')
-      .attr('class', 'ho-compare__hints')
-      .selectAll('.ho-compare__hint')
-        .data(@keys.slice().reverse())
-        .enter()
-        .append('div')
-          .attr('class', 'ho-compare__hint')
-    hints.selectAll('.ho-compare__swatch')
-      .data((d) => [['color', @scale.color(d)], ['key', d]])
-      .enter()
-      .append('div')
-      .attr('class', (d) =>
-        if d[0] == 'key' then 'ho-compare__swatch-text' else 'ho-compare__swatch'
-      )
-      .style('background-color', (d) =>
-        console.log(d)
-        if d[0] == 'color' then d[1] else 'transparent'
-      )
-      .html((d) =>
-        if d[0] == 'key' then ('<small>'+d[1]+'</small>') else ''
-      )
+
+
+  draw: ->
+    @_drawAxes()
+    @_styleAxisText()
+    super
+    @_drawConnectors()
+    @legend.draw()
 
 
 

@@ -1,22 +1,8 @@
 %h4 
   ED Visit Severity 
   %small (NYU Alogithm)
-.d3-drilldown__chart#drilldown__severity{data: {url: "/api/health/claims/patients/#{@patient.id}/ed_nyu_severity", legend: '#drilldown__severity-legend'}}
-#drilldown__severity-legend
--#
-  .ho-chart__container
-    .ho-chart__header
-      .row
-        .col-xs-12
-          %h3 
-            Emergency
-    .ho-chart__content
-      .row
-        .ho-chart__section.col-xs-12
-          %h4 
-            ED Visit Severity 
-          %small (NYU Alogithm)
-          .d3-drilldown__chart#drilldown__severity{data: {url: "/api/health/claims/patients/#{@patient.id}/ed_nyu_severity"}}
+.d3-chart#drilldown__severity{data: {url: "/api/health/claims/patients/#{@patient.id}/ed_nyu_severity", legend: '.d3-severity__legend'}}
+.ho-hints.d3-severity__legend
 
 - content_for :page_js do
   :javascript

@@ -6,25 +6,12 @@
 .row
   .col-sm-12
     %h2 Patient Summary
-    
-
-
     - if @patient.present?
+      - warehouse_path = 'warehouse_reports/health/overview/'
       = render 'patient_summary'
-      .row
-        .col-xs-12
-          = render 'patient_cost_metrics'
-        -#
-          .col-xs-12.col-md-4
-            = render 'emergency'
-      .row
-        .col-xs-12
-          = render 'trends_over_time'
-      .row
-        .col-xs-12
-          = render 'top_providers_and_conditions'
-        .col-xs-12.col-md-4
-          = render 'drilldown'
+      = render "#{warehouse_path}trends_over_time", data_type: 'patient'
+      = render 'patient_cost_metrics'
+      = render "#{warehouse_path}top_providers_and_conditions", data_type: 'patient'
       = render 'patient_dashboard'
       = render 'patient_details'
 

@@ -1,5 +1,6 @@
-.ho-compare__container
-  .ho-compare__header
+-# TODO get real data here
+.ho-container
+  .ho-container__header
     .text-left
       .ho-compare__key{style: 'color: #00549E; font-weight: bold;'}
         %i.icon-user
@@ -13,27 +14,27 @@
       %table.ho-compare__table-1
         %tr
           %td
-            .ho-compare
-              .ho-compare__label Total Cost
-              .ho-compare__content 
+            .ho-compare-box
+              .ho-compare-box__label Total Cost
+              .ho-compare-box__content 
                 $61,123
-                .ho-compare__to
+                .ho-compare-box__to
                   $113,700
               Variance: -46%
           %td
-            .ho-compare
-              .ho-compare__label Months
-              .ho-compare__content 
+            .ho-compare-box
+              .ho-compare-box__label Months
+              .ho-compare-box__content 
                 12
-                .ho-compare__to
+                .ho-compare-box__to
                   11.5
               Variance: 5%
           %td
-            .ho-compare
-              .ho-compare__label Cost PMPM
-              .ho-compare__content 
+            .ho-compare-box
+              .ho-compare-box__label Cost PMPM
+              .ho-compare-box__content 
                 $5,103
-                .ho-compare__to
+                .ho-compare-box__to
                   $9,920
               Variance: -49%
       %h4 Key Metrics
@@ -77,14 +78,14 @@
             %td -9%
             %td -100%
             %td N/A 
-      .ho-compare__hints
-        .ho-compare__hint
+      .ho-hints
+        .ho-hint
           .ho-compare__marker.ed-visits
           %small ED Visits that did not result in IP Admissions
-        .ho-compare__hint
+        .ho-hint
           .ho-compare__marker.ip-admits
           %small Acute IP Admissions only (i.e. no SNF/Rehab/Respite/Psych)
-        .ho-compare__hint
+        .ho-hint
           .ho-compare__marker.readmit
           %small For readmits, average only for those who had at least two admissions
     .col-xs-12.col-md-4.ho-compare__fc

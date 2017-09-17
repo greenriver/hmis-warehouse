@@ -3,20 +3,21 @@
 
 class App.D3Chart.Claims
   constructor: (selector) ->
-    @legendKeyCssClass = selector+'__key'
+    @margin = {top: 0, right: 0, bottom: 60, left: 30}
+    @keys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
+    @keyLabels = ['IP', 'Emerg', 'Respite', 'OP', 'Rx', 'Other']
     @colors = ['#002A45', '#2C9CFF', '#B9DEFF', '#32DEFF', '#008DA8', '#B9B098']
     
     @container = d3.select('#'+selector)
-    @legend = @container.select('.'+selector+'__legend')
+    @legendSelector = '.'+selector+'__legend'
+    @legend = new App.D3Chart.StackedLegend(@legendSelector, @keyLabels, @colors)
     @charts = @container.selectAll('.'+selector+'__chart')
     @date = @container.select('.'+selector+'__dates')
 
-    @margin = {top: 0, right: 0, bottom: 60, left: 30}
-    @keys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
     @scale = @_loadScale()
   
   _loadTickFormat: (id) ->
-    if id == '#claims__amount-paid' 
+    if id == '#claims__amount_paid' 
       '$.2s'
     else
       '.2s'
@@ -30,18 +31,6 @@ class App.D3Chart.Claims
       keyLabel: keyLabel
     }
 
-  _drawLegend: () ->
-    key = @legend.selectAll(@legendKeyCssClass)
-      .data(@keys)
-      .enter()
-      .append('div')
-        .attr('class', @legendKeyCssClass)
-        .text((d) => @scale.keyLabel(d)) 
-        .append('div')
-          .attr('class', 'ho-chart__swatch')
-          .style('background-color', (d) => @scale.color(d))
-          .style('opacity', '0.6')
-
   _loadMonthName: (date) ->
     months = [
       "January", "February", "March",
@@ -51,20 +40,27 @@ class App.D3Chart.Claims
     ]
     months[date.getMonth()]
 
+  _customizeLegend: () ->
+    d3.select(@legendSelector)
+      .selectAll('.ho-hint__swatch')
+        .style('opacity', '0.6')
+
   draw: ->
     date = @date
-    @_drawLegend()
+    @legend.draw()
+    @_customizeLegend()
     that = @
     @charts.each(() ->
       url = $(@).data('url')
       id = '#'+$(@).attr('id')
       $.get(url, (data) ->
+        console.log(data)
         if date && data.length > 0
           dates = d3.extent(data, (d) -> 
             [year, month, day] = d.date.split('-')
             new Date(year, month-1, day)
           )
-          date.text(that._loadMonthName(dates[0])+' '+dates[0].getFullYear()+' - '+that._loadMonthName(dates[1])+' '+dates[1].getFullYear())
+          date.text(' ('+that._loadMonthName(dates[0])+' '+dates[0].getFullYear()+' - '+that._loadMonthName(dates[1])+' '+dates[1].getFullYear()+') ')
           date = null  
         if data.length > 0
           attrs = {
@@ -163,37 +159,41 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
       yearAxis.append('path')
         .attr('d', d)
         .attr('stroke-width', '1px')
-        .attr('stroke', '#CCCCCC')
+        .attr('stroke', '#d2d2d2')
         .attr('fill', 'none')
       yearAxis.append('text')
         .text(year.key)
         .attr('x', center(months))
         .attr('y', y+50)
-        .attr('fill', '#000000')
+        .attr('fill', '#777777')
         .attr('text-anchor', 'middle')
-        .style('font-size', '10px')
+        .style('font-size', '12px')
     )
 
   _customizeXaxis: ->
     @chart.selectAll('g.x-axis text').remove()
     @chart.selectAll('g.x-axis .domain').remove()
     ticks = @chart.selectAll('g.x-axis g.tick')
-    that = @
+    tickR = @.scale.x.bandwidth()/2
+    tickR = if tickR > 9 then 9 else tickR 
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
       tickEle.append('circle')
         .attr('cy', 14)
         .attr('cx', 0)
-        .attr('r', (that.scale.x.bandwidth()/2))
+        .attr('r', tickR)
         .attr('fill', '#f1f1f1')
       tickEle.append('text')
         .text(tick.getMonth()+1)
         .attr('y', 10)
         .attr('x', 0)
         .attr('dy', '0.71em')
-        .attr('fill', '#000000')
         .attr('text-anchor', 'middle')
+        .style('font-family', "'Open Sans Condensed', sans-serif")
+        .style('font-weight', '700')
+        .style('font-size', '12px')
+        .attr('fill', '#777777')
     )
 
   _customizeYaxis: ->
@@ -208,9 +208,13 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
       tickEle.selectAll('line').remove()
       tickEle.selectAll('text')
         .attr('x', 0)
+        .style('font-family', "'Open Sans Condensed', sans-serif")
+        .style('font-weight', '500')
+        .style('font-size', '12px')
+        .attr('fill', '#777777')
       tickEle.append('path')
         .attr('d', generateLine([[scale.x(domain.x[0]), 0], [scale.x(domain.x[domain.x.length-1])+scale.x.bandwidth(), 0]]))
-        .attr('stroke', '#000000')
+        .attr('stroke', '#d2d2d2')
         .attr('stroke-width', '0.5px')
     )
   
@@ -240,8 +244,9 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
       .attr('width', @scale.x(@domain.x[@domain.x.length-1]) - @scale.x(@domain.x[0]))
       .attr('height', @dimensions.height)
       .attr('fill', '#f1f1f1')
-      .attr('opacity', '0.4')
+    @_drawAxes()
     super
     @chart.selectAll('g.bar rect')
       .attr('opacity', 0.6)
-    @_drawAxes()
+
+    

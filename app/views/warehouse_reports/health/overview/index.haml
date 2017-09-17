@@ -1,17 +1,6 @@
 - title = "Health Overview"
 - content_for :title, title
 %h1= content_for :title
-
-.row
-  .col-xs-12.col-md-8
-    .row
-      .col-xs-12
-        = render 'trends_over_time'
-    .row
-      .col-xs-12
-        = render 'top_providers_and_conditions'
-  .col-xs-12.col-md-4
-    .row  
-      .col-xs-12
-        = render 'drilldown'
+= render 'trends_over_time', data_type: 'all'
+= render 'top_providers_and_conditions', data_type: 'all'
 

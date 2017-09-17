@@ -1,32 +1,64 @@
 $ho-padding: 10px;
-$ho-color-0: #0C2639;
+$ho-container__margin: 40px;
 
-// greys
+$ho-color-0: #0C2639;
+// grays
 $ho-color-1: #f1f1f1;
 $ho-color-2: #d2d2d2;
 $ho-color-3: #777777;
 
 $ho-current-patient: #00549E;
 
+@mixin ho-container {
+  padding: $ho-padding;
+  background-color: #FFFFFF;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+  box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+}
+
+.ho-container {
+  margin-top: 40px;
+  @include ho-container;
+  p {
+    margin-bottom: $ho-padding * 2;
+    margin-top: 10px;
+  }
+}
+
+.ho-container__header {
+  border-bottom: 1px solid $ho-color-2;
+  margin-bottom: $ho-padding;
+}
+
+.ho-hints {
+  margin-top: $ho-padding * 2;
+}
+
+.ho-hint__swatch {
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.ho-hint__swatch-text {
+  display: inline-block;
+}
+
 // Patient Summary
 .ho-patient__container {
-  border: 2px solid $ho-color-2;
-  padding: $ho-padding;
+  @include ho-container;
 }
 .ho-patient__name {
   margin-top: 0px;
   border-bottom: 1px solid $ho-color-2;
   padding: 5px 0px;
-  color: $ho-current-patient;
-  span {
-    vertical-align: middle;
-  }
-  i {
-    font-size: 150%;
-    // color: $ho-color-3;
-  }
 }
 .ho-patient__details {
+  padding-left: 10px;
+}
+.ho-patient__detail {
   display: inline-block;
   background-color: $ho-color-1;
   padding-right: 4px;
@@ -60,12 +92,6 @@ $ho-current-patient: #00549E;
 }
 
 // Cost and Key Metrics tables
-.ho-compare__container {
-  margin-top: 40px;
-  // border: 2px solid $ho-color-2;
-  padding: $ho-padding;
-  background-color: rgba(241, 241, 241, 0.4);
-}
 
 .ho-compare__fc {
   border-left: 1px solid $ho-color-2;
@@ -75,33 +101,20 @@ $ho-current-patient: #00549E;
   }
 }
 
-.ho-compare__header {
-  border-bottom: 1px solid $ho-color-2;
-  margin-bottom: 10px;
-  h3 {
-    display: inline-block;
-    overflow: hidden;
-    vertical-align: middle;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    padding-bottom: 5px;
-  }
-}
-
-.ho-compare {
+.ho-compare-box {
   padding: $ho-padding;
   text-align: center;
   background-color: $ho-color-1;
   margin-bottom: 10px;
 }
 
-.ho-compare__content {
+.ho-compare-box__content {
   font-size: 22px;
   font-weight: bold;
   color: #00549E;
 }
 
-.ho-compare__to {
+.ho-compare-box__to {
   border-top: 1px solid $ho-color-2;
   font-weight: normal;
   font-size: 22px;
@@ -180,10 +193,6 @@ $ho-current-patient: #00549E;
   margin-left: -4px;
 }
 
-.ho-compare__hints {
-  margin-top: 20px;
-}
-
 .ed-visits {
   background-color: #48F04a;
 }
@@ -196,24 +205,12 @@ $ho-current-patient: #00549E;
   background-color: #007101;
 }
 
-.ho-compare__swatch {
-  width: 8px;
-  height: 8px;
-  margin-right: 5px;
-  display: inline-block;
-}
-
-.ho-compare__swatch-text {
-  display: inline-block;
-}
-
 .ho-compare__key {
   display: inline-block;
   margin-bottom: 5px;
   @media(max-width: $screen-xs-max) {
     display: block;
     margin-bottom: 10px;
-    // text-align: right;
   }
 }
 
@@ -224,196 +221,31 @@ $ho-current-patient: #00549E;
   }
 }
 
-#drilldown__severity {
-  position: relative;
-}
-
-
-
-
-
-
-.ho-chart__container {
-  margin-top: 40px;
-}
-
-.ho-chart__header {
-  background-color: $ho-color-1;
-  padding: $ho-padding;
-  min-height: 69px;
-  h3 {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    display: inline-block;
-  }
-  small {
-    @include open-sans-normal;
-    color: $gray-070;
-  }
-}
-
-.ho-chart__content {
-  padding: $ho-padding;
-  border: 2px solid $ho-color-1;
-}
-
-.removebox .ho-chart__content {
-  border: none;
-  padding: $ho-padding 0px;
-}
-
-.ho-chart__sub-header {
-  display: block;
-  position: relative;
-  z-index: 0;
-  h3, h4 {
-    display: inline-block;
-    background-color: #FFFFFF;
-    margin: 10px;
-    margin-left: 0px;
-    padding: 0px 5px 0px 0px;
-  }
-  &:before {
-    content: '';
-    width: 100%;
-    height: 2px;
-    background-color: #CCCCCC;
-    position: absolute;
-    top: 50%;
-    margin-top: 2px;
-    left: 0px;
-    right: 0px;
-    z-index: -1;
-  }
-}
-
-.ho-chart__sub-content {
-  padding-left: 16px;
-  table {
-    table-layout: fixed;
-    width: 100%;
-    position: relative;
-    top: -30px;
-    @media(max-width: $screen-xs-max) {
-      top: 0px;
-    }
-  }
-  th {
-    padding-bottom: 20px;
-    vertical-align: top;
-  }
-  th span {
-    padding: 0px 5px;
-    background-color: #FFFFFF;
-    @include open-sans-normal;
-  }
-  td {
-    padding: 5px;
-    border-bottom: 1px solid #CCCCCC;
-  }
-  th, td {
-    text-align: center;
-  }
-  tr.ho-chart__ss-label {
-    @media(min-width: $screen-sm-min) {
-      display: none;
-    }
-  }
-  tr:not(.ho-chart__ss-label) th:first-child {
-    width: 166px;
-    @media(max-width: $screen-xs-max) {
-      display: none;
-    }
-  }
-  tr:not(.ho-chart__ss-label) td:first-child {
-    text-align: right;
-    padding-right: 20px;
-    border-bottom: none;
-    @media(max-width: $screen-xs-max) {
-      display: none;
-    }
-  }
-}
-
-.demo-content {
-  padding-left: 132px;
-  @media(max-width: $screen-xs-max) {
-    padding-left: 16px;
-  } 
-}
-
-.ho-chart__patient-summary {
-  padding-top: 4px;
-  @media (max-width: $screen-xs-max) {
-    padding-top: 12px;
-  }
-}
-
-.ho-chart__ps-item {
-  margin-bottom: 10px;
-  b {
-    @include open-sans-condensed-bold;
-  }
-}
-
-.ho-demo-table {
-  table-layout: fixed;
-  width: 100%;
-}
-
-.ho-chart__swatch {
-  width: 10px;
-  height: 10px;
-  float: left;
-  margin-right: 10px;
-}
-
-.d3-claims__chart {
-  height: 300px;
-}
-
-.d3-drilldown__chart {
+// bar charts
+.d3-chart {
   height: 300px;
   position: relative;
 }
 
-.d3-claims__legend,
-#d3-top-legend__pc {
-  text-align: right;
-  border-radius: 8px;
+.d3-claims__legend {
   display: inline-block;
-  padding: 14px 10px;
-}
-
-#d3-top-legend__dd {
-  margin-bottom: 10px;
-}
-
-.d3-claims__key,
-.d3-top-leged-pc__key {
-  display: inline-block;
-  line-height: 10px;
-}
-
-.d3-claims__key:not(:last-child),
-.d3-top-leged-pc__key:not(:last-child) {
-  margin-right: 30px;
+  .ho-hint {
+    float: right;
+    margin-right: $ho-padding * 2;
+  }
 }
 
 .d3-top__chart {
   padding-top: 10px;
   margin-top: 30px;
-  border-right: 1px solid #CCCCCC;
+  border-right: 1px solid $ho-color-2;
   position: relative;
   margin-bottom: 20px;
-  h4 {
-    text-align: left;
-  }
   .x-axis {
     position: absolute;
     top: -29px;
     right: 0px;
-    border-bottom: 1px solid #CCCCCC;
+    border-bottom: 1px solid $ho-color-2;
   }
   .x-axis__max {
     font-size: 20px;
@@ -425,7 +257,7 @@ $ho-current-patient: #00549E;
 .d3-top__key-bar {
   background-color: #f1f1f1;
   min-height: 40px;
-  padding-bottom: 5px;
+  border-left: $ho-color-2;
 }
 
 .d3-top__key-bar:last-child {
@@ -434,10 +266,10 @@ $ho-current-patient: #00549E;
 
 .d3-top__bar {
   display: block;
-  background-color: rgba(255, 255, 255, 0.4);
-  border-top: 1px solid #CCCCCC;
-  border-bottom: 1px solid #CCCCCC;
-  border-left: 1px solid #CCCCCC;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid $ho-color-2;
+  border-bottom: 1px solid $ho-color-2;
+  border-left: 1px solid $ho-color-2;
 }
 
 .d3-top__bar-inner {
@@ -452,16 +284,16 @@ $ho-current-patient: #00549E;
 }
 
 .d3-top__key {
-  font-size: 10px;
+  font-size: 12px;
   padding: 4px;
-  padding-left: 24px;
   text-align: left;
-  margin-bottom: 2px;
   position: relative;
-  background-color: #f1f1f1;
+  background-color: $ho-color-1
 }
 
+// removing from ui for now, not sure that it is helpful
 .d3-top__key-number {
+  display: none;
   width: 20px;
   background-color: #ffffff;
   position: absolute;

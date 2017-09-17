@@ -7,7 +7,8 @@ module Window::Health
     include HealthPatient
     include WindowClientPathGenerator
     
-    
+    helper HealthOverviewHelper
+
     def index
       @patient_summary = load_patient_summary
       render layout: !request.xhr?      

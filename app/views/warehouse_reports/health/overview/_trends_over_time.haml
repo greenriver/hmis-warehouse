@@ -1,20 +1,22 @@
-.ho-chart__container#d3-claims
-  .ho-chart__header
-    .row
-      .col-xs-12
-        %h3 
-          Trends Over Time
-          %br
-          %small.d3-claims__dates
-        .d3-claims__legend.pull-right
-  .ho-chart__content
-    .row
-      .ho-chart__section.col-xs-12.col-md-6
-        %h4 Amount Paid by Location and Month
-        .d3-claims__chart#claims__amount-paid{data: {url: '/api/health/claims/amount_paid'}}
-      .ho-chart__section.col-xs-12.col-md-6
-        %h4 Claims Volume by Location and Month
-        .d3-claims__chart#claims__volume{data: {url: '/api/health/claims/claims_volume'}}
+- just_patient = data_type == 'patient'
+- text = data_type == 'all' ? 'All Participants' : ''
+.ho-container#d3-claims
+  = d3_container_header(data_type, text, just_patient: just_patient)
+  .row
+    .col-xs-12
+      %h4 
+        Trends Over Time
+        %small.d3-claims__dates
+  .row  
+    .col-xs-12.col-md-6
+      %p.text-center Amount Paid by Location and Month
+      = d3_trend_chart('amount_paid', data_type)
+    .col-xs-12.col-md-6
+      %p.text-center Claims Volume by Location and Month
+      = d3_trend_chart('claims_volume', data_type)
+  .row
+    .col-xs-12
+      .ho-hints.d3-claims__legend
 
 - content_for :page_js do
   :javascript

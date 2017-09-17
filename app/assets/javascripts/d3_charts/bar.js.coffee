@@ -1,28 +1,9 @@
 #= require ./namespace
 class App.D3Chart.TopBarCharts
-  constructor: (chartIds, legendSelector=null, drawLegend=false) ->
+  constructor: (chartIds) ->
     @chartIds = chartIds
-    if legendSelector
-      @legend = d3.select(legendSelector)
-    @drawLegend = drawLegend
-
-  _drawLegend: (chart, types) ->
-    keyClass = 'd3-top-leged-pc__key'
-    labels = {all: 'All Participants', patient: 'Current Patient'}
-    @legend.selectAll(keyClass)
-      .data(types)
-      .enter()
-      .append('div')
-        .attr('class', keyClass)
-        .text((d) => labels[d])
-        .append('div')
-          .attr('class', 'ho-chart__swatch')
-          .style('background-color', (d) => chart.scale.color(d))
-
 
   draw: () ->
-    legend = @legend
-    drawLegend = @drawLegend
     @chartIds.forEach((id) =>
       that = @
       url = $(id).data('url')
@@ -32,10 +13,7 @@ class App.D3Chart.TopBarCharts
       $.get(url, (data) ->
         if data.length > 0
           chart = new App.D3Chart.TopBar(id, data, yAttr, yLabel, mainType)
-          chart.draw()
-          if drawLegend && legend
-            drawLegend = false
-            that._drawLegend(chart, ['patient', 'all'])            
+          chart.draw()            
         else
           d3.select(id)
             .style('height', 'auto')
@@ -46,7 +24,6 @@ class App.D3Chart.TopBarCharts
       )
     )
     
-
 class App.D3Chart.TopBar
   constructor: (container_selector, data, yAttr, yLabel, mainType) ->
     @attrs = {all: 'sdh_pct', patient: 'indiv_pct'}
@@ -91,7 +68,7 @@ class App.D3Chart.TopBar
     {
       x: [0, @dimensions.width],
       height: 20,
-      color: ['#008DA8', '#00549E']
+      color: if @mainType == 'patient' then ['#777777', '#00549E'] else ['#008DA8', '#00549E']
     }
 
   _loadXDomain: () ->
@@ -147,6 +124,7 @@ class App.D3Chart.TopBar
           .style('background-color', (d) => @scale.color(d.type))
           .append('span')
             .text((d) => Math.round(d.value*100)+'%')
+            .style('color', (d) => @scale.color(d.type))
 
   _drawKeyBars: () ->
     @chart.selectAll('.d3-top__key-bar')
