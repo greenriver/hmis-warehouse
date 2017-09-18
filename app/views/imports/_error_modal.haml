@@ -8,5 +8,8 @@
           &times
         %h4 Import Errors
       .modal-body
-        - errors.each do |e|
-          = render 'error_list', error: e
+        - if errors.any?
+          - meta = errors.first
+          %h3= errors.first['text']
+          - errors.each do |e|
+            = render 'error_list', error: e

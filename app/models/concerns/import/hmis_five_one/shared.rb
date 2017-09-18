@@ -61,6 +61,7 @@ module Import::HMISFiveOne::Shared
         stats = {
           lines_added: 0, 
           lines_updated: 0, 
+          errors: [],
         }
         return stats unless File.exists?(import_file_path)
         to_add = []
@@ -85,8 +86,8 @@ module Import::HMISFiveOne::Shared
           end
         end
         if to_add.any?
-          self.new.insert_batch(self, headers, to_add.map(&:values))
-          stats[:lines_added] = to_add.size
+          to_add = clean_to_add(to_add)
+          stats = process_to_add(headers: headers, to_add: to_add, stats: stats)
         end
         stats
       end
@@ -95,7 +96,8 @@ module Import::HMISFiveOne::Shared
       import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
       stats = {
         lines_added: 0, 
-        lines_updated: 0, 
+        lines_updated: 0,
+        errors: [],
       }
       return stats unless File.exists?(import_file_path)
       to_add = []
@@ -126,9 +128,45 @@ module Import::HMISFiveOne::Shared
       to_restore.each_slice(1000) do |ids|
         self.where(id: ids).update_all(DateDeleted: nil)
       end
-      self.new.insert_batch(self, headers, to_add.map(&:values))
-      stats[:lines_added] = to_add.size
+      if to_add.any?
+        to_add = clean_to_add(to_add)
+        stats = process_to_add(headers: headers, to_add: to_add, stats: stats)
+      end
       stats
+    end
+
+    def process_to_add headers:, to_add:, stats:
+      to_add.each_slice(200) do |batch|
+        begin
+          self.new.insert_batch(self, headers, batch.map(&:values), transaction: false)
+          stats[:lines_added] = batch.size
+        rescue Exception => exception
+          message = "Failed to add batch for #{self.name}, attempting individual inserts"
+          stats[:errors] << {message: message, line: ''}
+          Rails.logger.warn(message)
+          # Try again to add the individual batch
+          batch.each do |row|
+            begin
+              self.create(row)
+            rescue Exception => e
+              message = "Failed to add #{self.name}: #{exception.message}; giving up on this one."
+              stats[:errors] << {message: message, line: row.inspect}
+              Rails.logger.warn(message)
+            end
+          end
+        end
+      end
+      stats
+    end
+
+    def clean_to_add to_add
+      # Remove any duplicates that would violate the unique key constraints
+      to_add.index_by{|row| row.values_at(*self.unique_constraint.map(&:to_s))}.values
+    end
+
+    # Override in sub-classes
+    def unique_constraint
+      [self.hud_key, :data_source_id]
     end
 
     def hud_csv_headers

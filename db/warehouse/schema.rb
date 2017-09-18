@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170913192945) do
+ActiveRecord::Schema.define(version: 20170918135821) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -101,6 +101,7 @@ ActiveRecord::Schema.define(version: 20170913192945) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -974,6 +975,7 @@ ActiveRecord::Schema.define(version: 20170913192945) do
     t.datetime "created_at",     :null=>false
     t.datetime "updated_at",     :null=>false
     t.string   "zip"
+    t.integer  "upload_id"
   end
   add_index "import_logs", ["completed_at"], :name=>"index_import_logs_on_completed_at", :using=>:btree
   add_index "import_logs", ["created_at"], :name=>"index_import_logs_on_created_at", :using=>:btree

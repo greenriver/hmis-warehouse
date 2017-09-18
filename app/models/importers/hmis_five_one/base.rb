@@ -35,10 +35,10 @@ module Importers::HMISFiveOne
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{@data_source.id}") do
         @export = load_export_file()
         return unless @export.present?
-        @range = set_date_range()
-        clean_source_files()
-        @projects = set_involved_projects()
-        GrdaWarehouseBase.transaction do
+        begin
+          @range = set_date_range()
+          clean_source_files()
+          @projects = set_involved_projects()
           @export.import!
           @projects.each(&:update_changed_project_types)
           @projects.each(&:import!)
@@ -50,6 +50,9 @@ module Importers::HMISFiveOne
           import_funders()
           import_affiliations()
           
+          # Clients
+          import_clients()
+
           # Enrollment related
           remove_enrollment_related_data()
           import_enrollments()
@@ -61,14 +64,11 @@ module Importers::HMISFiveOne
           import_income_benefits()
           import_services()
 
-          # Clients
-          import_clients()
-
-          remove_import_files()
           complete_import()
+        ensure
+          remove_import_files()
         end
       end # end with_advisory_lock
-      binding.pry
     end
 
     def remove_import_files
@@ -83,35 +83,35 @@ module Importers::HMISFiveOne
     end
     
     def import_enrollments()
-      GrdaWarehouse::Import::HMISFiveOne::Enrollment.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Enrollment)
     end
 
     def import_exits()
-      GrdaWarehouse::Import::HMISFiveOne::Exit.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Exit)
     end
     
     def import_services()
-      GrdaWarehouse::Import::HMISFiveOne::Service.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Service)
     end
 
     def import_enrollment_cocs()
-      GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc)
     end
     
     def import_disabilities()
-      GrdaWarehouse::Import::HMISFiveOne::Disability.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Disability)
     end
 
     def import_employment_educations()
-      GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation)
     end
         
     def import_health_and_dvs()
-      GrdaWarehouse::Import::HMISFiveOne::HealthAndDv.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::HealthAndDv)
     end
     
     def import_income_benefits()
-      GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit)
     end
     
     # This dump should be authoriative for any enrollment that was open during the 
@@ -146,42 +146,66 @@ module Importers::HMISFiveOne
       end
     end
 
+    def import_enrollment_based_class klass
+      begin
+        stats = klass.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+        errors = stats.delete(:errors)
+        setup_summary(klass.file_name)
+        @import.summary[klass.file_name].merge!(stats)
+        if errors.any?
+          errors.each do |error|
+            add_error(file_path: klass.file_name, message: error[:error], line: error[:line])
+          end
+        end
+      rescue ActiveRecord::ActiveRecordError => exception
+        message = "Unable to import #{klass.name}: #{exception.message}"
+        add_error(file_path: klass.file_name, message: message, line: '')
+      end
+    end
+
+    def import_project_based_class klass
+      begin
+        stats = klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+        errors = stats.delete(:errors)
+        setup_summary(klass.file_name)
+        @import.summary[klass.file_name].merge!(stats)
+        if errors.any?
+          errors.each do |error|
+            add_error(file_path: klass.file_name, message: error[:error], line: error[:line])
+          end
+        end
+      rescue ActiveRecord::ActiveRecordError => exception
+        message = "Unable to import #{klass.name}: #{exception.message}"
+        add_error(file_path: klass.file_name, message: message, line: '')
+      end
+    end
+
     def import_clients
-      klass = GrdaWarehouse::Import::HMISFiveOne::Client
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Client)
     end
 
     def import_organizations
-      # Maybe load up HUD Key and DateUpdated for existing in same data source
-      # Loop over incoming, see if the key is there with a newer DateUpdated
-      # Update if newer, create if it isn't there, otherwise do nothing
-      klass = GrdaWarehouse::Import::HMISFiveOne::Organization
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Organization)
     end
 
     def import_inventories
-      klass = GrdaWarehouse::Import::HMISFiveOne::Inventory
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Inventory)
     end
 
     def import_project_cocs
-      klass = GrdaWarehouse::Import::HMISFiveOne::ProjectCoc
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::ProjectCoc)
     end
 
     def import_sites
-      klass = GrdaWarehouse::Import::HMISFiveOne::Site
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Site)
     end
     
     def import_funders
-      klass = GrdaWarehouse::Import::HMISFiveOne::Funder
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Funder)
     end
 
     def import_affiliations
-      klass = GrdaWarehouse::Import::HMISFiveOne::Affiliation
-      @import.summary[klass.file_name].merge! klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Affiliation)
     end
 
     def set_involved_projects
@@ -248,7 +272,7 @@ module Importers::HMISFiveOne
           )
       else
         msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{header_row}; expected a subset of: #{klass.hud_csv_headers}"
-        add_error(file_path: read_from.path, message: msg)
+        add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
       read_from.each_line do |line|
@@ -261,8 +285,8 @@ module Importers::HMISFiveOne
             line += next_line
             if long_line?(line, comma_count)
               bad_line = line.gsub(next_line, '')
-              msg = "Unable to fix a line, not importing: #{bad_line}"
-              add_error(file_path: read_from.path, message: msg)
+              msg = "Unable to fix a line, not importing:"
+              add_error(file_path: read_from.path, message: msg, line: bad_line)
               line = '"' + next_line
             end
           end
@@ -271,18 +295,17 @@ module Importers::HMISFiveOne
             if row.count == header.count
               row = set_useful_export_id(row: row, export_id: export_id_addition)
               write_to << row
-              log_processed_line(file_path: read_from.path)
             else
-              msg = "Line length is incorrect, unable to import: #{line}"
-              add_error(file_path: read_from.path, message: msg)
+              msg = "Line length is incorrect, unable to import:"
+              add_error(file_path: read_from.path, message: msg, line: line)
             end
           rescue CSV::MalformedCSVError => exception
-            message = "Failed to process line, #{exception.message}: #{line}"
-            add_error(file_path: read_from.path, message: message)
+            message = "Failed to process line, #{exception.message}:"
+            add_error(file_path: read_from.path, message: message, line: line)
           end
         rescue Exception => exception
-          message = "Failed while processing #{read_from.path}, #{exception.message}: #{line}"
-          add_error(file_path: read_from.path, message: message)
+          message = "Failed while processing #{read_from.path}, #{exception.message}:"
+          add_error(file_path: read_from.path, message: message, line: line)
         end
       end
       write_to.close
@@ -313,20 +336,25 @@ module Importers::HMISFiveOne
     end
 
     def open_csv_file(file_path)
+      file = File.read(file_path)
       # Look at the file to see if we can determine the encoding
       file_encoding = CharlockHolmes::EncodingDetector.
-        detect(File.read(file_path)).
+        detect(file).
         try(:[], :encoding)
       file_lines = IO.readlines(file_path).size - 1
-      log("Processing #{file_lines} lines in: #{file_path}")
+      setup_summary(File.basename(file_path))
+      @import.summary[File.basename(file_path)][:total_lines] = file_lines
+      log("Processing #{file_lines} lines in: #{file_path}") 
+      File.open(file_path, "r:#{file_encoding}:utf-8")
+    end
 
-      @import.summary[File.basename(file_path)] = {
+    def setup_summary(file)
+      @import.summary[file] ||= {
         total_lines: -1,
         lines_added: 0, 
         lines_updated: 0, 
         total_errors: 0
       }
-      File.open(file_path, "r:#{file_encoding}:utf-8")
     end
 
     def importable_files
@@ -357,21 +385,25 @@ module Importers::HMISFiveOne
       @import.data_source = data_source
       @import.summary = {}
       @import.import_errors = {}
+      @import.upload_id = @upload.id if @upload.present?
+      @import.save
     end
 
-    def log_processed_line file_path:
-      file = File.basename(file_path)
-      @import.summary[file][:total_lines] += 1
-    end
     def log(message)
       @notifier.ping message if @notifier
       logger.info message if @debug
     end
 
-    def add_error(file_path:, message:)
+    def add_error(file_path:, message:, line:)
       file = File.basename(file_path)
+      
       @import.import_errors[file] ||= []
-      @import.import_errors[file] << message
+      @import.import_errors[file] << {
+         text: "Error in #{file}",
+         message: message,
+         line: line,
+      }
+      setup_summary(file)
       @import.summary[file][:total_errors] += 1
       log(message)
     end

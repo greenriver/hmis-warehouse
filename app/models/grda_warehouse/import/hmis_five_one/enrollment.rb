@@ -116,6 +116,10 @@ module GrdaWarehouse::Import::HMISFiveOne
       'Enrollment.csv'
     end
 
+    def self.unique_constraint
+      [self.hud_key, :data_source_id, :PersonalID]
+    end
+
     def self.involved_enrollments(projects:, range:, data_source_id:)
       ids = []
       projects.each do |project|
