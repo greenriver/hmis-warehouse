@@ -3,15 +3,32 @@
 
 class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
   constructor: (container_selector, claims, attrs) ->
+    # @styleTooltip = @_styleTooltip
     super(container_selector, attrs.margin, attrs.keys, 'group')
-    @legend = new App.D3Chart.StackedLegend(attrs.legend, attrs.keys, attrs.colors)
+    @keyLabels = attrs.keys.slice()
+    @keyLabels[3] = "Emerg, not prev/ avoid (ED Visits that did not result in IP Admissions"
+    @legend = new App.D3Chart.StackedLegend(attrs.legend, @keyLabels, attrs.colors)
     @claims = @_loadClaims(claims)
     @colors = attrs.colors
     @range = @_loadRange()
     @domain = @_loadDomain()
 
     @scale = @_loadScale()
+    @scale.xColor = d3.scaleOrdinal().domain(@domain.xColor).range(@range.xColor)
+    @scale.icon = d3.scaleOrdinal().domain(@domain.icon).range(@range.icon)
     @stackData = @claims
+
+  _showTooltip: (data) ->
+    keys = @keys.slice().reverse()
+    keys.unshift('group')
+    labels = ['group']
+    super(data, keys, labels)
+    @tooltip.selectAll('.d3-tooltip__item')
+      .append('span')
+      .text((d) =>
+        if d == 'group' then data[d] else Math.round(data[d])+'%'
+      )
+    @_positionTooltip()
 
   _loadClaims: (claims)->
     result = []
@@ -29,14 +46,19 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     {
       x: [0, @dimensions.width],
       y: [@dimensions.height, 0],
-      color: @colors
+      color: @colors,
+      xColor: ['#00549E', '#777777'],
+      icon: ['icon-user', 'icon-users']
     }
 
   _loadDomain: ->
+    labels = ['Current Patient', 'SDH Pilot']
     {
       x: @claims.map((claim) -> claim.group),
       y: [0, 100],
-      color: @keys
+      color: @keys,
+      xColor: labels,
+      icon: labels
     }
 
   _styleAxisText: ->
@@ -80,16 +102,16 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
       .data(ticks.nodes())
       .enter()
       .append('i')
-        .attr('class', (tick) ->
+        .attr('class', (tick) =>
           text = d3.select(tick).select('text').text()
-          if text == 'Current Patient' then 'icon-user' else 'icon-users'
+          @scale.icon(text)
         )
         .style('position', 'absolute')
         .style('bottom', '0px')
         .style('font-size', '30px')
         .style('color', (tick) =>
           text = d3.select(tick).select('text').text()
-          if text == 'Current Patient' then '#00549E' else '#777777'
+          @scale.xColor(text)
         )
         .style('left', (tick) =>
           translate = +d3.select(tick).attr('transform').split(',')[0].replace('translate(', '')
@@ -139,11 +161,11 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
             ''
         )
         .attr('stroke-width',connectorSize+'px')
-        .attr('stroke', (d) =>
-          @scale.color(d.key)
-        )
+        .attr('stroke', (d) => @scale.color(d.key))
         .attr('fill', 'none')
 
+  _styleTooltip: ->
+    # custom styles for tooltips go here
 
   draw: ->
     @_drawAxes()

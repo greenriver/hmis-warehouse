@@ -9,10 +9,10 @@
         %small.d3-claims__dates
   .row  
     .col-xs-12.col-md-6
-      %p.text-center Amount Paid by Location and Month
+      .ho-chart__title Amount Paid by Location and Month
       = d3_trend_chart('amount_paid', data_type)
     .col-xs-12.col-md-6
-      %p.text-center Claims Volume by Location and Month
+      .ho-chart__title Claims Volume by Location and Month
       = d3_trend_chart('claims_volume', data_type)
   .row
     .col-xs-12

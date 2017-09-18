@@ -3,9 +3,9 @@
 
 class App.D3Chart.Claims
   constructor: (selector) ->
-    @margin = {top: 0, right: 0, bottom: 60, left: 30}
+    @margin = {top: 10, right: 0, bottom: 60, left: 30}
     @keys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
-    @keyLabels = ['IP', 'Emerg', 'Respite', 'OP', 'Rx', 'Other']
+    @keyLabels = ['Inpatient', 'Emergency', 'BMH', 'Outpatient', 'Pharmacy', 'Other (includes transportation, home care, etc)']
     @colors = ['#002A45', '#2C9CFF', '#B9DEFF', '#32DEFF', '#008DA8', '#B9B098']
     
     @container = d3.select('#'+selector)
@@ -13,8 +13,6 @@ class App.D3Chart.Claims
     @legend = new App.D3Chart.StackedLegend(@legendSelector, @keyLabels, @colors)
     @charts = @container.selectAll('.'+selector+'__chart')
     @date = @container.select('.'+selector+'__dates')
-
-    @scale = @_loadScale()
   
   _loadTickFormat: (id) ->
     if id == '#claims__amount_paid' 
@@ -22,14 +20,11 @@ class App.D3Chart.Claims
     else
       '.2s'
 
-  _loadScale: () ->
-    keyLabel = (d) ->
-      keyLabels = {ip: 'IP', emerg: 'Emerg', respite: 'Respite', op: 'OP', rx: 'Rx', other: 'Other'}
-      keyLabels[d]
-    {
-      color: d3.scaleOrdinal().domain(@keys).range(@colors),
-      keyLabel: keyLabel
-    }
+  _loadTooltipFormat: (id) ->
+    if id == '#claims__amount_paid'
+      '$,'
+    else
+      ','
 
   _loadMonthName: (date) ->
     months = [
@@ -45,6 +40,10 @@ class App.D3Chart.Claims
       .selectAll('.ho-hint__swatch')
         .style('opacity', '0.6')
 
+  _styleTooltip: (data) ->
+    @tooltip.selectAll('.d3-tooltip__swatch')
+      .style('opacity', '0.1')
+
   draw: ->
     date = @date
     @legend.draw()
@@ -54,7 +53,6 @@ class App.D3Chart.Claims
       url = $(@).data('url')
       id = '#'+$(@).attr('id')
       $.get(url, (data) ->
-        console.log(data)
         if date && data.length > 0
           dates = d3.extent(data, (d) -> 
             [year, month, day] = d.date.split('-')
@@ -65,8 +63,10 @@ class App.D3Chart.Claims
         if data.length > 0
           attrs = {
             margin: that.margin, 
-            keys: that.keys, 
+            keys: that.keys,
+            keyLabels: that.keyLabels, 
             yTickFormat: that._loadTickFormat(id),
+            tooltipFormat: that._loadTooltipFormat(id),
             colors: that.colors
           }
           chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
@@ -84,7 +84,9 @@ class App.D3Chart.Claims
 class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
   constructor: (container_selector, claims, attrs) ->  
     super(container_selector, attrs.margin, attrs.keys, 'date')
+    @keyLabels = attrs.keyLabels
     @yTickFormat = attrs.yTickFormat
+    @tooltipFormat = attrs.tooltipFormat
     @colors = attrs.colors
     @claims = @_loadClaims(claims)
     @domain = @_loadDomain()
@@ -92,6 +94,36 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
 
     @scale = @_loadScale()
     @stackData = @claims.bars
+
+  _loadMonthName: (date) ->
+    months = [
+      "January", "February", "March",
+      "April", "May", "June", "July",
+      "August", "September", "October",
+      "November", "December"
+    ]
+    months[date.getMonth()]
+
+  _showTooltip: (data) ->
+    keys = @keys.slice().reverse()
+    keys.push('total')
+    keys.unshift('date')
+    labels = ['total', 'date']
+    format = d3.format(@tooltipFormat)
+    super(data, keys, labels)
+    @tooltip.selectAll('.d3-tooltip__item')
+      .append('span')
+      .text((d) =>
+        if d == 'date'
+          @_loadMonthName(data[d]) + ' ' + data[d].getFullYear()
+        else if d == 'total'
+          'Total: '+format(data[d])
+        else
+          format(data[d])
+      )
+    @tooltip.selectAll('.d3-tooltip__swatch')
+      .style('opacity', '0.6')
+    @_positionTooltip()
 
   _loadClaims: (claims)->
     bars = claims.map((bar) => @_loadBar(bar))

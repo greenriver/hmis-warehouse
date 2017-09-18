@@ -17,13 +17,65 @@ $ho-current-patient: #00549E;
   box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
 }
 
+h2.ho-head__h2 {
+  margin-bottom: 5px;
+}
+
+h2.ho-sub__h2 {
+  @include open-sans-normal;
+  margin-top: 0px;
+  font-size: 1.2em;
+}
+
 .ho-container {
   margin-top: 40px;
   @include ho-container;
-  p {
+  .ho-chart__title {
     margin-bottom: $ho-padding * 2;
     margin-top: 10px;
+    text-align: center;
   }
+}
+
+#d3-tooltip {
+  position: absolute;
+  background-color: #FFFFFF;
+  padding: $ho-padding;
+  border: 1px solid $ho-color-2;
+  max-width: 300px;
+  min-width: 100px;
+}
+
+.d3-tooltip__item {
+  position: relative;
+  padding-left: 13px;
+}
+
+.d3-tooltip__item.d3-tooltip__label {
+  font-weight: bold;
+  padding-left: 0px;
+}
+
+.d3-tooltip__swatch {
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  left: 0px;
+  top: 6px;
+}
+
+.sdh__container {
+  margin-top: 40px;
+}
+
+.sdh__container div:first-of-type {
+  &.ho-container {
+    margin-top: 0px;
+  }
+}
+
+.ho-container__first {
+  @include ho-container;
 }
 
 .ho-container__header {
@@ -35,11 +87,21 @@ $ho-current-patient: #00549E;
   margin-top: $ho-padding * 2;
 }
 
+.ho-hint {
+  position: relative;
+  padding-left: 13px;
+}
+
 .ho-hint__swatch {
   width: 8px;
   height: 8px;
-  margin-right: 5px;
-  display: inline-block;
+}
+
+.ho-compare__marker,
+.ho-hint__swatch {
+  position: absolute;
+  left: 0px;
+  top: 6px;
 }
 
 .ho-hint__swatch-text {
@@ -232,6 +294,10 @@ $ho-current-patient: #00549E;
   .ho-hint {
     float: right;
     margin-right: $ho-padding * 2;
+    @media(max-width: $screen-sm-max) {
+      float:none;
+      margin-right: 0px;
+    }
   }
 }
 

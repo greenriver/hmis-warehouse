@@ -41,11 +41,19 @@ module HealthOverviewHelper
 
   def d3_container_header_key(color, index, data_type, other_text)
     style = index == 0 ? "color: #{color}; font-weight: bold;" : "color: #{color};"
-    icon = data_type == 'all' ? 'icon-users' : 'icon-user'
+    icon = d3_container_header_icon(data_type, index)
     text = (index == 0 && data_type == 'patient') ? @patient.client.name : other_text
     content_tag :div, class: 'ho-compare__key', style: style do
       concat content_tag :i, '', class: icon
       concat " #{text}"
+    end
+  end
+
+  def d3_container_header_icon(data_type, index)
+    if data_type == 'all' || index != 0
+      'icon-users'
+    else
+      'icon-user' 
     end
   end
 
@@ -78,6 +86,53 @@ module HealthOverviewHelper
   def d3_trend_chart(data, data_type)
     path = d3_chart_path(data, data_type)
     content_tag :div, '', class: 'd3-chart d3-claims__chart', id: "claims__#{data}", data: {url: path}
+  end
+
+  def key_metrics_table_header(key)
+    key = key.to_s
+    marker = {
+      'ED_Visits'=> 'ed-visits', 
+      'IP_Admits'=>'ip-admits',
+      'Average_Days_to_Readmit'=>'readmit'
+    }
+    content_tag :th do
+      if marker[key]
+        concat content_tag :div, '', class: "ho-compare__th-marker #{marker[key]}"
+      end
+      concat key.gsub('_', ' ')
+      if key == 'ED_Visits' || key == 'IP_Admits'
+        concat content_tag :small, '(past 6 months)'
+      end
+    end
+  end
+
+  def compare_box(key, patient_cost, sdh_cost, variance)
+    content_tag :div, class: 'ho-compare-box' do
+      concat content_tag :div, key.to_s.gsub('_', ' '), class: 'ho-compare-box__label'
+      concat content_tag :div, patient_cost[key], class: 'ho-compare-box__content'
+      concat content_tag :div, sdh_cost[key], class: 'ho-compare-box__to'
+      concat "Variance: #{variance[key]}"
+    end
+  end
+
+  def key_metrics_table_hint(key)
+    key = key.to_s
+    marker = {
+      'ED_Visits'=> 'ed-visits', 
+      'IP_Admits'=>'ip-admits',
+      'Average_Days_to_Readmit'=>'readmit'
+    }
+    text = {
+      'ED_Visits'=> 'ED Visits that did not result in IP Admissions', 
+      'IP_Admits'=>'Acute IP Admissions only (i.e. no SNF/Rehab/Respite/Psych)',
+      'Average_Days_to_Readmit'=>'For readmits, average only for those who had at least two admissions'
+    }
+    if marker[key]
+      content_tag :div, class: "ho-hint" do
+        concat content_tag :div, '', class: "ho-compare__marker #{marker[key]}"
+        concat content_tag :small, text[key]
+      end
+    end
   end
 
 end

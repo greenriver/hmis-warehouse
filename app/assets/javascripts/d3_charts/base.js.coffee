@@ -29,3 +29,4 @@ class App.D3Chart.Base
     chart = svg.append('g')
       .attr('transform', dimensions.chartTransform)
     return chart
+
