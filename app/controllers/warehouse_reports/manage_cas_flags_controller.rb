@@ -12,7 +12,6 @@ module WarehouseReports
             pluck(*client_fields)
         )
       when :full_housing_release
-        
         @clients = hashed(
           client_scope.full_housing_release_on_file.
             order(:LastName, :FirstName).
@@ -54,8 +53,13 @@ module WarehouseReports
             order(:LastName, :FirstName).
             pluck(*client_fields)
         )
+      else
+        @clients = hashed(
+          client_scope.where(@flag => true).
+            order(:LastName, :FirstName).
+            pluck(*client_fields)
+        )
       end
-
     end
 
     def bulk_update
@@ -75,7 +79,7 @@ module WarehouseReports
       else
         flash[:error] = 'Unable to set CAS flag.'
       end
-      redirect_to action: :index
+      redirect_to action: :index, cas_flag: @flag
     end
 
     private def set_flag
@@ -102,15 +106,7 @@ module WarehouseReports
 
     def bulk_params
       params.require(:cas_flags).permit(
-        :sync_with_cas,
-        :housing_assistance_network_released_on,
-        :disability_verified_on,
-        :dmh_eligible,
-        :va_eligible,
-        :hues_eligible,
-        :hiv_positive,
-        :full_housing_release,
-        :limited_cas_release,
+        *client_source.cas_readiness_parameters,
         :flag
       )
     end
