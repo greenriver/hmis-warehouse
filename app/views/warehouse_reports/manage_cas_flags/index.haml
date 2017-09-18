@@ -32,11 +32,11 @@
             %ul
               %li You CANNOT use this form to remove a housing release, you must do that on the client dashboard.  
               %li You CAN use this form to add a housing release or change from limited to full or full to limited.
-        = f.input @flag, as: :text, input_html: {value: @clients.map{|m| m[:id]}.join("\n"), rows: 20}, label: false
+        = f.input @flag, as: :text, input_html: {value: @clients&.map{|m| m[:id]}&.join("\n"), rows: 20}, label: false
         = f.input :flag, as: :hidden, input_html: {value: @flag}
         = f.submit class: 'btn btn-primary', value: 'Update CAS Flags'
       .col-sm-8
-        %h3= "Flagged Clients (#{@clients.size})"
+        %h3= "Flagged Clients (#{@clients&.size || 0})"
         = render 'client_table', clients: @clients  
       
     
