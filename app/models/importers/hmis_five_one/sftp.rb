@@ -3,10 +3,10 @@ require 'zip'
 module Importers::HMISFiveOne
   class Sftp < Base
     # conf = Importers::HMISFiveOne::Sftp.available_connections['SITE_NAME']
-    #  Importers::HMISFiveOne::Sftp.new(data_source: 14, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path'])
+    #  Importers::HMISFiveOne::Sftp.new(data_source_id: 14, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path'])
     def initialize(
       file_path: 'var/hmis_import',
-      data_source:,
+      data_source_id:,
       logger: Rails.logger, 
       debug: true,
       host:,
@@ -16,7 +16,7 @@ module Importers::HMISFiveOne
     )
       super(
         file_path: file_path, 
-        data_source: data_source, 
+        data_source_id: data_source_id, 
         logger: logger, 
         debug: debug
       )
@@ -31,8 +31,9 @@ module Importers::HMISFiveOne
     end
 
     def import!
-      # file_path = copy_from_sftp()
-      file_path = copy_from_local()
+      file_path = copy_from_sftp()
+      # For local testing
+      # file_path = copy_from_local()
       if file_path.present?
         upload(file_path: file_path)
       end
@@ -46,17 +47,6 @@ module Importers::HMISFiveOne
       FileUtils.rm_rf(@file_path) if File.exists?(@file_path)
     end
 
-    def expand file_path:
-      Rails.logger.info "Expanding #{file_path}"
-      Zip::File.open(file_path) do |zipped_file|
-        zipped_file.each do |entry|
-          Rails.logger.info entry.name
-          entry.extract([@local_path, File.basename(entry.name)].join('/'))
-        end
-      end
-      FileUtils.rm(file_path)
-    end
-
     def connect host:, username:, password:
       Rails.logger.info "Connecting to #{host}"
       Net::SFTP.start(
@@ -68,14 +58,15 @@ module Importers::HMISFiveOne
       )
     end
 
-    def copy_from_local
-      file = "#{Rails.root.to_s}/var/hmis_import/bphc.7z"
-      destination = "#{Rails.root.to_s}/#{@local_path}/#{File.basename(file)}"
-      FileUtils.rmtree(@local_path) if File.exists? @local_path
-      FileUtils.mkdir_p(@local_path)
-      FileUtils.cp(file, destination)
-      file_path = force_standard_zip(File.basename(destination))
-    end
+    # For local testing
+    # def copy_from_local
+    #   file = "#{Rails.root.to_s}/var/hmis_import/test.zip"
+    #   destination = "#{Rails.root.to_s}/#{@local_path}/#{File.basename(file)}"
+    #   FileUtils.rmtree(@local_path) if File.exists? @local_path
+    #   FileUtils.mkdir_p(@local_path)
+    #   FileUtils.cp(file, destination)
+    #   file_path = force_standard_zip(File.basename(destination))
+    # end
       
     def copy_from_sftp
       return unless @sftp.present?
@@ -130,10 +121,5 @@ module Importers::HMISFiveOne
        
       # Importing::RunImportHudZipJob.perform_later(upload: @upload)
     end
-
-    def mark_upload_complete
-      @upload.update(percent_complete: 100, completed_at: @import.completed_at)
-    end
-
   end
 end

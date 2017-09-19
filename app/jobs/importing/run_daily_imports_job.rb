@@ -9,6 +9,11 @@ module Importing
     end
 
     def perform
+      lock_checks = 4
+      while active_imports? && lock_checks > 0
+        sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
+        lock_checks -= 1
+      end
       start_time = Time.now
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       # Importers::Samba.new.run!
@@ -19,6 +24,9 @@ module Importing
       # on large data operations
       GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
       @notifier.ping('Project types calculated') if @send_notifications
+      # Sometimes client data changes in such a way as to leave behind stub
+      # clients with no enrollments, this clears those out.
+      GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
@@ -78,13 +86,16 @@ module Importing
       # pre-populate the cache for data source date spans
       GrdaWarehouse::DataSource.data_spans_by_id()
       @notifier.ping('Data source date spans set') if @send_notifications
+      # Clear the cache, some stuff has probably changed
+      Rails.cache.clear
+
       # Generate some duplicates if we need to, but not too many
       opts = {
         threshold: -1.45,
         batch_size: 10000,
         run_length: 10,
       }
-      SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
+      # SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
@@ -92,6 +103,12 @@ module Importing
       Rails.logger.info msg
       @notifier.ping(msg) if @send_notifications
       
+    end
+
+    def active_imports?
+      GrdaWarehouse::DataSource.importable.map do |ds|
+        ds.class.advisory_lock_exists?("hud_import_#{ds.id}")
+      end.include?(true)
     end
   end
 end

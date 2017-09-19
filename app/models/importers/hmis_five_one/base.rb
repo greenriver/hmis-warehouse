@@ -18,13 +18,14 @@ module Importers::HMISFiveOne
 
     def initialize(
       file_path: 'var/hmis_import',
-      data_source: ,
+      data_source_id: ,
       logger: Rails.logger, debug: true)
       setup_notifier('HMIS Importer 5.1')
-      @data_source = GrdaWarehouse::DataSource.find(data_source.to_i)
+      @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
       @logger = logger
       @debug = debug
+      @soft_delete_time = Time.now
       setup_import(data_source: @data_source)
     end
     
@@ -38,8 +39,11 @@ module Importers::HMISFiveOne
         begin
           @range = set_date_range()
           clean_source_files()
-          @projects = set_involved_projects()
+          # reload the export file with new export id
+          @export = nil
+          @export = load_export_file()
           @export.import!
+          @projects = set_involved_projects()
           @projects.each(&:update_changed_project_types)
           @projects.each(&:import!)
           # Import data that's not directly related to enrollments
@@ -79,6 +83,7 @@ module Importers::HMISFiveOne
 
     def complete_import
       @import.completed_at = Time.now
+      @import.upload_id = @upload.id if @upload.present?
       @import.save
     end
     
@@ -126,35 +131,51 @@ module Importers::HMISFiveOne
     # IncomeBenefit
     # Services
     def remove_enrollment_related_data
-      GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
-      GrdaWarehouse::Import::HMISFiveOne::Disability.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
-      GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
-      GrdaWarehouse::Import::HMISFiveOne::HealthAndDv.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
-      GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
-      GrdaWarehouse::Import::HMISFiveOne::Service.delete_involved(projects: @projects, range: @range, data_source_id: @data_source.id)
+      [
+        GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc,
+        GrdaWarehouse::Import::HMISFiveOne::Disability,
+        GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation,
+        GrdaWarehouse::Import::HMISFiveOne::HealthAndDv,
+        GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit,
+        GrdaWarehouse::Import::HMISFiveOne::Service,
+      ].each do |klass|
+        file = importable_files.key(klass)
+        @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
+          projects: @projects, 
+          range: @range, 
+          data_source_id: @data_source.id,
+          deleted_at: @soft_delete_time,
+        })
+      end
 
-      # TODO: Need to figure out how to remove exits in a way that we can still use them
-      # To determine if the enrollments should be removed.
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
       involved_exit_ids = GrdaWarehouse::Import::HMISFiveOne::Exit.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_enrollment_ids = GrdaWarehouse::Import::HMISFiveOne::Enrollment.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_exit_ids.each_slice(1000) do |ids|
-        GrdaWarehouse::Import::HMISFiveOne::Exit.where(id: ids).update_all(DateDeleted: Time.now)
+        GrdaWarehouse::Import::HMISFiveOne::Exit.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end
+      @import.summary['Exit.csv'][:lines_restored] -= involved_exit_ids.size
       involved_enrollment_ids.each_slice(1000) do |ids|
-        GrdaWarehouse::Import::HMISFiveOne::Enrollment.where(id: ids).update_all(DateDeleted: Time.now)
+        GrdaWarehouse::Import::HMISFiveOne::Enrollment.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end
+      @import.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
     end
 
     def import_enrollment_based_class klass
       begin
-        stats = klass.import_enrollment_related!(data_source_id: @data_source.id, file_path: @file_path)
+        file = importable_files.key(klass)
+        stats = klass.import_enrollment_related!(
+          data_source_id: @data_source.id, 
+          file_path: @file_path, 
+          stats: @import.summary[file],
+          soft_delete_time: @soft_delete_time
+        )
         errors = stats.delete(:errors)
         setup_summary(klass.file_name)
         @import.summary[klass.file_name].merge!(stats)
         if errors.any?
           errors.each do |error|
-            add_error(file_path: klass.file_name, message: error[:error], line: error[:line])
+            add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
           end
         end
       rescue ActiveRecord::ActiveRecordError => exception
@@ -165,13 +186,18 @@ module Importers::HMISFiveOne
 
     def import_project_based_class klass
       begin
-        stats = klass.import_project_related!(data_source_id: @data_source.id, file_path: @file_path)
+        file = importable_files.key(klass)
+        stats = klass.import_project_related!(
+          data_source_id: @data_source.id, 
+          file_path: @file_path, 
+          stats: @import.summary[file]
+        )
         errors = stats.delete(:errors)
         setup_summary(klass.file_name)
         @import.summary[klass.file_name].merge!(stats)
         if errors.any?
           errors.each do |error|
-            add_error(file_path: klass.file_name, message: error[:error], line: error[:line])
+            add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
           end
         end
       rescue ActiveRecord::ActiveRecordError => exception
@@ -247,6 +273,7 @@ module Importers::HMISFiveOne
         destination_file_path = "#{source_file_path}_updating"
         file = open_csv_file(source_file_path)
         clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
+        @import.files << [klass.name, file_name]
         if File.exists?(destination_file_path)
           FileUtils.mv(destination_file_path, source_file_path)
         else
@@ -348,12 +375,28 @@ module Importers::HMISFiveOne
       File.open(file_path, "r:#{file_encoding}:utf-8")
     end
 
+    def expand file_path:
+      Rails.logger.info "Expanding #{file_path}"
+      Zip::File.open(file_path) do |zipped_file|
+        zipped_file.each do |entry|
+          Rails.logger.info entry.name
+          entry.extract([@local_path, File.basename(entry.name)].join('/'))
+        end
+      end
+      FileUtils.rm(file_path)
+    end
+
+    def mark_upload_complete
+      @upload.update(percent_complete: 100, completed_at: @import.completed_at)
+    end
+
     def setup_summary(file)
       @import.summary[file] ||= {
         total_lines: -1,
         lines_added: 0, 
-        lines_updated: 0, 
-        total_errors: 0
+        lines_updated: 0,
+        lines_restored: 0,
+        total_errors: 0,
       }
     end
 
@@ -385,7 +428,7 @@ module Importers::HMISFiveOne
       @import.data_source = data_source
       @import.summary = {}
       @import.import_errors = {}
-      @import.upload_id = @upload.id if @upload.present?
+      @import.files = []
       @import.save
     end
 

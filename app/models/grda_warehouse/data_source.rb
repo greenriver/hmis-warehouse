@@ -20,10 +20,23 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
   
-  scope :importable, -> { where.not(source_type: nil)}
-  scope :destination, -> { where(source_type: nil)}
-  scope :importable_via_samba, -> { importable.where(source_type: "samba")}
-  scope :importable_via_sftp, -> { importable.where(source_type: "sftp")}
+  scope :importable, -> do
+    where(authoritative: false).
+    where.not(source_type: nil)
+  end
+  
+  scope :destination, -> do
+    where(source_type: nil)
+  end
+  
+  scope :importable_via_samba, -> do
+    importable.where(source_type: "samba")
+  end
+  
+  scope :importable_via_sftp, -> do
+    importable.where(source_type: "sftp")
+  end
+
   scope :viewable_by, -> (user) do
     if user.can_edit_anything_super_user?
       current_scope

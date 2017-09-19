@@ -29,7 +29,7 @@ module GrdaWarehouse::Import::HMISFiveOne
       return if existing_is_newer()
       if existing.to_h.present?
         # update any of the hud values coming from the import
-        self.class.where(id: existing.id).update_all(attributes.slice(*hud_csv_headers.map(&:to_s)))
+        self.class.with_deleted.where(id: existing.id).update_all(attributes.slice(*hud_csv_headers.map(&:to_s)))
       else
         save
       end
@@ -64,7 +64,7 @@ module GrdaWarehouse::Import::HMISFiveOne
     end
     
     def self.load_from_csv(file_path: , data_source_id: )
-      existing_projects = self.where(data_source_id: data_source_id).pluck(self.hud_key, :DateUpdated, :ProjectType, :id).map do |key, updated_at, project_type, id|
+      existing_projects = self.with_deleted.where(data_source_id: data_source_id).pluck(self.hud_key, :DateUpdated, :ProjectType, :id).map do |key, updated_at, project_type, id|
         [key, {updated_at: updated_at, project_type: project_type, id: id}]
       end.to_h
       [].tap do |m|

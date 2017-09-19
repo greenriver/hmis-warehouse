@@ -68,12 +68,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def clients_needing_updates
       logger.info "Finding clients needing updates..."
       # Add anyone who's history has changed since the last time we processed them
-      sql = warehouse_clients_processed_source.service_history.select(:client_id, :last_service_updated_at).to_sql
       @to_update = [] # This will be converted to a hash later
-      GrdaWarehouseBase.connection.select_rows(sql).each do |client_id, last_service_updated_at|
-        # Fix the column type, select_rows now returns all strings
-        client_id = service_history_source.column_types['client_id'].type_cast_from_database(client_id)
-        last_service_updated_at = service_history_source.column_types['last_service_updated_at'].type_cast_from_database(last_service_updated_at)
+      warehouse_clients_processed_source.service_history.pluck(:client_id, :last_service_updated_at).each do |client_id, last_service_updated_at|
         # Ignore anyone who no longer has any active source clients
         next unless source_clients_for(client_id).any?
         # If newly imported data is newer than the date stored the last time we generated, regenerate
