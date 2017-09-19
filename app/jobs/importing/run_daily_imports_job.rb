@@ -95,7 +95,7 @@ module Importing
         batch_size: 10000,
         run_length: 10,
       }
-      # SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
+      SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
