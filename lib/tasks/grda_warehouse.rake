@@ -112,22 +112,23 @@ namespace :grda_warehouse do
 
   desc "Import Many HUD CSVs for development"
   task import_dev_hud_csvs: [:environment, "log:info_to_stdout"] do
+    # FIXME: this no longer works with the new importer, we need a new exporter first
     # loop over data sources, looking for sub directories, find the first one
     # copy all files into the data source import path
     # delete the folder, run samba import for that DS
-    GrdaWarehouse::DataSource.importable.each do |ds|
-      directories = Dir["#{ds.file_path}/*"].select{ |f| File.directory?(f)}
-      directories.each do |dir|
-        puts "Moving #{dir}/* to #{ds.file_path}"
-        Dir["#{dir}/*"].each do |f|
-          FileUtils.mv(f, ds.file_path) if File.extname(f) == '.csv'
-        end
-        puts "Removing #{dir}"
-        FileUtils.rmdir(dir)
-        puts "Importing #{ds.id}"
-        Importers::Samba.new(ds.id).run!
-      end
-    end
+    # GrdaWarehouse::DataSource.importable.each do |ds|
+    #   directories = Dir["#{ds.file_path}/*"].select{ |f| File.directory?(f)}
+    #   directories.each do |dir|
+    #     puts "Moving #{dir}/* to #{ds.file_path}"
+    #     Dir["#{dir}/*"].each do |f|
+    #       FileUtils.mv(f, ds.file_path) if File.extname(f) == '.csv'
+    #     end
+    #     puts "Removing #{dir}"
+    #     FileUtils.rmdir(dir)
+    #     puts "Importing #{ds.id}"
+    #     Importers::Samba.new(ds.id).run!
+    #   end
+    # end
   end
 
   desc "Dump Many HUD CSVs from Production for Development"
@@ -137,7 +138,10 @@ namespace :grda_warehouse do
 
   desc "Import HUD Zips from all Data Sources"
   task :import_data_sources, [:data_source_id] => [:environment] do |t, args|
-    Importers::Sftp.new(args.data_source_id).run!
+    Importers::HMISFiveOne::Sftp.available_connections.each do |key, conf|
+      ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+      Importers::HMISFiveOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
+    end
   end
 
   desc "Identify duplicates"
