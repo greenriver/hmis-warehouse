@@ -24,6 +24,7 @@ module Importers
       directory: nil,
       rm_files: true, 
       munge_export_id: true)
+      raise 'No longer in use'
       @munge_export_id = munge_export_id
 
       super
