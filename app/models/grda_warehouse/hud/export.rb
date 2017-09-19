@@ -8,25 +8,12 @@ module GrdaWarehouse::Hud
     end
 
     def self.hud_csv_headers(version: nil)
-      [
-        "ExportID",
-        "SourceType",
-        "SourceID",
-        "SourceName",
-        "SourceContactFirst",
-        "SourceContactLast",
-        "SourceContactPhone",
-        "SourceContactExtension",
-        "SourceContactEmail",
-        "ExportDate",
-        "ExportStartDate",
-        "ExportEndDate",
-        "SoftwareName",
-        "SoftwareVersion",
-        "ExportPeriodType",
-        "ExportDirective",
-        "HashStatus"
-      ]
+      case version
+      when 6.1
+      else
+        GrdaWarehouse::Import::HMISFiveOne::Export.hud_csv_headers
+      end
+      
     end
 
     # a little meta-programming to save my sanity -- this just builds a lot of has_many relations

@@ -4,7 +4,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   serialize :import_errors
   serialize :summary
   belongs_to :data_source
-  has_one :upload, -> { where(percent_complete: 100.0)}, primary_key: [:data_source_id, :completed_at], foreign_key: [:data_source_id, :completed_at]
+  belongs_to :upload, required: false
 
   scope :viewable_by, -> (user) do
     where(data_source_id: GrdaWarehouse::DataSource.viewable_by(user).select(:id))

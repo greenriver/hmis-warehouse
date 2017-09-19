@@ -46,6 +46,7 @@
       .col-sm-4.client__data-sharing-agreement
         %h3 Data Sharing Agreement
         = @client.consent_form_status.presence ||'No consent forms on file'
-      .col-sm-4
-        .client__image
-          = image_tag(image_client_path(@client))
+      - if @client.image
+        .col-sm-4
+          .client__image
+            = image_tag(image_client_path(@client))

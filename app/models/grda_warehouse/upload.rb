@@ -6,7 +6,7 @@ module GrdaWarehouse
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
     belongs_to :user, required: true
-    has_one :import_log, -> { where.not(completed_at: nil)}, primary_key: [:data_source_id, :completed_at], foreign_key: [:data_source_id, :completed_at]
+    has_one :import_log
 
     mount_uploader :file, ImportUploader
     validates :data_source, presence: true
@@ -38,8 +38,12 @@ module GrdaWarehouse
 
     def import_time
       if percent_complete == 100
-        seconds = ((completed_at - created_at)/1.minute).round * 60
-        distance_of_time_in_words(seconds)
+        begin
+          seconds = ((completed_at - created_at)/1.minute).round * 60
+          distance_of_time_in_words(seconds)
+        rescue
+          'unknown'
+        end
       else
         'incomplete'
       end

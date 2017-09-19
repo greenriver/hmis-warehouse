@@ -9,7 +9,7 @@ module HealthCharts
           answer = form.answers[:sections].first[:questions].select do |question|
             question[:question] == "A-6. Where did you sleep last night?"
           end.first
-          [form.collected_at, self.class.health_housing_positive_outcomes.include?(answer[:answer])]
+          [form.collected_at.to_date, self.class.health_housing_positive_outcomes.include?(answer[:answer])]
         end
       end.compact.to_h
     end

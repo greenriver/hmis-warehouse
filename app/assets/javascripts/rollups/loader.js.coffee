@@ -27,10 +27,11 @@ class App.Rollups.Loader
                 center:    true
               $square.addClass('rollup__square')
               $square.append dataSourceID
-              $html = $ '<div><div class="org"/>PersonalID: <span class="pid"/><br>data source: <span/><br><i>click to copy personal id</i></div>'
+              $html = $ '<div><div class="org"/>PersonalID: <span class="pid"/><br>Data source: <span class="data_source_id"/><br>Source Client ID: <span class="source_client_id"/><br><i>click to copy personal id</i></div>'
               $html.css textAlign: 'left', fontSize: 'smaller'
               $html.find('.pid').text personalID
-              $html.find('span:last').text dataSourceID
+              $html.find('.source_client_id').text id
+              $html.find('.data_source_id').text dataSourceID
               $org = $html.find '.org'
               if organization
                 $org.text organization
