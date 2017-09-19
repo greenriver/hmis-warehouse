@@ -15,16 +15,13 @@ module Window::Health
 
       @view_model = ::Health::Claims::ViewModel.new(@patient, @rosters)
       @patient_summary = @view_model.patient_summary
-      
-      @cost = @view_model.cost_table
-      @patient_cost = @cost[:patient]
-      @SDH_cost = @cost[:sdh_cost]
-      @variance_cost = @cost[:variance]
-
-      @key_metrics = @view_model.key_metrics_table
-      @patient_key_metrics = @key_metrics[:patient]
-      @SDH_key_metrics = @key_metrics[:sdh_cost]
-      @variance_key_metrics = @key_metrics[:variance]
+      @cost_table = @view_model.cost_table
+      @km_table = @view_model.key_metrics_table
+      @km_rows = [
+        [@km_table.patient, 'ho-compare__current-patient'], 
+        [@km_table.sdh, 'ho-compare__pilot-average'], 
+        [@km_table.variance, 'ho-compare__variance']
+      ]
       
       render layout: !request.xhr?      
     end

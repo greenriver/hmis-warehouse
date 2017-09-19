@@ -10,7 +10,7 @@ module Health::Claims
     end
 
     def cost_table
-      result = {patient: {}, sdh_cost: {}, variance: {}}
+      result = {patient: {}, sdh: {}, variance: {}}
       if @patient_roster.present?
         values = load_patient_sdh_variance(load_cost_values)
         values.each_with_index do |v, index|
@@ -22,11 +22,11 @@ module Health::Claims
           }
         end
       end
-      result
+      load_table(result)
     end
 
     def key_metrics_table
-      result = {patient: {}, sdh_cost: {}, variance: {}}
+      result = {patient: {}, sdh: {}, variance: {}}
       if @patient_roster.present?
         values = load_patient_sdh_variance(load_key_metric_values)
         values.each_with_index do |v, index|
@@ -39,7 +39,7 @@ module Health::Claims
           }
         end
       end
-      result
+      load_table(result)
     end
 
     def patient_summary
@@ -73,6 +73,11 @@ module Health::Claims
     end
 
     protected
+
+    def load_table(result)
+      Struct.new('Table', :keys, :patient, :sdh, :variance)
+      Struct::Table.new(result[:patient].keys, result[:patient], result[:sdh], result[:variance])
+    end
 
     def load_patient_sdh_variance(values)
       patient, sdh = values
