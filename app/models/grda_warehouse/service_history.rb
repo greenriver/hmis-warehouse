@@ -12,7 +12,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   # make a scope for every project type and a type? method for instances
   GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k,v|
     next unless Symbol === k
-    scope k, -> { where project_type: v }
+    scope k, -> { where project_type_column => v }
     define_method "#{k}?" do
       v.include? self.project_type
     end
@@ -25,7 +25,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   # the first date individuals entered a residential service
   scope :first_date, -> { where record_type: 'first' }
   scope :residential, -> {
-    where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+    where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   }
 
   scope :hud_residential, -> do
@@ -40,7 +40,9 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(where_closed.or(where_open))
   end
 
-  scope :open_between, -> (start_date:, end_date:) do 
+  # This is the old logic, still not completely convinced of the new logic
+  # They do differ, but I believe the new logic is more correct
+  scope :old_open_between, -> (start_date:, end_date:) do 
     at = arel_table
 
     closed_within_range = at[:last_date_in_program].gt(start_date).
@@ -54,8 +56,20 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(closed_within_range.or(opened_within_range).or(open_throughout))
   end
 
+  scope :open_between, -> (start_date:, end_date:) do 
+    at = arel_table
+    # Excellent discussion of why this works:
+    # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+    d_1_start = start_date
+    d_1_end = end_date
+    d_2_start = at[:first_date_in_program]
+    d_2_end = at[:last_date_in_program]
+    # Currently does not count as an overlap if one starts on the end of the other
+    where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
+  end
+
   scope :homeless, -> do
-    where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+    where(project_type_column => GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
   scope :hud_homeless, -> do
     hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
@@ -71,7 +85,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
       homeless.
       where.not(
         client_id: entry.ongoing(on_date: date).
-          where(project_type: non_homeless).
+          where(project_type_column => non_homeless).
           select(:client_id).
           distinct
       )
@@ -95,7 +109,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :service_within_date_range, -> (start_date: , end_date: ) do
     at = arel_table
-    service.where(at[:date].gt(start_date).and(at[:date].lteq(end_date)))
+    service.where(at[:date].gteq(start_date).and(at[:date].lteq(end_date)))
   end
 
   scope :entry_within_date_range, -> (start_date: , end_date: ) do

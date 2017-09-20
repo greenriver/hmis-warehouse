@@ -351,6 +351,7 @@ module HUD
     map = {
       0 => 'Entry/Exit Date',
       3 => 'Night-by-Night',
+      nil => 'Entry/Exit Date',
     }
 
     _translate map, id, reverse

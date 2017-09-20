@@ -81,16 +81,27 @@ module GrdaWarehouse::Hud
       entry_in_last_three_years
     }, class_name: 'GrdaWarehouse::ServiceHistory'
 
-    has_many :exits, class_name: 'GrdaWarehouse::Hud::Exit', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id']
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
-    has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :client
-    has_many :services, through: :enrollments, source: :services
-    # has_many :services, class_name: 'GrdaWarehouse::Hud::Service', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
-    has_many :disabilities, class_name: 'GrdaWarehouse::Hud::Disability', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
-    has_many :health_and_dvs, class_name: 'GrdaWarehouse::Hud::HealthAndDv', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
-    has_many :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', foreign_key: ['PersonalID', 'data_source_id'], primary_key: ['PersonalID', 'data_source_id'], inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
+    has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
+    has_many :services, through: :enrollments, source: :services, inverse_of: :client
+    has_many :disabilities, through: :enrollments, source: :disabilities, inverse_of: :client
+    has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs, inverse_of: :client
+    has_many :income_benefits, through: :enrollments, source: :income_benefits, inverse_of: :client
+    has_many :employment_educations, through: :enrollments, source: :employment_educations, inverse_of: :client
+
+    # The following scopes are provided for data cleanup, but should generally not be
+    # used, as these relationships should go through enrollments
+    has_many :direct_exits, **hud_many(Exit), inverse_of: :direct_client
+    has_many :direct_enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :direct_client
+    has_many :direct_services, **hud_many(Service), inverse_of: :direct_client
+    has_many :direct_disabilities, **hud_many(Disability), inverse_of: :direct_client
+    has_many :direct_health_and_dvs, **hud_many(HealthAndDv), inverse_of: :direct_client
+    has_many :direct_income_benefits, **hud_many(IncomeBenefit), inverse_of: :direct_client
+    has_many :direct_employment_educations, **hud_many(EmploymentEducation), inverse_of: :direct_client
+    # End cleanup relationships
+
     has_many :client_attributes_defined_text, class_name: GrdaWarehouse::HMIS::ClientAttributeDefinedText.name, inverse_of: :client
-    has_many :employment_educations, **hud_many(EmploymentEducation), inverse_of: :client
     has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
     has_many :non_confidential_hmis_forms, -> do
       joins(:hmis_forms).where(id: GrdaWarehouse::HmisForm.window.non_confidential.select(:id))
@@ -520,12 +531,14 @@ module GrdaWarehouse::Hud
       return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
+        image_data = nil
         if Rails.env.production?
           api ||= EtoApi::Base.new.tap{|api| api.connect}
-          api.client_image(
+          image_data = api.client_image(
             client_id: api_id.id_in_data_source, 
             site_id: api_id.site_id_in_data_source
           ) rescue nil
+          (image_data && image_data.length > 0)
         else
           if [0,1].include?(self[:Gender])
             num = id % 99
@@ -535,9 +548,10 @@ module GrdaWarehouse::Hud
               'women'
             end
             response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-            response.body
+            image_data = response.body
           end
         end
+        image_data
       end
     end
 
@@ -1146,7 +1160,7 @@ module GrdaWarehouse::Hud
 
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)
       GrdaWarehouse::Tasks::ChronicallyHomeless.new(
-        date: date, 
+        date: date.to_date, 
         dry_run: true, 
         client_ids: [id]
         ).residential_history_for_client(client_id: id)

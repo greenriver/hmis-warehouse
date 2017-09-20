@@ -35,6 +35,6 @@
           %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
       = render 'window/clients/required_documents'
     .col-sm-4
-      - if eto_available || ! Rails.env.production?
+      - if (eto_available || ! Rails.env.production?) && @client.image 
         .client__image
           = image_tag(image_client_path)

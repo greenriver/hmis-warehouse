@@ -9,6 +9,7 @@ module GrdaWarehouse::Tasks
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
+      @soft_delete_date = Time.now
     end
     def run!
       GrdaWarehouseBase.transaction do 
@@ -32,10 +33,45 @@ module GrdaWarehouse::Tasks
       add_missing_ages_to_service_history()
     end
 
-    private def find_unused_destination_clients
+    def find_unused_destination_clients
       all_destination_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       active_destination_clients = GrdaWarehouse::WarehouseClient.joins(:source).pluck(:destination_id)
       all_destination_clients - active_destination_clients
+    end
+
+    def remove_clients_without_enrollments!
+      all_clients = GrdaWarehouse::Hud::Client.where(
+        data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
+      ).distinct.pluck(:id)
+      enrolled_clients = GrdaWarehouse::Hud::Client.joins(:enrollments).
+      where(
+        data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
+      ).distinct.pluck(:id)
+      un_enrolled_clients = all_clients - enrolled_clients
+      if un_enrolled_clients.any?
+        deleted_at = Time.now
+        debug_log "Removing #{un_enrolled_clients.size} un enrolled source clients and associated records.  Setting DateDeleted: #{deleted_at}"
+        GrdaWarehouse::WarehouseClient.where(source_id: un_enrolled_clients).update_all(deleted_at: deleted_at)
+        GrdaWarehouse::Hud::Exit.joins(:direct_client).
+          where(Client: {id: un_enrolled_clients}).
+          update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::EnrollmentCoc.joins(:direct_client).
+          where(Client: {id: un_enrolled_clients}).
+          update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::Disability.joins(:direct_client).
+          where(Client: {id: un_enrolled_clients}).
+          update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::HealthAndDv.joins(:direct_client).
+          where(Client: {id: un_enrolled_clients}).
+          update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::IncomeBenefit.joins(:direct_client).
+          where(Client: {id: un_enrolled_clients}).
+          update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::EmploymentEducation.joins(:direct_client).
+          where(Client: {id: un_enrolled_clients}).
+          update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at)
+      end
     end
 
     # Populate source client changes onto the destination client
@@ -159,7 +195,7 @@ module GrdaWarehouse::Tasks
 
     private def clean_warehouse_clients
       return unless @clients.any?
-      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).delete_all
+      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
     end
 
     private def clean_hmis_clients
@@ -169,7 +205,7 @@ module GrdaWarehouse::Tasks
 
     private def clean_destination_clients
       return unless @clients.any?
-      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: Time.now)
+      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date)
     end
 
     def fix_incorrect_ages_in_service_history

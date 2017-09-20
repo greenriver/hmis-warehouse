@@ -30,6 +30,7 @@
                       %th Total Rows
                       %th Added
                       %th Updated
+                      %th Restored (Deleted)
                       %th Errors
                   %tbody
                     - @import.summary.with_indifferent_access.each do |k,v|
@@ -39,6 +40,7 @@
                         %td= v['total_lines']
                         %td= v['lines_added']
                         %td= v['lines_updated']
+                        %td= v.try(:[], 'lines_restored') || 0
                         %td
                           - if @import.import_errors.is_a?(Hash) && @import.import_errors[filename].is_a?(Array)
                             = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors.with_indifferent_access[filename], total_errors: v['total_errors'] 

@@ -20,10 +20,13 @@ module GrdaWarehouse
         'Disability Verification',
         'Homeless Verification',
         'Veteran Verification',
-        'Income Verification',
+        'Proof of Income',
         'Client Photo',
+        'DD-214',
+        'Consent Form',
+        'Chronic Homelessness Verification',
         'Other',
-      ]
+      ].sort.freeze
     end
 
     def self.document_ready_tags
@@ -31,7 +34,7 @@ module GrdaWarehouse
         'Birth Certificate',
         'Government ID',
         'Social Security Card',
-        'Income Verification',
+        'Proof of Income',
       ]
     end
   end

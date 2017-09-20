@@ -12,7 +12,11 @@
 .row
   .col-sm-12
     %p
-      Clients with at least one day of service between
+      The following
+      = @enrollments.count
+      clients with
+      = @enrollments.values.flatten(1).count
+      enrollments, have at least one day of service between
       = @start_date
       and
       = "#{@end_date}."
@@ -35,7 +39,7 @@
           - enrollments.each do |enrollment|
             %tr
               %td
-                = link_to client_id, client_path(client_id)
+                = link_to "#{enrollment[:first_name]} #{enrollment[:last_name]}", client_path(id: client_id)
               %td
                 = HUD.project_type(enrollment[:project_type])
               %td

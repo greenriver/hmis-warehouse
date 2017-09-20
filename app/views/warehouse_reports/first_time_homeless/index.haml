@@ -8,7 +8,7 @@
   to
   = @range.end
 = simple_form_for :first_time_homeless, url: warehouse_reports_first_time_homeless_index_path, html: {method: :get, class: 'jFilter'} do |f|
-  .row
+  .row.margin-bottom-02
     .col-sm-3
       .input-group.date{data: {provide: :datepicker}}
         = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
@@ -18,10 +18,15 @@
         = f.input :end, input_html: {value: @range.end, class: 'form-control jEnd'}, label: false
         %span.input-group-addon.icon-calendar
     .col-sm-3
+      = f.button :submit, value: 'Update View'
+  .row
+    .col-sm-3
       .input-group
         = f.input :project_types, collection: ::HUD.project_types.invert, selected: @project_types, input_html: { multiple: true, data: {placeholder: "Limit by project type"}, class: 'select2'}, label: false
     .col-sm-3
-      = f.button :submit, value: 'Update View'
+      .input-group
+        = f.input :cohort, collection: {'Everyone'=>'all', 'Individuals only'=>'individual-only', 'Presented with others'=>'family-only', 'Veterans only'=>'veterans'}, include_blank: false, label: false, selected: @cohort
+
 %br
 %h4 All Clients Added
 .row
@@ -37,6 +42,8 @@
     %tr
       %th Last Name
       %th First Name
+      %th Age at entry
+      %th Veteran Status
       %th Date of First Service
       %th Project Type
       %th Project
@@ -49,6 +56,8 @@
           %nobr= link_to client.LastName, client_path(client)
         %td
           %nobr= link_to client.FirstName, client_path(client)
+        %td= client.first_service_history.age
+        %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
         %td= client.first_service_history.date
         %td
           = ::HUD.project_type(client.first_service_history.project_type)
@@ -63,6 +72,6 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path()}');
+      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path(start: @range.start, end: @range.end, project_types: @project_types.to_json, cohort: @cohort)}');
       chart.load();
     })(jQuery);

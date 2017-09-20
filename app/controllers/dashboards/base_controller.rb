@@ -130,7 +130,9 @@ module Dashboards
         entered_enrollments_by_type start_date: @start_date, end_date: @end_date
       end
 
+      # Summary of previous stat - all enrolled clients
       open_enrollments_by_project = enrollments_ongoing_in_date_range(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
+
       @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: open_enrollments_by_project)
 
       @entries_in_range_by_type = entries_in_range_from_enrollments(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
@@ -170,9 +172,8 @@ module Dashboards
 
     def homeless_service_history_source
       service_history_source.
-        where(
-          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        ).
+        where(service_history_source.project_type_column => 
+        GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
         where(client_id: client_source)
     end
 

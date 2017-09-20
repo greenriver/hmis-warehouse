@@ -28,6 +28,7 @@ module Importers
         rm_files: false, 
         munge_export_id: false
       )
+      raise 'No longer in use'
       if @directory = directory
         @source_type  = :directory
       end
