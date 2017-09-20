@@ -61,13 +61,13 @@ ActiveRecord::Schema.define(version: 20170901153110) do
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
   end
+  add_index "client_service_history", ["unduplicated_client_id"], :name=>"unduplicated_clients_unduplicated_client_id", :using=>:btree
 
   create_table "clients_unduplicated", force: :cascade do |t|
-    t.string  "client_unique_id",       :null=>false
-    t.integer "unduplicated_client_id", :null=>false
+    t.string  "client_unique_id"
+    t.integer "unduplicated_client_id"
     t.integer "dc_id"
   end
-  add_index "clients_unduplicated", ["unduplicated_client_id"], :name=>"unduplicated_clients_unduplicated_client_id", :using=>:btree
 
   create_table "delayed_jobs", force: :cascade do |t|
     t.integer  "priority",   :default=>0, :null=>false
@@ -159,39 +159,40 @@ ActiveRecord::Schema.define(version: 20170901153110) do
     t.boolean  "can_view_clients",                 :default=>false
     t.boolean  "can_edit_clients",                 :default=>false
     t.boolean  "can_view_reports",                 :default=>false
-    t.boolean  "can_view_censuses",                :default=>false
-    t.boolean  "can_view_census_details",          :default=>false
     t.boolean  "can_edit_users",                   :default=>false
     t.boolean  "can_view_full_ssn",                :default=>false
     t.boolean  "can_view_full_dob",                :default=>false
-    t.boolean  "can_view_hiv_status",              :default=>false
-    t.boolean  "can_view_dmh_status",              :default=>false
     t.boolean  "can_view_imports",                 :default=>false
     t.boolean  "can_edit_roles",                   :default=>false
+    t.boolean  "can_view_censuses",                :default=>false
+    t.boolean  "can_view_census_details",          :default=>false
     t.boolean  "can_view_projects",                :default=>false
-    t.boolean  "can_edit_projects",                :default=>false
-    t.boolean  "can_edit_project_groups",          :default=>false
     t.boolean  "can_view_organizations",           :default=>false
-    t.boolean  "can_edit_organizations",           :default=>false
-    t.boolean  "can_edit_data_sources",            :default=>false
     t.boolean  "can_view_client_window",           :default=>false
     t.boolean  "can_upload_hud_zips",              :default=>false
-    t.boolean  "can_edit_translations",            :default=>false
-    t.boolean  "can_manage_assessments",           :default=>false
-    t.boolean  "can_edit_anything_super_user",     :default=>false
-    t.boolean  "can_manage_client_files",          :default=>false
-    t.boolean  "can_manage_window_client_files",   :default=>false
-    t.boolean  "can_manage_config",                :default=>false
-    t.boolean  "can_edit_dq_grades",               :default=>false
-    t.boolean  "can_view_vspdat",                  :default=>false
-    t.boolean  "can_edit_vspdat",                  :default=>false
+    t.boolean  "can_view_hiv_status",              :default=>false
+    t.boolean  "can_view_dmh_status",              :default=>false
+    t.boolean  "health_role",                      :default=>false, :null=>false
     t.boolean  "can_administer_health",            :default=>false
     t.boolean  "can_edit_client_health",           :default=>false
     t.boolean  "can_view_client_health",           :default=>false
-    t.boolean  "health_role",                      :default=>false, :null=>false
-    t.boolean  "can_view_aggregate_health",        :default=>false
+    t.boolean  "can_edit_project_groups",          :default=>false
+    t.boolean  "can_view_everything",              :default=>false
+    t.boolean  "can_edit_anything_super_user",     :default=>false
+    t.boolean  "can_edit_projects",                :default=>false
+    t.boolean  "can_edit_organizations",           :default=>false
+    t.boolean  "can_edit_data_sources",            :default=>false
+    t.boolean  "can_manage_assessments",           :default=>false
+    t.boolean  "can_edit_translations",            :default=>false
+    t.boolean  "can_manage_config",                :default=>false
+    t.boolean  "can_edit_dq_grades",               :default=>false
+    t.boolean  "can_manage_client_files",          :default=>false
+    t.boolean  "can_manage_window_client_files",   :default=>false
+    t.boolean  "can_view_vspdat",                  :default=>false
+    t.boolean  "can_edit_vspdat",                  :default=>false
     t.boolean  "can_create_clients",               :default=>false
     t.boolean  "can_view_client_history_calendar", :default=>false
+    t.boolean  "can_view_aggregate_health",        :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 
