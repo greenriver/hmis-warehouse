@@ -25,7 +25,7 @@ module Importers::HMISFiveOne
       @file_path = file_path
       @logger = logger
       @debug = debug
-      @soft_delete_time = Time.now
+      @soft_delete_time = Time.now.change(usec: 0) # Active Record milliseconds and Rails don't always agree, so zero those out so future comparisons work.
       setup_import(data_source: @data_source)
     end
     
@@ -150,11 +150,11 @@ module Importers::HMISFiveOne
 
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
       involved_exit_ids = GrdaWarehouse::Import::HMISFiveOne::Exit.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
-      involved_enrollment_ids = GrdaWarehouse::Import::HMISFiveOne::Enrollment.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_exit_ids.each_slice(1000) do |ids|
         GrdaWarehouse::Import::HMISFiveOne::Exit.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end
       @import.summary['Exit.csv'][:lines_restored] -= involved_exit_ids.size
+      involved_enrollment_ids = GrdaWarehouse::Import::HMISFiveOne::Enrollment.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_enrollment_ids.each_slice(1000) do |ids|
         GrdaWarehouse::Import::HMISFiveOne::Enrollment.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end

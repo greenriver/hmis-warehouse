@@ -42,7 +42,7 @@ module Import::HMISFiveOne::Shared
     end
 
     def should_restore? row:, existing:, soft_delete_time:
-      soft_deleted_this_time = existing.deleted_at.present? && existing.deleted_at == soft_delete_time
+      soft_deleted_this_time = existing.deleted_at.present? && existing.deleted_at.to_i == soft_delete_time.to_i
       exists_in_incoming_file = row['DateDeleted'].blank?
       deleted_previously = existing.deleted_at.present? && existing.deleted_at != soft_delete_time
       incoming_is_newer = row['DateUpdated'].to_time > existing.updated_at
@@ -117,7 +117,7 @@ module Import::HMISFiveOne::Shared
       ).each do |row|
         export_id ||= row['ExportID']
         existing = existing_items[row[self.hud_key.to_s]]
-  
+        binding.pry if row['PersonalID'] == '536C627EAF364A1B9FAB50C0F4CDB944'
         if should_add?(existing)
           clean_row = clean_row_for_import(row).merge({data_source_id: data_source_id})
           headers ||= clean_row.keys
