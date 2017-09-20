@@ -45,9 +45,12 @@
                           = link_to polymorphic_path(careplan_path_generator + [:team, :member], id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."} do 
                             %span.icon-cross
                     .health__team-member--name
-                      = member.full_name
+                      = member&.full_name
                       %br
-                      = member.organization
+                      = member&.organization
+                      %br
+                      = mail_to member.email, subject: 'Collaborative Care Plan' do
+                        = member&.email
                     - if member.last_contact.present?
                       .health__team-member--last-contact
                         Last Visit:
