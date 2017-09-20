@@ -19,7 +19,7 @@ class ClientMatchesController < ApplicationController
     @counts = client_match_scope.group(:status).count
 
     @matches = client_match_scope.where(status: @status).
-      joins(:destination_client, :source_client).
+      joins(:source_client, :destination_client).
       preload(
         destination_client: [
           :data_source,

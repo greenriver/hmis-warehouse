@@ -1,5 +1,6 @@
 class GrdaWarehouse::WarehouseClient < GrdaWarehouseBase
   has_paper_trail
+  # acts_as_paranoid
 
   belongs_to :destination, class_name: 'GrdaWarehouse::Hud::Client',
     inverse_of: :warehouse_client_destination
