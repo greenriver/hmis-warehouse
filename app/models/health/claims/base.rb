@@ -1,6 +1,7 @@
 require 'roo'
 module Health::Claims
   class Base < HealthBase
+    self.abstract_class = true
     include TsqlImport
     attr_accessor :sheet
     

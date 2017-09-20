@@ -9,6 +9,9 @@
     = render 'data_quality_reports'
   #cas-reports.tab-pane{role: :tabpanel}
     = render 'cas_reports'
+  - if can_view_aggregate_health?
+    #health-reports.tab-pane{role: :tabpanel}
+      = render 'health_reports'
 
 = content_for :page_js do
   :javascript

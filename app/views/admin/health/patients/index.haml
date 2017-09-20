@@ -18,7 +18,11 @@
         %tr
           %th Patient ID
           %th Patient
+          %th DOB
+          %th Gender
           %th Client
+          %th DOB
+          %th Gender
           %th Client ID
       %tbody
         - @patients.each do |patient|
@@ -29,8 +33,17 @@
               %td
                 = patient.name
               %td
+                = patient.birthdate
+              %td
+                = patient.gender
+              %td
                 - if patient.client.present?
-                  = patient.client.name
+                  = link_to client_path(id: patient.client_id) do
+                    = patient.client.name
+              %td
+                = patient&.client&.DOB
+              %td
+                = HUD::gender(patient&.client&.Gender)
               %td
                 = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
   .form-actions

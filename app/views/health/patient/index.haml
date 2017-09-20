@@ -7,10 +7,19 @@
   .col-sm-12
     %h2 Patient Summary
     - if @patient.present?
+      - warehouse_path = 'warehouse_reports/health/overview/'
       = render 'patient_summary'
+      .sdh__container
+        %h2.ho-head__h2 SDH Coordinated Care Hub Pilot Program
+        %h2.ho-sub__h2 Cost and Utilization for Participating Patients
+        = render "#{warehouse_path}trends_over_time", data_type: 'patient'
+        = render 'patient_cost_metrics'
+        = render "#{warehouse_path}top_providers_and_conditions", data_type: 'patient'
       = render 'patient_dashboard'
       = render 'patient_details'
 
       = render 'patient_js'
     - else
       %p No patient record found.
+
+

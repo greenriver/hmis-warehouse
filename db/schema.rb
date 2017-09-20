@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170830223244) do
+ActiveRecord::Schema.define(version: 20170901153110) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -179,16 +179,17 @@ ActiveRecord::Schema.define(version: 20170830223244) do
     t.boolean  "can_edit_translations",            :default=>false
     t.boolean  "can_manage_assessments",           :default=>false
     t.boolean  "can_edit_anything_super_user",     :default=>false
+    t.boolean  "can_manage_client_files",          :default=>false
+    t.boolean  "can_manage_window_client_files",   :default=>false
+    t.boolean  "can_manage_config",                :default=>false
+    t.boolean  "can_edit_dq_grades",               :default=>false
+    t.boolean  "can_view_vspdat",                  :default=>false
+    t.boolean  "can_edit_vspdat",                  :default=>false
     t.boolean  "can_administer_health",            :default=>false
     t.boolean  "can_edit_client_health",           :default=>false
     t.boolean  "can_view_client_health",           :default=>false
     t.boolean  "health_role",                      :default=>false, :null=>false
-    t.boolean  "can_manage_config",                :default=>false
-    t.boolean  "can_manage_client_files",          :default=>false
-    t.boolean  "can_manage_window_client_files",   :default=>false
-    t.boolean  "can_edit_dq_grades",               :default=>false
-    t.boolean  "can_view_vspdat",                  :default=>false
-    t.boolean  "can_edit_vspdat",                  :default=>false
+    t.boolean  "can_view_aggregate_health",        :default=>false
     t.boolean  "can_create_clients",               :default=>false
     t.boolean  "can_view_client_history_calendar", :default=>false
   end

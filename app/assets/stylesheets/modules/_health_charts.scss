@@ -1,0 +1,403 @@
+$ho-padding: 10px;
+$ho-container__margin: 40px;
+
+$ho-color-0: #0C2639;
+// grays
+$ho-color-1: #f1f1f1;
+$ho-color-2: #d2d2d2;
+$ho-color-3: #777777;
+
+$ho-current-patient: #00549E;
+$ho-not-housed: #FFBC86;
+$ho-housed: #57CC9B;
+
+@mixin ho-container {
+  padding: $ho-padding;
+  background-color: #FFFFFF;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+  box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+}
+
+h2.ho-head__h2 {
+  margin-bottom: 5px;
+}
+
+h2.ho-sub__h2 {
+  @include open-sans-normal;
+  margin-top: 0px;
+  font-size: 1.2em;
+}
+
+.ho-container {
+  margin-top: 40px;
+  @include ho-container;
+  .ho-chart__title {
+    margin-bottom: $ho-padding * 2;
+    margin-top: 10px;
+    text-align: center;
+  }
+}
+
+#d3-tooltip {
+  position: absolute;
+  background-color: #FFFFFF;
+  padding: $ho-padding;
+  border: 1px solid $ho-color-2;
+  max-width: 300px;
+  min-width: 100px;
+}
+
+.d3-tooltip__item {
+  position: relative;
+  padding-left: 13px;
+}
+
+.d3-tooltip__item.d3-tooltip__label {
+  font-weight: bold;
+  padding-left: 0px;
+}
+
+.d3-tooltip__swatch {
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  left: 0px;
+  top: 6px;
+}
+
+.sdh__container {
+  margin-top: 40px;
+}
+
+.sdh__container div:first-of-type {
+  &.ho-container {
+    margin-top: 0px;
+  }
+}
+
+.ho-container__first {
+  @include ho-container;
+}
+
+.ho-container__header {
+  border-bottom: 1px solid $ho-color-2;
+  margin-bottom: $ho-padding;
+}
+
+.ho-hints {
+  margin-top: $ho-padding * 2;
+}
+
+.ho-hint {
+  position: relative;
+  padding-left: 13px;
+}
+
+.ho-hint__swatch {
+  width: 8px;
+  height: 8px;
+}
+
+.ho-compare__marker,
+.ho-hint__swatch {
+  position: absolute;
+  left: 0px;
+  top: 6px;
+}
+
+.ho-hint__swatch-text {
+  display: inline-block;
+}
+
+.d3-housing-status__hints {
+  margin-bottom: 20px;
+}
+
+.d3-housing-status__hints .ho-hint {
+  float: left;
+  margin-right: 10px;
+}
+
+// Patient Summary
+.ho-patient__container {
+  @include ho-container;
+}
+.ho-patient__name {
+  margin-top: 0px;
+  border-bottom: 1px solid $ho-color-2;
+  padding: 5px 0px;
+}
+.ho-patient__details {
+  padding-left: 10px;
+}
+.ho-patient__detail {
+  display: inline-block;
+  background-color: $ho-color-1;
+  padding-right: 4px;
+  margin-right: $ho-padding;
+  margin-bottom: $ho-padding;
+  border-radius: 2px;
+  span {
+    padding: 0px 4px;
+    @include open-sans-condensed-bold;
+    color: $ho-color-3;
+  }
+}
+.ho-patient__content {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  tr:first-child td {
+    border-top: 2px solid $ho-color-1;
+  }
+  td {
+    padding: 4px $ho-padding;
+    font-weight: bold;
+    vertical-align: top;
+    border-bottom: 2px solid $ho-color-1;
+  }
+  td small {
+    font-weight: normal;
+    text-transform: uppercase;
+  }
+}
+
+// Cost and Key Metrics tables
+
+.ho-compare__fc {
+  border-left: 1px solid $ho-color-2;
+  @media(max-width: $screen-sm-max) {
+    border-left: none;
+    margin-top: 20px;
+  }
+}
+
+.ho-compare-box {
+  padding: $ho-padding;
+  text-align: center;
+  background-color: $ho-color-1;
+  margin-bottom: 10px;
+}
+
+.ho-compare-box__content {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00549E;
+}
+
+.ho-compare-box__to {
+  border-top: 1px solid $ho-color-2;
+  font-weight: normal;
+  font-size: 22px;
+  color: #777777;
+  span {
+    padding-top: 5px;
+    display: block;
+    font-size: 16px;
+    @include open-sans-condensed-bold;
+  }
+}
+
+.ho-compare__table-1 {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 10px 0px;
+}
+
+.ho-compare__table-2 {
+  width: 100%;
+  table-layout: fixed;
+  padding: 0px 10px;
+  th, td {
+    text-align: center;
+    border-bottom: 1px solid $ho-color-2;
+  }
+  th {
+    font-weight: normal;
+    background-color: $ho-color-1;
+    position: relative;
+    small {
+      display: block;
+    }
+  }
+  td {
+    border-bottom: 1px solid $ho-color-2;
+  }
+}
+
+.ho-compare__label-row td {
+  font-size: 12px;
+  border-bottom: none;
+  background-color: $ho-color-1;
+}
+
+.ho-compare__variance td {
+  background-color: $ho-color-1;
+}
+
+.ho-compare__current-patient td {
+  font-size: 22px;
+  font-weight: bold;
+  background-color: darken(#FFFFFF, 1%);
+  color: #00549E;
+}
+
+.ho-compare__pilot-average td {
+  font-size: 22px;
+  background-color: darken(#FFFFFF, 1%);
+  color: #777777;
+}
+
+.ho-compare__th-marker,
+.ho-compare__marker {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.ho-compare__th-marker {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  margin-left: -4px;
+}
+
+.ed-visits {
+  background-color: #48F04a;
+}
+
+.ip-admits {
+  background-color: #36B337;
+}
+
+.readmit {
+  background-color: #007101;
+}
+
+.housed {
+  background-color: $ho-housed;
+}
+
+.not-housed {
+  background-color: $ho-not-housed;
+}
+
+.ho-compare__key {
+  display: inline-block;
+  margin-bottom: 5px;
+  @media(max-width: $screen-xs-max) {
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+
+.ho-compare__key:not(:last-child) {
+  margin-right: 30px;
+  @media(max-width: $screen-xs-max) {
+    margin-right: 0px;
+  }
+}
+
+// bar charts
+.d3-chart {
+  height: 300px;
+  position: relative;
+}
+
+.d3-claims__legend {
+  display: inline-block;
+  .ho-hint {
+    float: right;
+    margin-right: $ho-padding * 2;
+    @media(max-width: $screen-sm-max) {
+      float:none;
+      margin-right: 0px;
+    }
+  }
+}
+
+.d3-top__chart {
+  padding-top: 10px;
+  margin-top: 30px;
+  border-right: 1px solid $ho-color-2;
+  position: relative;
+  margin-bottom: 20px;
+  .x-axis {
+    position: absolute;
+    top: -29px;
+    right: 0px;
+    border-bottom: 1px solid $ho-color-2;
+  }
+  .x-axis__max {
+    font-size: 20px;
+    margin-right: 5px;
+    @include open-sans-condensed-bold;
+  }
+}
+
+.d3-top__key-bar {
+  background-color: #f1f1f1;
+  min-height: 40px;
+  border-left: $ho-color-2;
+}
+
+.d3-top__key-bar:last-child {
+  padding-bottom: 0px;
+}
+
+.d3-top__bar {
+  display: block;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid $ho-color-2;
+  border-bottom: 1px solid $ho-color-2;
+  border-left: 1px solid $ho-color-2;
+}
+
+.d3-top__bar-inner {
+  position: relative;
+  span {
+    left: 100%;
+    position: absolute;
+    margin-left: 5px;
+    @include open-sans-condensed-bold;
+    color: #666;
+  }
+}
+
+.d3-top__key {
+  font-size: 12px;
+  padding: 4px;
+  text-align: left;
+  position: relative;
+  background-color: $ho-color-1
+}
+
+// removing from ui for now, not sure that it is helpful
+.d3-top__key-number {
+  display: none;
+  width: 20px;
+  background-color: #ffffff;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  text-align: center;
+  margin-right: 5px;
+  @include open-sans-condensed-bold;
+  font-size: 14px;
+  border: 1px solid #f1f1f1;
+}
+
+.d3-housing-status__chart {
+  height: 180px;
+}
+
+.d3-monthly-income__chart,
+.d3-ss-matrix__chart {
+  height: 300px;
+}
+
+
