@@ -1,39 +1,24 @@
 = render 'patient_status'
-%p
-  = "The following is patient information for the client #{@client.name}."
-.row
-  .col-sm-4
-    %dl
-      %dt 
-        Patient
-        %dd=@patient.name
-      %dt
-        Gender
-        %dd
-          = @patient.gender
-          = "(#{@patient.transgender})" if @patient.transgender.present?
-      %dt 
-        DOB
-        %dd= @patient.birthdate
-  .col-sm-4
-    %dl
-      %dt
-        SSN
-        %dd= @patient.ssn
-      %dt
-        Veteran Status
-        %dd= @patient.veteran_status
-      %dt
-        Race
-        %dd= @patient.race
-      %dt
-        Ethnicity
-        %dd= @patient.ethnicity
-  .col-sm-4
-    %dl
-      %dt
-        Primary Care Physician
-        %dd= @patient.primary_care_physician
-      %dt
-        Allergies
-        %dd= @patient.allergy_list.presence || 'none'
+.ho-patient__container
+  .ho-patient__header
+    %h3.ho-patient__name
+      = @patient.client.name
+    .ho-patient__details
+      - @patient_summary[:details].each do |detail|
+        .ho-patient__detail
+          %span= "#{detail[0]}: "
+          = detail[1]
+  .ho-patient__content
+    %h4
+      Demographics
+    %table
+      - @patient_summary[:demographics].each do |row|
+        %tr
+          - row.each do |td|
+            %td
+              %small= "#{td[0]}: "
+              = td[1]
+    %h4 
+      Allergies
+    %p{style: 'padding-left: 10px;'}= @patient.allergy_list.presence || 'none'
+

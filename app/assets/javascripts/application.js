@@ -31,6 +31,7 @@
 //= require jquery.updater
 //= require jquery.minicolors
 //= require jquery.minicolors.simple_form
+//= require d3.min
 //= require inputmask/jquery.inputmask.bundle.min
 //= require inputmask/inputmask/bindings/inputmask.binding.min
 
@@ -53,6 +54,7 @@
 //= require_directory ./dashboards/veterans
 //= require_directory ./warehouse_reports/cas
 //= require_directory ./warehouse_reports
+//= require_directory ./d3_charts
 //= require_directory ./clients
 
 //= require init

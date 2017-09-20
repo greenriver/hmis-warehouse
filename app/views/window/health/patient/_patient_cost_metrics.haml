@@ -1,0 +1,33 @@
+.ho-container
+  = d3_container_header('patient', 'SDH Pilot')
+  .row
+    .col-xs-12.col-md-8
+      - if @patient.claims_roster.present?
+        %h4 Cost
+        %table.ho-compare__table-1
+          %tr
+            - @cost_table.keys.each do |key|
+              %td= compare_box(key, @cost_table.patient, @cost_table.sdh, @cost_table.variance)
+        %h4 Key Metrics
+        %div{style: 'padding: 0px 10px;'}
+          %table.ho-compare__table-2
+            %tr
+              - @km_table.keys.each do |key|
+                = key_metrics_table_header(key)
+            - @km_rows.each_with_index do |row, index|
+              - value, css_class = row
+              - if index+1 == @km_rows.size
+                %tr.ho-compare__label-row
+                  %td{colspan: @km_table.keys.size} Variance
+              %tr{class: css_class}
+                - @km_table.keys.each do |key|
+                  %td= value[key]
+          .ho-hints
+            - @km_table.keys.each do |key|
+              = key_metrics_table_hint(key)
+            %tr
+      - else
+        No Data
+    .col-xs-12.col-md-4.ho-compare__fc
+      = render 'emergency'
+

@@ -1,0 +1,18 @@
+.ho-container
+  = d3_container_header(data_type, 'All Participants')
+  .row
+    .col-xs-12.col-md-4
+      = d3_top_chart('top_providers', data_type)
+    .col-xs-12.col-md-4
+      = d3_top_chart('top_conditions', data_type)
+    .col-xs-12.col-md-4
+      = d3_top_chart('top_ip_conditions', data_type)
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var ids = ['#top_providers', '#top_conditions', '#top_ip_conditions']
+      var topBars = new App.D3Chart.TopBarCharts(ids)
+      topBars.draw()
+    })
+

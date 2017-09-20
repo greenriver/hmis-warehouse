@@ -117,6 +117,9 @@ Rails.application.routes.draw do
         end
       end
     end
+    namespace :health do
+      resources :overview, only: [:index]
+    end
   end
 
   resources :client_matches, only: [:index, :update] do
@@ -234,6 +237,29 @@ Rails.application.routes.draw do
     end
     resources :project_groups, only: [:show] do
       resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'
+    end
+  end
+
+  namespace :api do
+    namespace :health do
+      namespace :claims do
+        resources :patients, only: [] do
+          resources :amount_paid, only: [:index], controller: 'patients/amount_paid'
+          resources :claims_volume, only: [:index], controller: 'patients/claims_volume'
+          resources :ed_nyu_severity, only: [:index], controller: 'patients/ed_nyu_severity'
+          resources :roster, only: [:index], controller: 'patients/roster'
+          resources :top_conditions, only: [:index], controller: 'patients/top_conditions'
+          resources :top_ip_conditions, only: [:index], controller: 'patients/top_ip_conditions'
+          resources :top_providers, only: [:index], controller: 'patients/top_providers'
+        end
+        resources :amount_paid, only: [:index]
+        resources :claims_volume, only: [:index]
+        resources :ed_nyu_severity, only: [:index]
+        resources :roster, only: [:index]
+        resources :top_conditions, only: [:index]
+        resources :top_ip_conditions, only: [:index]
+        resources :top_providers, only: [:index]
+      end
     end
   end
 
