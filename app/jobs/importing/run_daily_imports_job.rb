@@ -26,7 +26,7 @@ module Importing
       @notifier.ping('Project types calculated') if @send_notifications
       # Sometimes client data changes in such a way as to leave behind stub
       # clients with no enrollments, this clears those out.
-      GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
+      # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things
       GrdaWarehouse::Tasks::ClientCleanup.new.run!

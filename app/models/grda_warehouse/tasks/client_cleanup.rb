@@ -9,6 +9,7 @@ module GrdaWarehouse::Tasks
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
+      @soft_delete_date = Time.now
     end
     def run!
       GrdaWarehouseBase.transaction do 
@@ -32,7 +33,7 @@ module GrdaWarehouse::Tasks
       add_missing_ages_to_service_history()
     end
 
-    private def find_unused_destination_clients
+    def find_unused_destination_clients
       all_destination_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       active_destination_clients = GrdaWarehouse::WarehouseClient.joins(:source).pluck(:destination_id)
       all_destination_clients - active_destination_clients
@@ -194,7 +195,7 @@ module GrdaWarehouse::Tasks
 
     private def clean_warehouse_clients
       return unless @clients.any?
-      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).delete_all
+      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
     end
 
     private def clean_hmis_clients
@@ -204,7 +205,7 @@ module GrdaWarehouse::Tasks
 
     private def clean_destination_clients
       return unless @clients.any?
-      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: Time.now)
+      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date)
     end
 
     def fix_incorrect_ages_in_service_history
