@@ -21,6 +21,23 @@ class App.D3Chart.Base
       chartTransform: 'translate('+@margin.left+','+@margin.top+')'
     }
 
+  _loadMonthName: (date) ->
+    months = [
+      "January", "February", "March",
+      "April", "May", "June", "July",
+      "August", "September", "October",
+      "November", "December"
+    ]
+    months[date.getMonth()]
+
+  _drawChartBackground: () ->
+    @chart.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', @dimensions.width)
+      .attr('height', @dimensions.height)
+      .attr('fill', '#f1f1f1')
+
   _drawChart: ->
     dimensions = @dimensions
     svg = @container.append('svg')

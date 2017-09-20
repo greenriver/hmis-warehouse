@@ -3,7 +3,6 @@
 
 class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
   constructor: (container_selector, claims, attrs) ->
-    # @styleTooltip = @_styleTooltip
     super(container_selector, attrs.margin, attrs.keys, 'group')
     @keyLabels = attrs.keys.slice()
     @keyLabels[3] = "Emerg, not prev/ avoid (ED Visits that did not result in IP Admissions"

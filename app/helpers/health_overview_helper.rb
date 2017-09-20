@@ -62,6 +62,20 @@ module HealthOverviewHelper
     data_type == 'all' ? "#{PATH_BASE[data_key]}#{data}" : "#{PATH_BASE[data_key]}#{@patient.id}/#{data}"
   end
 
+  def d3_base_chart(css_class, date_css_class, title)
+    data = {dates: ".#{date_css_class}"}
+    content_tag :div, class: css_class, data: data do
+      d3_base_chart_title(date_css_class, title)
+    end
+  end
+
+  def d3_base_chart_title(css_class, title)
+    content_tag :h4 do
+      concat title
+      concat content_tag :small, '', class: css_class
+    end
+  end
+
   def d3_top_chart(data, data_type)
     data_key = data.to_sym
     path = d3_chart_path(data, data_type)
@@ -115,6 +129,11 @@ module HealthOverviewHelper
     end
   end
 
+  def housing_status_hint(key)
+    css_class = "ho-hint__swatch #{key.gsub(' ', '-')}"
+    ho_hint(css_class, key.titleize())
+  end
+
   def key_metrics_table_hint(key)
     key = key.to_s
     marker = {
@@ -128,10 +147,15 @@ module HealthOverviewHelper
       'Average_Days_to_Readmit'=>'For readmits, average only for those who had at least two admissions'
     }
     if marker[key]
-      content_tag :div, class: "ho-hint" do
-        concat content_tag :div, '', class: "ho-compare__marker #{marker[key]}"
-        concat content_tag :small, text[key]
-      end
+      css_class = "ho-compare__marker #{marker[key]}"
+      ho_hint(css_class, text[key])
+    end
+  end
+
+  def ho_hint(css_class, text)
+    content_tag :div, class: "ho-hint" do
+      concat content_tag :div, '', class: css_class
+      concat content_tag :small, text
     end
   end
 

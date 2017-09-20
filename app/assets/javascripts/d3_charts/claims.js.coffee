@@ -59,7 +59,7 @@ class App.D3Chart.Claims
             new Date(year, month-1, day)
           )
           date.text(' ('+that._loadMonthName(dates[0])+' '+dates[0].getFullYear()+' - '+that._loadMonthName(dates[1])+' '+dates[1].getFullYear()+') ')
-          date = null  
+          date = null 
         if data.length > 0
           attrs = {
             margin: that.margin, 
@@ -71,6 +71,7 @@ class App.D3Chart.Claims
           }
           chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
           chart.draw()
+          
         else
           d3.select(id)
             .style('height', 'auto')

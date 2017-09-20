@@ -8,6 +8,8 @@ $ho-color-2: #d2d2d2;
 $ho-color-3: #777777;
 
 $ho-current-patient: #00549E;
+$ho-not-housed: #FFBC86;
+$ho-housed: #57CC9B;
 
 @mixin ho-container {
   padding: $ho-padding;
@@ -106,6 +108,15 @@ h2.ho-sub__h2 {
 
 .ho-hint__swatch-text {
   display: inline-block;
+}
+
+.d3-housing-status__hints {
+  margin-bottom: 20px;
+}
+
+.d3-housing-status__hints .ho-hint {
+  float: left;
+  margin-right: 10px;
 }
 
 // Patient Summary
@@ -267,6 +278,14 @@ h2.ho-sub__h2 {
   background-color: #007101;
 }
 
+.housed {
+  background-color: $ho-housed;
+}
+
+.not-housed {
+  background-color: $ho-not-housed;
+}
+
 .ho-compare__key {
   display: inline-block;
   margin-bottom: 5px;
@@ -370,6 +389,15 @@ h2.ho-sub__h2 {
   @include open-sans-condensed-bold;
   font-size: 14px;
   border: 1px solid #f1f1f1;
+}
+
+.d3-housing-status__chart {
+  height: 180px;
+}
+
+.d3-monthly-income__chart,
+.d3-ss-matrix__chart {
+  height: 300px;
 }
 
 
