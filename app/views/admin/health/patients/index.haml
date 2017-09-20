@@ -41,9 +41,9 @@
                   = link_to client_path(id: patient.client_id) do
                     = patient.client.name
               %td
-                = patient.client.DOB
+                = patient&.client&.DOB
               %td
-                = HUD::gender(patient.client.Gender)
+                = HUD::gender(patient&.client&.Gender)
               %td
                 = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
   .form-actions

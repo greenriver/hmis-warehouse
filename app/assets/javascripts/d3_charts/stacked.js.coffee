@@ -79,7 +79,7 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
           if labels.includes(d) then 'transparent' else @scale.color(d)
         )
     @tooltip.transition()
-      .duration(200)
+      .duration(50)
       .style('opacity', 1)
 
   _removeTooltip: ->

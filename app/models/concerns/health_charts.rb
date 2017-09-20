@@ -43,7 +43,8 @@ module HealthCharts
     end
 
     def health_income_benefits_over_time
-      source_income_benefits.order(InformationDate: :asc).map do |income|
+      sib_t = source_income_benefits.arel_table
+      source_income_benefits.where(sib_t[:InformationDate].gt('2016-07-01')).order(InformationDate: :asc).map do |income|
         [income[:InformationDate], {
           total: (income[:TotalMonthlyIncome] || 0).to_i, 
           earned: (income[:EarnedAmount] || 0).to_i,
