@@ -17,6 +17,9 @@ class User < ActiveRecord::Base
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
 
+  has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
+  has_many :clients, through: :user_clients, inverse_of: :user, dependent: :destroy
+
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
   after_destroy do |user|
