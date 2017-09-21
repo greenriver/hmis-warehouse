@@ -32,6 +32,10 @@ module GrdaWarehouse::Import::HMISFiveOne
     )
     
     self.hud_key = :DisabilitiesID
+    
+    def self.date_provided_column 
+      :InformationDate
+    end
 
     def self.file_name
       'Disabilities.csv'

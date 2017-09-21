@@ -24,7 +24,10 @@ module GrdaWarehouse::Import::HMISFiveOne
     )
     
     self.hud_key = :ServicesID
-
+    def self.date_provided_column 
+      :DateProvided
+    end
+    
     def self.file_name
       'Services.csv'
     end

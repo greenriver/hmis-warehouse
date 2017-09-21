@@ -89,6 +89,10 @@ module GrdaWarehouse::Import::HMISFiveOne
     
     self.hud_key = :IncomeBenefitsID
 
+    def self.date_provided_column 
+      :InformationDate
+    end
+    
     def self.file_name
       'IncomeBenefits.csv'
     end

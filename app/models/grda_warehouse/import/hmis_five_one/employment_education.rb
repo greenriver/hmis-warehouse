@@ -24,6 +24,10 @@ module GrdaWarehouse::Import::HMISFiveOne
     )
     
     self.hud_key = :EmploymentEducationID
+    
+    def self.date_provided_column 
+      :InformationDate
+    end
 
     def self.file_name
       'EmploymentEducation.csv'

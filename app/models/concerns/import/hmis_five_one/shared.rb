@@ -26,6 +26,10 @@ module Import::HMISFiveOne::Shared
   end
 
   class_methods do
+    def date_provided_column
+      nil
+    end
+
     def clean_row_for_import(row)
       row = row.map do |k,v| 
         [k, v.presence]
@@ -55,11 +59,17 @@ module Import::HMISFiveOne::Shared
 
     def delete_involved(projects:, range:, data_source_id:, deleted_at:)
       deleted_count = 0
+      a_t = self.arel_table
+      # If we this is recorded for a specific date, we need to reference
+      # that field and only delete those that occured prior to the ExportEndDate
       projects.each do |project|
-        deleted_count += self.joins(enrollment: :project).
-          where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
-          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
-          update_all(DateDeleted: deleted_at)
+        del_scope = self.joins(enrollment: :project).
+        where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
+        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range))
+        if self.date_provided_column.present?
+          del_scope = del_scope.where(a_t[date_provided_column].lteq(range.end))
+        end
+        deleted_count += del_scope.update_all(DateDeleted: deleted_at)
       end
       deleted_count
     end
