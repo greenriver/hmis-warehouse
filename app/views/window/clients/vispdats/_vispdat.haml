@@ -52,13 +52,19 @@
           = @vispdat.sleep_answer_other
           )
     .col-sm-4
-      %dt How long has it been since you lived in permanent stable housing?
+      %dt 
+        Are you currently living on the street or in shelter?
+        %br
+        How long have you been living on the street or in shelter?
       %dd
         = @vispdat.homeless
         = @vispdat.homeless_period
         = "Refused/Unsure" if @vispdat.homeless_refused?
     .col-sm-4
-      %dt In the last three years, how many times have you been homeless?
+      %dt 
+        Have you been homeless repeatedly?
+        %br
+        How many times have you been homeless in the last three years?
       %dd
         = @vispdat.episodes_homeless
         = "Refused/Unsure" if @vispdat.episodes_homeless_refused?
