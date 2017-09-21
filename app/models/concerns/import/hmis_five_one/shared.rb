@@ -59,7 +59,6 @@ module Import::HMISFiveOne::Shared
 
     def delete_involved(projects:, range:, data_source_id:, deleted_at:)
       deleted_count = 0
-      a_t = self.arel_table
       # If we this is recorded for a specific date, we need to reference
       # that field and only delete those that occured prior to the ExportEndDate
       projects.each do |project|
@@ -67,7 +66,7 @@ module Import::HMISFiveOne::Shared
         where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range))
         if self.date_provided_column.present?
-          del_scope = del_scope.where(a_t[date_provided_column].lteq(range.end))
+          del_scope = del_scope.where(arel_table[date_provided_column].lteq(range.end))
         end
         deleted_count += del_scope.update_all(DateDeleted: deleted_at)
       end
@@ -79,8 +78,8 @@ module Import::HMISFiveOne::Shared
     # Update if newer, create if it isn't there, otherwise do nothing
       def import_project_related!(data_source_id:, file_path:, stats:)
         import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
-        stats[:errors] = []
         return stats unless File.exists?(import_file_path)
+        stats[:errors] = []
         to_add = []
         headers = nil
         existing_items = self.with_deleted.where(data_source_id: data_source_id).
@@ -111,8 +110,8 @@ module Import::HMISFiveOne::Shared
 
     def import_enrollment_related!(data_source_id:, file_path:, stats:, soft_delete_time:)
       import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
-      stats[:errors] = []
       return stats unless File.exists?(import_file_path)
+      stats[:errors] = []
       to_add = []
       to_restore = []
       headers = nil

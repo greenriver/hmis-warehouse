@@ -45,10 +45,10 @@ module GrdaWarehouse::Import::HMISFiveOne
     def self.involved_exits(projects:, range:, data_source_id:)
       ids = []
       projects.each do |project|
-        # This uses a subquery to avoid duplicate joins to itself
+        # Remove any exits that fall within the export range
         ids += self.joins(:project, :enrollment).
           where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
-          where(Enrollment: {id: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:id)}).
+          where(ExitDate: range.range).
           pluck(:id)
       end
       ids

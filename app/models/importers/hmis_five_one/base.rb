@@ -35,7 +35,10 @@ module Importers::HMISFiveOne
       # Provide Application locking so we can be sure we aren't already importing this data source
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{@data_source.id}") do
         @export = load_export_file()
-        return unless @export.present?
+        if @export.blank?
+          log("Exiting, failed to find a valid export file")
+          return
+        end
         begin
           @range = set_date_range()
           clean_source_files()
@@ -140,6 +143,7 @@ module Importers::HMISFiveOne
         GrdaWarehouse::Import::HMISFiveOne::Service,
       ].each do |klass|
         file = importable_files.key(klass)
+        next unless @import.summary[klass.file_name].present?
         @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
           projects: @projects, 
           range: @range, 
@@ -164,6 +168,7 @@ module Importers::HMISFiveOne
     def import_enrollment_based_class klass
       begin
         file = importable_files.key(klass)
+        return unless @import.summary[file].present?
         stats = klass.import_enrollment_related!(
           data_source_id: @data_source.id, 
           file_path: @file_path, 
@@ -187,6 +192,7 @@ module Importers::HMISFiveOne
     def import_project_based_class klass
       begin
         file = importable_files.key(klass)
+        return unless @import.summary[file].present?
         stats = klass.import_project_related!(
           data_source_id: @data_source.id, 
           file_path: @file_path, 
@@ -254,7 +260,7 @@ module Importers::HMISFiveOne
       rescue Errno::ENOENT => exception
         log('No valid Export.csv file found')
       end
-      return nil unless @export.valid?
+      return nil unless @export&.valid?
       @export
     end
 
