@@ -85,15 +85,15 @@ RSpec.describe AccountsController, type: :controller do
           patch :update, user: changes
           expect( email.to ).to eq [user.email]
         end
-        # skip 'changes password' do
-        #   expect {
-        #     patch :update, user: changes
-        #   }.to change(User.first, :encrypted_password)
-        # end
-        # skip 'redirects to edit' do
-        #   patch :update, user: changes
-        #   expect( response ).to redirect_to edit_account_path
-        # end
+        pending 'changes password' do
+          expect {
+            patch :update, user: changes
+          }.to change(User.first, :encrypted_password)
+        end
+        pending 'redirects to edit' do
+          patch :update, user: changes
+          expect( response ).to redirect_to edit_account_path
+        end
       end
     end
   end
