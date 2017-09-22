@@ -16,6 +16,16 @@ module CombinedClientPathsGenerator
     end
     helper_method :history_path_generator
 
+    def users_path_generator
+      client_path_generator + [:users]
+    end
+    helper_method :users_path_generator
+
+    def user_path_generator
+      client_path_generator + [:user]
+    end
+    helper_method :user_path_generator
+
     def month_of_service_path_generator
       client_path_generator + [:month_of_service]
     end

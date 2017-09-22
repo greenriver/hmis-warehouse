@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170918135821) do
+ActiveRecord::Schema.define(version: 20170921201252) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -101,7 +101,6 @@ ActiveRecord::Schema.define(version: 20170918135821) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
-  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -1544,6 +1543,18 @@ SELECT "Services"."ServicesID",
     t.datetime "deleted_at"
   end
   add_index "uploads", ["deleted_at"], :name=>"index_uploads_on_deleted_at", :using=>:btree
+
+  create_table "user_clients", force: :cascade do |t|
+    t.integer  "user_id",      :null=>false
+    t.integer  "client_id",    :null=>false
+    t.boolean  "confidential", :default=>false, :null=>false
+    t.string   "relationship"
+    t.datetime "created_at",   :null=>false
+    t.datetime "updated_at",   :null=>false
+    t.datetime "deleted_at"
+  end
+  add_index "user_clients", ["client_id"], :name=>"index_user_clients_on_client_id", :using=>:btree
+  add_index "user_clients", ["user_id"], :name=>"index_user_clients_on_user_id", :using=>:btree
 
   create_table "user_viewable_entities", force: :cascade do |t|
     t.integer "user_id",     :null=>false
