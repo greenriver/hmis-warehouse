@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Clients::VispdatsController, type: :routing do
   describe "routing" do
     ['clients', 'window/clients'].each do |client_path|
-      it "routes to #index" do
+      it "routes to #{client_path}/:client_id/vispdats#index" do
         expect(:get => "#{client_path}/1/vispdats").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'index',
@@ -11,7 +11,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #new" do
+      it "routes to #{client_path}/:client_id/vispdats#new" do
         expect(:get => "#{client_path}/1/vispdats/new").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'new',
@@ -19,7 +19,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #show" do
+      it "routes to #{client_path}/:client_id/vispdats#show" do
         expect(:get => "#{client_path}/1/vispdats/1").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'show',
@@ -28,7 +28,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #edit" do
+      it "routes to #{client_path}/:client_id/vispdats#edit" do
         expect(:get => "#{client_path}/1/vispdats/1/edit").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'edit',
@@ -37,7 +37,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #create" do
+      it "routes to #{client_path}/:client_id/vispdats#create" do
         expect(:post => "#{client_path}/1/vispdats").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'create',
@@ -45,7 +45,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #update via PUT" do
+      it "routes to #{client_path}/:client_id/vispdats#update via PUT" do
         expect(:put => "#{client_path}/1/vispdats/1").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'update',
@@ -54,7 +54,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #update via PATCH" do
+      it "routes to #{client_path}/:client_id/vispdats#update via PATCH" do
         expect(:patch => "#{client_path}/1/vispdats/1").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'update',
@@ -63,7 +63,7 @@ RSpec.describe Clients::VispdatsController, type: :routing do
         )
       end
 
-      it "routes to #destroy" do
+      it "routes to #{client_path}/:client_id/vispdats#destroy" do
         expect(:delete => "#{client_path}/1/vispdats/1").to route_to(
           controller: "#{client_path}/vispdats",
           action: 'destroy',
