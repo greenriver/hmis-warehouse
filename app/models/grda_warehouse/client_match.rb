@@ -6,6 +6,22 @@ module GrdaWarehouse
     serialize :score_details, Hash
     validates :status, inclusion: {in: ['candidate', 'accepted', 'rejected', 'processed_sources']}
 
+    scope :processed, -> do
+      where(status: 'processed_sources')
+    end
+
+    scope :candidate, -> do
+      where(status: 'candidate')
+    end
+
+    scope :accepted, -> do
+      where(status: 'accepted')
+    end
+
+    scope :rejected, -> do
+      where(status: 'rejected')
+    end
+
     def self.create_candidates!(client, threshold:, metrics:)
       relavent_fields = ([:id, :DateUpdated]+metrics.map(&:field)).uniq.map(&:to_s)
       data = SimilarityMetric.pairwise_candidates(client, threshold: threshold, metrics: metrics)
