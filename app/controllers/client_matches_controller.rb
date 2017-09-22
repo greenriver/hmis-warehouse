@@ -16,7 +16,7 @@ class ClientMatchesController < ApplicationController
       'candidate' => {defer_count: :asc, score: :asc, id: :asc}
     }[@status] || {updated_at: :desc}
 
-    @counts = client_match_scope.group(:status).count
+    @counts = client_match_scope.joins(:source_client, :destination_client).group(:status).count
 
     @matches = client_match_scope.where(status: @status).
       joins(:source_client, :destination_client).
