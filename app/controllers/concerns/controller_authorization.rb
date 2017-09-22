@@ -14,6 +14,12 @@ module ControllerAuthorization
     end
   end
 
+  def require_can_assign_or_view_users_to_clients!
+    can_view = can_assign_users_to_clients? || can_view_client_user_assignments?
+    return true if can_view    
+    not_authorized!
+  end
+
   private def require_can_view_clients_or_window!
     current_user.can_view_client_window? || current_user.can_view_clients?
   end

@@ -48,6 +48,8 @@ class Role < ActiveRecord::Base
       :can_edit_vspdat,
       :can_create_clients,
       :can_view_client_history_calendar,
+      :can_assign_users_to_clients,
+      :can_view_client_user_assignments,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

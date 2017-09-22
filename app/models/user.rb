@@ -18,7 +18,7 @@ class User < ActiveRecord::Base
   has_many :roles, through: :user_roles
 
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
-  has_many :clients, through: :user_clients, inverse_of: :user, dependent: :destroy
+  has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
 
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
@@ -79,6 +79,10 @@ class User < ActiveRecord::Base
 
   def name
     "#{first_name} #{last_name}"
+  end
+
+  def name_with_email
+    "#{name} <#{email}>"
   end
 
   def invitation_status
