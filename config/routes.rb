@@ -203,6 +203,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :cohorts
+
   resources :imports do
     get :download, on: :member
   end
