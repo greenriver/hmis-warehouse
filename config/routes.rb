@@ -178,7 +178,7 @@ Rails.application.routes.draw do
     end
   end
 
-  namespace :users do
+  namespace :assigned do
     resources :clients, only: [:index]
   end
 

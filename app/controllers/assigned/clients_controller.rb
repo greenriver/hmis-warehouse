@@ -1,4 +1,4 @@
-module Users
+module Assigned
   class ClientsController < ApplicationController
 
     before_action :require_can_assign_or_view_users_to_clients!
