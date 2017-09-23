@@ -50,6 +50,8 @@ class Role < ActiveRecord::Base
       :can_view_client_history_calendar,
       :can_create_cohorts,
       :can_view_cohorts,
+      :can_assign_users_to_clients,
+      :can_view_client_user_assignments,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

@@ -153,6 +153,7 @@ Rails.application.routes.draw do
     resources :files, controller: 'clients/files'
     resources :notes, only: [:destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
+    resources :users, only: [:index, :create, :destroy], controller: 'clients/users'
     healthcare_routes()
   end
 
@@ -173,7 +174,12 @@ Rails.application.routes.draw do
       resources :vispdats, controller: 'clients/vispdats'
       resources :files, controller: 'clients/files'
       resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
+      resources :users, only: [:index, :create, :destroy], controller: 'clients/users'
     end
+  end
+
+  namespace :assigned do
+    resources :clients, only: [:index]
   end
 
   resources :censuses, only: [:index] do

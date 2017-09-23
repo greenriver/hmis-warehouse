@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170922200507) do
+ActiveRecord::Schema.define(version: 20170921201252) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -782,15 +782,6 @@ ActiveRecord::Schema.define(version: 20170922200507) do
   end
   add_index "client_notes", ["client_id"], :name=>"index_client_notes_on_client_id", :using=>:btree
   add_index "client_notes", ["user_id"], :name=>"index_client_notes_on_user_id", :using=>:btree
-
-  create_table "cohorts", force: :cascade do |t|
-    t.string   "name",        :null=>false
-    t.datetime "created_at",  :null=>false
-    t.datetime "updated_at",  :null=>false
-    t.datetime "deleted_at"
-    t.date     "active_date"
-  end
-  add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
 
   create_table "configs", force: :cascade do |t|
     t.boolean "project_type_override",     :default=>true, :null=>false
