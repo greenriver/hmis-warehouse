@@ -209,7 +209,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :cohorts
+  resources :cohorts, except: [:new] do
+    resources :cohort_clients do
+      resources :cohort_client_notes
+    end
+  end
 
   resources :imports do
     get :download, on: :member

@@ -1,0 +1,40 @@
+- title = @cohort.name
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1
+      = content_for :title
+  .col-sm-2{style: 'padding-top: 2em;'}
+    = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true} , title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
+      %span.icon-pencil 
+      Edit
+  .col-sm-2
+    %span.icon-pencil
+    Edit Visible Columns
+- if @cohort.effective_date
+  %p 
+    Data pulled from the client record and shown here will be pulled using the effective date
+    %strong
+      = @cohort.effective_date
+    where appropriate.
+
+- if @cohort.clients.blank?
+  %p.alert.alert-info
+    This cohort is currently empty,
+    = link_to new_cohort_cohort_client_path(@cohort) do
+      Add some.
+
+- if @cohort.cohort_clients.preload(:clients).any?
+  %table.table.table-condensed
+    %thead
+      %tr
+        - @cohort.visible_columns.each do |column|
+          %th
+            = column.title
+    %tbody
+      - @cohort.cohort_clients.each do |cohort_client|
+        %tr
+          - @cohort.visible_columns.each do |column|
+            %td
+              = cohort_client.public_send(column.column)
+        
