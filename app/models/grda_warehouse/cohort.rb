@@ -1,9 +1,13 @@
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
+    acts_as_paranoid
     validates_presence_of :name
+    serialize :column_state, Array
 
     has_many :cohort_clients
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
+
+    attr_accessor :client_ids
 
     # FIXME  It is not currently known what will allow someone to see or edit a cohort
     scope :viewable_by, -> (user) do
@@ -16,20 +20,44 @@ module GrdaWarehouse
       end
     end
 
-    # FIXME, this needs a mechanism to store visible columns and order in visible_state
-    # Each of these 
     def visible_columns
+      column_state&.select(&:visible) || self.class.available_columns
+    end
+
+    def self.available_columns
       [
         ::CohortColumns::Agency.new(),
         ::CohortColumns::CaseManager.new(),
         ::CohortColumns::HousingManager.new(),
-        # Column.new({column: :housing_search_agency, title: 'Housing Search Agency'}),
-        # Column.new({column: :housing_opportunity, title: 'Housing Opportunity'}),
-        # Column.new({column: :legal_barriers, title: 'Legal Barriers'}),
-        # Column.new({column: :criminal_record_status, title: 'Criminal Record Status'}),
-        # FIXME there are more
+        ::CohortColumns::HousingSearchAgency.new(),
+        ::CohortColumns::HousingOpportunity.new(),
+        ::CohortColumns::LegalBarriers.new(),
+        ::CohortColumns::CriminalRecordStatus.new(),
+        ::CohortColumns::DocumentReady.new(),
+        ::CohortColumns::SifEligible.new(),
+        ::CohortColumns::SensoryImpaired.new(),
+        ::CohortColumns::HousedDate.new(),
+        ::CohortColumns::Destination.new(),
+        ::CohortColumns::SubPopulation.new(),
+        ::CohortColumns::Rank.new(),
+        ::CohortColumns::StFrancisHouse.new(),
+        ::CohortColumns::LastGroupReviewDate.new(),
+        ::CohortColumns::PreContemplativeLastDateApproached.new(),
+        ::CohortColumns::HousingTrack.new(),
+        ::CohortColumns::VaEligible.new(),
+        ::CohortColumns::VashEligible.new(),
+        ::CohortColumns::Chapter115.new(),
       ]
     end
+
+    def self.setup_column_accessors(columns)
+      columns.each do |column|
+        attr_accessor column.column
+      end
+    end
+
+    # Attr Accessors
+    setup_column_accessors(available_columns)
 
   end
 end

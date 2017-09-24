@@ -1,0 +1,6 @@
+- title = "Add Clients to #{@cohort.name}"
+- content_for :modal_title, title
+
+= simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
+  = f.input :client_ids # Eventually, this will be a hidden field
+  = f.submit value: 'Add Clients', class: 'btn btn-primary'

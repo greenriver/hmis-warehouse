@@ -1,16 +1,19 @@
 - title = @cohort.name
 - content_for :title, title
 .row
-  .col-sm-8
+  .col-sm-6
     %h1
       = content_for :title
-  .col-sm-2{style: 'padding-top: 2em;'}
-    = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true} , title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
+  .col-sm-6.text-right.padding-top-04
+    = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
       %span.icon-pencil 
       Edit
-  .col-sm-2
-    %span.icon-pencil
-    Edit Visible Columns
+    = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
+      %span.icon-cog
+      Edit Visible Columns
+    = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
+      %span.icon-users
+      Add Clients
 - if @cohort.effective_date
   %p 
     Data pulled from the client record and shown here will be pulled using the effective date
@@ -24,17 +27,45 @@
     = link_to new_cohort_cohort_client_path(@cohort) do
       Add some.
 
-- if @cohort.cohort_clients.preload(:clients).any?
-  %table.table.table-condensed
-    %thead
-      %tr
-        - @cohort.visible_columns.each do |column|
-          %th
-            = column.title
-    %tbody
-      - @cohort.cohort_clients.each do |cohort_client|
-        %tr
-          - @cohort.visible_columns.each do |column|
-            %td
-              = cohort_client.public_send(column.column)
-        
+.row
+  .col-sm-12.overflow-scroll
+    - if @cohort.cohort_clients.preload(:clients).any?
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th
+              Last Name
+            %th
+              First Name
+            %th
+              Age
+              - if @cohort.effective_date
+                .nobr
+                  = "(On #{@cohort.effective_date})"
+            %th
+              Notes
+            - @cohort.visible_columns.each do |column|
+              %th
+                = column.title
+        %tbody
+          - @cohort.cohort_clients.each do |cohort_client|
+            - client = cohort_client.client
+            %tr
+              %td
+                = client.LastName
+              %td
+                = client.FirstName
+              %td
+                = client.age_on(@cohort.effective_date)
+              %td
+                = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, cohort_client), class: 'btn btn-secondary btn-sm' do
+                  %span.icon-plus
+                - cohort_client.cohort_client_notes.each do |note|
+                  = render note
+              - @cohort.visible_columns.each do |column|
+                %td
+                  = cohort_client.public_send(column.column)
+              %td
+                = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: cohort_client.id),action: :destroy, method: :delete, class: 'btn btn-danger btn-sm' do
+                  %span.icon-cross
+            

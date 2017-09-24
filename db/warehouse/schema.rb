@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170924005724) do
+ActiveRecord::Schema.define(version: 20170924193906) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -831,7 +831,7 @@ ActiveRecord::Schema.define(version: 20170924005724) do
     t.datetime "updated_at",     :null=>false
     t.datetime "deleted_at"
     t.date     "effective_date"
-    t.json     "column_state"
+    t.text     "column_state"
   end
   add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
 

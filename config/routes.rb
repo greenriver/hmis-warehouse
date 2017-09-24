@@ -210,8 +210,9 @@ Rails.application.routes.draw do
   end
 
   resources :cohorts, except: [:new] do
-    resources :cohort_clients do
-      resources :cohort_client_notes
+    resource :columns, only: [:edit, :update], controller: 'cohorts/columns'
+    resources :cohort_clients, only: [:new, :create, :destroy], controller: 'cohorts/clients' do
+      resources :cohort_client_notes, controller: 'cohorts/notes'
     end
   end
 
