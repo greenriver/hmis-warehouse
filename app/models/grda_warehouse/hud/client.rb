@@ -1169,6 +1169,11 @@ module GrdaWarehouse::Hud
         count
     end
 
+    def days_homeless
+      service_history.homeless.
+        count
+    end
+
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)
       GrdaWarehouse::Tasks::ChronicallyHomeless.new(
         date: date.to_date, 
