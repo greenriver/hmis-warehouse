@@ -10,11 +10,22 @@ module Cohorts
     end
 
     def create
-      cohort_params[:client_ids].split(',').map(&:strip).compact.each do |id|
-        @cohort.cohort_clients.build(client_id: id)
+      if cohort_params[:client_ids].present?
+        cohort_params[:client_ids].split(',').map(&:strip).compact.each do |id|
+          create_cohort_client(@cohort.id, id.to_i)
+        end
+      elsif cohort_params[:client_id].present?
+        create_cohort_client(@cohort.id, cohort_params[:client_id].to_i)
       end
-      @cohort.save
+      flash[:notice] = "Clients updated for #{@cohort.name}"
       respond_with(@cohort, location: cohort_path(@cohort))
+    end
+
+    def create_cohort_client(cohort_id, client_id)
+      ch = cohort_client_source.with_deleted.
+        where(cohort_id: cohort_id, client_id: client_id).first_or_initialize
+      ch.deleted_at = nil
+      ch.save if ch.changed? || ch.new_record?
     end
 
     def destroy

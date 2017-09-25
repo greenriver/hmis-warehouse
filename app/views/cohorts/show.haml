@@ -42,7 +42,7 @@
               - if @cohort.effective_date
                 .nobr
                   = "(On #{@cohort.effective_date})"
-            %th
+            %th{colspan: 2, style: 'min-width: 20em;'}
               Notes
             - @cohort.visible_columns.each do |column|
               %th
@@ -58,8 +58,9 @@
               %td
                 = client.age_on(@cohort.effective_date)
               %td
-                = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, cohort_client), class: 'btn btn-secondary btn-sm' do
+                = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
                   %span.icon-plus
+              %td
                 - cohort_client.cohort_client_notes.each do |note|
                   = render note
               - @cohort.visible_columns.each do |column|

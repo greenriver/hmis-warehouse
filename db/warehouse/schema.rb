@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170924193906) do
+ActiveRecord::Schema.define(version: 20170925000145) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -789,6 +789,7 @@ ActiveRecord::Schema.define(version: 20170924193906) do
     t.datetime "created_at",       :null=>false
     t.datetime "updated_at",       :null=>false
     t.datetime "deleted_at"
+    t.integer  "user_id",          :null=>false
   end
   add_index "cohort_client_notes", ["cohort_client_id"], :name=>"index_cohort_client_notes_on_cohort_client_id", :using=>:btree
   add_index "cohort_client_notes", ["deleted_at"], :name=>"index_cohort_client_notes_on_deleted_at", :using=>:btree
