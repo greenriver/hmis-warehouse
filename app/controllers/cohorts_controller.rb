@@ -1,5 +1,6 @@
 class CohortsController < ApplicationController
   include PjaxModalController
+  helper CohortColumnsHelper
   before_action :require_can_view_cohorts!
   before_action :set_cohort, only: [:show, :edit, :update, :destroy]
 

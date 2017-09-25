@@ -37,7 +37,9 @@
             = render note
         - @cohort.visible_columns.each do |column|
           %td
-            = cohort_client.public_send(column.column)
+            = simple_form_for cohort_client, url: cohort_cohort_client_path(@cohort, cohort_client) do |f|
+              - value = cohort_client.public_send(column.column)
+              = input_for(column, default_value: value, client_id: cohort_client.id)
         %td
           = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: cohort_client.id),action: :destroy, method: :delete, class: 'btn btn-danger btn-sm' do
             %span.icon-cross
