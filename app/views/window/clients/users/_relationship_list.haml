@@ -1,0 +1,35 @@
+%h1= content_for :title
+= simple_form_for @user, url: polymorphic_path(users_path_generator, client_id: @client) do |f|
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th
+          Existing User
+        %th
+          Relationship
+        %th
+          Confidential?
+        %th
+    %tbody
+      - if can_assign_users_to_clients?
+        %tr
+          %td
+            = f.input :user_id, collection: GrdaWarehouse::UserClient.available_users, label_method: :name_with_email, label: false, input_html: {class: 'select2', data: {placeholder: 'Available Users'}}
+          %td
+            = f.input :relationship, collection: GrdaWarehouse::UserClient.available_relationships, label: false, input_html: {class: 'select2', data: {placeholder: 'Available Users'}}
+          %td
+            = f.input :confidential, label: false
+          %td
+            = f.submit value: 'Add Relationship', class: 'btn btn-primary'
+      - @user_clients.each do |user_client|
+        - user = user_client.user
+        %tr
+          %td
+            = user.name_with_email
+          %td
+            = user_client.relationship
+          %td
+            = checkmark(user_client.confidential)
+          %td
+            = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-secondary', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
+              %span.icon-cross

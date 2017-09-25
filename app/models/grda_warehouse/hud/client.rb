@@ -152,6 +152,9 @@ module GrdaWarehouse::Hud
     has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
     has_many :window_notes, class_name: GrdaWarehouse::ClientNotes::WindowNote.name
 
+    has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
+    has_many :users, through: :user_clients, inverse_of: :client, dependent: :destroy
+
     scope :destination, -> do
       where(data_source: GrdaWarehouse::DataSource.destination)
     end
@@ -1155,6 +1158,11 @@ module GrdaWarehouse::Hud
     def days_homeless_in_last_three_years
       service_history.homeless.
         service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+        count
+    end
+
+    def days_homeless
+      service_history.homeless.
         count
     end
 

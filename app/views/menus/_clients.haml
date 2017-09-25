@@ -1,5 +1,9 @@
 - if can_view_clients? || can_edit_clients? || can_view_client_window?
   .vsm-group.vsm-group__group-a
+    - if can_assign_users_to_clients? || can_view_client_user_assignments?
+      = link_to assigned_clients_path, class: 'vsm-item-link' do
+        .vsm-item-link--description 
+          = _('My Clients')
     - if can_view_clients? || can_edit_clients?
       = link_to clients_path, class: 'vsm-item-link' do
         .vsm-item-link--description

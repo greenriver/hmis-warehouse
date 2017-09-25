@@ -85,7 +85,8 @@ module GrdaWarehouse::Tasks
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,
         child_in_household: :child_in_household,
-        days_homeless: :days_homeless_in_last_three_years,
+        days_homeless: :days_homeless,
+        days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
         ha_eligible: :ha_eligible
       }
