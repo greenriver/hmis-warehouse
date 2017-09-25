@@ -6,7 +6,7 @@
   %table.table.table-condensed
     %thead
       %tr
-        %th Name
+        %th{style: 'min-width: 20em;'} Name
         %th{style: 'width: 12em;'} Effective Date
         %th Clients
     %tbody
@@ -23,3 +23,5 @@
             = link_to cohort.name, cohort_path(cohort)
           %td
             = cohort.effective_date
+          %td.text-center
+            = cohort.cohort_clients.count

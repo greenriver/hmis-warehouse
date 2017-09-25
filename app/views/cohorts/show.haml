@@ -1,5 +1,6 @@
 - title = @cohort.name
 - content_for :title, title
+= render 'datatables_js'
 .row
   .col-sm-6
     %h1
@@ -30,43 +31,5 @@
 .row
   .col-sm-12.overflow-scroll
     - if @cohort.cohort_clients.preload(:clients).any?
-      %table.table.table-condensed
-        %thead
-          %tr
-            %th
-              Last Name
-            %th
-              First Name
-            %th
-              Age
-              - if @cohort.effective_date
-                .nobr
-                  = "(On #{@cohort.effective_date})"
-            %th{colspan: 2, style: 'min-width: 20em;'}
-              Notes
-            - @cohort.visible_columns.each do |column|
-              %th
-                = column.title
-        %tbody
-          - @cohort.cohort_clients.each do |cohort_client|
-            - client = cohort_client.client
-            %tr
-              %td
-                = client.LastName
-              %td
-                = client.FirstName
-              %td
-                = client.age_on(@cohort.effective_date)
-              %td
-                = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
-                  %span.icon-plus
-              %td
-                - cohort_client.cohort_client_notes.each do |note|
-                  = render note
-              - @cohort.visible_columns.each do |column|
-                %td
-                  = cohort_client.public_send(column.column)
-              %td
-                = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: cohort_client.id),action: :destroy, method: :delete, class: 'btn btn-danger btn-sm' do
-                  %span.icon-cross
+      = render 'client_table'
             

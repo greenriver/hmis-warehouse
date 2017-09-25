@@ -1,12 +1,32 @@
 module Cohorts
   class ClientsController < ApplicationController
     include PjaxModalController
+    include ArelHelper
+    include Chronic
     before_action :require_can_create_cohorts!
     before_action :set_cohort
     before_action :set_client, only: [:destroy]
 
     def new
-      @column_state = @cohort.column_state || cohort_source.available_columns
+      @clients = []
+      @filter = ::Filters::Chronic.new(params[:filter])
+      @q = client_scope.none.ransack(params[:q])
+      if params[:filter].present?
+        load_filter()
+        @clients = @clients.includes(:chronics).
+          preload(source_clients: :data_source).
+          merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
+          order(LastName: :asc, FirstName: :asc)
+      elsif params[:q].try(:[], :full_text_search).present?
+        @q = client_scope.ransack(params[:q])
+        @clients = @q.result(distinct: true)
+      end
+      # if client_params.present?
+        
+      #   if client_params[:chronic_date]
+      #     raise 'Searching by chronic list'          
+      #   end
+      # end
     end
 
     def create
@@ -37,6 +57,14 @@ module Cohorts
       params.require(:grda_warehouse_cohort).permit(
         :client_ids
       )
+    end
+
+    def client_scope
+      client_source
+    end
+
+    def client_source
+      GrdaWarehouse::Hud::Client
     end
 
     def set_client

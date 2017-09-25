@@ -271,7 +271,7 @@ module HUD
     }
   end
 
-  def vertern_status(*args)
+  def veteran_status(*args)
     no_yes_reasons_for_missing_data *args
   end
 
