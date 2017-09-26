@@ -72,6 +72,7 @@ module Importers::HMISSixOneOne
           import_services()
 
           complete_import()
+          log("Import complete")
         ensure
           remove_import_files()
         end
@@ -166,6 +167,7 @@ module Importers::HMISSixOneOne
     end
 
     def import_enrollment_based_class klass
+      log("Importing #{klass.name}")
       begin
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
@@ -190,6 +192,7 @@ module Importers::HMISSixOneOne
     end
 
     def import_project_based_class klass
+      log("Importing #{klass.name}")
       begin
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
