@@ -45,6 +45,7 @@ class App.Rollups.Loader
             $(document).dequeue("fx")
           .fail ()->
             $e.find('.rollup-container').append '<div class="alert alert-danger">Failed to load data</div>'
+            $(document).dequeue("fx")
   collapsible: (@target) ->
     $('body').on 'click', @target, (e) =>
       e.preventDefault()
