@@ -1,4 +1,4 @@
-module Import::HMISFiveOne::Shared
+module Import::HMISSixOneOne::Shared
   extend ActiveSupport::Concern
   included do
     include NotifierConfig
