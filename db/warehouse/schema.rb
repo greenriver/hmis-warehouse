@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170921201252) do
+ActiveRecord::Schema.define(version: 20170926124009) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -272,6 +272,7 @@ ActiveRecord::Schema.define(version: 20170921201252) do
     t.integer  "ERVisits"
     t.integer  "JailNights"
     t.integer  "HospitalNights"
+    t.integer  "RunawayYouth"
   end
   add_index "Enrollment", ["DateCreated"], :name=>"enrollment_date_created", :using=>:btree
   add_index "Enrollment", ["DateDeleted"], :name=>"index_Enrollment_on_DateDeleted", :using=>:btree
@@ -334,10 +335,38 @@ ActiveRecord::Schema.define(version: 20170921201252) do
     t.integer  "FamilyReunificationAchieved"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",                       :limit=>100
+    t.string   "UserID",                                       :limit=>100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.integer  "ExchangeForSex"
+    t.integer  "ExchangeForSexPastThreeMonths"
+    t.integer  "CountOfExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer  "WorkPlaceViolenceThreats"
+    t.integer  "WorkplacePromiseDifference"
+    t.integer  "CoercedToContinueWork"
+    t.integer  "LaborExploitPastThreeMonths"
+    t.integer  "CounselingReceived"
+    t.integer  "IndividualCounseling"
+    t.integer  "FamilyCounseling"
+    t.integer  "GroupCounseling"
+    t.integer  "SessionCountAtExit"
+    t.integer  "PostExitCounselingPlan"
+    t.integer  "SessionsInPlan"
+    t.integer  "DestinationSafeClient"
+    t.integer  "DestinationSafeWorker"
+    t.integer  "PosAdultConnections"
+    t.integer  "PosPeerConnections"
+    t.integer  "PosCommunityConnections"
+    t.date     "AftercareDate"
+    t.integer  "AftercareProvided"
+    t.integer  "EmailSocialMedia"
+    t.integer  "Telephone"
+    t.integer  "InPersonIndividual"
+    t.integer  "InPersonGroup"
+    t.integer  "CMExitReason"
   end
   add_index "Exit", ["DateCreated"], :name=>"exit_date_created", :using=>:btree
   add_index "Exit", ["DateDeleted"], :name=>"index_Exit_on_DateDeleted", :using=>:btree
@@ -581,6 +610,10 @@ ActiveRecord::Schema.define(version: 20170921201252) do
     t.boolean  "hud_continuum_funded"
     t.boolean  "confidential",           :default=>false, :null=>false
     t.integer  "computed_project_type"
+    t.date     "OperatingStartDate"
+    t.date     "OperatingEndDate"
+    t.integer  "VictimServicesProvider"
+    t.integer  "HousingType"
   end
   add_index "Project", ["DateCreated"], :name=>"project_date_created", :using=>:btree
   add_index "Project", ["DateUpdated"], :name=>"project_date_updated", :using=>:btree
@@ -640,19 +673,22 @@ ActiveRecord::Schema.define(version: 20170921201252) do
   create_table "Site", force: :cascade do |t|
     t.string   "SiteID"
     t.string   "ProjectID"
-    t.string   "CoCCode",        :limit=>50
+    t.string   "CoCCode",         :limit=>50
     t.integer  "PrincipalSite"
-    t.string   "Geocode",        :limit=>50
+    t.string   "Geocode",         :limit=>50
     t.string   "Address"
     t.string   "City"
-    t.string   "State",          :limit=>2
-    t.string   "ZIP",            :limit=>10
+    t.string   "State",           :limit=>2
+    t.string   "ZIP",             :limit=>10
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",         :limit=>100
+    t.string   "UserID",          :limit=>100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.date     "InformationDate"
+    t.string   "Address2"
+    t.integer  "GeographyType"
   end
   add_index "Site", ["DateCreated"], :name=>"site_date_created", :using=>:btree
   add_index "Site", ["DateUpdated"], :name=>"site_date_updated", :using=>:btree

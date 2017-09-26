@@ -9,7 +9,7 @@ require 'newrelic_rpm'
 # There's no reason to have client records with no enrollments
 # All tables that hang off a client also hang off enrollments
 
-module Importers::HMISFiveOne
+module Importers::HMISSixOneOne
   class Base
     include TsqlImport
     include NotifierConfig
@@ -53,7 +53,7 @@ module Importers::HMISFiveOne
           import_organizations()
           import_inventories()
           import_project_cocs()
-          import_sites()
+          import_geographies()
           import_funders()
           import_affiliations()
           
@@ -91,35 +91,35 @@ module Importers::HMISFiveOne
     end
     
     def import_enrollments()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Enrollment)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::Enrollment)
     end
 
     def import_exits()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Exit)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::Exit)
     end
     
     def import_services()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Service)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::Service)
     end
 
     def import_enrollment_cocs()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::EnrollmentCoc)
     end
     
     def import_disabilities()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::Disability)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::Disability)
     end
 
     def import_employment_educations()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::EmploymentEducation)
     end
         
     def import_health_and_dvs()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::HealthAndDv)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::HealthAndDv)
     end
     
     def import_income_benefits()
-      import_enrollment_based_class(GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit)
+      import_enrollment_based_class(GrdaWarehouse::Import::HMISSixOneOne::IncomeBenefit)
     end
     
     # This dump should be authoriative for any enrollment that was open during the 
@@ -135,12 +135,12 @@ module Importers::HMISFiveOne
     # Services
     def remove_enrollment_related_data
       [
-        GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc,
-        GrdaWarehouse::Import::HMISFiveOne::Disability,
-        GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation,
-        GrdaWarehouse::Import::HMISFiveOne::HealthAndDv,
-        GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit,
-        GrdaWarehouse::Import::HMISFiveOne::Service,
+        GrdaWarehouse::Import::HMISSixOneOne::EnrollmentCoc,
+        GrdaWarehouse::Import::HMISSixOneOne::Disability,
+        GrdaWarehouse::Import::HMISSixOneOne::EmploymentEducation,
+        GrdaWarehouse::Import::HMISSixOneOne::HealthAndDv,
+        GrdaWarehouse::Import::HMISSixOneOne::IncomeBenefit,
+        GrdaWarehouse::Import::HMISSixOneOne::Service,
       ].each do |klass|
         file = importable_files.key(klass)
         next unless @import.summary[klass.file_name].present?
@@ -153,14 +153,14 @@ module Importers::HMISFiveOne
       end
 
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
-      involved_exit_ids = GrdaWarehouse::Import::HMISFiveOne::Exit.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
+      involved_exit_ids = GrdaWarehouse::Import::HMISSixOneOne::Exit.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_exit_ids.each_slice(1000) do |ids|
-        GrdaWarehouse::Import::HMISFiveOne::Exit.where(id: ids).update_all(DateDeleted: @soft_delete_time)
+        GrdaWarehouse::Import::HMISSixOneOne::Exit.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end
       @import.summary['Exit.csv'][:lines_restored] -= involved_exit_ids.size
-      involved_enrollment_ids = GrdaWarehouse::Import::HMISFiveOne::Enrollment.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
+      involved_enrollment_ids = GrdaWarehouse::Import::HMISSixOneOne::Enrollment.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_enrollment_ids.each_slice(1000) do |ids|
-        GrdaWarehouse::Import::HMISFiveOne::Enrollment.where(id: ids).update_all(DateDeleted: @soft_delete_time)
+        GrdaWarehouse::Import::HMISSixOneOne::Enrollment.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end
       @import.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
     end
@@ -213,35 +213,35 @@ module Importers::HMISFiveOne
     end
 
     def import_clients
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Client)
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Client)
     end
 
     def import_organizations
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Organization)
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Organization)
     end
 
     def import_inventories
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Inventory)
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Inventory)
     end
 
     def import_project_cocs
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::ProjectCoc)
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::ProjectCoc)
     end
 
-    def import_sites
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Site)
+    def import_geographies
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Geography)
     end
     
     def import_funders
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Funder)
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Funder)
     end
 
     def import_affiliations
-      import_project_based_class(GrdaWarehouse::Import::HMISFiveOne::Affiliation)
+      import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Affiliation)
     end
 
     def set_involved_projects
-      GrdaWarehouse::Import::HMISFiveOne::Project.load_from_csv(
+      GrdaWarehouse::Import::HMISSixOneOne::Project.load_from_csv(
         file_path: @file_path, 
         data_source_id: @data_source.id
       )
@@ -253,7 +253,7 @@ module Importers::HMISFiveOne
 
     def load_export_file
       begin
-        @export ||= GrdaWarehouse::Import::HMISFiveOne::Export.load_from_csv(
+        @export ||= GrdaWarehouse::Import::HMISSixOneOne::Export.load_from_csv(
           file_path: @file_path, 
           data_source_id: @data_source.id
         )
@@ -421,23 +421,23 @@ module Importers::HMISFiveOne
 
     def importable_files
       {
-        'Affiliation.csv' => GrdaWarehouse::Import::HMISFiveOne::Affiliation,
-        'Client.csv' => GrdaWarehouse::Import::HMISFiveOne::Client,
-        'Disabilities.csv' => GrdaWarehouse::Import::HMISFiveOne::Disability,
-        'EmploymentEducation.csv' => GrdaWarehouse::Import::HMISFiveOne::EmploymentEducation,
-        'Enrollment.csv' => GrdaWarehouse::Import::HMISFiveOne::Enrollment,
-        'EnrollmentCoC.csv' => GrdaWarehouse::Import::HMISFiveOne::EnrollmentCoc,
-        'Exit.csv' => GrdaWarehouse::Import::HMISFiveOne::Exit,
-        'Export.csv' => GrdaWarehouse::Import::HMISFiveOne::Export,
-        'Funder.csv' => GrdaWarehouse::Import::HMISFiveOne::Funder,
-        'HealthAndDV.csv' => GrdaWarehouse::Import::HMISFiveOne::HealthAndDv,
-        'IncomeBenefits.csv' => GrdaWarehouse::Import::HMISFiveOne::IncomeBenefit,
-        'Inventory.csv' => GrdaWarehouse::Import::HMISFiveOne::Inventory,
-        'Organization.csv' => GrdaWarehouse::Import::HMISFiveOne::Organization,
-        'Project.csv' => GrdaWarehouse::Import::HMISFiveOne::Project,
-        'ProjectCoC.csv' => GrdaWarehouse::Import::HMISFiveOne::ProjectCoc,
-        'Services.csv' => GrdaWarehouse::Import::HMISFiveOne::Service,
-        'Site.csv' => GrdaWarehouse::Import::HMISFiveOne::Site
+        'Affiliation.csv' => GrdaWarehouse::Import::HMISSixOneOne::Affiliation,
+        'Client.csv' => GrdaWarehouse::Import::HMISSixOneOne::Client,
+        'Disabilities.csv' => GrdaWarehouse::Import::HMISSixOneOne::Disability,
+        'EmploymentEducation.csv' => GrdaWarehouse::Import::HMISSixOneOne::EmploymentEducation,
+        'Enrollment.csv' => GrdaWarehouse::Import::HMISSixOneOne::Enrollment,
+        'EnrollmentCoC.csv' => GrdaWarehouse::Import::HMISSixOneOne::EnrollmentCoc,
+        'Exit.csv' => GrdaWarehouse::Import::HMISSixOneOne::Exit,
+        'Export.csv' => GrdaWarehouse::Import::HMISSixOneOne::Export,
+        'Funder.csv' => GrdaWarehouse::Import::HMISSixOneOne::Funder,
+        'HealthAndDV.csv' => GrdaWarehouse::Import::HMISSixOneOne::HealthAndDv,
+        'IncomeBenefits.csv' => GrdaWarehouse::Import::HMISSixOneOne::IncomeBenefit,
+        'Inventory.csv' => GrdaWarehouse::Import::HMISSixOneOne::Inventory,
+        'Organization.csv' => GrdaWarehouse::Import::HMISSixOneOne::Organization,
+        'Project.csv' => GrdaWarehouse::Import::HMISSixOneOne::Project,
+        'ProjectCoC.csv' => GrdaWarehouse::Import::HMISSixOneOne::ProjectCoc,
+        'Services.csv' => GrdaWarehouse::Import::HMISSixOneOne::Service,
+        'Geography.csv' => GrdaWarehouse::Import::HMISSixOneOne::Geography
       }.freeze
     end
 
