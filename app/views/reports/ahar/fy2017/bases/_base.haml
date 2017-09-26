@@ -1,0 +1,15 @@
+= simple_form_for :report_result do |f|
+  = f.error_notification
+  = f.input :coc_code, input_html: {name: 'report_result[options][coc_code]', value: GrdaWarehouse::Config.get(:site_coc_codes)}, hint: 'MA-500', required: true, label: 'CoC Code'
+  = f.input :coc_zip_codes, input_html: {name: 'report_result[options][coc_zipcodes]', value: GrdaWarehouse::Config.get(:default_coc_zipcodes)}, required: true, label: 'CoC Zipcodes', hint: 'comma separated.  eg. 02108, 02109'
+  = f.input :oct_night, input_html: {name: 'report_result[options][oct_ngt]', value: '2016-10-28'.to_date}, required: true, label: 'October night'
+  = f.input :jan_night, input_html: {name: 'report_result[options][jan_ngt]', value: '2017-01-27'.to_date}, required: true, label: 'January night'
+  = f.input :apr_night, input_html: {name: 'report_result[options][apr_ngt]', value: '2017-04-27'.to_date}, required: true, label: 'April night'
+  = f.input :jul_night, input_html: {name: 'report_result[options][jul_ngt]', value: '2017-07-27'.to_date}, required: true, label: 'July night'
+
+  = f.input :report_start, input_html: {name: 'report_result[options][report_start]', value: '2016-10-01'.to_date}, required: true, as: :date_picker, label: 'Start Date'
+  = f.input :report_end, input_html: {name: 'report_result[options][report_end]', value: '2017-09-30'.to_date}, required: true, as: :date_picker, label: 'Start Date'
+
+  = f.button :button, class: 'btn btn-primary pull-right' do
+    %span.icon-plus
+    Queue Report Run

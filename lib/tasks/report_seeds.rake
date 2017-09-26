@@ -50,6 +50,17 @@ namespace :reports do
       r = Reports::Ahar::Fy2016::ByDataSource.where(name: 'AHAR By Data Source').first_or_create
       r.update(weight: 4, report_results_summary: rs)
 
+      rs = ReportResultsSummaries::Ahar::Fy2017.where(name: 'Annual Homeless Assessment Report - FY 2017').first_or_create
+      rs.update(weight: 0)
+      r = Reports::Ahar::Fy2017::Base.where(name: 'AHAR - 2017').first_or_create
+      r.update(weight: 1, report_results_summary: rs)
+      r = Reports::Ahar::Fy2017::Veteran.where(name: 'Veteran AHAR - 2017').first_or_create
+      r.update(weight: 2, report_results_summary: rs)
+      r = Reports::Ahar::Fy2017::ByProject.where(name: 'AHAR By Project - 2017').first_or_create
+      r.update(weight: 3, report_results_summary: rs)
+      r = Reports::Ahar::Fy2017::ByDataSource.where(name: 'AHAR By Data Source - 2017').first_or_create
+      r.update(weight: 4, report_results_summary: rs)
+
       rs = ReportResultsSummaries::Pit::Fy2017.where(name: 'Point in Time Counts - FY 2017').first_or_create
       rs.update(weight: 0)
       r = Reports::Pit::Fy2017::Base.where(name: 'PIT').first_or_create
