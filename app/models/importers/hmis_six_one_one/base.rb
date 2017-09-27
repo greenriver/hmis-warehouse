@@ -214,7 +214,7 @@ module Importers::HMISSixOneOne
         add_error(file_path: klass.file_name, message: message, line: '')
       end
     end
-
+    
     def import_clients
       import_project_based_class(GrdaWarehouse::Import::HMISSixOneOne::Client)
     end
@@ -423,6 +423,10 @@ module Importers::HMISSixOneOne
     end
 
     def importable_files
+      self.class.importable_files
+    end
+
+    def self.importable_files
       {
         'Affiliation.csv' => GrdaWarehouse::Import::HMISSixOneOne::Affiliation,
         'Client.csv' => GrdaWarehouse::Import::HMISSixOneOne::Client,

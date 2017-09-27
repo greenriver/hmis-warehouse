@@ -18,6 +18,8 @@ module Importers::HMISSixOneOne
       @file_path = "#{file_path}/#{Time.now.to_i}"
       @local_path = "#{@file_path}/#{@data_source.id}"
       @upload = GrdaWarehouse::Upload.find(upload_id.to_i)
+      @import.upload_id = @upload.id
+      @import.save
     end
 
     def import!

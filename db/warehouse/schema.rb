@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170926200356) do
+ActiveRecord::Schema.define(version: 20170927194653) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1578,6 +1578,7 @@ SELECT "Services"."ServicesID",
     t.datetime "started_at"
     t.datetime "completed_at"
     t.datetime "deleted_at"
+    t.integer  "delayed_job_id"
   end
   add_index "uploads", ["deleted_at"], :name=>"index_uploads_on_deleted_at", :using=>:btree
 

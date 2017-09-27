@@ -423,6 +423,10 @@ module Importers::HMISFiveOne
     end
 
     def importable_files
+      self.class.importable_files
+    end
+    
+    def self.importable_files
       {
         'Affiliation.csv' => GrdaWarehouse::Import::HMISFiveOne::Affiliation,
         'Client.csv' => GrdaWarehouse::Import::HMISFiveOne::Client,
