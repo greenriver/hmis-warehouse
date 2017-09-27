@@ -1158,11 +1158,13 @@ module GrdaWarehouse::Hud
     def days_homeless_in_last_three_years
       service_history.homeless.
         service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+        select(:date).distinct.
         count
     end
 
     def days_homeless
       service_history.homeless.
+        select(:date).distinct.
         count
     end
 
