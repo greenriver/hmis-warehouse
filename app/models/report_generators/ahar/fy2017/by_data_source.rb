@@ -5,12 +5,6 @@ module ReportGenerators::Ahar::Fy2017
       Reports::Ahar::Fy2017::ByDataSource
     end
 
-    def initialize options
-      @data_source_id = options[:data_source_id]
-      @report_start = options[:report_start].to_time.strftime("%Y-%m-%d")
-      @report_end = options[:report_end].to_time.strftime("%Y-%m-%d")
-    end
-
     private def involved_entries_scope
       super.where(data_source_id: @data_source_id)
     end

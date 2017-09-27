@@ -25,6 +25,10 @@ module ReportGenerators::Ahar::Fy2017
       true
     end
 
+    def vet_check(client_id:)
+      all_vets.include?(client_id)
+    end
+
     def involved_entries_scope
       # super.joins(:client).where(client: {VeteranStatus: 1})
       

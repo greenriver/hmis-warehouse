@@ -59,6 +59,9 @@ Rails.application.routes.draw do
     namespace :ahar do
       namespace :fy_2017 do
         resources :base, only: [:create]
+        resources :data_source, only: [:create]
+        resources :project, only: [:create]
+        resources :veteran, only: [:create]
       end
     end
   end

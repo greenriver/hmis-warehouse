@@ -1,26 +1,14 @@
-= simple_form_for :report_result do |f|
+= simple_form_for :options, url: hud_reports_ahar_fy_2017_project_index_path() do |f|
   %h3 Queue Report
   .slab
     = f.error_notification
-    .row.margin-bottom-02
+    .row
+      = render 'reports/ahar/fy2017/base_form', f: f
+      
       .col-sm-4
-        = f.input :project, input_html: {name: 'report_result[options][project]', class: 'select2'}, as: :select, collection: Reports::Ahar::Fy2016::ByProject.available_projects_for_filtering
-      .col-sm-4
-        %label.control-lable.string.required 
-          %abbr{data: {original_title: "required"}} *
-          Start Date
-        .input-group.date{data: {provide: :datepicker}}
-          = f.input :report_start, input_html: {name: 'report_result[options][report_start]', value: '2015-10-01'.to_date}, label: false
-          %span.input-group-addon.icon-calendar
-      .col-sm-4
-        %label.control-lable.string.required 
-          %abbr{data: {original_title: "required"}} *
-          End Date
-        .input-group.date{data: {provide: :datepicker}}
-          = f.input :report_end, input_html: {name: 'report_result[options][report_end]', value: '2016-09-30'.to_date, class: 'form-control jStart'}, label: false
-          %span.input-group-addon.icon-calendar
+        = f.input :project_id, input_html: {class: 'select2'}, collection: Reports::Ahar::Fy2017::ByProject.available_projects_for_filtering
     .row
       .col-sm-12.margin-bottom-02
         = f.button :button, class: 'btn btn-primary pull-right' do
           %span.icon-plus
-          Queue Report Run 
+          Queue Report Run

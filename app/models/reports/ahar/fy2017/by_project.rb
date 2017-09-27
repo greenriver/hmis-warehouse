@@ -8,6 +8,10 @@ module Reports::Ahar::Fy2017
       ReportGenerators::Ahar::Fy2017::ByProject
     end
 
+    def self.available_options
+      super + [:project_id]
+    end
+
     def report_type
       0
     end
@@ -20,7 +24,7 @@ module Reports::Ahar::Fy2017
       true
     end
 
-    def has_project_option?
+    def has_project_id_option?
       true
     end
 
@@ -33,8 +37,7 @@ module Reports::Ahar::Fy2017
     end
 
     def value_for_options options
-      p_id, ds_id = JSON.parse(options['project'])
-      project = GrdaWarehouse::Hud::Project.includes(:data_source).where(ProjectID: p_id, data_source_id: ds_id).first
+      project = GrdaWarehouse::Hud::Project.find(options['project_id'].to_i)
       "#{project.ProjectName} - #{project.data_source.short_name}"
     end
   end

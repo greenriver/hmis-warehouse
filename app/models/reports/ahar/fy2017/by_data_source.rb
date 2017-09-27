@@ -8,6 +8,10 @@ module Reports::Ahar::Fy2017
       ReportGenerators::Ahar::Fy2017::ByDataSource
     end
 
+    def self.available_options
+      super + [:data_source]
+    end
+
     def report_type
       0
     end

@@ -14,6 +14,7 @@ class ReportResult < ActiveRecord::Base
   delegate :value_for_options, to: :report
 
   validate :project_required_if_report_demands
+  validate :project_id_required_if_report_demands
   validate :data_source_required_if_report_demands
 
   # Queue a report to run
@@ -75,6 +76,14 @@ class ReportResult < ActiveRecord::Base
       end
     end
   end
+
+  private def project_id_required_if_report_demands
+  if report.has_project_id_option?
+    if options['project_id'].blank?
+      errors.add(:project_id, 'is required')
+    end
+  end
+end
 
   private def data_source_required_if_report_demands
     if report.has_data_source_option?

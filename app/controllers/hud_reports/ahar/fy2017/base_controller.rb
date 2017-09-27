@@ -16,7 +16,12 @@ module HudReports::Ahar::Fy2017
         options: options
       )
       @result.update(delayed_job_id: job.id)
-      respond_with(@result, location: report_report_results_path(report_id: @report.id))
+      if @result.errors.full_messages.present?
+        flash[:error] = @result.errors.full_messages.join(' ')
+        redirect_to report_report_results_path(report_id: @report.id)
+      else
+        respond_with(@result, location: report_report_results_path(report_id: @report.id))
+      end
     end
 
     def report_params

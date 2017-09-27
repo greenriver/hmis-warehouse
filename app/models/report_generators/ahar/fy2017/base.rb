@@ -34,21 +34,18 @@ module ReportGenerators::Ahar::Fy2017
     TH_INDIVIDUAL_QUESTIONS = ['HH_Typ_Ind_A_F', 'HH_Typ_Ind_A_M', 'HH_Typ_A_Only', 'HH_Typ_C_Only', 'HH_Typ_UY']
     SUMMARY_QUESTIONS = ['Pers_all_4_Prog', 'Pers_only_EF', 'Pers_only_EF_TF', 'Pers_only_EF_TI', 'Pers_only_EF_TI_TF', 'Pers_only_EI', 'Pers_only_EI_EF_TF', 'Pers_only_EI_EF', 'Pers_only_EI_EF_TI', 'Pers_only_EI_TF', 'Pers_only_EI_TI', 'Pers_only_EI_TI_TF', 'Pers_only_TF', 'Pers_only_TI', 'Pers_only_TI_TF', 'Yr_Rnd_EF_Beds', 'Yr_Rnd_EF_U', 'Yr_Rnd_EI_Beds', 'Yr_Rnd_Eqv_EF_Beds', 'Yr_Rnd_Eqv_EI_Beds', 'Yr_Rnd_ES_Oflow_Vch', 'Yr_Rnd_ES_Ssnl', 'Yr_Rnd_TF_Beds', 'Yr_Rnd_TF_U', 'Yr_Rnd_TI_Beds', 'Yr_Rnd_PSH_Fam_Beds', 'Yr_Rnd_PSH_Fam_U', 'Yr_Rnd_PSH_Ind_Beds']
 
-    # COC_ZIP_CODES = [
-    #   '02108', '02109', '02110', '02111', '02112', '02113', '02114', '02115', '02116', '02117', '02118', '02119', '02120', '02121', '02122', '02123', '02124', '02125', '02126', '02127', '02128', '02129', '02130', '02131', '02132', '02133', '02134', '02135', '02136', '02137', '02163', '02196', '02199', '02201', '02203', '02204', '02205', '02206', '02207', '02210', '02211', '02212', '02215', '02216', '02217', '02222', '02228', '02241', '02266', '02283', '02284', '02293', '02295', '02297', '02298',
-    # ]
-    # CENSUS_DATES = {
-    #   "Oct_Ngt" => '2015-10-28',
-    #   "Jan_Ngt" => '2016-01-27',
-    #   "Apr_Ngt" => '2016-04-27',
-    #   "Jul_Ngt" => '2016-08-27',
-    # }
-
     def initialize options
-      @data_source_id = options[:data_source_id]
+      @project_id = options[:project_id].to_i
+      @data_source_id = options[:data_source].to_i
+      @coc_code = options[:coc_code]
       @report_start = options[:report_start].to_time.strftime("%Y-%m-%d")
       @report_end = options[:report_end].to_time.strftime("%Y-%m-%d")
-      @census_dates = options[:c]
+      @census_dates = {
+        "Oct_Ngt" => options[:oct_night],
+        "Jan_Ngt" => options[:jan_night],
+        "Apr_Ngt" => options[:apr_night],
+        "Jul_Ngt" => options[:jul_night],
+      }
       setup_notifier('AHAR - 2017')
     end
 
@@ -65,6 +62,11 @@ module ReportGenerators::Ahar::Fy2017
       false
     end
 
+    def log(message)
+      Rails.logger.info(message)
+      @notifier.ping(message) if @send_notifications
+    end
+
     def run!
       # allow report start to be set via options in sub-classes
       @report_start ||= '2016-09-30'
@@ -72,7 +74,7 @@ module ReportGenerators::Ahar::Fy2017
       # Find the first queued report
       report = ReportResult.where(report: report_class.first).where(percent_complete: 0, job_status: nil).first
       return unless report.present? 
-      Rails.logger.info "Starting report #{report.report.name}"
+      log "Starting report #{report.report.name}"
       report.update(percent_complete: 0.01)
 
       @answers = (SUB_TYPES).map{|m| [m, GLOBAL_QUESTIONS.map{|n| [n, 0]}.to_h]}.to_h
@@ -139,7 +141,7 @@ module ReportGenerators::Ahar::Fy2017
       end
       
       report.update(percent_complete: 100, results: @answers, original_results: @answers, validations: @validations, support: @support, completed_at: Time.now)
-      Rails.logger.info "Completed report #{report.report.name}"
+      log "Completed report #{report.report.name}"
       return @answers
     end
 
@@ -596,7 +598,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def add_household_date_answers
-      CENSUS_DATES.each do |slug, d|
+      @census_dates.each do |slug, d|
         # Get all service_history records for this date (record_type: 'service')
         services = involved_entries_scope
           .where(date: d, record_type: 'service').select(act_as_project_overlay, :household_id, :data_source_id, :project_id).distinct.pluck(act_as_project_overlay, :household_id, :data_source_id, :project_id)
@@ -949,7 +951,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def add_specific_date_answers
-      CENSUS_DATES.each do |slug, d|
+      @census_dates.each do |slug, d|
         # Get all service_history records for this date (record_type: 'service')
         # build a unique array of project type, family and client id
         services = involved_entries_scope
@@ -1140,7 +1142,7 @@ module ReportGenerators::Ahar::Fy2017
       end
     end
 
-    # of people served at HMIS participating providers where broken down by age
+    # number of people served at HMIS participating providers broken down by age
     def add_age_answers
       entries_by_client_id.each do |id, entries|
         next unless vet_check(client_id: id)    
@@ -1161,29 +1163,6 @@ module ReportGenerators::Ahar::Fy2017
         end
       end
     end
-
-    # No longer collected as of 2015
-    #  def add_last_permanent_zip_answers
-    #   entries_by_client_id.each do |id, entries|
-    #     first_entry = entries.first
-    #     age = first_entry[service_history_age_index]
-    #     # Find the client's last permanent zip codes
-    #     distinct_zip_codes = begin 
-    #       entries.map do |m| 
-    #         involved_enrollments_by_entry_id_and_data_source_id[[m[service_history_enrollment_group_id_index], m[service_history_data_source_id_index]]]
-    #       end.map do |n|
-    #         [m[service_history_project_type_index], n[enrollment_last_permanent_zip_index]]
-    #       end.uniq.reject(&:empty?)
-    #       # include only those within the CoC
-    #       # (COC_ZIP_CODES & distinct_zip_codes)
-    #     end
-    #     # count anyone with a last permanent zip in the CoC, unless they are in a family, then only count adults
-    #     if distinct_zip_codes.any?
-    #       family = family_members.include?(id)
-
-    #     end
-    #   end
-    # end
     
     def veteran_slug code 
       case code 
@@ -1701,12 +1680,13 @@ module ReportGenerators::Ahar::Fy2017
 
     def involved_entries_scope
        # make sure we include any project that is acting as one of our housing related projects
-      GrdaWarehouse::ServiceHistory.joins(:project).
+      GrdaWarehouse::ServiceHistory.joins(project: :project_cocs).
         open_between(start_date: @report_start, end_date: @report_end).
         where(p_t[:act_as_project_type].in(PH + TH + ES).
           or(sh_t[:project_type].in((PH + TH + ES)).
           and(p_t[:act_as_project_type].eq(nil)))
-        )
+        ).
+        where(ProjectCoC: {CoCCode: @coc_code})
     end
 
     def involved_entries
@@ -1773,8 +1753,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def vet_check(client_id:)
-      return true unless vets_only
-      all_vets.include?(client_id)
+      true
     end
 
     # get everyone flagged as VeteranStatus = 1 and attempt to limit them 
