@@ -541,7 +541,7 @@ module GrdaWarehouse::Hud
             client_id: api_id.id_in_data_source,
             site_id: api_id.site_id_in_data_source
           ) rescue nil
-          (image_data && image_data.length > 0) || nil
+          return image_data
         else
           if [0,1].include?(self[:Gender])
             num = id % 99
@@ -554,7 +554,7 @@ module GrdaWarehouse::Hud
             image_data = response.body
           end
         end
-        image_data
+        image_data || self.class.no_image_on_file_image
       end
     end
 
