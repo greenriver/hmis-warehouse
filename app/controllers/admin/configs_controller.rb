@@ -27,6 +27,7 @@ module Admin
         :project_type_override,
         :cas_available_method,
         :site_coc_codes,
+        :default_coc_zipcodes,
         :family_calculation_method,
         tag_list: [],
       )
