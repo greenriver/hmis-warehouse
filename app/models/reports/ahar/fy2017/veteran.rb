@@ -4,6 +4,10 @@ module Reports::Ahar::Fy2017
       'Veteran AHAR - FY 2017'
     end
 
+    def self.generator
+      ReportGenerators::Ahar::Fy2017::Veteran
+    end
+
     def report_type
       1
     end

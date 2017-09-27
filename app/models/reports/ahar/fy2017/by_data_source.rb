@@ -4,6 +4,10 @@ module Reports::Ahar::Fy2017
       'AHAR By Data Source - FY 2017'
     end
 
+    def self.generator
+      ReportGenerators::Ahar::Fy2017::ByDataSource
+    end
+
     def report_type
       0
     end

@@ -15,13 +15,15 @@
 
 module ReportGenerators::Ahar::Fy2017
   class Base
-    include ArelHelper
+    include ArelHelper 
+    include NotifierConfig
+    attr_accessor :send_notifications, :notifier_config
+
     PH = [3,9,10,13] # Per Jennifer Flynn @ DND 2016 AHAR includes all 4
     TH = [2]
     ES = [1] 
     ADULT = 18
-    REPORT_START = '2017-09-30'
-    REPORT_END = '2016-10-01'
+
     SUB_TYPES = ['ES-FAM', 'ES-IND', 'PSH-FAM', 'PSH-IND', 'TH-FAM', 'TH-IND']
     GLOBAL_QUESTIONS = ['Age_LT_1', 'Age_Mx', 'Age_1_5', 'Age_6_12', 'Age_13_17', 'Age_18_24', 'Age_25_30', 'Age_31_50', 'Age_51_61', 'Age_62_GE', 'A_F_Nt_Mx', 'A_F_Nt_1_7', 'A_F_Nt_8_30', 'A_F_Nt_31_60', 'A_F_Nt_61_90', 'A_F_Nt_91_120', 'A_F_Nt_121_150', 'A_F_Nt_151_180', 'A_F_Nt_181_210', 'A_F_Nt_211_240', 'A_F_Nt_241_270', 'A_F_Nt_271_300', 'A_F_Nt_301_330', 'A_F_Nt_331_360', 'A_F_Nt_361_365', 'A_Mx_Gnd_Nt_Mx', 'A_Mx_Gnd_Nt_1_7', 'A_Mx_Gnd_Nt_8_30', 'A_Mx_Gnd_Nt_31_60', 'A_Mx_Gnd_Nt_61_90', 'A_Mx_Gnd_Nt_91_120', 'A_Mx_Gnd_Nt_121_150', 'A_Mx_Gnd_Nt_151_180', 'A_Mx_Gnd_Nt_181_210', 'A_Mx_Gnd_Nt_211_240', 'A_Mx_Gnd_Nt_241_270', 'A_Mx_Gnd_Nt_271_300', 'A_Mx_Gnd_Nt_301_330', 'A_Mx_Gnd_Nt_331_360', 'A_Mx_Gnd_Nt_361_365', 'A_M_Nt_Mx', 'A_M_Nt_1_7', 'A_M_Nt_8_30', 'A_M_Nt_31_60', 'A_M_Nt_61_90', 'A_M_Nt_91_120', 'A_M_Nt_121_150', 'A_M_Nt_151_180', 'A_M_Nt_181_210', 'A_M_Nt_211_240', 'A_M_Nt_241_270', 'A_M_Nt_271_300', 'A_M_Nt_301_330', 'A_M_Nt_331_360', 'A_M_Nt_361_365', 'Beds_Avail_April_Ngt', 'Beds_Avail_Avg_Ngt', 'Beds_Avail_Jan_Ngt', 'Beds_Avail_Jul_Ngt', 'Beds_Avail_Oct_Ngt', 'Beds_nH', 'Beds_H', 'C_F_Nt_Mx', 'C_F_Nt_1_7', 'C_F_Nt_8_30', 'C_F_Nt_31_60', 'C_F_Nt_61_90', 'C_F_Nt_91_120', 'C_F_Nt_121_150', 'C_F_Nt_151_180', 'C_F_Nt_181_210', 'C_F_Nt_211_240', 'C_F_Nt_241_270', 'C_F_Nt_271_300', 'C_F_Nt_301_330', 'C_F_Nt_331_360', 'C_F_Nt_361_365', 'C_Mx_Gnd_Nt_Mx', 'C_Mx_Gnd_Nt_1_7', 'C_Mx_Gnd_Nt_8_30', 'C_Mx_Gnd_Nt_31_60', 'C_Mx_Gnd_Nt_61_90', 'C_Mx_Gnd_Nt_91_120', 'C_Mx_Gnd_Nt_121_150', 'C_Mx_Gnd_Nt_151_180', 'C_Mx_Gnd_Nt_181_210', 'C_Mx_Gnd_Nt_211_240', 'C_Mx_Gnd_Nt_241_270', 'C_Mx_Gnd_Nt_271_300', 'C_Mx_Gnd_Nt_301_330', 'C_Mx_Gnd_Nt_331_360', 'C_Mx_Gnd_Nt_361_365', 'C_M_Nt_Mx', 'C_M_Nt_1_7', 'C_M_Nt_8_30', 'C_M_Nt_31_60', 'C_M_Nt_61_90', 'C_M_Nt_91_120', 'C_M_Nt_121_150', 'C_M_Nt_151_180', 'C_M_Nt_181_210', 'C_M_Nt_211_240', 'C_M_Nt_241_270', 'C_M_Nt_271_300', 'C_M_Nt_301_330', 'C_M_Nt_331_360', 'C_M_Nt_361_365', 'Disabled_Mx', 'Disabled_No', 'Disabled_Yes', 'Ethn_His_Lat', 'Ethn_Mx', 'Ethn_NHis_NLat', 'Gnd_A_F', 'Gnd_A_M', 'Gnd_A_Mx', 'Gnd_A_Oth', 'Gnd_A_TFM', 'Gnd_A_TMF', 'Gnd_C_F', 'Gnd_C_M', 'Gnd_C_Mx', 'Gnd_C_Oth', 'Gnd_C_TFM', 'Gnd_C_TMF', 'HH_Size_Mx', 'HH_Size_1', 'HH_Size_2', 'HH_Size_3', 'HH_Size_4', 'HH_Size_5_GE', 'HH_Typ_Mx', 'Lst_Res_Mx', 'Lst_Res_Zip_I', 'Lst_Res_Zip_NI', 'Lvn_B4_Prg_Ent_ES', 'Lvn_B4_Prg_Ent_Fam', 'Lvn_B4_Prg_Ent_Foster', 'Lvn_B4_Prg_Ent_Fren', 'Lvn_B4_Prg_Ent_Hotel', 'Lvn_B4_Prg_Ent_Hsptl', 'Lvn_B4_Prg_Ent_Jail', 'Lvn_B4_Prg_Ent_Mx', 'Lvn_B4_Prg_Ent_N_4_Hbt', 'Lvn_B4_Prg_Ent_Oth', 'Lvn_B4_Prg_Ent_Own_NS', 'Lvn_B4_Prg_Ent_Own_S', 'Lvn_B4_Prg_Ent_Psych', 'Lvn_B4_Prg_Ent_PSH', 'Lvn_B4_Prg_Ent_Rent_NS', 'Lvn_B4_Prg_Ent_Rent_Oth_S', 'Lvn_B4_Prg_Ent_Rent_VS', 'Lvn_B4_Prg_Ent_SAbse', 'Lvn_B4_Prg_Ent_SH', 'Lvn_B4_Prg_Ent_TH', 'NVet', 'Pers_Apr_Ngt', 'Pers_Avg_Ngt', 'Pers_Jan_Ngt', 'Pers_Jul_Ngt', 'Pers_Multi_H', 'Pers_Oct_Ngt', 'Race_Amer_Ind_Alask', 'Race_Asian', 'Race_Black', 'Race_Multi', 'Race_Mx', 'Race_Nat_Haw_Oth_Pac', 'Race_Wh_His_Lat', 'Race_Wh_NHis_NLat', 'Stb_Prv_Nt_G_Wk_L_Mnt', 'Stb_Prv_Nt_G_3_Mt_L_Yr', 'Stb_Prv_Nt_Mx', 'Stb_Prv_Nt_1_Wk_LE', 'Stb_Prv_Nt_1_Yr_GE', 'Stb_Prv_Nt_1_3_Mnt', 'Undup_Pers_H', 'Vet', 'Vet_Mx']
     ES_FAMILY_QUESTIONS = ['Lts_Age_LT_1', 'Lts_Age_Mx', 'Lts_Age_1_5', 'Lts_Age_6_12', 'Lts_Age_13_17', 'Lts_Age_18_30', 'Lts_Age_31_50', 'Lts_Age_51_GE', 'Lts_Disabled_Mx', 'Lts_Disabled_No', 'Lts_Disabled_Yes', 'Lts_Ethn_His_Lat', 'Lts_Ethn_Mx', 'Lts_Ethn_NHis_NLat', 'Lts_HH_Size_Mx', 'Lts_HH_Size_1', 'Lts_HH_Size_2', 'Lts_HH_Size_3', 'Lts_HH_Size_4', 'Lts_HH_Size_5_GE', 'Lts_Nvet', 'Lts_Race_Amer_Ind_Alask', 'Lts_Race_Asian', 'Lts_Race_Black', 'Lts_Race_Multi', 'Lts_Race_Mx', 'Lts_Race_Nat_Haw_Oth_Pac', 'Lts_Race_Wh_His_Lat', 'Lts_Race_Wh_NHis_NLat', 'Lts_Vet', 'Lts_Vet_Mx', 'HH_Typ_A_Fam_C', 'HH_Typ_C_Fam_A', 'HHs', 'HHs_Apr_Ngt', 'HHs_Jan_Ngt', 'HHs_Jul_Ngt', 'HHs_Oct_Ngt']
@@ -32,15 +34,24 @@ module ReportGenerators::Ahar::Fy2017
     TH_INDIVIDUAL_QUESTIONS = ['HH_Typ_Ind_A_F', 'HH_Typ_Ind_A_M', 'HH_Typ_A_Only', 'HH_Typ_C_Only', 'HH_Typ_UY']
     SUMMARY_QUESTIONS = ['Pers_all_4_Prog', 'Pers_only_EF', 'Pers_only_EF_TF', 'Pers_only_EF_TI', 'Pers_only_EF_TI_TF', 'Pers_only_EI', 'Pers_only_EI_EF_TF', 'Pers_only_EI_EF', 'Pers_only_EI_EF_TI', 'Pers_only_EI_TF', 'Pers_only_EI_TI', 'Pers_only_EI_TI_TF', 'Pers_only_TF', 'Pers_only_TI', 'Pers_only_TI_TF', 'Yr_Rnd_EF_Beds', 'Yr_Rnd_EF_U', 'Yr_Rnd_EI_Beds', 'Yr_Rnd_Eqv_EF_Beds', 'Yr_Rnd_Eqv_EI_Beds', 'Yr_Rnd_ES_Oflow_Vch', 'Yr_Rnd_ES_Ssnl', 'Yr_Rnd_TF_Beds', 'Yr_Rnd_TF_U', 'Yr_Rnd_TI_Beds', 'Yr_Rnd_PSH_Fam_Beds', 'Yr_Rnd_PSH_Fam_U', 'Yr_Rnd_PSH_Ind_Beds']
 
-    COC_ZIP_CODES = [
-      '02108', '02109', '02110', '02111', '02112', '02113', '02114', '02115', '02116', '02117', '02118', '02119', '02120', '02121', '02122', '02123', '02124', '02125', '02126', '02127', '02128', '02129', '02130', '02131', '02132', '02133', '02134', '02135', '02136', '02137', '02163', '02196', '02199', '02201', '02203', '02204', '02205', '02206', '02207', '02210', '02211', '02212', '02215', '02216', '02217', '02222', '02228', '02241', '02266', '02283', '02284', '02293', '02295', '02297', '02298',
-    ]
-    CENSUS_DATES = {
-      "Oct_Ngt" => '2015-10-28',
-      "Jan_Ngt" => '2016-01-27',
-      "Apr_Ngt" => '2016-04-27',
-      "Jul_Ngt" => '2016-08-27',
-    }
+    # COC_ZIP_CODES = [
+    #   '02108', '02109', '02110', '02111', '02112', '02113', '02114', '02115', '02116', '02117', '02118', '02119', '02120', '02121', '02122', '02123', '02124', '02125', '02126', '02127', '02128', '02129', '02130', '02131', '02132', '02133', '02134', '02135', '02136', '02137', '02163', '02196', '02199', '02201', '02203', '02204', '02205', '02206', '02207', '02210', '02211', '02212', '02215', '02216', '02217', '02222', '02228', '02241', '02266', '02283', '02284', '02293', '02295', '02297', '02298',
+    # ]
+    # CENSUS_DATES = {
+    #   "Oct_Ngt" => '2015-10-28',
+    #   "Jan_Ngt" => '2016-01-27',
+    #   "Apr_Ngt" => '2016-04-27',
+    #   "Jul_Ngt" => '2016-08-27',
+    # }
+
+    def initialize options
+      @data_source_id = options[:data_source_id]
+      @report_start = options[:report_start].to_time.strftime("%Y-%m-%d")
+      @report_end = options[:report_end].to_time.strftime("%Y-%m-%d")
+      @census_dates = options[:c]
+      setup_notifier('AHAR - 2017')
+    end
+
     def self.questions
       all_specific_questions = GLOBAL_QUESTIONS + ES_FAMILY_QUESTIONS + ES_INDIVIDUAL_QUESTIONS + TH_FAMILY_QUESTIONS + TH_INDIVIDUAL_QUESTIONS + PSH_FAMILY_QUESTIONS + PSH_INDIVIDUAL_QUESTIONS + SUMMARY_QUESTIONS
       whitelist = (SUB_TYPES + ['Summary']).map{|m| {m => all_specific_questions}}

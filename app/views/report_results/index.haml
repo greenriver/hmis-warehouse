@@ -1,9 +1,7 @@
 = render partial: 'breadcrumbs'
-.row
-  .col-sm-8
-    %h1= _("Report Result: #{@report.name}")
-  .col-sm-4
-    = render 'queue_form'
+
+%h1= _("Report Result: #{@report.name}")
+= render 'queue_form'
 
 :ruby
   columns = ['percent_complete', 'created_at']

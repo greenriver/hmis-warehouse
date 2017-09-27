@@ -43,9 +43,7 @@ Rails.application.routes.draw do
 
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
-
       resources :support, only: [:index], controller: 'report_results/support'
-
     end
   end
   namespace :reports do
@@ -55,6 +53,13 @@ Rails.application.routes.draw do
       resource :project, only: [:show]
       resource :inventory, only: [:show]
       resource :site, only: [:show]
+    end
+  end
+  namespace :hud_reports do
+    namespace :ahar do
+      namespace :fy_2017 do
+        resources :base, only: [:create]
+      end
     end
   end
   resources :report_results_summary, only: [:show]

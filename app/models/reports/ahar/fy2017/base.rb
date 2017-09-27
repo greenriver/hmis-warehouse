@@ -4,6 +4,10 @@ module Reports::Ahar::Fy2017
       'AHAR - FY 2017'
     end
 
+    def self.generator
+      ReportGenerators::Ahar::Fy2017::Base
+    end
+
     def self.available_projects_for_filtering
       GrdaWarehouse::Hud::Project.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name,id,ds_id,short_name|
         ["#{name} - #{short_name}", [id,ds_id]]
@@ -32,6 +36,19 @@ module Reports::Ahar::Fy2017
 
     def title_for_options
       'CoC Code'
+    end
+
+    def self.available_options
+      [
+        :report_start,
+        :report_end,
+        :coc_code,
+        :coc_zip_codes,
+        :oct_night,
+        :jan_night,
+        :apr_night,
+        :jul_night,
+      ]
     end
 
     def value_for_options options

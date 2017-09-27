@@ -79,12 +79,14 @@ class ReportResultsController < ApplicationController
       report_end = @result.options['report_end'].to_date
       options.merge!({report_start: report_start, report_end: report_end})
     end
-
-    Delayed::Job.enqueue Reporting::RunReportJob.new(
-      report: @report, 
-      result_id: @result.id, 
-      options: options
-    ) if run_report_engine
+    if run_report_engine
+      job = Delayed::Job.enqueue Reporting::RunReportJob.new(
+        report: @report, 
+        result_id: @result.id, 
+        options: options
+      )
+      @result.update(delayed_job_id: job.id)
+    end
   end
 
   # PATCH/PUT /report_results/1

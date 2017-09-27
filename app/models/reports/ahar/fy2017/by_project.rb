@@ -4,6 +4,10 @@ module Reports::Ahar::Fy2017
       'AHAR By Project - FY 2017'
     end
 
+    def self.generator
+      ReportGenerators::Ahar::Fy2017::ByProject
+    end
+
     def report_type
       0
     end

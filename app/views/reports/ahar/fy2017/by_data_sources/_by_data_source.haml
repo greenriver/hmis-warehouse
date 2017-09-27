@@ -1,18 +1,27 @@
 = simple_form_for :report_result do |f|
-  = f.error_notification
-  = f.input :data_source, input_html: {name: 'report_result[options][data_source]', class: 'select2'}, as: :select, collection: Reports::Ahar::Fy2017::ByDataSource.available_data_sources_for_filtering
-  %label.control-lable.string.required 
-    %abbr{data: {original_title: "required"}} *
-    Start Date
-  .input-group.date{data: {provide: :datepicker}}
-    = f.input :report_start, input_html: {name: 'report_result[options][report_start]', value: '2015-10-01'.to_date}, label: false
-    %span.input-group-addon.icon-calendar
-  %label.control-lable.string.required 
-    %abbr{data: {original_title: "required"}} *
-    End Date
-  .input-group.date{data: {provide: :datepicker}}
-    = f.input :report_end, input_html: {name: 'report_result[options][report_end]', value: '2016-09-30'.to_date, class: 'form-control jStart'}, label: false
-    %span.input-group-addon.icon-calendar
-  = f.button :button, class: 'btn btn-primary pull-right' do
-    %span.icon-plus
-    Queue Report Run
+  %h3 Queue Report
+  .slab
+    = f.error_notification
+    .row.margin-bottom-02
+      .col-sm-4
+        = f.input :data_source, input_html: {name: 'report_result[options][data_source]', class: 'select2'}, as: :select, collection: Reports::Ahar::Fy2017::ByDataSource.available_data_sources_for_filtering
+      .col-sm-4
+        %label.control-lable.string.required 
+          %abbr{data: {original_title: "required"}} *
+          Start Date
+        .input-group.date{data: {provide: :datepicker}}
+          = f.input :report_start, input_html: {name: 'report_result[options][report_start]', value: '2015-10-01'.to_date}, label: false
+          %span.input-group-addon.icon-calendar
+        
+      .col-sm-4
+        %label.control-lable.string.required 
+          %abbr{data: {original_title: "required"}} *
+          End Date
+        .input-group.date{data: {provide: :datepicker}}
+          = f.input :report_end, input_html: {name: 'report_result[options][report_end]', value: '2016-09-30'.to_date, class: 'form-control jStart'}, label: false
+          %span.input-group-addon.icon-calendar
+    .row
+      .col-sm-12.margin-bottom-02
+        = f.button :button, class: 'btn btn-primary pull-right' do
+          %span.icon-plus
+          Queue Report Run

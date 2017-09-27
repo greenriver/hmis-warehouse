@@ -4,9 +4,11 @@ class ReportResult < ActiveRecord::Base
   include ActionView::Helpers::DateHelper
   belongs_to :report
   belongs_to :user
-  has_one :delayed_job
+  belongs_to :delayed_job, class_name: Delayed::Job.name
 
-  scope :most_recent, -> { where(percent_complete: 100).group(:type).maximum(:updated_at) }
+  scope :most_recent, -> do
+    where(percent_complete: 100).group(:type).maximum(:updated_at) 
+  end
 
   delegate :download_type, to: :report
   delegate :value_for_options, to: :report

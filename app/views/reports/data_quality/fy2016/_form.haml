@@ -1,24 +1,32 @@
 = simple_form_for :report_result do |f|
-  = f.error_notification
-  = f.input :project_id, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_projects, required: false
-  = f.input :project_type, input_html: {name: 'report_result[options][project_type][]', multiple: true, class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_project_types, required: false
-  = f.input :data_source_id, input_html: {name: 'report_result[options][data_source_id]', class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_data_sources, required: false
-  = f.input :coc_code, input_html: {name: 'report_result[options][coc_code]'}, hint: 'MA-500', required: false
-  .form-group
-    %label.control-lable.string
-      %abbr{data: {original_title: "required"}} *
-      Start Date
-    .input-group.date{data: {provide: :datepicker}}
-      = f.input :report_start, input_html: {name: 'report_result[options][report_start]', value: Date.new(Date.today.year-2,10,1)}, label: false
-      %span.input-group-addon.icon-calendar
-  .form-group
-    %label.control-lable.string.required 
-      %abbr{data: {original_title: "required"}} *
-      End Date
-    .input-group.date{data: {provide: :datepicker}}
-      = f.input :report_end, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.today.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
-      %span.input-group-addon.icon-calendar
-  .form-actions
-    = f.button :button, class: 'btn btn-primary pull-right' do
-      %span.icon-plus
-      Queue Report Run 
+  %h3 Queue Report
+  .slab
+    = f.error_notification
+    .row.margin-bottom-02
+      .col-sm-4
+        = f.input :project_id, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_projects, required: false
+        = f.input :project_type, input_html: {name: 'report_result[options][project_type][]', multiple: true, class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_project_types, required: false
+      .col-sm-4
+        = f.input :data_source_id, input_html: {name: 'report_result[options][data_source_id]', class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_data_sources, required: false
+        = f.input :coc_code, input_html: {name: 'report_result[options][coc_code]'}, hint: 'MA-500', required: false
+      .col-sm-4
+        .form-group
+          %label.control-lable.string
+            %abbr{data: {original_title: "required"}} *
+            Start Date
+          .input-group.date{data: {provide: :datepicker}}
+            = f.input :report_start, input_html: {name: 'report_result[options][report_start]', value: Date.new(Date.today.year-2,10,1)}, label: false
+            %span.input-group-addon.icon-calendar
+        .form-group
+          %label.control-lable.string.required 
+            %abbr{data: {original_title: "required"}} *
+            End Date
+          .input-group.date{data: {provide: :datepicker}}
+            = f.input :report_end, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.today.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
+            %span.input-group-addon.icon-calendar
+    .row
+      .col-sm-12.margin-bottom-02
+        .form-actions
+          = f.button :button, class: 'btn btn-primary pull-right' do
+            %span.icon-plus
+            Queue Report Run 
