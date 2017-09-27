@@ -25,15 +25,18 @@
       %h3 Residential Enrollments
     .rollup{data: {partial: :other_enrollments}}
       %h3 Other Enrollments
-.row
-  .col-sm-6
     - if GrdaWarehouse::Config.get(:eto_api_available)
       .rollup{data: {partial: :assessments}}
         %h3 Assessments
+.row
+  .col-sm-6
+    - if GrdaWarehouse::Config.get(:eto_api_available)
       .rollup{data: {partial: :contact_information}}
         %h3 Contact Information
     .rollup{data: {partial: :services}}
       %h3 Services &mdash; Aggregated Bed Register
+    .rollup{data: {partial: 'services-full'}}
+      %h3 Services &mdash; Full Bed Register
   .col-sm-6
     - if GrdaWarehouse::Config.get(:eto_api_available)
       .rollup{data: {partial: 'case_manager'}}
@@ -44,8 +47,7 @@
       %h3 Zip Details
     .rollup{data: {partial: 'income-benefits'}}
       %h3 Income and Benefits
-    .rollup{data: {partial: 'services-full'}}
-      %h3 Services &mdash; Full Bed Register
+    
 
 .row
   .col-sm-12

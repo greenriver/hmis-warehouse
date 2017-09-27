@@ -530,18 +530,18 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def image_for_source_client(cache_for=8.hours)
+    def image_for_source_client(cache_for=10.seconds)
       return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
-      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
+      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
         if Rails.env.production?
           api ||= EtoApi::Base.new.tap{|api| api.connect}
           image_data = api.client_image(
-            client_id: api_id.id_in_data_source, 
+            client_id: api_id.id_in_data_source,
             site_id: api_id.site_id_in_data_source
           ) rescue nil
-          (image_data && image_data.length > 0)
+          (image_data && image_data.length > 0) || nil
         else
           if [0,1].include?(self[:Gender])
             num = id % 99
