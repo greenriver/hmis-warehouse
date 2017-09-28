@@ -136,11 +136,46 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500, env: args.env || :development).run!
   end
 
-  desc "Import HUD Zips from all Data Sources"
-  task :import_data_sources, [:data_source_id] => [:environment] do |t, args|
-    Importers::HMISFiveOne::Sftp.available_connections.each do |key, conf|
-      ds = GrdaWarehouse::DataSource.find_by_short_name(key)
-      Importers::HMISFiveOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
+  desc "SFTP Import HUD Zips from all Data Sources"
+  task :import_data_sources, [:hmis_version] => [:environment] do |t, args|
+    hmis_version == args.hmis_version || 'hmis_51'
+    case hmis_version
+    when 'hmis_611'
+      Importers::HMISSixOneOne::Sftp.available_connections.each do |key, conf|
+        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+        Importers::HMISSixOneOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
+      end
+    else
+      Importers::HMISFiveOne::Sftp.available_connections.each do |key, conf|
+        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+        Importers::HMISFiveOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
+      end
+    end
+  end
+
+  desc "S3 Import HUD Zips from all Data Sources"
+  task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
+    hmis_version == args.hmis_version || 'hmis_611'
+    case hmis_version
+    when 'hmis_51'
+      Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
+        options = {
+          data_source_id: ds.id, 
+          region: conf['region'], 
+          access_key_id: conf['access_key_id'], 
+          secret_access_key: conf['secret_access_key'], 
+          bucket_name: conf['bucket_name'], 
+          path: conf['path'],
+          file_password: conf['file_password']
+        }
+        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+        Importers::HMISFiveOne::S3.new(options).import!
+      end
+    else
+      Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
+        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+        Importers::HMISSixOneOne::S3.new(options).import!
+      end
     end
   end
 

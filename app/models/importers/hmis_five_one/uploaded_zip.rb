@@ -1,7 +1,6 @@
 require 'zip'
 module Importers::HMISFiveOne
   class UploadedZip < Base
-    #  Importers::HMISFiveOne::UploadedZip.new(data_source_id: 14, upload_id: 1)
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id:,
@@ -18,6 +17,8 @@ module Importers::HMISFiveOne
       @file_path = "#{file_path}/#{Time.now.to_i}"
       @local_path = "#{@file_path}/#{@data_source.id}"
       @upload = GrdaWarehouse::Upload.find(upload_id.to_i)
+      @import.upload_id = @upload.id
+      @import.save
     end
 
     def import!

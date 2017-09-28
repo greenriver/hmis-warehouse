@@ -1,0 +1,15 @@
+<%= ENV['RAILS_ENV'] %>:
+  DND:
+    region: <%= ENV['BOSTON_ETO_S3_REGION'] %>
+    access_key_id: <%= ENV['BOSTON_ETO_S3_ACCESS_KEY_ID'] %>
+    secret_access_key: <%= ENV['BOSTON_ETO_S3_SECRET_ACCESS_KEY'] %>
+    bucket_name: <%= ENV['BOSTON_ETO_S3_BUCKET_NAME'] %>
+    path: <%= ENV['BOSTON_ETO_S3_PATH'] %>
+    file_password: <%= ENV['BOSTON_ETO_S3_FILE_PASSWORD'] %>
+  BPHC:
+    region: <%= ENV['BPHC_ETO_S3_REGION'] %>
+    access_key_id: <%= ENV['BPHC_ETO_S3_ACCESS_KEY_ID'] %>
+    secret_access_key: <%= ENV['BPHC_ETO_S3_SECRET_ACCESS_KEY'] %>
+    bucket_name: <%= ENV['BPHC_ETO_S3_BUCKET_NAME'] %>
+    path: <%= ENV['BPHC_ETO_S3_PATH'] %>
+    file_password: <%= ENV['BPHC_ETO_S3_FILE_PASSWORD'] %>

@@ -1,8 +1,15 @@
 require 'aws-sdk-rails'
 class AwsS3  
-  def initialize
-    # load bucket name from ENV
-    @bucket_name = ENV["S3_BUCKET_NAME"]
+  def initialize(
+    region:, 
+    bucket_name:, 
+    access_key_id:, 
+    secret_access_key:
+  )
+    @region = region
+    @bucket_name = bucket_name
+    @access_key_id = access_key_id
+    @secret_access_key = secret_access_key
     connect()
     @s3 = Aws::S3::Resource.new
     @bucket = @s3.bucket(@bucket_name)
@@ -10,11 +17,11 @@ class AwsS3
   
   def connect
     cred = Aws::Credentials.new(
-      ENV['AWS_ACCESS_KEY_ID'], 
-      ENV['AWS_SECRET_ACCESS_KEY']
+      @access_key_id, 
+      @secret_access_key
     )
     Aws.config.update({
-      region: ENV["AWS_REGION"], 
+      region: @region, 
       credentials: cred
     })
   end
@@ -24,9 +31,20 @@ class AwsS3
       puts " #{obj.key} => #{obj.etag}"
     end
   end
+
+  def fetch_key_list(prefix: '')
+    @bucket.objects(prefix: prefix).limit(500).map do |obj|
+      obj.key
+    end
+  end
   
-  def fetch(file_name:, prefix:, target_path:)
-    file = @bucket.object("#{prefix}/#{File.basename(file_name)}")
+  def fetch(file_name:, prefix: nil, target_path:)
+    if prefix
+      file_path = "#{prefix}/#{File.basename(file_name)}"
+    else
+      file_path = file_name
+    end
+    file = @bucket.object(file_path)
     file.get(response_target: target_path)
   end
   
