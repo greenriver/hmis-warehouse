@@ -530,7 +530,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def image_for_source_client(cache_for=10.seconds)
+    def image_for_source_client(cache_for=10.minutes)
       return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
@@ -541,7 +541,7 @@ module GrdaWarehouse::Hud
             client_id: api_id.id_in_data_source,
             site_id: api_id.site_id_in_data_source
           ) rescue nil
-          (image_data && image_data.length > 0) || nil
+          return image_data
         else
           if [0,1].include?(self[:Gender])
             num = id % 99
@@ -554,7 +554,7 @@ module GrdaWarehouse::Hud
             image_data = response.body
           end
         end
-        image_data
+        image_data || self.class.no_image_on_file_image
       end
     end
 
@@ -1158,11 +1158,13 @@ module GrdaWarehouse::Hud
     def days_homeless_in_last_three_years
       service_history.homeless.
         service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+        select(:date).distinct.
         count
     end
 
     def days_homeless
       service_history.homeless.
+        select(:date).distinct.
         count
     end
 
