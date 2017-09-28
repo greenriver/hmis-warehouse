@@ -138,7 +138,7 @@ namespace :grda_warehouse do
 
   desc "SFTP Import HUD Zips from all Data Sources"
   task :import_data_sources, [:hmis_version] => [:environment] do |t, args|
-    hmis_version == args.hmis_version || 'hmis_51'
+    hmis_version = args.hmis_version || 'hmis_51'
     case hmis_version
     when 'hmis_611'
       Importers::HMISSixOneOne::Sftp.available_connections.each do |key, conf|
@@ -155,7 +155,7 @@ namespace :grda_warehouse do
 
   desc "S3 Import HUD Zips from all Data Sources"
   task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
-    hmis_version == args.hmis_version || 'hmis_611'
+    hmis_version = args.hmis_version || 'hmis_611'
     case hmis_version
     when 'hmis_51'
       Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
