@@ -160,9 +160,9 @@ namespace :grda_warehouse do
     case hmis_version
     when 'hmis_51'
       Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
-        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+
         options = {
-          data_source_id: ds.id, 
+          data_source_id: conf['data_source_id'], 
           region: conf['region'], 
           access_key_id: conf['access_key_id'], 
           secret_access_key: conf['secret_access_key'], 
@@ -174,9 +174,9 @@ namespace :grda_warehouse do
       end
     else
       Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
-        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
+        
         options = {
-          data_source_id: ds.id, 
+          data_source_id: conf['data_source_id'], 
           region: conf['region'], 
           access_key_id: conf['access_key_id'], 
           secret_access_key: conf['secret_access_key'], 

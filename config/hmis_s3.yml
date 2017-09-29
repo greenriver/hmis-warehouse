@@ -6,6 +6,7 @@
     bucket_name: <%= ENV['BOSTON_ETO_S3_BUCKET_NAME'] %>
     path: <%= ENV['BOSTON_ETO_S3_PATH'] %>
     file_password: <%= ENV['BOSTON_ETO_S3_FILE_PASSWORD'] %>
+    data_source_id: <%= ENV['BOSTON_ETO_S3_DATA_SOURCE_ID'] %>
   BPHC:
     region: <%= ENV['BPHC_ETO_S3_REGION'] %>
     access_key_id: <%= ENV['BPHC_ETO_S3_ACCESS_KEY_ID'] %>
@@ -13,3 +14,4 @@
     bucket_name: <%= ENV['BPHC_ETO_S3_BUCKET_NAME'] %>
     path: <%= ENV['BPHC_ETO_S3_PATH'] %>
     file_password: <%= ENV['BPHC_ETO_S3_FILE_PASSWORD'] %>
+    data_source_id: <%= ENV['BPHC_ETO_S3_DATA_SOURCE_ID'] %>

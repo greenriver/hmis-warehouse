@@ -123,7 +123,7 @@ module Import::HMISSixOneOne::Shared
       headers = nil
       File.open(import_file_path) do |file|
         header_row = file.first
-        file.drop(1).lazy.each_slice(10_000) do |lines|
+        file.lazy.each_slice(10_000) do |lines|
           to_add = []
           csv_rows = CSV.parse(lines.join, write_headers: true, headers: header_row, header_converters: -> (h){h.to_sym})
           csv_rows = csv_rows.map do |row|
@@ -164,7 +164,7 @@ module Import::HMISSixOneOne::Shared
       export_id = nil
       File.open(import_file_path) do |file|
         header_row = file.first
-        file.drop(1).lazy.each_slice(10_000) do |lines|
+        file.lazy.each_slice(10_000) do |lines|
           to_add = []
           to_restore = []
           csv_rows = CSV.parse(lines.join, write_headers: true, headers: header_row, header_converters: -> (h){h.to_sym})

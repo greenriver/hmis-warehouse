@@ -123,7 +123,7 @@ module Import::HMISFiveOne::Shared
       headers = nil
       File.open(import_file_path) do |file|
         header_row = file.first
-        file.drop(1).lazy.each_slice(10_000) do |lines|
+        file.lazy.each_slice(10_000) do |lines|
           to_add = []
           csv_rows = CSV.parse(lines.join, write_headers: true, headers: header_row, header_converters: -> (h){h.to_sym})
           csv_rows = csv_rows.map do |row|
@@ -137,7 +137,8 @@ module Import::HMISFiveOne::Shared
             export_id ||= row[:ExportID]
             # in some cases this replaces the renamed hud key, 
             # so it has to happen before checking for the existing
-            existing = existing_items[row[self.hud_key]]
+            existing = existing_items[row[self.hud_key]] 
+            # binding.pry if self.name == 'GrdaWarehouse::Import::HMISFiveOne::Inventory'
             if should_add?(existing)
               clean_row = row.merge({data_source_id: data_source_id})
               headers ||= clean_row.keys
@@ -164,7 +165,7 @@ module Import::HMISFiveOne::Shared
       export_id = nil
       File.open(import_file_path) do |file|
         header_row = file.first
-        file.drop(1).lazy.each_slice(10_000) do |lines|
+        file.lazy.each_slice(10_000) do |lines|
           to_add = []
           to_restore = []
           csv_rows = CSV.parse(lines.join, write_headers: true, headers: header_row, header_converters: -> (h){h.to_sym})
@@ -178,7 +179,6 @@ module Import::HMISFiveOne::Shared
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
             existing = existing_items[row[self.hud_key]]
-            # binding.pry if self.name == 'GrdaWarehouse::Import::HMISSixOneOne::Enrollment'
             if should_add?(existing)
               clean_row = row.merge({data_source_id: data_source_id})
               headers ||= clean_row.keys
