@@ -104,7 +104,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
   end
 
   # 20161115163024
-  def health_and_dv_up!
+  def health_and_dvs_up!
     model = GrdaWarehouse::Hud::HealthAndDv
     report_enrollment_table = Arel::Table.new :report_enrollments
     gh_health_and_dv_table  = model.arel_table 
@@ -182,7 +182,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
     drop_view :report_exits
     drop_view :report_employment_educations
     drop_view :report_disabilities
-    drop_view :report_enrollments
+    connection.execute "DROP VIEW report_enrollments CASCADE"
   end
 
   def create_order

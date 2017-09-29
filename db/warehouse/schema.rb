@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170927194653) do
+ActiveRecord::Schema.define(version: 20170928185422) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -101,6 +101,7 @@ ActiveRecord::Schema.define(version: 20170927194653) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -1273,10 +1274,11 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
+    "Enrollment"."RunawayYouth",
     report_demographics.id AS demographic_id,
     report_demographics.client_id
    FROM ("Enrollment"
-     LEFT JOIN report_demographics ON (((report_demographics.data_source_id = "Enrollment".data_source_id) AND ((report_demographics."PersonalID")::text = ("Enrollment"."PersonalID")::text))))
+     JOIN report_demographics ON (((report_demographics.data_source_id = "Enrollment".data_source_id) AND ((report_demographics."PersonalID")::text = ("Enrollment"."PersonalID")::text))))
   WHERE ("Enrollment"."DateDeleted" IS NULL)
   END_VIEW_REPORT_ENROLLMENTS
 
@@ -1307,11 +1309,10 @@ SELECT "Disabilities"."DisabilitiesID",
     "Disabilities".data_source_id,
     "Disabilities".id,
     report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("Disabilities"
-     LEFT JOIN report_enrollments ON (((report_enrollments.data_source_id = "Disabilities".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("Disabilities"."ProjectEntryID")::text))))
-     LEFT JOIN report_demographics ON (((report_demographics.data_source_id = "Disabilities".data_source_id) AND ((report_demographics."PersonalID")::text = ("Disabilities"."PersonalID")::text))))
+    report_enrollments.demographic_id,
+    report_enrollments.client_id
+   FROM ("Disabilities"
+     JOIN report_enrollments ON (((report_enrollments.data_source_id = "Disabilities".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("Disabilities"."ProjectEntryID")::text) AND ((report_enrollments."PersonalID")::text = ("Disabilities"."PersonalID")::text))))
   WHERE ("Disabilities"."DateDeleted" IS NULL)
   END_VIEW_REPORT_DISABILITIES
 
@@ -1334,11 +1335,10 @@ SELECT "EmploymentEducation"."EmploymentEducationID",
     "EmploymentEducation".data_source_id,
     "EmploymentEducation".id,
     report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("EmploymentEducation"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "EmploymentEducation".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("EmploymentEducation"."ProjectEntryID")::text))))
-     JOIN report_demographics ON (((report_demographics.data_source_id = "EmploymentEducation".data_source_id) AND ((report_demographics."PersonalID")::text = ("EmploymentEducation"."PersonalID")::text))))
+    report_enrollments.demographic_id,
+    report_enrollments.client_id
+   FROM ("EmploymentEducation"
+     JOIN report_enrollments ON (((report_enrollments.data_source_id = "EmploymentEducation".data_source_id) AND ((report_enrollments."PersonalID")::text = ("EmploymentEducation"."PersonalID")::text) AND ((report_enrollments."ProjectEntryID")::text = ("EmploymentEducation"."ProjectEntryID")::text))))
   WHERE ("EmploymentEducation"."DateDeleted" IS NULL)
   END_VIEW_REPORT_EMPLOYMENT_EDUCATIONS
 
@@ -1373,10 +1373,39 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
+    "Exit"."ExchangeForSex",
+    "Exit"."ExchangeForSexPastThreeMonths",
+    "Exit"."CountOfExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+    "Exit"."WorkPlaceViolenceThreats",
+    "Exit"."WorkplacePromiseDifference",
+    "Exit"."CoercedToContinueWork",
+    "Exit"."LaborExploitPastThreeMonths",
+    "Exit"."CounselingReceived",
+    "Exit"."IndividualCounseling",
+    "Exit"."FamilyCounseling",
+    "Exit"."GroupCounseling",
+    "Exit"."SessionCountAtExit",
+    "Exit"."PostExitCounselingPlan",
+    "Exit"."SessionsInPlan",
+    "Exit"."DestinationSafeClient",
+    "Exit"."DestinationSafeWorker",
+    "Exit"."PosAdultConnections",
+    "Exit"."PosPeerConnections",
+    "Exit"."PosCommunityConnections",
+    "Exit"."AftercareDate",
+    "Exit"."AftercareProvided",
+    "Exit"."EmailSocialMedia",
+    "Exit"."Telephone",
+    "Exit"."InPersonIndividual",
+    "Exit"."InPersonGroup",
+    "Exit"."CMExitReason",
     report_enrollments.id AS enrollment_id,
+    report_enrollments.demographic_id,
     report_enrollments.client_id
    FROM ("Exit"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "Exit".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("Exit"."ProjectEntryID")::text))))
+     JOIN report_enrollments ON (((report_enrollments.data_source_id = "Exit".data_source_id) AND ((report_enrollments."PersonalID")::text = ("Exit"."PersonalID")::text) AND ((report_enrollments."ProjectEntryID")::text = ("Exit"."ProjectEntryID")::text))))
   WHERE ("Exit"."DateDeleted" IS NULL)
   END_VIEW_REPORT_EXITS
 
@@ -1402,11 +1431,10 @@ SELECT "HealthAndDV"."HealthAndDVID",
     "HealthAndDV".data_source_id,
     "HealthAndDV".id,
     report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("HealthAndDV"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "HealthAndDV".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("HealthAndDV"."ProjectEntryID")::text))))
-     JOIN report_demographics ON (((report_demographics.data_source_id = "HealthAndDV".data_source_id) AND ((report_demographics."PersonalID")::text = ("HealthAndDV"."PersonalID")::text))))
+    report_enrollments.demographic_id,
+    report_enrollments.client_id
+   FROM ("HealthAndDV"
+     JOIN report_enrollments ON (((report_enrollments.data_source_id = "HealthAndDV".data_source_id) AND ((report_enrollments."PersonalID")::text = ("HealthAndDV"."PersonalID")::text) AND ((report_enrollments."ProjectEntryID")::text = ("HealthAndDV"."ProjectEntryID")::text))))
   WHERE ("HealthAndDV"."DateDeleted" IS NULL)
   END_VIEW_REPORT_HEALTH_AND_DVS
 
@@ -1491,12 +1519,12 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
+    "IncomeBenefits"."ConnectionWithSOAR",
     report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("IncomeBenefits"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "IncomeBenefits".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("IncomeBenefits"."ProjectEntryID")::text))))
-     JOIN report_demographics ON (((report_demographics.data_source_id = "IncomeBenefits".data_source_id) AND ((report_demographics."PersonalID")::text = ("IncomeBenefits"."PersonalID")::text))))
+    report_enrollments.demographic_id,
+    report_enrollments.client_id
+   FROM ("IncomeBenefits"
+     JOIN report_enrollments ON (((report_enrollments.data_source_id = "IncomeBenefits".data_source_id) AND ((report_enrollments."PersonalID")::text = ("IncomeBenefits"."PersonalID")::text) AND ((report_enrollments."ProjectEntryID")::text = ("IncomeBenefits"."ProjectEntryID")::text))))
   WHERE ("IncomeBenefits"."DateDeleted" IS NULL)
   END_VIEW_REPORT_INCOME_BENEFITS
 
@@ -1518,10 +1546,11 @@ SELECT "Services"."ServicesID",
     "Services"."ExportID",
     "Services".data_source_id,
     "Services".id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
+    report_enrollments.id AS service_id,
+    report_enrollments.demographic_id,
+    report_enrollments.client_id
    FROM ("Services"
-     JOIN report_demographics ON (((report_demographics.data_source_id = "Services".data_source_id) AND ((report_demographics."PersonalID")::text = ("Services"."PersonalID")::text))))
+     JOIN report_enrollments ON (((report_enrollments.data_source_id = "Services".data_source_id) AND ((report_enrollments."PersonalID")::text = ("Services"."PersonalID")::text) AND ((report_enrollments."ProjectEntryID")::text = ("Services"."ProjectEntryID")::text))))
   WHERE ("Services"."DateDeleted" IS NULL)
   END_VIEW_REPORT_SERVICES
 
