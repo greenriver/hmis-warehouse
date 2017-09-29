@@ -177,7 +177,7 @@ module GrdaWarehouse::Tasks
         group(:id).
         pluck(
           :id, 
-          nf('COUNT', [nf('DISTINCT', [exit_source.arel_table[:ProjectEntryID]])]).to_sql
+          nf('COUNT', [nf('DISTINCT', [ex_t[:ProjectEntryID], ex_t[:PersonalID]])]).to_sql
         ).
       each do |id, source_exit_count|
         @destinations[id][:source][:exits] = source_exit_count
@@ -213,10 +213,6 @@ module GrdaWarehouse::Tasks
           @destinations[id][:source][:service] = source_service_count
         end
       end
-    end
-
-    def sh_t
-      service_history_source.arel_table
     end
 
     def client_source

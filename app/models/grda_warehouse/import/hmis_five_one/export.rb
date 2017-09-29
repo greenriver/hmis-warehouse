@@ -31,7 +31,7 @@ module GrdaWarehouse::Import::HMISFiveOne
       if @existing.present?
         @existing.update_attributes(attributes.slice(*hud_csv_headers.map(&:to_s)))
       else
-        save
+        save!
       end
     end    
 

@@ -57,7 +57,7 @@ module Importers::HMISSixOneOne
     def copy_from_s3
       return unless @s3.present?
       return unless file = fetch_most_recent()
-      puts "found file"
+
       log("Found #{file}")
       # atool has trouble overwriting, so blow away whatever we had before
       FileUtils.rmtree(@local_path) if File.exists? @local_path
@@ -111,7 +111,7 @@ module Importers::HMISSixOneOne
     def fetch_most_recent
       files = []
       @s3.fetch_key_list(prefix: @s3_path).each do |entry|
-        files << entry
+        files << entry if entry.include?(@s3_path)
       end
       return nil if files.empty?
       # Fetch the most recent file
