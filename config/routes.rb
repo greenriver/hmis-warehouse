@@ -220,6 +220,8 @@ Rails.application.routes.draw do
   resources :imports do
     get :download, on: :member
   end
+  resources :hmis_exports, except: [:edit, :update]
+
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
   resources :data_sources do
