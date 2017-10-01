@@ -6,7 +6,7 @@ module Import::HMISSixOneOne::Shared
     attr_accessor :file_path
 
     after_initialize do
-      setup_notifier('HMIS Importer 5.1')
+      setup_notifier('HMIS Importer 6.11')
     end
     # Provide access to all of the HUD headers with snake case
     # eg: ProjectID is aliased to project_id

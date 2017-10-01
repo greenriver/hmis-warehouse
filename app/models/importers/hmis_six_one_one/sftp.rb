@@ -60,7 +60,6 @@ module Importers::HMISSixOneOne
       return unless @sftp.present?
       return unless file = fetch_most_recent()
       log("Found #{file}")
-      # atool has trouble overwriting, so blow away whatever we had before
       FileUtils.rmtree(@local_path) if File.exists? @local_path
       FileUtils.mkdir_p(@local_path) 
       @sftp.download!("#{@sftp_path}/#{file}", "#{@local_path}/#{file}")
