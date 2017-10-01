@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Enrollment < GrdaWarehouse::Import::HMISSixOneOne::Enrollment
+    include ::Export::HMISSixOneOne::Shared
     setup_hud_column_access( 
       [
         :EnrollmentID,

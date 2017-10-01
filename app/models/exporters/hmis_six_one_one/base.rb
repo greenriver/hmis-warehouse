@@ -36,32 +36,99 @@ module Exporters::HmisSixOneOne
       create_export_directory()
       setup_export()
       
+      # Project related items
       export_projects()
+      export_project_cocs()
+      export_organizations()
+      export_inventories()
+      export_geographies()
+      export_funders()
+      export_affiliations()
+
       build_export_file()
     end
 
     def export_projects
-      project_source.export!(project_scope: project_scope, path: @file_path, export: @export)
+      project_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_project_cocs
+      project_coc_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_organizations
+      organization_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_inventories
+      inventory_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_geographies
+      geography_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_funders
+      funder_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_affiliations
+      affiliation_source.export!(
+        project_scope: project_scope, 
+        path: @file_path, 
+        export: @export
+      )
     end
 
     def project_scope
-      project_source.where(id: @projects)
+      @project_scope ||= begin
+       project_scope = project_source.where(id: @projects)
+        if @export.include_deleted
+          project_scope = project_scope.with_deleted
+        end
+        project_scope
+      end      
     end
 
     def setup_export
-      @export = GrdaWarehouse::Export.new()
-      @export.user_id = @user&.id
-      @export.start_date = @range.start
-      @export.end_date = @range.end
-      @export.period_type = @period_type
-      @export.directive = @directive
-      @export.hash_status = @hash_status
-      @export.faked_pii = @faked_pii
-      @export.project_ids = @projects
-      @export.include_deleted = @include_deleted
-      # a hash of attributes
-      @export.export_id = Digest::MD5.hexdigest(@export.attributes.to_s)
-      @export.save
+      options = {
+        user_id: @user&.id,
+        start_date: @range.start,
+        end_date: @range.end,
+        period_type: @period_type,
+        directive: @directive,
+        hash_status: @hash_status,
+        faked_pii: @faked_pii,
+        project_ids: @projects,
+        include_deleted: @include_deleted,
+      }
+      options[:export_id] = Digest::MD5.hexdigest(options.to_s)
+
+      @export = GrdaWarehouse::Export.where(export_id: options[:export_id]).first_or_create(options)
     end
 
     def create_export_directory

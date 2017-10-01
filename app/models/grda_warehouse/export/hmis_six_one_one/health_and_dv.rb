@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class HealthAndDv < GrdaWarehouse::Import::HMISSixOneOne::HealthAndDv
+    include ::Export::HMISSixOneOne::Shared
     setup_hud_column_access( 
       [
         :HealthAndDVID,

@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Disability < GrdaWarehouse::Import::HMISSixOneOne::Disability
+    include ::Export::HMISSixOneOne::Shared
 
     setup_hud_column_access( 
       [

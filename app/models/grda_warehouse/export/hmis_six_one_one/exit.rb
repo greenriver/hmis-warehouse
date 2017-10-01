@@ -1,6 +1,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Exit < GrdaWarehouse::Import::HMISSixOneOne::Exit
-
+    include ::Export::HMISSixOneOne::Shared
+    
     setup_hud_column_access( 
       [
         :ExitID,

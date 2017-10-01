@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Client < GrdaWarehouse::Import::HMISSixOneOne::Client
+    include ::Export::HMISSixOneOne::Shared
     setup_hud_column_access( 
       [
         :PersonalID,

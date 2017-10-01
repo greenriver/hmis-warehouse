@@ -29,7 +29,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
     self.hud_key = :ProjectID
 
     def self.export! project_scope:, path:, export:
-      export_to_path(export_scope: project_scope, path: path, export: export)
+      export_to_path(
+        export_scope: project_scope, 
+        path: path, 
+        export: export
+      )
     end
 
   end

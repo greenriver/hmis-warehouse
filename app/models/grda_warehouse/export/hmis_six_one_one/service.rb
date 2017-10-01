@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Service < GrdaWarehouse::Import::HMISSixOneOne::Service
+    include ::Export::HMISSixOneOne::Shared
     setup_hud_column_access( 
       [
         :ServicesID,

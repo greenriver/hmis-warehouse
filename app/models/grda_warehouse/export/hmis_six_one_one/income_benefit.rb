@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class IncomeBenefit < GrdaWarehouse::Import::HMISSixOneOne::IncomeBenefit
+    include ::Export::HMISSixOneOne::Shared
     setup_hud_column_access( 
       [
         :IncomeBenefitsID,
