@@ -1,7 +1,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Exit < GrdaWarehouse::Import::HMISSixOneOne::Exit
     include ::Export::HMISSixOneOne::Shared
-    
+
     setup_hud_column_access( 
       [
         :ExitID,
@@ -53,5 +53,18 @@ module GrdaWarehouse::Export::HMISSixOneOne
     )
     
     self.hud_key = :ExitID
+
+    # Replace 5.1 versions with 6.11
+    # ProjectEntryID with EnrollmentID etc.
+    def self.clean_headers(headers)
+      headers.map do |k|
+        case k
+        when :ProjectEntryID
+          :EnrollmentID
+        else
+          k
+        end
+      end
+    end
   end
 end

@@ -5,6 +5,24 @@ module GrdaWarehouse::Hud
       :DateDeleted
     end
 
+    scope :modified_within_range, -> (range:, include_deleted: false) do
+      modified_scope = where(
+        arel_table[:DateUpdated].gteq(range.first).
+        and.arel_table[:DateUpdated].lteq(range.last).
+        or(
+          arel_table[:DateCreated].gteq(range.first).
+          and.arel_table[:DateCreated].lteq(range.last)
+        )
+      )
+      if include_deleted
+        modified_scope = modified_scope.or(
+          arel_table[:DateDeleted].gteq(range.first).
+          and.arel_table[:DateDeleted].lteq(range.last)
+        )
+      end
+      modified_scope
+    end
+
     # an array (in order) of the expected columns for hud CSV data
     def self.hud_csv_headers(version: nil)
       raise NotImplementedError, "#{self.name} needs to implement #hud_csv_headers"

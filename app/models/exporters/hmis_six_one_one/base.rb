@@ -3,6 +3,7 @@ require 'csv'
 module Exporters::HmisSixOneOne
   class Base
     include NotifierConfig
+    include ArelHelper
     
     attr_accessor :logger, :notifier_config
 
@@ -44,6 +45,10 @@ module Exporters::HmisSixOneOne
       export_geographies()
       export_funders()
       export_affiliations()
+
+      # Enrollment related
+      export_enrollments()
+      export_enrollment_cocs()
 
       build_export_file()
     end
@@ -102,6 +107,40 @@ module Exporters::HmisSixOneOne
         path: @file_path, 
         export: @export
       )
+    end
+
+    def export_enrollments
+      enrollment_source.export!(
+        enrollment_scope: enrollment_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_enrollment_cocs
+      enrollment_coc_source.export!(
+        enrollment_scope: enrollment_scope, 
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def enrollment_scope
+      @enrollment_scope ||= begin
+        # Choose all enrollments opened before the end of the report period in the involived projects for clients who had an open enrollmentduring the report period.
+        enrollment_scope = enrollment_source.joins(:project, :client).
+          where(Client: {id: client_scope.select(c_t[:id])}).
+          merge(project_scope).
+          where(e_t[:EntryDate].lteq(@range.start))
+      end
+    end
+
+    def client_scope
+      # include any client with an open enrollment
+      # during the report period in one of the involved projects
+      @client_scope ||= enrollment_source.joins(:project, :client).
+        merge(project_scope).
+        open_during_range(@range)
     end
 
     def project_scope
