@@ -1,4 +1,5 @@
 require 'csv'
+require 'soundex'
 module Export::HMISSixOneOne::Shared
   extend ActiveSupport::Concern
   included do
@@ -49,6 +50,17 @@ module Export::HMISSixOneOne::Shared
           if row[k].present?
             row[k] = export.fake_data.fetch(field_name: k, real_value: row[k])
           end
+        end
+        row
+      elsif export.hash_status == 4
+        row[:FirstName] = Digest::SHA256.hexdigest(Soundex.new(row[:FirstName]).soundex) if row[:FirstName].present?
+        row[:LastName] = Digest::SHA256.hexdigest(Soundex.new(row[:LastName]).soundex) if row[:LastName].present?
+        row[:MiddleName] = Digest::SHA256.hexdigest(Soundex.new(row[:MiddleName]).soundex) if row[:MiddleName].present?
+        if row[:SSN].present?
+          padded_ssn = row[:SSN].rjust(9, 'x')
+          last_four =  padded_ssn.last(4)
+          digested_ssn = Digest::SHA256.hexdigest(padded_ssn)
+          row[:SSN] = "#{last_four}#{digested_ssn}"
         end
         row
       else

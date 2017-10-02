@@ -483,6 +483,7 @@ GEM
       activemodel (> 4, < 5.1)
     slack-notifier (1.5.1)
     slop (3.6.0)
+    soundex (0.1.2)
     spring (2.0.0)
       activesupport (>= 4.2)
     sprockets (3.7.1)
@@ -630,6 +631,7 @@ DEPENDENCIES
   shoulda
   simple_form
   slack-notifier
+  soundex
   spring
   sprockets-es6
   sshkit
