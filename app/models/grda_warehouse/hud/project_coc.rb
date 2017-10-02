@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class ProjectCoc < Base
+    include HudSharedScopes
     self.table_name = 'ProjectCoC'
     self.hud_key = 'ProjectCoCID'
     acts_as_paranoid column: :DateDeleted

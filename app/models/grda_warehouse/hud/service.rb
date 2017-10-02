@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Service < Base
+    include HudSharedScopes
     self.table_name = 'Services'
     self.hud_key = 'ServicesID'
     acts_as_paranoid column: :DateDeleted
