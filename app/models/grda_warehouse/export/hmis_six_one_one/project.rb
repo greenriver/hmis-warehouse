@@ -28,18 +28,16 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     self.hud_key = :ProjectID
 
+    belongs_to :organization_with_delted, class_name: GrdaWarehouse::Hud::WithDeleted::Organization.name, primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id]
+
     def self.export! project_scope:, path:, export:
-      # Also include any projects created, modified, or deleted during the 
-      # report range
-      changed_scope = modified_within_range(range: (export.start_date..export.end_date), include_deleted: export.include_deleted)
-      union_scope = from(
-        arel_table.create_table_alias(
-          project_scope.union(changed_scope),
-          table_name
-        )
-      )
+      if export.include_deleted
+        project_scope = project_scope.joins(:organization_with_delted)
+      else
+        project_scope = project_scope.joins(:organization)
+      end
       export_to_path(
-        export_scope: union_scope, 
+        export_scope: project_scope, 
         path: path, 
         export: export
       )

@@ -24,6 +24,8 @@ module GrdaWarehouse::Export::HMISSixOneOne
     
     self.hud_key = :SiteID
 
+    belongs_to :project_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :sites
+
     # Replace SiteID with GeographyID
     def self.clean_headers(headers)
       headers.map do |k|
@@ -38,7 +40,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
     end
 
     def self.export! project_scope:, path:, export:
-      geography_scope = joins(:project).merge(project_scope)
+      if export.include_deleted
+        geography_scope = joins(:project_with_deleted).merge(project_scope)
+      else
+        geography_scope = joins(:project).merge(project_scope)
+      end
       export_to_path(export_scope: geography_scope, path: path, export: export)
     end
 

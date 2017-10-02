@@ -21,6 +21,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
     
     self.hud_key = :EnrollmentCoCID
 
+    # Setup an association to enrollment that allows us to pull the records even if the 
+    # enrollment has been deleted
+    belongs_to :enrollment_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+
     # Replace 5.1 versions with 6.11
     # ProjectEntryID with EnrollmentID etc.
     def self.clean_headers(headers)
@@ -33,17 +37,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
         end
       end
     end
-    
-    def self.export! enrollment_scope:, path:, export:
-      # FIXME:
-      # Needs enrollment scope with dates involved and without so we
-      # Can union with those modified during that range
-      enrollment_coc_scope = joins(:enrollment).merge(enrollment_scope)
-      export_to_path(
-        export_scope: enrollment_coc_scope, 
-        path: path, 
-        export: export
-      )
+
+    def self.includes_union?
+      true
     end
+
   end
 end

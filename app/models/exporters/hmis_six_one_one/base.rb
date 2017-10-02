@@ -17,7 +17,8 @@ module Exporters::HmisSixOneOne
       directive: 3,
       hash_status: 1,
       faked_pii: false,
-      include_deleted: false
+      include_deleted: false,
+      faked_environment: :development
     )
       setup_notifier('HMIS Exporter 6.11')
       @file_path = "#{file_path}/#{Time.now.to_i}"
@@ -31,6 +32,7 @@ module Exporters::HmisSixOneOne
       @faked_pii = faked_pii
       @user = current_user rescue nil
       @include_deleted = include_deleted
+      @faked_environment = faked_environment
     end
 
     def export!
@@ -48,7 +50,14 @@ module Exporters::HmisSixOneOne
 
       # Enrollment related
       export_enrollments()
+      export_exits()
+      export_clients()
       export_enrollment_cocs()
+      export_disabilities()
+      export_employment_educations()
+      export_health_and_dvs()
+      export_income_benefits()
+      export_services()
 
       build_export_file()
     end
@@ -111,15 +120,81 @@ module Exporters::HmisSixOneOne
 
     def export_enrollments
       enrollment_source.export!(
-        enrollment_scope: enrollment_scope, 
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
         path: @file_path, 
         export: @export
       )
     end
 
     def export_enrollment_cocs
-      enrollment_coc_source.export!(
-        enrollment_scope: enrollment_scope, 
+      enrollment_coc_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_clients
+      client_source.export!(
+        enrollment_scope: enrollment_scope,
+        client_scope: client_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_disabilities
+      disability_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_employment_educations
+      employment_education_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_exits
+      exit_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_health_and_dvs
+      health_and_dv_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_income_benefits
+      income_benefits_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
+        path: @file_path, 
+        export: @export
+      )
+    end
+
+    def export_services
+      service_source.export_enrollment_related!(
+        enrollment_scope: enrollment_scope,
+        project_scope: project_scope,
         path: @file_path, 
         export: @export
       )
@@ -128,19 +203,35 @@ module Exporters::HmisSixOneOne
     def enrollment_scope
       @enrollment_scope ||= begin
         # Choose all enrollments opened before the end of the report period in the involived projects for clients who had an open enrollmentduring the report period.
-        enrollment_scope = enrollment_source.joins(:project, :client).
-          where(Client: {id: client_scope.select(c_t[:id])}).
-          merge(project_scope).
-          where(e_t[:EntryDate].lteq(@range.start))
+        if @export.include_deleted
+          enrollment_source.joins(:project_with_deleted, :client_with_deleted).
+            where(Client: {id: client_scope.select(c_t[:id])}).
+            merge(project_scope).
+            where(e_t[:EntryDate].lteq(@range.start))
+          
+        else
+          enrollment_source.joins(:project, :client).
+            where(Client: {id: client_scope.select(c_t[:id])}).
+            merge(project_scope).
+            where(e_t[:EntryDate].lteq(@range.start))
+        end
       end
     end
 
     def client_scope
       # include any client with an open enrollment
       # during the report period in one of the involved projects
-      @client_scope ||= enrollment_source.joins(:project, :client).
-        merge(project_scope).
-        open_during_range(@range)
+      @client_scope ||= begin
+        if @export.include_deleted
+        enrollment_source.joins(:project_with_deleted, :client_with_deleted).
+          merge(project_scope).
+          open_during_range(@range)
+        else
+          enrollment_source.joins(:project, :client).
+            merge(project_scope).
+            open_during_range(@range)
+        end
+      end
     end
 
     def project_scope
@@ -168,6 +259,7 @@ module Exporters::HmisSixOneOne
       options[:export_id] = Digest::MD5.hexdigest(options.to_s)
 
       @export = GrdaWarehouse::Export.where(export_id: options[:export_id]).first_or_create(options)
+      @export.fake_data = GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
     end
 
     def create_export_directory

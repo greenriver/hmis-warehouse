@@ -1,5 +1,6 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Export < GrdaWarehouse::Import::HMISSixOneOne::Export
+    include ::Export::HMISSixOneOne::Shared
     attr_accessor :path
 
     setup_hud_column_access( 
@@ -55,6 +56,6 @@ module GrdaWarehouse::Export::HMISSixOneOne
         csv << self.attributes.slice(*hud_csv_headers.map(&:to_s)).values
       end
     end
-    
+
   end
 end

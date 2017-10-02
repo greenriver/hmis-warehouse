@@ -44,5 +44,43 @@ module GrdaWarehouse::Export::HMISSixOneOne
     )
 
     self.hud_key = :PersonalID
+
+    # Setup an association to enrollment that allows us to pull the records even if the 
+    # enrollment has been deleted
+    has_many :enrollments_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
+
+
+    def self.export! enrollment_scope:, client_scope:, project_scope:, path:, export:
+      changed_scope = modified_within_range(range: (export.start_date..export.end_date), include_deleted: export.include_deleted)
+      if export.include_deleted
+        changed_scope = changed_scope.joins(enrollments_with_deleted: :project_with_deleted).merge(project_scope)
+      else
+        changed_scope = changed_scope.joins(enrollments: :project).merge(project_scope)
+      end
+
+      if export.include_deleted
+        model_scope = client_scope.with_deleted.select('*')
+      else
+        model_scope = client_scope.select("#{quoted_table_name}.*")
+      end
+
+      union_scope = from(
+        arel_table.create_table_alias(
+          model_scope.union(changed_scope),
+          table_name
+        )
+      )
+
+      export_to_path(
+        export_scope: union_scope, 
+        path: path, 
+        export: export
+      )
+    end
+
+    def self.includes_union?
+      true
+    end
+
   end
 end

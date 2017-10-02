@@ -4,7 +4,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
     setup_hud_column_access( 
       [
         :EmploymentEducationID,
-        :EnrollmentID,
+        :ProjectEntryID,
         :PersonalID,
         :InformationDate,
         :LastGradeCompleted,
@@ -23,6 +23,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
     
     self.hud_key = :EmploymentEducationID
 
+     # Setup an association to enrollment that allows us to pull the records even if the 
+    # enrollment has been deleted
+    belongs_to :enrollment_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+
     # Replace 5.1 versions with 6.11
     # ProjectEntryID with EnrollmentID etc.
     def self.clean_headers(headers)
@@ -34,6 +38,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
           k
         end
       end
+    end
+
+    def self.includes_union?
+      true
     end
   end
 end
