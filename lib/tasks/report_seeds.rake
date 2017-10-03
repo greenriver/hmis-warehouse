@@ -94,7 +94,7 @@ namespace :reports do
       rs = ReportResultsSummaries::CAPER::Fy2017.where(name: 'Consolidated Annual Performance and Evaluation Report 2017').first_or_create
       rs.update(weight: 0)
 
-      r = Reports::CAPER::Fy2017::Q4a.where(name: 'HUD ESG CAPER 2017 - Q4a').first_or_create
+      r = Reports::CAPER::Fy2017::Q4a.where(name: 'HUD ESG-CAPER 2017 - Q4a').first_or_create
       r.update(weight: 1, report_results_summary: rs)
   end
   desc "Remove all report types"

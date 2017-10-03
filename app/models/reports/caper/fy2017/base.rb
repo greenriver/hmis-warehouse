@@ -8,7 +8,7 @@ module Reports::CAPER::Fy2017
       ReportGenerators::CAPER::Fy2017::Base
     end
 
-    def self.available_projects_for_filtering
+    def self.available_projects
       GrdaWarehouse::Hud::Project.joins(:data_source).
         merge(GrdaWarehouse::DataSource.order(:short_name)).
         order(:ProjectName).
@@ -18,7 +18,11 @@ module Reports::CAPER::Fy2017
         end
     end
 
-    def self.available_data_sources_for_filtering
+    def self.available_project_types
+      HUD::project_types.invert
+    end
+
+    def self.available_data_sources
       GrdaWarehouse::DataSource.importable.pluck(:short_name, :id)
     end
 
@@ -36,6 +40,12 @@ module Reports::CAPER::Fy2017
     
     def has_options?
       true
+    end
+
+    # all of the subclasses of this base will have the same partial (unless they override this)
+    # this is based off of ActiveModel::Conversion::ClassMethods._to_partial_path, which is the default
+    def self._to_partial_path
+      @_to_partial_path ||= self.name.downcase.gsub( '::', '/' ).sub /\w+$/, 'base'
     end
 
     def title_for_options
