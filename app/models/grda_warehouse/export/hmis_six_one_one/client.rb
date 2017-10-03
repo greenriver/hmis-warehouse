@@ -59,7 +59,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       end
 
       if export.include_deleted
-        model_scope = client_scope.with_deleted.select('*')
+        model_scope = client_scope.with_deleted.select("#{quoted_table_name}.*")
       else
         model_scope = client_scope.select("#{quoted_table_name}.*")
       end

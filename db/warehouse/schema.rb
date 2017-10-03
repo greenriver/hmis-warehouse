@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170930184143) do
+ActiveRecord::Schema.define(version: 20171003122627) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -873,6 +873,8 @@ ActiveRecord::Schema.define(version: 20170930184143) do
     t.boolean  "include_deleted", :default=>false
     t.string   "content_type"
     t.binary   "content"
+    t.string   "file"
+    t.integer  "delayed_job_id"
   end
   add_index "exports", ["deleted_at"], :name=>"index_exports_on_deleted_at", :using=>:btree
   add_index "exports", ["export_id"], :name=>"index_exports_on_export_id", :using=>:btree

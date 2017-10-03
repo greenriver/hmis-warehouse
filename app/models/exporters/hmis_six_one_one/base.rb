@@ -37,29 +37,62 @@ module Exporters::HmisSixOneOne
 
     def export!
       create_export_directory()
-      setup_export()
-      
-      # Project related items
-      export_projects()
-      export_project_cocs()
-      export_organizations()
-      export_inventories()
-      export_geographies()
-      export_funders()
-      export_affiliations()
+      begin
+        setup_export()
+        
+        # Project related items
+        export_projects()
+        export_project_cocs()
+        export_organizations()
+        export_inventories()
+        export_geographies()
+        export_funders()
+        export_affiliations()
 
-      # Enrollment related
-      export_enrollments()
-      export_exits()
-      export_clients()
-      export_enrollment_cocs()
-      export_disabilities()
-      export_employment_educations()
-      export_health_and_dvs()
-      export_income_benefits()
-      export_services()
+        # Enrollment related
+        export_enrollments()
+        export_exits()
+        export_clients()
+        export_enrollment_cocs()
+        export_disabilities()
+        export_employment_educations()
+        export_health_and_dvs()
+        export_income_benefits()
+        export_services()
 
-      build_export_file()
+        build_export_file()
+        zip_archive()
+        upload_zip()
+      ensure
+        remove_export_files()
+      end
+    end
+
+    def zip_path
+      @zip_path ||= File.join(@file_path, "#{@export.export_id}.zip")
+    end
+
+    def upload_zip
+      @export.file = Pathname.new(zip_path()).open
+      @export.content_type = @export.file.content_type
+      @export.content = @export.file.read
+      @export.save
+    end
+
+    def zip_archive
+      files = Dir.glob(File.join(@file_path, '*')).map{|f| File.basename(f)}
+      Zip::File.open(zip_path(), Zip::File::CREATE) do |zipfile|
+       files.each do |filename|
+        zipfile.add(
+          File.join(@export.export_id, filename), 
+          File.join(@file_path, filename)
+        )
+        end
+      end
+    end
+
+    def remove_export_files
+      FileUtils.rmtree(@file_path) if File.exists? @file_path
     end
 
     def export_projects
