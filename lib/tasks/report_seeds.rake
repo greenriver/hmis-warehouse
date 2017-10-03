@@ -90,6 +90,12 @@ namespace :reports do
       r.update(weight: 6, report_results_summary: rs)
       r = Reports::DataQuality::Fy2016::Q7.where(name: 'HUD Data Quality Report FY 2016 - Q7').first_or_create
       r.update(weight: 7, report_results_summary: rs)
+
+      rs = ReportResultsSummaries::CAPER::Fy2017.where(name: 'Consolidated Annual Performance and Evaluation Report 2017').first_or_create
+      rs.update(weight: 0)
+
+      r = Reports::CAPER::Fy2017::Q4a.where(name: 'HUD ESG CAPER 2017 - Q4a').first_or_create
+      r.update(weight: 1, report_results_summary: rs)
   end
   desc "Remove all report types"
   task :clear => [:environment, "log:info_to_stdout"] do
