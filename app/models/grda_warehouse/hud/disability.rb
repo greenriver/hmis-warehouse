@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Disability < Base
+    include HudSharedScopes
     self.table_name = 'Disabilities'
     self.hud_key = 'DisabilitiesID'
     acts_as_paranoid column: :DateDeleted
