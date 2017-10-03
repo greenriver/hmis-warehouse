@@ -36,8 +36,6 @@ module GrdaWarehouse::Import::HMISSixOneOne
     end    
 
     def self.load_from_csv(file_path: , data_source_id: )
-      puts File.exists?("#{file_path}/#{data_source_id}/#{file_name}")
-      puts "Looking for #{file_path}/#{data_source_id}/#{file_name}"
       new CSV.read(
         "#{file_path}/#{data_source_id}/#{file_name}", 
         headers: true

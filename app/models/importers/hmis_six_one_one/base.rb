@@ -585,7 +585,6 @@ module Importers::HMISSixOneOne
     end
 
     def log(message)
-      puts message
       @notifier.ping message if @notifier
       logger.info message if @debug
     end
