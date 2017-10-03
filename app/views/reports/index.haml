@@ -7,7 +7,9 @@
         - @reports.each do |base,reports|
           %thead
             %tr{class: 'report-base'}
-              %th= link_to "#{base}::Base".constantize.report_name, report_results_summary_path(reports.first[:report_results_summary_id])
+              - base   = "#{base}::Base".constantize
+              - sample = reports.first  # all reports for a given base have the same results summary id
+              %th= link_to base.report_name, report_results_summary_path(sample.report_results_summary_id)
               %th Last Run
               %th Status
               %th Completed In
