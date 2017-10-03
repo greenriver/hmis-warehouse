@@ -231,12 +231,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
     drop_view :report_exits
     drop_view :report_employment_educations
     drop_view :report_disabilities
-    # I couldn't figure out what was blocking the dropping of the report_enrollments view
-    # postgres didn't reveal to me any dependent objects aside from the ones dropped above
-    # perhaps this is a problem with doing all this in a transaction
-    # see https://stackoverflow.com/a/11773226/3501996 for how to investigate this
-    # in any case, this cuts the Gordian Knot
-    connection.execute "DROP VIEW report_enrollments CASCADE"
+    drop_view :report_enrollments
   end
 
   def create_order
