@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Export < Base
+    include HudSharedScopes
     self.table_name = 'Export'
     self.hud_key = 'ExportID'
 

@@ -107,7 +107,6 @@ module GrdaWarehouse::Import::HMISSixOneOne
       row[:ResidencePriorLengthOfStay] = row.delete(:LengthOfStay)
       row[:ResidentialMoveInDate] = row.delete(:MoveInDate)
       row[:FYSBYouth] = row.delete(:EligibleForRHY)
-      row[:ResidentialMoveInDate] = row.delete(:MoveInDate)
       return row
     end
   end

@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Exit < Base
+    include HudSharedScopes
     self.table_name = 'Exit'
     self.hud_key = 'ExitID'
     acts_as_paranoid column: :DateDeleted

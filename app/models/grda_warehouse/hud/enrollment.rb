@@ -1,6 +1,7 @@
 module GrdaWarehouse::Hud
   class Enrollment < Base
     include ArelHelper
+    include HudSharedScopes
     self.table_name = 'Enrollment'
     self.hud_key = 'ProjectEntryID'
     acts_as_paranoid column: :DateDeleted
