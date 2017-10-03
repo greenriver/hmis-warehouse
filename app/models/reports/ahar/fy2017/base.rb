@@ -52,6 +52,7 @@ module Reports::Ahar::Fy2017
         :jan_night,
         :apr_night,
         :jul_night,
+        :continuum_name,
       ]
     end
 
@@ -60,17 +61,18 @@ module Reports::Ahar::Fy2017
     end
 
     def continuum_name
-      'FIXME: Boston Continuum of Care'
+      @continuum_name ||= GrdaWarehouse::Config.get(:continuum_name)
     end
 
     def as_xml report_results
       user = report_results.user
       completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d") 
       results = report_results.results
+      coc_name = report_results.options.try(:[], 'continuum_name') || continuum_name()
       Nokogiri::XML::Builder.new(:encoding => 'UTF-8') do |xml|
         xml.AHARReport('xmlns' => 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd', 'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance', 'xsi:schemaLocation' => 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd') do
           xml.ContactName "#{user.first_name} #{user.last_name}"
-          xml.ContinuumName continuum_name
+          xml.ContinuumName coc_name
           xml.DateCompleted completed_date
           xml.ReportYear 2016
           xml.ReportType report_type

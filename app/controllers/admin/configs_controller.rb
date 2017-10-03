@@ -29,6 +29,7 @@ module Admin
         :site_coc_codes,
         :default_coc_zipcodes,
         :family_calculation_method,
+        :continuum_name,
         tag_list: [],
       )
     end

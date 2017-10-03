@@ -469,6 +469,7 @@ GEM
     securecompare (1.0.0)
     select2-rails (4.0.3)
       thor (~> 0.14)
+    seven_zip_ruby (1.2.5)
     sexp_processor (4.9.0)
     shellany (0.0.1)
     shoulda (3.5.0)
@@ -625,6 +626,7 @@ DEPENDENCIES
   schema_plus_views
   sdoc (~> 0.4.0)
   select2-rails
+  seven_zip_ruby
   shoulda
   simple_form
   slack-notifier

@@ -2,8 +2,6 @@ require 'net/sftp'
 require 'zip'
 module Importers::HMISSixOneOne
   class Sftp < Base
-    # conf = Importers::HMISSixOneOne::Sftp.available_connections['SITE_NAME']
-    #  Importers::HMISSixOneOne::Sftp.new(data_source_id: 14, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path'])
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id:,
@@ -57,16 +55,6 @@ module Importers::HMISSixOneOne
         auth_methods: ['publickey','password']
       )
     end
-
-    # For local testing
-    # def copy_from_local
-    #   file = "#{Rails.root.to_s}/var/hmis_import/test.zip"
-    #   destination = "#{Rails.root.to_s}/#{@local_path}/#{File.basename(file)}"
-    #   FileUtils.rmtree(@local_path) if File.exists? @local_path
-    #   FileUtils.mkdir_p(@local_path)
-    #   FileUtils.cp(file, destination)
-    #   file_path = force_standard_zip(File.basename(destination))
-    # end
       
     def copy_from_sftp
       return unless @sftp.present?
@@ -118,8 +106,6 @@ module Importers::HMISSixOneOne
       @upload.content_type = @upload.file.content_type
       @upload.content = @upload.file.read
       @upload.save
-       
-      # Importing::RunImportHudZipJob.perform_later(upload: @upload)
     end
   end
 end

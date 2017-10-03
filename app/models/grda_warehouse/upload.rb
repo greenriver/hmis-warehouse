@@ -38,9 +38,13 @@ module GrdaWarehouse
       end
     end
 
-    def import_time
-      if delayed_job_id.present? && delayed_job.failed_at.present?
-        return 'failed'
+    def import_time(details: false)
+      if delayed_job.present?
+        if delayed_job.last_error.present? && details
+          return "Failed with: #{delayed_job.last_error.split("\n").first}"
+        elsif delayed_job.failed_at.present? || delayed_job.last_error.present?
+          return  'failed'
+        end
       end
       if percent_complete == 100
         begin

@@ -1,18 +1,23 @@
 module Importing::HudZip
   class SixOneOneJob < ActiveJob::Base
   
-    def initialize upload:
-      @upload = upload
+    def initialize upload_id:, data_source_id:
+      @upload_id = upload_id
+      @data_source_id = data_source_id
     end
 
     def perform 
       Importers::HMISSixOneOne::UploadedZip.new(
-        data_source_id: @upload.data_source_id, 
-        upload_id: @upload.id
+        data_source_id: @data_source_id, 
+        upload_id: @upload_id
       ).import!
     end
 
     def enqueue(job)
+    end
+
+    def max_attempts
+      2
     end
   end
 end

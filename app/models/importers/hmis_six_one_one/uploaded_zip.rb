@@ -1,7 +1,6 @@
 require 'zip'
 module Importers::HMISSixOneOne
   class UploadedZip < Base
-    #  Importers::HMISSixOneOne::UploadedZip.new(data_source_id: 14, upload_id: 1)
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id:,
