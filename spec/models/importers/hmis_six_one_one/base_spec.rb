@@ -11,7 +11,7 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
       FileUtils.cp_r(source_file_path, import_path)
       importer = Importers::HMISSixOneOne::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
       importer.import!
-      FileUtils.rm_dir()
+      FileUtils.rm_rf(import_path)
       expect(GrdaWarehouse::Hud::Client.count).to eq(3)
       
     end
