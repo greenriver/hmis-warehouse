@@ -38,6 +38,7 @@ module Exporters::HmisSixOneOne
     def export!
       create_export_directory()
       begin
+        set_time_format()
         setup_export()
         
         # Project related items
@@ -65,7 +66,21 @@ module Exporters::HmisSixOneOne
         upload_zip()
       ensure
         remove_export_files()
+        reset_time_format()
       end
+    end
+
+    def set_time_format
+      # We need this for exporting to the appropriate format
+      @default_date_format = Date::DATE_FORMATS[:default]
+      @default_time_format = Time::DATE_FORMATS[:default]
+      Date::DATE_FORMATS[:default] = "%Y-%m-%d"
+      Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
+    end
+
+    def reset_time_format
+      Date::DATE_FORMATS[:default] = @default_date_format
+      Time::DATE_FORMATS[:default] = @default_time_format
     end
 
     def zip_path

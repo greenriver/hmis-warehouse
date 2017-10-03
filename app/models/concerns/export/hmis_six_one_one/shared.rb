@@ -5,6 +5,10 @@ module Export::HMISSixOneOne::Shared
   included do
     include NotifierConfig
     include ArelHelper
+    
+    # Date::DATE_FORMATS[:default] = "%Y-%m-%d"
+    # Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
+    # DateTime::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
 
     attr_accessor :file_path
 
@@ -16,7 +20,7 @@ module Export::HMISSixOneOne::Shared
     def export_to_path export_scope:, path:, export: 
       export_path = File.join(path, file_name)
       export_id = export.export_id
-      CSV.open(export_path, 'wb') do |csv|
+      CSV.open(export_path, 'wb', {force_quotes: true}) do |csv|
         csv << clean_headers(hud_csv_headers)
         if paranoid? && export.include_deleted
           export_scope = export_scope.with_deleted
@@ -81,6 +85,8 @@ module Export::HMISSixOneOne::Shared
           cast(wc_t[:destination_id], 'VARCHAR').as(self.connection.quote_column_name(:PersonalID)).to_sql
         when hud_key.to_sym
           arel_table[:id].as(self.connection.quote_column_name(hud_key)).to_sql
+        when :ProjectEntryID
+          cast(e_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:ProjectEntryID)).to_sql
         when :ProjectID
           cast(p_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:ProjectID)).to_sql
         when :OrganizationID
