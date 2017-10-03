@@ -256,11 +256,11 @@ module Exporters::HmisSixOneOne
       # during the report period in one of the involved projects
       @client_scope ||= begin
         if @export.include_deleted
-        enrollment_source.joins(:project_with_deleted, :client_with_deleted).
+        enrollment_source.joins(:project_with_deleted, {client_with_deleted: :warehouse_client_source}).
           merge(project_scope).
           open_during_range(@range)
         else
-          enrollment_source.joins(:project, :client).
+          enrollment_source.joins(:project, {client: :warehouse_client_source}).
             merge(project_scope).
             open_during_range(@range)
         end

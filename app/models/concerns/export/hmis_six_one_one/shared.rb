@@ -68,13 +68,22 @@ module Export::HMISSixOneOne::Shared
       end
     end
 
+    # All HUD Keys will need to be replaced with our IDs to make them unique across data sources.
+    # In addition, all HUD ids in related tables will need to use the same values, so we'll
+    # need to join in other tables where approrpriate
     def columns_to_pluck
       @columns_to_pluck ||= hud_csv_headers.map do |k|
-        if k == hud_key.to_sym
+        case k
+        # Special case, we should use the destination ID so our merged client records come out
+        # as one
+        when :PersonalID
+          wc_t = GrdaWarehouse::WarehouseClient.arel_table
+          cast(wc_t[:destination_id], 'VARCHAR').as(self.connection.quote_column_name(:PersonalID)).to_sql
+        when hud_key.to_sym
           arel_table[:id].as(self.connection.quote_column_name(hud_key)).to_sql
-        elsif k == :ProjectID
+        when :ProjectID
           cast(p_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:ProjectID)).to_sql
-        elsif k == :OrganizationID
+        when :OrganizationID
           cast(o_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:OrganizationID)).to_sql
         else
           k
@@ -85,15 +94,15 @@ module Export::HMISSixOneOne::Shared
     def export_enrollment_related! enrollment_scope:, project_scope:, path:, export:
       changed_scope = modified_within_range(range: (export.start_date..export.end_date), include_deleted: export.include_deleted)
       if export.include_deleted
-        changed_scope = changed_scope.joins(enrollment_with_deleted: :project_with_deleted).merge(project_scope)
+        changed_scope = changed_scope.joins(enrollment_with_deleted: [:project_with_deleted, {client_with_deleted: :warehouse_client_source}]).merge(project_scope)
       else
-        changed_scope = changed_scope.joins(enrollment: :project).merge(project_scope)
+        changed_scope = changed_scope.joins(enrollment: [:project, {client: :warehouse_client_source}]).merge(project_scope)
       end
 
       if export.include_deleted
-        model_scope = joins(:enrollment_with_deleted).merge(enrollment_scope)
+        model_scope = joins(enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]).merge(enrollment_scope)
       else
-        model_scope = joins(:enrollment).merge(enrollment_scope)
+        model_scope = joins(enrollment: [{client: :warehouse_client_source}]).merge(enrollment_scope)
       end
 
       union_scope = from(

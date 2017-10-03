@@ -109,9 +109,14 @@ module GrdaWarehouse::Export::HMISSixOneOne
       # any modified during the range, regardless of when it was open
       changed_scope = modified_within_range(range: (export.start_date..export.end_date), include_deleted: export.include_deleted)
       if export.include_deleted
-        changed_scope = changed_scope.joins(:project_with_deleted).merge(project_scope)
+        changed_scope = changed_scope.joins(:project_with_deleted, {client_with_deleted: :warehouse_client_source}).merge(project_scope)
       else
-        changed_scope = changed_scope.joins(:project).merge(project_scope)
+        changed_scope = changed_scope.joins(:project, {client: :warehouse_client_source}).merge(project_scope)
+      end
+      if export.include_deleted
+        enrollment_scope = enrollment_scope.joins(client_with_deleted: :warehouse_client_source)
+      else
+        enrollment_scope = enrollment_scope.joins(client: :warehouse_client_source)
       end
       union_scope = from(
         arel_table.create_table_alias(

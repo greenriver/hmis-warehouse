@@ -53,20 +53,22 @@ module GrdaWarehouse::Export::HMISSixOneOne
     def self.export! enrollment_scope:, client_scope:, project_scope:, path:, export:
       changed_scope = modified_within_range(range: (export.start_date..export.end_date), include_deleted: export.include_deleted)
       if export.include_deleted
-        changed_scope = changed_scope.joins(enrollments_with_deleted: :project_with_deleted).merge(project_scope)
+        changed_scope = changed_scope.joins(:warehouse_client_source, enrollments_with_deleted: :project_with_deleted).merge(project_scope)
       else
-        changed_scope = changed_scope.joins(enrollments: :project).merge(project_scope)
+        changed_scope = changed_scope.joins(:warehouse_client_source, enrollments: :project).merge(project_scope)
       end
 
       if export.include_deleted
-        model_scope = client_scope.with_deleted.select("#{quoted_table_name}.*")
+        model_scope = client_scope.with_deleted
       else
-        model_scope = client_scope.select("#{quoted_table_name}.*")
+        model_scope = client_scope
       end
 
       union_scope = from(
         arel_table.create_table_alias(
-          model_scope.union(changed_scope),
+          model_scope.select(*columns_to_pluck, :id).
+            union(changed_scope.select(*columns_to_pluck, :id)
+          ),
           table_name
         )
       )
