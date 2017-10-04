@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170928185422) do
+ActiveRecord::Schema.define(version: 20171003122627) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -828,6 +828,7 @@ ActiveRecord::Schema.define(version: 20170928185422) do
     t.string  "family_calculation_method", :default=>"adult_child"
     t.string  "site_coc_codes"
     t.string  "default_coc_zipcodes"
+    t.string  "continuum_name"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -856,6 +857,28 @@ ActiveRecord::Schema.define(version: 20170928185422) do
     t.boolean  "visible_in_window",  :default=>false, :null=>false
     t.boolean  "authoritative",      :default=>false
   end
+
+  create_table "exports", force: :cascade do |t|
+    t.string   "export_id"
+    t.integer  "user_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "period_type"
+    t.integer  "directive"
+    t.integer  "hash_status"
+    t.datetime "created_at",      :null=>false
+    t.datetime "updated_at",      :null=>false
+    t.datetime "deleted_at"
+    t.boolean  "faked_pii",       :default=>false
+    t.json     "project_ids"
+    t.boolean  "include_deleted", :default=>false
+    t.string   "content_type"
+    t.binary   "content"
+    t.string   "file"
+    t.integer  "delayed_job_id"
+  end
+  add_index "exports", ["deleted_at"], :name=>"index_exports_on_deleted_at", :using=>:btree
+  add_index "exports", ["export_id"], :name=>"index_exports_on_export_id", :using=>:btree
 
   create_table "fake_data", force: :cascade do |t|
     t.string   "environment", :null=>false

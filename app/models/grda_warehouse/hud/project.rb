@@ -2,6 +2,7 @@
 module GrdaWarehouse::Hud
   class Project < Base
     include ArelHelper
+    include HudSharedScopes
     self.table_name = :Project
     self.hud_key = :ProjectID
     acts_as_paranoid column: :DateDeleted
@@ -67,7 +68,7 @@ module GrdaWarehouse::Hud
     }
 
     attr_accessor :hud_coc_code
-    belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: ['OrganizationID', :data_source_id], foreign_key: ['OrganizationID', :data_source_id], inverse_of: :projects
+    belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_belongs(Export), inverse_of: :projects
 

@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Funder < Base
+    include HudSharedScopes
     self.table_name = 'Funder'
     self.hud_key = 'FunderID'
     acts_as_paranoid column: :DateDeleted

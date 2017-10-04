@@ -19,13 +19,17 @@ module Importers::HMISSixOneOne
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id: ,
-      logger: Rails.logger, debug: true)
+      logger: Rails.logger, 
+      debug: true,
+      remove_files: true
+    )
       setup_notifier('HMIS Importer 5.1')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
       @logger = logger
       @debug = debug
       @soft_delete_time = Time.now.change(usec: 0) # Active Record milliseconds and Rails don't always agree, so zero those out so future comparisons work.
+      @remove_files = remove_files
       setup_import(data_source: @data_source)
     end
     
@@ -77,7 +81,7 @@ module Importers::HMISSixOneOne
           complete_import()
           log("Import complete")
         ensure
-          remove_import_files()
+          remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
     end
