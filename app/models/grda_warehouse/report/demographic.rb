@@ -10,7 +10,7 @@ module GrdaWarehouse::Report
     many :services
     many :income_benefits
     many :employment_educations
-    has_many :exits, through: :enrollments
+    many :exits
 
     def self.original_class_name
       "GrdaWarehouse::Hud::Client"

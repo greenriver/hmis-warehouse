@@ -101,6 +101,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["data_source_id", "PersonalID"], :name=>"unk_Client", :unique=>true, :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -134,7 +135,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "Disabilities", ["ExportID"], :name=>"disabilities_export_id", :using=>:btree
   add_index "Disabilities", ["PersonalID"], :name=>"index_Disabilities_on_PersonalID", :using=>:btree
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], :name=>"unk_Disabilities", :unique=>true, :using=>:btree
-  add_index "Disabilities", ["data_source_id", "PersonalID"], :name=>"index_Disabilities_on_data_source_id_PersonalID", :using=>:btree
+  add_index "Disabilities", ["data_source_id", "PersonalID"], :name=>"index_Disabilities_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "Disabilities", ["data_source_id"], :name=>"index_Disabilities_on_data_source_id", :using=>:btree
 
   create_table "EmploymentEducation", force: :cascade do |t|
@@ -160,7 +161,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "EmploymentEducation", ["ExportID"], :name=>"employment_education_export_id", :using=>:btree
   add_index "EmploymentEducation", ["PersonalID"], :name=>"index_EmploymentEducation_on_PersonalID", :using=>:btree
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], :name=>"unk_EmploymentEducation", :unique=>true, :using=>:btree
-  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], :name=>"index_EmploymentEducation_on_data_source_id_PersonalID", :using=>:btree
+  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], :name=>"index_EmploymentEducation_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "EmploymentEducation", ["data_source_id"], :name=>"index_EmploymentEducation_on_data_source_id", :using=>:btree
 
   create_table "Enrollment", force: :cascade do |t|
@@ -282,7 +283,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "Enrollment", ["PersonalID"], :name=>"index_Enrollment_on_PersonalID", :using=>:btree
   add_index "Enrollment", ["ProjectEntryID"], :name=>"index_Enrollment_on_ProjectEntryID", :using=>:btree
   add_index "Enrollment", ["ProjectID"], :name=>"index_Enrollment_on_ProjectID", :using=>:btree
-  add_index "Enrollment", ["data_source_id", "PersonalID"], :name=>"index_Enrollment_on_data_source_id_PersonalID", :using=>:btree
+  add_index "Enrollment", ["data_source_id", "PersonalID"], :name=>"index_Enrollment_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "Enrollment", ["data_source_id", "ProjectEntryID", "PersonalID"], :name=>"unk_Enrollment", :unique=>true, :using=>:btree
   add_index "Enrollment", ["data_source_id"], :name=>"index_Enrollment_on_data_source_id", :using=>:btree
 
@@ -306,7 +307,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "EnrollmentCoC", ["DateUpdated"], :name=>"enrollment_coc_date_updated", :using=>:btree
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], :name=>"index_EnrollmentCoC_on_EnrollmentCoCID", :using=>:btree
   add_index "EnrollmentCoC", ["ExportID"], :name=>"enrollment_coc_export_id", :using=>:btree
-  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], :name=>"index_EnrollmentCoC_on_data_source_id_PersonalID", :using=>:btree
+  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], :name=>"index_EnrollmentCoC_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "EnrollmentCoC", ["data_source_id"], :name=>"index_EnrollmentCoC_on_data_source_id", :using=>:btree
 
   create_table "Exit", force: :cascade do |t|
@@ -376,7 +377,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "Exit", ["PersonalID"], :name=>"index_Exit_on_PersonalID", :using=>:btree
   add_index "Exit", ["ProjectEntryID"], :name=>"index_Exit_on_ProjectEntryID", :using=>:btree
   add_index "Exit", ["data_source_id", "ExitID"], :name=>"unk_Exit", :unique=>true, :using=>:btree
-  add_index "Exit", ["data_source_id", "PersonalID"], :name=>"index_Exit_on_data_source_id_PersonalID", :using=>:btree
+  add_index "Exit", ["data_source_id", "PersonalID"], :name=>"index_Exit_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "Exit", ["data_source_id"], :name=>"index_Exit_on_data_source_id", :using=>:btree
 
   create_table "Export", force: :cascade do |t|
@@ -449,7 +450,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "HealthAndDV", ["ExportID"], :name=>"health_and_dv_export_id", :using=>:btree
   add_index "HealthAndDV", ["PersonalID"], :name=>"index_HealthAndDV_on_PersonalID", :using=>:btree
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], :name=>"unk_HealthAndDV", :unique=>true, :using=>:btree
-  add_index "HealthAndDV", ["data_source_id", "PersonalID"], :name=>"index_HealthAndDV_on_data_source_id_PersonalID", :using=>:btree
+  add_index "HealthAndDV", ["data_source_id", "PersonalID"], :name=>"index_HealthAndDV_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "HealthAndDV", ["data_source_id"], :name=>"index_HealthAndDV_on_data_source_id", :using=>:btree
 
   create_table "IncomeBenefits", force: :cascade do |t|
@@ -539,7 +540,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "IncomeBenefits", ["ExportID"], :name=>"income_benefits_export_id", :using=>:btree
   add_index "IncomeBenefits", ["PersonalID"], :name=>"index_IncomeBenefits_on_PersonalID", :using=>:btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], :name=>"unk_IncomeBenefits", :unique=>true, :using=>:btree
-  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], :name=>"index_IncomeBenefits_on_data_source_id_PersonalID", :using=>:btree
+  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], :name=>"index_IncomeBenefits_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "IncomeBenefits", ["data_source_id"], :name=>"index_IncomeBenefits_on_data_source_id", :using=>:btree
 
   create_table "Inventory", force: :cascade do |t|
@@ -1186,6 +1187,72 @@ SELECT "Client"."PersonalID",
   WHERE ("Client"."DateDeleted" IS NULL)
   END_VIEW_REPORT_DEMOGRAPHICS
 
+  create_view "report_disabilities", <<-'END_VIEW_REPORT_DISABILITIES', :force => true
+SELECT "Disabilities"."DisabilitiesID",
+    "Disabilities"."ProjectEntryID",
+    "Disabilities"."PersonalID",
+    "Disabilities"."InformationDate",
+    "Disabilities"."DisabilityType",
+    "Disabilities"."DisabilityResponse",
+    "Disabilities"."IndefiniteAndImpairs",
+    "Disabilities"."DocumentationOnFile",
+    "Disabilities"."ReceivingServices",
+    "Disabilities"."PATHHowConfirmed",
+    "Disabilities"."PATHSMIInformation",
+    "Disabilities"."TCellCountAvailable",
+    "Disabilities"."TCellCount",
+    "Disabilities"."TCellSource",
+    "Disabilities"."ViralLoadAvailable",
+    "Disabilities"."ViralLoad",
+    "Disabilities"."ViralLoadSource",
+    "Disabilities"."DataCollectionStage",
+    "Disabilities"."DateCreated",
+    "Disabilities"."DateUpdated",
+    "Disabilities"."UserID",
+    "Disabilities"."DateDeleted",
+    "Disabilities"."ExportID",
+    "Disabilities".data_source_id,
+    "Disabilities".id,
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM (((("Disabilities"
+     JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+  WHERE ("Disabilities"."DateDeleted" IS NULL)
+  END_VIEW_REPORT_DISABILITIES
+
+  create_view "report_employment_educations", <<-'END_VIEW_REPORT_EMPLOYMENT_EDUCATIONS', :force => true
+SELECT "EmploymentEducation"."EmploymentEducationID",
+    "EmploymentEducation"."ProjectEntryID",
+    "EmploymentEducation"."PersonalID",
+    "EmploymentEducation"."InformationDate",
+    "EmploymentEducation"."LastGradeCompleted",
+    "EmploymentEducation"."SchoolStatus",
+    "EmploymentEducation"."Employed",
+    "EmploymentEducation"."EmploymentType",
+    "EmploymentEducation"."NotEmployedReason",
+    "EmploymentEducation"."DataCollectionStage",
+    "EmploymentEducation"."DateCreated",
+    "EmploymentEducation"."DateUpdated",
+    "EmploymentEducation"."UserID",
+    "EmploymentEducation"."DateDeleted",
+    "EmploymentEducation"."ExportID",
+    "EmploymentEducation".data_source_id,
+    "EmploymentEducation".id,
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM (((("EmploymentEducation"
+     JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+  WHERE ("EmploymentEducation"."DateDeleted" IS NULL)
+  END_VIEW_REPORT_EMPLOYMENT_EDUCATIONS
+
   create_view "report_enrollments", <<-'END_VIEW_REPORT_ENROLLMENTS', :force => true
 SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."PersonalID",
@@ -1296,74 +1363,15 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM ("Enrollment"
-     LEFT JOIN report_demographics ON (((report_demographics.data_source_id = "Enrollment".data_source_id) AND ((report_demographics."PersonalID")::text = ("Enrollment"."PersonalID")::text))))
+    "Enrollment"."RunawayYouth",
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM ((("Enrollment"
+     JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
   WHERE ("Enrollment"."DateDeleted" IS NULL)
   END_VIEW_REPORT_ENROLLMENTS
-
-  create_view "report_disabilities", <<-'END_VIEW_REPORT_DISABILITIES', :force => true
-SELECT "Disabilities"."DisabilitiesID",
-    "Disabilities"."ProjectEntryID",
-    "Disabilities"."PersonalID",
-    "Disabilities"."InformationDate",
-    "Disabilities"."DisabilityType",
-    "Disabilities"."DisabilityResponse",
-    "Disabilities"."IndefiniteAndImpairs",
-    "Disabilities"."DocumentationOnFile",
-    "Disabilities"."ReceivingServices",
-    "Disabilities"."PATHHowConfirmed",
-    "Disabilities"."PATHSMIInformation",
-    "Disabilities"."TCellCountAvailable",
-    "Disabilities"."TCellCount",
-    "Disabilities"."TCellSource",
-    "Disabilities"."ViralLoadAvailable",
-    "Disabilities"."ViralLoad",
-    "Disabilities"."ViralLoadSource",
-    "Disabilities"."DataCollectionStage",
-    "Disabilities"."DateCreated",
-    "Disabilities"."DateUpdated",
-    "Disabilities"."UserID",
-    "Disabilities"."DateDeleted",
-    "Disabilities"."ExportID",
-    "Disabilities".data_source_id,
-    "Disabilities".id,
-    report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("Disabilities"
-     LEFT JOIN report_enrollments ON (((report_enrollments.data_source_id = "Disabilities".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("Disabilities"."ProjectEntryID")::text))))
-     LEFT JOIN report_demographics ON (((report_demographics.data_source_id = "Disabilities".data_source_id) AND ((report_demographics."PersonalID")::text = ("Disabilities"."PersonalID")::text))))
-  WHERE ("Disabilities"."DateDeleted" IS NULL)
-  END_VIEW_REPORT_DISABILITIES
-
-  create_view "report_employment_educations", <<-'END_VIEW_REPORT_EMPLOYMENT_EDUCATIONS', :force => true
-SELECT "EmploymentEducation"."EmploymentEducationID",
-    "EmploymentEducation"."ProjectEntryID",
-    "EmploymentEducation"."PersonalID",
-    "EmploymentEducation"."InformationDate",
-    "EmploymentEducation"."LastGradeCompleted",
-    "EmploymentEducation"."SchoolStatus",
-    "EmploymentEducation"."Employed",
-    "EmploymentEducation"."EmploymentType",
-    "EmploymentEducation"."NotEmployedReason",
-    "EmploymentEducation"."DataCollectionStage",
-    "EmploymentEducation"."DateCreated",
-    "EmploymentEducation"."DateUpdated",
-    "EmploymentEducation"."UserID",
-    "EmploymentEducation"."DateDeleted",
-    "EmploymentEducation"."ExportID",
-    "EmploymentEducation".data_source_id,
-    "EmploymentEducation".id,
-    report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("EmploymentEducation"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "EmploymentEducation".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("EmploymentEducation"."ProjectEntryID")::text))))
-     JOIN report_demographics ON (((report_demographics.data_source_id = "EmploymentEducation".data_source_id) AND ((report_demographics."PersonalID")::text = ("EmploymentEducation"."PersonalID")::text))))
-  WHERE ("EmploymentEducation"."DateDeleted" IS NULL)
-  END_VIEW_REPORT_EMPLOYMENT_EDUCATIONS
 
   create_view "report_exits", <<-'END_VIEW_REPORT_EXITS', :force => true
 SELECT "Exit"."ExitID",
@@ -1396,10 +1404,42 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
-    report_enrollments.id AS enrollment_id,
-    report_enrollments.client_id
-   FROM ("Exit"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "Exit".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("Exit"."ProjectEntryID")::text))))
+    "Exit"."ExchangeForSex",
+    "Exit"."ExchangeForSexPastThreeMonths",
+    "Exit"."CountOfExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+    "Exit"."WorkPlaceViolenceThreats",
+    "Exit"."WorkplacePromiseDifference",
+    "Exit"."CoercedToContinueWork",
+    "Exit"."LaborExploitPastThreeMonths",
+    "Exit"."CounselingReceived",
+    "Exit"."IndividualCounseling",
+    "Exit"."FamilyCounseling",
+    "Exit"."GroupCounseling",
+    "Exit"."SessionCountAtExit",
+    "Exit"."PostExitCounselingPlan",
+    "Exit"."SessionsInPlan",
+    "Exit"."DestinationSafeClient",
+    "Exit"."DestinationSafeWorker",
+    "Exit"."PosAdultConnections",
+    "Exit"."PosPeerConnections",
+    "Exit"."PosCommunityConnections",
+    "Exit"."AftercareDate",
+    "Exit"."AftercareProvided",
+    "Exit"."EmailSocialMedia",
+    "Exit"."Telephone",
+    "Exit"."InPersonIndividual",
+    "Exit"."InPersonGroup",
+    "Exit"."CMExitReason",
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM (((("Exit"
+     JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Exit"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("Exit"."DateDeleted" IS NULL)
   END_VIEW_REPORT_EXITS
 
@@ -1424,12 +1464,14 @@ SELECT "HealthAndDV"."HealthAndDVID",
     "HealthAndDV"."ExportID",
     "HealthAndDV".data_source_id,
     "HealthAndDV".id,
-    report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("HealthAndDV"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "HealthAndDV".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("HealthAndDV"."ProjectEntryID")::text))))
-     JOIN report_demographics ON (((report_demographics.data_source_id = "HealthAndDV".data_source_id) AND ((report_demographics."PersonalID")::text = ("HealthAndDV"."PersonalID")::text))))
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM (((("HealthAndDV"
+     JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("HealthAndDV"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("HealthAndDV"."DateDeleted" IS NULL)
   END_VIEW_REPORT_HEALTH_AND_DVS
 
@@ -1514,12 +1556,15 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
-    report_enrollments.id AS enrollment_id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM (("IncomeBenefits"
-     JOIN report_enrollments ON (((report_enrollments.data_source_id = "IncomeBenefits".data_source_id) AND ((report_enrollments."ProjectEntryID")::text = ("IncomeBenefits"."ProjectEntryID")::text))))
-     JOIN report_demographics ON (((report_demographics.data_source_id = "IncomeBenefits".data_source_id) AND ((report_demographics."PersonalID")::text = ("IncomeBenefits"."PersonalID")::text))))
+    "IncomeBenefits"."ConnectionWithSOAR",
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM (((("IncomeBenefits"
+     JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("IncomeBenefits"."DateDeleted" IS NULL)
   END_VIEW_REPORT_INCOME_BENEFITS
 
@@ -1541,10 +1586,14 @@ SELECT "Services"."ServicesID",
     "Services"."ExportID",
     "Services".data_source_id,
     "Services".id,
-    report_demographics.id AS demographic_id,
-    report_demographics.client_id
-   FROM ("Services"
-     JOIN report_demographics ON (((report_demographics.data_source_id = "Services".data_source_id) AND ((report_demographics."PersonalID")::text = ("Services"."PersonalID")::text))))
+    "Enrollment".id AS enrollment_id,
+    source_clients.id AS demographic_id,
+    destination_clients.id AS client_id
+   FROM (((("Services"
+     JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+     JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
   END_VIEW_REPORT_SERVICES
 
