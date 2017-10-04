@@ -96,6 +96,8 @@ namespace :reports do
 
       r = Reports::CAPER::Fy2017::Q4a.where(name: 'HUD ESG-CAPER 2017 - Q4a').first_or_create
       r.update(weight: 1, report_results_summary: rs)
+      r = Reports::CAPER::Fy2017::Q5a.where(name: 'HUD ESG-CAPER 2017 - Q5a').first_or_create
+      r.update(weight: 2, report_results_summary: rs)
   end
   desc "Remove all report types"
   task :clear => [:environment, "log:info_to_stdout"] do
