@@ -1,4 +1,4 @@
-%table.table.table-condensed.datatable
+%table.table.table-condensed.datatable.cohort-client__table
   %thead
     %tr
       %th
@@ -22,7 +22,7 @@
   %tbody
     - @cohort.cohort_clients.each do |cohort_client|
       - client = cohort_client.client
-      %tr
+      %tr.jCohortClient
         %td
           = client.LastName
         %td
@@ -37,9 +37,9 @@
             = render note
         - @cohort.visible_columns.each do |column|
           %td
-            = simple_form_for cohort_client, url: cohort_cohort_client_path(@cohort, cohort_client) do |f|
+            = simple_form_for cohort_client, url: cohort_cohort_client_path(@cohort, cohort_client), html: {class: 'jUpdateClient'}, remote: true do |f|
               - value = cohort_client.public_send(column.column)
               = input_for(column, default_value: value, client_id: cohort_client.id)
         %td
-          = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: cohort_client.id),action: :destroy, method: :delete, class: 'btn btn-danger btn-sm' do
+          = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: cohort_client.id), action: :destroy, method: :delete, class: 'btn btn-danger btn-sm' do
             %span.icon-cross

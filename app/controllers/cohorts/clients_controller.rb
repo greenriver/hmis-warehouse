@@ -5,7 +5,7 @@ module Cohorts
     include Chronic
     before_action :require_can_create_cohorts!
     before_action :set_cohort
-    before_action :set_client, only: [:destroy]
+    before_action :set_client, only: [:destroy, :update]
 
     def new
       @clients = []
@@ -21,12 +21,6 @@ module Cohorts
         @q = client_scope.ransack(params[:q])
         @clients = @q.result(distinct: true)
       end
-      # if client_params.present?
-        
-      #   if client_params[:chronic_date]
-      #     raise 'Searching by chronic list'          
-      #   end
-      # end
     end
 
     def create
@@ -39,6 +33,25 @@ module Cohorts
       end
       flash[:notice] = "Clients updated for #{@cohort.name}"
       respond_with(@cohort, location: cohort_path(@cohort))
+    end
+
+    def update
+      if @client.update(cohort_update_params)
+        respond_to do |format|
+          format.html do
+            flash[:notice] = 'Saved'
+            respond_with(@cohort, location: cohort_path(@cohort))
+          end
+          format.js do
+            @response = OpenStruct.new({alert: :success, message: 'Saved'})
+          end
+          format.json do
+            @response = OpenStruct.new({alert: :success, message: 'Saved'})
+          end
+        end        
+      else
+        render json: {alert: :danger, message: 'Unable to save change'}
+      end
     end
 
     def create_cohort_client(cohort_id, client_id)
@@ -57,6 +70,10 @@ module Cohorts
       params.require(:grda_warehouse_cohort).permit(
         :client_ids
       )
+    end
+
+    def cohort_update_params
+      params.require(:cohort_client).permit(*cohort_source.available_columns.map(&:column))
     end
 
     def client_scope

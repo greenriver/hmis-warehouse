@@ -1,7 +1,7 @@
 module CohortColumnsHelper
   def input_for(column, default_value:, client_id:)
-    name = column.column
-    content_tag(:div, class: "form-group #{column.input_type} optional #{column}") do
+    name = "cohort_client[#{column.column}]"
+    content_tag(:div, class: "form-group #{column.input_type} optional #{column} jCohortClientInput") do
       case column.input_type
       when 'string'
         content_tag(:input, nil, value: default_value, name: name)

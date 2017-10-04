@@ -21,7 +21,7 @@ module GrdaWarehouse
     end
 
     def visible_columns
-      column_state&.select(&:visible) || self.class.available_columns
+      column_state&.select(&:visible)&.presence || self.class.available_columns
     end
 
     def self.available_columns
