@@ -38,13 +38,8 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
     table.join(model).on(
       at[:data_source_id].eq(model[:data_source_id]).
       and( at[:PersonalID].eq model[:PersonalID] ).
-      and( at[:ProjectEntryID].eq model[:ProjectEntryID] )
-    )
-  end
-
-  def enrollment_paranoia(query)
-    query.where(
-      enrollments_table[:DateDeleted].eq nil
+      and( at[:ProjectEntryID].eq model[:ProjectEntryID] ).
+      and( model[:DateDeleted].eq nil )
     )
   end
 
@@ -60,19 +55,13 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
     end
     table.join(source_client_table).on(
       at[:data_source_id].eq(source_client_table[:data_source_id]).
-      and( at[:PersonalID].eq source_client_table[:PersonalID] )
+      and( at[:PersonalID].eq source_client_table[:PersonalID] ).
+      and( source_client_table[:DateDeleted].eq nil )
     ).join(client_join_table).on(
       source_client_table[:id].eq client_join_table[:source_id]
     ).join(destination_client_table).on(
-      destination_client_table[:id].eq client_join_table[:destination_id]
-    )
-  end
-
-  def client_paranoia(query)
-    query.where(
-      source_client_table[:DateDeleted].eq nil
-    ).where(
-      destination_client_table[:DateDeleted].eq nil
+      destination_client_table[:id].eq(client_join_table[:destination_id]).
+      and( destination_client_table[:DateDeleted].eq nil )
     )
   end
 
@@ -86,8 +75,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       ).where(
         enrollments_table[:DateDeleted].eq nil
       )
-
-    query = client_paranoia query
 
     create_view :report_enrollments, query
   end
@@ -103,9 +90,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       source_client_table[:id].as('demographic_id'),                                     # a fake source client foreign key
       destination_client_table[:id].as('client_id')                                      # a fake destination client foreign key
     )
-
-    query = client_paranoia query
-    query = enrollment_paranoia query
 
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
@@ -126,9 +110,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       destination_client_table[:id].as('client_id')                                           # a fake fore
     )
 
-    query = client_paranoia query
-    query = enrollment_paranoia query
-
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
@@ -147,9 +128,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       source_client_table[:id].as('demographic_id'),                                    # a fake foreign key to the source client
       destination_client_table[:id].as('client_id')                                     # a fake destination client foreign key
     )
-
-    query = client_paranoia query
-    query = enrollment_paranoia query
 
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
@@ -170,9 +148,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       destination_client_table[:id].as('client_id')
     )
 
-    query = client_paranoia query
-    query = enrollment_paranoia query
-
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
@@ -192,9 +167,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       destination_client_table[:id].as('client_id')
     )
 
-    query = client_paranoia query
-    query = enrollment_paranoia query
-
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
@@ -213,9 +185,6 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       source_client_table[:id].as('demographic_id'),
       destination_client_table[:id].as('client_id')
     )
-
-    query = client_paranoia query
-    query = enrollment_paranoia query
 
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
