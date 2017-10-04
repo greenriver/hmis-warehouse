@@ -91,22 +91,21 @@ module ReportGenerators::CAPER::Fy2017
         # 1. A "system leaver" is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
         # is not active in any of the relevant projects as of the [report end date].
         # 2. The client must be an adult to be included.
-        columns = {
-          sh_t[:client_id].as('client_id').to_sql => :client_id, 
-          sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
-          sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
-          sh_t[:project_id].as('project_id').to_sql => :project_id, 
-          sh_t[:age].as('age').to_sql => :age, 
-          c_t[:DOB].as('DOB').to_sql => :DOB, 
-          sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
-          sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
-          sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
-          sh_t[:project_name].as('project_name').to_sql => :project_name,
-          e_t[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
-          sh_t[:household_id].as('household_id').to_sql => :household_id,
-          sh_t[:destination].as('destination').to_sql => :destination,
-
-        }
+        columns = columnize(
+          client_id:               sh_t,
+          first_date_in_program:   sh_t,
+          last_date_in_program:    sh_t,
+          project_id:              sh_t,
+          age:                     sh_t,
+          enrollment_group_id:     sh_t,
+          data_source_id:          sh_t,
+          project_tracking_method: sh_t,
+          project_name:            sh_t,
+          household_id:            sh_t,
+          destination:             sh_t,
+          RelationshipToHoH: e_t,
+          DOB: c_t,
+        )
         
         client_id_scope = GrdaWarehouse::ServiceHistory.entry.
           ongoing(on_date: @report_end)
@@ -127,8 +126,8 @@ module ReportGenerators::CAPER::Fy2017
 
         leavers_scope.
           order(client_id: :asc, first_date_in_program: :asc).
-          pluck(*columns.keys).map do |row|
-            Hash[columns.values.zip(row)]
+          pluck(*columns.values).map do |row|
+            Hash[columns.keys.zip(row)]
           end.group_by do |row|
             row[:client_id]
           end.map do |id,enrollments| 
@@ -146,20 +145,20 @@ module ReportGenerators::CAPER::Fy2017
         # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
         # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
         # 3. The client must be an adult to be included in this measure.
-        columns = {
-          sh_t[:client_id].as('client_id').to_sql => :client_id, 
-          sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
-          sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
-          sh_t[:project_id].as('project_id').to_sql => :project_id, 
-          sh_t[:age].as('age').to_sql => :age, 
-          c_t[:DOB].as('DOB').to_sql => :DOB, 
-          sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
-          sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
-          sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
-          sh_t[:project_name].as('project_name').to_sql => :project_name,
-          e_t[:RelationshipToHoH].as('RelationshipToHoH').to_sql => :RelationshipToHoH,
-          sh_t[:household_id].as('household_id').to_sql => :household_id,
-        }
+        columns = columnize(
+          client_id:               sh_t,
+          first_date_in_program:   sh_t,
+          last_date_in_program:    sh_t,
+          project_id:              sh_t,
+          age:                     sh_t,
+          enrollment_group_id:     sh_t,
+          data_source_id:          sh_t,
+          project_tracking_method: sh_t,
+          project_name:            sh_t,
+          household_id:            sh_t,
+          RelationshipToHoH: e_t,
+          DOB: c_t,
+        )
 
         stayers_scope = GrdaWarehouse::ServiceHistory.entry.
           ongoing(on_date: @report_end).
