@@ -20,7 +20,7 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
         expect( assigns(:clients) ).to be_an ActiveRecord::Relation
       end
       it 'assigns @filter' do
-        expect( assigns(:filter) ).to be_a WarehouseReports::ChronicController::ChronicFilter
+        expect( assigns(:filter) ).to be_a Filters::Chronic
       end
       it 'assigns @so_clients' do
         expect( assigns(:so_clients) ).to be_an Array

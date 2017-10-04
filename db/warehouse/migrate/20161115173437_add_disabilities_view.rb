@@ -1,15 +1,26 @@
 class AddDisabilitiesView < ActiveRecord::Migration
   def up
     model = GrdaWarehouse::Hud::Disability
-    nt    = Arel::Table.new :report_enrollments
-    dt    = Arel::Table.new :report_demographics
-    mt    = model.arel_table 
-    query = mt.project( *mt.engine.column_names.map(&:to_sym).map{ |c| mt[c] }, nt[:id].as('enrollment_id'), dt[:id].as('demographic_id'), dt[:client_id] ).
-      outer_join(nt).on( nt[:data_source_id].eq(mt[:data_source_id]).and( nt[:ProjectEntryID].eq mt[:ProjectEntryID] ) ).
-      outer_join(dt).on( dt[:data_source_id].eq(mt[:data_source_id]).and( dt[:PersonalID].eq mt[:PersonalID] ) )
+    report_enrollment_table  = Arel::Table.new :report_enrollments
+    report_demographic_table = Arel::Table.new :report_demographics
+    gh_disability_table      = model.arel_table 
+    query = gh_disability_table.project(
+      *gh_disability_table.engine.column_names.map(&:to_sym).map{ |c| gh_disability_table[c] },  # all disability columns
+      report_enrollment_table[:id].as('enrollment_id'),                                          # a fake foreign key to the enrollments table
+      report_demographic_table[:id].as('demographic_id'),                                        # a fake foreign key to the source client
+      report_demographic_table[:client_id]                                                       # a fake fore
+    ).
+      outer_join(report_enrollment_table).on(
+        report_enrollment_table[:data_source_id].eq(gh_disability_table[:data_source_id]).
+        and( report_enrollment_table[:ProjectEntryID].eq gh_disability_table[:ProjectEntryID] )
+      ).
+      outer_join(report_demographic_table).on(
+        report_demographic_table[:data_source_id].eq(gh_disability_table[:data_source_id]).
+        and( report_demographic_table[:PersonalID].eq gh_disability_table[:PersonalID] )
+      )
 
     if model.paranoid?
-      query = query.where( mt[model.paranoia_column.to_sym].eq nil )
+      query = query.where( gh_disability_table[model.paranoia_column.to_sym].eq nil )
     end
 
     create_view :report_disabilities, query

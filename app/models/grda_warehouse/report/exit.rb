@@ -4,6 +4,6 @@ module GrdaWarehouse::Report
 
     belongs :enrollment
     belongs :client
-    has_one :demographic, through: :enrollment   # source client
+    belongs :demographic
   end
 end

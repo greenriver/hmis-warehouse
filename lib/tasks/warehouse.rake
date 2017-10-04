@@ -23,6 +23,18 @@ namespace :warehouse do
     task :migrate do
       Rake::Task["db:migrate"].invoke
     end
+
+    namespace :migrate do
+      task :redo do
+        Rake::Task["db:migrate:redo"].invoke
+      end
+      task :up do
+        Rake::Task["db:migrate:up"].invoke
+      end
+      task :down do
+        Rake::Task["db:migrate:down"].invoke
+      end
+    end
  
     task :rollback do
       Rake::Task["db:rollback"].invoke

@@ -1,0 +1,7 @@
+var alert_class = "#{@response.alert}";
+var alert_text = "#{@response.message}";
+var alert = '<div class="alert alert-' + alert_class + '">' + alert_text + '</div>';
+console.log(alert);
+$('.utility .alert').remove();
+$('.utility').append(alert);
+$('.utility .alert').delay(2000).fadeOut(250);

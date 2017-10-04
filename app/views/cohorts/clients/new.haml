@@ -1,0 +1,44 @@
+- title = "Add Clients to #{@cohort.name}"
+- content_for :modal_title, title
+= render 'client_search_js'
+%p 
+  You can add clients in a variety of ways, you can search by name, SSN, DOB, ID or PersonalID (also called ClientGUID).  You can also pick clients from a chronic list.
+%p
+  Once you've identified the clients you would like to add, click "add selected clients" on the right.
+.row
+  .col-sm-10
+    #client-search-options.panel-group.panel-collapsible
+      .panel.panel-default
+        .panel-heading
+          .row
+            .col-xs-8
+              %h4.panel-title
+                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
+                  Search clients
+            .col-xs-4.text-right
+              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
+                %i.icon-arrow-circled-right
+                %i.icon-arrow-circled-down.hide
+        #search.panel-collapse.collapse
+          .panel-body
+            = render 'search_form'
+      .panel.panel-default
+        .panel-heading
+          .row
+            .col-xs-8
+              %h4.panel-title
+                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#chronic'}
+                  Pick from chronic lists
+            .col-xs-4.text-right
+              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#chronic'}
+                %i.icon-arrow-circled-right
+                %i.icon-arrow-circled-down.hide
+        #chronic.panel-collapse.collapse
+          .panel-body
+            = render 'chronic'
+    = render 'results'
+    
+  .col-sm-2
+    = simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
+      = f.input :client_ids, as: :hidden, input_html: {class: 'jClientIDs'} # Eventually, this will be a hidden field
+      = f.submit value: 'Add Selected Clients', class: 'btn btn-primary', disabled: @clients.empty?

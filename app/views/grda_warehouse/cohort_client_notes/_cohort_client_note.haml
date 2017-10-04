@@ -1,0 +1,8 @@
+- note = cohort_client_note
+
+%p
+  = note.note
+%p.attribution
+  = note.user.name
+  on
+  = note.updated_at.to_date

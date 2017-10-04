@@ -263,6 +263,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :full_text_search, -> (text) do
+      text_search(text, client_scope: current_scope)
+    end
+
     def scope_for_ongoing_residential_enrollments
       source_enrollments.
       residential.
@@ -847,6 +851,10 @@ module GrdaWarehouse::Hud
         end
         ungrouped_services.group_by{ |m| m[:start] }
       end
+    end
+
+    def self.ransackable_scopes(auth_object = nil)
+      [:full_text_search]
     end
 
     def self.text_search(text, client_scope:)
