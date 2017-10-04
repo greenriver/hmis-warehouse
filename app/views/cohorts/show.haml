@@ -1,0 +1,35 @@
+- title = @cohort.name
+- content_for :title, title
+= render 'datatables_js'
+.row
+  .col-sm-6
+    %h1
+      = content_for :title
+  .col-sm-6.text-right.padding-top-04
+    = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
+      %span.icon-pencil 
+      Edit
+    = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
+      %span.icon-cog
+      Edit Visible Columns
+    = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
+      %span.icon-users
+      Add Clients
+- if @cohort.effective_date
+  %p 
+    Data pulled from the client record and shown here will be pulled using the effective date
+    %strong
+      = @cohort.effective_date
+    where appropriate.
+
+- if @cohort.clients.blank?
+  %p.alert.alert-info
+    This cohort is currently empty,
+    = link_to new_cohort_cohort_client_path(@cohort) do
+      Add some.
+
+.row
+  .col-sm-12.overflow-scroll
+    - if @cohort.cohort_clients.preload(:clients).any?
+      = render 'client_table'
+            

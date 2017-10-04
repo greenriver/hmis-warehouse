@@ -1,0 +1,8 @@
+- title = "Edit #{@cohort.name}"
+- content_for :modal_title, title
+
+%p Please choose the columns to display when viewing this cohort.
+= simple_form_for @cohort, as: :column_state, url: cohort_columns_path(@cohort) do |f|
+  - @column_state.each do |column|
+    = f.input column.column, label: column.title, as: :boolean, input_html: {checked: column.visible}
+  = f.submit value: 'Update Cohort', class: 'btn btn-primary'

@@ -1,0 +1,14 @@
+= content_for :page_js do
+  :javascript
+    $('.check_all').on('change', function(e){
+      var id = $(this).attr('id');
+      var checked = $(this).is(':checked');
+      $('.' + id).prop('checked', checked);
+      $('.jClient:first').trigger('change');
+    });
+    $('.jClient').on('change', function(e) {
+      var client_ids = $('.jClient:checked').map(function() {
+        return this.value;
+      }).get().join();
+      $('.jClientIDs').attr('value', client_ids);
+    });

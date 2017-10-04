@@ -20,6 +20,7 @@
 //= require dataTables/jquery.dataTables
 //= require dataTables/bootstrap/3/jquery.dataTables.bootstrap
 //= require dataTables/jquery.dataTables
+//= require dataTables/extras/dataTables.fixedColumns
 //= require handlebars.runtime
 //= require select2-full
 //= require bootstrap-datepicker
@@ -56,5 +57,6 @@
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts
 //= require_directory ./clients
+//= require_directory ./cohorts
 
 //= require init

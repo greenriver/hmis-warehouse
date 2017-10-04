@@ -1,0 +1,6 @@
+- title = "Add a note for #{@note.client.name}"
+- content_for :modal_title, title
+
+= simple_form_for @note, url: cohort_cohort_client_cohort_client_notes_path(), method: :post do |f|
+  = f.input :note, as: :text
+  = f.submit value: 'Add Note', class: 'btn btn-primary'

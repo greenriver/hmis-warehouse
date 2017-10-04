@@ -1,0 +1,41 @@
+- if @clients.any?
+  %table.table.table-condensed.small
+    %thead
+      %tr
+        %th
+          Check All
+          %br
+          = check_box_tag(:check_all, 1, false, class: :check_all, id: :client)
+        %th
+          Last Name
+        %th
+          First Name
+        %th
+          DOB
+        %th
+          SSN
+        %th
+          Gender
+        %th
+          Veteran
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td
+            = check_box_tag("client_#{client.id}", client.id, false, {class: 'client jClient', 'data-client-id': client.id})
+          %td
+            = client.LastName
+          %td
+            = client.FirstName
+          %td.nobr
+            - if client.DOB.present?
+              = client.DOB
+              %br
+              Age:
+              = client.age
+          %td
+            = masked_ssn(client.SSN)
+          %td
+            = HUD.gender(client.Gender)
+          %td
+            = HUD.veteran_status(client.VeteranStatus)

@@ -61,3 +61,19 @@ ul.pagination
   /* W3C */
   box-shadow: inset 0 0 3px transparent;
 }
+
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:after {
+  font-family: 'icomoon';
+  src:    font-url('icomoon.eot?mjkcjl');
+  src:    font-url('icomoon.eot?mjkcjl#iefix') format('embedded-opentype'),
+      font-url('icomoon.woff2?mjkcjl') format('woff2'),
+      font-url('icomoon.ttf?mjkcjl') format('truetype'),
+      font-url('icomoon.woff?mjkcjl') format('woff'),
+      font-url('icomoon.svg?mjkcjl#icomoon') format('svg');
+}
+
+.cohort-client__table tr {
+  height: 50px;
+}
