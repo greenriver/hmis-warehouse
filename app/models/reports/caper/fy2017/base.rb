@@ -75,6 +75,8 @@ module Reports::CAPER::Fy2017
     end
 
     def as_xml report_results
+      raise NotImplementedError
+      
       user = report_results.user
       completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d") 
       results = report_results.results
