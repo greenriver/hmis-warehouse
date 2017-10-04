@@ -36,4 +36,15 @@ FactoryGirl.define do
     can_view_vspdat true
     can_edit_vspdat true
   end
+
+  factory :vispdat_viewer, class: 'Role' do
+    name "vispdat viewer"
+    can_view_vspdat true
+  end
+
+  factory :vispdat_editor, class: 'Role' do
+    name "vispdat editor"
+    can_view_vspdat true
+    can_edit_vspdat true
+  end
 end
