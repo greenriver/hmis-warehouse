@@ -1,0 +1,40 @@
+class AddFieldsforHmisSixOneOne < ActiveRecord::Migration
+  def change
+    add_column :Project, :OperatingStartDate, :date
+    add_column :Project, :OperatingEndDate, :date
+    add_column :Project, :VictimServicesProvider, :integer
+    add_column :Project, :HousingType, :integer
+    add_column :Site, :InformationDate, :date
+    add_column :Site, :Address2, :string
+    add_column :Site, :GeographyType, :integer
+    add_column :Enrollment, :RunawayYouth, :integer
+    add_column :Exit, :ExchangeForSex, :integer
+    add_column :Exit, :ExchangeForSexPastThreeMonths, :integer
+    add_column :Exit, :CountOfExchangeForSex, :integer
+    add_column :Exit, :AskedOrForcedToExchangeForSex, :integer
+    add_column :Exit, :AskedOrForcedToExchangeForSexPastThreeMonths, :integer
+    add_column :Exit, :WorkPlaceViolenceThreats, :integer
+    add_column :Exit, :WorkplacePromiseDifference, :integer
+    add_column :Exit, :CoercedToContinueWork, :integer
+    add_column :Exit, :LaborExploitPastThreeMonths, :integer
+    add_column :Exit, :CounselingReceived, :integer
+    add_column :Exit, :IndividualCounseling, :integer
+    add_column :Exit, :FamilyCounseling, :integer
+    add_column :Exit, :GroupCounseling, :integer
+    add_column :Exit, :SessionCountAtExit, :integer
+    add_column :Exit, :PostExitCounselingPlan, :integer
+    add_column :Exit, :SessionsInPlan, :integer
+    add_column :Exit, :DestinationSafeClient, :integer
+    add_column :Exit, :DestinationSafeWorker, :integer
+    add_column :Exit, :PosAdultConnections, :integer
+    add_column :Exit, :PosPeerConnections, :integer
+    add_column :Exit, :PosCommunityConnections, :integer
+    add_column :Exit, :AftercareDate, :date
+    add_column :Exit, :AftercareProvided, :integer
+    add_column :Exit, :EmailSocialMedia, :integer
+    add_column :Exit, :Telephone, :integer
+    add_column :Exit, :InPersonIndividual, :integer
+    add_column :Exit, :InPersonGroup, :integer
+    add_column :Exit, :CMExitReason, :integer
+  end
+end

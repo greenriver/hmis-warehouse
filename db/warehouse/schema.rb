@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170925000145) do
+ActiveRecord::Schema.define(version: 20171003122627) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -134,7 +134,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "Disabilities", ["ExportID"], :name=>"disabilities_export_id", :using=>:btree
   add_index "Disabilities", ["PersonalID"], :name=>"index_Disabilities_on_PersonalID", :using=>:btree
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], :name=>"unk_Disabilities", :unique=>true, :using=>:btree
-  add_index "Disabilities", ["data_source_id", "PersonalID"], :name=>"index_Disabilities_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "Disabilities", ["data_source_id", "PersonalID"], :name=>"index_Disabilities_on_data_source_id_PersonalID", :using=>:btree
   add_index "Disabilities", ["data_source_id"], :name=>"index_Disabilities_on_data_source_id", :using=>:btree
 
   create_table "EmploymentEducation", force: :cascade do |t|
@@ -160,7 +160,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "EmploymentEducation", ["ExportID"], :name=>"employment_education_export_id", :using=>:btree
   add_index "EmploymentEducation", ["PersonalID"], :name=>"index_EmploymentEducation_on_PersonalID", :using=>:btree
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], :name=>"unk_EmploymentEducation", :unique=>true, :using=>:btree
-  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], :name=>"index_EmploymentEducation_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], :name=>"index_EmploymentEducation_on_data_source_id_PersonalID", :using=>:btree
   add_index "EmploymentEducation", ["data_source_id"], :name=>"index_EmploymentEducation_on_data_source_id", :using=>:btree
 
   create_table "Enrollment", force: :cascade do |t|
@@ -272,6 +272,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
     t.integer  "ERVisits"
     t.integer  "JailNights"
     t.integer  "HospitalNights"
+    t.integer  "RunawayYouth"
   end
   add_index "Enrollment", ["DateCreated"], :name=>"enrollment_date_created", :using=>:btree
   add_index "Enrollment", ["DateDeleted"], :name=>"index_Enrollment_on_DateDeleted", :using=>:btree
@@ -281,7 +282,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "Enrollment", ["PersonalID"], :name=>"index_Enrollment_on_PersonalID", :using=>:btree
   add_index "Enrollment", ["ProjectEntryID"], :name=>"index_Enrollment_on_ProjectEntryID", :using=>:btree
   add_index "Enrollment", ["ProjectID"], :name=>"index_Enrollment_on_ProjectID", :using=>:btree
-  add_index "Enrollment", ["data_source_id", "PersonalID"], :name=>"index_Enrollment_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "Enrollment", ["data_source_id", "PersonalID"], :name=>"index_Enrollment_on_data_source_id_PersonalID", :using=>:btree
   add_index "Enrollment", ["data_source_id", "ProjectEntryID", "PersonalID"], :name=>"unk_Enrollment", :unique=>true, :using=>:btree
   add_index "Enrollment", ["data_source_id"], :name=>"index_Enrollment_on_data_source_id", :using=>:btree
 
@@ -305,7 +306,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "EnrollmentCoC", ["DateUpdated"], :name=>"enrollment_coc_date_updated", :using=>:btree
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], :name=>"index_EnrollmentCoC_on_EnrollmentCoCID", :using=>:btree
   add_index "EnrollmentCoC", ["ExportID"], :name=>"enrollment_coc_export_id", :using=>:btree
-  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], :name=>"index_EnrollmentCoC_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], :name=>"index_EnrollmentCoC_on_data_source_id_PersonalID", :using=>:btree
   add_index "EnrollmentCoC", ["data_source_id"], :name=>"index_EnrollmentCoC_on_data_source_id", :using=>:btree
 
   create_table "Exit", force: :cascade do |t|
@@ -334,10 +335,38 @@ ActiveRecord::Schema.define(version: 20170925000145) do
     t.integer  "FamilyReunificationAchieved"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",                       :limit=>100
+    t.string   "UserID",                                       :limit=>100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.integer  "ExchangeForSex"
+    t.integer  "ExchangeForSexPastThreeMonths"
+    t.integer  "CountOfExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer  "WorkPlaceViolenceThreats"
+    t.integer  "WorkplacePromiseDifference"
+    t.integer  "CoercedToContinueWork"
+    t.integer  "LaborExploitPastThreeMonths"
+    t.integer  "CounselingReceived"
+    t.integer  "IndividualCounseling"
+    t.integer  "FamilyCounseling"
+    t.integer  "GroupCounseling"
+    t.integer  "SessionCountAtExit"
+    t.integer  "PostExitCounselingPlan"
+    t.integer  "SessionsInPlan"
+    t.integer  "DestinationSafeClient"
+    t.integer  "DestinationSafeWorker"
+    t.integer  "PosAdultConnections"
+    t.integer  "PosPeerConnections"
+    t.integer  "PosCommunityConnections"
+    t.date     "AftercareDate"
+    t.integer  "AftercareProvided"
+    t.integer  "EmailSocialMedia"
+    t.integer  "Telephone"
+    t.integer  "InPersonIndividual"
+    t.integer  "InPersonGroup"
+    t.integer  "CMExitReason"
   end
   add_index "Exit", ["DateCreated"], :name=>"exit_date_created", :using=>:btree
   add_index "Exit", ["DateDeleted"], :name=>"index_Exit_on_DateDeleted", :using=>:btree
@@ -347,7 +376,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "Exit", ["PersonalID"], :name=>"index_Exit_on_PersonalID", :using=>:btree
   add_index "Exit", ["ProjectEntryID"], :name=>"index_Exit_on_ProjectEntryID", :using=>:btree
   add_index "Exit", ["data_source_id", "ExitID"], :name=>"unk_Exit", :unique=>true, :using=>:btree
-  add_index "Exit", ["data_source_id", "PersonalID"], :name=>"index_Exit_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "Exit", ["data_source_id", "PersonalID"], :name=>"index_Exit_on_data_source_id_PersonalID", :using=>:btree
   add_index "Exit", ["data_source_id"], :name=>"index_Exit_on_data_source_id", :using=>:btree
 
   create_table "Export", force: :cascade do |t|
@@ -420,7 +449,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "HealthAndDV", ["ExportID"], :name=>"health_and_dv_export_id", :using=>:btree
   add_index "HealthAndDV", ["PersonalID"], :name=>"index_HealthAndDV_on_PersonalID", :using=>:btree
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], :name=>"unk_HealthAndDV", :unique=>true, :using=>:btree
-  add_index "HealthAndDV", ["data_source_id", "PersonalID"], :name=>"index_HealthAndDV_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "HealthAndDV", ["data_source_id", "PersonalID"], :name=>"index_HealthAndDV_on_data_source_id_PersonalID", :using=>:btree
   add_index "HealthAndDV", ["data_source_id"], :name=>"index_HealthAndDV_on_data_source_id", :using=>:btree
 
   create_table "IncomeBenefits", force: :cascade do |t|
@@ -510,7 +539,7 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "IncomeBenefits", ["ExportID"], :name=>"income_benefits_export_id", :using=>:btree
   add_index "IncomeBenefits", ["PersonalID"], :name=>"index_IncomeBenefits_on_PersonalID", :using=>:btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], :name=>"unk_IncomeBenefits", :unique=>true, :using=>:btree
-  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], :name=>"index_IncomeBenefits_on_data_source_id_and_PersonalID", :using=>:btree
+  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], :name=>"index_IncomeBenefits_on_data_source_id_PersonalID", :using=>:btree
   add_index "IncomeBenefits", ["data_source_id"], :name=>"index_IncomeBenefits_on_data_source_id", :using=>:btree
 
   create_table "Inventory", force: :cascade do |t|
@@ -581,6 +610,10 @@ ActiveRecord::Schema.define(version: 20170925000145) do
     t.boolean  "hud_continuum_funded"
     t.boolean  "confidential",           :default=>false, :null=>false
     t.integer  "computed_project_type"
+    t.date     "OperatingStartDate"
+    t.date     "OperatingEndDate"
+    t.integer  "VictimServicesProvider"
+    t.integer  "HousingType"
   end
   add_index "Project", ["DateCreated"], :name=>"project_date_created", :using=>:btree
   add_index "Project", ["DateUpdated"], :name=>"project_date_updated", :using=>:btree
@@ -640,19 +673,22 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   create_table "Site", force: :cascade do |t|
     t.string   "SiteID"
     t.string   "ProjectID"
-    t.string   "CoCCode",        :limit=>50
+    t.string   "CoCCode",         :limit=>50
     t.integer  "PrincipalSite"
-    t.string   "Geocode",        :limit=>50
+    t.string   "Geocode",         :limit=>50
     t.string   "Address"
     t.string   "City"
-    t.string   "State",          :limit=>2
-    t.string   "ZIP",            :limit=>10
+    t.string   "State",           :limit=>2
+    t.string   "ZIP",             :limit=>10
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",         :limit=>100
+    t.string   "UserID",          :limit=>100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.date     "InformationDate"
+    t.string   "Address2"
+    t.integer  "GeographyType"
   end
   add_index "Site", ["DateCreated"], :name=>"site_date_created", :using=>:btree
   add_index "Site", ["DateUpdated"], :name=>"site_date_updated", :using=>:btree
@@ -783,59 +819,6 @@ ActiveRecord::Schema.define(version: 20170925000145) do
   add_index "client_notes", ["client_id"], :name=>"index_client_notes_on_client_id", :using=>:btree
   add_index "client_notes", ["user_id"], :name=>"index_client_notes_on_user_id", :using=>:btree
 
-  create_table "cohort_client_notes", force: :cascade do |t|
-    t.integer  "cohort_client_id", :null=>false
-    t.text     "note"
-    t.datetime "created_at",       :null=>false
-    t.datetime "updated_at",       :null=>false
-    t.datetime "deleted_at"
-    t.integer  "user_id",          :null=>false
-  end
-  add_index "cohort_client_notes", ["cohort_client_id"], :name=>"index_cohort_client_notes_on_cohort_client_id", :using=>:btree
-  add_index "cohort_client_notes", ["deleted_at"], :name=>"index_cohort_client_notes_on_deleted_at", :using=>:btree
-
-  create_table "cohort_clients", force: :cascade do |t|
-    t.integer  "cohort_id",                              :null=>false
-    t.integer  "client_id",                              :null=>false
-    t.datetime "created_at",                             :null=>false
-    t.datetime "updated_at",                             :null=>false
-    t.datetime "deleted_at"
-    t.string   "agency"
-    t.string   "case_manager"
-    t.string   "housing_manager"
-    t.string   "housing_search_agency"
-    t.string   "housing_opportunity"
-    t.string   "legal_barriers"
-    t.string   "criminal_record_status"
-    t.string   "document_ready"
-    t.string   "sif_eligible"
-    t.string   "sensory_impaired"
-    t.date     "housed_date"
-    t.string   "destination"
-    t.string   "sub_population"
-    t.integer  "rank"
-    t.string   "st_francis_house"
-    t.date     "last_group_review_date"
-    t.date     "pre_contemplative_last_date_approached"
-    t.string   "housing_track"
-    t.date     "va_eligible"
-    t.string   "vash_eligible"
-    t.string   "chapter_115"
-  end
-  add_index "cohort_clients", ["client_id"], :name=>"index_cohort_clients_on_client_id", :using=>:btree
-  add_index "cohort_clients", ["cohort_id"], :name=>"index_cohort_clients_on_cohort_id", :using=>:btree
-  add_index "cohort_clients", ["deleted_at"], :name=>"index_cohort_clients_on_deleted_at", :using=>:btree
-
-  create_table "cohorts", force: :cascade do |t|
-    t.string   "name",           :null=>false
-    t.datetime "created_at",     :null=>false
-    t.datetime "updated_at",     :null=>false
-    t.datetime "deleted_at"
-    t.date     "effective_date"
-    t.text     "column_state"
-  end
-  add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
-
   create_table "configs", force: :cascade do |t|
     t.boolean "project_type_override",     :default=>true, :null=>false
     t.boolean "eto_api_available",         :default=>false, :null=>false
@@ -843,6 +826,8 @@ ActiveRecord::Schema.define(version: 20170925000145) do
     t.boolean "healthcare_available",      :default=>false, :null=>false
     t.string  "family_calculation_method", :default=>"adult_child"
     t.string  "site_coc_codes"
+    t.string  "default_coc_zipcodes"
+    t.string  "continuum_name"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -871,6 +856,28 @@ ActiveRecord::Schema.define(version: 20170925000145) do
     t.boolean  "visible_in_window",  :default=>false, :null=>false
     t.boolean  "authoritative",      :default=>false
   end
+
+  create_table "exports", force: :cascade do |t|
+    t.string   "export_id"
+    t.integer  "user_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "period_type"
+    t.integer  "directive"
+    t.integer  "hash_status"
+    t.datetime "created_at",      :null=>false
+    t.datetime "updated_at",      :null=>false
+    t.datetime "deleted_at"
+    t.boolean  "faked_pii",       :default=>false
+    t.json     "project_ids"
+    t.boolean  "include_deleted", :default=>false
+    t.string   "content_type"
+    t.binary   "content"
+    t.string   "file"
+    t.integer  "delayed_job_id"
+  end
+  add_index "exports", ["deleted_at"], :name=>"index_exports_on_deleted_at", :using=>:btree
+  add_index "exports", ["export_id"], :name=>"index_exports_on_export_id", :using=>:btree
 
   create_table "fake_data", force: :cascade do |t|
     t.string   "environment", :null=>false
@@ -1594,6 +1601,7 @@ SELECT "Services"."ServicesID",
     t.datetime "started_at"
     t.datetime "completed_at"
     t.datetime "deleted_at"
+    t.integer  "delayed_job_id"
   end
   add_index "uploads", ["deleted_at"], :name=>"index_uploads_on_deleted_at", :using=>:btree
 

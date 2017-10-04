@@ -6,7 +6,9 @@ module GrdaWarehouse
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
     belongs_to :user, required: true
-    has_one :import_log
+
+    belongs_to :delayed_job, required: false, class_name: Delayed::Job.name
+    has_one :import_log, class_name: GrdaWarehouse::ImportLog.name, required: false
 
     mount_uploader :file, ImportUploader
     validates :data_source, presence: true
@@ -36,7 +38,14 @@ module GrdaWarehouse
       end
     end
 
-    def import_time
+    def import_time(details: false)
+      if delayed_job.present?
+        if delayed_job.last_error.present? && details
+          return "Failed with: #{delayed_job.last_error.split("\n").first}"
+        elsif delayed_job.failed_at.present? || delayed_job.last_error.present?
+          return  'failed'
+        end
+      end
       if percent_complete == 100
         begin
           seconds = ((completed_at - created_at)/1.minute).round * 60

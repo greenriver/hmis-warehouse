@@ -26,7 +26,7 @@ gem 'carrierwave'
 gem 'acts-as-taggable-on', '~> 4.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
-# gem 'seven_zip_ruby', group: :seven_zip
+gem 'seven_zip_ruby'
 
 gem 'devise', '~> 3.5'
 gem 'devise_invitable'
@@ -75,6 +75,7 @@ gem 'redcarpet'
 gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
 gem 'roo', require: false
+gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 # gem 'wicked_pdf'
 # gem 'wkhtmltopdf-binary'
 

@@ -36,7 +36,16 @@ class UploadsController < ApplicationController
       flash[:alert] = _("Upload failed to queue.")
       render :new
     end
-    Importing::RunImportHudZipJob.perform_later(upload: @upload) if run_import
+    if run_import
+      case params[:grda_warehouse_upload][:import_type]
+      when 'hmis_51'
+        job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id)
+      when 'hmis_611'
+        job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id)
+      end
+      @upload.update(delayed_job_id: job.id)
+    end
+
   end
 
   private def upload_params

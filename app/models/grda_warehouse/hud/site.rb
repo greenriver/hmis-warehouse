@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class Site < Base
+    include HudSharedScopes
     self.table_name = 'Site'
     self.hud_key = 'SiteID'
     acts_as_paranoid column: :DateDeleted

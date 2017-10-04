@@ -100,6 +100,10 @@ class Report < ActiveRecord::Base
     false
   end
 
+  def has_project_id_option?
+    false
+  end
+
   def has_data_source_option?
     false
   end

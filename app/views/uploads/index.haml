@@ -26,8 +26,8 @@
                 %td= upload.user&.name
                 %td= upload.created_at
                 %td
-                  - if upload.has_import_log?
-                    = link_to upload.import_time, import_path(id: upload.import_log_id)
+                  - if upload.import_log.present?
+                    = link_to upload.import_time, import_path(id: upload.import_log.id)
                   - else
                     = upload.import_time
                

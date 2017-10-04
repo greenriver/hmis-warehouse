@@ -5,6 +5,7 @@ module GrdaWarehouse::Hud
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
     include HealthCharts
     include ApplicationHelper
+    include HudSharedScopes
     has_many :client_files
     has_many :vispdats
 
@@ -534,18 +535,18 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def image_for_source_client(cache_for=8.hours)
+    def image_for_source_client(cache_for=10.minutes)
       return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
-      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
+      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
         if Rails.env.production?
           api ||= EtoApi::Base.new.tap{|api| api.connect}
           image_data = api.client_image(
-            client_id: api_id.id_in_data_source, 
+            client_id: api_id.id_in_data_source,
             site_id: api_id.site_id_in_data_source
           ) rescue nil
-          (image_data && image_data.length > 0)
+          return image_data
         else
           if [0,1].include?(self[:Gender])
             num = id % 99
@@ -558,7 +559,7 @@ module GrdaWarehouse::Hud
             image_data = response.body
           end
         end
-        image_data
+        image_data || self.class.no_image_on_file_image
       end
     end
 
@@ -1164,13 +1165,15 @@ module GrdaWarehouse::Hud
     end
 
     def days_homeless_in_last_three_years
-      service_history.homeless.
+      service_history.homeless.service.
         service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+        select(:date).distinct.
         count
     end
 
     def days_homeless
-      service_history.homeless.
+      service_history.homeless.service.
+        select(:date).distinct.
         count
     end
 

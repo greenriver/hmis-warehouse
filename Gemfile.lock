@@ -477,6 +477,7 @@ GEM
     securecompare (1.0.0)
     select2-rails (4.0.3)
       thor (~> 0.14)
+    seven_zip_ruby (1.2.5)
     sexp_processor (4.9.0)
     shellany (0.0.1)
     shoulda (3.5.0)
@@ -490,6 +491,7 @@ GEM
       activemodel (> 4, < 5.1)
     slack-notifier (1.5.1)
     slop (3.6.0)
+    soundex (0.1.2)
     spring (2.0.0)
       activesupport (>= 4.2)
     sprockets (3.7.1)
@@ -634,9 +636,11 @@ DEPENDENCIES
   schema_plus_views
   sdoc (~> 0.4.0)
   select2-rails
+  seven_zip_ruby
   shoulda
   simple_form
   slack-notifier
+  soundex
   spring
   sprockets-es6
   sshkit

@@ -37,7 +37,10 @@ module Window
       end
       response.headers['Last-Modified'] = Time.zone.now.httpdate
       expires_in max_age, public: false
-      send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image_for_source_client), disposition: 'inline'
+      image = @client.image_for_source_client(max_age)
+      if image
+        send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+      end
     end
 
     def redirect_to_path

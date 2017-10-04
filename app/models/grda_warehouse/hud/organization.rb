@@ -2,6 +2,7 @@
 module GrdaWarehouse::Hud
   class Organization < Base
     include ArelHelper
+    include HudSharedScopes
     self.table_name = 'Organization'
     self.hud_key = 'OrganizationID'
     acts_as_paranoid column: :DateDeleted

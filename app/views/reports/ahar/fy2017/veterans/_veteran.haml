@@ -1,0 +1,14 @@
+= simple_form_for :options, url: hud_reports_ahar_fy_2017_veteran_index_path() do |f|
+  %h3 Queue Report
+  .slab
+    = f.error_notification
+    .row
+      = render 'reports/ahar/fy2017/base_form', f: f
+      
+      .col-sm-4
+        
+    .row
+      .col-sm-12.margin-bottom-02
+        = f.button :button, class: 'btn btn-primary pull-right' do
+          %span.icon-plus
+          Queue Report Run

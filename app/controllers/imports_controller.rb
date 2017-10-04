@@ -87,6 +87,7 @@ class ImportsController < ApplicationController
       params.require(:import).permit(
         :file,
         :source,
+        :import_type
       )
     end
 
