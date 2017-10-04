@@ -1,3 +1,4 @@
+require 'faker'
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
   serialize :map, JSON
   serialize :client_ids, JSON

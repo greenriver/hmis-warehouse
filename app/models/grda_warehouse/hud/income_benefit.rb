@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class IncomeBenefit < Base
+    include HudSharedScopes
     self.table_name = 'IncomeBenefits'
     self.hud_key = 'IncomeBenefitsID'
     acts_as_paranoid column: :DateDeleted

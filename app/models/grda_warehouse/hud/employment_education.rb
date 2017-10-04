@@ -1,5 +1,6 @@
 module GrdaWarehouse::Hud
   class EmploymentEducation < Base
+    include HudSharedScopes
     self.table_name = 'EmploymentEducation'
     self.hud_key = 'EmploymentEducationID'
     acts_as_paranoid column: :DateDeleted

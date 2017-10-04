@@ -5,6 +5,7 @@ module GrdaWarehouse::Hud
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
     include HealthCharts
     include ApplicationHelper
+    include HudSharedScopes
     has_many :client_files
     has_many :vispdats
 
