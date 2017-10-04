@@ -4,9 +4,9 @@ module ReportGenerators::CAPER::Fy2017
 
     def run!
       if start_report(Reports::CAPER::Fy2017::Q5a.first)
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
-        @all_clients = fetch_all_clients()
+        @all_clients = fetch_all_clients
         if @all_clients.any?
           data_methods = %i[
             total_number_served
@@ -44,11 +44,11 @@ module ReportGenerators::CAPER::Fy2017
         client_id:    sh_t, 
         project_id:   sh_t,
         project_name: sh_t,
-        OrganizationName: o_t,
-        OrganizationID:   o_t,
+        FirstName: c_t,
+        LastName:  c_t,
       )
       all_client_scope.
-        joins( { project: :organization }, :enrollment ).
+        joins( :project, :enrollment ).
         order(date: :asc).
         pluck(*columns.values).
         map do |row|
@@ -61,32 +61,45 @@ module ReportGenerators::CAPER::Fy2017
         end
     end
 
-    def add_total_number_served
-      filtered = @all_clients
-      sorted = filtered.sort_by{ |h| h[:client_id] }
-      @answers[:q5a_b1][:value] = filtered.count
-      @support[:q5a_b1][:support] = add_support(
-        headers: ['Organization ID', 'Client ID'],
-        data: sorted.map do |client|
-          client.values_at :OrganizationID, :client_id
+    def typical_client_data(key, sorted)
+      @answers[key][:value] = sorted.count
+      @support[key][:support] = add_support(
+        headers: ['Client ID', 'First Name', 'LastName'],
+        data: sorted.map do |_,data|
+          datum = data.is_a?(Array) ? data.first : data
+          datum.values_at :client_id, :FirstName, :LastName
         end
       )
     end
 
-    def add_number_adults
+    def add_total_number_served
+      filtered = @all_clients
+      sorted = filtered.sort_by(&:first)
+      typical_client_data :q5a_b1, sorted
+    end
 
+    def add_number_adults
+      filtered = @all_clients.select{ |h| adult? h[:age] }
+      sorted = filtered.sort_by{ |h| h[:client_id] }
+      typical_client_data :q5a_b2, sorted
     end
 
     def add_number_children
-
+      filtered = @all_clients.select{ |h| child? h[:age] }
+      sorted = filtered.sort_by{ |h| h[:client_id] }
+      typical_client_data :q5a_b3, sorted
     end
 
     def add_number_unknown_age
-
+      filtered = @all_clients.reject{ |h| h[:age].present? }
+      sorted = filtered.sort_by{ |h| h[:client_id] }
+      typical_client_data :q5a_b4, sorted
     end
 
     def add_number_leavers
-
+      filtered = leavers
+      sorted = filtered.sort_by{ |h| h[:client_id] }
+      typical_client_data :q5a_b5, sorted
     end
 
     def add_number_adult_leavers

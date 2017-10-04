@@ -104,7 +104,9 @@ module ReportGenerators::CAPER::Fy2017
           household_id:            sh_t,
           destination:             sh_t,
           RelationshipToHoH: e_t,
-          DOB: c_t,
+          DOB:       c_t,
+          FirstName: c_t,
+          LastName:  c_t,
         )
         
         client_id_scope = GrdaWarehouse::ServiceHistory.entry.
