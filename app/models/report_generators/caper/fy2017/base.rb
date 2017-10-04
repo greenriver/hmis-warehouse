@@ -259,9 +259,6 @@ module ReportGenerators::CAPER::Fy2017
         support: @support,
       )
     end
-    def all_client_count 
-      count ||= @all_clients.size
-    end
 
     def setup_age_categories
       clients_with_ages = @all_clients.map do |id, enrollments|
@@ -474,32 +471,6 @@ module ReportGenerators::CAPER::Fy2017
 
     def log_with_memory text
       Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
-    end
-
-    ## some convenience functions borrowed from other report generators that seem to be generally useful
-
-    def update_report_progress percent:
-      @report.update(
-        percent_complete: percent,
-        results: @answers,
-        support: @support,
-      )
-    end
-
-    def finish_report
-      @report.update(
-        percent_complete: 100, 
-        results: @answers,
-        support: @support,
-        completed_at: Time.now
-      )
-    end
-
-    def add_support headers:, data:
-      {
-        headers: headers,
-        counts: data,
-      }
     end
 
     # just DRYing up some repetitive code to make the underlying pattern visible
