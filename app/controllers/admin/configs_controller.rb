@@ -30,6 +30,7 @@ module Admin
         :default_coc_zipcodes,
         :family_calculation_method,
         :continuum_name,
+        :cas_url,
         tag_list: [],
       )
     end

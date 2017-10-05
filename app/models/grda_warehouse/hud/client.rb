@@ -8,6 +8,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     has_many :client_files
     has_many :vispdats
+    has_one :cas_project_client, class_name: Cas::ProjectClient.name, foreign_key: :id_in_data_source
+    has_one :cas_client, class_name: Cas::Client.name, through: :cas_project_client, source: :client
 
     self.table_name = 'Client'
     self.hud_key = 'PersonalID'
