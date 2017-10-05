@@ -20,13 +20,13 @@ module ReportGenerators::CAPER::Fy2017
             number_adult_stayers
             number_veterans
             number_chronically_homeless
-            number_you_under_25
+            number_youth_under_25
             number_parenting_youth_under_25
             number_adult_hoh
             number_children_and_unknown_age_hoh
             hoh_and_adult_stayers_of_365_days_or_more
           ]
-          data.methods.each_with_index do |method, i|
+          data_methods.each_with_index do |method, i|
             send("add_#{method}")
             if i < data_methods.length - 1
               update_report_progress percent: ( 100 * i.to_f / data_methods.length ).round
@@ -41,11 +41,18 @@ module ReportGenerators::CAPER::Fy2017
 
     def fetch_all_clients
       columns = columnize(
-        client_id:    sh_t, 
-        project_id:   sh_t,
-        project_name: sh_t,
-        FirstName: c_t,
-        LastName:  c_t,
+        client_id:             sh_t, 
+        project_id:            sh_t,
+        project_name:          sh_t,
+        data_source_id:        sh_t,
+        first_date_in_program: sh_t,
+        last_date_in_program:  sh_t,
+        household_id:          sh_t,
+        FirstName:     c_t,
+        LastName:      c_t,
+        VeteranStatus: c_t,
+        DOB:           c_t,
+        RelationshipToHoH: e_t,
       )
       all_client_scope.
         joins( :project, :enrollment ).
@@ -61,89 +68,205 @@ module ReportGenerators::CAPER::Fy2017
         end
     end
 
-    def typical_client_data(key, sorted)
+    def youth_households
+      @youth_households ||= households.select do |_, household|
+        # Only select each household once, when we hit the head
+        if head_of_household?(household[:household].first)
+          household[:household].select do |member|
+            member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
+          end.count == household[:household].count
+        end
+      end
+    end
+
+    def client_data( key, sorted,
+        headers: ['Client ID', 'First Name', 'LastName'],
+        columns: %i( client_id FirstName LastName )
+      )
       @answers[key][:value] = sorted.count
       @support[key][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'LastName'],
+        headers: headers,
         data: sorted.map do |_,data|
-          datum = data.is_a?(Array) ? data.first : data
-          datum.values_at :client_id, :FirstName, :LastName
+          datum = data.is_a?(Array) ? data.last : data  # by default, take last (most recent)
+          datum.values_at *columns
         end
       )
     end
 
     def add_total_number_served
       filtered = @all_clients
-      sorted = filtered.sort_by(&:first)
-      typical_client_data :q5a_b1, sorted
+      client_data :q5a_b1, filtered
     end
 
     def add_number_adults
-      filtered = @all_clients.select{ |h| adult? h[:age] }
-      sorted = filtered.sort_by{ |h| h[:client_id] }
-      typical_client_data :q5a_b2, sorted
+      filtered = @all_clients.select{ |h| adult? h }
+      client_data :q5a_b2, filtered
     end
 
     def add_number_children
-      filtered = @all_clients.select{ |h| child? h[:age] }
-      sorted = filtered.sort_by{ |h| h[:client_id] }
-      typical_client_data :q5a_b3, sorted
+      filtered = @all_clients.select{ |h| child? h }
+      client_data :q5a_b3, filtered
     end
 
     def add_number_unknown_age
-      filtered = @all_clients.reject{ |h| h[:age].present? }
-      sorted = filtered.sort_by{ |h| h[:client_id] }
-      typical_client_data :q5a_b4, sorted
+      filtered = @all_clients.select{ |h| unknown_age? h }
+      client_data :q5a_b4, filtered
     end
 
     def add_number_leavers
       filtered = leavers
-      sorted = filtered.sort_by{ |h| h[:client_id] }
-      typical_client_data :q5a_b5, sorted
+      client_data :q5a_b5, filtered
     end
 
     def add_number_adult_leavers
-
+      filtered = leavers.select{ |h| adult? h }
+      client_data :q5a_b6, filtered
     end
 
     def add_number_adult_and_hoh_leavers
-
+      filtered = leavers.select{ |h| adult?(h) || head_of_household?(h)  }  # NOTE as in the data quality report, I am interpreting "and" to mean the union rather than the intersection
+      client_data :q5a_b7, filtered
     end
 
     def add_number_stayers
-
+      filtered = stayers
+      client_data :q5a_b8, filtered
     end
 
     def add_number_adult_stayers
-
+      filtered = stayers.select{ |h| adult? h }
+      client_data :q5a_b9, filtered
     end
 
     def add_number_veterans
-
+      filtered = @all_clients.select{ |h| veteran? h }
+      client_data :q5a_b10, filtered
     end
 
+    # Copied from data quality q1. See FIXMEs
     def add_number_chronically_homeless
+      disabled_clients              = {}
+      living_situation_qualifies    = {}
+      episodes_and_months_qualifies = {}
 
+      @all_clients.each do |id, enrollments|
+        enrollment = enrollments.last
+
+        disabled_clients[id] = enrollment if client_disabled? enrollment  # FIXME (see below) why is being disabled a requirement for being chronically homeless?
+        
+        living_situation_qualifies[id] = enrollment if living_situation_is_homeless? enrollment
+
+        episodes_and_months_qualifies[id] = enrollment if four_or_more_episodes_and_12_months_or_365_days? enrollment
+      end
+      chronic_ids = disabled_clients.keys & living_situation_qualifies.keys & episodes_and_months_qualifies.keys
+      chronic = disabled_clients.select{ |k,_| chronic_ids.include? k }  # FIXME this logic makes no sense to me. Why are only disabled clients potentially chronically homeless?
+      client_data :q5a_b11, chronic.values,
+        headers: ['Client ID', 'Age', 'Project Name', 'Entry', 'Exit'],
+        columns: %i[ client_id age project_name first_date_in_program last_date_in_program ]
     end
 
-    def add_number_you_under_25
-
+    # copied from add_youth_answers in data quality q1: q1_b12
+    def add_number_youth_under_25
+      @answers[:q5a_b12][:value] = youth_households.count
+      @support[:q5a_b12][:support] = add_support(
+        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size'],
+        data: youth_households.map do |id, household|
+          member = household[:household].first
+          [
+            id,
+            member[:age],
+            member[:household_id],
+            household[:household].map{ |m| m[:client_id] }.join(', '),
+            household[:household].size
+          ]
+        end
+      )
     end
 
+    # copied from add_youth_answers in data quality q1: q1_b13
     def add_number_parenting_youth_under_25
-
+      parenting_youth = youth_households.select do |id, household|
+        household[:household].select do |member|
+          adult?(member) && child_in_household?(member)
+        end.any?
+      end
+      @answers[:q5a_b13][:value] = parenting_youth.count
+      @support[:q5a_b13][:support] = add_support(
+        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size'],
+        data: youth_households.map do |id, household|
+          member = household[:household].first
+          [
+            id,
+            member[:age],
+            member[:household_id],
+            household[:household].map{ |m| m[:client_id] }.join(', '),
+            household[:household].size
+          ]
+        end
+      )
     end
 
+    # q1_b14
     def add_number_adult_hoh
-
+      adult_heads = households.select do |id, household|
+        household[:household].select do |member|
+          adult?(member) && head_of_household?(member)
+        end.any?
+      end
+      @answers[:q5a_b14][:value] = adult_heads.size
+      @support[:q5a_b14][:support] = add_support(
+        headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
+        data: adult_heads.map do |id, household|
+          [
+            id,
+            household[:household].first[:household_id],
+            household[:household].map{ |m| m[:client_id] }.join(', '),
+            household[:household].size
+          ]
+        end
+      )
     end
 
+    # copied from add_youth_answers in data quality q1: q1_b15
     def add_number_children_and_unknown_age_hoh
-
+      other_heads = households.select do |id, household|
+        household[:household].select do |member|
+          ! adult?(member) && head_of_household?(member)
+        end.any?
+      end
+      @answers[:q5a_b15][:value] = other_heads.size
+      @support[:q5a_b15][:support] = add_support(
+        headers: ['Client ID', 'Household ID', 'Members', 'Size'], 
+        data: other_heads.map do |id, household|
+          [
+            id,
+            household[:household].first[:household_id],
+            household[:household].
+              map{|m| m[:client_id]}.join(', '), 
+            household[:household].size
+          ]
+        end
+      )
     end
 
+    # copied from add_youth_answers in data quality q1: q1_b16
     def add_hoh_and_adult_stayers_of_365_days_or_more
-
+      lts = adult_stayers_and_heads_of_household_stayers.each do |id, enrollment|
+        enrollment[:stay_length] = stay_length_for_adult_hoh(
+          client_id: id,
+          entry_date: enrollment[:first_date_in_program],
+          enrollment_group_id: enrollment[:enrollment_group_id]
+        )
+      end.select do |_,enrollment|
+        enrollment[:stay_length] >= 365
+      end
+      @answers[:q5a_b16][:value] = lts.size
+      @support[:q5a_b16][:support] = add_support(
+        headers: ['Client ID', 'Relationship to Head of Household', 'Stay Length'],
+        data: lts.map do |id, enrollment|
+          [ id, enrollment[:RelationshipToHoH], enrollment[:stay_length] ]
+        end
+      )
     end
 
     def setup_questions

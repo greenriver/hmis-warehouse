@@ -159,7 +159,9 @@ module ReportGenerators::CAPER::Fy2017
           project_name:            sh_t,
           household_id:            sh_t,
           RelationshipToHoH: e_t,
-          DOB: c_t,
+          DOB:       c_t,
+          FirstName: c_t,
+          LastName:  c_t,
         )
 
         stayers_scope = GrdaWarehouse::ServiceHistory.entry.
@@ -170,8 +172,8 @@ module ReportGenerators::CAPER::Fy2017
 
         stayers_scope.
           order(client_id: :asc, first_date_in_program: :asc).
-          pluck(*columns.keys).map do |row|
-            Hash[columns.values.zip(row)]
+          pluck(*columns.values).map do |row|
+            Hash[columns.keys.zip(row)]
           end.group_by do |row|
             row[:client_id]
           end.map do |id,enrollments| 
@@ -180,18 +182,6 @@ module ReportGenerators::CAPER::Fy2017
             enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
             [id, enrollment]
           end.to_h
-      end
-    end
-
-    def adult_stayers
-      @adult_stayers ||= stayers.select do |_, enrollment|
-        adult?(enrollment[:age])
-      end
-    end
-
-    def adult_stayers_and_heads_of_household_stayers
-      @adult_stayers_and_heads_of_household_stayers ||= stayers.select do |_, enrollment|
-        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
     end
 
@@ -204,23 +194,43 @@ module ReportGenerators::CAPER::Fy2017
     end
 
     def adult?(age)
+      age = age[:age] if age.is_a? Hash
       age >= ADULT if age.present?
     end
 
     def child?(age)
+      age = age[:age] if age.is_a? Hash
       age < ADULT if age.present?
     end
 
+    def unknown_age?(age)
+      age = age[:age] if age.is_a? Hash
+      !age.present?
+    end
+
+    def veteran?(status)
+      status = status[:VeteranStatus] if status.is_a? Hash
+      status == 1
+    end
+
     def head_of_household?(relationship)
+      relationship = relationship[:RelationshipToHoH] if relationship.is_a? Hash
       relationship.to_i == 1
     end
 
     def child_in_household?(relationship)
+      relationship = relationship[:RelationshipToHoH] if relationship.is_a? Hash
       relationship.to_i == 2
     end
 
     def valid_household_relationship?(relationship)
+      relationship = relationship[:RelationshipToHoH] if relationship.is_a? Hash
       (1..5).include?(relationship.to_i)
+    end
+
+    def homeless_for_one_year? enrollment
+      enrollment[:DateToStreetESSH].present? && 
+      enrollment[:DateToStreetESSH].to_date <= (enrollment[:first_date_in_program] - 365.days)
     end
 
     def valid_coc_code?(code)
@@ -323,7 +333,7 @@ module ReportGenerators::CAPER::Fy2017
           counter += 1
           if counter % 500 == 0
             GC.start
-            log_with_memory("Building households #{counter} of #{@all_clients.size}")
+            # log_with_memory("Building households #{counter} of #{@all_clients.size}")
           end
           hh[id] = {
             key: key,
@@ -338,7 +348,7 @@ module ReportGenerators::CAPER::Fy2017
     def adult_heads
       households.select do |id, household|
         household[:household].select do |member|
-          adult?(member[:age]) && head_of_household?(member[:RelationshipToHoH])
+          adult?(member[:age]) && head_of_household?(member)
         end.any?
       end
     end
@@ -346,20 +356,8 @@ module ReportGenerators::CAPER::Fy2017
     def other_heads
       households.select do |id, household|
         household[:household].select do |member|
-          ! adult?(member[:age]) && head_of_household?(member[:RelationshipToHoH])
+          ! adult?(member[:age]) && head_of_household?(member)
         end.any?
-      end
-    end
-
-    def adult_leavers_and_heads_of_household_leavers
-      @adult_head_leavers ||= leavers.select do |_, enrollment|
-        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
-      end
-    end
-
-    def adult_leavers
-      @adult_leavers ||= @leavers.select do |_, enrollment|
-        adult?(enrollment[:age])
       end
     end
 
@@ -373,6 +371,12 @@ module ReportGenerators::CAPER::Fy2017
         select(:date).
         distinct.
         count
+    end
+
+    def adult_stayers_and_heads_of_household_stayers
+      @adult_stayers_and_heads_of_household_stayers ||= stayers.select do |_, enrollment|
+        adult?(enrollment) || head_of_household?(enrollment)
+      end
     end
 
     # select count distinct date, concat(client_id, enrollment_group_id, first_date_in_program)
@@ -418,7 +422,7 @@ module ReportGenerators::CAPER::Fy2017
       ]] || 0      
     end
 
-    def client_disabled?(enrollment:)
+    def client_disabled?(enrollment)
       return true if enrollment[:DisablingCondition] == 1
       # load disabling conditions for client, we've indicated we don't have any.
       # If we do, we have a problem
@@ -446,7 +450,7 @@ module ReportGenerators::CAPER::Fy2017
     end
     
 
-    def living_situation_is_homeless enrollment:
+    def living_situation_is_homeless? enrollment
       # [living situation] (3.917.1) = 16, 1, 18 or 27
       [16,1,18,27].include?(enrollment[:ResidencePrior]) ||
       # [on the night before, did you stay in streets, ES or SH?] (3.917.2c) 
@@ -455,13 +459,8 @@ module ReportGenerators::CAPER::Fy2017
       [1,4,8].include?(enrollment[:project_type])
     end
 
-    def homeless_for_one_year? enrollment:
-      enrollment[:DateToStreetESSH].present? && 
-      enrollment[:DateToStreetESSH].to_date <= (enrollment[:first_date_in_program] - 365.days)
-    end
-
-    def four_or_more_episodes_and_12_months_or_365_days? enrollment:
-      homeless_for_one_year?(enrollment: enrollment) ||
+    def four_or_more_episodes_and_12_months_or_365_days? enrollment
+      homeless_for_one_year?(enrollment) ||
       enrollment[:TimesHomelessPastThreeYears].present? && enrollment[:TimesHomelessPastThreeYears] >= 4 &&
        enrollment[:MonthsHomelessPastThreeYears].present? && enrollment[:MonthsHomelessPastThreeYears] >= 12
     end
@@ -469,10 +468,6 @@ module ReportGenerators::CAPER::Fy2017
     def debug
       Rails.env.development?
       # true
-    end
-
-    def log_with_memory text
-      Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
     end
 
     # just DRYing up some repetitive code to make the underlying pattern visible
