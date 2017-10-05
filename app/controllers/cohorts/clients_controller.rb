@@ -7,6 +7,23 @@ module Cohorts
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update]
 
+    # Return a json object of {cohort_client.id : updated_at}
+    # for easy poling
+    def index
+      respond_to do |format|
+        format.json do
+        end
+      end
+    end
+
+    # Return the entire row of html layout false
+    def show
+      respond_to do |format|
+        format.json do
+        end
+      end
+    end
+
     def new
       @clients = []
       @filter = ::Filters::Chronic.new(params[:filter])

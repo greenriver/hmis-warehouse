@@ -21,25 +21,4 @@
         Remove
   %tbody
     - @cohort.cohort_clients.each do |cohort_client|
-      - client = cohort_client.client
-      %tr.jCohortClient
-        %td
-          = client.LastName
-        %td
-          = client.FirstName
-        %td
-          = client.age_on(@cohort.effective_date)
-        %td
-          = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
-            %span.icon-plus
-        %td
-          - cohort_client.cohort_client_notes.each do |note|
-            = render note
-        - @cohort.visible_columns.each do |column|
-          %td
-            = simple_form_for cohort_client, url: cohort_cohort_client_path(@cohort, cohort_client), html: {class: 'jUpdateClient'}, remote: true do |f|
-              - value = cohort_client.public_send(column.column)
-              = input_for(column, default_value: value, client_id: cohort_client.id)
-        %td
-          = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: cohort_client.id), action: :destroy, method: :delete, class: 'btn btn-danger btn-sm' do
-            %span.icon-cross
+      = render 'client_table_row', cohort_client: cohort_client

@@ -22,8 +22,14 @@ class CohortsController < ApplicationController
   end
 
   def create
-    @cohort = cohort_source.create(cohort_params)
-    respond_with(@cohort, location: cohort_path(@cohort))
+
+    begin
+      @cohort = cohort_source.create!(cohort_params)
+      respond_with(@cohort, location: cohort_path(@cohort))
+    rescue Exception => e
+      flash[:error] = e.message
+      redirect_to cohorts_path()
+    end
   end
 
   def update
@@ -48,6 +54,6 @@ class CohortsController < ApplicationController
   end
 
   def flash_interpolation_options
-    { resource_name: @cohort.name }
+    { resource_name: @cohort&.name }
   end
 end
