@@ -71,7 +71,7 @@ module ReportGenerators::DataQuality::Fy2016
 
     def add_veteran_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
+      poor_quality = @all_clients.select do |id, enrollments|   # it looks like counted is going to have the same size as poor_quality
         enrollment = enrollments.last
         age = enrollment[:age]
         veteran_status = enrollment[:VeteranStatus]
@@ -92,7 +92,7 @@ module ReportGenerators::DataQuality::Fy2016
           ]
         end
       )
-      @answers[:q3_c2][:value] = ((counted.size.to_f / @adults.size) * 100).round(2)
+      @answers[:q3_c2][:value] = ((counted.size.to_f / @adults.size) * 100).round(2) #/ <-- fixes syntax highlighting
     end
 
     def add_entry_date_answers
@@ -104,7 +104,7 @@ module ReportGenerators::DataQuality::Fy2016
           enrollment[:project_id]
         end.select{|_,v| v.size > 1}.values.flatten(1).
         combination(2) do |en_1, en_2|
-          overlap = enrollments_overlap?(en_1, en_2)
+          overlap = enrollments_overlap?(en_1, en_2)   # FIXME? it looks like we want ||= here instead of =
         end
         overlap
       end
@@ -191,12 +191,12 @@ module ReportGenerators::DataQuality::Fy2016
         flag = false
         enrollment = enrollments.last
         if ! head_of_household?(enrollment[:RelationshipToHoH])
-          flag = false
+          flag = false   # FIXME the logic here is confusing -- if the relationship is HoH and the coc code is invalid, we select the enrollment as of poor data quality?
         else
           # if the CoCCode doesn't match the approved pattern (including missing), flag it
           flag = ! valid_coc_code?(enrollment[:CoCCode])
         end
-
+        # FIXME I think we're supposed to put flag here
       end
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
