@@ -410,6 +410,10 @@ module ReportGenerators::CAPER::Fy2017
         count
     end
 
+    def all_client_count 
+      @all_clients.size
+    end
+
     # maybe should be moved to subclasses that actually need it
     def adult_stayers_and_heads_of_household_stayers
       @adult_stayers_and_heads_of_household_stayers ||= stayers.select do |_, enrollment|
