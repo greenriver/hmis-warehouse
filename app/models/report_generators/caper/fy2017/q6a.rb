@@ -11,21 +11,19 @@ module ReportGenerators::CAPER::Fy2017
         update_report_progress percent: 50
         if @all_clients.any?
           @clients_with_issues = Set.new
-          if @all_clients.any?
-            data_methods = %i[
-              name_answers
-              ssn_answers
-              dob_answers
-              race_answers
-              ethnicity_answers
-              gender_answers
-              summary_info
-            ]
-            data_methods.each_with_index do |method, i|
-              send("add_#{method}")
-              if i < data_methods.length - 1
-                update_report_progress percent: 50 + ( 50 * i.to_f / data_methods.length ).round
-              end
+          data_methods = %i[
+            name_answers
+            ssn_answers
+            dob_answers
+            race_answers
+            ethnicity_answers
+            gender_answers
+            summary_info
+          ]
+          data_methods.each_with_index do |method, i|
+            send("add_#{method}")
+            if i < data_methods.length - 1
+              update_report_progress percent: 50 + ( 50 * i.to_f / data_methods.length ).round
             end
           end
         end
