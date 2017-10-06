@@ -64,6 +64,10 @@ module ReportGenerators::CAPER::Fy2017
       GrdaWarehouse::Hud::Organization.arel_table
     end
 
+    def e_coc_t
+      GrdaWarehouse::Hud::EnrollmentCoc.arel_table
+    end
+
     def act_as_coc_overlay
       nf( 'COALESCE', [ coc_t[:hud_coc_code], coc_t[:CoCCode] ] ).as('CoCCode').to_sql
     end
@@ -273,7 +277,8 @@ module ReportGenerators::CAPER::Fy2017
     end
 
     def valid_coc_code?(code)
-      /^[a-zA-Z]{2}-[0-9]{3}$/.match(code).present?
+      code = code[:CoCCode] if code.is_a? Hash
+      /^[a-zA-Z]{2}-[0-9]{3}$/ === code.to_s
     end
 
     def start_report(report)
@@ -511,6 +516,11 @@ module ReportGenerators::CAPER::Fy2017
     def debug
       Rails.env.development?
       # true
+    end
+
+    def log_with_memory text
+      return # this is throwing an error in jobs:workoff, so I'm putting a spanner in it -- DFH
+      Rails.logger.info "#{text}: #{::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
     end
 
     # just DRYing up some repetitive code to make the underlying pattern visible
