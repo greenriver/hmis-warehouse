@@ -84,6 +84,44 @@ module ReportGenerators::CAPER::Fy2017
       add_filters(scope: client_scope)
     end
 
+    # likely to be overridden
+    def fetch_all_clients
+      columns = columnize(
+        client_id:             sh_t,
+        enrollment_group_id:   sh_t,
+        project_id:            sh_t,
+        data_source_id:        sh_t,
+        first_date_in_program: sh_t,
+        last_date_in_program:  sh_t,
+        VeteranStatus:   c_t,
+        NameDataQuality: c_t,
+        FirstName:       c_t,
+        LastName:        c_t,
+        SSN:             c_t,
+        SSNDataQuality:  c_t,
+        DOB:             c_t,
+        DOBDataQuality:  c_t,
+        Ethnicity:       c_t,
+        Gender:          c_t,
+        RaceNone:        c_t,
+        DateCreated: e_t,
+      ).merge({
+        project_type: act_as_project_overlay,
+      })
+      all_client_scope.
+        joins( :project, :enrollment ).
+        order(date: :asc).
+        pluck(*columns.values).
+        map do |row|
+          Hash[columns.keys.zip(row)]
+        end.each do |enrollment|
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+        end.group_by do |row|
+          row[:client_id]
+        end
+    end
+
+    # maybe should be moved to subclasses that actually need it
     def leavers
       @report_start ||= @report.options['report_start'].to_date
       @report_end ||= @report.options['report_end'].to_date
@@ -141,6 +179,7 @@ module ReportGenerators::CAPER::Fy2017
       end
     end
 
+    # maybe should be moved to subclasses that actually need it
     def stayers
       @report_end ||= @report.options['report_end'].to_date
       stayers ||= begin
@@ -272,6 +311,7 @@ module ReportGenerators::CAPER::Fy2017
       )
     end
 
+    # maybe should be moved to subclasses that actually need it
     def setup_age_categories
       clients_with_ages = @all_clients.map do |id, enrollments|
         enrollment = enrollments.last
@@ -288,6 +328,7 @@ module ReportGenerators::CAPER::Fy2017
       end
     end
 
+    # maybe should be moved to subclasses that actually need it
     def anniversary_date(date)
       @report_end ||= @report.options['report_end'].to_date
       date = date.to_date
@@ -300,14 +341,7 @@ module ReportGenerators::CAPER::Fy2017
       anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
     end
 
-
-    # create
-    # [{
-    #   <client_id>: {
-    #     key: [ds_id, hh_id...],
-    #     household: [enrollments]
-    #   } 
-    # }]
+    # maybe should be moved to subclasses that actually need it
     def households
       @households ||= begin
         counter = 0
@@ -345,6 +379,7 @@ module ReportGenerators::CAPER::Fy2017
       @households
     end
 
+    # maybe should be moved to subclasses that actually need it
     def adult_heads
       households.select do |id, household|
         household[:household].select do |member|
@@ -353,6 +388,7 @@ module ReportGenerators::CAPER::Fy2017
       end
     end
 
+    # maybe should be moved to subclasses that actually need it
     def other_heads
       households.select do |id, household|
         household[:household].select do |member|
@@ -361,6 +397,7 @@ module ReportGenerators::CAPER::Fy2017
       end
     end
 
+    # maybe should be moved to subclasses that actually need it
     def stay_length(client_id:, entry_date:, enrollment_group_id:)
       GrdaWarehouse::ServiceHistory.service.
         where(
@@ -373,12 +410,14 @@ module ReportGenerators::CAPER::Fy2017
         count
     end
 
+    # maybe should be moved to subclasses that actually need it
     def adult_stayers_and_heads_of_household_stayers
       @adult_stayers_and_heads_of_household_stayers ||= stayers.select do |_, enrollment|
         adult?(enrollment) || head_of_household?(enrollment)
       end
     end
 
+    # maybe should be moved to subclasses that actually need it
     # select count distinct date, concat(client_id, enrollment_group_id, first_date_in_program)
     # from sh
     # where concat(client_id, enrollment_group_id, first_date_in_program)
