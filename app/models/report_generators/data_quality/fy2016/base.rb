@@ -229,8 +229,9 @@ module ReportGenerators::DataQuality::Fy2016
         support: @support,
       )
     end
+
     def all_client_count 
-      count ||= @all_clients.size
+      @all_clients.size
     end
 
     def setup_age_categories
