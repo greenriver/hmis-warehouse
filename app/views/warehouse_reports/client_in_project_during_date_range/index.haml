@@ -1,33 +1,39 @@
-- title = "Client's in a Project for a Given Date Range"
+- title = "Clients in a Project for a Given Date Range"
 - content_for :title, title
 %h1= title 
 = render '/warehouse_reports/breadcrumbs'
 = simple_form_for :project, url: warehouse_reports_client_in_project_during_date_range_index_path, html: {method: :get} do |f|
   .row
     .col-sm-3
-      .input-group.start{'data-provide' => 'datepicker'}
-        = f.input_field :start, name: :start, class: 'form-control', value: @start 
-        %span.input-group-addon.icon-calendar
+      = f.input :start, as: :date_picker, input_html: {value: @start}, label: false
     .col-sm-3
-      .input-group.end{'data-provide' => 'datepicker'}
-        = f.input_field :end, name: :end, class: 'form-control', value: @end 
-        %span.input-group-addon.icon-calendar
+      = f.input :end, as: :date_picker, input_html: {value: @end}, label: false
     .col-sm-3
       = f.input :id, label: false, as: :select, collection: available_projects, selected: @project_id.to_s, input_html: {class: :select2}
     .col-sm-3
       = f.button :submit, value: 'Update View'
 .warehouse-reports__chronic
-  %p= page_entries_info @clients, entry_name: _('client')
+  .row
+    .col-sm-8
+      %p= page_entries_info @clients, entry_name: _('client')
+    .col-sm-4
+      .pull-right
+        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+          Download Excel
   %table.table.table-condensed.table-hover
     %thead
       %tr
         %th Last Name
         %th First Name
         %th Data Source
+        %th Cumulative Days Homeless
+        %th Days Homeless in The Past Three Years
     %tbody
       - @clients.each do |client|
         %tr
           %td= link_to client.LastName, client_path(client)
           %td= link_to client.FirstName, client_path(client)
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+          %td= client.days_homeless
+          %td= client.days_homeless_in_last_three_years
 %p= paginate @clients
