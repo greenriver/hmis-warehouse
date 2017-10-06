@@ -41,6 +41,7 @@ h2.ho-sub__h2 {
 
 #d3-tooltip {
   position: absolute;
+  display: none;
   background-color: #FFFFFF;
   padding: $ho-padding;
   border: 1px solid $ho-color-2;
