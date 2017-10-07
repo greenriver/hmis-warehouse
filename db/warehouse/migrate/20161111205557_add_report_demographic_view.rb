@@ -4,7 +4,7 @@ class AddReportDemographicView < ActiveRecord::Migration
     gh_client_table        = model.arel_table
     report_client_table    = Arel::Table.new :report_clients
     warehouse_client_table = GrdaWarehouse::WarehouseClient.arel_table
-    query = ct.
+    query = gh_client_table.
       project(
         *gh_client_table.engine.column_names.map(&:to_sym).map{ |c| gh_client_table[c] }, # all the client columns
         report_client_table[:id].as('client_id')                                          # also a fake foreign key mapping to clients report
