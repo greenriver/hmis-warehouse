@@ -49,8 +49,7 @@ module ReportGenerators::CAPER::Fy2017
       })
 
       all_client_scope.
-        includes(:enrollment).
-        joins(:project).
+        joins( :enrollment, :project ).
         order(date: :asc).
         pluck(*columns.values).
         map do |row|
