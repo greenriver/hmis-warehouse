@@ -52,11 +52,11 @@ module ReportGenerators::CAPER::Fy2017
 
     def add_entry_time_answers
       buckets = {
-        q6_b2: 0..0,
-        q6_b3: 1..3,
-        q6_b4: 4..6,
-        q6_b5: 7..10,
-        q6_b6: 11..Float::INFINITY
+        q6e_b2: 0..0,
+        q6e_b3: 1..3,
+        q6e_b4: 4..6,
+        q6e_b5: 7..10,
+        q6e_b6: 11..Float::INFINITY
       }.map do |key, range|
         [ key, { range: range, clients: {} } ]
       end.to_h
@@ -94,11 +94,11 @@ module ReportGenerators::CAPER::Fy2017
 
     def add_exit_time_answers
       buckets = {
-        q6_c2: 0..0,
-        q6_c3: 1..3,
-        q6_c4: 4..6,
-        q6_c5: 7..10,
-        q6_c6: 11..Float::INFINITY
+        q6e_c2: 0..0,
+        q6e_c3: 1..3,
+        q6e_c4: 4..6,
+        q6e_c5: 7..10,
+        q6e_c6: 11..Float::INFINITY
       }.map do |key, range|
         [ key, { range: range, clients: {} } ]
       end.to_h
@@ -137,55 +137,55 @@ module ReportGenerators::CAPER::Fy2017
 
     def setup_questions
       {
-        q6_a1: {
+        q6e_a1: {
           title:  nil,
           value: 'Time for Record Entry',
         },
-        q6_b1: {
+        q6e_b1: {
           title:  nil,
           value: 'Number of Project Start Records',
         },
-        q6_c1: {
+        q6e_c1: {
           title:  nil,
           value: 'Number of Project Exit Records',
         },
-        q6_b2: {
+        q6e_b2: {
           title:  'Number of Project Start Records - 0 days',
           value: 0,
         },
-        q6_c2: {
+        q6e_c2: {
           title:  'Number of Project Exit Records - 0 days',
           value: 0,
         },
-        q6_b3: {
+        q6e_b3: {
           title:  'Number of Project Start Records - 1-3 days',
           value: 0,
         },
-        q6_c3: {
+        q6e_c3: {
           title:  'Number of Project Exit Records - 1-3 days',
           value: 0,
         },
-        q6_b4: {
+        q6e_b4: {
           title:  'Number of Project Start Records - 4-6 days',
           value: 0,
         },
-        q6_c4: {
+        q6e_c4: {
           title:  'Number of Project Exit Records - 4-6 days',
           value: 0,
         },
-        q6_b5: {
+        q6e_b5: {
           title:  'Number of Project Start Records - 7-10 days',
           value: 0,
         },
-        q6_c5: {
+        q6e_c5: {
           title:  'Number of Project Exit Records - 7-10 days',
           value: 0,
         },
-        q6_b6: {
+        q6e_b6: {
           title:  'Number of Project Start Records - 11+ days',
           value: 0,
         },
-        q6_c6: {
+        q6e_c6: {
           title:  'Number of Project Exit Records - 11+ days',
           value: 0,
         },
