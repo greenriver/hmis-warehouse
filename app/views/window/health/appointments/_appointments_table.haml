@@ -2,16 +2,25 @@
   %table.table.table-condensed.datatable
     %thead
       %tr
-        %th{style: 'width: 10em;'} Date
-        %th Department
-        %th Type
+        %th Date
+        %th Appointment
         %th Doctor
         %th SA
     %tbody
       - appointments.each do |visit|
         %tr
-          %td= visit.appointment_time
-          %td= visit.department
-          %td= visit.appointment_type
+          %td
+            = visit.appointment_time.strftime('%m/%d/%Y')
+            %br
+            = visit.appointment_time.strftime('%l:%M %p')
+          %td
+            = visit.appointment_type
+            at
+            = visit.department
+            - if visit.notes.present?
+              %br
+              %strong
+                Note:
+              = visit.notes
           %td= visit.doctor
           %td= visit.sa
