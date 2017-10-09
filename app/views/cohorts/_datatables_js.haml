@@ -3,14 +3,14 @@
     $('.datatable').DataTable({
         scrollY: false,
         scrollX: true,
-        scrollCollapse: true,
-        fixedColumns:   {
-          leftColumns: 2,
-          rightColumns: 1,
-          heightMatch: 'none'
-      }
+        //scrollCollapse: true,
+        //fixedColumns:   {
+        //  leftColumns: 2,
+        //  rightColumns: 1,
+        //  heightMatch: 'none'
+        // }
     });
 
     (function($) {
-      var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput');
+      var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
     })(jQuery);

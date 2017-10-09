@@ -17,6 +17,7 @@
             %th Last Import Run
             %th Data Span
             %th Visible in Window
+            %th Authoritative?
             %th
         %tbody
           - @data_sources.each do |data_source|
@@ -32,6 +33,8 @@
                   = "#{data_span[:start_date]}-#{data_span[:end_date]}"
               %td
                 = checkmark(data_source.visible_in_window)
+              %td
+                = checkmark(data_source.authoritative)
               %td
                 - unless data_source.has_data?
                   = link_to data_source_path(data_source), method: :delete, data: {confirm: "Are you sure you want to delete the #{data_source.name} Data Source?"} do

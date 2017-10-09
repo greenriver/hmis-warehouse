@@ -5,7 +5,26 @@ module Cohorts
     include Chronic
     before_action :require_can_create_cohorts!
     before_action :set_cohort
-    before_action :set_client, only: [:destroy, :update]
+    before_action :set_client, only: [:destroy, :update, :show]
+
+    # Return a json object of {cohort_client.id : updated_at}
+    # for easy poling
+    def index
+      respond_to do |format|
+        format.json do
+          render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+        end
+      end
+    end
+
+    # Return the entire row of html layout false
+    def show
+      respond_to do |format|
+        format.json do
+          render json: @client.attributes.merge(updated_at_i: @client.updated_at.to_i)
+        end
+      end
+    end
 
     def new
       @clients = []
