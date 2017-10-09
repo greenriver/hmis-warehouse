@@ -40,32 +40,16 @@ module ReportGenerators::CAPER::Fy2017
       GrdaWarehouse::Hud::ProjectCoC.arel_table
     end
 
-    def p_t
-      GrdaWarehouse::Hud::Project.arel_table
-    end
-
-    def sh_t
-      GrdaWarehouse::ServiceHistory.arel_table
-    end
-
-    def e_t
-      GrdaWarehouse::Hud::Enrollment.arel_table
-    end
-
-    def c_t
-      GrdaWarehouse::Hud::Client.arel_table
-    end
-
     def d_t
       GrdaWarehouse::Hud::Disability.arel_table
     end
 
-    def o_t
-      GrdaWarehouse::Hud::Organization.arel_table
-    end
-
     def e_coc_t
       GrdaWarehouse::Hud::EnrollmentCoc.arel_table
+    end
+
+    def ib_t
+      GrdaWarehouse::Hud::IncomeBenefit.arel_table
     end
 
     def act_as_coc_overlay
@@ -86,6 +70,12 @@ module ReportGenerators::CAPER::Fy2017
         joins(:client)
 
       add_filters(scope: client_scope)
+    end
+
+    def adult_leavers_and_heads_of_household_leavers
+      @adult_head_leavers ||= leavers.select do |_, enrollment|
+        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+      end
     end
 
     # likely to be overridden
