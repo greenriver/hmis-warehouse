@@ -82,43 +82,6 @@ module ReportGenerators::CAPER::Fy2017
       end
     end
 
-    # likely to be overridden
-    def fetch_all_clients
-      columns = columnize(
-        client_id:             sh_t,
-        enrollment_group_id:   sh_t,
-        project_id:            sh_t,
-        data_source_id:        sh_t,
-        first_date_in_program: sh_t,
-        last_date_in_program:  sh_t,
-        VeteranStatus:   c_t,
-        NameDataQuality: c_t,
-        FirstName:       c_t,
-        LastName:        c_t,
-        SSN:             c_t,
-        SSNDataQuality:  c_t,
-        DOB:             c_t,
-        DOBDataQuality:  c_t,
-        Ethnicity:       c_t,
-        Gender:          c_t,
-        RaceNone:        c_t,
-        DateCreated: e_t,
-      ).merge({
-        project_type: act_as_project_overlay,
-      })
-      all_client_scope.
-        joins( :project, :enrollment ).
-        order(date: :asc).
-        pluck(*columns.values).
-        map do |row|
-          Hash[columns.keys.zip(row)]
-        end.each do |enrollment|
-          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
-        end.group_by do |row|
-          row[:client_id]
-        end
-    end
-
     # maybe should be moved to subclasses that actually need it
     def leavers
       @report_start ||= @report.options['report_start'].to_date

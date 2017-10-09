@@ -49,7 +49,7 @@ module ReportGenerators::CAPER::Fy2017
       })
 
       all_client_scope.
-        joins( :enrollment, :project ).
+        joins( :enrollment, :project ). # FIXME, I've put enrollment in an inner join here, but in q4 we use an includes. Maybe my choice here is wrong.
         order(date: :asc).
         pluck(*columns.values).
         map do |row|

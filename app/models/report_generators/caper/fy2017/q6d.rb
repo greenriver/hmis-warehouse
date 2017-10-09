@@ -56,7 +56,7 @@ module ReportGenerators::CAPER::Fy2017
 
       all_client_scope.
         hud_project_type(project_types).
-        joins( :project, :enrollment ).
+        joins( :project, :enrollment ).  # FIXME does enrollment need to be in an includes? That's how it is in q5, but I thought maybe we wanted an inner join
         order(date: :asc).
         pluck(*columns.values).
         map do |row|

@@ -53,7 +53,7 @@ module ReportGenerators::CAPER::Fy2017
       })
 
       all_client_scope.
-        joins( :project, { enrollment: :enrollment_coc_at_entry } ).
+        joins( :project, { enrollment: :enrollment_coc_at_entry } ). # FIXME -- compare to equivalent in q3; this might be wrong
         order(date: :asc).
         pluck(*columns.values).
         map do |row|
