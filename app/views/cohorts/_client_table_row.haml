@@ -1,5 +1,5 @@
 - client = cohort_client.client
-%tr.jCohortClient
+%tr.jCohortClient{data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
   %td
     = client.LastName
   %td

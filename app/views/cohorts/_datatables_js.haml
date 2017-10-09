@@ -12,5 +12,5 @@
     });
 
     (function($) {
-      var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput');
+      var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
     })(jQuery);
