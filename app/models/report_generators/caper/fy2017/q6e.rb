@@ -62,7 +62,7 @@ module ReportGenerators::CAPER::Fy2017
       end.to_h
 
       @all_clients.each do |id, (*,enrollment)|
-        f, c = enrollment.values_at( :first_date_in_program, :DateCreated ).map(&:to_date) rescue byebug
+        f, c = enrollment.values_at( :first_date_in_program, :DateCreated ).map(&:to_date)
         date_diff = ( f - c ).abs
         enrollment[:elapsed] = date_diff
         buckets.each do |k,bucket|
@@ -105,7 +105,7 @@ module ReportGenerators::CAPER::Fy2017
 
       leavers.keys.each do |id|
         enrollment = @all_clients[id].last
-        l, x = enrollment.values_at( :last_date_in_program, :exit_created_at ).map{ |d| d.try :to_date } rescue byebug
+        l, x = enrollment.values_at( :last_date_in_program, :exit_created_at ).map{ |d| d.try :to_date }
         date_diff = ( l - ( x || Date.today ) ).abs
         enrollment[:elapsed] = date_diff
         buckets.each do |k,bucket|
