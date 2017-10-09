@@ -53,7 +53,7 @@ module ReportGenerators::DataQuality::Fy2016
         service_dates.each_with_index do |date, index|
           next_date = service_dates[index + 1]
           if next_date.present? && (next_date - date).abs > 90
-            inactive_client = true
+            inactive_client = true # FIXME I think this isn't what we want. We're getting only the last value of inactive_client
             next
           end
         end
