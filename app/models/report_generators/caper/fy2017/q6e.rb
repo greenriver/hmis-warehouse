@@ -1,4 +1,6 @@
 module ReportGenerators::CAPER::Fy2017
+  # Data Quality: Timeliness
+  # this is more or less equivalent to the fy2016 data quality question q6
   class Q6e < Base
 
     def run!
@@ -6,162 +8,185 @@ module ReportGenerators::CAPER::Fy2017
         @answers = setup_questions
         @support = @answers.deep_dup
         @all_clients = fetch_all_clients
-        update_report_progress percent: 50
+        update_report_progress percent: 33
         if @all_clients.any?
           data_methods = %i[
-            xxx
-            yyy
-            zzz
+            entry_time_answers
+            exit_time_answers
           ]
           data_methods.each_with_index do |method, i|
             send("add_#{method}")
             if i < data_methods.length - 1
-              update_report_progress percent: 50 + ( 50 * i.to_f / data_methods.length ).round
+              update_report_progress percent: 33 + ( 67 * i.to_f / data_methods.length ).round
             end
           end
         end
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
     end
 
+    def fetch_all_clients
+      columns = columnize(
+        client_id:             sh_t,  
+        first_date_in_program: sh_t,
+        last_date_in_program:  sh_t,
+        project_name:          sh_t,
+        DateCreated: e_t,
+      ).merge({
+        exit_created_at: x_t[:DateCreated].as('exit_created_at').to_sql
+      })
+      
+      all_client_scope.
+        joins(:enrollment).
+        includes(enrollment: :exit).
+        order(date: :asc).
+        pluck(*columns.values).
+        map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          row[:client_id]
+        end
+    end
+
+    def add_entry_time_answers
+      buckets = {
+        q6_b2: 0..0,
+        q6_b3: 1..3,
+        q6_b4: 4..6,
+        q6_b5: 7..10,
+        q6_b6: 11..Float::INFINITY
+      }.map do |key, range|
+        [ key, { range: range, clients: {} } ]
+      end.to_h
+
+      @all_clients.each do |id, (*,enrollment)|
+        f, c = enrollment.values_at( :first_date_in_program, :DateCreated ).map(&:to_date) rescue byebug
+        date_diff = ( f - c ).abs
+        enrollment[:elapsed] = date_diff
+        buckets.each do |k,bucket|
+          if bucket[:range].include? date_diff
+            bucket[:clients][id] = enrollment
+            next
+          end
+        end
+      end
+
+      buckets.each do |k,bucket|
+        clients = bucket[:clients]
+        @answers[k][:value] = clients.size
+        @support[k][:support] = add_support(
+          headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
+          data: clients.map do |id, enrollment|
+            [
+              id, 
+              enrollment[:project_name],
+              enrollment[:first_date_in_program],
+              enrollment[:last_date_in_program],
+              enrollment[:DateCreated].to_date,
+              enrollment[:elapsed].to_i
+            ]
+          end
+        )
+      end
+    end
+
+    def add_exit_time_answers
+      buckets = {
+        q6_c2: 0..0,
+        q6_c3: 1..3,
+        q6_c4: 4..6,
+        q6_c5: 7..10,
+        q6_c6: 11..Float::INFINITY
+      }.map do |key, range|
+        [ key, { range: range, clients: {} } ]
+      end.to_h
+
+      leavers.keys.each do |id|
+        enrollment = @all_clients[id].last
+        l, x = enrollment.values_at( :last_date_in_program, :exit_created_at ).map{ |d| d.try :to_date } rescue byebug
+        date_diff = ( l - ( x || Date.today ) ).abs
+        enrollment[:elapsed] = date_diff
+        buckets.each do |k,bucket|
+          if bucket[:range].include? date_diff
+            bucket[:clients][id] = enrollment
+            next
+          end
+        end
+      end
+
+      buckets.each do |k,bucket|
+        clients = bucket[:clients]
+        @answers[k][:value] = clients.size
+        @support[k][:support] = add_support(
+          headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
+          data: clients.map do |id, enrollment|
+            [
+              id, 
+              enrollment[:project_name],
+              enrollment[:first_date_in_program],
+              enrollment[:last_date_in_program],
+              enrollment[:exit_created_at]&.to_date,
+              enrollment[:elapsed].to_i
+            ]
+          end
+        )
+      end
+    end
+
     def setup_questions
       {
-        q6a_a1: {
+        q6_a1: {
           title:  nil,
-          value: 'Data Element',
+          value: 'Time for Record Entry',
         },
-        q6a_b1: {
+        q6_b1: {
           title:  nil,
-          value: 'Client Doesn’t Know/Refused',
+          value: 'Number of Project Start Records',
         },
-        q6a_c1: {
+        q6_c1: {
           title:  nil,
-          value: 'Information Missing',
+          value: 'Number of Project Exit Records',
         },
-        q6a_d1: {
-          title:  nil,
-          value: 'Data Issues',
-        },
-        q6a_e1: {
-          title:  nil,
-          value: '% of Error Rate',
-        },
-        q6a_a2: {
-          title:  nil,
-          value: 'Name (3.1)',
-        },
-        q6a_a3: {
-          title:  nil,
-          value: 'Social Security Number (3.2)',
-        },
-        q6a_a4: {
-          title:  nil,
-          value: 'Date of Birth (3.3)',
-        },
-        q6a_a5: {
-          title:  nil,
-          value: 'Race (3.4)',
-        },
-        q6a_a6: {
-          title:  nil,
-          value: 'Ethnicity (3.5)',
-        },
-        q6a_a7: {
-          title:  nil,
-          value: 'Gender (3.6)',
-        },
-        q6a_a8: {
-          title:  nil,
-          value: 'Overall Score',
-        },
-        q6a_b2: {
-          title:  'Name - Client Doesn\'t Know/Refused',
+        q6_b2: {
+          title:  'Number of Project Start Records - 0 days',
           value: 0,
         },
-        q6a_c2: {
-          title:  'Name - Information Missing',
+        q6_c2: {
+          title:  'Number of Project Exit Records - 0 days',
           value: 0,
         },
-        q6a_d2: {
-          title:  'Name - Data Issues',
+        q6_b3: {
+          title:  'Number of Project Start Records - 1-3 days',
           value: 0,
         },
-        q6a_e2: {
-          title:  'Name - % of Error Rate',
+        q6_c3: {
+          title:  'Number of Project Exit Records - 1-3 days',
           value: 0,
         },
-        q6a_b3: {
-          title:  'SSN - Client Doesn\'t Know/Refused',
+        q6_b4: {
+          title:  'Number of Project Start Records - 4-6 days',
           value: 0,
         },
-        q6a_c3: {
-          title:  'SSN - Information Missing',
+        q6_c4: {
+          title:  'Number of Project Exit Records - 4-6 days',
           value: 0,
         },
-        q6a_d3: {
-          title:  'SSN - Data Issues',
+        q6_b5: {
+          title:  'Number of Project Start Records - 7-10 days',
           value: 0,
         },
-        q6a_e3: {
-          title:  'SSN - % of Error Rate',
+        q6_c5: {
+          title:  'Number of Project Exit Records - 7-10 days',
           value: 0,
         },
-        q6a_b4: {
-          title:  'DOB - Client Doesn\'t Know/Refused',
+        q6_b6: {
+          title:  'Number of Project Start Records - 11+ days',
           value: 0,
         },
-        q6a_c4: {
-          title:  'DOB - Information Missing',
-          value: 0,
-        },
-        q6a_d4: {
-          title:  'DOB - Data Issues',
-          value: 0,
-        },
-        q6a_e4: {
-          title:  'DOB - % of Error Rate',
-          value: 0,
-        },
-        q6a_b5: {
-          title:  'Race - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c5: {
-          title:  'Race - Information Missing',
-          value: 0,
-        },
-        q6a_e5: {
-          title:  'Race - % of Error Rate',
-          value: 0,
-        },
-        q6a_b6: {
-          title:  'Ethnicity - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c6: {
-          title:  'Ethnicity - Information Missing',
-          value: 0,
-        },
-        q6a_e6: {
-          title:  'Ethnicity - % of Error Rate',
-          value: 0,
-        },
-        q6a_b7: {
-          title:  'Gender - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c7: {
-          title:  'Gender - Information Missing',
-          value: 0,
-        },
-        q6a_e7: {
-          title:  'Gender - % of Error Rate',
-          value: 0,
-        },
-        q6a_e8: {
-          title:  'Overall Score - % of Error Rate',
+        q6_c6: {
+          title:  'Number of Project Exit Records - 11+ days',
           value: 0,
         },
       }

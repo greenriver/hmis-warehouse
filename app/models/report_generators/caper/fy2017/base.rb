@@ -52,6 +52,10 @@ module ReportGenerators::CAPER::Fy2017
       GrdaWarehouse::Hud::IncomeBenefit.arel_table
     end
 
+    def x_t
+      GrdaWarehouse::Hud::Exit.arel_table
+    end
+
     def act_as_coc_overlay
       nf( 'COALESCE', [ coc_t[:hud_coc_code], coc_t[:CoCCode] ] ).as('CoCCode').to_sql
     end
