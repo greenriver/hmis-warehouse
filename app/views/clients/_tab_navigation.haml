@@ -37,6 +37,10 @@
       title: 'Care Plan',
       permission: show_health,
     },
+    polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
+      title: 'Health Metrics',
+      permission: show_health,
+    },
     edit_client_path(@client) => {
       title: 'Merge',
       permission: can_edit_clients?,
