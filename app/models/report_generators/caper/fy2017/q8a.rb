@@ -1,9 +1,7 @@
 module ReportGenerators::CAPER::Fy2017
+  # Number of Households Served
   class Q8a < Base
-    # Number of Households Served
     attr :all_clients, :clients_by_household
-    # Number of Persons Served
-    # using logic from app/models/report_generators/ahar/fy2017/base.rb
     def run!
       if start_report(Reports::CAPER::Fy2017::Q8a.first)
         @answers = setup_questions
