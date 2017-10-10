@@ -85,6 +85,35 @@ module Health
       return full_name
     end
 
+    def housing_stati
+      client.case_management_notes.map do |form|
+        first_section = form.answers[:sections].first
+        if first_section.present?
+          answer = form.answers[:sections].first[:questions].select do |question|
+            question[:question] == "A-6. Where did you sleep last night?"
+          end.first
+          status = client.class.health_housing_bucket(answer[:answer])
+          OpenStruct.new({
+            date: form.collected_at.to_date, 
+            postitive_outcome: client.class.health_housing_positive_outcome?(answer[:answer]),
+            outcome: status,
+            detail: answer[:answer],
+          })
+        end
+      end.select{|row| row.outcome.present?}.
+        index_by(&:date).values.
+        sort_by(&:date).reverse
+    end
+
+    def current_housing_status
+      # return nil unless housing_stati.any?
+      # most_recent = housing_stati.first
+      # last_status = housing_stati&.second
+      # if last_status.present? # FIXME
+      #   most_recent.positive_change
+      # end
+    end
+
     def self.sort_options
       [
         {title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc'},

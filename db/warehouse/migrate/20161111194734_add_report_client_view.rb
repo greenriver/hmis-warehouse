@@ -1,3 +1,4 @@
+# these are just the GrdaWarehouse::Hud::Client table for *destination* clients, hiding the data_source_id column
 class AddReportClientView < ActiveRecord::Migration
   def up
     # first make the destination client view

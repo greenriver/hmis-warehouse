@@ -9,7 +9,7 @@ FactoryGirl.define do
     # NameDataQuality
     # SSN
     # SSNDataQuality
-    # DOB
+    DOB '1999-12-01'
     # DOBDataQuality
     # AmIndAKNative
     # Asian

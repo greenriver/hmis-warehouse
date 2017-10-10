@@ -121,7 +121,7 @@ class DataSourcesController < ApplicationController
   end
 
   private def data_source_scope
-    data_source_source.importable
+    data_source_source.source
   end
 
   private def set_data_source

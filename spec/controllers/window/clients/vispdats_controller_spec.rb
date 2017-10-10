@@ -1,79 +1,90 @@
 require 'rails_helper'
 
-RSpec.describe Clients::VispdatsController, type: :controller do
+RSpec.describe Window::Clients::VispdatsController, type: :controller do
 
   # This should return the minimal set of attributes required to create a valid
   # Vispdat. As you add validations to Vispdat, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) {}
+  let(:valid_attributes) {
+    build(:vispdat).attributes
+  }
+  let(:vispdat) {
+    create(:vispdat)
+  }
+  let(:client) {
+    create(:grda_warehouse_hud_client)
+  }
 
   let(:invalid_attributes) {}
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # VispdatsController. Be sure to keep this updated too.
-  let(:valid_session) { {} }
+  let(:valid_session) { }
+
+   let(:user) { create :user }
+   let(:vispdat_editor) { create :vispdat_editor }
+ 
+   before(:each) do
+     user.roles << vispdat_editor
+     authenticate(user)
+   end
 
   describe "GET #index" do
-    skip "assigns all vispdats as @vispdats" do
-      vispdat = Vispdat.create! valid_attributes
-      get :index, params: {}, session: valid_session
+    it "assigns all vispdats as @vispdats" do
+      vispdat.client = client
+      vispdat.save
+      get :index, client_id: vispdat.client.to_param
       expect(assigns(:vispdats)).to eq([vispdat])
     end
   end
 
   describe "GET #show" do
-    skip "assigns the requested vispdat as @vispdat" do
-      vispdat = Vispdat.create! valid_attributes
-      get :show, params: {id: vispdat.to_param}, session: valid_session
+    it "assigns the requested vispdat as @vispdat" do
+      vispdat.client = client
+      vispdat.save
+      get :show, id: vispdat.to_param, client_id: vispdat.client.to_param
       expect(assigns(:vispdat)).to eq(vispdat)
     end
   end
 
-  describe "GET #new" do
-    skip "assigns a new vispdat as @vispdat" do
-      get :new, params: {}, session: valid_session
-      expect(assigns(:vispdat)).to be_a_new(Vispdat)
+  describe "GET #show" do
+    it "renders show" do
+      vispdat.client = client
+      vispdat.save
+      get :show, id: vispdat.to_param, client_id: vispdat.client.to_param
+      expect(response).to render_template(:show)
     end
   end
 
   describe "GET #edit" do
-    skip "assigns the requested vispdat as @vispdat" do
-      vispdat = Vispdat.create! valid_attributes
-      get :edit, params: {id: vispdat.to_param}, session: valid_session
+    it "assigns the requested vispdat as @vispdat" do
+      vispdat.client = client
+      vispdat.save
+      get :edit, id: vispdat.to_param, client_id: vispdat.client.to_param
       expect(assigns(:vispdat)).to eq(vispdat)
     end
   end
 
   describe "POST #create" do
     context "with valid params" do
-      skip "creates a new Vispdat" do
+      it "creates a new Vispdat" do
         expect {
-          post :create, params: {vispdat: valid_attributes}, session: valid_session
-        }.to change(Vispdat, :count).by(1)
+          post :create, client_id: client.to_param, params: {vispdat: valid_attributes}
+        }.to change(GrdaWarehouse::Vispdat, :count).by(1)
       end
 
-      skip "assigns a newly created vispdat as @vispdat" do
-        post :create, params: {vispdat: valid_attributes}, session: valid_session
-        expect(assigns(:vispdat)).to be_a(Vispdat)
+      it "assigns a newly created vispdat as @vispdat" do
+        post :create, client_id: client.to_param, params: {vispdat: valid_attributes}
+        expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat)
         expect(assigns(:vispdat)).to be_persisted
-      end
-
-      skip "redirects to the created vispdat" do
-        post :create, params: {vispdat: valid_attributes}, session: valid_session
-        expect(response).to redirect_to(Vispdat.last)
       end
     end
 
     context "with invalid params" do
-      skip "assigns a newly created but unsaved vispdat as @vispdat" do
-        post :create, params: {vispdat: invalid_attributes}, session: valid_session
-        expect(assigns(:vispdat)).to be_a_new(Vispdat)
-      end
-
-      skip "re-renders the 'new' template" do
-        post :create, params: {vispdat: invalid_attributes}, session: valid_session
-        expect(response).to render_template("new")
+      it "creates a stub vispdat as @vispdat" do
+        post :create, client_id: client.to_param, params: {vispdat: invalid_attributes}
+        expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat)
       end
     end
   end

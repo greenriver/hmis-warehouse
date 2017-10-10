@@ -11,4 +11,8 @@
         = _('Chronically Homeless for CAS')
     - elsif client.sync_with_cas?
       .alert.alert-warning.client-flag.client-flag__cas
-        = _('Available in CAS')
+        - if id = client.cas_client&.id
+          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{id}", target: '_blank' do
+            = _('Available in CAS')
+        - else
+          = _('Available in CAS')

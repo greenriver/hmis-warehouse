@@ -15,7 +15,7 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var data = #{@client.health_self_sufficiency_scores.to_json}
+      var data = #{@client.health_housing_stati.to_json}
       var miData = #{@client.health_income_benefits_over_time.map{ |k,row| [k, row[:total]]}.to_h.to_json}
       var ssData = #{@client.health_self_sufficiency_scores.to_json}
       

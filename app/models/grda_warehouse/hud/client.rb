@@ -8,6 +8,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     has_many :client_files
     has_many :vispdats
+    has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
+    has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
     self.table_name = 'Client'
     self.hud_key = 'PersonalID'
@@ -261,6 +263,10 @@ module GrdaWarehouse::Hud
           project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
         ).select(:client_id).distinct
       )
+    end
+
+    scope :full_text_search, -> (text) do
+      text_search(text, client_scope: current_scope)
     end
 
     def scope_for_ongoing_residential_enrollments
@@ -849,6 +855,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def self.ransackable_scopes(auth_object = nil)
+      [:full_text_search]
+    end
+
     def self.text_search(text, client_scope:)
       return none unless text.present?
       text.strip!
@@ -1157,14 +1167,14 @@ module GrdaWarehouse::Hud
     end
 
     def days_homeless_in_last_three_years
-      service_history.homeless.
+      service_history.homeless.service.
         service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
         select(:date).distinct.
         count
     end
 
     def days_homeless
-      service_history.homeless.
+      service_history.homeless.service.
         select(:date).distinct.
         count
     end

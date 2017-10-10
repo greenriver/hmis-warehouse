@@ -1,0 +1,7 @@
+= search_form_for @q, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+  %h3
+    Search Clients
+  .input-group{style: 'margin-bottom: 20px;'}
+    = f.search_field :full_text_search, label: false, class: 'form-control'
+    %span.input-group-btn
+      %button.btn.btn-default{type: :submit} Search

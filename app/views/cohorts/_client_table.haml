@@ -1,0 +1,24 @@
+%table.table.table-condensed.datatable.cohort-client__table
+  %thead
+    %tr
+      %th
+        Last Name
+      %th
+        First Name
+      %th
+        Age
+        - if @cohort.effective_date
+          .nobr
+            = "(On #{@cohort.effective_date})"
+      %th
+        Add Note
+      %th
+        Notes
+      - @cohort.visible_columns.each do |column|
+        %th
+          = column.title
+      %th
+        Remove
+  %tbody
+    - @cohort.cohort_clients.each do |cohort_client|
+      = render 'client_table_row', cohort_client: cohort_client

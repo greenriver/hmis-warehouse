@@ -21,7 +21,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
   
   scope :importable, -> do
-    where(authoritative: false).
+    source.where(authoritative: false)
+  end
+
+  scope :source, -> do
     where.not(source_type: nil)
   end
   

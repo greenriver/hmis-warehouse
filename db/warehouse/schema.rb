@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171003122627) do
+ActiveRecord::Schema.define(version: 20171005191828) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -820,6 +820,59 @@ ActiveRecord::Schema.define(version: 20171003122627) do
   add_index "client_notes", ["client_id"], :name=>"index_client_notes_on_client_id", :using=>:btree
   add_index "client_notes", ["user_id"], :name=>"index_client_notes_on_user_id", :using=>:btree
 
+  create_table "cohort_client_notes", force: :cascade do |t|
+    t.integer  "cohort_client_id", :null=>false
+    t.text     "note"
+    t.datetime "created_at",       :null=>false
+    t.datetime "updated_at",       :null=>false
+    t.datetime "deleted_at"
+    t.integer  "user_id",          :null=>false
+  end
+  add_index "cohort_client_notes", ["cohort_client_id"], :name=>"index_cohort_client_notes_on_cohort_client_id", :using=>:btree
+  add_index "cohort_client_notes", ["deleted_at"], :name=>"index_cohort_client_notes_on_deleted_at", :using=>:btree
+
+  create_table "cohort_clients", force: :cascade do |t|
+    t.integer  "cohort_id",                              :null=>false
+    t.integer  "client_id",                              :null=>false
+    t.datetime "created_at",                             :null=>false
+    t.datetime "updated_at",                             :null=>false
+    t.datetime "deleted_at"
+    t.string   "agency"
+    t.string   "case_manager"
+    t.string   "housing_manager"
+    t.string   "housing_search_agency"
+    t.string   "housing_opportunity"
+    t.string   "legal_barriers"
+    t.string   "criminal_record_status"
+    t.string   "document_ready"
+    t.string   "sif_eligible"
+    t.string   "sensory_impaired"
+    t.date     "housed_date"
+    t.string   "destination"
+    t.string   "sub_population"
+    t.integer  "rank"
+    t.string   "st_francis_house"
+    t.date     "last_group_review_date"
+    t.date     "pre_contemplative_last_date_approached"
+    t.string   "housing_track"
+    t.date     "va_eligible"
+    t.string   "vash_eligible"
+    t.string   "chapter_115"
+  end
+  add_index "cohort_clients", ["client_id"], :name=>"index_cohort_clients_on_client_id", :using=>:btree
+  add_index "cohort_clients", ["cohort_id"], :name=>"index_cohort_clients_on_cohort_id", :using=>:btree
+  add_index "cohort_clients", ["deleted_at"], :name=>"index_cohort_clients_on_deleted_at", :using=>:btree
+
+  create_table "cohorts", force: :cascade do |t|
+    t.string   "name",           :null=>false
+    t.datetime "created_at",     :null=>false
+    t.datetime "updated_at",     :null=>false
+    t.datetime "deleted_at"
+    t.date     "effective_date"
+    t.text     "column_state"
+  end
+  add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
+
   create_table "configs", force: :cascade do |t|
     t.boolean "project_type_override",     :default=>true, :null=>false
     t.boolean "eto_api_available",         :default=>false, :null=>false
@@ -829,6 +882,7 @@ ActiveRecord::Schema.define(version: 20171003122627) do
     t.string  "site_coc_codes"
     t.string  "default_coc_zipcodes"
     t.string  "continuum_name"
+    t.string  "cas_url",                   :default=>"https://cas.boston.gov"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1363,7 +1417,10 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
+<<<<<<< HEAD
     "Enrollment"."RunawayYouth",
+=======
+>>>>>>> release-12
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM ((("Enrollment"
@@ -1404,6 +1461,7 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
+<<<<<<< HEAD
     "Exit"."ExchangeForSex",
     "Exit"."ExchangeForSexPastThreeMonths",
     "Exit"."CountOfExchangeForSex",
@@ -1432,6 +1490,8 @@ SELECT "Exit"."ExitID",
     "Exit"."InPersonIndividual",
     "Exit"."InPersonGroup",
     "Exit"."CMExitReason",
+=======
+>>>>>>> release-12
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1556,7 +1616,10 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
+<<<<<<< HEAD
     "IncomeBenefits"."ConnectionWithSOAR",
+=======
+>>>>>>> release-12
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
