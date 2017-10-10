@@ -2,13 +2,13 @@ module WarehouseReports
   class ClientInProjectDuringDateRangeController < ApplicationController
     before_action :require_can_view_reports!
     def index
-      @start = ( project_params[:start] || oct_1  ).to_date
-      @end   = ( project_params[:end]   || nov_30 ).to_date
+      @start = ( params.try(:[], :project).try(:[], :start) || oct_1  ).to_date
+      @end   = ( params.try(:[], :project).try(:[], :end) || nov_30 ).to_date
       if params[:project].blank?
         @project = project_source.first
         @project_id = [@project.ProjectID, @project.data_source_id]
       else
-        @project_id = JSON.parse(project_params[:id])
+        @project_id = JSON.parse(params[:project][:id])
         @project = project_source.where(ProjectID: @project_id.first, data_source_id: @project_id.last).first
       end
 
@@ -24,16 +24,14 @@ module WarehouseReports
               distinct
       )
       @clients.joins(:enrollments)
-      @clients = @clients.page(params[:page]).per(25)
-     
-    end
-
-    def project_params
-      params.require(:project).permit(
-        :id,
-        :start,
-        :end
-      )
+      respond_to do |format|
+        format.html do
+          @clients = @clients.page(params[:page]).per(25)
+        end
+        format.xlsx do
+          @clients
+        end
+      end
     end
 
     def available_projects

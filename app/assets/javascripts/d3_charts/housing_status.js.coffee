@@ -89,7 +89,7 @@ class App.D3Chart.PatientChartBase extends App.D3Chart.Base
 
   _drawAxes: () ->
     xAxis = d3.axisBottom().scale(@scale.x)
-    yAxis = d3. axisLeft().scale(@scale.y)
+    yAxis = d3.axisLeft().scale(@scale.y)
     @chart.append('g')
       .attr('transform', 'translate(0, '+@dimensions.height+')')
       .attr('class', 'x-axis')
