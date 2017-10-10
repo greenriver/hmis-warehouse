@@ -1,7 +1,9 @@
 module ReportGenerators::CAPER::Fy2017
+  # Point-in-Time Count of Households on the Last Wednesday
   class Q8b < Base
 
     def run!
+      raise "this is just stubbed in!" # still need to write code that converts subsets of clients to households as in q8a
       if start_report(Reports::CAPER::Fy2017::Q8b.first)
         @answers = setup_questions
         @support = @answers.deep_dup
@@ -26,144 +28,218 @@ module ReportGenerators::CAPER::Fy2017
       end
     end
 
+    def fetch_all_clients
+      columns = columnize(
+        age:                   sh_t,
+        client_id:             sh_t,
+        first_date_in_program: sh_t,
+        data_source_id:        sh_t,
+        household_id:          sh_t,
+        project_name:          sh_t,
+        DOB:            c_t,
+        DOBDataQuality: c_t,
+        PersonalID:     c_t,
+      )
+
+      @all_clients = all_client_scope.
+
+        # intersect the standard scope with the multiple-range scope
+        open_between_any(
+          [ january, april, july, october ].map{ |d| [ d, d + 1.day ] }
+        ).
+
+        joins(:project).
+        order(date: :asc).
+        pluck(*columns.values).
+        map do |row|
+          Hash[columns.keys.zip(row)]
+        end.each do |enrollment|
+          # see HUD.dob_data_quality
+          enrollment[:age] = if [8,9,99].include? enrollment[:DOBDataQuality]
+            nil
+          else
+            age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          end
+        end.group_by do |row|
+          row[:client_id]
+        end
+    end
+
+    def clients_for_date(date)
+      all_clients.map do |id, enrollments|
+        enrollments_for_date = enrollments.select do |enrollment|
+          s, e = enrollment.values_at :first_date_in_program, :last_date_in_program
+          (s..e).include? date
+        end
+        [ id, enrollments_for_date ] if enrollments_for_date.any?
+      end
+    end
+
+    def january
+      @january ||= last_wednesday_in :january
+    end
+
+    def april
+      @april ||= last_wednesday_in :april
+    end
+
+    def july
+      @july ||= last_wednesday_in :july
+    end
+
+    def october
+      @october ||= last_wednesday_in :october
+    end
+
+    def last_wednesday_in(month, year=Date.today.cwyear)
+      month = case month
+      when Integer
+        month
+      when :january
+        1
+      when :april
+        4
+      when :july
+        7
+      when :october
+        10
+      else
+        raise "cannot understand #{month} as a month"
+      end
+      date = Time.new( year, month, 22 ).to_date # get as close as we can to the end of the month to start with
+      delta = ( 10 - date.cwday ) % 7 # shift it to the closest Wednesday after
+      date += delta.days
+      loop do
+        d = date + 7.days
+        break if d.mon != date.mon
+        date = d
+      end
+      date
+    end
+
     def setup_questions
       {
-        q6a_a1: {
+        q8b_b1: {
           title:  nil,
-          value: 'Data Element',
+          value: 'Total',
         },
-        q6a_b1: {
+        q8b_c1: {
           title:  nil,
-          value: 'Client Doesn’t Know/Refused',
+          value: 'Without Children',
         },
-        q6a_c1: {
+        q8b_d1: {
           title:  nil,
-          value: 'Information Missing',
+          value: 'With Children and Adults',
         },
-        q6a_d1: {
+        q8b_e1: {
           title:  nil,
-          value: 'Data Issues',
+          value: 'With Only Children',
         },
-        q6a_e1: {
+        q8b_f1: {
           title:  nil,
-          value: '% of Error Rate',
+          value: 'Unknown Household Type',
         },
-        q6a_a2: {
+
+        q8b_a2: {
           title:  nil,
-          value: 'Name (3.1)',
+          value: 'January',
         },
-        q6a_a3: {
+        q8b_b2: {
+          title: 'Total - January',
+          value:  0,
+        },
+        q8b_c2: {
+          title: 'Without Children - January',
+          value:  0,
+        },
+        q8b_d2: {
+          title: 'With Children and Adults - January',
+          value:  0,
+        },
+        q8b_e2: {
+          title: 'With Only Children - January',
+          value:  0,
+        },
+        q8b_f2: {
+          title: 'Unknown Household Type - January',
+          value:  0,
+        },
+
+        q8b_a3: {
           title:  nil,
-          value: 'Social Security Number (3.2)',
+          value: 'April',
         },
-        q6a_a4: {
+        q8b_b3: {
+          title: 'Total - April',
+          value:  0,
+        },
+        q8b_c3: {
+          title: 'Without Children - April',
+          value:  0,
+        },
+        q8b_d3: {
+          title: 'With Children and Adults - April',
+          value:  0,
+        },
+        q8b_e3: {
+          title: 'With Only Children - April',
+          value:  0,
+        },
+        q8b_f3: {
+          title: 'Unknown Household Type - April',
+          value:  0,
+        },
+
+        q8b_a4: {
           title:  nil,
-          value: 'Date of Birth (3.3)',
+          value: 'July',
         },
-        q6a_a5: {
+        q8b_b4: {
+          title: 'Total - July',
+          value:  0,
+        },
+        q8b_c4: {
+          title: 'Without Children - July',
+          value:  0,
+        },
+        q8b_d4: {
+          title: 'With Children and Adults - July',
+          value:  0,
+        },
+        q8b_e4: {
+          title: 'With Only Children - July',
+          value:  0,
+        },
+        q8b_f4: {
+          title: 'Unknown Household Type - July',
+          value:  0,
+        },
+
+        q8b_a5: {
           title:  nil,
-          value: 'Race (3.4)',
+          value: 'October',
         },
-        q6a_a6: {
-          title:  nil,
-          value: 'Ethnicity (3.5)',
+        q8b_b5: {
+          title: 'Total - October',
+          value:  0,
         },
-        q6a_a7: {
-          title:  nil,
-          value: 'Gender (3.6)',
+        q8b_c5: {
+          title: 'Without Children - October',
+          value:  0,
         },
-        q6a_a8: {
-          title:  nil,
-          value: 'Overall Score',
+        q8b_d5: {
+          title: 'With Children and Adults - October',
+          value:  0,
         },
-        q6a_b2: {
-          title:  'Name - Client Doesn\'t Know/Refused',
-          value: 0,
+        q8b_e5: {
+          title: 'With Only Children - October',
+          value:  0,
         },
-        q6a_c2: {
-          title:  'Name - Information Missing',
-          value: 0,
+        q8b_f5: {
+          title: 'Unknown Household Type - October',
+          value:  0,
         },
-        q6a_d2: {
-          title:  'Name - Data Issues',
-          value: 0,
-        },
-        q6a_e2: {
-          title:  'Name - % of Error Rate',
-          value: 0,
-        },
-        q6a_b3: {
-          title:  'SSN - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c3: {
-          title:  'SSN - Information Missing',
-          value: 0,
-        },
-        q6a_d3: {
-          title:  'SSN - Data Issues',
-          value: 0,
-        },
-        q6a_e3: {
-          title:  'SSN - % of Error Rate',
-          value: 0,
-        },
-        q6a_b4: {
-          title:  'DOB - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c4: {
-          title:  'DOB - Information Missing',
-          value: 0,
-        },
-        q6a_d4: {
-          title:  'DOB - Data Issues',
-          value: 0,
-        },
-        q6a_e4: {
-          title:  'DOB - % of Error Rate',
-          value: 0,
-        },
-        q6a_b5: {
-          title:  'Race - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c5: {
-          title:  'Race - Information Missing',
-          value: 0,
-        },
-        q6a_e5: {
-          title:  'Race - % of Error Rate',
-          value: 0,
-        },
-        q6a_b6: {
-          title:  'Ethnicity - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c6: {
-          title:  'Ethnicity - Information Missing',
-          value: 0,
-        },
-        q6a_e6: {
-          title:  'Ethnicity - % of Error Rate',
-          value: 0,
-        },
-        q6a_b7: {
-          title:  'Gender - Client Doesn\'t Know/Refused',
-          value: 0,
-        },
-        q6a_c7: {
-          title:  'Gender - Information Missing',
-          value: 0,
-        },
-        q6a_e7: {
-          title:  'Gender - % of Error Rate',
-          value: 0,
-        },
-        q6a_e8: {
-          title:  'Overall Score - % of Error Rate',
-          value: 0,
-        },
+
       }
     end
 
