@@ -93,6 +93,8 @@ module ReportGenerators::CAPER::Fy2017
     end
 
     # copied with considerable modification from ahar
+    # FIXME when I wrote this I had forgotten about the method I was overwriting
+    # perhaps this should use that
     def households
       @households ||= clients_by_household.map do |household_id, client_ids|
         child = adult = unknown = 0
