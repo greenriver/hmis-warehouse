@@ -68,6 +68,18 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
   end
 
+  # identical to the above but taking a bunch of pairs of dates instead of a single pair
+  scope :open_between_any, -> (pairs_of_dates) do
+    at = arel_table
+    condition, *conditions = pairs_of_dates.map do |s1, e1|
+      s2 = at[:first_date_in_program]
+      e2 = at[:last_date_in_program]
+      s2.lt(e1).and( e2.gt(s1).or( e2.eq nil ) )
+    end
+    condition = conditions.reduce(condition){ |c1, c2| c1.or c2 } # a disjunction of all date ranges
+    where condition
+  end
+
   scope :homeless, -> do
     where(project_type_column => GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
