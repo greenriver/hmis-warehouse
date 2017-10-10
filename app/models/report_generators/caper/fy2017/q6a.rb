@@ -35,6 +35,7 @@ module ReportGenerators::CAPER::Fy2017
 
     def fetch_all_clients
       columns = columnize(
+        age:                   sh_t,
         client_id:             sh_t,
         enrollment_group_id:   sh_t,
         project_id:            sh_t,

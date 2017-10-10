@@ -34,7 +34,7 @@ module ReportGenerators::CAPER::Fy2017
 
     def fetch_clients(project_types)
       columns = columnize(
-        # age:                   sh_t, # commented out because this is made redundant by code below
+        age:                   sh_t,
         client_id:             sh_t,
         data_source_id:        sh_t,
         destination:           sh_t,
