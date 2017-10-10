@@ -74,7 +74,7 @@ module Reports::Ahar::Fy2017
           xml.ContactName "#{user.first_name} #{user.last_name}"
           xml.ContinuumName coc_name
           xml.DateCompleted completed_date
-          xml.ReportYear 2016
+          xml.ReportYear 2017
           xml.ReportType report_type
 
           xml.Category do
