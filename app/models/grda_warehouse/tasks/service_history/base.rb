@@ -10,17 +10,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # Debugging
     attr_accessor :batch, :to_patch
 
-    def initialize
+    def initialize(client_ids: nil, dry_run: false)
       self.logger = Rails.logger
       setup_notifier('Service History Generator')
       @sanity_check = Set.new
       @batch_size = 1000
 
+      @client_ids = client_ids
       @rows_inserted = 0
       @progress_format = '%a: service_history_days_generated:%c (%R/sec)'
       @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
       @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
-      @dry_run = ENV['DRY_RUN'].to_s.in? ['1','Y']
+      @dry_run = dry_run || ENV['DRY_RUN'].to_s.in?(['1','Y'])
     end
 
     def run!
@@ -216,7 +217,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
       logger.info "...found #{missing_clients.size}"
 
       logger.info "Looking for partial histories or clients who've been invalidated..."
-      service_history_clients = service_history_source.distinct.select(:client_id).pluck(:client_id)
+      if @client_ids.present?
+        service_history_clients = service_history_source.distinct.
+        select(:client_id).where(client_id: @client_ids).
+        pluck(:client_id)
+      else
+        service_history_clients = service_history_source.distinct.
+          select(:client_id).pluck(:client_id)
+      end
       processed_clients = warehouse_clients_processed_source.service_history.select(:client_id).pluck(:client_id)
       clients_with_missing_process_history = service_history_clients - processed_clients
       logger.info "...found #{clients_with_missing_process_history.size}"
@@ -1170,7 +1178,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         return []
       end
       # Special case which comes up mostly with ETO exports where they fail to update the ExportDate
-      build_history_until = if export_date.present? && export_end.present? && export_date < Date.today && Date.today < export_end
+      # It doesn't take too long to introspect on the data to determine the max updated date,
+      # and it appears much more consistent, so we'll look there
+      build_history_until = if export_date.present? && export_end.present?
         max_update_for_export(export: export).to_date
       else
         [Date.today, export_date, export_end].compact.min
