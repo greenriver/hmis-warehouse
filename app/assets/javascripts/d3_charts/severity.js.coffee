@@ -106,16 +106,27 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
           @scale.icon(text)
         )
         .style('position', 'absolute')
-        .style('bottom', '0px')
+        .style('bottom', '-12px')
         .style('font-size', '30px')
+        .style('text-align', 'center')
         .style('color', (tick) =>
           text = d3.select(tick).select('text').text()
           @scale.xColor(text)
         )
         .style('left', (tick) =>
           translate = +d3.select(tick).attr('transform').split(',')[0].replace('translate(', '')
-          translate + @margin.left - 15 + 'px'
+          translate + @margin.left - 30 + 'px'
         )
+      .append('g')
+        .attr('tick', 'tick')
+        .text((tick) =>
+          text = d3.select(tick).select('text').text()
+        )
+        .style('display', 'block')
+        .style('font-family', "'Open Sans Condensed', sans-serif")
+        .style('font-size', '10px')
+        .style('width', '6em')
+        .style('margin-top', '4px')
     ticks.remove()
 
   _drawAxes: ->
