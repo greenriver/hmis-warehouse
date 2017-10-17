@@ -1,20 +1,21 @@
 - title = 'Client Healthcare Dashboard'
 = content_for(:title, title)
 %h1= "#{title} for #{@client.full_name}"
+
+= content_for :page_js do
+  :javascript
+    $('body').css('position', 'relative');
+
+= content_for :body_data_scrollspy, true
+
 = render 'clients/breadcrumbs'
 = render 'clients/tab_navigation', current: client_health_patient_index_path(@client)
 .row
-  .col-sm-12
+  .col-sm-9
     %h2 Patient Summary
     - if @patient.present?
-      - warehouse_path = 'warehouse_reports/health/overview/'
       = render 'patient_summary'
-      .sdh__container
-        %h2.ho-head__h2 SDH Coordinated Care Hub Pilot Program
-        %h2.ho-sub__h2 Cost and Utilization for Participating Patients
-        = render "#{warehouse_path}trends_over_time", data_type: 'patient'
-        = render 'patient_cost_metrics'
-        = render "#{warehouse_path}top_providers_and_conditions", data_type: 'patient'
+      = render 'simplified_metrics'
       = render 'patient_dashboard'
       = render 'patient_details'
 
@@ -22,4 +23,5 @@
     - else
       %p No patient record found.
 
-
+  .col-sm-3.scrollspy
+    = render 'on_page_nav'

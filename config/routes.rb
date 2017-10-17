@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
       resources :problems, only: [:index]
+      resources :metrics, only: [:index]
       resource :careplan, except: [:destroy] do
         get :self_sufficiency_assessment
         get :print

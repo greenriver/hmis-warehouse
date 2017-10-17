@@ -38,6 +38,10 @@ ul.pagination
     margin-left: 1em;
   }
 }
+.dataTables_wrapper
+{
+  font-size: $font-size-small;
+}
 .dataTables_wrapper .dataTables_paginate .paginate_button
 {
   padding: 0;
