@@ -6,7 +6,7 @@
   :javascript
     $('body').css('position', 'relative');
 
-= content_for :body_tag_data, "scrollspy"
+= content_for :body_data_scrollspy, "scrollspy"
 
 = render 'clients/breadcrumbs'
 = render 'clients/tab_navigation', current: client_health_patient_index_path(@client)
