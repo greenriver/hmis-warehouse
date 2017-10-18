@@ -73,7 +73,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
       logger.info "Finding clients needing updates..."
       clients = GrdaWarehouse::Hud::Client.destination.
         where.not(id: @to_add)
-      to_update = Parallel.map(clients, in_processes: 4) do |client|
+      parallel_style = if Rails.env.test?
+        :in_threads
+      else
+        :in_processes
+      end
+      to_update = Parallel.map(clients, parallel_style => 4) do |client|
         valid = true
         client.source_enrollments.pluck(:id).map do |id|
           en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(id)

@@ -32,18 +32,37 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
     end
 
     describe 'updating should...' do
-      it 'result in three entry records in the service history' do
+      before(:all) do
         GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+      end
+      it 'result in three entry records in the service history' do
         expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(3)
       end
-      # First two enrollments are TrackingMethod = 3 (night-by-night)
-      it 'generate 20 service records' do
-        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-        expect(GrdaWarehouse::ServiceHistory.service.count).to eq(20)
+      # All enrollments are TrackingMethod = 3 (night-by-night)
+      it 'generate 23 service records' do
+        expect(GrdaWarehouse::ServiceHistory.service.count).to eq(23)
       end
-      it 'generage 10 unique dates of service' do
-        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-        expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(10)
+      it 'generage 13 unique dates of service' do
+        expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(13)
+      end
+    end
+
+    describe 'importing an out of order data set should...' do
+      before(:all) do
+        GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+        load_fourth_import()
+        GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+      end
+      it 'result in four enrollments' do
+        expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(4)
+      end
+
+      it 'generate 26 service records' do
+        expect(GrdaWarehouse::ServiceHistory.service.count).to eq(26)
+      end
+
+      it 'generate 13 service records' do
+        expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(13)
       end
     end
 
@@ -80,6 +99,26 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
     ds_1 = GrdaWarehouse::DataSource.where(name: 'First Data Source', short_name: 'FDS', source_type: :sftp).first
     {
       'spec/fixtures/files/service_history/second_ds_1' => ds_1,
+    }.each do |path, data_source|
+      source_file_path = File.join(path, 'source')
+      import_path = File.join(path, data_source.id.to_s)
+      # duplicate the fixture file as it gets manipulated
+      FileUtils.cp_r(source_file_path, import_path)
+      @delete_later << import_path unless import_path == source_file_path
+  
+      importer = Importers::HMISSixOneOne::Base.new(
+        file_path: path,
+        data_source_id: data_source.id,
+        remove_files: false
+      )
+      importer.import!
+    end
+  end
+
+  def load_fourth_import
+    ds_2 = GrdaWarehouse::DataSource.where(name: 'Second Data Source', short_name: 'SDS', source_type: :sftp).first
+    {
+      'spec/fixtures/files/service_history/second_ds_2' => ds_2,
     }.each do |path, data_source|
       source_file_path = File.join(path, 'source')
       import_path = File.join(path, data_source.id.to_s)
