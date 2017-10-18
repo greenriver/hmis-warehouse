@@ -245,7 +245,7 @@ module ReportGenerators::DataQuality::Fy2016
             id,
             member[:age],
             member[:household_id],
-            household[:household].first[:household_id],
+            household[:household].first[:household_id], # FIXME -- there are 5 headers and 6 values; this one looks redundant
             household[:household].
               map{|m| m[:client_id]}.join(', '), 
             household[:household].size
@@ -267,7 +267,7 @@ module ReportGenerators::DataQuality::Fy2016
             id,
             member[:age],
             member[:household_id],
-            household[:household].first[:household_id],
+            household[:household].first[:household_id], # FIXME? -- this is supposed to be a list of members but is a single individual
             household[:household].size,
             household[:household].
               map{|m| m[:client_id]}.join(', '),

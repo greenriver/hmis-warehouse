@@ -76,7 +76,6 @@ class ReportsController < ApplicationController
     end
 
     def group_reports reports
-      reports.group_by{|r|
-        r.type.split('::')[0...-1].join('::')}
+      reports.group_by{ |r| r.type[/.*(?=::)/] }  # group by the "base name"
     end
 end

@@ -180,24 +180,24 @@ ActiveRecord::Schema.define(version: 20171004172953) do
     t.boolean  "can_edit_translations",            :default=>false
     t.boolean  "can_manage_assessments",           :default=>false
     t.boolean  "can_edit_anything_super_user",     :default=>false
-    t.boolean  "can_administer_health",            :default=>false
-    t.boolean  "can_edit_client_health",           :default=>false
-    t.boolean  "can_view_client_health",           :default=>false
-    t.boolean  "health_role",                      :default=>false, :null=>false
-    t.boolean  "can_manage_config",                :default=>false
     t.boolean  "can_manage_client_files",          :default=>false
     t.boolean  "can_manage_window_client_files",   :default=>false
+    t.boolean  "can_manage_config",                :default=>false
     t.boolean  "can_edit_dq_grades",               :default=>false
     t.boolean  "can_view_vspdat",                  :default=>false
     t.boolean  "can_edit_vspdat",                  :default=>false
     t.boolean  "can_create_clients",               :default=>false
     t.boolean  "can_view_client_history_calendar", :default=>false
-    t.boolean  "can_view_aggregate_health",        :default=>false
     t.boolean  "can_assign_users_to_clients",      :default=>false
     t.boolean  "can_view_client_user_assignments", :default=>false
+    t.boolean  "can_administer_health",            :default=>false
+    t.boolean  "can_edit_client_health",           :default=>false
+    t.boolean  "can_view_client_health",           :default=>false
+    t.boolean  "can_view_aggregate_health",        :default=>false
+    t.boolean  "health_role",                      :default=>false, :null=>false
+    t.boolean  "can_export_hmis_data",             :default=>false
     t.boolean  "can_create_cohorts",               :default=>false
     t.boolean  "can_view_cohorts",                 :default=>false
-    t.boolean  "can_export_hmis_data",             :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 

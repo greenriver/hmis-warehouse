@@ -4,10 +4,11 @@
   .col-sm-12
     .table-responsive
       %table.table.table-condensed.table-hover
-        - @reports.each do |base,reports|
+        - @reports.map{ |k,v| [ "#{k}::Base".constantize, v ] }.sort_by{ |k,_| k.report_name }.each do |base,reports|
           %thead
-            %tr{class: 'report-base'}
-              %th= link_to "#{base}::Base".constantize.report_name, report_results_summary_path(reports.first[:report_results_summary_id])
+            %tr.report-base
+              - sample = reports.first  # all reports for a given base have the same results summary id
+              %th= link_to base.report_name, report_results_summary_path(sample.report_results_summary_id)
               %th Last Run
               %th Status
               %th Completed In

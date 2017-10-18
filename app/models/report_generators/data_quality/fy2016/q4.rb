@@ -120,12 +120,12 @@ module ReportGenerators::DataQuality::Fy2016
             poor_quality[id] = enrollment
           else
             if income[:IncomeFromAnySource] == 0
-              if income.values_at(*income_sources).compact.uniq != [nil]
+              if income.values_at(*income_sources).compact.uniq != [nil]  # FIXME? the compact will get rid of nils, so I think this will always be false
                 enrollment[:reason] = 'Indicated no sources, yet sources exits'
                 poor_quality[id] = enrollment
               end
             elsif income[:IncomeFromAnySource] == 1
-              if income.values_at(*income_sources).compact.uniq == [nil]
+              if income.values_at(*income_sources).compact.uniq == [nil]  # see above
                 enrollment[:reason] = 'Indicated sources, yet no sources exits'
                 poor_quality[id] = enrollment
               end
@@ -188,12 +188,12 @@ module ReportGenerators::DataQuality::Fy2016
             poor_quality[id] = enrollment
           else
             if income[:IncomeFromAnySource] == 0
-              if income.values_at(*income_sources).compact.uniq != [nil]
+              if income.values_at(*income_sources).compact.uniq != [nil]  # see above
                 enrollment[:reason] = 'Indicated no sources, yet sources exits'
                 poor_quality[id] = enrollment
               end
             elsif income[:IncomeFromAnySource] == 1
-              if income.values_at(*income_sources).compact.uniq == [nil]
+              if income.values_at(*income_sources).compact.uniq == [nil]  # see above
                 enrollment[:reason] = 'Indicated sources, yet no sources exits'
                 poor_quality[id] = enrollment
               end
@@ -264,13 +264,13 @@ module ReportGenerators::DataQuality::Fy2016
               poor_quality[id] = enrollment
             else
               if income[:IncomeFromAnySource] == 0
-                if income.values_at(*income_sources).compact.uniq != [nil]
-                  enrollment[:reason] = 'Indicated no sources, yet sources exits'
+                if income.values_at(*income_sources).compact.uniq != [nil]  # see above
+                  enrollment[:reason] = 'Indicated no sources, yet sources exist'
                   poor_quality[id] = enrollment
                 end
               elsif income[:IncomeFromAnySource] == 1
-                if income.values_at(*income_sources).compact.uniq == [nil]
-                  enrollment[:reason] = 'Indicated sources, yet no sources exits'
+                if income.values_at(*income_sources).compact.uniq == [nil]  # FIXME same as above
+                  enrollment[:reason] = 'Indicated sources, yet no sources exist'
                   poor_quality[id] = enrollment
                 end
               end

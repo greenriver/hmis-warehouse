@@ -148,7 +148,7 @@ module ReportGenerators::DataQuality::Fy2016
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
-      quality_issues = @all_clients.select do |id, enrollments|
+      quality_issues = @all_clients.select do |id, enrollments|   # FIXME I don't think this does what we want; it seems like only the last condition is going to be relevant
         enrollment = enrollments.last
         too_old = enrollment[:DOB].present? && enrollment[:DOB] < '1915-01-01'.to_date
         too_new = enrollment[:DOB].present? && enrollment[:DOB] > enrollment[:DateCreated]
