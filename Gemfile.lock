@@ -337,6 +337,7 @@ GEM
     paper_trail (6.0.2)
       activerecord (>= 4.0, < 5.2)
       request_store (~> 1.1)
+    parallel (1.12.0)
     paranoia (2.2.0)
       activerecord (>= 4.0, < 5.1)
     pg (0.20.0)
@@ -611,6 +612,7 @@ DEPENDENCIES
   nokogiri (>= 1.7.1)
   nominatim
   paper_trail
+  parallel
   paranoia (~> 2.0)
   pg
   pry-rails
