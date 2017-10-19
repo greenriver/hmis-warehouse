@@ -4,8 +4,8 @@
 = content_for :page_js do
   :javascript
     $('body').css('position', 'relative');
-
-= content_for :body_tag_data, "scrollspy"
+    
+= content_for :body_data_scrollspy, true
 
 %h1= "#{title} for #{@client.full_name}"
 = render 'window/clients/breadcrumbs'
