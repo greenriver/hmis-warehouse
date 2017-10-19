@@ -19,7 +19,7 @@
     = render 'layouts/favicon'
     = csrf_meta_tags
 
-  %body{class: body_classes}
+  %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
     %header
       .container{class: container_classes}
         .row

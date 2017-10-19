@@ -12,15 +12,15 @@
         %div{style: 'padding: 0px 10px;'}
           %table.ho-compare__table-2
             %tr
-              - @km_table.keys.drop(1).each do |key|
+              - @km_table.keys.each do |key|
                 = key_metrics_table_header(key)
-            - @km_rows.drop(1).each_with_index do |row, index|
+            - @km_rows.each_with_index do |row, index|
               - value, css_class = row
               - if index+1 == @km_rows.size
                 %tr.ho-compare__label-row
                   %td{colspan: @km_table.keys.size} Variance
               %tr{class: css_class}
-                - @km_table.keys.drop(1).each do |key|
+                - @km_table.keys.each do |key|
                   %td= value[key]
           .ho-hints
             - @km_table.keys.each do |key|
@@ -29,5 +29,5 @@
       - else
         No Data
     .col-xs-12.col-md-4.ho-compare__fc
-      = render 'window/health/metrics/emergency'
+      = render 'emergency'
 
