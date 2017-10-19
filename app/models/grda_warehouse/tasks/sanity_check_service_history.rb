@@ -31,8 +31,8 @@ module GrdaWarehouse::Tasks
         load_service_history_exits(batch)
         load_source_enrollments(batch)
         load_source_exits(batch)
-        load_service_counts(batch)
-        load_source_service_counts(batch)
+        # load_service_counts(batch)
+        # load_source_service_counts(batch)
       end
       sanity_check()
       logger.info "...sanity check complete"
@@ -49,16 +49,19 @@ module GrdaWarehouse::Tasks
           client_source.find(id).invalidate_service_history
           add_attempt(id)
         else
+          # as of 10/19, we no longer check this because our processor doesn't blindly create services, it limits them
+          # to the start and end date of the enrollment
+          # 
           # See if our service history counts are even close
-          service_history_count = counts[:service_history].try(:[], :service) || 0
-          service_count = counts[:source].try(:[], :service) || 0
-          if (service_history_count - service_count).abs > 3
-            msg = "```client: #{id} \nsource: #{service_count} service_history: #{service_history_count}```\n"
-            logger.warn msg
-            messages << msg
-            client_source.find(id).invalidate_service_history
-            add_attempt(id)
-          end
+          # service_history_count = counts[:service_history].try(:[], :service) || 0
+          # service_count = counts[:source].try(:[], :service) || 0
+          # if (service_history_count - service_count).abs > 3
+          #   msg = "```client: #{id} \nsource: #{service_count} service_history: #{service_history_count}```\n"
+          #   logger.warn msg
+          #   messages << msg
+          #   client_source.find(id).invalidate_service_history
+          #   add_attempt(id)
+          # end
         end 
       end
       update_attempts()

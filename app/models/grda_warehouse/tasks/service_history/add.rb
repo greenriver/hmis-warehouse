@@ -9,18 +9,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     require 'ruby-progressbar'
     attr_accessor :logger
     
-    private def build_history
-      @to_add = determine_clients_with_no_service_history()
-      # Fill some variables we expect to have
-      @to_update = {}
-      @to_update_count = 0
-
-      if @to_add.empty?
+    def run!
+      @client_ids = destination_client_scope.without_service_history.pluck(:id)
+      if @client_ids.empty?
         logger.info "Nothing to do."
         return
       end
-
-      process_to_add()
+      process()
     end
   end
 end

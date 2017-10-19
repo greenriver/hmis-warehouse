@@ -28,6 +28,9 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     it 'the database will have 18 services' do
       expect(GrdaWarehouse::Hud::Service.count).to eq(18)
     end
+    it 'the effective export end date is 2017-09-20' do
+      expect(GrdaWarehouse::Hud::Export.order(id: :asc).last.effective_export_end_date).to eq('2017-09-20'.to_date)
+    end
     describe 'each client\'s counts will match expected counts' do
       clients = {
         '2f4b963171644a8b9902bdfe79a4b403' => {
@@ -83,6 +86,9 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
     it 'the database will have 15 services' do
       expect(GrdaWarehouse::Hud::Service.count).to eq(15)
+    end
+    it 'the effective export end date is 2017-09-19' do
+      expect(GrdaWarehouse::Hud::Export.order(id: :asc).last.effective_export_end_date).to eq('2017-09-19'.to_date)
     end
     describe 'each client\'s counts will match expected counts' do
       clients = {

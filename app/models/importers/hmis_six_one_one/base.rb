@@ -49,6 +49,7 @@ module Importers::HMISSixOneOne
           # reload the export file with new export id
           @export = nil
           @export = load_export_file()
+          @export.effective_export_end_date = @effective_export_end_date
           @export.import!
           @projects = set_involved_projects()
           @projects.each(&:update_changed_project_types)
@@ -350,6 +351,7 @@ module Importers::HMISSixOneOne
             row = CSV.parse_line(line, headers: header)
             if row.count == header.count
               row = set_useful_export_id(row: row, export_id: export_id_addition)
+              track_max_updated(row)
               write_to << row
             else
               msg = "Line length is incorrect, unable to import:"
@@ -389,6 +391,14 @@ module Importers::HMISSixOneOne
     def set_useful_export_id(row:, export_id:)
       row['ExportID'] = "#{row['ExportID']}_#{export_id_addition}"
       row
+    end
+
+    # figure out the maximum date this export set was updated
+    def track_max_updated(row)
+      @effective_export_end_date ||= '1900-01-01'.to_date
+      if row['DateUpdated'].present? && row['DateUpdated'].to_date > @effective_export_end_date
+        @effective_export_end_date = row['DateUpdated'].to_date
+      end
     end
 
     def open_csv_file(file_path)
