@@ -56,7 +56,7 @@ module Health::Claims
           ['SSN', @patient.ssn],
           ['Medicaid ID', @patient.medicaid_id],
           ['Primary Care Physician', @patient.primary_care_physician],
-          ['Team', team]
+          # ['Team', team]
         ]
         result[:demographics].push([
           ['Age', @patient.client.age], 

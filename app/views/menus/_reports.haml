@@ -6,3 +6,8 @@
     = link_to warehouse_reports_path, class: 'vsm-item-link' do
       .vsm-item-link--description
         = _("Reports")
+- if can_view_aggregate_health?
+  .vsm-group.vsm-group__group-a
+    = link_to warehouse_reports_health_overview_index_path, class: 'vsm-item-link' do
+      .vsm-item-link--description
+        = _("Health Report")

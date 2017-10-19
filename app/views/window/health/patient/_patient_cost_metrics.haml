@@ -8,17 +8,17 @@
           %tr
             - @cost_table.keys.each do |key|
               %td= compare_box(key, @cost_table.patient, @cost_table.sdh, @cost_table.variance)
-        %h4 Key Metrics
+        %h4 Utilization Metrics
         %div{style: 'padding: 0px 10px;'}
           %table.ho-compare__table-2
             %tr
               - @km_table.keys.drop(1).each do |key|
                 = key_metrics_table_header(key)
-            - @km_rows.drop(1).each_with_index do |row, index|
+            - @km_rows.each_with_index do |row, index|
               - value, css_class = row
               - if index+1 == @km_rows.size
                 %tr.ho-compare__label-row
-                  %td{colspan: @km_table.keys.size} Variance
+                  %td{colspan: @km_table.keys.drop(1).size} Variance
               %tr{class: css_class}
                 - @km_table.keys.drop(1).each do |key|
                   %td= value[key]

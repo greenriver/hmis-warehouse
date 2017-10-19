@@ -1,14 +1,18 @@
 %ul.nav.nav-tabs{role: :tablist}
-  %li.active{role: :presentation}
-    %a{href: '#other-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Operational Reports'}}
-      Operational Reports
-  %li{role: :presentation}
-    %a{href: '#data-quality-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Data Quality Reports'}}
-      Data Quality
-  %li{role: :presentation}
-    %a{href: '#cas-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'CAS Reports'}}
-      CAS
-  - if can_view_aggregate_health?
+  - if can_view_reports?
+    %li.active{role: :presentation}
+      %a{href: '#other-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Operational Reports'}}
+        Operational Reports
     %li{role: :presentation}
+      %a{href: '#data-quality-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Data Quality Reports'}}
+        Data Quality
+    %li{role: :presentation}
+      %a{href: '#cas-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'CAS Reports'}}
+        CAS
+  - if can_view_aggregate_health?
+    - active_class = ''
+    - if ! can_view_reports?
+      - active_class = 'active'
+    %li{role: :presentation, class: active_class}
       %a{href: '#health-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Health Reports'}}
         Health

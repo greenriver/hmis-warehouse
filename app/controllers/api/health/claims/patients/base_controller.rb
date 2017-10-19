@@ -30,6 +30,19 @@ module Api::Health::Claims::Patients
       end
     end
 
+    # group the data by date
+    def group_by_date(data)
+      data.group_by do |row|
+        Date.new(row.year, row.month, 01)
+      end.map do |date, data|
+        data = data.map do |row|
+          {date: date}.merge(row.attributes.with_indifferent_access.
+          except(:id, :medicaid_id, :year, :month))
+        end.first
+        
+      end
+    end
+
     protected def scope
       source.where(medicaid_id: @patient.medicaid_id)
     end

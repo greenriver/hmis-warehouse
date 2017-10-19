@@ -8,15 +8,12 @@
         = housing_status_hint('not-housed')
   .row
     .col-xs-12.col-md-6
-      = d3_base_chart('d3-monthly-income__chart', 'd3-monthly-income__dates', 'Total Monthly Income')
-    .col-xs-12.col-md-6
       = d3_base_chart('d3-ss-matrix__chart', 'd3-ss-matrix__dates', 'Self-Sufficiency Matrix Scores')
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
       var data = #{@client.health_housing_stati.to_json}
-      var miData = #{@client.health_income_benefits_over_time.map{ |k,row| [k, row[:total]]}.to_h.to_json}
       var ssData = #{@client.health_self_sufficiency_scores.to_json}
       
       hsChart = {
@@ -25,19 +22,13 @@
         data: data,
         type: 'hs'
       }
-      miChart = {
-        margin: {top: 10, right: 40, bottom: 70, left: 40},
-        selector: '.d3-monthly-income__chart',
-        data: miData,
-        type: 'mi'
-      }
       ssChart = {
         margin: {top: 10, right: 40, bottom: 70, left: 40},
         selector: '.d3-ss-matrix__chart',
         data: ssData,
         type: 'ss'
       } 
-      var charts = [hsChart, miChart, ssChart]
+      var charts = [hsChart, ssChart]
       var pc = new App.D3Chart.PatientCharts(charts)
       
     })
