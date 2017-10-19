@@ -12,7 +12,8 @@ module GrdaWarehouse::Tasks
       @soft_delete_date = Time.now
     end
     def run!
-      GrdaWarehouseBase.transaction do 
+      remove_unused_warehouse_clients_processed()
+      GrdaWarehouseBase.transaction do
         @clients = find_unused_destination_clients
         debug_log "Found #{@clients.size} unused destination clients"
         if @clients.any?
@@ -100,11 +101,12 @@ module GrdaWarehouse::Tasks
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
           # Sort newest first so we don't update the name on the destination client
-          sql = dest.source_clients.select(attributes).order(DateUpdated: :desc).to_sql
-          source_clients = client_source.
-            connection.execute(sql).
-            map(&:with_indifferent_access)
-          dest_attr = attributes.map{|m| [m, nil]}.to_h
+          source_clients = dest.source_clients.order(DateUpdated: :desc).
+            pluck(*attributes).
+            map do |row|
+              Hash[attributes.zip(row)]
+            end
+          dest_attr = dest.attributes.with_indifferent_access.slice(*attributes)
           source_clients.each do |sc|
             attributes.each do |attribute|
               dest_attr[attribute] = sc[attribute] if dest_attr[attribute].blank? && sc[attribute].present?
@@ -123,6 +125,7 @@ module GrdaWarehouse::Tasks
             end
           end
           # Always use the most recently updated 
+          binding.pry if source_clients.first.blank?
           dest_attr[:VeteranStatus] = source_clients.first[:VeteranStatus]
 
           # See if we should remove anything
@@ -151,24 +154,12 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    # Determine who has source data that changed since the last service history generation
-    # This is stolen from and dependent on Generate Service History 
     def clients_to_munge
-      debug_log "Determining if any clients source data has been updated since the last service history generation"
-      g_service_history = GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new
-      @to_update = []
-      GrdaWarehouse::WarehouseClientsProcessed.service_history.pluck(:client_id, :last_service_updated_at).each do |client_id, last_service_updated_at|
-        # Ignore anyone who no longer has any active source clients
-        next unless g_service_history.client_sources[client_id].present?
-        # If newly imported data is newer than the date stored the last time we generated, regenerate
-        last_modified = g_service_history.max_date_updated_for_destination_id(client_id)
-        if last_service_updated_at.nil?
-          @to_update << client_id
-        elsif last_modified.nil? || last_modified > last_service_updated_at
-          # logger.info "Service History last modified #{last_modified}, Warehouse Clients Processed last_service_updated_at #{last_service_updated_at}"
-          @to_update << client_id
-        end
-      end
+      debug_log "Check any client who has been updated in the past week"
+      wcp_t = GrdaWarehouse::WarehouseClientsProcessed.arel_table
+      @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
+        where(wcp_t[:last_service_updated_at].gt(1.weeks.ago.to_date)).
+        pluck(:client_id)
       logger.info "...found #{@to_update.size}."
       @to_update
     end
@@ -191,6 +182,15 @@ module GrdaWarehouse::Tasks
     private def clean_warehouse_clients_processed
       return unless @clients.any?
       GrdaWarehouse::WarehouseClientsProcessed.where(client_id: @clients).delete_all
+    end
+
+    def remove_unused_warehouse_clients_processed
+      processed_ids = GrdaWarehouse::WarehouseClientsProcessed.pluck(:client_id)
+      destination_client_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+      to_remove = processed_ids - destination_client_ids
+      if to_remove.any?
+        GrdaWarehouse::WarehouseClientsProcessed.where(client_id: to_remove).delete_all
+      end
     end
 
     private def clean_warehouse_clients

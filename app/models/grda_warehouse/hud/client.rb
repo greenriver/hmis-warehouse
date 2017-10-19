@@ -1159,6 +1159,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.clear_view_cache(id)
+      return if Rails.env.test?
       Rails.cache.delete_matched("*clients/#{id}/*")
     end
 

@@ -1,14 +1,41 @@
+# require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment
     include TsqlImport
     include ActiveSupport::Benchmarkable
-    # after_save :force_validity_calculation
+    
+    after_save :force_validity_calculation
 
     def service_history_valid?
       processed_hash == calculate_hash
     end
     def source_data_changed?
       ! service_history_valid?
+    end
+
+    def should_rebuild?
+      source_data_changed?
+    end
+
+    def should_patch?
+      return true if entry_exit_tracking? && exit.blank?
+      build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment().sort
+    end
+
+    # One method to rule them all.  This makes the determination if it
+    # should patch or rebuild, or do nothing.  If you need more fine grained control
+    # use patch_service_history! or create_service_history! directly
+    def rebuild_service_history!
+      if should_rebuild?
+        Rails.logger.debug '===Rebuilding==='
+        create_service_history!
+        return :update
+      elsif should_patch?
+        Rails.logger.debug '===Patching==='
+        patch_service_history!
+        return :patch
+      end
+      false
     end
 
     def patch_service_history!
@@ -21,30 +48,36 @@ module GrdaWarehouse::Tasks::ServiceHistory
       if days.any?
         insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
         update(processed_hash: calculate_hash)
-        force_validity_calculation()
       end
     end
 
     def create_service_history! force=false
+      # Rails.logger.debug '===RebuildEnrollmentsJob=== Initiating create_service_history'
+      # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       return unless force || source_data_changed?
+      # Rails.logger.debug '===RebuildEnrollmentsJob=== Checked for changes'
+      # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       self.class.transaction do 
         remove_existing_service_history_for_enrollment()
         days = []
         date = self.EntryDate
         type_provided = project.computed_project_type
         days << entry_record(date, type_provided)
+        # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
+        # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
         build_for_dates.each do |date, type_provided|
           days << service_record(date, type_provided)
         end
+        # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
+        # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
         if exit.present?
           date = exit.ExitDate
           type_provided = build_for_dates.values.last
           days << exit_record(date, type_provided)
         end
-        insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false) 
+        insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
       end
       update(processed_hash: calculate_hash)
-      force_validity_calculation()
     end
 
     def entry_record date, type_provided
@@ -88,6 +121,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_dates_from_service_history_for_enrollment
+      return [] unless destination_client.present?
       service_history_source.where(
         client_id: destination_client.id, 
         enrollment_group_id: self.ProjectEntryID, 
@@ -99,21 +133,56 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def remove_existing_service_history_for_enrollment
+      return unless destination_client.present?
       service_history_source.where(
         client_id: destination_client.id, 
         enrollment_group_id: self.ProjectEntryID, 
         data_source_id: data_source_id, 
-        project_id: self.ProjectID
+        project_id: self.ProjectID,
+        record_type: [:entry, :exit, :service],
       ).delete_all
     end
 
     def self.calculate_hash_for(id)
-      rows = where(id: id).
-      includes(:exit, :services).
-      references(:exit, :services).
-      order(e_t[:EntryDate].asc.to_sql, ex_t[:ExitDate].asc, s_t[:DateProvided].asc).
-      pluck(*hash_columns).to_s
-      Digest::SHA256.hexdigest(rows)
+      # Rails.logger.debug '===RebuildEnrollmentsJob=== Calculating Hash'
+      # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
+
+      # Break this into two queries to speed it up and keep RAM usage in check
+      rows = source_rows(id) + service_history_rows(id)
+      Digest::SHA256.hexdigest(rows.to_s)
+    end
+
+    def self.source_rows(id)
+      # This must be explicitly ordered since the database doesn't always
+      # return data in the same order
+      where(id: id).
+        includes(:exit, :services, :destination_client).
+        references(:exit, :services, :destination_client).
+        order(
+          e_t[:EntryDate].asc.to_sql, 
+          ex_t[:ExitDate].asc, 
+          s_t[:DateProvided].asc
+        ).
+        pluck(*hash_columns)
+    end
+
+    def self.service_history_rows(id)
+      # setup a somewhat compliacated join with service history
+      join_sh_t_sql = e_t.join(sh_t).
+      on(e_t[:ProjectID].eq(sh_t[:project_id]).
+        and(e_t[:data_source_id].eq(sh_t[:data_source_id])).
+        and(e_t[:ProjectEntryID].eq(sh_t[:enrollment_group_id]))
+      ).to_sql.gsub('SELECT FROM "Enrollment"', '')
+
+      # This must be explicitly ordered since the database doesn't always
+      # return data in the same order
+      where(id: id).
+        joins(:destination_client).
+        where(Client: {id: sh_t[:client_id]}).
+        joins(join_sh_t_sql).
+        where(warehouse_client_service_history: {record_type: [:entry, :exit, :service]}).
+        order(sh_t[:date].asc, sh_t[:record_type].asc).
+        pluck(*service_history_hash_columns)
     end
 
     def default_day
@@ -219,24 +288,34 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # Build until the lesser of the coverage range or the exit date if we have one
     def build_until
       @build_until ||= [
-        export_max_coverage,
+        export.effective_export_end_date,
+        export.ExportEndDate,
+        Date.today,
         exit&.ExitDate,
       ].compact.min.to_date
     end
 
+    # FIXME: We can't use this because out-of order exports only have access to part of their 
+    # data after import (some remains attached to other exports, and the max updated dates get off)
     def export_max_coverage
       # Attempt to determine the max useful range for this export.
       # We look to the actual data instead of relying on ExportDate since that 
       # has proven unreliable
-      @export_max_coverage ||= [
-        export.enrollments.maximum(:DateUpdated), 
-        export.exits.maximum(:DateUpdated),
-        export.services.maximum(:DateUpdated),
-      ].compact.max
+      # @export_max_coverage ||= [
+      #   export.enrollments.maximum(:DateUpdated), 
+      #   export.exits.maximum(:DateUpdated),
+      #   export.services.maximum(:DateUpdated),
+      # ].compact.max
     end
 
+    # Our hash needs to be different if any of the source data has changed,
+    # if any of the destination data has changed
+    # or if the enrollment has been connected to a new destination client
     def self.hash_columns
       @hash_columns ||= begin
+        client_hash_columns = {
+          destination_client_id: :id,
+        }
         enrollment_hash_columns = {
           id: :id,
           data_source_id: :data_source_id,
@@ -265,6 +344,23 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end
         columns += service_hash_columns.values.map do |col|
           s_t[col].as(col.to_s).to_sql
+        end
+        columns += client_hash_columns.values.map do |col|
+          c_t[col].as(col.to_s).to_sql
+        end
+        columns
+      end
+    end
+
+    def self.service_history_hash_columns
+      @service_history_hash_columns ||= begin
+        service_history_columns = {
+          client_id: :client_id,
+          date: :date,
+          record_type: :record_type,
+        }
+        columns = service_history_columns.values.map do |col|
+          sh_t[col].as(col.to_s).to_sql
         end
         columns
       end

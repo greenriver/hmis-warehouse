@@ -4,7 +4,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
   describe 'When processing service history using add' do
     before(:all) do
       @delete_later = []
-      setup_initial_imports()      
+      setup_initial_imports()
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -12,6 +12,8 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       @delete_later.each do |path|
         FileUtils.rm_rf(path)
       end
+      # also clear out delayed job
+      Delayed::Job.delete_all
     end
 
     it 'the database will have one destination client' do
@@ -26,13 +28,11 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     it 'the destination client will have two source enrollments' do
       expect(GrdaWarehouse::Hud::Client.destination.first.source_enrollments.count).to eq(2)
     end
-    it 'there should be one client needing data added' do
-      expect(GrdaWarehouse::Tasks::ServiceHistory::Add.new.determine_clients_with_no_service_history.count).to eq(1)
-    end
 
     describe 'adding should...' do
       before(:all) do
         GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+        Delayed::Worker.new.work_off(2)
       end
       it 'generate two entry records in the service history' do
         expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(2)
@@ -45,8 +45,6 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
         expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(10)
       end
     end
-
-
   end # end describe when processing
 
   describe 'When adding complex service histories ' do
@@ -63,6 +61,9 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     it 'two destination clients should exist' do
       expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+    end
+    it 'there should be three source enrollment records' do
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
     end
     it 'there should be three service history entry records' do
       expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(3)
@@ -105,7 +106,8 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+    Delayed::Worker.new.work_off(2)
   end
 
   def setup_initial_imports
@@ -131,7 +133,5 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
-  end
-
-  
+  end  
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171016191359) do
+ActiveRecord::Schema.define(version: 20171019143151) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -399,6 +399,7 @@ ActiveRecord::Schema.define(version: 20171016191359) do
     t.integer  "HashStatus"
     t.integer  "data_source_id"
     t.integer  "SourceType"
+    t.date     "effective_export_end_date"
   end
   add_index "Export", ["ExportID"], :name=>"export_export_id", :using=>:btree
   add_index "Export", ["data_source_id", "ExportID"], :name=>"unk_Export", :unique=>true, :using=>:btree
@@ -959,6 +960,16 @@ ActiveRecord::Schema.define(version: 20171016191359) do
   end
   add_index "files", ["type"], :name=>"index_files_on_type", :using=>:btree
 
+  create_table "generate_service_history_batch_logs", force: :cascade do |t|
+    t.integer  "generate_service_history_log_id"
+    t.integer  "to_process"
+    t.integer  "updated"
+    t.integer  "patched"
+    t.integer  "delayed_job_id"
+    t.datetime "created_at",                      :null=>false
+    t.datetime "updated_at",                      :null=>false
+  end
+
   create_table "generate_service_history_log", force: :cascade do |t|
     t.datetime "started_at"
     t.datetime "completed_at"
@@ -967,6 +978,7 @@ ActiveRecord::Schema.define(version: 20171016191359) do
     t.integer  "to_update"
     t.datetime "created_at",   :null=>false
     t.datetime "updated_at",   :null=>false
+    t.integer  "batches"
   end
 
   create_table "grades", force: :cascade do |t|
@@ -1417,7 +1429,6 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
-    "Enrollment"."RunawayYouth",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM ((("Enrollment"
@@ -1458,34 +1469,6 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
-    "Exit"."ExchangeForSex",
-    "Exit"."ExchangeForSexPastThreeMonths",
-    "Exit"."CountOfExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
-    "Exit"."WorkPlaceViolenceThreats",
-    "Exit"."WorkplacePromiseDifference",
-    "Exit"."CoercedToContinueWork",
-    "Exit"."LaborExploitPastThreeMonths",
-    "Exit"."CounselingReceived",
-    "Exit"."IndividualCounseling",
-    "Exit"."FamilyCounseling",
-    "Exit"."GroupCounseling",
-    "Exit"."SessionCountAtExit",
-    "Exit"."PostExitCounselingPlan",
-    "Exit"."SessionsInPlan",
-    "Exit"."DestinationSafeClient",
-    "Exit"."DestinationSafeWorker",
-    "Exit"."PosAdultConnections",
-    "Exit"."PosPeerConnections",
-    "Exit"."PosCommunityConnections",
-    "Exit"."AftercareDate",
-    "Exit"."AftercareProvided",
-    "Exit"."EmailSocialMedia",
-    "Exit"."Telephone",
-    "Exit"."InPersonIndividual",
-    "Exit"."InPersonGroup",
-    "Exit"."CMExitReason",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1610,7 +1593,6 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
-    "IncomeBenefits"."ConnectionWithSOAR",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id

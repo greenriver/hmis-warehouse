@@ -9,21 +9,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     require 'ruby-progressbar'
     attr_accessor :logger
     
-    private def build_history
-      @to_add = []
-      @to_update = {}
-      @to_update_count = 0
-      # Debug
-      # @to_patch = [324032]
-
-      @to_patch = clients_with_open_enrollments()
-
-      if no_one_to_build?
-        logger.info "Nothing to do."
-        return
-      end
-
-      process_to_patch()
+    def run!
+      process()
     end
   end
 end
