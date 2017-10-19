@@ -36,7 +36,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         log = GrdaWarehouse::GenerateServiceHistoryLog.create(started_at: started_at, batches: batches.size)
         batches.each do |batch|
           if @force_sequential_processing
-            :ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch).perform_now
+            ::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id).perform_now
           else
             job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id), queue: :service_history)
 
@@ -57,73 +57,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end
       end
     end
-
-    # def determine_clients_with_no_service_history
-    #   # logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-    #   logger.info "Finding clients without service histories..."
-    #   @to_add = destination_client_scope.without_service_history.pluck(:id)
-    #   @to_add_count = @to_add.size
-    #   logger.info "...found #{@to_add_count}."
-
-    #   @to_add
-    # end
-
-    # def clients_needing_updates
-    #   if @client_ids.present?
-    #     logger.info "Using provided client list..."
-    #     return @client_ids
-    #   end
-    #   logger.info "Finding clients needing updates..."
-    #   clients = GrdaWarehouse::Hud::Client.destination.
-    #     where.not(id: @to_add).limit(100)
-      
-    #   to_update = Parallel.map(clients, parallel_style => 2) do |client|
-    #     GrdaWarehouseBase.connection_pool.with_connection do
-    #       valid = true
-    #       client.source_enrollments.pluck(:id).map do |id|
-    #         en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(id)
-    #         if valid && en.source_data_changed?
-    #           valid = false
-    #           client.id
-    #         end
-    #       end
-    #     end
-    #   end
-    #   # active record connections follow you into the child processes but don't return
-    #   # so we'll explicitly disconnect and reconnect
-    #   # https://github.com/grosser/parallel/issues/83
-    #   # begin
-    #   #   GrdaWarehouseBase.connection.reconnect!
-    #   # rescue
-    #   #   GrdaWarehouseBase.connection.reconnect!
-    #   # end
-    #   to_update.flatten.compact
-    # end
-
-    # # Must be called after setting @to_update with clients_needing_updates()
-    # def clients_with_open_enrollments()
-    #   # Finding any client with an open enrollment who just needs some days added
-    #   logger.info "Finding existing clients with open enrollments (some will need days added)..."
-    #   range = Filters::DateRange.new(start: 1.weeks.ago.to_date, end: Date.today)
-
-    #   patch_scope = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
-    #     joins(:project, :destination_client).
-    #     where.not(Project: {TrackingMethod: 3}).
-    #     distinct
-    #   if @to_update.any?
-    #     patch_scope = patch_scope.where.not(Client: {id: @to_update})
-    #   end
-    #   if @to_add.any?
-    #     patch_scope = patch_scope.where.not(Client: {id: @to_add})
-    #   end
-    #   to_patch = patch_scope.pluck(c_t[:id].as('client_id').to_sql)
-    #   logger.info "...found #{to_patch.size}."
-    #   to_patch
-    # end
-
-    # def no_one_to_build?
-    #   (@to_add + @to_patch).empty? && @to_update.empty?
-    # end
 
     # sanity check anyone we've touched
     def sanity_check
@@ -150,10 +83,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
         select(:date).
         distinct.
         count
+      # The index gets in the way of calculating these quickly.  It is *much* faster
+      # to simply bring back all of the dates and use ruby to get the correct one
       first_date_served = service_history_source.service.
-        where(client_id: client_id).minimum(:date)
+        where(client_id: client_id).order(date: :desc).pluck(:date).last
       last_date_served = service_history_source.service.
-        where(client_id: client_id).maximum(:date)
+        where(client_id: client_id).order(date: :desc).pluck(:date).first
       processed.save
       destination_client_scope.clear_view_cache(client_id)
     end

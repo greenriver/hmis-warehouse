@@ -27,11 +27,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
       if should_rebuild?
-        Rails.logger.debug '===Rebuilding==='
         create_service_history!
         return :update
       elsif should_patch?
-        Rails.logger.debug '===Patching==='
         patch_service_history!
         return :patch
       end
@@ -59,6 +57,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       self.class.transaction do 
         remove_existing_service_history_for_enrollment()
+        # sometimes we have enrollments for projects that no longer exist
+        return unless project.present?
         days = []
         date = self.EntryDate
         type_provided = project.computed_project_type
@@ -159,9 +159,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
         includes(:exit, :services, :destination_client).
         references(:exit, :services, :destination_client).
         order(
-          e_t[:EntryDate].asc.to_sql, 
+          e_t[:EntryDate].asc, 
           ex_t[:ExitDate].asc, 
-          s_t[:DateProvided].asc
+          s_t[:DateProvided].asc,
+          e_t[:ProjectID].asc,
+          e_t[:DateDeleted].asc,
+          s_t[:DateDeleted].asc,
+          ex_t[:DateDeleted].asc
         ).
         pluck(*hash_columns)
     end
@@ -285,14 +289,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    # Build until the lesser of the coverage range or the exit date if we have one
+    # Build until the exit if we have one, or the lesser of the various coverage options
     def build_until
-      @build_until ||= [
-        export.effective_export_end_date,
-        export.ExportEndDate,
-        Date.today,
-        exit&.ExitDate,
-      ].compact.min.to_date
+      @build_until ||= if exit&.ExitDate.present?
+        if entry_exit_tracking?
+          # no bed night should be given on the exit date per System Performance Measures programming spec: The [project exit date] itself is not included because it does not represent a night spent in the project.
+          exit.ExitDate - 1.day
+        else
+          exit.ExitDate # Trust the data for night-by-night
+        end
+      else
+        [
+          export.effective_export_end_date,
+          export.ExportEndDate,
+          Date.today,
+        ].compact.min.to_date
+      end
     end
 
     # FIXME: We can't use this because out-of order exports only have access to part of their 
