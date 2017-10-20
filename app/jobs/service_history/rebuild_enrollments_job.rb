@@ -34,6 +34,7 @@ module ServiceHistory
           rebuild_types << enrollment.rebuild_service_history!
         end
         if rebuild_types.include?(:update)
+          Rails.logger.info "===RebuildEnrollmentsJob=== Rebuilt #{enrollment_id} for #{client_id}"
           counts[:updated] += 1
           to_sanity_check << client_id
         elsif rebuild_types.include?(:patch)
