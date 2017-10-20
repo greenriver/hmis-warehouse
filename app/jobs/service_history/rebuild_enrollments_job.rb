@@ -31,10 +31,13 @@ module ServiceHistory
         enrollments.each do |enrollment_id|
           # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
           enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment_id)
-          rebuild_types << enrollment.rebuild_service_history!
+          rebuild_type = enrollment.rebuild_service_history!
+          if rebuild_type == :update
+            Rails.logger.info "===RebuildEnrollmentsJob=== Rebuilt #{enrollment_id} for #{client_id}"
+          end
+          rebuild_types << rebuild_type
         end
         if rebuild_types.include?(:update)
-          Rails.logger.info "===RebuildEnrollmentsJob=== Rebuilt #{enrollment_id} for #{client_id}"
           counts[:updated] += 1
           to_sanity_check << client_id
         elsif rebuild_types.include?(:patch)
