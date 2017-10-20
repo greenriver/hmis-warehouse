@@ -15,7 +15,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       self.logger = Rails.logger
       setup_notifier('Service History Generator')
       @batch_size = batch_size
-      @client_ids = Array(client_ids)
+      @client_ids = Array(client_ids).uniq
       @force_sequential_processing = force_sequential_processing
     end
 
@@ -29,7 +29,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         @client_ids = if @client_ids.any?
           @client_ids
         else
-          destination_client_scope.pluck(:id)
+          destination_client_scope.distinct.pluck(:id)
         end
         batches = @client_ids.each_slice(@batch_size)
         started_at = DateTime.now
