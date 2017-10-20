@@ -21,11 +21,12 @@ module ServiceHistory
       to_sanity_check = []
       @client_ids.each do |client_id|
         # Rails.logger.debug "rebuilding enrollments for #{client_id}"
-        client = GrdaWarehouse::Hud::Client.find(client_id)
+        client = GrdaWarehouse::Hud::Client.destination.find_by_id(client_id)
+        next if client.blank?
         enrollments = GrdaWarehouse::Hud::Client.where(id: client_id).
           joins(:source_enrollments).
           pluck(e_t[:id].as('enrollment_id').to_sql)
-        Rails.logger.debug "===RebuildEnrollmentsJob=== Processing #{enrollments.size} enrollments for #{client_id}"
+        Rails.logger.info "===RebuildEnrollmentsJob=== Processing #{enrollments.size} enrollments for #{client_id}"
         rebuild_types = []
         enrollments.each do |enrollment_id|
           # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
@@ -39,7 +40,9 @@ module ServiceHistory
           counts[:patched] += 1
           to_sanity_check << client_id
         end
-        GrdaWarehouse::Tasks::ServiceHistory::Base.new.mark_processed(client_id)
+        processor = GrdaWarehouse::Tasks::ServiceHistory::Base.new
+        processor.ensure_there_are_no_extra_enrollments_in_service_history(client_id)
+        processor.mark_processed(client_id)
       end
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(to_sanity_check.size, to_sanity_check).run!
       log.update(counts)

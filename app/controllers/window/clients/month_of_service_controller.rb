@@ -30,7 +30,9 @@ module Window::Clients
     end
     
     def client_scope
-      client_source.destination.joins(source_clients: :data_source).where(data_sources: {visible_in_window: true})
+      client_source.destination.
+        joins(source_clients: :data_source).
+        where(data_sources: {visible_in_window: true})
     end
 
     def project_source
@@ -38,7 +40,8 @@ module Window::Clients
     end
 
     def project_scope
-      project_source.joins(:data_source).where(data_sources: {visible_in_window: true})
+      project_source.joins(:data_source).
+        where(data_sources: {visible_in_window: true})
     end
 
     def service_history_service_scope

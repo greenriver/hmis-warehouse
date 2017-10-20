@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171019143151) do
+ActiveRecord::Schema.define(version: 20171020131243) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1854,7 +1854,6 @@ SELECT "Services"."ServicesID",
     t.integer  "days_served"
     t.date     "first_date_served"
     t.date     "last_date_served"
-    t.boolean  "chronically_homeless",    :default=>false, :null=>false
   end
   add_index "warehouse_clients_processed", ["routine"], :name=>"index_warehouse_clients_processed_on_routine", :using=>:btree
 
