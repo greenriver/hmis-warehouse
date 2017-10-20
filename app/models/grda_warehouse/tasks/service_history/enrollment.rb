@@ -27,6 +27,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
       if should_rebuild?
+        Rails.logger.info "===RebuildEnrollmentsJob=== Rebuilding #{id}"
         create_service_history!
         return :update
       elsif should_patch?
