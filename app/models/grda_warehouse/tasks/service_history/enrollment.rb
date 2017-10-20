@@ -26,14 +26,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # should patch or rebuild, or do nothing.  If you need more fine grained control
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
+      action = false
       if should_rebuild?
-        create_service_history!
-        return :update
+        action = :update if create_service_history!
       elsif should_patch?
-        patch_service_history!
-        return :patch
+        action = :patch if patch_service_history!
       end
-      false
+      return action
     end
 
     def patch_service_history!
@@ -47,18 +46,19 @@ module GrdaWarehouse::Tasks::ServiceHistory
         insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
         update(processed_hash: calculate_hash)
       end
+      return true
     end
 
     def create_service_history! force=false
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Initiating create_service_history'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-      return unless force || source_data_changed?
+      return false unless force || source_data_changed?
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Checked for changes'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       self.class.transaction do 
         remove_existing_service_history_for_enrollment()
         # sometimes we have enrollments for projects that no longer exist
-        return unless project.present?
+        return false unless project.present?
         days = []
         date = self.EntryDate
         type_provided = project.computed_project_type
@@ -78,6 +78,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
       end
       update(processed_hash: calculate_hash)
+      return true
     end
 
     def entry_record date, type_provided
