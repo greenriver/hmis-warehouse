@@ -109,13 +109,14 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
         .style('bottom', '-12px')
         .style('font-size', '30px')
         .style('text-align', 'center')
+        .style('left', (tick) =>
+          translate = +d3.select(tick).attr('transform').split(',')[0].match(/[\d\.]+/g)
+          left = translate + @margin.left - 30
+          "#{left}px"
+        )
         .style('color', (tick) =>
           text = d3.select(tick).select('text').text()
           @scale.xColor(text)
-        )
-        .style('left', (tick) =>
-          translate = +d3.select(tick).attr('transform').split(',')[0].replace('translate(', '')
-          translate + @margin.left - 30 + 'px'
         )
       .append('g')
         .attr('tick', 'tick')
