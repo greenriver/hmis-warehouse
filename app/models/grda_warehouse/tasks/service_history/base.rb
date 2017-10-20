@@ -11,10 +11,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # Debugging
     attr_accessor :batch, :to_patch
 
-    def initialize(client_ids: nil, force_sequential_processing: false)
+    def initialize(client_ids: nil, batch_size: 250, force_sequential_processing: false)
       self.logger = Rails.logger
       setup_notifier('Service History Generator')
-      @batch_size = 250
+      @batch_size = batch_size
       @client_ids = Array(client_ids)
       @force_sequential_processing = force_sequential_processing
     end
