@@ -4,7 +4,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include TsqlImport
     include ActiveSupport::Benchmarkable
     
-    after_save :force_validity_calculation
+    after_commit :force_validity_calculation
 
     def service_history_valid?
       processed_hash == calculate_hash

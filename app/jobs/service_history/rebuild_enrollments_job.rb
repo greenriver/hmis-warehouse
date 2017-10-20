@@ -18,6 +18,7 @@ module ServiceHistory
         updated: 0,
         patched: 0,
       }
+      to_sanity_check = []
       @client_ids.each do |client_id|
         # Rails.logger.debug "rebuilding enrollments for #{client_id}"
         client = GrdaWarehouse::Hud::Client.find(client_id)
@@ -33,12 +34,14 @@ module ServiceHistory
         end
         if rebuild_types.include?(:update)
           counts[:updated] += 1
+          to_sanity_check << client_id
         elsif rebuild_types.include?(:patch)
           counts[:patched] += 1
+          to_sanity_check << client_id
         end
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, [client_id]).run!
         GrdaWarehouse::Tasks::ServiceHistory::Base.new.mark_processed(client_id)
       end
+      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(to_sanity_check.size, to_sanity_check).run!
       log.update(counts)
     end
 
