@@ -250,11 +250,12 @@ module GrdaWarehouse::Tasks
             where(age: nil).
             joins(:enrollment).
             select(e_t[:id].as('id').to_sql)
-        ).update_all(processed_hash: nil)        
+        ).update_all(processed_hash: nil)
+        client.invalidate_service_history   
       end
-      GrdaWarehouse::Tasks::ServiceHistory::Update.new(
-        client_ids: to_fix, force_sequential_processing: true
-      ).run!
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new(
+        force_sequential_processing: true
+      ).run! if to_fix.any?
     end
 
     private def client_age_at date
