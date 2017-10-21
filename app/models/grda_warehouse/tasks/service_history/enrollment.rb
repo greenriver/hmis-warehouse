@@ -109,8 +109,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def client_age_at date
-      return unless client.DOB.present? && date.present?
-      dob = client.DOB.to_date
+      return unless destination_client.DOB.present? && date.present?
+      dob = destination_client.DOB.to_date
       age = date.to_date.year - dob.year
       age -= 1 if dob > date.to_date.years_ago( age )
       # You have to be explicit here -= does not return age

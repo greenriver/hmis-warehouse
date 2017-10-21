@@ -234,7 +234,7 @@ module GrdaWarehouse::Tasks
         map(&:invalidate_service_history)
     end
 
-    private def add_missing_ages_to_service_history
+    def add_missing_ages_to_service_history
       logger.info "Finding any clients with DOBs with service histories missing ages..."
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
       without_dob = GrdaWarehouse::ServiceHistory.where.not(record_type: 'first').where(age: nil).select(:client_id).distinct.pluck(:client_id)
@@ -244,24 +244,10 @@ module GrdaWarehouse::Tasks
         @notifier.ping "Found #{to_fix.size} clients with dates of birth and service histories missing those dates.  This should not be happening.  \n\nLogical reasons include: a new import brought along a client DOB where we didn't have one before, but also had changes to enrollment, exit or services." if @send_notifications
       end
       to_fix.each do |client_id|
-        @client = GrdaWarehouse::Hud::Client.find(client_id)
-        first_service = GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id).order(date: :asc).first
-        last_service = GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id).order(date: :desc).first
-        current_age = client_age_at(first_service.date)
-        start_date = @client.DOB + current_age.years
-        end_date = @client.DOB + (current_age + 1).years - 1.day
-        while start_date <= last_service.date
-          # Update service history missing age between start_date and end_date
-          # puts "age: #{current_age}, dob: #{@client.DOB} first_service: #{first_service.date} last_service: #{last_service.date}"
-          GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id).where(['date between ? and ?', start_date, end_date]).update_all(age: current_age)
-          start_date += 1.year
-          end_date += 1.year
-          current_age += 1
-        end
-        # service_history = GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id)
-        # service_history.each do |sh|
-        #   sh.update(age: client_age_at(sh.date))
-        # end
+        client = GrdaWarehouse::Hud::Client.find(client_id)
+        client.service_history.where(age: nil).delete_all
+        client.invalidate_service_history
+        GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
       end
     end
 
