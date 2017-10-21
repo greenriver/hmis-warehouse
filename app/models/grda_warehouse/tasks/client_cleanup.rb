@@ -245,10 +245,16 @@ module GrdaWarehouse::Tasks
       end
       to_fix.each do |client_id|
         client = GrdaWarehouse::Hud::Client.find(client_id)
-        client.service_history.where(age: nil).delete_all
-        client.invalidate_service_history
-        GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
+        GrdaWarehouse::Hud::Enrollment.where(
+          id: client.service_history.
+            where(age: nil).
+            joins(:enrollment).
+            select(e_t[:id].as('id').to_sql)
+        ).update_all(processed_hash: nil)        
       end
+      GrdaWarehouse::Tasks::ServiceHistory::Update.new(
+        client_ids: to_fix, force_sequential_processing: true
+      ).run!
     end
 
     private def client_age_at date

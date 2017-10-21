@@ -21,7 +21,7 @@ module GrdaWarehouse::Tasks
         census_averages_source.delete_all
       else
         end_date = Date.today
-        start_year = 1.year.ago.year
+        start_year = 3.years.ago.year
         ct = census_averages_source.arel_table
         census_averages_source.where(year: start_year).delete_all
       end
