@@ -8,15 +8,6 @@
         $(target).html($error);
       };
 
-      var $utilization = $('.jUtilization');
-      $utilization.load($utilization.data('path'), function(response, status, xhr) {
-        if (status == 'error') {
-          error_message(response, status, xhr, this)
-        } else {
-          add_data_table($('.jUtilization .datatable'));
-        }
-      });
-
       var $appointments = $('.jAppointments');
       $appointments.load($appointments.data('path'), function(response, status, xhr) {
         if (status == 'error') {
