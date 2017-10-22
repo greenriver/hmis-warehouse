@@ -4,6 +4,7 @@
 module GrdaWarehouse::Tasks
   class ClientCleanup
     include NotifierConfig
+    include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
     def initialize(max_allowed=200, bogus_notifier=false, debug: false)
