@@ -2,6 +2,7 @@ module Importing
   class RunDailyImportsJob < ActiveJob::Base
     include ActionView::Helpers::DateHelper
     include NotifierConfig
+    include ArelHelper
     attr_accessor :send_notifications, :notifier_config
 
     def initialize
