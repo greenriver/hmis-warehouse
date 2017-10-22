@@ -1,3 +1,5 @@
+# NOTE: To force a rebuild that includes data that isn't the dates involved, you need to 
+# also set the processed_hash on the enrollment to nil
 
 module GrdaWarehouse::Tasks
   class ClientCleanup
@@ -32,6 +34,13 @@ module GrdaWarehouse::Tasks
       update_client_demographics_based_on_sources()
       fix_incorrect_ages_in_service_history()
       add_missing_ages_to_service_history()
+      rebuild_service_history_for_incorrect_clients()
+    end
+
+    def rebuild_service_history_for_incorrect_clients
+      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true)
+      debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
+      adder.run!
     end
 
     def find_unused_destination_clients
@@ -138,6 +147,7 @@ module GrdaWarehouse::Tasks
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
             logger.info "Invalidating service history for #{dest.id}"
+            dest.source_enrollments.update_all(processed_hash: nil)
             dest.invalidate_service_history
           end
           # We can speed this up if we want later.  If there's only one source client and the 
@@ -148,17 +158,15 @@ module GrdaWarehouse::Tasks
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"
       end
-      if processed < 0
-        debug_log "Rebuilding service history for #{processed} clients"
-        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-      end
     end
 
     def clients_to_munge
-      debug_log "Check any client who has been updated in the past week"
-      wcp_t = GrdaWarehouse::WarehouseClientsProcessed.arel_table
+      debug_log "Check any client who's source has been updated in the past week"
+      wc_t = GrdaWarehouse::WarehouseClient.arel_table
+      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(2.weeks.ago.to_date)).select(:id).pluck(:id)
       @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
-        where(wcp_t[:last_service_updated_at].gt(1.weeks.ago.to_date)).
+        joins(:warehouse_client).
+        where(wc_t[:source_id].in(updated_client_ids)).
         pluck(:client_id)
       logger.info "...found #{@to_update.size}."
       @to_update
@@ -231,7 +239,10 @@ module GrdaWarehouse::Tasks
       logger.info msg
       @notifier.ping msg if @send_notifications
       GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
-        map(&:invalidate_service_history)
+        map do |client|
+          client.source_enrollments.update_all(processed_hash: nil)
+          client.invalidate_service_history
+        end
     end
 
     def add_missing_ages_to_service_history
@@ -253,9 +264,6 @@ module GrdaWarehouse::Tasks
         ).update_all(processed_hash: nil)
         client.invalidate_service_history   
       end
-      GrdaWarehouse::Tasks::ServiceHistory::Add.new(
-        force_sequential_processing: true
-      ).run! if to_fix.any?
     end
 
     private def client_age_at date

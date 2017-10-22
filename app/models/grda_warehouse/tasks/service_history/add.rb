@@ -17,5 +17,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
       process()
     end
+
+    def clients_needing_update_count
+      destination_client_scope.without_service_history.count
+    end
   end
 end
