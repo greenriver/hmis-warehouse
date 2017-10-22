@@ -1506,6 +1506,7 @@ module ReportGenerators::Ahar::Fy2017
         when 27 then 'TH'
         when 28 then 'Rent_Oth_S'
         when 29 then 'Oth'
+        when 31 then 'Rent_Oth_S'
         when 99 then 'Mx'
         else 'Mx'
       end
