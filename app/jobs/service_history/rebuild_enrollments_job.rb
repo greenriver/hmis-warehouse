@@ -3,7 +3,6 @@ module ServiceHistory
     include ArelHelper
 
     def initialize client_ids:, log_id:
-      super
       @client_ids = client_ids
       @log_id = log_id
     end
