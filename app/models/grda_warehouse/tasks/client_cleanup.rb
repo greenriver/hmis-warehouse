@@ -39,7 +39,7 @@ module GrdaWarehouse::Tasks
     end
 
     def rebuild_service_history_for_incorrect_clients
-      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true)
+      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
       debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
       adder.run!
     end
@@ -148,8 +148,7 @@ module GrdaWarehouse::Tasks
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
             logger.info "Invalidating service history for #{dest.id}"
-            dest.source_enrollments.update_all(processed_hash: nil)
-            dest.invalidate_service_history
+            dest.force_full_service_history_rebuild
           end
           # We can speed this up if we want later.  If there's only one source client and the 
           # updated dates match, there's no need to update the destination
@@ -241,8 +240,7 @@ module GrdaWarehouse::Tasks
       @notifier.ping msg if @send_notifications
       GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
         map do |client|
-          client.source_enrollments.update_all(processed_hash: nil)
-          client.invalidate_service_history
+          client.force_full_service_history_rebuild
         end
     end
 

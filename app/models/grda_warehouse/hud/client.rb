@@ -1128,7 +1128,7 @@ module GrdaWarehouse::Hud
           current_cas_columns.merge!(previous_cas_columns){ |k, old, new| old.presence || new}
           self.update(current_cas_columns)
           self.save()
-          prev_destination_client.invalidate_service_history
+          prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
 
           # move any client notes
@@ -1144,7 +1144,7 @@ module GrdaWarehouse::Hud
           GrdaWarehouse::Vispdat.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
         end
         # and invaldiate our own service history
-        invalidate_service_history
+        force_full_service_history_rebuild
         # and invalidate any cache for these clients
         self.class.clear_view_cache(prev_destination_client.id)
       end
@@ -1156,6 +1156,12 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all
       end
       moved
+    end
+
+    def force_full_service_history_rebuild
+      service_history.where(record_type: [:entry, :exit, :service]).delete_all
+      source_enrollments.update_all(processed_hash: nil)
+      invalidate_service_history
     end
 
     def self.clear_view_cache(id)

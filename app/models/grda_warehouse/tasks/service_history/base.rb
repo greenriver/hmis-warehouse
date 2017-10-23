@@ -42,18 +42,27 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
           end
         end
+        unless @force_sequential_processing
+          # Check for completion using a reasonable interval
+          interval = if @client_ids.count < 25
+            5
+          else
+            30
+          end
+          self.class.wait_for_processing(interval: interval)
+        end
       ensure
         Rails.cache.delete('sanity_check_count')
       end
     end
 
-    def self.wait_for_processing
+    def self.wait_for_processing interval: 30
       # you must manually process these in the test environment since there are no workers
       unless Rails.env.test?
         started = Time.now
         while Delayed::Job.where(queue: :service_history, failed_at: nil).count > 0 do
           break if ((Time.now - started) / 1.hours) > 12
-          sleep(30)
+          sleep(interval)
         end
       end
     end

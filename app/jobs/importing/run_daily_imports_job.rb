@@ -33,7 +33,6 @@ module Importing
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
       @notifier.ping('Clients cleaned') if @send_notifications
       GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
-      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
       @notifier.ping('Service history generated') if @send_notifications
       Nickname.populate!
       @notifier.ping('Nicknames updated') if @send_notifications
@@ -84,7 +83,6 @@ module Importing
       # Make sure we don't have anyone who needs re-generation, even if they have
       # birthdays that are incorrect
       GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-      GrdaWarehouse::Tasks::ServiceHistory::Add.wait_for_processing
       @notifier.ping('Service history added') if @send_notifications
       # pre-populate the cache for data source date spans
       GrdaWarehouse::DataSource.data_spans_by_id()
