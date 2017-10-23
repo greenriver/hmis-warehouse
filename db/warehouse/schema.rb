@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171020131243) do
+ActiveRecord::Schema.define(version: 20171023175038) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -957,8 +957,10 @@ ActiveRecord::Schema.define(version: 20171020131243) do
     t.string   "name"
     t.boolean  "visible_in_window"
     t.string   "migrated_username"
+    t.integer  "vispdat_id"
   end
   add_index "files", ["type"], :name=>"index_files_on_type", :using=>:btree
+  add_index "files", ["vispdat_id"], :name=>"index_files_on_vispdat_id", :using=>:btree
 
   create_table "generate_service_history_batch_logs", force: :cascade do |t|
     t.integer  "generate_service_history_log_id"
@@ -1776,6 +1778,7 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_interviewer_email"
     t.string   "migrated_filed_by"
     t.boolean  "migrated",                     :default=>false, :null=>false
+    t.boolean  "housing_release_confirmed",    :default=>false
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
 
@@ -1851,6 +1854,7 @@ SELECT "Services"."ServicesID",
   add_foreign_key "ProjectCoC", "data_sources"
   add_foreign_key "Services", "data_sources"
   add_foreign_key "Site", "data_sources"
+  add_foreign_key "files", "vispdats"
   add_foreign_key "import_logs", "data_sources"
   add_foreign_key "warehouse_clients", "\"Client\"", column: "destination_id"
   add_foreign_key "warehouse_clients", "\"Client\"", column: "source_id"

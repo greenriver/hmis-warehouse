@@ -1,7 +1,6 @@
 module Window::Clients
   class VispdatsController < ApplicationController
     include WindowClientPathGenerator
-    
 
     before_action :require_can_view_vspdat!, only: [:index, :show]
     before_action :require_can_edit_vspdat!, only: [:new, :create, :edit, :update, :destroy]
@@ -25,6 +24,7 @@ module Window::Clients
     # end
 
     def edit
+      @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
 
     def create
@@ -47,6 +47,40 @@ module Window::Clients
       respond_with(@vispdat, location: polymorphic_path(vispdats_path_generator, client_id: @client.id))
     end
 
+    def upload_file
+      set_vispdat
+      @file = GrdaWarehouse::ClientFile.new
+      begin
+        file = file_params[:file]
+        @file.assign_attributes(
+          file: file,
+          client_id: @client.id,
+          user_id: current_user.id,
+          content_type: file&.content_type,
+          content: file&.read,
+          visible_in_window: file_params[:visible_in_window],
+          note: file_params[:note],
+          name: file_params[:name],
+          vispdat_id: @vispdat.id
+        )
+        # @file.tag_list.add(tag_list.select(&:present?))
+        # force consent form for now
+        @file.tag_list.add ['Consent Form']
+        @file.save!
+        flash[:notice] = "File #{file_params[:name]} saved."
+      rescue Exception => e
+        flash[:error] = e.message
+      end
+      redirect_to action: :edit
+    end
+
+    def destroy_file
+      set_vispdat
+      @file = @vispdat.files.find params[:file_id]
+      @file.destroy
+      respond_with @vispdat
+    end
+
     protected
 
       def set_client
@@ -63,6 +97,21 @@ module Window::Clients
 
       def vispdat_source
         GrdaWarehouse::Vispdat
+      end
+
+      def file_params
+        params.require(:grda_warehouse_client_file).
+          permit(
+            :file,
+            :name,
+            :note,
+            :visible_in_window,
+            tag_list: [],
+          )
+      end
+
+      def tag_list
+        file_params[:tag_list] || []
       end
   end
 end
