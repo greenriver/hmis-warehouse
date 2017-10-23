@@ -158,7 +158,12 @@ Rails.application.routes.draw do
     resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
-    resources :vispdats, controller: 'clients/vispdats'
+    resources :vispdats, controller: 'clients/vispdats' do
+      member do
+        put :upload_file
+        delete :destroy_file
+      end
+    end
     resources :files, controller: 'clients/files'
     resources :notes, only: [:destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'

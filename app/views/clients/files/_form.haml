@@ -4,7 +4,7 @@
       = f.error_notification
       .form-inputs
         = f.input :name, as: :string, :required => true
-        = f.input :tag_list, collection: @file.class.available_tags, label: 'Contains', input_html: {value: f.object.tag_list, multiple: :multiple, class: 'select2'}
+        = f.input :tag_list, collection: @file.class.available_tags, label: 'Contains', input_html: {value: f.object.tag_list, multiple: :multiple, class: 'select2', style: 'width: 100%'}
         = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
         = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
         = f.input :file, as: :file, :required => true            

@@ -2,7 +2,6 @@ module Window::Clients
   class VispdatsController < ApplicationController
     include WindowClientPathGenerator
     
-
     before_action :require_can_view_vspdat!, only: [:index, :show]
     before_action :require_can_edit_vspdat!, only: [:new, :create, :edit, :update, :destroy]
 
@@ -25,6 +24,7 @@ module Window::Clients
     # end
 
     def edit
+      @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
 
     def create
