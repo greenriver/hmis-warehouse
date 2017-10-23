@@ -26,7 +26,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def process
       begin
         logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
-        @client_ids = if @client_ids.any?
+        @client_ids = if @client_ids.present? && @client_ids.any?
           @client_ids
         else
           destination_client_scope.distinct.pluck(:id)
