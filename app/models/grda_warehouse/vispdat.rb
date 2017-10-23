@@ -36,6 +36,7 @@ module GrdaWarehouse
     # Associations
     ####################
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    has_many :files, class_name: 'GrdaWarehouse::ClientFile'
 
     ####################
     # Behaviors

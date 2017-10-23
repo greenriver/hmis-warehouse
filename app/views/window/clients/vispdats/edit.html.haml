@@ -17,4 +17,4 @@
   .clearfix
 %hr
 
-= render 'form', readonly: ! @vispdat.migrated?
+= render 'form', readonly: !@vispdat.migrated? && :readonly

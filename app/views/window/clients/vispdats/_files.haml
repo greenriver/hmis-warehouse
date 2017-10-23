@@ -1,0 +1,15 @@
+%h2 Files
+
+%ul.list-group
+  - if @vispdat.files.each do |file|
+    %li.list-group-item{ id: "file-#{file.id}" } 
+      .pull-right 
+        = link_to polymorphic_path(([:destroy_file] + vispdat_path_generator), client_id: @client.id, id: @vispdat.id, file_id: file.id), remote: true, method: :delete, data: { confirm: 'Are you sure you want to remove this file?' }, style: 'color:#CA8C9B' do
+          %span.icon-cross
+      = link_to polymorphic_path(file_path_generator, id: file.id) do
+        %i.fa.fa-file-text
+        = file.name
+      %br
+      %small= file.tag_list.join(', ')
+  - end.empty?
+    %p There are no VISPDAT related file uploads.
