@@ -1,7 +1,7 @@
 - path = polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id)
 
 
-= simple_form_for @file, url: upload_file_client_vispdat_path, method: :put do |f|
+= simple_form_for @file, url: polymorphic_path(([:upload_file] + vispdat_path_generator), client_id: @client.id, id: @vispdat.id), method: :put do |f|
   .modal.fade#upload-file
     .modal-dialog
       .modal-content

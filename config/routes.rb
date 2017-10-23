@@ -185,7 +185,12 @@ Rails.application.routes.draw do
       get :image
       resource :history, only: [:show], controller: 'clients/history'
       resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
-      resources :vispdats, controller: 'clients/vispdats'
+      resources :vispdats, controller: 'clients/vispdats' do
+        member do
+          put :upload_file
+          delete :destroy_file
+        end
+      end
       resources :files, controller: 'clients/files'
       resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
       resources :users, only: [:index, :create, :destroy], controller: 'clients/users'
