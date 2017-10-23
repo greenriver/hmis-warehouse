@@ -8,12 +8,12 @@
         .modal-header
           %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
             %span{"aria-hidden" => "true"} &times;
-          %h4.modal-title 
+          %h4.modal-title
             %i.icon-upload2
-            Upload File
+            Upload Release
         .modal-body
           = f.input :name, as: :string, :required => true
-          = f.input :tag_list, collection: @file.class.available_tags, label: 'Contains', input_html: {value: f.object.tag_list, multiple: :multiple}
+          -# = f.input :tag_list, collection: @file.class.available_tags, label: 'Contains', input_html: { value: f.object.tag_list, multiple: :multiple, readonly: true }, selected: 'Consent Form'
           = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
           = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
           = f.input :file, as: :file, :required => true
@@ -43,6 +43,19 @@
     .row
       .col-sm-4
         = f.input :release_signed_on, label: "Release Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
+
+        - if can_confirm_housing_release?
+          = f.input :housing_release_confirmed, as: :boolean
+
+        - if @vispdat.files.empty?
+          %a.btn.btn-default(data-toggle='modal' data-target='#upload-file')
+            %i.icon-upload2
+            Upload Release
+        - else
+          = link_to polymorphic_path(file_path_generator, id: @vispdat.files.first) do
+            %i.fa.fa-file
+            Release Form
+
       .col-sm-4
         %label Drug & Alcohol Release?
         = f.input :drug_release, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
@@ -288,13 +301,7 @@
       .col-sm-8
         = f.input :picture_answer, as: :radio_buttons, label: false, collection: GrdaWarehouse::Vispdat.options_for(:picture_answers)
 
-
-
-  = render 'files'
   %hr
     .row
       .col-sm-12.text-right
-        %a.btn.btn-default(data-toggle='modal' data-target='#upload-file')
-          %i.icon-upload2
-          Upload File
         = f.submit 'Complete', class: 'btn btn-primary'

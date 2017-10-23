@@ -1,7 +1,7 @@
 module Window::Clients
   class VispdatsController < ApplicationController
     include WindowClientPathGenerator
-    
+
     before_action :require_can_view_vspdat!, only: [:index, :show]
     before_action :require_can_edit_vspdat!, only: [:new, :create, :edit, :update, :destroy]
 
@@ -63,13 +63,15 @@ module Window::Clients
           name: file_params[:name],
           vispdat_id: @vispdat.id
         )
-        @file.tag_list.add(tag_list.select(&:present?))
+        # @file.tag_list.add(tag_list.select(&:present?))
+        # force consent form for now
+        @file.tag_list.add ['Consent Form']
         @file.save!
         flash[:notice] = "File #{file_params[:name]} saved."
       rescue Exception => e
         flash[:error] = e.message
       end
-      redirect_to action: :edit 
+      redirect_to action: :edit
     end
 
     def destroy_file
