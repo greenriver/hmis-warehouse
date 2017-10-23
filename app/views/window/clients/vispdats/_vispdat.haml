@@ -33,12 +33,22 @@
         - else
           %span.label.label-success
             %span.icon-checkmark
+      %p
+        - if @vispdat.files.any?
+          = link_to polymorphic_path(file_path_generator, id: @vispdat.files.first) do
+            %i.fa.fa-file
+            Release Form
+
     .col-sm-4
       %dt Drug & Alcohol Release?
       %dd= yes_no @vispdat.drug_release
     .col-sm-4
       %dt HIV/AIDS Release?
       %dd= yes_no @vispdat.hiv_release
+  .row
+    .col-sm-4
+      %dt Housing Release Confirmed?
+      %dd= yes_no @vispdat.housing_release_confirmed
 
 %h2 History of Housing & Homelessness
 .well
@@ -52,7 +62,7 @@
           = @vispdat.sleep_answer_other
           )
     .col-sm-4
-      %dt 
+      %dt
         Are you currently living on the street or in shelter?
         %br
         How long have you been living on the street or in shelter?
@@ -61,7 +71,7 @@
         = @vispdat.homeless_period
         = "Refused/Unsure" if @vispdat.homeless_refused?
     .col-sm-4
-      %dt 
+      %dt
         Have you been homeless repeatedly?
         %br
         How many times have you been homeless in the last three years?
