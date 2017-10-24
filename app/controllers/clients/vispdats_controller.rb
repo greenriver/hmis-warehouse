@@ -1,7 +1,6 @@
 module Clients
   class VispdatsController < Window::Clients::VispdatsController
     include ClientPathGenerator
-    
 
     def destroy
       @vispdat.destroy

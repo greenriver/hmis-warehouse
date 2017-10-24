@@ -18,6 +18,10 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_release_durations
+      ["Indefinite", "One Year"]
+    end
+
     def invalidate_cache
       self.class.invalidate_cache
     end
