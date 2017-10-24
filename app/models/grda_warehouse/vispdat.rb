@@ -36,6 +36,7 @@ module GrdaWarehouse
     # Associations
     ####################
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    has_many :files, class_name: 'GrdaWarehouse::ClientFile'
 
     ####################
     # Behaviors
@@ -102,7 +103,14 @@ module GrdaWarehouse
     ####################
     # Callbacks
     ####################
-    before_save :calculate_score
+    before_save :calculate_score, :set_client_housing_release_status
+
+    def set_client_housing_release_status
+      if housing_release_confirmed_changed?
+        status = housing_release_confirmed? ? 'Full HAN Release' : ''
+        client.update_column :housing_release_status, status
+      end
+    end
 
     def calculate_score
       self.score = pre_survey_score +
@@ -308,6 +316,7 @@ module GrdaWarehouse
         :nickname,
         :language_answer,
         :release_signed_on,
+        :housing_release_confirmed,
         :hiv_release,
         :drug_release,
         :sleep_answer,
