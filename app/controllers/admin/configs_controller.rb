@@ -32,6 +32,7 @@ module Admin
         :family_calculation_method,
         :continuum_name,
         :cas_url,
+        :allow_partial_release,
         tag_list: [],
       )
     end

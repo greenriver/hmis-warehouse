@@ -677,10 +677,9 @@ module GrdaWarehouse::Hud
     end
 
     def self.housing_release_options
-      [
-       'Full HAN Release',
-       'Limited CAS Release',
-      ]
+      options = ['Full HAN Release']
+      options << 'Limited CAS Release' if GrdaWarehouse::Config.get(:allow_partial_release)
+      options
     end
 
     def self.cas_readiness_parameters

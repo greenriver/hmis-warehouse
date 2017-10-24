@@ -11,8 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-
-ActiveRecord::Schema.define(version: 20171023194703) do
+ActiveRecord::Schema.define(version: 20171024180819) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -886,6 +885,7 @@ ActiveRecord::Schema.define(version: 20171023194703) do
     t.string  "continuum_name"
     t.string  "cas_url",                   :default=>"https://cas.boston.gov"
     t.string  "release_duration",          :default=>"Indefinite"
+    t.boolean "allow_partial_release",     :default=>true
   end
 
   create_table "contacts", force: :cascade do |t|
