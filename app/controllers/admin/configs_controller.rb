@@ -9,8 +9,10 @@ module Admin
 
     def update
       tag_list = config_params[:tag_list].select(&:present?)
+      file_notification_list = config_params[:file_notification_list].select(&:present?)
       @config.assign_attributes(config_params)
       @config.document_ready_list = tag_list
+      @config.file_notification_list = file_notification_list
       config_source.invalidate_cache
       if @config.save
         redirect_to({action: :index}, notice: 'Configuration updated')
@@ -34,6 +36,7 @@ module Admin
         :cas_url,
         :allow_partial_release,
         tag_list: [],
+        file_notification_list: [],
       )
     end
 
