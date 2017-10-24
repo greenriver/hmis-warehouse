@@ -915,6 +915,8 @@ module GrdaWarehouse::Hud
         where(where).
         preload(:destination_client).
         map{|m| m.destination_client.id}
+      
+      client_ids << text if numeric
       where(id: client_ids)
     end
 
