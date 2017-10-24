@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171023175038) do
+ActiveRecord::Schema.define(version: 20171023194703) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -884,6 +884,7 @@ ActiveRecord::Schema.define(version: 20171023175038) do
     t.string  "default_coc_zipcodes"
     t.string  "continuum_name"
     t.string  "cas_url",                   :default=>"https://cas.boston.gov"
+    t.string  "release_duration",          :default=>"Indefinite"
   end
 
   create_table "contacts", force: :cascade do |t|

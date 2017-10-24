@@ -4,13 +4,13 @@ module Admin
     before_action :set_config
 
     def index
-      
+
     end
 
     def update
       tag_list = config_params[:tag_list].select(&:present?)
       @config.assign_attributes(config_params)
-      @config.document_ready_list = tag_list    
+      @config.document_ready_list = tag_list
       config_source.invalidate_cache
       if @config.save
         redirect_to({action: :index}, notice: 'Configuration updated')
@@ -25,6 +25,7 @@ module Admin
         :eto_api_available,
         :healthcare_available,
         :project_type_override,
+        :release_duration,
         :cas_available_method,
         :site_coc_codes,
         :default_coc_zipcodes,
