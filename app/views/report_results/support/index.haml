@@ -4,12 +4,19 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        -# See if we have a "Client ID" field, store the index and attempt to turn it into a link
+        - id_index = @data['support']['headers'].find_index('Client ID')
         - @data['support']['headers'].each do |t|
           %th= t
     %tbody
       - @data['support']['counts'].each do |row|
         %tr
-          - row.each do |v|
-            %td= v
+          - row.each_with_index do |v, index|
+            %td
+              - if id_index.present? && index == id_index
+                = link_to client_path(id: v), target: '_blank' do
+                  = v
+              - else
+                = v
 - else
   None found

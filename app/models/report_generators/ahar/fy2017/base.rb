@@ -807,6 +807,15 @@ module ReportGenerators::Ahar::Fy2017
               if involved_enrollments_by_entry_id_and_data_source_id[[entry_id, data_source_id]].present?
                 length_code = involved_enrollments_by_entry_id_and_data_source_id[[entry[service_history_enrollment_group_id_index], entry[service_history_data_source_id_index]]][enrollment_prior_residence_length_of_stay_index]
                 @answers[the_sub_type]["Stb_Prv_Nt_#{prior_living_length_slug(length_code)}"] += 1
+                client = client_metadata_by_client_id[client_id]
+                @support[the_sub_type]["Stb_Prv_Nt_#{prior_living_length_slug(length_code)}"] ||= {}
+                @support[the_sub_type]["Stb_Prv_Nt_#{prior_living_length_slug(length_code)}"][:headers] ||= ['Client ID', 'Last Name', 'First Name']
+                @support[the_sub_type]["Stb_Prv_Nt_#{prior_living_length_slug(length_code)}"][:counts] ||= []
+                @support[the_sub_type]["Stb_Prv_Nt_#{prior_living_length_slug(length_code)}"][:counts] << [
+                  client_id,
+                  client[client_last_name_index],
+                  client[client_first_name_index],
+                ]
                 counted_clients_per_sub_type << [the_sub_type, client_id]
               else
                 # Keep track of anyone we don't know lenght for and if we still don't konw at the end, put them into the Stb_Prv_Nt_Mx category
@@ -1002,7 +1011,8 @@ module ReportGenerators::Ahar::Fy2017
       entries_by_client_id.each do |id, entries|
         next unless vet_check(client_id: id)
         client = client_metadata_by_client_id[id]
-        veteran = veteran_slug(client[client_veteran_status_index])
+        veteran_status = client[client_veteran_status_index]
+        veteran = veteran_slug(veteran_status)
         
         distinct_sub_types = entries.map do |entry|
           project_type = entry[service_history_project_type_index]
@@ -1016,9 +1026,14 @@ module ReportGenerators::Ahar::Fy2017
           if age.blank? || age >= ADULT
             @answers[sub_type][veteran] += 1
             @support[sub_type][veteran] ||= {}
-            @support[sub_type][veteran][:headers] ||= ['Client ID']
+            @support[sub_type][veteran][:headers] ||= ['Client ID', 'Last Name', 'First Name', 'Veteran Status']
             @support[sub_type][veteran][:counts] ||= []
-            @support[sub_type][veteran][:counts] << [id]
+            @support[sub_type][veteran][:counts] << [
+              id,
+              client[client_last_name_index],
+              client[client_first_name_index],
+              veteran_status,
+            ]
           end
         end
       end
@@ -1075,12 +1090,20 @@ module ReportGenerators::Ahar::Fy2017
           family = households[[household_id, data_source_id, project_id]].try(:[], :family) || false
           the_sub_type = sub_type(project_type, family)
           unless counted_clients_per_sub_type.include?([client_id, the_sub_type])
+            client = client_metadata_by_client_id[client_id]
             @answers[the_sub_type][household_size_slug(size)] += 1
             counted_clients_per_sub_type << [client_id, the_sub_type]
             @support[the_sub_type][household_size_slug(size)] ||= {}
-            @support[the_sub_type][household_size_slug(size)][:headers] ||= ['Client ID', 'Household ID', 'Data Source ID', 'Project ID']
+            @support[the_sub_type][household_size_slug(size)][:headers] ||= ['Client ID', 'Last Name', 'First Name', 'Household ID', 'Data Source ID', 'Project ID']
             @support[the_sub_type][household_size_slug(size)][:counts] ||= []
-            @support[the_sub_type][household_size_slug(size)][:counts] << [client_id, household_id, data_source_id, project_id]
+            @support[the_sub_type][household_size_slug(size)][:counts] << [
+              client_id, 
+              client[client_last_name_index],
+              client[client_first_name_index],
+              household_id, 
+              data_source_id, 
+              project_id
+            ]
           end
         end
       end
@@ -1097,11 +1120,17 @@ module ReportGenerators::Ahar::Fy2017
         distinct_project_types.each do |sub_type|
           first_entry = first_entry_in_category(id, sub_type)
           gender = gender_slug(id, first_entry)
+          client = client_metadata_by_client_id[id]
           @answers[sub_type][gender] += 1
           @support[sub_type][gender] ||= {}
-          @support[sub_type][gender][:headers] ||= ['Client ID']
+          @support[sub_type][gender][:headers] ||= ['Client ID', 'Last Name', 'First Name', 'Gender']
           @support[sub_type][gender][:counts] ||= []
-          @support[sub_type][gender][:counts] << [id]
+          @support[sub_type][gender][:counts] << [
+            id,
+            client[client_last_name_index],
+            client[client_first_name_index],
+            HUD.gender(client[client_gender_index]),
+          ]
         end
       end
     end
@@ -1155,11 +1184,17 @@ module ReportGenerators::Ahar::Fy2017
           # use entry closest to report start for client metadata see docs/Introductory-Guide-to-the-2016-AHAR Page 9
           first_entry = first_entry_in_category(id, sub_type)
           age = first_entry[service_history_age_index] || infer_adulthood(id)
+          client = client_metadata_by_client_id[id]
           @answers[sub_type][age_range(age)] += 1
           @support[sub_type][age_range(age)] ||= {}
-          @support[sub_type][age_range(age)][:headers] ||= ['Client ID']
+          @support[sub_type][age_range(age)][:headers] ||= ['Client ID', 'Last Name', 'First Name', 'Age']
           @support[sub_type][age_range(age)][:counts] ||= []
-          @support[sub_type][age_range(age)][:counts] << [id]
+          @support[sub_type][age_range(age)][:counts] << [
+            id,
+            client[client_last_name_index],
+            client[client_first_name_index],
+            age,
+          ]
         end
       end
     end
@@ -1856,7 +1891,9 @@ module ReportGenerators::Ahar::Fy2017
 
     def client_columns
       [
-        :PersonalID, 
+        :PersonalID,
+        :LastName,
+        :FirstName,
         :data_source_id, 
         :Gender, 
         :VeteranStatus,
@@ -1983,6 +2020,14 @@ module ReportGenerators::Ahar::Fy2017
 
     def client_veteran_status_index
       @client_veteran_status_index ||= client_columns.find_index(:VeteranStatus)
+    end
+
+    def client_last_name_index
+      @client_last_name_index ||= client_columns.find_index(:LastName)
+    end
+
+    def client_first_name_index
+      @client_first_name_index ||= client_columns.find_index(:FirstName)
     end
 
     def enrollment_project_entry_id_index

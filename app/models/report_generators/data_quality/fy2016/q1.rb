@@ -245,7 +245,6 @@ module ReportGenerators::DataQuality::Fy2016
             id,
             member[:age],
             member[:household_id],
-            household[:household].first[:household_id],
             household[:household].
               map{|m| m[:client_id]}.join(', '), 
             household[:household].size
