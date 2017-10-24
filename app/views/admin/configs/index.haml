@@ -11,7 +11,7 @@
       = f.input :eto_api_available, label: 'Is the ETO API available?'
       = f.input :healthcare_available, label: 'Enable Healthcare section?'
       = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
-      = f.input :release_duration, collection: ["Indefinite", "One Year"]
+      = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations
       = f.input :cas_url, label: 'CAS Site URL'
     .col-sm-6
       = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
