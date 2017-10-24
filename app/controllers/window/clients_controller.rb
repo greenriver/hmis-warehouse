@@ -5,7 +5,7 @@ module Window
     include WindowClientPathGenerator
     
     before_action :require_can_view_client_window!
-    before_action :set_client, only: [:show]
+    before_action :set_client, :check_release, only: [:show]
     before_action :set_client_from_client_id, only: [:image, :rollup]
     before_action :require_can_create_clients!, only: [:new, :create]
 
@@ -43,5 +43,13 @@ module Window
     def user_can_view_confidential_names?
       false
     end
+
+    def check_release
+      if @client.release_expired?
+        flash[:alert] = "Client #{@client.full_name} is not viewable due to an expired/missing signed release"
+        redirect_to window_clients_path
+      end
+    end
+
   end
 end

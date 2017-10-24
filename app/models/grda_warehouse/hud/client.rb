@@ -320,6 +320,10 @@ module GrdaWarehouse::Hud
       housing_release_status == 'Full HAN Release'
     end
 
+    def release_expired?
+      !release_valid?
+    end
+
     # cas needs a simplified version of this
     def cas_substance_response
       response = source_disabilities.detect(&:substance?).try(:response)
