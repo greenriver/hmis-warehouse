@@ -22,7 +22,7 @@ module GrdaWarehouse::Tasks
           census_by_project_source.delete_all
         else
           end_date = Date.today
-          start_date = end_date - 1.year
+          start_date = end_date - 3.years
           census_by_project_source.where( 
             census_t[:date].gteq(start_date).and(census_t[:date].lt(end_date))
           ).delete_all

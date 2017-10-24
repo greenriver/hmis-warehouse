@@ -1,7 +1,10 @@
+# NOTE: To force a rebuild that includes data that isn't the dates involved, you need to 
+# also set the processed_hash on the enrollment to nil
 
 module GrdaWarehouse::Tasks
   class ClientCleanup
     include NotifierConfig
+    include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
     def initialize(max_allowed=200, bogus_notifier=false, debug: false)
@@ -32,6 +35,13 @@ module GrdaWarehouse::Tasks
       update_client_demographics_based_on_sources()
       fix_incorrect_ages_in_service_history()
       add_missing_ages_to_service_history()
+      rebuild_service_history_for_incorrect_clients()
+    end
+
+    def rebuild_service_history_for_incorrect_clients
+      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
+      debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
+      adder.run!
     end
 
     def find_unused_destination_clients
@@ -138,7 +148,7 @@ module GrdaWarehouse::Tasks
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
             logger.info "Invalidating service history for #{dest.id}"
-            dest.invalidate_service_history
+            dest.force_full_service_history_rebuild
           end
           # We can speed this up if we want later.  If there's only one source client and the 
           # updated dates match, there's no need to update the destination
@@ -148,17 +158,15 @@ module GrdaWarehouse::Tasks
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"
       end
-      if processed < 0
-        debug_log "Rebuilding service history for #{processed} clients"
-        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-      end
     end
 
     def clients_to_munge
-      debug_log "Check any client who has been updated in the past week"
-      wcp_t = GrdaWarehouse::WarehouseClientsProcessed.arel_table
+      debug_log "Check any client who's source has been updated in the past week"
+      wc_t = GrdaWarehouse::WarehouseClient.arel_table
+      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(2.weeks.ago.to_date)).select(:id).pluck(:id)
       @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
-        where(wcp_t[:last_service_updated_at].gt(1.weeks.ago.to_date)).
+        joins(:warehouse_client).
+        where(wc_t[:source_id].in(updated_client_ids)).
         pluck(:client_id)
       logger.info "...found #{@to_update.size}."
       @to_update
@@ -231,10 +239,12 @@ module GrdaWarehouse::Tasks
       logger.info msg
       @notifier.ping msg if @send_notifications
       GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
-        map(&:invalidate_service_history)
+        map do |client|
+          client.force_full_service_history_rebuild
+        end
     end
 
-    private def add_missing_ages_to_service_history
+    def add_missing_ages_to_service_history
       logger.info "Finding any clients with DOBs with service histories missing ages..."
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
       without_dob = GrdaWarehouse::ServiceHistory.where.not(record_type: 'first').where(age: nil).select(:client_id).distinct.pluck(:client_id)
@@ -244,24 +254,14 @@ module GrdaWarehouse::Tasks
         @notifier.ping "Found #{to_fix.size} clients with dates of birth and service histories missing those dates.  This should not be happening.  \n\nLogical reasons include: a new import brought along a client DOB where we didn't have one before, but also had changes to enrollment, exit or services." if @send_notifications
       end
       to_fix.each do |client_id|
-        @client = GrdaWarehouse::Hud::Client.find(client_id)
-        first_service = GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id).order(date: :asc).first
-        last_service = GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id).order(date: :desc).first
-        current_age = client_age_at(first_service.date)
-        start_date = @client.DOB + current_age.years
-        end_date = @client.DOB + (current_age + 1).years - 1.day
-        while start_date <= last_service.date
-          # Update service history missing age between start_date and end_date
-          # puts "age: #{current_age}, dob: #{@client.DOB} first_service: #{first_service.date} last_service: #{last_service.date}"
-          GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id).where(['date between ? and ?', start_date, end_date]).update_all(age: current_age)
-          start_date += 1.year
-          end_date += 1.year
-          current_age += 1
-        end
-        # service_history = GrdaWarehouse::ServiceHistory.where(age: nil, client_id: client_id)
-        # service_history.each do |sh|
-        #   sh.update(age: client_age_at(sh.date))
-        # end
+        client = GrdaWarehouse::Hud::Client.find(client_id)
+        GrdaWarehouse::Hud::Enrollment.where(
+          id: client.service_history.
+            where(age: nil).
+            joins(:enrollment).
+            select(e_t[:id].as('id').to_sql)
+        ).update_all(processed_hash: nil)
+        client.invalidate_service_history   
       end
     end
 
