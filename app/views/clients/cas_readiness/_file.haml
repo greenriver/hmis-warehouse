@@ -1,0 +1,29 @@
+= simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
+  .row
+    .col-sm-6
+      - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household].each do |column|
+        = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column]
+    .col-sm-6
+      %p The following attributes are determined based exclusively on the existance of an uploaded file.
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th On File?
+            %th CAS Attribute
+        %tbody
+          %tr
+            %td= checkmark(@client.ha_eligible)
+            %td= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
+          %tr
+            %td= checkmark(@client.disability_verified_on.present?)
+            %td= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
+      
+      = f.input :housing_release_status, collection: GrdaWarehouse::Hud::Client.housing_release_options, include_blank: 'Not Signed'
+      - if can_view_hiv_status?
+        = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible]
+        = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive]
+      - if can_view_dmh_status?
+        = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible]
+      = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas]
+  = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
+  = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'

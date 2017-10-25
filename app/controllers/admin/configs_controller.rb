@@ -29,6 +29,7 @@ module Admin
         :project_type_override,
         :release_duration,
         :cas_available_method,
+        :cas_flag_method,
         :site_coc_codes,
         :default_coc_zipcodes,
         :family_calculation_method,

@@ -42,6 +42,10 @@ module Window::Clients
         notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
         to_send = tag_list & notification_triggers
         FileNotificationMailer.notify(to_send, @client.id).deliver_later if to_send.any?
+
+        # Keep various client fields in sync with files if appropriate
+        @file.client.sync_cas_attributes_with_files
+
       rescue Exception => e
         flash[:error] = e.message
         render action: :new
@@ -57,6 +61,8 @@ module Window::Clients
       begin
         @file.destroy!
         flash[:notice] = "File was successfully deleted."
+        # Keep various client fields in sync with files if appropriate
+        @client.sync_cas_attributes_with_files
       rescue Exception => e
         flash[:error] = "File could not be deleted."
       end

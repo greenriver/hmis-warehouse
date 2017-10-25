@@ -13,6 +13,13 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_cas_flag_methods
+      {
+        'A human should review qualifications' => :manual,
+        'Trust the uploaded files' => :file,
+      }
+    end
+
     def self.family_calculation_methods
       {
         'At least one adult & child' => :adult_child,
