@@ -210,15 +210,17 @@ module GrdaWarehouse::Hud
         where(sync_with_cas: true)
       when :chronic
         joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
+      when :release_present
+        where()
       else
         raise NotImplementedError
       end
     end
     scope :full_housing_release_on_file, -> do
-      where(housing_release_status: 'Full HAN Release')
+      where(housing_release_status: full_release_string)
     end
     scope :limited_cas_release_on_file, -> do
-      where(housing_release_status: 'Limited CAS Release')
+      where(housing_release_status: partial_release_string)
     end
     scope :verified_disability, -> do
       where.not(disability_verified_on: nil)
@@ -269,6 +271,14 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    def self.full_release_string
+      'Full HAN Release'
+    end
+
+    def self.partial_release_string
+      'Limited CAS Release'
+    end
+
     def scope_for_ongoing_residential_enrollments
       source_enrollments.
       residential.
@@ -317,7 +327,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_valid?
-      housing_release_status == 'Full HAN Release'
+      housing_release_status == self.class.full_release_string
     end
 
     def release_expired?
@@ -677,8 +687,8 @@ module GrdaWarehouse::Hud
     end
 
     def self.housing_release_options
-      options = ['Full HAN Release']
-      options << 'Limited CAS Release' if GrdaWarehouse::Config.get(:allow_partial_release)
+      options = [full_release_string]
+      options << partial_release_string if GrdaWarehouse::Config.get(:allow_partial_release)
       options
     end
 
