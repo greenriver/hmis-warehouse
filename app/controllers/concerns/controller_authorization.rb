@@ -20,8 +20,16 @@ module ControllerAuthorization
     not_authorized!
   end
 
-  private def require_can_view_clients_or_window!
-    current_user.can_view_client_window? || current_user.can_view_clients?
+  def require_can_view_clients_or_window!
+    can_view = current_user.can_view_client_window? || current_user.can_view_clients?
+    return true if can_view    
+    not_authorized!
+  end
+
+  def require_window_file_access!
+    can_view = current_user.can_see_own_file_uploads? || current_user.can_manage_window_client_files?
+    return true if can_view    
+    not_authorized!
   end
 
   def not_authorized!

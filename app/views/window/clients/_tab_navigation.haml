@@ -1,4 +1,5 @@
 - show_health = @client.patient.present? && @client.patient.accessible_by_user(current_user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+- show_files = can_manage_window_client_files? || can_see_own_file_uploads?
 :ruby
   tabs = {
     polymorphic_path(client_path_generator, id: @client.id) => {
@@ -15,7 +16,7 @@
     },
     polymorphic_path(files_path_generator, client_id: @client.id) => {
       title: 'File Uploads',
-      permission: can_manage_window_client_files?,
+      permission: show_files,
     },
     polymorphic_path(users_path_generator, client_id: @client) => {
       title: 'Relationships',

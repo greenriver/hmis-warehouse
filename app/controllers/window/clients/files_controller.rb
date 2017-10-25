@@ -2,7 +2,7 @@ module Window::Clients
   class FilesController < ApplicationController
     include WindowClientPathGenerator
     
-    before_action :require_can_manage_these_client_files!
+    before_action :require_window_file_access!
     before_action :set_client, only: [:index, :show, :new, :create, :edit, :update]
     before_action :set_files, only: [:index]
     before_action :set_file, only: [:show, :edit, :update]
@@ -96,11 +96,9 @@ module Window::Clients
     end
     
     def file_scope
-      file_source.where(client_id: @client.id, visible_in_window: true)
+      file_source.window.where(client_id: @client.id).
+        visible_by?(current_user)
     end
     
-    def require_can_manage_these_client_files!
-      require_can_manage_window_client_files!
-    end
   end
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171023174425) do
+ActiveRecord::Schema.define(version: 20171025122843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,6 +37,28 @@ ActiveRecord::Schema.define(version: 20171023174425) do
   add_index "activity_logs", ["controller_name"], :name=>"index_activity_logs_on_controller_name", :using=>:btree
   add_index "activity_logs", ["item_model"], :name=>"index_activity_logs_on_item_model", :using=>:btree
   add_index "activity_logs", ["user_id"], :name=>"index_activity_logs_on_user_id", :using=>:btree
+
+  create_table "cas_reports", force: :cascade do |t|
+    t.integer  "client_id",                          :null=>false
+    t.integer  "match_id",                           :null=>false
+    t.integer  "decision_id",                        :null=>false
+    t.integer  "decision_order",                     :null=>false
+    t.string   "match_step",                         :null=>false
+    t.string   "decision_status",                    :null=>false
+    t.boolean  "current_step",                       :default=>false, :null=>false
+    t.boolean  "active_match",                       :default=>false, :null=>false
+    t.datetime "created_at",                         :null=>false
+    t.datetime "updated_at",                         :null=>false
+    t.integer  "elapsed_days",                       :default=>0, :null=>false
+    t.datetime "client_last_seen_date"
+    t.datetime "criminal_hearing_date"
+    t.string   "decline_reason"
+    t.string   "not_working_with_client_reason"
+    t.string   "administrative_cancel_reason"
+    t.boolean  "client_spoken_with_services_agency"
+    t.boolean  "cori_release_form_submitted"
+  end
+  add_index "cas_reports", ["client_id", "match_id", "decision_id"], :name=>"index_cas_reports_on_client_id_and_match_id_and_decision_id", :unique=>true, :using=>:btree
 
   create_table "client_service_history", id: false, force: :cascade do |t|
     t.integer "unduplicated_client_id"
@@ -170,35 +192,36 @@ ActiveRecord::Schema.define(version: 20171023174425) do
     t.boolean  "can_view_imports",                 :default=>false
     t.boolean  "can_edit_roles",                   :default=>false
     t.boolean  "can_view_projects",                :default=>false
-    t.boolean  "can_edit_projects",                :default=>false
-    t.boolean  "can_edit_project_groups",          :default=>false
     t.boolean  "can_view_organizations",           :default=>false
-    t.boolean  "can_edit_organizations",           :default=>false
-    t.boolean  "can_edit_data_sources",            :default=>false
     t.boolean  "can_view_client_window",           :default=>false
     t.boolean  "can_upload_hud_zips",              :default=>false
-    t.boolean  "can_edit_translations",            :default=>false
-    t.boolean  "can_manage_assessments",           :default=>false
-    t.boolean  "can_edit_anything_super_user",     :default=>false
     t.boolean  "can_administer_health",            :default=>false
     t.boolean  "can_edit_client_health",           :default=>false
     t.boolean  "can_view_client_health",           :default=>false
     t.boolean  "health_role",                      :default=>false, :null=>false
+    t.boolean  "can_edit_project_groups",          :default=>false
+    t.boolean  "can_edit_anything_super_user",     :default=>false
+    t.boolean  "can_edit_projects",                :default=>false
+    t.boolean  "can_edit_organizations",           :default=>false
+    t.boolean  "can_edit_data_sources",            :default=>false
+    t.boolean  "can_edit_translations",            :default=>false
+    t.boolean  "can_manage_assessments",           :default=>false
     t.boolean  "can_manage_config",                :default=>false
+    t.boolean  "can_edit_dq_grades",               :default=>false
     t.boolean  "can_manage_client_files",          :default=>false
     t.boolean  "can_manage_window_client_files",   :default=>false
-    t.boolean  "can_edit_dq_grades",               :default=>false
     t.boolean  "can_view_vspdat",                  :default=>false
     t.boolean  "can_edit_vspdat",                  :default=>false
     t.boolean  "can_create_clients",               :default=>false
     t.boolean  "can_view_client_history_calendar", :default=>false
-    t.boolean  "can_create_cohorts",               :default=>false
-    t.boolean  "can_view_cohorts",                 :default=>false
+    t.boolean  "can_view_aggregate_health",        :default=>false
     t.boolean  "can_assign_users_to_clients",      :default=>false
     t.boolean  "can_view_client_user_assignments", :default=>false
     t.boolean  "can_export_hmis_data",             :default=>false
-    t.boolean  "can_view_aggregate_health",        :default=>false
+    t.boolean  "can_create_cohorts",               :default=>false
+    t.boolean  "can_view_cohorts",                 :default=>false
     t.boolean  "can_confirm_housing_release",      :default=>false
+    t.boolean  "can_see_own_file_uploads",         :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 
@@ -262,13 +285,13 @@ ActiveRecord::Schema.define(version: 20171023174425) do
   add_index "user_roles", ["user_id"], :name=>"index_user_roles_on_user_id", :using=>:btree
 
   create_table "users", force: :cascade do |t|
-    t.string   "last_name",              :null=>false
-    t.string   "email",                  :null=>false
-    t.string   "encrypted_password",     :default=>"", :null=>false
+    t.string   "last_name",                         :null=>false
+    t.string   "email",                             :null=>false
+    t.string   "encrypted_password",                :default=>"", :null=>false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
-    t.integer  "sign_in_count",          :default=>0, :null=>false
+    t.integer  "sign_in_count",                     :default=>0, :null=>false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
     t.inet     "current_sign_in_ip"
@@ -279,11 +302,11 @@ ActiveRecord::Schema.define(version: 20171023174425) do
     t.string   "unconfirmed_email"
     t.string   "invitation_token"
     t.datetime "invitation_created_at"
-    t.integer  "failed_attempts",        :default=>0, :null=>false
+    t.integer  "failed_attempts",                   :default=>0, :null=>false
     t.string   "unlock_token"
     t.datetime "locked_at"
-    t.datetime "created_at",             :null=>false
-    t.datetime "updated_at",             :null=>false
+    t.datetime "created_at",                        :null=>false
+    t.datetime "updated_at",                        :null=>false
     t.datetime "deleted_at"
     t.string   "first_name"
     t.datetime "invitation_sent_at"
@@ -291,7 +314,8 @@ ActiveRecord::Schema.define(version: 20171023174425) do
     t.integer  "invitation_limit"
     t.integer  "invited_by_id"
     t.string   "invited_by_type"
-    t.integer  "invitations_count",      :default=>0
+    t.integer  "invitations_count",                 :default=>0
+    t.boolean  "receive_file_upload_notifications", :default=>false
   end
   add_index "users", ["confirmation_token"], :name=>"index_users_on_confirmation_token", :unique=>true, :using=>:btree
   add_index "users", ["deleted_at"], :name=>"index_users_on_deleted_at", :using=>:btree
