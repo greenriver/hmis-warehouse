@@ -1229,7 +1229,15 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat_score
-      vispdats.completed.scores.first&.score
+      vispdats.completed.scores.first&.score || 0
+    end
+
+    def most_recent_vispdat_length_homeless_in_days
+      begin
+        vispdats.completed.order(submitted_at: :desc).first&.days_homeless || 0
+      rescue
+        0
+      end
     end
 
     def days_homeless_in_last_three_years
