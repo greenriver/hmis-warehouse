@@ -211,7 +211,7 @@ module GrdaWarehouse::Hud
       when :chronic
         joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
       when :release_present
-        where()
+        where(housing_release_status: [full_release_string, partial_release_string])
       else
         raise NotImplementedError
       end
