@@ -71,6 +71,7 @@ module Admin
         :last_name,
         :first_name,
         :email,
+        :receive_file_upload_notifications,
         role_ids: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
       )
