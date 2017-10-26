@@ -35,6 +35,7 @@ class Role < ActiveRecord::Base
       :can_view_organizations,
       :can_edit_organizations,
       :can_edit_data_sources,
+      :can_search_window,
       :can_view_client_window,
       :can_upload_hud_zips,
       :can_edit_translations,

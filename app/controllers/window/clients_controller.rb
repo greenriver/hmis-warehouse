@@ -4,7 +4,8 @@ module Window
     include ClientController
     include WindowClientPathGenerator
     
-    before_action :require_can_view_client_window!
+    before_action :require_can_search_window!, only: [:index]
+    before_action :require_can_view_client_window!, except: [:index]
     before_action :set_client, :check_release, only: [:show]
     before_action :set_client_from_client_id, only: [:image, :rollup]
     before_action :require_can_create_clients!, only: [:new, :create]

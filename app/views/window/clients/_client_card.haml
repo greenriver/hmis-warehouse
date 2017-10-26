@@ -1,4 +1,4 @@
-- show_window_link = client.release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)
+- show_window_link = (client.release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && can_view_client_window?
 - show_relationship_link = can_assign_users_to_clients? || can_view_client_user_assignments?
 .col-sm-12.col-xs-12
   .clients__client-card
@@ -51,8 +51,8 @@
         .client__dobs
           - client.source_clients.visible_in_window.map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
             .client__dob
-              %strong DOB:
-              = "#{dob},"
+              %strong Year of Birth:
+              = "#{dob&.year},"
               %strong Age:
               = age
         .client__genders
