@@ -13,6 +13,7 @@
       = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
       = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations
       = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
+      = f.input :window_access_requires_release, label: 'Block access to the window if a client doesn\'t have a release?'
       = f.input :cas_url, label: 'CAS Site URL'
       = f.input :file_notification_list, collection: GrdaWarehouse::ClientFile.available_tags, label: 'Files that should trigger notifications', input_html: {value: f.object.tag_list_on(:file_notifications), multiple: :multiple, class: 'select2'}
     .col-sm-6

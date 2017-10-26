@@ -53,7 +53,7 @@ module ClientController
 
       @clients = @clients.order(*sort) if sort.any?
       @clients = @clients
-        .preload(:processed_service_history, source_clients: :data_source)
+        .preload(:processed_service_history, :users, source_clients: :data_source)
         .page(params[:page]).per(50)
 
       @column = sort_column
