@@ -44,12 +44,5 @@ module Window
       false
     end
 
-    def check_release
-      if @client.release_expired?
-        flash[:alert] = "Client #{@client.full_name} is not viewable due to an expired/missing signed release"
-        redirect_to window_clients_path
-      end
-    end
-
   end
 end

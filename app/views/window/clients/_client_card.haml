@@ -1,4 +1,5 @@
-- show_link = client.release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)
+- show_window_link = client.release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)
+- show_relationship_link = can_assign_users_to_clients? || can_view_client_user_assignments?
 .col-sm-12.col-xs-12
   .clients__client-card
     .row
@@ -8,7 +9,7 @@
         - else
           - main_client_name = akas.shift
         .clients__client-name
-          = link_to_if show_link, main_client_name, window_client_path(client)
+          = link_to_if show_window_link, main_client_name, window_client_path(client)
         .clients__client-additional-names
           - akas.each_with_index do | aka, i |
             - if i > 0
@@ -16,7 +17,7 @@
             = aka
         .clients__users
           - if client.user_clients.non_confidential.any?
-            %h4 Relationships
+            %h4= link_to_if show_relationship_link, 'Relationships', polymorphic_path(users_path_generator, client_id: client.id)
             %table.table.table-condensed
               %thead
                 %tr
@@ -27,9 +28,11 @@
                   %tr
                     %td= mail_to uc.user.email, uc.user.name
                     %td= uc.relationship
+          - else
+            %p= link_to_if show_relationship_link, 'Manage relationships', polymorphic_path(users_path_generator, client_id: client.id)
       .col-sm-7
         .client__view_client
-          - if show_link
+          - if show_window_link
             = link_to 'View', window_client_path(client), class: 'btn btn-secondary'
         = render 'clients/chronic_flags', client: client
         .client__ssns

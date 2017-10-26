@@ -35,4 +35,12 @@ module ControllerAuthorization
   def not_authorized!
     redirect_to root_path, alert: 'Sorry you are not authorized to do that.'
   end
+
+  def check_release
+    return true unless GrdaWarehouse::Config.get(:window_access_requires_release)
+    if @client.release_expired?
+      flash[:alert] = "Client #{@client.full_name} is not viewable due to an expired/missing signed release"
+      redirect_to window_clients_path
+    end
+  end
 end
