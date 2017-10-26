@@ -22,6 +22,9 @@ class ApplicationController < ActionController::Base
   helper_method :locale
   before_filter :set_gettext_locale
 
+  # Don't start in development if you have pending migrations
+  prepend_before_action :check_all_db_migrations
+
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
       yield
@@ -103,5 +106,18 @@ class ApplicationController < ActionController::Base
     else
       root_path
     end
+  end
+
+  def check_all_db_migrations
+    return true unless Rails.env.development?
+    query = 'select version from schema_migrations'
+    # Warehouse
+    all = ActiveRecord::Migrator.migrations(['db/warehouse/migrate']).collect(&:version)
+    migrated = GrdaWarehouseBase.connection.select_rows(query).flatten(1).map(&:to_i)
+    raise ActiveRecord::MigrationError.new "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
+    # Health
+    all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
+    migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
+    raise ActiveRecord::MigrationError.new "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0 
   end
 end
