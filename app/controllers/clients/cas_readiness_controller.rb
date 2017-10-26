@@ -11,10 +11,12 @@ module Clients
     
     def update
       update_params = cas_readiness_params
-      update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
-        @client.disability_verified_on || Time.now
-      else
-        nil
+      if GrdaWarehouse::Config.get(:cas_flag_method).to_s != 'file'
+        update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
+          @client.disability_verified_on || Time.now
+        else
+          nil
+        end
       end
       if update_params[:housing_release_status].present?
         update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
@@ -22,6 +24,9 @@ module Clients
         update_params[:housing_assistance_network_released_on] = nil
       end
       if @client.update(update_params)
+        # Keep various client fields in sync with files if appropriate
+        @client.sync_cas_attributes_with_files
+        
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later
         redirect_to action: :edit

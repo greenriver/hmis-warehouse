@@ -210,15 +210,17 @@ module GrdaWarehouse::Hud
         where(sync_with_cas: true)
       when :chronic
         joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
+      when :release_present
+        where(housing_release_status: [full_release_string, partial_release_string])
       else
         raise NotImplementedError
       end
     end
     scope :full_housing_release_on_file, -> do
-      where(housing_release_status: 'Full HAN Release')
+      where(housing_release_status: full_release_string)
     end
     scope :limited_cas_release_on_file, -> do
-      where(housing_release_status: 'Limited CAS Release')
+      where(housing_release_status: partial_release_string)
     end
     scope :verified_disability, -> do
       where.not(disability_verified_on: nil)
@@ -269,6 +271,14 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    def self.full_release_string
+      'Full HAN Release'
+    end
+
+    def self.partial_release_string
+      'Limited CAS Release'
+    end
+
     def scope_for_ongoing_residential_enrollments
       source_enrollments.
       residential.
@@ -316,8 +326,48 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # Some file tags represent client attributes, 
+    # Never trigger the full-release with just a file
+    def sync_cas_attributes_with_files
+      return unless GrdaWarehouse::Config.get(:cas_flag_method) == 'file'
+      self.ha_eligible = client_files.tagged_with(cas_attributes_file_tag_map[:ha_eligible], any: true).exists?
+      if client_files.tagged_with(cas_attributes_file_tag_map[:disability_verified_on], any: true).exists?
+        # set this to the most recent updated date
+        self.disability_verified_on = client_files.tagged_with(cas_attributes_file_tag_map[:disability_verified_on], any: true).
+          order(updated_at: :desc).
+          pluck(:updated_at).first
+      else
+        self.disability_verified_on = nil
+      end
+      # Only convert blank to limited cas and limited to blank, full has been 
+      # confirmed by a human
+      if self.housing_release_status != self.class.full_release_string
+        if client_files.tagged_with(cas_attributes_file_tag_map[:limited_cas_release], any: true).exists?
+          self.housing_release_status = self.class.partial_release_string
+        else
+          self.housing_release_status = nil
+        end
+      end
+      save
+    end
+
+    def cas_attributes_file_tag_map
+      {
+        ha_eligible: [
+          'BHA Eligibility',
+          'Housing Authority Eligibility',
+        ],
+        disability_verified_on: [
+          'Disability Verification',
+        ],
+        limited_cas_release: [
+          'Limited CAS Release'
+        ],
+      }
+    end
+
     def release_valid?
-      housing_release_status == 'Full HAN Release'
+      housing_release_status == self.class.full_release_string
     end
 
     def release_expired?
@@ -677,8 +727,8 @@ module GrdaWarehouse::Hud
     end
 
     def self.housing_release_options
-      options = ['Full HAN Release']
-      options << 'Limited CAS Release' if GrdaWarehouse::Config.get(:allow_partial_release)
+      options = [full_release_string]
+      options << partial_release_string if GrdaWarehouse::Config.get(:allow_partial_release)
       options
     end
 
@@ -1179,7 +1229,15 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat_score
-      vispdats.completed.scores.first&.score
+      vispdats.completed.scores.first&.score || 0
+    end
+
+    def most_recent_vispdat_length_homeless_in_days
+      begin
+        vispdats.completed.order(submitted_at: :desc).first&.days_homeless || 0
+      rescue
+        0
+      end
     end
 
     def days_homeless_in_last_three_years

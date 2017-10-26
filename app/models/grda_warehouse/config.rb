@@ -9,6 +9,14 @@ module GrdaWarehouse
       {
         'Use Available in CAS flag' => :cas_flag,
         'Use potentially chronic report' => :chronic,
+        'All clients with a release on file' => :release_present,
+      }
+    end
+
+    def self.available_cas_flag_methods
+      {
+        'A human should review qualifications' => :manual,
+        'Trust the uploaded files' => :file,
       }
     end
 
