@@ -20,7 +20,8 @@ module GrdaWarehouse
 
     def self.available_relationships
       [
-        'Navigator',
+        'Housing Navigator',
+        'Primary Case Manager',
         'Case Manager',
         'Nurse Care Manager',
       ].sort.freeze

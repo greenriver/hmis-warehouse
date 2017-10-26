@@ -18,7 +18,7 @@
           %td
             = f.input :relationship, collection: GrdaWarehouse::UserClient.available_relationships, label: false, input_html: {class: 'select2', data: {placeholder: 'Available Users'}}
           %td
-            = f.input :confidential, label: false
+            = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
           %td
             = f.submit value: 'Add Relationship', class: 'btn btn-primary'
       - @user_clients.each do |user_client|
