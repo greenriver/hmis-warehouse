@@ -46,6 +46,8 @@ class Users::InvitationsController < Devise::InvitationsController
         :first_name,
         :last_name,
         :email,
+        :phone,
+        :agency,
         :receive_file_upload_notifications,
         role_ids: [],
         )

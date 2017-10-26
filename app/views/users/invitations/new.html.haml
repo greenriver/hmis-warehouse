@@ -9,6 +9,8 @@
       = f.input :last_name, required: true
       - resource.class.invite_key_fields.each do |field| 
         = f.input field
+      = f.input :phone
+      = f.input :agency
       = f.input :receive_file_upload_notifications, label: 'User should receive notifications for file uploads'
       .form--checkbox-groups
         %h3 Roles for Access Permissions

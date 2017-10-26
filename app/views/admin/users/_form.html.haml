@@ -7,6 +7,8 @@
         = f.input :first_name, required: true
         = f.input :last_name, required: true
         = f.input :email, as: :email, required: true
+        = f.input :phone
+        = f.input :agency
         = f.input :receive_file_upload_notifications, label: 'User should receive notifications for file uploads'
       .form--checkbox-groups
         %h3 Roles for Access Permissions

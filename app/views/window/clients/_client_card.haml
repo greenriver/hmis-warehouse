@@ -1,5 +1,4 @@
 - show_window_link = (client.release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && can_view_client_window?
-- show_relationship_link = can_assign_users_to_clients? || can_view_client_user_assignments?
 .col-sm-12.col-xs-12
   .clients__client-card
     .row
@@ -15,29 +14,7 @@
             - if i > 0
               %br
             = aka
-        .clients__users
-          - if client.user_clients.non_confidential.any?
-            %table.table.table-condensed
-              %thead
-                %tr
-                  %th
-                    - if show_relationship_link
-                      = link_to polymorphic_path(users_path_generator, client_id: client.id) do
-                        %span.icon-users
-                    Contact
-                  %th Role
-              %tbody
-                - client.user_clients.non_confidential.each do |uc|
-                  %tr
-                    %td= mail_to uc.user.email, uc.user.name
-                    %td= uc.relationship
-          - else
-            - if show_relationship_link
-              = link_to polymorphic_path(users_path_generator, client_id: client.id) do
-                %span.icon-users
-                Manage Relationships
-              
-                
+        = render 'relationships', client: client          
       .col-sm-7
         .client__view_client
           - if show_window_link
