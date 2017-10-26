@@ -17,11 +17,14 @@
             = aka
         .clients__users
           - if client.user_clients.non_confidential.any?
-            %h4= link_to_if show_relationship_link, 'Relationships', polymorphic_path(users_path_generator, client_id: client.id)
             %table.table.table-condensed
               %thead
                 %tr
-                  %th Contact
+                  %th
+                    - if show_relationship_link
+                      = link_to polymorphic_path(users_path_generator, client_id: client.id) do
+                        %span.icon-users
+                    Contact
                   %th Role
               %tbody
                 - client.user_clients.non_confidential.each do |uc|
@@ -29,7 +32,12 @@
                     %td= mail_to uc.user.email, uc.user.name
                     %td= uc.relationship
           - else
-            %p= link_to_if show_relationship_link, 'Manage relationships', polymorphic_path(users_path_generator, client_id: client.id)
+            - if show_relationship_link
+              = link_to polymorphic_path(users_path_generator, client_id: client.id) do
+                %span.icon-users
+                Manage Relationships
+              
+                
       .col-sm-7
         .client__view_client
           - if show_window_link
