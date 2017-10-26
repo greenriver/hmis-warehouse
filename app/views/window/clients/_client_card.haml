@@ -13,6 +13,19 @@
             - if i > 0
               %br
             = aka
+        .clients__users
+          - if client.user_clients.non_confidential.any?
+            %h4 Relationships
+            %table.table.table-condensed
+              %thead
+                %tr
+                  %th Contact
+                  %th Role
+              %tbody
+                - client.user_clients.non_confidential.each do |uc|
+                  %tr
+                    %td= mail_to uc.user.email, uc.user.name
+                    %td= uc.relationship
       .col-sm-7
         .client__view_client
           - if client.release_valid? || GrdaWarehouse::Config.get(:window_access_requires_release)

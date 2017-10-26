@@ -6,6 +6,14 @@ module GrdaWarehouse
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user
 
+    scope :confidential, -> do
+      where(confidential: true)
+    end
+
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     def self.available_users
       User.all
     end
