@@ -36,6 +36,7 @@ module Admin
         :continuum_name,
         :cas_url,
         :allow_partial_release,
+        :window_access_requires_release,
         tag_list: [],
         file_notification_list: [],
       )

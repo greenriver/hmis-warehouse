@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171026122017) do
+ActiveRecord::Schema.define(version: 20171026152842) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -875,18 +875,19 @@ ActiveRecord::Schema.define(version: 20171026122017) do
   add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
 
   create_table "configs", force: :cascade do |t|
-    t.boolean "project_type_override",     :default=>true, :null=>false
-    t.boolean "eto_api_available",         :default=>false, :null=>false
-    t.string  "cas_available_method",      :default=>"cas_flag", :null=>false
-    t.boolean "healthcare_available",      :default=>false, :null=>false
-    t.string  "family_calculation_method", :default=>"adult_child"
+    t.boolean "project_type_override",          :default=>true, :null=>false
+    t.boolean "eto_api_available",              :default=>false, :null=>false
+    t.string  "cas_available_method",           :default=>"cas_flag", :null=>false
+    t.boolean "healthcare_available",           :default=>false, :null=>false
+    t.string  "family_calculation_method",      :default=>"adult_child"
     t.string  "site_coc_codes"
     t.string  "default_coc_zipcodes"
     t.string  "continuum_name"
-    t.string  "cas_url",                   :default=>"https://cas.boston.gov"
-    t.string  "release_duration",          :default=>"Indefinite"
-    t.boolean "allow_partial_release",     :default=>true
-    t.string  "cas_flag_method",           :default=>"manual"
+    t.string  "cas_url",                        :default=>"https://cas.boston.gov"
+    t.string  "release_duration",               :default=>"Indefinite"
+    t.boolean "allow_partial_release",          :default=>true
+    t.string  "cas_flag_method",                :default=>"manual"
+    t.boolean "window_access_requires_release", :default=>false
   end
 
   create_table "contacts", force: :cascade do |t|
