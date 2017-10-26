@@ -20,6 +20,10 @@ class User < ActiveRecord::Base
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
 
+  scope :receives_file_notifications, -> do
+    where(receive_file_upload_notifications: true)
+  end
+
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
   after_destroy do |user|

@@ -39,6 +39,14 @@ module GrdaWarehouse
       errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes
     end
 
+    # Any of these tags could represent a full release
+    def self.full_release_tags
+      [
+        'Consent Form',
+        'Full Network Release',
+      ]
+    end
+
     def self.available_tags
       [
         'Birth Certificate',
@@ -51,7 +59,11 @@ module GrdaWarehouse
         'Client Photo',
         'DD-214',
         'Consent Form',
+        'Full Network Release',
+        'Limited CAS Release',
         'Chronic Homelessness Verification',
+        'BHA Eligibility',
+        'Housing Authority Eligibility',
         'Other',
       ].sort.freeze
     end

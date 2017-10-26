@@ -3,11 +3,20 @@ module GrdaWarehouse
     after_save :invalidate_cache
     acts_as_taggable
     acts_as_taggable_on :document_ready
+    acts_as_taggable_on :file_notifications
 
     def self.available_cas_methods
       {
         'Use Available in CAS flag' => :cas_flag,
         'Use potentially chronic report' => :chronic,
+        'All clients with a release on file' => :release_present,
+      }
+    end
+
+    def self.available_cas_flag_methods
+      {
+        'A human should review qualifications' => :manual,
+        'Trust the uploaded files' => :file,
       }
     end
 

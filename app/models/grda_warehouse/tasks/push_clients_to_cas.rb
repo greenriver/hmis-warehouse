@@ -88,6 +88,7 @@ module GrdaWarehouse::Tasks
         days_homeless: :days_homeless,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
+        vispdat_length_homeless_in_days: :most_recent_vispdat_length_homeless_in_days,
         ha_eligible: :ha_eligible
       }
     end

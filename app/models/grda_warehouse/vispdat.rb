@@ -311,6 +311,21 @@ module GrdaWarehouse
       end
     end
 
+    def days_homeless
+      case homeless_period
+      when 'days'
+        homeless.to_i
+      when 'weeks'
+        homeless.to_i * 7
+      when 'months'
+        homeless.to_i * 30
+      when 'years'
+        homeless.to_i * 365
+      else
+        0
+      end
+    end
+
     def self.allowed_parameters
       [
         :nickname,
