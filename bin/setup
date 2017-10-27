@@ -22,7 +22,7 @@ Dir.chdir APP_ROOT do
     end
   end
   puts "\n== Using a simple .env file =="
-  FileUtils.cp 'sample.env', '.env.test'
+  FileUtils.cp 'sample.env', '.env'
 
   puts "\n== Preparing Database =="
   system "bundle exec rake db:create"
@@ -55,6 +55,9 @@ Dir.chdir APP_ROOT do
   end
 
   puts "\n== Restarting application server =="
+  unless File.exist? 'tmp'
+    FileUtils.mkdir 'tmp'
+  end
   restart = File.join %w(tmp restart.txt)
   FileUtils.touch restart
 end
