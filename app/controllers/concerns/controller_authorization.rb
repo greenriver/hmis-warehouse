@@ -32,6 +32,16 @@ module ControllerAuthorization
     not_authorized!
   end
 
+  def require_can_access_vspdat_list!
+    return true if GrdaWarehouse::Vispdat.any_visible_by?(current_user)    
+    not_authorized!
+  end
+
+  def require_can_create_or_modify_vspdat!
+    return true if GrdaWarehouse::Vispdat.any_modifiable_by(current_user)
+    not_authorized!
+  end
+
   def not_authorized!
     redirect_to root_path, alert: 'Sorry you are not authorized to do that.'
   end

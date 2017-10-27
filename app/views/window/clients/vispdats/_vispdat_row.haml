@@ -1,7 +1,7 @@
 %tr.vspdat-row{ id: "vispdat-#{vispdat.id}" }
   %td.vspdat-row__created_on
     - if vispdat.completed?
-      = link_to vispdat.created_at, polymorphic_path(vispdat_path_generator, id: vispdat.id)
+      = link_to_if vispdat.visible_by?(current_user), vispdat.created_at, polymorphic_path(vispdat_path_generator, id: vispdat.id)
     - else
       = link_to vispdat.created_at, polymorphic_path([:edit] + vispdat_path_generator, id: vispdat.id)
       

@@ -122,7 +122,7 @@ module ClientController
           )
           if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
             flash[:notice] = "Client #{@client.full_name} created."
-            if can_view_vspdat?
+            if GrdaWarehouse::Vispdat.any_visible_by?(current_user)
               redirect_to polymorphic_path(client_path_generator + [:vispdats], {client_id: destination_client.id})
             else
               redirect_to polymorphic_path(client_path_generator, {id: destination_client.id})

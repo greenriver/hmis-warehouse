@@ -2,19 +2,24 @@ module Window::Clients
   class VispdatsController < ApplicationController
     include WindowClientPathGenerator
 
-    before_action :require_can_view_vspdat!, only: [:index, :show]
-    before_action :require_can_edit_vspdat!, only: [:new, :create, :edit, :update, :destroy]
+    before_action :require_can_access_vspdat_list!, only: [:index, :show]
+    before_action :require_can_create_or_modify_vspdat!, only: [:new, :create, :edit, :update, :destroy]
 
     before_action :set_client
     before_action :set_vispdat, only: [:show, :edit, :update, :destroy]
 
     def index
-      @vispdats = @client.vispdats.order(created_at: :desc)
+      @vispdats = @client.vispdats.
+        order(created_at: :desc)
       respond_with(@vispdats)
     end
 
     def show
-      respond_with(@vispdat)
+      if @vispdat.visible_by?(current_user)
+        respond_with(@vispdat)
+      else
+        not_authorized!
+      end
     end
 
     # def new
@@ -44,6 +49,7 @@ module Window::Clients
         @vispdat.assign_attributes(vispdat_params)
         @vispdat.save(validate: false)
       end
+      @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
       respond_with(@vispdat, location: polymorphic_path(vispdats_path_generator, client_id: @client.id))
     end
 
@@ -58,7 +64,7 @@ module Window::Clients
           user_id: current_user.id,
           content_type: file&.content_type,
           content: file&.read,
-          visible_in_window: file_params[:visible_in_window],
+          visible_in_window: true,
           note: file_params[:note],
           name: file_params[:name],
           vispdat_id: @vispdat.id

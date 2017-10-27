@@ -48,6 +48,7 @@ class Role < ActiveRecord::Base
       :can_edit_dq_grades,
       :can_view_vspdat,
       :can_edit_vspdat,
+      :can_submit_vspdat,
       :can_create_clients,
       :can_view_client_history_calendar,
       :can_create_cohorts,

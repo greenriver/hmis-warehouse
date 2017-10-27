@@ -17,4 +17,8 @@
   .clearfix
 %hr
 
-= render 'form', readonly: !@vispdat.migrated? && :readonly
+- readonly = nil
+- if @vispdat.show_as_readonly?
+  - readonly = :readonly
+
+= render 'form', readonly: readonly
