@@ -3,11 +3,6 @@ set :rails_env, "production"
 
 raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
 
-# Delayed Job
-set :delayed_job_workers, 4
-set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
-set :delayed_job_roles, [:job]
-
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 set :branch, 'master'
 
