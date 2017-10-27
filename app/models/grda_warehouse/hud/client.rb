@@ -316,13 +316,21 @@ module GrdaWarehouse::Hud
     alias_attribute :first_name, :FirstName
 
     def window_link_for? user
-      if (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
+      if show_window_demographic_to?(user)
         window_client_path(self)
       elsif GrdaWarehouse::Vispdat.any_visible_by?(user)
         window_client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
-        window_client_vispdats_path(self)
+        window_client_files_path(self)
       end
+    end
+
+    def show_health_for?(user)
+      patient.present? && patient.accessible_by_user(user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+    end
+
+    def show_window_demographic_to?(user)
+      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
     end
 
     # Define a bunch of disability methods we can use to get the response needed

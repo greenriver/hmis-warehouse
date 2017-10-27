@@ -1,14 +1,14 @@
-- show_health = @client.patient.present? && @client.patient.accessible_by_user(current_user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
-
 :ruby
+  show_health = @client.show_health_for?(current_user)
+  show_demographic = @client.show_window_demographic_to?(current_user)
   tabs = {
     polymorphic_path(client_path_generator, id: @client.id) => {
       title: 'Basic Info & Programs',
-      permission: can_view_client_window?,
+      permission: show_demographic,
      },
     polymorphic_path(history_path_generator, client_id: @client) => {
       title: 'History',
-      permission: can_view_client_window?,
+      permission: show_demographic,
     },
     polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
       title: 'VI-SPDAT',
