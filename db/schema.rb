@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171027124054) do
+ActiveRecord::Schema.define(version: 20171027192753) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -202,6 +202,8 @@ ActiveRecord::Schema.define(version: 20171027124054) do
     t.boolean  "can_see_own_file_uploads",         :default=>false
     t.boolean  "can_confirm_housing_release",      :default=>false
     t.boolean  "can_submit_vspdat",                :default=>false
+    t.boolean  "can_edit_client_notes",            :default=>false
+    t.boolean  "can_edit_window_client_notes",     :default=>false
   end
   add_index "roles", ["name"], :name=>"index_roles_on_name", :using=>:btree
 

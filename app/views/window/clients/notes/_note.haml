@@ -1,0 +1,7 @@
+.well.client-notes
+  %h4= note.type_name
+  %p= note.note
+  .row
+    .col-sm-8
+      %p.small.text-muted
+        Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}

@@ -1,7 +1,7 @@
 module Clients
   class FilesController < Window::Clients::FilesController
     include ClientPathGenerator
-    
+    before_action :require_can_manage_client_files!
     
     def create
       @file = file_source.new

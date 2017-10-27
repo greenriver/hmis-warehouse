@@ -1,0 +1,23 @@
+- title = "Notes for #{@client.name}"
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+.row
+  .col-sm-12
+    = render 'clients/tab_navigation', current: client_notes_path(@client)
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+.row
+  .col-sm-8
+    - if @notes.any?
+      - @notes.order(created_at: :desc).each do |note|
+        = render 'note', note: note
+    - else
+      No notes on file
+  
+
+  .col-sm-4
+    = render 'new_note'
+
