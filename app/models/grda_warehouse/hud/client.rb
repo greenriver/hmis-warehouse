@@ -164,6 +164,10 @@ module GrdaWarehouse::Hud
     scope :source, -> do
       where(data_source: GrdaWarehouse::DataSource.importable)
     end
+
+    scope :searchable, -> do
+      where(data_source: GrdaWarehouse::DataSource.source)
+    end
     # For now, this is way to slow, calculate in ruby
     # scope :unmatched, -> do
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
@@ -954,8 +958,8 @@ module GrdaWarehouse::Hud
         query = "%#{text}%"
         alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
         nicks = Nickname.for(text).map(&:name)
-        where = sa['FirstName'].matches(query)
-          .or(sa['LastName'].matches(query))
+        where = sa[:FirstName].matches(query)
+          .or(sa[:LastName].matches(query))
         if nicks.any?
           nicks_for_search = nicks.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
           where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks_for_search))
@@ -966,9 +970,8 @@ module GrdaWarehouse::Hud
             or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
         end
       end
-
       client_ids = client_scope.
-        joins(:warehouse_client_source).source.
+        joins(:warehouse_client_source).searchable.
         where(where).
         preload(:destination_client).
         map{|m| m.destination_client.id}

@@ -34,7 +34,7 @@ module Window
     end
 
     def client_search_scope
-      client_source.source.joins(:data_source).where(data_sources: {visible_in_window: true})
+      client_source.searchable.joins(:data_source).where(data_sources: {visible_in_window: true})
     end
 
     def set_client_from_client_id
