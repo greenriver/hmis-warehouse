@@ -1,6 +1,7 @@
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
+    include Rails.application.routes.url_helpers
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
     include HealthCharts
@@ -313,6 +314,16 @@ module GrdaWarehouse::Hud
 
     alias_attribute :last_name, :LastName
     alias_attribute :first_name, :FirstName
+
+    def window_link_for? user
+      if (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
+        window_client_path(self)
+      elsif GrdaWarehouse::Vispdat.any_visible_by?(user)
+        window_client_vispdats_path(self)
+      elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
+        window_client_vispdats_path(self)
+      end
+    end
 
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
