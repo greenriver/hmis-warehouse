@@ -76,6 +76,8 @@ module Health
         row_created: :created_at,
         row_updated: :updated_at,
         medicaid_id: :medicaid_id,
+        housing_status: :housing_status,
+        housing_status_timestamp: :housing_status_timestamp,
       }
     end
 
