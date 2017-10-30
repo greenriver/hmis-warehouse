@@ -291,7 +291,7 @@ module GrdaWarehouse::Hud
       when :chronic
         chronics.where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day}).exists?
       when :release_present
-        [full_release_string, partial_release_string].include?(housing_release_status)
+        [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       else
         raise NotImplementedError
       end
