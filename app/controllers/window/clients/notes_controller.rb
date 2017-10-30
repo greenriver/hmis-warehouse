@@ -33,7 +33,7 @@ module Window::Clients
     end
 
     def destroy
-      @note = note_scope.find_by(id: params[:id].to_i, user_id: user.id)
+      @note = note_scope.find_by(id: params[:id].to_i, user_id: current_user.id)
       begin
         @note.destroy!
         flash[:notice] = "Note was successfully deleted."
