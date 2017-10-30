@@ -12,6 +12,7 @@ module Window::Clients
     def set_client
       @client = client_scope.find(params[:client_id].to_i)
     end
+    alias_method :set_client_from_client_id, :set_client
     
     def client_source
       GrdaWarehouse::Hud::Client
