@@ -909,7 +909,8 @@ module ReportGenerators::Ahar::Fy2017
             ).
             where(fam_where)
             # Save off some supporing info
-            family_scope.pluck(*sh_cols).each do |sh|
+            family_served_data = family_scope.pluck(*sh_cols)
+            family_served_data.each do |sh|
               project_name = sh[service_history_project_name_index]
               project_id = sh[service_history_project_id_index]
               ds_id = sh[service_history_data_source_id_index]
@@ -918,9 +919,17 @@ module ReportGenerators::Ahar::Fy2017
               project_counts[row] << sh[service_history_client_id_index]
             end
             if vets_only
-              family_scope = family_scope.where(client_id: all_vets)
+              family_served_data = family_scope.where(client_id: all_vets).pluck(*sh_cols)
+              family_served_data.each do |sh|
+                project_name = sh[service_history_project_name_index]
+                project_id = sh[service_history_project_id_index]
+                ds_id = sh[service_history_data_source_id_index]
+                row = ["#{slug}-FAM", project_name, project_id, ds_id]
+                project_counts[row] ||= Set.new
+                project_counts[row] << sh[service_history_client_id_index]
+              end
             end
-            family_scope.count
+            family_served_data.count
           else
             0
           end
