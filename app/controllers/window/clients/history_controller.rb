@@ -2,7 +2,7 @@ module Window::Clients
   class HistoryController < ApplicationController
     include WindowClientPathGenerator
     
-    before_action :require_can_view_client_window!
+    before_action :require_can_see_this_client_demographics!
     before_action :set_client, :check_release
     
     def show
