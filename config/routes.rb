@@ -63,6 +63,7 @@ Rails.application.routes.draw do
         resources :data_source, only: [:create]
         resources :project, only: [:create]
         resources :veteran, only: [:create]
+        get :support
       end
     end
   end

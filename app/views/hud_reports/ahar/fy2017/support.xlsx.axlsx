@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "#{params[:category]} #{params[:label]}") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(@support['headers'], :style => title)
+  @support['counts'].each do |row|
+    sheet.add_row(row)
+  end
+end
