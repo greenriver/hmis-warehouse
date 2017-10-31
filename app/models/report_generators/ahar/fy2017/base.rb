@@ -909,7 +909,8 @@ module ReportGenerators::Ahar::Fy2017
             ).
             where(fam_where)
             # Save off some supporing info
-            family_scope.pluck(*sh_cols).each do |sh|
+            family_served_data = family_scope.pluck(*sh_cols)
+            family_served_data.each do |sh|
               project_name = sh[service_history_project_name_index]
               project_id = sh[service_history_project_id_index]
               ds_id = sh[service_history_data_source_id_index]
@@ -918,9 +919,17 @@ module ReportGenerators::Ahar::Fy2017
               project_counts[row] << sh[service_history_client_id_index]
             end
             if vets_only
-              family_scope = family_scope.where(client_id: all_vets)
+              family_served_data = family_scope.where(client_id: all_vets).pluck(*sh_cols)
+              family_served_data.each do |sh|
+                project_name = sh[service_history_project_name_index]
+                project_id = sh[service_history_project_id_index]
+                ds_id = sh[service_history_data_source_id_index]
+                row = ["#{slug}-FAM", project_name, project_id, ds_id]
+                project_counts[row] ||= Set.new
+                project_counts[row] << sh[service_history_client_id_index]
+              end
             end
-            family_scope.count
+            family_served_data.count
           else
             0
           end
@@ -937,7 +946,8 @@ module ReportGenerators::Ahar::Fy2017
           individuals_served = individuals_served.where(client_id: all_vets)
         end
         # Save off some supporing info
-        individuals_served.pluck(*sh_cols).each do |sh|
+        individuals_served_data = individuals_served.pluck(*sh_cols)
+        individuals_served_data.each do |sh|
           project_name = sh[service_history_project_name_index]
           project_id = sh[service_history_project_id_index]
           ds_id = sh[service_history_data_source_id_index]
@@ -945,7 +955,7 @@ module ReportGenerators::Ahar::Fy2017
           project_counts[row] ||= Set.new
           project_counts[row] << sh[service_history_client_id_index]
         end
-        individuals_served = individuals_served.count
+        individuals_served = individuals_served_data.count
         @answers["#{slug}-FAM"]['Pers_Avg_Ngt'] = (family_served / 365.0).round(2)
         @answers["#{slug}-IND"]['Pers_Avg_Ngt'] = (individuals_served / 365.0).round(2)
       end

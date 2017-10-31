@@ -79,7 +79,7 @@ module Censuses
 
       # project_ids can be a scope or an array of IDS
       def fetch_inventory start_date, end_date, project_ids
-        GrdaWarehouse::Hud::Inventory.where(ProjectID: project_ids).
+        ::GrdaWarehouse::Hud::Inventory.where(ProjectID: project_ids).
           pluck(*inventory_columns).
           group_by do |m| 
             [

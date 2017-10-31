@@ -35,6 +35,8 @@ FactoryGirl.define do
     can_edit_dq_grades true
     can_view_vspdat true
     can_edit_vspdat true
+    can_edit_client_notes true
+    can_edit_window_client_notes true
   end
 
   factory :vispdat_viewer, class: 'Role' do
