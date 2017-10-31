@@ -1,7 +1,10 @@
 .well.client-notes
-  %h4= note.type_name
   %p= note.note
   .row
     .col-sm-8
       %p.small.text-muted
         Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
+    .col-sm-4.text-right    
+      - if note.user_id == current_user.id 
+        = link_to(window_client_note_path(note, client_id: @client.id), method: :delete, data: {confirm: "Would you really like to delete this note?"}, class: 'btn btn-secondary btn-small') do
+          %span.icon-cross

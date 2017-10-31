@@ -23,7 +23,7 @@ RSpec.describe Clients::NotesController, type: :controller do
     
     it 'redirects to Client/#show' do
       delete :destroy, id: chronic_justification, client_id: chronic_justification.client_id
-      expect( response ).to redirect_to( edit_client_chronic_path(chronic_justification.client_id ))
+      expect( response ).to redirect_to( client_notes_path(chronic_justification.client_id ))
     end
   end
 
@@ -38,7 +38,7 @@ RSpec.describe Clients::NotesController, type: :controller do
       end
       
       it "redirects to #show" do
-        expect( response ).to redirect_to(edit_client_chronic_path(client.id))
+        expect( response ).to redirect_to(client_notes_path(client.id))
       end
       
       it "flashes notice" do
@@ -54,7 +54,7 @@ RSpec.describe Clients::NotesController, type: :controller do
       end
     
       it "re-renders #show" do
-        expect( response ).to redirect_to(edit_client_chronic_path(client.id))
+        expect( response ).to redirect_to(client_notes_path(client.id))
       end
       
       it "flashes error" do

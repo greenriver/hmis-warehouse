@@ -3,7 +3,7 @@ module Window::Clients
     include WindowClientPathGenerator
     
     before_action :require_can_edit_window_client_notes!
-    before_action :require_can_edit_client_notes!, only: [:destroy]
+    # before_action :require_can_edit_client_notes!, only: [:destroy]
     before_action :set_note, only: [:destroy]
     before_action :set_client
     
@@ -28,6 +28,17 @@ module Window::Clients
       rescue Exception => e
         @note.validate
         flash[:error] = "Failed to add note: #{e}"
+      end
+      redirect_to polymorphic_path(client_notes_path_generator, client_id: @client.id)
+    end
+
+    def destroy
+      @note = note_scope.find_by(id: params[:id].to_i, user_id: current_user.id)
+      begin
+        @note.destroy!
+        flash[:notice] = "Note was successfully deleted."
+      rescue Exception => e
+        flash[:error] = "Note could not be deleted."
       end
       redirect_to polymorphic_path(client_notes_path_generator, client_id: @client.id)
     end

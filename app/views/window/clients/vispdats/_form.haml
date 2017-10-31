@@ -57,10 +57,10 @@
 
       .col-sm-4
         %label Drug & Alcohol Release?
-        = f.input :drug_release, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :drug_release, as: :radio_buttons, label: false
       .col-sm-4
         %label HIV/AIDS Release?
-        = f.input :hiv_release, as: :radio_buttons, label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :hiv_release, as: :radio_buttons, label: false
 
   %h2 History of Housing & Homelessness
   .well.vispdat.vispdat-history
@@ -136,27 +136,27 @@
       .col-sm-9
         %label Have you been attacked or beaten up since you've become homeless?
       .col-sm-3
-        = f.input :attacked_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:attacked_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :attacked_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:attacked_answers), label: false
     .row
       .col-sm-9
         %label Have you threatened to or tried to harm yourself or anyone else in the last year?
       .col-sm-3
-        = f.input :threatened_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:threatened_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :threatened_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:threatened_answers), label: false
     .row
       .col-sm-9
         %label Do you have any legal stuff going on right now that may result in you being locked up, having to pay fines, or that make it more difficult to rent a place to live?
       .col-sm-3
-        = f.input :legal_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:legal_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :legal_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:legal_answers), label: false
     .row
       .col-sm-9
         %label Does anybody force or trick you to do things that you do not want to do?
       .col-sm-3
-        = f.input :tricked_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:tricked_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :tricked_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:tricked_answers), label: false
     .row
       .col-sm-9
         %label Do you ever do things that may be considered to be risky like exchange sex for money, run drugs for someone, have unprotected sex with someone you don’t know, share a needle, or anything like that?
       .col-sm-3
-        = f.input :risky_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:risky_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :risky_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:risky_answers), label: false
 
   %h2 Socialization & Daily Functioning
   .well.vispdat.vispdat-social
@@ -164,27 +164,27 @@
       .col-sm-9
         %label Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you owe them money?
       .col-sm-3
-        = f.input :owe_money_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:owe_money_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :owe_money_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:owe_money_answers), label: false
     .row
       .col-sm-9
         %label Do you get any money from the government, a pension, an inheritance, working under the table, a regular job, or anything like that?
       .col-sm-3
-        = f.input :get_money_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:get_money_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :get_money_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:get_money_answers), label: false
     .row
       .col-sm-9
         %label Do you have planned activities, other than just surviving, that make you feel happy and fulfilled?
       .col-sm-3
-        = f.input :activities_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:activities_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :activities_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:activities_answers), label: false
     .row
       .col-sm-9
         %label Are you currently able to take care of basic needs like bathing, changing clothes, using a restroom, getting food and clean water and other things like that?
       .col-sm-3
-        = f.input :basic_needs_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:basic_needs_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :basic_needs_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:basic_needs_answers), label: false
     .row
       .col-sm-9
         %label Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?
       .col-sm-3
-        = f.input :abusive_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:abusive_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :abusive_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:abusive_answers), label: false
 
   %h2 Wellness
   .well.vispdat.vispdat-wellness-1
@@ -192,44 +192,44 @@
       .col-sm-9
         %label Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?
       .col-sm-3
-        = f.input :leave_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:leave_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :leave_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:leave_answers), label: false
     .row
       .col-sm-9
         %label Do you have any chronic health issues with your liver, kidneys, stomach, lungs or heart?
       .col-sm-3
-        = f.input :chronic_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:chronic_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :chronic_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:chronic_answers), label: false
     .row
       .col-sm-9
         %label If there was space available in a program that specically assists people that live with HIV or AIDS, would that be of interest to you?
       .col-sm-3
-        = f.input :hiv_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:hiv_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :hiv_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:hiv_answers), label: false
     .row
       .col-sm-9
         %label Do you have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?
       .col-sm-3
-        = f.input :disability_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:disability_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :disability_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:disability_answers), label: false
     .row
       .col-sm-9
         %label When you are sick or not feeling well, do you avoid getting help?
       .col-sm-3
-        = f.input :avoid_help_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:avoid_help_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :avoid_help_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:avoid_help_answers), label: false
     .row
       .col-sm-9
         %label.alert-danger
           FOR FEMALE RESPONDENTS ONLY:
         %label Are you currently pregnant?
       .col-sm-3
-        = f.input :pregnant_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:pregnant_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :pregnant_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:pregnant_answers), label: false
     .row
       .col-sm-9
         %label Has your drinking or drug use led you to being kicked out of an apartment or program where you were staying in the past?
       .col-sm-3
-        = f.input :eviction_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:eviction_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :eviction_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:eviction_answers), label: false
     .row
       .col-sm-9
         %label Will drinking or drug use make it difficult for you to stay housed or afford your housing?
       .col-sm-3
-        = f.input :drinking_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:drinking_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :drinking_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:drinking_answers), label: false
 
   .well.vispdat.vispdat-wellness-2
     %h4 Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:
@@ -238,40 +238,40 @@
       .col-sm-8.col-md-offset-1
         %label A mental health issue or concern?
       .col-sm-3
-        = f.input :mental_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:mental_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :mental_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:mental_answers), label: false
     .row
       .col-sm-8.col-md-offset-1
         %label A past head injury?
       .col-sm-3
-        = f.input :head_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:head_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :head_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:head_answers), label: false
     .row
       .col-sm-8.col-md-offset-1
         %label A learning disability, developmental disability, or other impairment?
       .col-sm-3
-        = f.input :learning_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:learning_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :learning_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:learning_answers), label: false
 
   .well.vispdat.vispdat-wellness-3
     .row
       .col-sm-9
         %label Do you have any mental health or brain issues that would make it hard for you to live independently because you’d need help?
       .col-sm-3
-        = f.input :brain_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:brain_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :brain_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:brain_answers), label: false
     .row
       .col-sm-9
         %label Are there any medications that a doctor said you should be taking that, for whatever reason, you are not taking?
       .col-sm-3
-        = f.input :medication_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:medication_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :medication_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:medication_answers), label: false
     .row
       .col-sm-9
         %label Are there any medications like painkillers that you don’t take the way the doctor prescribed or where you sell the medication?
       .col-sm-3
-        = f.input :sell_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:sell_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :sell_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:sell_answers), label: false
     .row
       .col-sm-9
         %label.alert-danger YES OR NO:
         %label Has your current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you have experienced?
       .col-sm-3
-        = f.input :trauma_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:trauma_answers), label: false, item_label_class: 'radio-inline', item_wrapper_tag: false
+        = f.input :trauma_answer, as: :radio_buttons, collection: GrdaWarehouse::Vispdat.options_for(:trauma_answers), label: false
 
   %h2 Follow-Up Questions
   .well
@@ -303,4 +303,4 @@
   %hr
     .row
       .col-sm-12.text-right
-        = f.submit 'Complete', class: 'btn btn-primary'
+        = f.submit 'Complete', class: 'btn btn-primary', data: {confirm: "Completing this VI-SPDAT will prevent you from editing it in the future, are you sure you want to mark it as completed?"}

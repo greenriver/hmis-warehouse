@@ -3,7 +3,7 @@
 - content_for :title do
   = title
 %h1= title
-
+%p= paginate @activity_log
 .row.table-utilities
   .col-sm-12
     .table-responsive
@@ -24,3 +24,4 @@
               %td= i.method
               %td= i.created_at
               %td= i.ip_address
+%p= paginate @activity_log

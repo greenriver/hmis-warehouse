@@ -284,6 +284,19 @@ module GrdaWarehouse::Hud
       'Limited CAS Release'
     end
 
+    def active_in_cas?
+      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      when :cas_flag
+        sync_with_cas
+      when :chronic
+        chronics.where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day}).exists?
+      when :release_present
+        [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
+      else
+        raise NotImplementedError
+      end
+    end
+
     def scope_for_ongoing_residential_enrollments
       source_enrollments.
       residential.
