@@ -52,7 +52,7 @@ module ServiceHistory
       log.update(counts)
     end
 
-    def enqueue(job, queue: :service_history)
+    def enqueue(job, queue: :low_priority)
     end
 
     def max_attempts
