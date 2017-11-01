@@ -8,7 +8,7 @@ module Window::Clients
     before_action :set_client
     
     def index
-      @notes = @client.window_notes
+      @notes = @client.window_notes.visible_by(current_user, @client)
       @note = GrdaWarehouse::ClientNotes::WindowNote.new
     end
 
