@@ -115,9 +115,9 @@ namespace :delayed_job do
   desc "Restart all low priority processes"
   task :restart_low_priority do
     on roles(delayed_job_roles) do
-      stop_low_priority
+      invoke 'delayed_job:stop_low_priority'
       run 'sleep 2'
-      start_low_priority
+      invoke 'delayed_job:start_low_priority'
     end
   end
 
@@ -144,9 +144,9 @@ namespace :delayed_job do
   desc "Restart all high priority processes"
   task :restart_high_priority do
     on roles(delayed_job_roles) do
-      stop_high_priority
+      invoke 'delayed_job:stop_high_priority'
       run 'sleep 2'
-      start_high_priority
+      invoke 'delayed_job:start_high_priority'
     end
   end
 
@@ -173,36 +173,36 @@ namespace :delayed_job do
   desc "Restart all non service_history processes"
   task :restart_default do
     on roles(delayed_job_roles) do
-      stop_default
+      invoke 'delayed_job:stop_default'
       run 'sleep 2'
-      start_default
+      invoke 'delayed_job:start_default'
     end
   end
 
   desc "Start all delayed_job processes" 
   task :start_all do
     on roles(delayed_job_roles) do
-      start_default
-      start_low_priority
-      start_high_priority
+      invoke 'delayed_job:start_default'
+      invoke 'delayed_job:start_low_priority'
+      invoke 'delayed_job:start_high_priority'
     end
   end
 
   desc "Stop all delayed_job processes" 
   task :stop_all do
     on roles(delayed_job_roles) do
-      stop_default
-      stop_low_priority
-      stop_high_priority
+      invoke 'delayed_job:stop_default'
+      invoke 'delayed_job:stop_low_priority'
+      invoke 'delayed_job:stop_high_priority'
     end
   end
 
   desc "Restart all delayed_job processes"
   task :restart_all do
     on roles(delayed_job_roles) do
-      stop_all
+      invoke 'delayed_job:stop_all'
       run 'sleep 2'
-      start_all
+      invoke 'delayed_job:start_all'
     end
   end
 end
