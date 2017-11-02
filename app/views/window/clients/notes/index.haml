@@ -11,6 +11,13 @@
     %h1= content_for :title
 .row
   .col-sm-8
+    %p.alert.alert-info
+      - if can_edit_window_client_notes? && @client.release_valid?
+        = _("#{@client.name} has a consent form on file, you can see any notes about this client.")
+      - elsif can_edit_window_client_notes?
+        = _("#{@client.name} does not have a consent form on file, you can only see notes you add.")
+      - else
+        = _("You can only see notes you add.")
     - if @notes.any?
       - @notes.order(created_at: :desc).each do |note|
         = render 'note', note: note
