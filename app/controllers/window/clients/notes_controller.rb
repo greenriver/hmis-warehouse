@@ -2,7 +2,7 @@ module Window::Clients
   class NotesController < ApplicationController
     include WindowClientPathGenerator
     
-    before_action :require_can_edit_window_client_notes!
+    before_action :require_can_edit_window_client_notes_or_own_window_client_notes!
     # before_action :require_can_edit_client_notes!, only: [:destroy]
     before_action :set_note, only: [:destroy]
     before_action :set_client

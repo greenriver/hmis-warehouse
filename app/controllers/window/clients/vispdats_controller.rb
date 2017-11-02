@@ -29,6 +29,7 @@ module Window::Clients
     # end
 
     def edit
+      @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
 
