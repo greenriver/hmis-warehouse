@@ -11,6 +11,11 @@ if !ENV['FORCE_SSH_KEY'].nil?
   }
 end
 
+# Delayed Job
+set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
+set :delayed_job_roles, [:job]
+set :delayed_job_pools, { low_priority: 4, default_priority: 2, high_priority: 2}
+
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
