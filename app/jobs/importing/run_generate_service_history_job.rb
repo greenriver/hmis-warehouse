@@ -4,5 +4,8 @@ module Importing
     def perform
       GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
     end
+
+    def enqueue(job, queue: :low_priority)
+    end
   end
 end

@@ -1,6 +1,5 @@
 module Reporting::Hud::Ahar::Fy2017
   class RunReportJob < ActiveJob::Base
-    
 
     def initialize report_id:, result_id:, options:
       @report_id = report_id
@@ -20,8 +19,7 @@ module Reporting::Hud::Ahar::Fy2017
       report_generator.new(@options).run!
     end
 
-    def enqueue(job)
-
+    def enqueue(job, queue: :default_priority)
     end
 
     def error(job, exception)

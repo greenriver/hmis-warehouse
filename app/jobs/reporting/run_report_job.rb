@@ -2,6 +2,7 @@ module Reporting
   class RunReportJob < ActiveJob::Base
     attr_accessor :result_id
     attr_accessor :report
+
     def initialize report:, result_id:, options:
       @report = report
       @result_id = result_id
@@ -23,8 +24,7 @@ module Reporting
       end
     end
 
-    def enqueue(job)
-
+    def enqueue(job, queue: :default_priority)
     end
 
     def error(job, exception)

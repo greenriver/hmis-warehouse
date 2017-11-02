@@ -1,5 +1,6 @@
 module Reporting
   class RunProjectDataQualityJob < ActiveJob::Base
+
     def perform(report_id:, generate:, send_email:)
       @report_id = report_id.to_i
       @generate = generate
@@ -15,6 +16,9 @@ module Reporting
       if @send_email
         @report.send_notifications
       end
+    end
+
+    def enqueue(job, queue: :default_priority)
     end
 
   end
