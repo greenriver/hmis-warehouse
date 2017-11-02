@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171026152842) do
+ActiveRecord::Schema.define(version: 20171027031033) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1088,6 +1088,21 @@ ActiveRecord::Schema.define(version: 20171026152842) do
   end
   add_index "hmis_staff_x_clients", ["staff_id", "client_id", "relationship_id"], :name=>"index_staff_x_client_s_id_c_id_r_id", :unique=>true, :using=>:btree
 
+  create_table "hud_chronics", force: :cascade do |t|
+    t.date     "date"
+    t.integer  "client_id"
+    t.integer  "months_in_last_three_years"
+    t.boolean  "individual"
+    t.integer  "age"
+    t.date     "homeless_since"
+    t.boolean  "dmh"
+    t.string   "trigger"
+    t.string   "project_names"
+    t.datetime "created_at",                 :null=>false
+    t.datetime "updated_at",                 :null=>false
+  end
+  add_index "hud_chronics", ["client_id"], :name=>"index_hud_chronics_on_client_id", :using=>:btree
+
   create_table "identify_duplicates_log", force: :cascade do |t|
     t.datetime "started_at"
     t.datetime "completed_at"
@@ -1435,6 +1450,7 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
+    "Enrollment"."RunawayYouth",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM ((("Enrollment"
@@ -1475,6 +1491,34 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
+    "Exit"."ExchangeForSex",
+    "Exit"."ExchangeForSexPastThreeMonths",
+    "Exit"."CountOfExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+    "Exit"."WorkPlaceViolenceThreats",
+    "Exit"."WorkplacePromiseDifference",
+    "Exit"."CoercedToContinueWork",
+    "Exit"."LaborExploitPastThreeMonths",
+    "Exit"."CounselingReceived",
+    "Exit"."IndividualCounseling",
+    "Exit"."FamilyCounseling",
+    "Exit"."GroupCounseling",
+    "Exit"."SessionCountAtExit",
+    "Exit"."PostExitCounselingPlan",
+    "Exit"."SessionsInPlan",
+    "Exit"."DestinationSafeClient",
+    "Exit"."DestinationSafeWorker",
+    "Exit"."PosAdultConnections",
+    "Exit"."PosPeerConnections",
+    "Exit"."PosCommunityConnections",
+    "Exit"."AftercareDate",
+    "Exit"."AftercareProvided",
+    "Exit"."EmailSocialMedia",
+    "Exit"."Telephone",
+    "Exit"."InPersonIndividual",
+    "Exit"."InPersonGroup",
+    "Exit"."CMExitReason",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1599,6 +1643,7 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
+    "IncomeBenefits"."ConnectionWithSOAR",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id

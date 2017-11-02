@@ -6,6 +6,8 @@ module GrdaWarehouse::Hud
     include HealthCharts
     include ApplicationHelper
     include HudSharedScopes
+    include HudChronic
+
     has_many :client_files
     has_many :vispdats
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
@@ -146,6 +148,7 @@ module GrdaWarehouse::Hud
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
+    
     has_many :chronics_in_range, -> (range) do
       where(date: range)
     end, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
@@ -410,6 +413,28 @@ module GrdaWarehouse::Hud
     def chronic?(on: nil)
       on ||= GrdaWarehouse::Chronic.most_recent_day
       chronics.where(date: on).present?
+    end
+
+    def hud_chronic? date: Date.today
+      head_of_household_disabled? date: date
+
+      # case disabling_condition
+      # when 0 (no)
+      #   return false
+      # when 1 (yes)
+      #   # continue
+      # when 8,9 (dont know / refused)
+      #   return false
+      # when 99 (missing)
+      #   return false
+      # end
+      # 
+      # 
+    end
+
+    def head_of_household_disabled? date: nil
+      entry = service_history.entry.where("first_date_in_program <= ? AND last_date_in_program >= ?", date, date).first
+      entry&.head_of_household&.disabling_condition?
     end
 
     def longterm_stayer?
