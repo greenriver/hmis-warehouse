@@ -6,12 +6,16 @@ set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
 # Delayed Job
-set :delayed_job_workers, 4
 set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
 set :delayed_job_roles, [:job]
 
 # see config/initializers/delayed_job
-set :service_history_priority, 5
+set :low_priority_priority, 5
+set :low_priority_delayed_job_workers, 4
+set :default_priority, 0
+set :default_delayed_job_workers, 3
+set :high_priority_priority, -5
+set :high_priority_delayed_job_workers, 2
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
@@ -88,71 +92,108 @@ end
 
 namespace :delayed_job do
 
-  desc "Start all service_history processes"
-  task :start_service_history do
+  desc "Start all low priority processes"
+  task :start_low_priority do
     on roles(delayed_job_roles) do
-      run_dj_command('start', {num: delayed_job_workers, 
-                               queue: 'service_history', 
-                               min_p: service_history_priority, 
-                               max_p: service_history_priority})
+      run_dj_command('start', {num: low_priority_delayed_job_workers, 
+                               queue: :low_priority, 
+                               min_p: low_priority_priority, 
+                               max_p: low_priority_priority})
     end
   end
 
-  desc "Stop all service_history processes"
-  task :stop_service_history do
+  desc "Stop all low priority processes"
+  task :stop_low_priority do
     on roles(delayed_job_roles) do
-      run_dj_command('stop', {num: delayed_job_workers, 
-                               queue: 'service_history', 
-                               min_p: service_history_priority, 
-                               max_p: service_history_priority})
+      run_dj_command('stop', {num: low_priority_delayed_job_workers, 
+                               queue: :low_priority, 
+                               min_p: low_priority_priority, 
+                               max_p: low_priority_priority})
     end
   end
 
-  desc "Restart all service_history processes"
-  task :restart_service_history do
+  desc "Restart all low priority processes"
+  task :restart_low_priority do
     on roles(delayed_job_roles) do
-      stop_service_history
+      stop_low_priority
       run 'sleep 2'
-      start_service_history
+      start_low_priority
     end
   end
 
-  desc "Start all non service_history processes"
-  task :start_non_service_history do
+  desc "Start all high priority processes"
+  task :start_high_priority do
     on roles(delayed_job_roles) do
-      run_dj_command('start', {num: delayed_job_workers, max_p: 0})
+      run_dj_command('start', {num: high_priority_delayed_job_workers, 
+                               queue: :high_priority, 
+                               min_p: high_priority_priority, 
+                               max_p: high_priority_priority})
     end
   end
 
-  desc "Stop all non service_history processes"
-  task :stop_non_service_history do
+  desc "Stop all high priority processes"
+  task :stop_high_priority do
     on roles(delayed_job_roles) do
-      run_dj_command('stop', {num: delayed_job_workers, max_p: 0})
+      run_dj_command('stop', {num: high_priority_delayed_job_workers, 
+                               queue: :high_priority, 
+                               min_p: high_priority_priority, 
+                               max_p: high_priority_priority})
+    end
+  end
+
+  desc "Restart all high priority processes"
+  task :restart_high_priority do
+    on roles(delayed_job_roles) do
+      stop_high_priority
+      run 'sleep 2'
+      start_high_priority
+    end
+  end
+
+  desc "Start all default priority processes"
+  task :start_default do
+    on roles(delayed_job_roles) do
+      run_dj_command('start', {num: default_delayed_job_workers, 
+                               queue: :default, 
+                               min_p: low_priority_priority - 1, 
+                               max_p: high_priority_priority + 1})
+    end
+  end
+
+  desc "Stop all default priority processes"
+  task :stop_default do
+    on roles(delayed_job_roles) do
+      run_dj_command('stop', {num: default_delayed_job_workers, 
+                               queue: :default, 
+                               min_p: low_priority_priority - 1, 
+                               max_p: high_priority_priority + 1})
     end
   end
 
   desc "Restart all non service_history processes"
-  task :restart_non_service_history do
+  task :restart_default do
     on roles(delayed_job_roles) do
-      stop_non_service_history
+      stop_default
       run 'sleep 2'
-      start_non_service_history
+      start_default
     end
   end
 
   desc "Start all delayed_job processes" 
   task :start_all do
     on roles(delayed_job_roles) do
-      start_service_history
-      start_non_service_history
+      start_default
+      start_low_priority
+      start_high_priority
     end
   end
 
   desc "Stop all delayed_job processes" 
   task :stop_all do
     on roles(delayed_job_roles) do
-      stop_service_history
-      stop_non_service_history
+      stop_default
+      stop_low_priority
+      stop_high_priority
     end
   end
 
