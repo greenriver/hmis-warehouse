@@ -9,7 +9,7 @@ set :client, ENV.fetch('CLIENT')
 set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
 set :delayed_job_roles, [:job]
 set :delayed_job_pools, { 
-  'low_priority,*': 4,
+  'low_priority,*' => 4,
   default_priority: 2,
   high_priority: 2,
 }
