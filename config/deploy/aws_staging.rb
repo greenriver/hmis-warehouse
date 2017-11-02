@@ -1,11 +1,12 @@
 set :deploy_to, "/var/www/#{fetch(:client)}-hmis-staging"
-set :rails_env, 'staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
 # Delayed Job
-set :low_priority_delayed_job_workers, 2
-set :default_delayed_job_workers, 1
-set :high_priority_delayed_job_workers, 1
+set :delayed_job_pools, { 
+  low_priority: 2,
+  default: 1,
+  high_priority: 1,
+}
 
 server ENV['STAGING_HOST'], user: 'ubuntu', roles: %w{app db web job}
 

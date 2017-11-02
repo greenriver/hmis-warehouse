@@ -8,14 +8,12 @@ set :client, ENV.fetch('CLIENT')
 # Delayed Job
 set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
 set :delayed_job_roles, [:job]
+set :delayed_job_pools, { 
+  low_priority: 4,
+  default: 2,
+  high_priority: 2,
+}
 
-# see config/initializers/delayed_job
-set :low_priority_priority, 5
-set :low_priority_delayed_job_workers, 4
-set :default_priority, 0
-set :default_delayed_job_workers, 3
-set :high_priority_priority, -5
-set :high_priority_delayed_job_workers, 2
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
@@ -68,147 +66,6 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
 
 # Default value for keep_releases is 5
 # set :keep_releases, 5
-
-def run_dj_command(cmd, args)
-  execution_string = "cd #{current_path} && RAILS_ENV=#{rails_env} bin/delayed_job -m --prefix #{delayed_job_prefix}"
-  if args.include? :num
-    execution_string += " -n #{args[:num]}"
-  end
-  if args.include? :min_p
-    execution_string += " --min-priority #{args[:min_p]}"
-  end
-  if args.include? :max_p
-    execution_string += " --max-priority #{args[:max_p]}"
-  end
-  if args.include? :queue
-    execution_string += " --queue=#{args[:queue]} --pid-dir #{shared_path}/pids/worker-group-#{args[:queue]}"
-  end
-  if args.include? :pool
-    execution_string += " --pool=#{args[:pool]}"
-  end
-  execution_string += " #{cmd}"
-  run execution_string
-end
-
-namespace :delayed_job do
-
-  desc "Start all low priority processes"
-  task :start_low_priority do
-    on roles(delayed_job_roles) do
-      run_dj_command('start', {num: low_priority_delayed_job_workers, 
-                               queue: :low_priority, 
-                               min_p: low_priority_priority, 
-                               max_p: low_priority_priority})
-    end
-  end
-
-  desc "Stop all low priority processes"
-  task :stop_low_priority do
-    on roles(delayed_job_roles) do
-      run_dj_command('stop', {num: low_priority_delayed_job_workers, 
-                               queue: :low_priority, 
-                               min_p: low_priority_priority, 
-                               max_p: low_priority_priority})
-    end
-  end
-
-  desc "Restart all low priority processes"
-  task :restart_low_priority do
-    on roles(delayed_job_roles) do
-      invoke 'delayed_job:stop_low_priority'
-      run 'sleep 2'
-      invoke 'delayed_job:start_low_priority'
-    end
-  end
-
-  desc "Start all high priority processes"
-  task :start_high_priority do
-    on roles(delayed_job_roles) do
-      run_dj_command('start', {num: high_priority_delayed_job_workers, 
-                               queue: :high_priority, 
-                               min_p: high_priority_priority, 
-                               max_p: high_priority_priority})
-    end
-  end
-
-  desc "Stop all high priority processes"
-  task :stop_high_priority do
-    on roles(delayed_job_roles) do
-      run_dj_command('stop', {num: high_priority_delayed_job_workers, 
-                               queue: :high_priority, 
-                               min_p: high_priority_priority, 
-                               max_p: high_priority_priority})
-    end
-  end
-
-  desc "Restart all high priority processes"
-  task :restart_high_priority do
-    on roles(delayed_job_roles) do
-      invoke 'delayed_job:stop_high_priority'
-      run 'sleep 2'
-      invoke 'delayed_job:start_high_priority'
-    end
-  end
-
-  desc "Start all default priority processes"
-  task :start_default do
-    on roles(delayed_job_roles) do
-      run_dj_command('start', {num: default_delayed_job_workers, 
-                               queue: :default, 
-                               min_p: low_priority_priority - 1, 
-                               max_p: high_priority_priority + 1})
-    end
-  end
-
-  desc "Stop all default priority processes"
-  task :stop_default do
-    on roles(delayed_job_roles) do
-      run_dj_command('stop', {num: default_delayed_job_workers, 
-                               queue: :default, 
-                               min_p: low_priority_priority - 1, 
-                               max_p: high_priority_priority + 1})
-    end
-  end
-
-  desc "Restart all non service_history processes"
-  task :restart_default do
-    on roles(delayed_job_roles) do
-      invoke 'delayed_job:stop_default'
-      run 'sleep 2'
-      invoke 'delayed_job:start_default'
-    end
-  end
-
-  desc "Start all delayed_job processes" 
-  task :start_all do
-    on roles(delayed_job_roles) do
-      invoke 'delayed_job:start_default'
-      invoke 'delayed_job:start_low_priority'
-      invoke 'delayed_job:start_high_priority'
-    end
-  end
-
-  desc "Stop all delayed_job processes" 
-  task :stop_all do
-    on roles(delayed_job_roles) do
-      invoke 'delayed_job:stop_default'
-      invoke 'delayed_job:stop_low_priority'
-      invoke 'delayed_job:stop_high_priority'
-    end
-  end
-
-  desc "Restart all delayed_job processes"
-  task :restart_all do
-    on roles(delayed_job_roles) do
-      invoke 'delayed_job:stop_all'
-      run 'sleep 2'
-      invoke 'delayed_job:start_all'
-    end
-  end
-end
-after "deploy:started", "delayed_job:start_all" 
-after "passenger:restart", "delayed_job:restart_all"
-
 
 namespace :deploy do
   before 'assets:precompile', :touch_theme_variables do
