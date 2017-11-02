@@ -5,6 +5,12 @@ set :application, 'boston_hmis'
 set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
+# Delayed Job
+set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
+set :delayed_job_roles, [:job]
+set(:delayed_job_pools, { low_priority: 4, default_priority: 2, high_priority: 2})
+
+
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
     keys: [ENV['FORCE_SSH_KEY']]

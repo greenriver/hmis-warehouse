@@ -977,7 +977,6 @@ module ReportGenerators::Ahar::Fy2017
           project_counts[row] ||= Set.new
           project_counts[row] << sh[service_history_client_id_index]
         end
-        binding.pry
         individuals_served = individuals_served_data.count
         @answers["#{slug}-FAM"]['Pers_Avg_Ngt'] = (family_served / 365.0).round(2)
         @answers["#{slug}-IND"]['Pers_Avg_Ngt'] = (individuals_served / 365.0).round(2)

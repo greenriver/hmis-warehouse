@@ -13,7 +13,7 @@ module Importing::HudZip
       ).import!
     end
 
-    def enqueue(job)
+    def enqueue(job, queue: :default_priority)
     end
 
     def max_attempts

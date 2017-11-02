@@ -80,11 +80,11 @@ class ReportResultsController < ApplicationController
       options.merge!({report_start: report_start, report_end: report_end})
     end
     if run_report_engine
-      job = Delayed::Job.enqueue Reporting::RunReportJob.new(
+      job = Delayed::Job.enqueue(Reporting::RunReportJob.new(
         report: @report, 
         result_id: @result.id, 
         options: options
-      )
+      ), queue: :default_priority)
       @result.update(delayed_job_id: job.id)
     end
   end

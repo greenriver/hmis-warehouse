@@ -106,6 +106,9 @@ module Importing
       
     end
 
+    def enqueue(job, queue: :default_priority)
+    end
+
     def active_imports?
       GrdaWarehouse::DataSource.importable.map do |ds|
         ds.class.advisory_lock_exists?("hud_import_#{ds.id}")

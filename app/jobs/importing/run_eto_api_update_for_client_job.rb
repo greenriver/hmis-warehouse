@@ -11,6 +11,9 @@ module Importing
       end
     end
 
+    def enqueue(job, queue: :default_priority)
+    end
+
     before_enqueue do |job|
       client = fetch_destination_client(job)
       client.update(api_update_in_process: true, api_update_started_at: Time.now)

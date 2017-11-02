@@ -18,5 +18,8 @@ module Importing
       end
     end
 
+    def enqueue(job, queue: :default_priority)
+    end
+
   end
 end

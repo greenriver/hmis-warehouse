@@ -11,11 +11,11 @@ module HudReports::Ahar::Fy2017
         user_id: current_user.id,
         options: options
       )
-      job = Delayed::Job.enqueue Reporting::Hud::Ahar::Fy2017::RunReportJob.new(
+      job = Delayed::Job.enqueue(Reporting::Hud::Ahar::Fy2017::RunReportJob.new(
         report_id: @report.id, 
         result_id: @result.id, 
         options: options
-      )
+      ), queue: :default_priority)
       @result.update(delayed_job_id: job.id)
       if @result.errors.full_messages.present?
         flash[:error] = @result.errors.full_messages.join(' ')
