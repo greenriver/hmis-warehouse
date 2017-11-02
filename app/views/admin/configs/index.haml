@@ -14,7 +14,9 @@
       = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations
       = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
       = f.input :window_access_requires_release, label: 'Block access to the window if a client doesn\'t have a release?'
+      = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
       = f.input :cas_url, label: 'CAS Site URL'
+      = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
       = f.input :file_notification_list, collection: GrdaWarehouse::ClientFile.available_tags, label: 'Files that should trigger notifications', input_html: {value: f.object.tag_list_on(:file_notifications), multiple: :multiple, class: 'select2'}
     .col-sm-6
       = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
