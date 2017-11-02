@@ -1,5 +1,6 @@
 module HudReports::Ahar::Fy2017
   class BaseController < ApplicationController
+   before_action :require_can_view_reports!
    
     def create
       @report = report_source.first

@@ -21,11 +21,12 @@
           - if show_window_link
             = link_to 'View', window_link, class: 'btn btn-secondary'
         = render 'clients/chronic_flags', client: client
-        .client__ssns
-          - client.source_clients.visible_in_window.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
-            .client__ssn
-              %strong SSN:
-              = ssn
+        - if @show_ssn
+          .client__ssns
+            - client.source_clients.visible_in_window.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
+              .client__ssn
+                %strong SSN:
+                = ssn
         .client__dobs
           - client.source_clients.visible_in_window.map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
             .client__dob

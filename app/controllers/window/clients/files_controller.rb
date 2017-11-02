@@ -8,6 +8,7 @@ module Window::Clients
     before_action :set_file, only: [:show, :edit, :update]
     
     def index
+      @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
     end
     

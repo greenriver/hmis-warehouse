@@ -54,6 +54,7 @@ class Role < ActiveRecord::Base
       :can_create_cohorts,
       :can_edit_client_notes,
       :can_edit_window_client_notes,
+      :can_see_own_window_client_notes,
       :can_view_cohorts,
       :can_assign_users_to_clients,
       :can_view_client_user_assignments,
