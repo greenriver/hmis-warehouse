@@ -1015,7 +1015,7 @@ module GrdaWarehouse::Hud
         preload(:destination_client).
         map{|m| m.destination_client.id}
       
-      client_ids << text if numeric
+      client_ids << text if numeric && self.destination.where(id: text).exists?
       where(id: client_ids)
     end
 
