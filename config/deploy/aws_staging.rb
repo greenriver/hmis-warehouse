@@ -3,7 +3,7 @@ set :rails_env, 'staging'
 ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
 # Delayed Job
-set :delayed_job_pools, { low_priority: 2, default_priority: 1, high_priority: 1}
+set :delayed_job_pools, { low_priority: 2, default_priority: 1, high_priority: 1, nil => 1}
 
 server ENV['STAGING_HOST'], user: 'ubuntu', roles: %w{app db web job}
 
