@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171102134710) do
+ActiveRecord::Schema.define(version: 20171103003947) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1816,6 +1816,7 @@ SELECT "Services"."ServicesID",
   add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], :name=>"index_sh_ds_id_org_id_proj_id_r_type", :using=>:btree
   add_index "warehouse_client_service_history", ["data_source_id"], :name=>"index_warehouse_client_service_history_on_data_source_id", :using=>:btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], :name=>"sh_date_ds_id_org_id_proj_id_proj_type", :using=>:btree
+  add_index "warehouse_client_service_history", ["date"], :name=>"date_index", :using=>:btree
   add_index "warehouse_client_service_history", ["enrollment_group_id"], :name=>"index_warehouse_client_service_history_on_enrollment_group_id", :using=>:btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], :name=>"index_warehouse_client_service_history_on_first_date_in_program", :using=>:btree
   add_index "warehouse_client_service_history", ["household_id"], :name=>"index_warehouse_client_service_history_on_household_id", :using=>:btree
