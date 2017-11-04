@@ -14,6 +14,5 @@ module GrdaWarehouse
       connection = GrdaWarehouseBase.connection
       connection.execute('REFRESH MATERIALIZED VIEW recent_service_history;')
     end
-
   end
 end

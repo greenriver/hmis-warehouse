@@ -11,6 +11,7 @@ module Window
     before_action :require_can_create_clients!, only: [:new, :create]
 
     def index
+      @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results)
       # search
       @clients = if params[:q].present?
         client_source.text_search(params[:q], client_scope: client_search_scope)

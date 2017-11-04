@@ -12,7 +12,7 @@
     },
     polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
       title: 'Notes',
-      permission: can_edit_window_client_notes?
+      permission: can_edit_window_client_notes? || can_see_own_window_client_notes?
     },
     polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
       title: 'VI-SPDAT',

@@ -84,7 +84,7 @@ class ReportResultsController < ApplicationController
         report: @report, 
         result_id: @result.id, 
         options: options
-      )
+      ), queue: :default_priority
       @result.update(delayed_job_id: job.id)
     end
   end

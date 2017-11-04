@@ -87,6 +87,9 @@ module Importing
       # pre-populate the cache for data source date spans
       GrdaWarehouse::DataSource.data_spans_by_id()
       @notifier.ping('Data source date spans set') if @send_notifications
+
+      GrdaWarehouse::RecentServiceHistory.refresh_view
+      @notifier.ping('Refreshed recent service history view') if @send_notifications
       # Clear the cache, some stuff has probably changed
       Rails.cache.clear
 

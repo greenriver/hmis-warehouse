@@ -40,23 +40,31 @@
       .col-sm-4
         = f.input :language_answer, collection: GrdaWarehouse::Vispdat.language_options, label: "Language", input_html: { class: 'select2' }
     .row
+      .col-sm-12
+        %h3 Consent Form
+        %p 
+          Please indicate when the client signed the consent form, if it included a Drug &amp; Alcohol Release, if it included an HIV/AIDS Release, and upload the signed document.
+          - if @consent_form_url.present?
+            = link_to @consent_form_url do
+              A blank consent form is available here.
+        %p Consent forms will be confirmed manually by an administrator before client information is shared. Uploading a consent form notifies the appropriate administrator.
+    .row
       .col-sm-4
-        = f.input :release_signed_on, label: "Release Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
-
-        - if can_confirm_housing_release?
-          = f.input :housing_release_confirmed, as: :boolean
-
+        
+        = f.input :release_signed_on, label: "Consent Form Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
         - if @vispdat.files.empty?
           %a.btn.btn-default(data-toggle='modal' data-target='#upload-file')
             %i.icon-upload2
-            Upload Release
+            Upload Signed Consent Form
         - else
           = link_to polymorphic_path(file_path_generator, id: @vispdat.files.first) do
             %i.fa.fa-file
-            Release Form
+            Signed Consent Form
+        - if can_confirm_housing_release?
+          = f.input :housing_release_confirmed, as: :boolean
 
       .col-sm-4
-        %label Drug & Alcohol Release?
+        %label Drug &amp; Alcohol Release?
         = f.input :drug_release, as: :radio_buttons, label: false
       .col-sm-4
         %label HIV/AIDS Release?
