@@ -101,6 +101,14 @@ module Importing
       }
       SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
+
+      if last_saturday_of_month(Date.today.month, Date.today.year) == Date.today
+        @notifier.ping('Rebuilding Service History Indexes...') if @send_notifications
+        @notifier.ping('(this could take a few hours, but only happens on the last Saturday of the month.)') if @send_notifications
+        GrdaWarehouse::ServiceHistory.reindex_table!
+        @notifier.ping('... Service History Indexes Rebuilt') if @send_notifications
+      end
+
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"
@@ -113,6 +121,11 @@ module Importing
       GrdaWarehouse::DataSource.importable.map do |ds|
         ds.class.advisory_lock_exists?("hud_import_#{ds.id}")
       end.include?(true)
+    end
+
+    def last_saturday_of_month(month, year)
+      end_of_month = Date.new(year, month, 1).end_of_month
+      end_of_month.downto(0).find(&:saturday?)
     end
   end
 end
