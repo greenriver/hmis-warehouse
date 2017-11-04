@@ -1,22 +1,22 @@
 class RebuildRecentServiceHistory < ActiveRecord::Migration
   include ArelHelper
   def up
-    sql = GrdaWarehouse::ServiceHistory.service.joins(project: :organization).
-      where(sh_t[:date].gt(1.years.ago.to_date)).
-      order(date: :asc).
-      select(*columns).to_sql
-    execute <<-SQL
-      DROP MATERIALIZED VIEW IF EXISTS recent_service_history;
-      CREATE MATERIALIZED VIEW recent_service_history AS (#{sql});
-    SQL
+    # sql = GrdaWarehouse::ServiceHistory.service.joins(project: :organization).
+    #   where(sh_t[:date].gt(1.years.ago.to_date)).
+    #   order(date: :asc).
+    #   select(*columns).to_sql
+    # execute <<-SQL
+    #   DROP MATERIALIZED VIEW IF EXISTS recent_service_history;
+    #   CREATE MATERIALIZED VIEW recent_service_history AS (#{sql});
+    # SQL
 
-    add_index :recent_service_history, :id, unique: true
-    add_index :recent_service_history, :date
-    add_index :recent_service_history, :client_id
-    add_index :recent_service_history, :household_id
-    add_index :recent_service_history, :project_type
-    add_index :recent_service_history, :project_tracking_method
-    add_index :recent_service_history, :computed_project_type
+    # add_index :recent_service_history, :id, unique: true
+    # add_index :recent_service_history, :date
+    # add_index :recent_service_history, :client_id
+    # add_index :recent_service_history, :household_id
+    # add_index :recent_service_history, :project_type
+    # add_index :recent_service_history, :project_tracking_method
+    # add_index :recent_service_history, :computed_project_type
   end
 
   def down
