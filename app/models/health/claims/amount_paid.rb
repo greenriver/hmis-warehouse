@@ -7,6 +7,8 @@ module Health::Claims
         medicaid_id: "ID_Medicaid",
         year: "Year",
         month: "Month",
+        year_month: 'YYYYMM',
+        study_period: 'StudyPeriod',
         ip: "IP",
         emerg: "Emerg",
         respite: "Respite",

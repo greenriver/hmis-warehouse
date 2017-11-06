@@ -32,7 +32,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
   _loadClaims: (claims)->
     result = []
     claims.forEach((claim) =>
-      group = if claim.group == 'SDH Pilot' then claim.group else 'Current Patient'
+      group = if claim.group == 'SDH Pilot' then 'Baseline' else 'Implementation Period'
       r = {group: group}
       @keys.forEach((key) =>
         r[key] = claim[key]*100
@@ -51,7 +51,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     }
 
   _loadDomain: ->
-    labels = ['Current Patient', 'SDH Pilot']
+    labels = ['Implementation Period', 'Baseline']
     {
       x: @claims.map((claim) -> claim.group),
       y: [0, 100],
@@ -80,7 +80,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     step = @scale.x.step()
     width = @scale.x.bandwidth()
     x1 = @scale.x('Current Patient') - (step-width) + 5
-    x22 = @scale.x('SDH Pilot') + (width+(step-width)) - 5 
+    x22 = @scale.x('Patient Baseline') + (width+(step-width)) - 5 
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()

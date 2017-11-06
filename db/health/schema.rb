@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171028010225) do
+ActiveRecord::Schema.define(version: 20171106180121) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,7 +46,7 @@ ActiveRecord::Schema.define(version: 20171028010225) do
   add_index "careplans", ["user_id"], :name=>"index_careplans_on_user_id", :using=>:btree
 
   create_table "claims_amount_paid_location_month", force: :cascade do |t|
-    t.string  "medicaid_id", :null=>false
+    t.string  "medicaid_id",  :null=>false
     t.integer "year"
     t.integer "month"
     t.integer "ip"
@@ -56,11 +56,13 @@ ActiveRecord::Schema.define(version: 20171028010225) do
     t.integer "rx"
     t.integer "other"
     t.integer "total"
+    t.string  "year_month"
+    t.string  "study_period"
   end
   add_index "claims_amount_paid_location_month", ["medicaid_id"], :name=>"index_claims_amount_paid_location_month_on_medicaid_id", :using=>:btree
 
   create_table "claims_claim_volume_location_month", force: :cascade do |t|
-    t.string  "medicaid_id", :null=>false
+    t.string  "medicaid_id",  :null=>false
     t.integer "year"
     t.integer "month"
     t.integer "ip"
@@ -70,6 +72,8 @@ ActiveRecord::Schema.define(version: 20171028010225) do
     t.integer "rx"
     t.integer "other"
     t.integer "total"
+    t.string  "year_month"
+    t.string  "study_period"
   end
   add_index "claims_claim_volume_location_month", ["medicaid_id"], :name=>"index_claims_claim_volume_location_month_on_medicaid_id", :using=>:btree
 

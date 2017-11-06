@@ -26,7 +26,7 @@ module Health::Tasks
         when 'Roster_2017_06_01'
           process_roster(sheet)
         else
-          raise 'Unimplemented tab'
+          puts "Skipping unimplemented tab: #{name}"
         end
       end
     end
