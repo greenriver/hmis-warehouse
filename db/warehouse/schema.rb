@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171103154925) do
+ActiveRecord::Schema.define(version: 20171106211934) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1148,6 +1148,36 @@ ActiveRecord::Schema.define(version: 20171103154925) do
     t.datetime "updated_at"
     t.datetime "deleted_at"
   end
+
+  create_table "recent_service_history", id: false, force: :cascade do |t|
+    t.integer "id"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.date    "date"
+    t.date    "first_date_in_program"
+    t.date    "last_date_in_program"
+    t.string  "enrollment_group_id",     :limit=>50
+    t.integer "age"
+    t.integer "destination"
+    t.string  "head_of_household_id",    :limit=>50
+    t.string  "household_id",            :limit=>50
+    t.integer "project_id"
+    t.integer "project_type"
+    t.integer "project_tracking_method"
+    t.integer "organization_id"
+    t.integer "housing_status_at_entry"
+    t.integer "housing_status_at_exit"
+    t.integer "service_type"
+    t.integer "computed_project_type"
+    t.boolean "presented_as_individual"
+  end
+  add_index "recent_service_history", ["client_id"], :name=>"index_recent_service_history_on_client_id", :using=>:btree
+  add_index "recent_service_history", ["computed_project_type"], :name=>"index_recent_service_history_on_computed_project_type", :using=>:btree
+  add_index "recent_service_history", ["date"], :name=>"index_recent_service_history_on_date", :using=>:btree
+  add_index "recent_service_history", ["household_id"], :name=>"index_recent_service_history_on_household_id", :using=>:btree
+  add_index "recent_service_history", ["id"], :name=>"index_recent_service_history_on_id", :unique=>true, :using=>:btree
+  add_index "recent_service_history", ["project_tracking_method"], :name=>"index_recent_service_history_on_project_tracking_method", :using=>:btree
+  add_index "recent_service_history", ["project_type"], :name=>"index_recent_service_history_on_project_type", :using=>:btree
 
   create_view "report_clients", <<-'END_VIEW_REPORT_CLIENTS', :force => true
 SELECT "Client"."PersonalID",
