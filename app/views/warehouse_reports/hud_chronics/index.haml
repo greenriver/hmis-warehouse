@@ -1,0 +1,50 @@
+- title = "HUD Chronic Clients on #{@filter.date}"
+- content_for :title, title
+%h1
+  = title
+  %hr
+= render 'warehouse_reports/breadcrumbs'
+= render 'filter'
+= render 'homeless_info'
+
+.warehouse-reports__chronic
+  .row
+    .col-sm-12
+      %h4
+        .pull-left
+          Chronic Clients
+      .clearfix
+      %p.text-muted
+        Chart does not take into account "Received Homeless Service After."
+      .jCharts
+        %p.jLoading.text-center Loading...
+
+
+  .row(style="padding: 1em 1em 0 1em")
+    .col-sm-12
+      %hr
+      .pagination
+        %p= page_entries_info @clients, entry_name: _('client')
+        %p= paginate @clients
+  .row(style="padding: 0 1em")
+    .col-sm-12
+      = render('sort', sort_options: GrdaWarehouse::HudChronic.sort_options) if @clients.any?
+
+= content_for :page_js do
+  :javascript
+    // add the chart
+    (function($) {
+      chart = new App.ChartsScatterByDate.Chronic('#{summary_warehouse_reports_hud_chronics_path(params)}', '', '', '#{@filter.date}');
+      chart.load();
+
+      $('.jLoadEnrollments').on('click', function(e) {
+        e.preventDefault();
+        var rollupPath = $(this).closest('.rollup').data('rollupPath');
+        var clients = $(this).closest('.rollup').data('clients');
+        var manyClients = $(this).closest('.rollup').data('manyClients');
+        var high = $(this).closest('.rollup').data('high');
+        var clientID = $(this).closest('.rollup').data('clientId');
+        new App.Rollups.Loader($('.jClientID-' + clientID), rollupPath, manyClients, clients, high);
+        $(this).closest('.rollup-content').replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
+      });
+    })(jQuery);

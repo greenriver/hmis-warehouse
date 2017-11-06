@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171027031033) do
+ActiveRecord::Schema.define(version: 20171106005358) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1100,6 +1100,7 @@ ActiveRecord::Schema.define(version: 20171027031033) do
     t.string   "project_names"
     t.datetime "created_at",                 :null=>false
     t.datetime "updated_at",                 :null=>false
+    t.integer  "days_in_last_three_years"
   end
   add_index "hud_chronics", ["client_id"], :name=>"index_hud_chronics_on_client_id", :using=>:btree
 
