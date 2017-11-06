@@ -17,8 +17,8 @@ module HudChronic
       if @filter.veteran
         filter_query = filter_query.and(client_table[:VeteranStatus].eq(@filter.veteran))
       end
-      @clients = client_source.joins(:chronics).
-        preload(:chronics).
+      @clients = client_source.joins(:hud_chronics).
+        preload(:hud_chronics).
         preload(:source_disabilities).
         where(filter_query).
         has_homeless_service_between_dates(start_date: (@filter.date - @filter.last_service_after.days), end_date: @filter.date)
