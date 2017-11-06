@@ -13,6 +13,10 @@
       title: 'Chronic',
       permission: can_edit_clients?
     },
+    polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
+      title: 'Notes',
+      permission: can_edit_client_notes?
+    },
     polymorphic_path(edit_cas_readiness_path_generator, client_id: @client.id) => {
       title: 'CAS Readiness',
       permission: can_edit_clients?

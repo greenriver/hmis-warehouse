@@ -1,6 +1,7 @@
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
+    include Rails.application.routes.url_helpers
     include RandomScope
     include ArelHelper   # also included by RandomScope, but this makes dependencies clear
     include HealthCharts
@@ -167,6 +168,10 @@ module GrdaWarehouse::Hud
     scope :source, -> do
       where(data_source: GrdaWarehouse::DataSource.importable)
     end
+
+    scope :searchable, -> do
+      where(data_source: GrdaWarehouse::DataSource.source)
+    end
     # For now, this is way to slow, calculate in ruby
     # scope :unmatched, -> do
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
@@ -282,6 +287,19 @@ module GrdaWarehouse::Hud
       'Limited CAS Release'
     end
 
+    def active_in_cas?
+      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      when :cas_flag
+        sync_with_cas
+      when :chronic
+        chronics.where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day}).exists?
+      when :release_present
+        [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
+      else
+        raise NotImplementedError
+      end
+    end
+
     def scope_for_ongoing_residential_enrollments
       source_enrollments.
       residential.
@@ -313,6 +331,31 @@ module GrdaWarehouse::Hud
     alias_attribute :last_name, :LastName
     alias_attribute :first_name, :FirstName
 
+    def window_link_for? user
+      if show_window_demographic_to?(user)
+        window_client_path(self)
+      elsif GrdaWarehouse::Vispdat.any_visible_by?(user)
+        window_client_vispdats_path(self)
+      elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
+        window_client_files_path(self)
+      end
+    end
+
+    def show_health_for?(user)
+      patient.present? && patient.accessible_by_user(user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+    end
+
+    def show_window_demographic_to?(user)
+      visible_because_of_permission?(user) || visible_because_of_relationship?(user)
+    end
+
+    def visible_because_of_permission?(user)
+      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
+    end
+
+    def visible_because_of_relationship?(user)
+      self.user_clients.pluck(:user_id).include?(user.id) && release_valid? && user.can_search_window?
+    end
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
     # This generates methods like: substance_response()
@@ -957,8 +1000,8 @@ module GrdaWarehouse::Hud
         query = "%#{text}%"
         alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
         nicks = Nickname.for(text).map(&:name)
-        where = sa['FirstName'].matches(query)
-          .or(sa['LastName'].matches(query))
+        where = sa[:FirstName].matches(query)
+          .or(sa[:LastName].matches(query))
         if nicks.any?
           nicks_for_search = nicks.map{|m| GrdaWarehouse::Hud::Client.connection.quote(m)}.join(",")
           where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks_for_search))
@@ -969,14 +1012,13 @@ module GrdaWarehouse::Hud
             or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
         end
       end
-
       client_ids = client_scope.
-        joins(:warehouse_client_source).source.
+        joins(:warehouse_client_source).searchable.
         where(where).
         preload(:destination_client).
         map{|m| m.destination_client.id}
       
-      client_ids << text if numeric
+      client_ids << text if numeric && self.destination.where(id: text).exists?
       where(id: client_ids)
     end
 

@@ -9,11 +9,13 @@
 .client__vispdat
   %h1
     .pull-right
-      - unless @vispdat.migrated?
+      - unless @vispdat.migrated? || @vispdat.show_as_readonly?
         = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit', data: { toggle: 'tooltip' } do
           %span.icon-pencil
+          Edit
       = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
         %span.icon-menu
+        VI-SPDAT List
     = content_for :title
     %small(data-toggle='tooltip' title="Vulnerability Index - Service Prioritization Decision Assistance Tool")VI-SPDAT
     .clearfix

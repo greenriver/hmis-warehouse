@@ -875,19 +875,21 @@ ActiveRecord::Schema.define(version: 20171106005358) do
   add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
 
   create_table "configs", force: :cascade do |t|
-    t.boolean "project_type_override",          :default=>true, :null=>false
-    t.boolean "eto_api_available",              :default=>false, :null=>false
-    t.string  "cas_available_method",           :default=>"cas_flag", :null=>false
-    t.boolean "healthcare_available",           :default=>false, :null=>false
-    t.string  "family_calculation_method",      :default=>"adult_child"
+    t.boolean "project_type_override",                     :default=>true, :null=>false
+    t.boolean "eto_api_available",                         :default=>false, :null=>false
+    t.string  "cas_available_method",                      :default=>"cas_flag", :null=>false
+    t.boolean "healthcare_available",                      :default=>false, :null=>false
+    t.string  "family_calculation_method",                 :default=>"adult_child"
     t.string  "site_coc_codes"
     t.string  "default_coc_zipcodes"
     t.string  "continuum_name"
-    t.string  "cas_url",                        :default=>"https://cas.boston.gov"
-    t.string  "release_duration",               :default=>"Indefinite"
-    t.boolean "allow_partial_release",          :default=>true
-    t.string  "cas_flag_method",                :default=>"manual"
-    t.boolean "window_access_requires_release", :default=>false
+    t.string  "cas_url",                                   :default=>"https://cas.boston.gov"
+    t.string  "release_duration",                          :default=>"Indefinite"
+    t.boolean "allow_partial_release",                     :default=>true
+    t.string  "cas_flag_method",                           :default=>"manual"
+    t.boolean "window_access_requires_release",            :default=>false
+    t.boolean "show_partial_ssn_in_window_search_results", :default=>false
+    t.string  "url_of_blank_consent_form"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1860,6 +1862,7 @@ SELECT "Services"."ServicesID",
   add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], :name=>"index_sh_ds_id_org_id_proj_id_r_type", :using=>:btree
   add_index "warehouse_client_service_history", ["data_source_id"], :name=>"index_warehouse_client_service_history_on_data_source_id", :using=>:btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], :name=>"sh_date_ds_id_org_id_proj_id_proj_type", :using=>:btree
+  add_index "warehouse_client_service_history", ["date"], :name=>"date_index", :using=>:btree
   add_index "warehouse_client_service_history", ["enrollment_group_id"], :name=>"index_warehouse_client_service_history_on_enrollment_group_id", :using=>:btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], :name=>"index_warehouse_client_service_history_on_first_date_in_program", :using=>:btree
   add_index "warehouse_client_service_history", ["household_id"], :name=>"index_warehouse_client_service_history_on_household_id", :using=>:btree

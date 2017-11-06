@@ -35,8 +35,10 @@ module Admin
         :family_calculation_method,
         :continuum_name,
         :cas_url,
+        :url_of_blank_consent_form,
         :allow_partial_release,
         :window_access_requires_release,
+        :show_partial_ssn_in_window_search_results,
         tag_list: [],
         file_notification_list: [],
       )

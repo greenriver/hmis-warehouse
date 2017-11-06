@@ -908,8 +908,21 @@ module ReportGenerators::Ahar::Fy2017
               end_date: @report_end
             ).
             where(fam_where)
+            # make Vets only run faster in postgres 
+            # (SQL server seemed to optimize this more effectively)
+            if vets_only && GrdaWarehouseBase.postgres?
+              sql = with_limited_vet_scope_sql(scope: family_scope.select(*sh_cols))
+              result = GrdaWarehouseBase.connection.select_all(sql)
+              family_served_data = result.map do |row|
+                result.columns.map do |name|
+                  result.send(:column_type, name).type_cast_from_database(row[name])
+                end
+              end
+            else
+              family_served_data = family_scope.pluck(*sh_cols)
+            end
             # Save off some supporing info
-            family_scope.pluck(*sh_cols).each do |sh|
+            family_served_data.each do |sh|
               project_name = sh[service_history_project_name_index]
               project_id = sh[service_history_project_id_index]
               ds_id = sh[service_history_data_source_id_index]
@@ -918,9 +931,17 @@ module ReportGenerators::Ahar::Fy2017
               project_counts[row] << sh[service_history_client_id_index]
             end
             if vets_only
-              family_scope = family_scope.where(client_id: all_vets)
+              family_served_data = family_scope.where(client_id: all_vets).pluck(*sh_cols)
+              family_served_data.each do |sh|
+                project_name = sh[service_history_project_name_index]
+                project_id = sh[service_history_project_id_index]
+                ds_id = sh[service_history_data_source_id_index]
+                row = ["#{slug}-FAM", project_name, project_id, ds_id]
+                project_counts[row] ||= Set.new
+                project_counts[row] << sh[service_history_client_id_index]
+              end
             end
-            family_scope.count
+            family_served_data.count
           else
             0
           end
@@ -930,14 +951,25 @@ module ReportGenerators::Ahar::Fy2017
             start_date: @report_start.to_date - 1.day,
             end_date: @report_end
           )
-        if fam_ids_by_ds.any? 
+        if fam_ids_by_ds.any?
           individuals_served = individuals_served.where.not(fam_where)
         end
         if vets_only
           individuals_served = individuals_served.where(client_id: all_vets)
         end
-        # Save off some supporing info
-        individuals_served.pluck(*sh_cols).each do |sh|
+        # speed up the postgres query
+        if vets_only && GrdaWarehouseBase.postgres?
+            sql = with_limited_vet_scope_sql(scope: individuals_served.select(*sh_cols))
+            result = GrdaWarehouseBase.connection.select_all(sql)
+            individuals_served_data = result.map do |row|
+              result.columns.map do |name|
+                result.send(:column_type, name).type_cast_from_database(row[name])
+              end
+            end
+        else
+          individuals_served_data = individuals_served.pluck(*sh_cols)
+        end
+        individuals_served_data.each do |sh|
           project_name = sh[service_history_project_name_index]
           project_id = sh[service_history_project_id_index]
           ds_id = sh[service_history_data_source_id_index]
@@ -945,7 +977,7 @@ module ReportGenerators::Ahar::Fy2017
           project_counts[row] ||= Set.new
           project_counts[row] << sh[service_history_client_id_index]
         end
-        individuals_served = individuals_served.count
+        individuals_served = individuals_served_data.count
         @answers["#{slug}-FAM"]['Pers_Avg_Ngt'] = (family_served / 365.0).round(2)
         @answers["#{slug}-IND"]['Pers_Avg_Ngt'] = (individuals_served / 365.0).round(2)
       end

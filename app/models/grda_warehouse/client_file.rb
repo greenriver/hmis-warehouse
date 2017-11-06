@@ -34,6 +34,13 @@ module GrdaWarehouse
       end
     end
 
+    ####################
+    # Access
+    ####################
+    def self.any_visible_by?(user)
+      user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
     def file_exists_and_not_too_large
       errors.add :file, "No uploaded file found" if (content&.size || 0) < 100
       errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes

@@ -32,6 +32,33 @@ module ControllerAuthorization
     not_authorized!
   end
 
+  def require_can_access_vspdat_list!
+    return true if GrdaWarehouse::Vispdat.any_visible_by?(current_user)    
+    not_authorized!
+  end
+
+  def require_can_create_or_modify_vspdat!
+    return true if GrdaWarehouse::Vispdat.any_modifiable_by(current_user)
+    not_authorized!
+  end
+
+  def require_can_edit_window_client_notes_or_own_window_client_notes!
+    return true if current_user.can_edit_window_client_notes? || current_user.can_see_own_window_client_notes?
+    not_authorized!
+  end
+
+  def require_can_see_this_client_demographics!
+    return true if current_user.can_view_client_window?
+    # attempt to set the client various ways
+    if params[:client_id].present?
+      set_client_from_client_id
+    elsif params[:id].present?
+      set_client
+    end
+    return true if @client.show_window_demographic_to?(current_user)
+    not_authorized!
+  end
+
   def not_authorized!
     redirect_to root_path, alert: 'Sorry you are not authorized to do that.'
   end

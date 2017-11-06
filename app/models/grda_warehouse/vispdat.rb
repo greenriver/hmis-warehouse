@@ -99,11 +99,39 @@ module GrdaWarehouse
     scope :in_progress, -> { where(submitted_at: nil) }
     scope :completed, -> { where.not(submitted_at: nil) }
     scope :scores, -> { order(submitted_at: :desc).select(:score) }
+    scope :visible_by?, -> (user) do
+      if user.can_view_vspdat? || user.can_edit_vspdat?
+        all
+      elsif user.can_submit_vspdat?
+        in_progress
+      else
+        none
+      end
+    end
 
     ####################
     # Callbacks
     ####################
     before_save :calculate_score, :set_client_housing_release_status
+
+    ####################
+    # Access
+    ####################
+    def self.any_visible_by?(user)
+      user.can_view_vspdat? || user.can_edit_vspdat? || user.can_submit_vspdat?
+    end
+
+    def self.any_modifiable_by(user)
+      user.can_edit_vspdat? || user.can_submit_vspdat?
+    end
+
+    def show_as_readonly?
+      ! changed? && (migrated? || completed?) 
+    end
+
+    def visible_by?(user)
+      self.class.visible_by?(user).where(id: id).exists?
+    end
 
     def set_client_housing_release_status
       if housing_release_confirmed_changed?

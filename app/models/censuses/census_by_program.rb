@@ -9,13 +9,21 @@ module Censuses
       project_id_scope = project_id_scope.
         where(ProjectType: @project_types.values.flatten.uniq).
         where( at[:date].between start_date.to_date .. end_date.to_date )
-      inventory = fetch_inventory(start_date, end_date, project_id_scope.to_sql)
+      inventory = fetch_inventory(start_date, end_date, project_id_scope.pluck(:ProjectID))
       @totals = {}
       @programs = {}
       services_by_program = service_days.group_by do |m|
-        [m['date'], m['data_source_id'], m['organization_id'], m['project_id']]
+        [
+          m['date'], 
+          m['data_source_id'], 
+          m['organization_id'], 
+          m['project_id']
+        ]
       end.map do |k,m|
-        [k, m.map{|day| day['count_all']}.sum]
+        [
+          k, 
+          m.map{|day| day['count_all']}.sum
+        ]
       end.to_h
 
       services_by_program.each do |k, count_all|

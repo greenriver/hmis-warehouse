@@ -1,9 +1,10 @@
 %h1
   .pull-right
     - if @client.vispdats.in_progress.none?
-      = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-primary', title: 'New', data: { toggle: 'tooltip', method: :post } do
+      = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-primary', title: 'New', data: { method: :post } do
         %span.icon-plus
-    - else
+        New VI-SPDAT
+    -# else
       %button.btn.btn-primary(title="#{@client.full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')
         %span.icon-plus
 

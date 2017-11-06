@@ -185,6 +185,12 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     joins(:data_source).where(data_sources: {visible_in_window: true})
   end
 
+  # Only run this on off-hours.  It can take 2-5 hours and hang 
+  # the database
+  def self.reindex_table!
+    connection.execute("REINDEX TABLE #{table_name}")
+  end
+
   # Relevant Project Types/Program Types
   # 1: Emergency Shelter (ES)
   # 2: Transitional Housing (TH)

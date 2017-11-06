@@ -63,6 +63,7 @@ Rails.application.routes.draw do
         resources :data_source, only: [:create]
         resources :project, only: [:create]
         resources :veteran, only: [:create]
+        get :support
       end
     end
   end
@@ -170,7 +171,7 @@ Rails.application.routes.draw do
       end
     end
     resources :files, controller: 'clients/files'
-    resources :notes, only: [:destroy, :create], controller: 'clients/notes'
+    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :destroy], controller: 'clients/users'
     healthcare_routes()
@@ -197,6 +198,7 @@ Rails.application.routes.draw do
         end
       end
       resources :files, controller: 'clients/files'
+      resources :notes, only: [:index, :create, :destroy], controller: 'clients/notes'
       resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
       resources :users, only: [:index, :create, :destroy], controller: 'clients/users'
     end

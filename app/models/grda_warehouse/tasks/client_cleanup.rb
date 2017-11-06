@@ -7,12 +7,13 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed=200, bogus_notifier=false, debug: false)
+    def initialize(max_allowed=200, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false)
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
       @soft_delete_date = Time.now
+      @changed_client_date = changed_client_date
     end
     def run!
       remove_unused_warehouse_clients_processed()
@@ -135,7 +136,7 @@ module GrdaWarehouse::Tasks
             end
           end
           # Always use the most recently updated 
-          binding.pry if source_clients.first.blank?
+          binding.pry if source_clients.first.blank? && Rails.env.development?
           dest_attr[:VeteranStatus] = source_clients.first[:VeteranStatus]
 
           # See if we should remove anything
@@ -163,7 +164,7 @@ module GrdaWarehouse::Tasks
     def clients_to_munge
       debug_log "Check any client who's source has been updated in the past week"
       wc_t = GrdaWarehouse::WarehouseClient.arel_table
-      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(2.weeks.ago.to_date)).select(:id).pluck(:id)
+      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(@changed_client_date)).select(:id).pluck(:id)
       @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
         joins(:warehouse_client).
         where(wc_t[:source_id].in(updated_client_ids)).
