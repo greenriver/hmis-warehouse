@@ -26,8 +26,6 @@ module GrdaWarehouse
         {title: 'Age (desc)', column: 'age', direction: 'desc'},
         {title: 'Homeless since (asc)', column: 'homeless_since', direction: 'asc'},
         {title: 'Homeless since (desc)', column: 'homeless_since', direction: 'desc'},
-        {title: 'Days in 3 yrs (asc)', column: 'days_in_last_three_years', direction: 'asc'},
-        {title: 'Days in 3 yrs (desc)', column: 'days_in_last_three_years', direction: 'desc'},
         {title: 'Months in 3 yrs (asc)', column: 'months_in_last_three_years', direction: 'asc'},
         {title: 'Months in 3 yrs (desc)', column: 'months_in_last_three_years', direction: 'desc'},
       ]

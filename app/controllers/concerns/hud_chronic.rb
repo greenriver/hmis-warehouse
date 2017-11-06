@@ -6,8 +6,7 @@ module HudChronic
       @filter = ::Filters::HudChronic.new(params[:filter])
       ct = chronic_source.arel_table
       client_table = client_source.arel_table
-      filter_query = ct[:age].gt(@filter.min_age).
-        and(ct[:days_in_last_three_years].gteq(@filter.min_days_homeless.presence || 0))
+      filter_query = ct[:age].gt(@filter.min_age)
       if @filter.individual
         filter_query = filter_query.and(ct[:individual].eq(@filter.individual))
       end

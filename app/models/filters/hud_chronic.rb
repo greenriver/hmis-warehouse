@@ -2,7 +2,6 @@ module Filters
   class HudChronic < ::ModelForm
     attribute :on, Date, default: GrdaWarehouse::HudChronic.most_recent_day
     attribute :min_age, Integer, default: 0
-    attribute :min_days_homeless,  Integer, default: 0
     attribute :individual, Boolean, default: false
     attribute :dmh, Boolean, default: false
     attribute :veteran, Boolean, default: false

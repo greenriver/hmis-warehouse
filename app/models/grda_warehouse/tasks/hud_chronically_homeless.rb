@@ -33,20 +33,28 @@ module GrdaWarehouse::Tasks
         hc.individual = !client.presented_with_family?(after: @date - 3.years, before: @date)
         hc.age = client.age
         hc.homeless_since = client.service_history.first_date&.first.try(:date)
-        hc.dmh = false
+        hc.dmh = any_dmh_for?(client_id: id)
         hc.trigger = data[:trigger]
         hc.project_names = nil
 
         hc.save
-        total = total + 1
+        self.total += 1
       end
 
       log "\nCreated #{total} records for clients found to be HUD Chronic"
+
+      # turn on SQL logging
+      ActiveRecord::Base.logger.level = 0
     end
 
     def client_ids
       return @client_ids if @client_ids&.any?
       GrdaWarehouse::ServiceHistory.hud_currently_homeless(date: @date).distinct.pluck(:client_id)
+    end
+
+    def any_dmh_for? client_id:
+      @dmh_ids ||= GrdaWarehouse::Hud::Organization.dmh.ids
+      GrdaWarehouse::ServiceHistory.ongoing(on_date: @date).where(client_id: client_id, organization_id: @dmh_ids).any?
     end
 
     def log msg, underline: false

@@ -7,6 +7,10 @@ module HudChronicDefinition
 
     has_many :hud_chronics, class_name: GrdaWarehouse::HudChronic.name, inverse_of: :client
 
+    def hud_chronic_data
+      @hud_chronic_data || {}
+    end
+
     # HUD Chronic:
     # Client must be disabled
     # Must be homeless for all of the last 12 months
