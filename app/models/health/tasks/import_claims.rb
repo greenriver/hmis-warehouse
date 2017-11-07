@@ -23,10 +23,10 @@ module Health::Tasks
           process_top_ip_conditions(sheet)
         when 'ED_NYU_Severity'
           process_ed_nyu_severity(sheet)
-        when 'Roster_2017_06_01'
+        when 'Roster'
           process_roster(sheet)
         else
-          raise 'Unimplemented tab'
+          puts "Skipping unimplemented tab: #{name}"
         end
       end
     end
