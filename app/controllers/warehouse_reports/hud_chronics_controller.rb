@@ -32,8 +32,7 @@ module WarehouseReports
       @range = ::Filters::DateRange.new({start: 3.years.ago, end: 1.day.ago})
       ct = chronic_source.arel_table
       @counts = chronic_source.
-        where(date: @range.range).
-        where(ct[:days_in_last_three_years].gteq(@filter.min_days_homeless.presence || 0))
+        where(date: @range.range)
       if @filter.individual
         @counts = @counts.where(individual: true)
       end
@@ -48,7 +47,7 @@ module WarehouseReports
         count
       render json: @counts
     end
-    
+
     def client_source
       GrdaWarehouse::Hud::Client.destination
     end

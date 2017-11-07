@@ -35,6 +35,10 @@ module HudChronic
       @order = table[@column].send(@direction)
     end
 
+    def chronic_source
+      GrdaWarehouse::HudChronic
+    end
+
     def service_history_source
       GrdaWarehouse::ServiceHistory
     end
