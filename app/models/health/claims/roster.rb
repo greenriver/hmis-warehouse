@@ -12,32 +12,39 @@ module Health::Claims
         race: "Race",
         primary_language: "Primary Language",
         disability_flag: "Disability Flag",
-        norm_risk_score: "NORM_RISK_SCORE",
-        mbr_months: "Mbr mos",
-        total_ty: "Total TY_0517",
-        ed_visits: "ED visits",
-        acute_ip_admits: "Acute IP admits",
-        average_days_to_readmit: "Avg days to readmit",
-        pcp: 'PCP',
-        epic_team: 'Team in Epic',
+        norm_risk_score: "Normalized risk score",
+        member_months_baseline: 'MM Baseline*',
+        member_months_implementation: 'MM Implementation',
+        total_ty: "Total TY0817",
+        cost_rank_ty: 'Cost rank TY0817',
+        average_ed_visits_baseline: "Avg ED visits/ month BASELINE",
+        average_ed_visits_implementation: "Avg ED visits/ month IMPLEMENT",
+        average_ip_admits_baseline: "Avg IP admits/ month BASELINE",
+        average_ip_admits_implementation: "Avg IP admits/ month IMPLEMENT",
+        average_days_to_readmit_baseline: "Avg days to readmit BASELINE",
+        average_days_to_implementation: "Avg days to readmit IMPLEMENT",
+        case_manager: 'Case manager/advocate',
+        housing_status: 'Housing status',
       }
     end
 
     def clean_rows(dirty)
-      disability_flag_location = column_headers.values.find_index("Disability Flag")
-      total_ty_location = column_headers.values.find_index("Total TY_0517")
-      average_days_to_readmit_location = column_headers.values.find_index("Avg days to readmit")
-      dirty.map! do |row|
-        if row[disability_flag_location] == 'Y'
-          row[disability_flag_location] =  true
-        elsif row[disability_flag_location] == 'N'
-          row[disability_flag_location] =  false
+      total_ty_location = column_headers.values.find_index(column_headers[:total_ty])
+      dirty.map do |row|
+        row[total_ty_location] = row[total_ty_location].to_i
+        row.map do |value|
+          case value
+          when 'Y'
+            true
+          when 'N'
+            false
+          when 'N/A', '#N/A', '#DIV/0!'
+            nil
+          else
+            value
+          end
         end
-        row[total_ty_location] = row[total_ty_location].to_i #.gsub(/[^\d\.-]/,'').to_i
-        row[average_days_to_readmit_location] = nil if row[average_days_to_readmit_location] == 'N/A'
-        row
       end
-      dirty
     end
 
   end

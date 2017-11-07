@@ -6,8 +6,11 @@
         %h4 Cost
         %table.ho-compare__table-1
           %tr
-            - @cost_table.keys.each do |key|
-              %td= compare_box(key, @cost_table.patient, @cost_table.sdh, @cost_table.variance)
+            - @cost_table.keys.each_with_index do |key, index|
+              - if index+1 == @cost_table.keys.size
+                %td= compare_box(key, @cost_table.patient, @cost_table.sdh, @cost_table.variance)
+              - else
+                %td= compare_box(key, @cost_table.patient, @cost_table.sdh)
         %h4 Utilization Metrics
         %div{style: 'padding: 0px 10px;'}
           %table.ho-compare__table-2

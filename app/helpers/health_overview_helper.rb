@@ -120,12 +120,16 @@ module HealthOverviewHelper
     end
   end
 
-  def compare_box(key, patient_cost, sdh_cost, variance)
+  def compare_box(key, patient_cost, sdh_cost, variance=nil)
     content_tag :div, class: 'ho-compare-box' do
       concat content_tag :div, key.to_s.gsub('_', ' '), class: 'ho-compare-box__label'
       concat content_tag :div, patient_cost[key], class: 'ho-compare-box__content'
       concat content_tag :div, sdh_cost[key], class: 'ho-compare-box__to'
-      concat "Variance: #{variance[key]}"
+      if variance
+        concat "Variance: #{variance[key]}" 
+      else
+        concat ' &nbsp;'.html_safe
+      end
     end
   end
 
