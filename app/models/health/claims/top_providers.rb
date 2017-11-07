@@ -6,9 +6,9 @@ module Health::Claims
       {
         medicaid_id: "ID_Medicaid",
         rank: "Rank",
-        provider_name: "Provider name",
-        indiv_pct: "Indiv_pct",
-        sdh_pct: "SDH_pct",
+        provider_name: "serv_name_dsp",
+        indiv_pct: "Implementation pct",
+        sdh_pct: "Baseline pct",
       }
     end
 

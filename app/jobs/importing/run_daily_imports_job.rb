@@ -110,6 +110,10 @@ module Importing
         @notifier.ping('... Service History Indexes Rebuilt') if @send_notifications
       end
 
+      @notifier.ping('Rebuilding reporting tables...') if @send_notifications
+      GrdaWarehouse::Report::Base.update_fake_materialized_views
+      @notifier.ping('...done rebuilding reporting tables') if @send_notifications
+
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"

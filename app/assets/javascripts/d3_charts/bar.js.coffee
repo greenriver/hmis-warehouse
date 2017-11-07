@@ -76,9 +76,18 @@ class App.D3Chart.TopBar
     total = @data.map((v) =>
       Math.round(v[@attrs[type]]*100)
     ).reduce((total, v) ->
-      total + v
+      100
     )/100
-    [0, total] 
+    [0, total]
+  
+  _loadXText: () ->
+    type = @mainType
+    total = @data.map((v) =>
+      Math.round(v[@attrs[type]]*100)
+    ).reduce((total, v) ->
+      total + v
+    )
+    Math.round(total)
 
   _loadDomain: () ->
     {
@@ -154,7 +163,7 @@ class App.D3Chart.TopBar
     xAxis.append('span')
       .attr('class', 'x-axis__max')
       .style('color', @scale.color(@mainType))
-      .text(Math.ceil(@domain.x[1]*100)+'%')
+      .text(@_loadXText()+'%')
     xAxis.append('span').text(@yLabel)
     @_drawKeyBars()
     @_drawKeys()

@@ -89,28 +89,28 @@ module Health::Claims
 
     def load_key_metric_values
       patient = [
-        @patient_roster.norm_risk_score.round(1), 
-        @patient_roster.ed_visits, 
-        @patient_roster.acute_ip_admits,
-        @patient_roster.average_days_to_readmit 
+        @patient_roster.norm_risk_score&.round(1), 
+        @patient_roster.average_ed_visits_implementation&.round(), 
+        @patient_roster.average_ip_admits_implementation&.round(),
+        @patient_roster.average_days_to_implementation&.round(),
       ]
       sdh = [
-        sdh_avg(@sdh_rosters.map(&:norm_risk_score)).round(1),
-        sdh_avg(@sdh_rosters.map(&:ed_visits)).round(),
-        sdh_avg(@sdh_rosters.map(&:acute_ip_admits)).round(),
-        sdh_avg(@sdh_rosters.map(&:average_days_to_readmit)).round()
+        @patient_roster.norm_risk_score&.round(1),
+        @patient_roster.average_ed_visits_baseline&.round(),
+        @patient_roster.average_ip_admits_baseline&.round(),
+        @patient_roster.average_days_to_readmit_baseline&.round(),
       ]
       [patient, sdh]
     end
 
     def load_cost_values
       patient = [
-        @patient_roster.total_ty.round(), 
-        @patient_roster.mbr_months
+        @patient.amount_paids.implementation.map(&:total).sum&.round(), 
+        @patient.amount_paids.implementation.map(&:total).count&.round(), 
       ]
       sdh = [
-        sdh_avg(@sdh_rosters.all.map(&:total_ty)).round(),
-        sdh_avg(@sdh_rosters.all.map(&:mbr_months)).round(1) 
+        @patient.amount_paids.baseline.map(&:total).sum&.round(),
+        @patient.amount_paids.baseline.map(&:total).count&.round(),
       ]
       [patient, sdh].each do |arry|
         arry.push((arry[0]/arry[1].to_f).round())
@@ -132,7 +132,7 @@ module Health::Claims
     end
 
     def sdh_variance(patient, sdh)
-      if patient && sdh
+      if patient && sdh && sdh != 0
         (((patient - sdh)/sdh.to_f)*100).round()
       else
         'N/A'
