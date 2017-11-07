@@ -7,27 +7,24 @@ module HudChronicDefinition
 
     has_many :hud_chronics, class_name: GrdaWarehouse::HudChronic.name, inverse_of: :client
 
-    def hud_chronic_data
-      @hud_chronic_data || {}
-    end
-
     # HUD Chronic:
     # Client must be disabled
     # Must be homeless for all of the last 12 months
     #   OR
     # Must be homeless 12 of the last 36 with 4 episodes
     def hud_chronic? on_date: Date.today
+      @hud_chronic_data = {}
       if hoh_disabled?(on_date: on_date)
         if months_12_homeless?(on_date: on_date)
-          hud_chronic_data[:trigger] = "12 months homeless"
+          @hud_chronic_data[:trigger] = "All 12 of the last 12 months homeless"
           true
         elsif times_4_homeless?(on_date: on_date)
-          hud_chronic_data[:trigger] = "Homeles 4+ times in 3 years AND "
+          @hud_chronic_data[:trigger] = "Four or more episodes of homelessness in the past three years and "
           if months_homeless_past_three_years_more_than_12?(on_date: on_date)
-            hud_chronic_data[:trigger] += "12+ months homeless"
+            @hud_chronic_data[:trigger] += "12+ months homeless"
             true
           elsif total_months_homeless_more_than_12?(on_date: on_date)
-            hud_chronic_data[:trigger] += "12+ months homeless or in project"
+            @hud_chronic_data[:trigger] += "12+ month on the street or in ES or SH"
             true
           end
         end

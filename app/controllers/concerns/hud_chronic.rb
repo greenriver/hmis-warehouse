@@ -1,17 +1,18 @@
 module HudChronic
   extend ActiveSupport::Concern
+  include ArelHelper
+  # hc_t => GrdaWarehouse::HudChronic.arel_table
 
   included do
     def load_filter
       @filter = ::Filters::HudChronic.new(params[:filter])
-      ct = chronic_source.arel_table
       client_table = client_source.arel_table
-      filter_query = ct[:age].gt(@filter.min_age)
+      filter_query = hc_t[:age].gt(@filter.min_age)
       if @filter.individual
-        filter_query = filter_query.and(ct[:individual].eq(@filter.individual))
+        filter_query = filter_query.and(hc_t[:individual].eq(@filter.individual))
       end
       if @filter.dmh
-        filter_query = filter_query.and(ct[:dmh].eq(@filter.dmh))
+        filter_query = filter_query.and(hc_t[:dmh].eq(@filter.dmh))
       end
       if @filter.veteran
         filter_query = filter_query.and(client_table[:VeteranStatus].eq(@filter.veteran))
@@ -27,16 +28,11 @@ module HudChronic
     end
 
     def set_sort
-      chronic_at = chronic_source.arel_table
       client_at = client_source.arel_table
       @column = params[:sort] || 'homeless_since'
       @direction = params[:direction] || 'asc'
-      table = %w(FirstName LastName).include?( @column ) ? client_at : chronic_at
+      table = %w(FirstName LastName).include?( @column ) ? client_at : hc_t
       @order = table[@column].send(@direction)
-    end
-
-    def chronic_source
-      GrdaWarehouse::HudChronic
     end
 
     def service_history_source

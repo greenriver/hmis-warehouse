@@ -19,7 +19,7 @@ module GrdaWarehouse::Tasks
 
       client_ids.each_with_index do |id, index|
         client = GrdaWarehouse::Hud::Client.where( id: id ).first
-        next unless client && client.hud_chronic?
+        next unless client && client.hud_chronic?(on_date: @date)
 
         log " #{index} => Client #{id} (#{client.full_name}) is HUD chronic"
 
@@ -31,7 +31,7 @@ module GrdaWarehouse::Tasks
         hc.days_in_last_three_years = nil
         hc.months_in_last_three_years = data[:months_in_last_three_years]
         hc.individual = !client.presented_with_family?(after: @date - 3.years, before: @date)
-        hc.age = client.age
+        hc.age = client.age_on(@date)
         hc.homeless_since = client.service_history.first_date&.first.try(:date)
         hc.dmh = any_dmh_for?(client_id: id)
         hc.trigger = data[:trigger]
