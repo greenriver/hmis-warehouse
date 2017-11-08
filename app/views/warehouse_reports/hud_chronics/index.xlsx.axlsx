@@ -1,27 +1,27 @@
 
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
+wb.add_worksheet(name: "HUD Chronic Clients") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since', 'Months Homeless in last three years', 'Chronic Trigger', 'Involved Projects', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources'], :style => title)
+  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since', 'Months Homeless in last three years', 'Chronic Trigger', 'Last Homeless Service', 'Disability', 'Veteran', 'Data Sources'], :style => title)
   @clients.each do |client|
-    chronic = client.hud_chronics.find_by_date(@filter.date)
-    sheet.add_row([
-      client.id, 
-      client.FirstName, 
-      client.LastName, 
-      client.DOB, 
-      chronic.homeless_since,  
-      chronic.months_in_last_three_years, 
-      chronic.trigger,
-      chronic.project_names&.gsub('|', '; '),
-      @most_recent_services[client.id], 
-      client.source_disabilities.
-        select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.
-        map{|m| m.disability_type_text}.uniq.join(', '),
-      yn(chronic.dmh),
-      yn(client.veteran?), 
-      yn(@so_clients.include?(client.id)), 
-      client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ') 
-    ])
+    # chronic = @chronics[client.id]
+  #   disabilities = client.source_disabilities.
+  #     select(:DisabilityResponse, :DisabilityType).
+  #     select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.
+  #     map{|m| m.disability_type_text}.uniq.join(', ')
+  #   data_sources = client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+  #   sheet.add_row([
+  #     client.id, 
+  #     client.FirstName, 
+  #     client.LastName, 
+  #     client.DOB, 
+  #     chronic.homeless_since,  
+  #     chronic.months_in_last_three_years, 
+  #     chronic.trigger,
+  #     @most_recent_services[client.id], 
+  #     disabilities,
+  #     yn(client.veteran?),
+  #     data_sources, 
+  #   ])
   end
 end

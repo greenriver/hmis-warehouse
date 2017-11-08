@@ -7,7 +7,7 @@ module WarehouseReports
 
     def index
       @clients = @clients.includes(:hud_chronics).
-        preload(source_clients: :data_source).
+        # preload(source_clients: :data_source).
         merge(GrdaWarehouse::HudChronic.on_date(date: @filter.date)).
         order( @order )
 
@@ -18,11 +18,19 @@ module WarehouseReports
           @clients = @clients.page(params[:page]).per(100)
         end
         format.xlsx do
-          @most_recent_services = service_history_source.service.where(
-            client_id: @clients.select(:id),
-            project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-          ).group(:client_id).
-          pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql).to_h
+          # @most_recent_services = {}
+          # @clients.pluck(:id).each do |client_id|
+          #   @most_recent_services[client_id] = service_history_source.service.where(
+          #     client_id: client_id,
+          #     project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+          #   ).maximum(:date)
+          # end
+          # @most_recent_services = service_history_source.service.where(
+          #   client_id: @clients.select(:id),
+          #   project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+          # ).group(:client_id).
+          # pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql).to_h
+          # @chronics = GrdaWarehouse::HudChronic.where(date: @filter.date).index_by(&:client_id)
         end
       end
     end
