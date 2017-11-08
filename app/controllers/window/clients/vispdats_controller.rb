@@ -36,7 +36,7 @@ module Window::Clients
 
     def create
       if @client.vispdats.in_progress.none?
-        @vispdat = @client.vispdats.build
+        @vispdat = @client.vispdats.build(user_id: current_user.id)
         @vispdat.save(validate: false)
       else
         @vispdat = @client.vispdats.in_progress.first
@@ -46,9 +46,9 @@ module Window::Clients
 
     def update
       if params[:commit]=='Complete'
-        @vispdat.update(vispdat_params.merge(submitted_at: Time.now))
+        @vispdat.update(vispdat_params.merge(submitted_at: Time.now, user_id: current_user.id))
       else
-        @vispdat.assign_attributes(vispdat_params)
+        @vispdat.assign_attributes(vispdat_params.merge(user_id: current_user.id))
         @vispdat.save(validate: false)
       end
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
