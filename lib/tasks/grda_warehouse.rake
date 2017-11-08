@@ -226,6 +226,7 @@ namespace :grda_warehouse do
     while start_date < end_date
       GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: start_date).run!
       GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: start_date).run!
+      GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: start_date).run!
       start_date += interval.send(unit)
     end
   end

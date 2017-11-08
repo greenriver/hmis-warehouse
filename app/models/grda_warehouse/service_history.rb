@@ -6,6 +6,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID]
   belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :service_histories
   has_one :enrollment_coc_at_entry, through: :enrollment
+  has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
   belongs_to :data_source
   belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id
 

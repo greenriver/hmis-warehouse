@@ -92,6 +92,9 @@ module ArelHelper
   def ch_t
     GrdaWarehouse::Chronic.arel_table
   end
+  def hc_t
+    GrdaWarehouse::HudChronic.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
