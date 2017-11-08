@@ -1,0 +1,34 @@
+module GrdaWarehouse
+  class HudChronic < GrdaWarehouseBase
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :hud_chronics, required: true
+
+    validates_presence_of :date
+
+    scope :on_date, -> (date:) do
+      where(date: date)
+    end
+
+    def self.most_recent_day
+      if self.count > 0
+        self.maximum(:date)
+      else
+        Date.today
+      end
+    end
+
+    def self.sort_options
+      [
+        {title: 'Last name A-Z', column: 'LastName', direction: 'asc'},
+        {title: 'Last name Z-A', column: 'LastName', direction: 'desc'},
+        {title: 'First name A-Z', column: 'FirstName', direction: 'asc'},
+        {title: 'First name Z-A', column: 'FirstName', direction: 'desc'},
+        {title: 'Age (asc)', column: 'age', direction: 'asc'},
+        {title: 'Age (desc)', column: 'age', direction: 'desc'},
+        {title: 'Homeless since (asc)', column: 'homeless_since', direction: 'asc'},
+        {title: 'Homeless since (desc)', column: 'homeless_since', direction: 'desc'},
+        {title: 'Months in 3 yrs (asc)', column: 'months_in_last_three_years', direction: 'asc'},
+        {title: 'Months in 3 yrs (desc)', column: 'months_in_last_three_years', direction: 'desc'},
+      ]
+    end
+  end
+end

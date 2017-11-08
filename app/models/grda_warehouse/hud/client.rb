@@ -7,6 +7,8 @@ module GrdaWarehouse::Hud
     include HealthCharts
     include ApplicationHelper
     include HudSharedScopes
+    include HudChronicDefinition
+
     has_many :client_files
     has_many :vispdats
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
@@ -147,6 +149,7 @@ module GrdaWarehouse::Hud
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
+    
     has_many :chronics_in_range, -> (range) do
       where(date: range)
     end, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
