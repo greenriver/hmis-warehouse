@@ -65,7 +65,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       client.enrollments << enrollment_12_months_homeless
 
       # return client as head of household
-      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:head_of_household).and_return( client )
+      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:client).and_return( client )
 
       # fake out the source_enrollments so client is disabled.
       source_enrollments = double('source_enrollments')
@@ -93,7 +93,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       client.enrollments << enrollment_11_months_homeless
 
       # return client as head of household
-      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:head_of_household).and_return( client )
+      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:client).and_return( client )
 
       # fake out the source_enrollments so client is disabled.
       source_enrollments = double('source_enrollments')
