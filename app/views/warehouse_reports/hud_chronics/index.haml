@@ -34,6 +34,8 @@
   - @clients.each do |client|
     - chronic = client.hud_chronics.first # we can do this because we scope to only the day in question in the controller
     - source_clients = client.source_clients
+    - disabilities = client.source_disabilities.select(:DisabilityResponse, :DisabilityType).select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.map{|m| m.disability_type_text}.uniq.join('<br />').html_safe
+    - data_sources = client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
     .warehouse-reports__client
       .warehouse-reports__client-name
         %h4
@@ -48,7 +50,7 @@
             %dt Months Homeless in last three years
             %dd= chronic.months_in_last_three_years
             %dt Disability
-            %dd= client.source_disabilities.select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.map{|m| m.disability_type_text}.uniq.join('<br />').html_safe
+            %dd= disabilities
             - if chronic.dmh
               %dt DMH Client?
               %dd= checkmark(chronic.dmh)
@@ -62,7 +64,7 @@
               %dt Enrolled in SO
               %dd= checkmark(so_enrolled)
             %dt Data Source
-            %dd= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+            %dd= data_sources
         .col-xs-9
           .rollup{data: {partial: :residential_enrollments, rollup_path: rollup_client_path(client), clients: source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name ] ] }.to_h.to_json, many_clients: source_clients.many?.to_json, high: client.source_clients.size + 1, client_id: client.id}, class: "jClientID-#{client.id}"}
             .rollup-content
