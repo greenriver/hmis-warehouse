@@ -21,7 +21,7 @@ module GrdaWarehouse::Tasks
         client = GrdaWarehouse::Hud::Client.where( id: id ).first
         next unless client && client.hud_chronic?(on_date: @date)
 
-        log " #{index} => Client #{id} (#{client.full_name}) is HUD chronic"
+        log " #{index} => Client #{id} is HUD chronic"
 
         data = client.hud_chronic_data
 
@@ -58,6 +58,7 @@ module GrdaWarehouse::Tasks
     end
 
     def log msg, underline: false
+      return unless Rails.env.development?
       Rails.logger.info msg
       Rails.logger.info "="*msg.length if underline
     end

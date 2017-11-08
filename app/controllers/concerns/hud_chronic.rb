@@ -6,7 +6,6 @@ module HudChronic
   included do
     def load_filter
       @filter = ::Filters::HudChronic.new(params[:filter])
-      client_table = client_source.arel_table
       filter_query = hc_t[:age].gt(@filter.min_age)
       if @filter.individual
         filter_query = filter_query.and(hc_t[:individual].eq(@filter.individual))
@@ -15,7 +14,7 @@ module HudChronic
         filter_query = filter_query.and(hc_t[:dmh].eq(@filter.dmh))
       end
       if @filter.veteran
-        filter_query = filter_query.and(client_table[:VeteranStatus].eq(@filter.veteran))
+        filter_query = filter_query.and(c_t[:VeteranStatus].eq(@filter.veteran))
       end
       @clients = client_source.joins(:hud_chronics).
         preload(:hud_chronics).

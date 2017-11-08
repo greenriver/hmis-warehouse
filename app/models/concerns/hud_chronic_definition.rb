@@ -14,7 +14,7 @@ module HudChronicDefinition
     # Must be homeless 12 of the last 36 with 4 episodes
     def hud_chronic? on_date: Date.today
       @hud_chronic_data = {}
-      if hoh_disabled?(on_date: on_date)
+      if disabled?(on_date: on_date)
         if months_12_homeless?(on_date: on_date)
           @hud_chronic_data[:trigger] = "All 12 of the last 12 months homeless"
           true
@@ -93,6 +93,13 @@ module HudChronicDefinition
       entry = service_history.hud_homeless.entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
       return false unless entry
       entry.head_of_household&.source_enrollments&.pluck(:DisablingCondition)&.include?(1)
+    end
+
+    # is the current client disabled?
+    def disabled? on_date:
+      entry = service_history.hud_homeless.entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
+      return false unless entry
+      entry.client.source_enrollments&.pluck(:DisablingCondition)&.include?(1)
     end
 
   end

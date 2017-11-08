@@ -68,7 +68,7 @@ module Importing
         dates.each do |date|
           GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
           GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
-          GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: start_date).run!
+          GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
         end
         @notifier.ping('Chronically homeless calculated') if @send_notifications
       end
