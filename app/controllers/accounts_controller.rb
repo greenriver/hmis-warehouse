@@ -15,8 +15,8 @@ class AccountsController < ApplicationController
     if account_params[:password_confirmation].present? && (account_params[:password] == account_params[:password_confirmation])
       changed_notes << "Password was changed. "
     end
-    if account_params[:notify_on_vispdat_completed] != (@user.notify_on_vispdat_completed ? '1' : '0')
-      changed_notes << " Email Notifications were updated."
+    if vispdat_notification_changed? || client_notification_changed?
+      changed_notes << "Email Notifications were updated. "
     end
     changed_notes << "Account updated." if changed_notes.empty?
     if @user.update_with_password(account_params)
@@ -42,8 +42,17 @@ class AccountsController < ApplicationController
           :current_password,
           :password,
           :password_confirmation,
-          :notify_on_vispdat_completed
+          :notify_on_vispdat_completed,
+          :notify_on_client_added
         )
+    end
+
+    def vispdat_notification_changed?
+      account_params[:notify_on_vispdat_completed] != (@user.notify_on_vispdat_completed ? '1' : '0')
+    end
+
+    def client_notification_changed?
+      account_params[:notify_on_client_added] != (@user.notify_on_client_added ? '1' : '0')
     end
 
     def set_user
