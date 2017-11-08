@@ -113,6 +113,7 @@ module GrdaWarehouse
     # Callbacks
     ####################
     before_save :calculate_score, :set_client_housing_release_status
+    after_update :notify_users
 
     ####################
     # Access
@@ -137,6 +138,20 @@ module GrdaWarehouse
       if housing_release_confirmed_changed?
         status = housing_release_confirmed? ? 'Full HAN Release' : ''
         client.update_column :housing_release_status, status
+      end
+    end
+
+    def notify_users
+      return if changes.empty?
+      notify_vispdat_completed
+      # notify_XXX
+      # notify_YYY
+    end
+
+    def notify_vispdat_completed
+      before, after = changes[:submitted_at]
+      if before.nil? && after.present?
+        NotifyUser.vispdat_completed( id ).deliver_later
       end
     end
 
