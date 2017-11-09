@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
               if m.Availability.blank? || m.Availability == 1
                 census[k][:bed_inventory] += m.BedInventory || 0
               else
-                census[project_type][:seasonal_inventory] += m.BedInventory || 0
+                census[k][:seasonal_inventory] += m.BedInventory || 0
               end
             end
           end
@@ -114,7 +114,7 @@ module GrdaWarehouse::Tasks
             # If the inventory was available during the year
             if open_during_year || no_start
               if m.Availability.blank? || m.Availability == 1
-                census[k][:bed_inventory] += m.BedInventory || 0
+                census[project_type][:bed_inventory] += m.BedInventory || 0
               else
                 census[project_type][:seasonal_inventory] += m.BedInventory || 0
               end
