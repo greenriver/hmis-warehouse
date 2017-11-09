@@ -109,7 +109,7 @@ module GrdaWarehouse::Tasks
           program_inventory.each do |m|
             inventory_start = m.InventoryStartDate&.year
             inventory_end = m.InventoryEndDate&.year
-            no_start = (inventory_start.blank? && (inventory_end.blank? || inventory_end >= start_year)
+            no_start = inventory_start.blank? && (inventory_end.blank? || inventory_end >= start_year)
             open_during_year = inventory_start.present? && inventory_start <= start_year && inventory_end.blank? || (inventory_end.present? && inventory_end >= start_year)
             # If the inventory was available during the year
             if open_during_year || no_start
