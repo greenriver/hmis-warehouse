@@ -69,8 +69,8 @@ module ReportGenerators::Ahar::Fy2017
 
     def run!
       # allow report start to be set via options in sub-classes
-      @report_start ||= '2016-09-30'
-      @report_end ||= '2015-10-01'
+      @report_start ||= '2017-09-30'
+      @report_end ||= '2016-10-01'
       # Find the first queued report
       report = ReportResult.where(report: report_class.first).where(percent_complete: 0, job_status: nil).first
       return unless report.present? 
@@ -1748,7 +1748,7 @@ module ReportGenerators::Ahar::Fy2017
 
     def involved_entries_scope
        # make sure we include any project that is acting as one of our housing related projects
-      GrdaWarehouse::ServiceHistory.joins(project: :project_cocs).
+      GrdaWarehouse::ServiceHistory.joins(:client, project: :project_cocs).
         open_between(start_date: @report_start, end_date: @report_end).
         where(p_t[:act_as_project_type].in(PH + TH + ES).
           or(sh_t[:project_type].in((PH + TH + ES)).

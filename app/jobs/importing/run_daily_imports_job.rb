@@ -68,6 +68,7 @@ module Importing
         dates.each do |date|
           GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
           GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
+          GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
         end
         @notifier.ping('Chronically homeless calculated') if @send_notifications
       end
@@ -88,9 +89,6 @@ module Importing
       GrdaWarehouse::DataSource.data_spans_by_id()
       @notifier.ping('Data source date spans set') if @send_notifications
 
-      GrdaWarehouse::RecentServiceHistory.refresh_view
-      @notifier.ping('Refreshed recent service history view') if @send_notifications
-      # Clear the cache, some stuff has probably changed
       Rails.cache.clear
 
       # Generate some duplicates if we need to, but not too many

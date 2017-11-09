@@ -1,7 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
-  
+RSpec.describe GrdaWarehouse::Hud::Client, type: :model do  
   let(:client) { build :grda_warehouse_hud_client }
 
   context 'when created' do
@@ -23,5 +22,4 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
     end
   end
-
 end
