@@ -46,6 +46,21 @@ module ClientController
         @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: {data_source_id: @data_source_id})
       end
 
+      vulnerability = params[:vulnerability]
+      if vulnerability.present?
+        vispdats = case vulnerability
+          when 'low'
+            GrdaWarehouse::Vispdat.low_vulnerability
+          when 'medium'
+            GrdaWarehouse::Vispdat.medium_vulnerability
+          when 'high'
+            GrdaWarehouse::Vispdat.high_vulnerability
+          else
+            GrdaWarehouse::Vispdat.all
+          end
+        @clients = @clients.joins(:vispdats).merge(vispdats.active)
+      end
+
       if params[:data_sharing].present? && params[:data_sharing] == '1'
         @clients = @clients.joins(:source_hmis_clients).where(hmis_clients: {consent_form_status: 'Signed fully'})
         @data_sharing = 1
