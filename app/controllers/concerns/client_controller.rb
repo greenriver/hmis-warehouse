@@ -191,6 +191,8 @@ module ClientController
           :LastName,
           :SSN,
           :DOB,
+          :Gender,
+          :VeteranStatus,
           :bypass_search,
           :data_source_id
         )
