@@ -1285,15 +1285,18 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def days_homeless_in_last_three_years
+    def days_homeless_in_last_three_years(on_date: Date.today)
+      end_date = on_date.to_date
+      start_date = end_date - 3.years
       service_history.homeless.service.
-        service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+        service_within_date_range(start_date: start_date, end_date: end_date).
         select(:date).distinct.
         count
     end
 
-    def days_homeless
+    def days_homeless(on_date: Date.today)
       service_history.homeless.service.
+        where(sh_t[:date].lteq(on_date)).
         select(:date).distinct.
         count
     end
