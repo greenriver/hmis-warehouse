@@ -23,7 +23,7 @@ module Importers::HMISSixOneOne
       debug: true,
       remove_files: true
     )
-      setup_notifier('HMIS Importer 5.1')
+      setup_notifier('HMIS Importer 6.11')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
       @logger = logger
