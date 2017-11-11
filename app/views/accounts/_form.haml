@@ -1,7 +1,8 @@
-.row
-  .col-sm-8
-    = simple_form_for @user, url: account_path do |f|
-      = f.error_notification
+= simple_form_for @user, url: account_path do |f|
+  = f.error_notification
+
+  .row
+    .col-sm-6
       .form-inputs
         = f.input :first_name, required: true
         = f.input :last_name, required: true
@@ -14,5 +15,14 @@
         = f.input :password, label: 'New password'
         = f.input :password_confirmation
 
+    .col-sm-6
+      %h2 Email Notifications
+      %hr
+      .form-inputs
+        = f.input :notify_on_vispdat_completed, label: "Send me an email when a VI-SPDAT is completed.", as: :boolean
+
+  .row
+    .col-sm-12    
       .form-actions
         = f.button :submit, value: 'Update Account'
+
