@@ -78,7 +78,7 @@ RSpec.describe NotifyUser, type: :mailer do
     context 'and users to notify' do
 
       let(:user) { create :user, notify_on_client_added: true }
-      let(:client) { create :grda_warehouse_hud_client, user_id: user.id }
+      let(:client) { create :grda_warehouse_hud_client, creator_id: user.id }
       let(:other_user) { create :user, notify_on_client_added: true }
 
       context 'and send_notifications not set' do
@@ -97,7 +97,7 @@ RSpec.describe NotifyUser, type: :mailer do
 
       context 'and send_notifications set' do
         context 'but this user created the client' do
-          let(:client) { build :grda_warehouse_hud_client, user_id: user.id }
+          let(:client) { build :grda_warehouse_hud_client, creator_id: user.id }
           before(:each) do
             client.send_notifications = true
             client.save
@@ -111,7 +111,7 @@ RSpec.describe NotifyUser, type: :mailer do
           end
         end
         context 'and another user created the client' do
-          let(:client) { build :grda_warehouse_hud_client, user_id: other_user.id }
+          let(:client) { build :grda_warehouse_hud_client, creator_id: other_user.id }
           before(:each) do
             user
             client.send_notifications = true

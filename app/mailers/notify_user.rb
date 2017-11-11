@@ -11,7 +11,7 @@ class NotifyUser < ApplicationMailer
 
   def client_added client_id
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
-    @user = User.where(id: @client.user_id).first
+    @user = User.where(id: @client.creator_id).first
     users_to_notify = User.where(notify_on_client_added: true).where.not(id: @user.id)
     users_to_notify.each do |user|
       mail(to: user.email, subject: "A Client was added.")

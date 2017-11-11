@@ -114,7 +114,7 @@ module ClientController
             merge({
               data_source_id: destination_ds_id,
               PersonalID: @client.id,
-              user_id: current_user.id
+              creator_id: current_user.id
             }))
           destination_client.send_notifications = true
           destination_client.save

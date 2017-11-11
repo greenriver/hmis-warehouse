@@ -15,14 +15,6 @@
         = f.input :password, label: 'New password'
         = f.input :password_confirmation
 
-    .col-sm-6
-      %h2 Email Notifications
-      %hr
-      .form-inputs
-        = f.input :notify_on_vispdat_completed, label: "Send me an email when a VI-SPDAT is completed.", as: :boolean
-        - if GrdaWarehouse::DataSource.authoritative.exists?
-          = f.input :notify_on_client_added, label: "Send me an email when a client is added.", as: :boolean
-
   .row
     .col-sm-12    
       .form-actions

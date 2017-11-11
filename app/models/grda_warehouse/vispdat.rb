@@ -144,8 +144,6 @@ module GrdaWarehouse
     def notify_users
       return if changes.empty?
       notify_vispdat_completed
-      # notify_XXX
-      # notify_YYY
     end
 
     def notify_vispdat_completed
