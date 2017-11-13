@@ -907,6 +907,22 @@ ActiveRecord::Schema.define(version: 20171113182656) do
   add_index "contacts", ["entity_id"], :name=>"index_contacts_on_entity_id", :using=>:btree
   add_index "contacts", ["type"], :name=>"index_contacts_on_type", :using=>:btree
 
+  create_table "data_monitorings", force: :cascade do |t|
+    t.integer "client_id",       :null=>false
+    t.date    "census"
+    t.date    "calculated_on"
+    t.date    "calculate_after"
+    t.float   "value"
+    t.float   "change"
+    t.integer "iteration"
+    t.integer "of_iterations"
+    t.string  "type"
+  end
+  add_index "data_monitorings", ["calculated_on"], :name=>"index_data_monitorings_on_calculated_on", :using=>:btree
+  add_index "data_monitorings", ["census"], :name=>"index_data_monitorings_on_census", :using=>:btree
+  add_index "data_monitorings", ["client_id"], :name=>"index_data_monitorings_on_client_id", :using=>:btree
+  add_index "data_monitorings", ["type"], :name=>"index_data_monitorings_on_type", :using=>:btree
+
   create_table "data_sources", force: :cascade do |t|
     t.string   "name"
     t.string   "file_path"

@@ -1297,12 +1297,21 @@ module GrdaWarehouse::Hud
       self.class.days_homeless_in_last_three_years(client_id: id, on_date: on_date)
     end
 
-    def self.days_homeless(client_id:, on_date: Date.today)
-      GrdaWarehouse::ServiceHistory.where(client_id: client_id).homeless.service.
+    def self.dates_homeless_scope(client_id:, on_date: Date.today)
+      GrdaWarehouse::ServiceHistory.where(client_id: client_id).
+        homeless.service.
         where(sh_t[:date].lteq(on_date)).
-        select(:date).distinct.
-        count
+        select(:date).distinct
     end
+
+    def self.dates_homeless(client_id:, on_date: Date.today)
+      dates_homeless_scope(client_id: client_id, on_date: on_date).pluck(:date)
+    end
+
+    def self.days_homeless(client_id:, on_date: Date.today)
+      dates_homeless_scope(client_id: client_id, on_date: on_date).count
+    end
+
     def days_homeless(on_date: Date.today)
       self.class.days_homeless(client_id: id, on_date: on_date)
     end
