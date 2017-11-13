@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171106211934) do
+ActiveRecord::Schema.define(version: 20171113134728) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -94,6 +94,7 @@ ActiveRecord::Schema.define(version: 20171106211934) do
     t.boolean  "api_update_in_process",                  :default=>false, :null=>false
     t.datetime "api_update_started_at"
     t.datetime "api_last_updated_at"
+    t.integer  "creator_id"
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
@@ -101,6 +102,7 @@ ActiveRecord::Schema.define(version: 20171106211934) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["creator_id"], :name=>"index_Client_on_creator_id", :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -1948,8 +1950,12 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_filed_by"
     t.boolean  "migrated",                     :default=>false, :null=>false
     t.boolean  "housing_release_confirmed",    :default=>false
+    t.integer  "user_id"
+    t.integer  "priority_score"
+    t.boolean  "active",                       :default=>false
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
+  add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
 
   create_table "warehouse_client_service_history", force: :cascade do |t|
     t.integer "client_id",               :null=>false
