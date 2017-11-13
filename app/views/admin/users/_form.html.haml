@@ -10,7 +10,8 @@
         = f.input :phone
         = f.input :agency
         = f.input :receive_file_upload_notifications, label: 'User should receive notifications for file uploads'
-        = f.input :notify_on_vispdat_completed, label: "User should receive notifications for VI-SPDATs.", as: :boolean
+        - if can_edit_vspdat? # you can only assign this if you can also edit them
+          = f.input :notify_on_vispdat_completed, label: "User should receive notifications for VI-SPDATs.", as: :boolean
         - if GrdaWarehouse::DataSource.authoritative.exists?
           = f.input :notify_on_client_added, label: "User should receive notifications for clients added.", as: :boolean
       .form--checkbox-groups

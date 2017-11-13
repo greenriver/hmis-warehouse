@@ -29,7 +29,7 @@ module Window::Clients
     # end
 
     def edit
-      render :show and return if @vispdat.completed?
+      render :show and return if @vispdat.show_as_readonly?
       @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
