@@ -37,12 +37,13 @@
                 %option{value: ds.id, selected: selected}= ds.name
 
         .col-sm-6
-          %select.select2{ name: :vulnerability }
-            %option{ value: '' } Filter by VI-SPDAT
-            %option{ value: :low, selected: params[:vulnerability]=='low'} Low Vulnerabilty
-            %option{ value: :medium, selected: params[:vulnerability]=='medium'} Medium Vulnerabilty
-            %option{ value: :high, selected: params[:vulnerability]=='high'} High Vulnerabilty
-            %option{ value: :all, selected: params[:vulnerability]=='all'} All Clients with VI-SPDATs
+          - if can_view_vspdat?
+            %select.select2{ name: :vulnerability }
+              %option{ value: '' } Filter by VI-SPDAT
+              %option{ value: :low, selected: params[:vulnerability]=='low'} Low Vulnerabilty
+              %option{ value: :medium, selected: params[:vulnerability]=='medium'} Medium Vulnerabilty
+              %option{ value: :high, selected: params[:vulnerability]=='high'} High Vulnerabilty
+              %option{ value: :all, selected: params[:vulnerability]=='all'} All Clients with VI-SPDATs
       .row
         .col-xs-10
           .checkbox
