@@ -12,7 +12,7 @@ module Window::Clients
     end
 
     def create
-      @user = user_source.new(user_client_params.merge(client_id: params[:client_id].to_i))
+      @user = user_source.new(user_client_params.merge(client_id: params[:client_id].to_i, start_date: Date.today))
       begin
         @user.save!
       rescue Exception => e
@@ -40,6 +40,7 @@ module Window::Clients
         :client_id,  
         :relationship,
         :confidential,
+        :end_date
       )
     end
 

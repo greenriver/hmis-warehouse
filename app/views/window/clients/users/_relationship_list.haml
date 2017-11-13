@@ -8,6 +8,8 @@
         %th
           Relationship
         %th
+          Active Until
+        %th
           Confidential?
         %th
     %tbody
@@ -18,6 +20,8 @@
           %td
             = f.input :relationship, collection: GrdaWarehouse::UserClient.available_relationships, label: false, input_html: {class: 'select2', data: {placeholder: 'Available Users'}}
           %td
+            = f.input :end_date, as: :date_picker, label: false
+          %td.text-center
             = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
           %td
             = f.submit value: 'Add Relationship', class: 'btn btn-primary'
@@ -29,6 +33,14 @@
           %td
             = user_client.relationship
           %td
+            = user_client.active_period
+            %p 
+              %strong
+                - if user_client.expired?
+                  EXPIRED
+                - elsif user_client.end_date
+                  = distance_of_time_in_words(Date.today, user_client.end_date) + ' remaining'
+          %td.text-center
             = checkmark(user_client.confidential)
           %td
             = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-secondary', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
