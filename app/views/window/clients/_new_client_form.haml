@@ -51,6 +51,10 @@
       .col-sm-3
         = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
     .row
+      .col-sm-2
+        = f.input :Gender, collection: HUD::genders.invert
+      .col-sm-2
+        = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status'
       .col-sm-3
         = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative, include_blank: false, label: 'Create client in Data Source'
     .form-actions
