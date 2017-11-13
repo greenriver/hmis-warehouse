@@ -46,7 +46,10 @@ module Window::Clients
 
     def update
       if params[:commit]=='Complete'
-        @vispdat.update(vispdat_params.merge(submitted_at: Time.now, user_id: current_user.id))
+        # set this one as active
+        @vispdat.update(vispdat_params.merge(submitted_at: Time.now, active: true, user_id: current_user.id))
+        # mark any other actives as inactive
+        @client.vispdats.where(active: true).where.not(id: @vispdat.id).update_all(active: false)
       else
         @vispdat.assign_attributes(vispdat_params.merge(user_id: current_user.id))
         @vispdat.save(validate: false)

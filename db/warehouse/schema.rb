@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171111190457) do
+ActiveRecord::Schema.define(version: 20171113134728) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1951,6 +1951,8 @@ SELECT "Services"."ServicesID",
     t.boolean  "migrated",                     :default=>false, :null=>false
     t.boolean  "housing_release_confirmed",    :default=>false
     t.integer  "user_id"
+    t.integer  "priority_score"
+    t.boolean  "active",                       :default=>false
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
