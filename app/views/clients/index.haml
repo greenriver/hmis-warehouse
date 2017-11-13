@@ -96,6 +96,15 @@
             = client.processed_service_history.try(:first_date_served)
             and
             =client.processed_service_history.try(:last_date_served)
+
+            - if can_view_vspdat?
+              - vispdat = client.vispdats.completed.scores.first
+              %br
+              %strong VI-SPDAT:
+              %span.label{ class: "label-#{vispdat&.score_class}" }= vispdat&.score
+              %br
+              %strong VI-SPDAT Priority Score:
+              = vispdat&.priority_score
           = render 'chronic_flags', client: client
         
 %p= paginate @clients, params: {sort: @column, direction: @direction}
