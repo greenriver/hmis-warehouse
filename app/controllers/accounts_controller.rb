@@ -12,9 +12,10 @@ class AccountsController < ApplicationController
     if @user.email != account_params[:email]
       changed_notes << "Account email was updated, check your inbox for a confirmation link."
     end
-    if  account_params[:password] == account_params[:password_confirmation]
-      changed_notes << "Password was changed."
+    if account_params[:password_confirmation].present? && (account_params[:password] == account_params[:password_confirmation])
+      changed_notes << "Password was changed. "
     end
+    changed_notes << "Account updated." if changed_notes.empty?
     if @user.update_with_password(account_params)
       flash[:notice] = changed_notes.join(' ')
 

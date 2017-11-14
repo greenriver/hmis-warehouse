@@ -25,6 +25,7 @@ RSpec.describe AccountsController, type: :controller do
   end
 
   describe "PUT update" do
+
     context 'with no current password' do
       before(:each) do
         patch :update, user: { first_name: 'Joe', email: 'info@greenriver.com' }

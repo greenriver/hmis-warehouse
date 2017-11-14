@@ -124,11 +124,16 @@ module ClientController
           destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
           @client.save
           @client.update(PersonalID: @client.id)
-          destination_client = client_source.create(clean_params.
+
+          destination_client = client_source.new(clean_params.
             merge({
               data_source_id: destination_ds_id,
-              PersonalID: @client.id
+              PersonalID: @client.id,
+              creator_id: current_user.id
             }))
+          destination_client.send_notifications = true
+          destination_client.save
+
           warehouse_client = GrdaWarehouse::WarehouseClient.create(
             id_in_source: @client.id,
             source_id: @client.id,
