@@ -279,6 +279,16 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    ####################
+    # Callbacks
+    ####################
+    after_create :notify_users
+    attr_accessor :send_notifications
+
+    def notify_users
+      NotifyUser.client_added( id ).deliver_later if send_notifications
+    end
+
     def self.full_release_string
       'Full HAN Release'
     end
@@ -1285,20 +1295,35 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def days_homeless_in_last_three_years(on_date: Date.today)
+    def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
       end_date = on_date.to_date
       start_date = end_date - 3.years
-      service_history.homeless.service.
+      GrdaWarehouse::ServiceHistory.where(client_id: client_id).homeless.service.
         service_within_date_range(start_date: start_date, end_date: end_date).
         select(:date).distinct.
         count
     end
+    def days_homeless_in_last_three_years(on_date: Date.today)
+      self.class.days_homeless_in_last_three_years(client_id: id, on_date: on_date)
+    end
+
+    def self.dates_homeless_scope(client_id:, on_date: Date.today)
+      GrdaWarehouse::ServiceHistory.where(client_id: client_id).
+        homeless.service.
+        where(sh_t[:date].lteq(on_date)).
+        select(:date).distinct
+    end
+
+    def self.dates_homeless(client_id:, on_date: Date.today)
+      dates_homeless_scope(client_id: client_id, on_date: on_date).pluck(:date)
+    end
+
+    def self.days_homeless(client_id:, on_date: Date.today)
+      dates_homeless_scope(client_id: client_id, on_date: on_date).count
+    end
 
     def days_homeless(on_date: Date.today)
-      service_history.homeless.service.
-        where(sh_t[:date].lteq(on_date)).
-        select(:date).distinct.
-        count
+      self.class.days_homeless(client_id: id, on_date: on_date)
     end
 
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)

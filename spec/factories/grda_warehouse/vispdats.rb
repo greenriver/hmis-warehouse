@@ -55,6 +55,7 @@ FactoryGirl.define do
     email 'test@example.com'
     picture_answer 2
     score nil
+    priority_score nil
     recommendation nil
     release_signed_on nil
     drug_release nil
