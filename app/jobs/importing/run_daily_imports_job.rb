@@ -111,8 +111,10 @@ module Importing
       GrdaWarehouse::Report::Base.update_fake_materialized_views
       @notifier.ping('...done rebuilding reporting tables') if @send_notifications
 
-      @notifier.ping('Potentially queing confidence generation for days homeless') if @send_notifications
+      @notifier.ping('Potentially queing confidence generation') if @send_notifications
       GrdaWarehouse::Confidence::DaysHomeless.queue_batch
+      GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
+      GrdaWarehouse::Confidence::SourceExits.queue_batch
 
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
