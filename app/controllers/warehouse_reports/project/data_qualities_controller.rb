@@ -108,8 +108,9 @@ module WarehouseReports::Project
       GrdaWarehouse::ProjectGroup.all
     end
 
+    # The version of the report we are currently generating
     def report_scope
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionTwo
     end
 
     def set_projects
