@@ -177,13 +177,17 @@ module GrdaWarehouse
 
     def calculate_priority_score
       homeless = days_homeless
-      self.priority_score = if score >= 8 && homeless > 730
-        score + 730
-      elsif score >= 8 && homeless >= 365
-        score + 365
-      elsif score >= 0
-        score
-      else
+      begin
+        self.priority_score = if score >= 8 && homeless > 730
+          score + 730
+        elsif score >= 8 && homeless >= 365
+          score + 365
+        elsif score >= 0
+          score
+        else
+          0
+        end
+      rescue
         0
       end
     end
