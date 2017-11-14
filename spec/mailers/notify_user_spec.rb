@@ -18,13 +18,13 @@ RSpec.describe NotifyUser, type: :mailer do
       end
 
       it "renders subject" do
-        expect(vispdat_mail.subject).to eq "A VI-SPDAT was completed."
+        expect(vispdat_mail.subject).to match("A VI-SPDAT was completed.")
       end
       it "renders to" do
         expect(vispdat_mail.to).to eq [user.email]
       end
       it "renders from" do
-        expect(vispdat_mail.from).to eq [ENV['DEFAULT_FROM']]
+        expect(ENV['DEFAULT_FROM']).to include(vispdat_mail.from.first)
       end
       it "renders the body" do
         expect( vispdat_mail_body ).to match("The following VI-SPDAT was recently completed")
@@ -119,13 +119,13 @@ RSpec.describe NotifyUser, type: :mailer do
           end
 
           it "renders subject" do
-            expect(client_mail.subject).to eq "A Client was added."
+            expect(client_mail.subject).to match("A Client was added.")
           end
           it "renders to" do
             expect(client_mail.to).to eq [user.email]
           end
           it "renders from" do
-            expect(client_mail.from).to eq [ENV['DEFAULT_FROM']]
+            expect(ENV['DEFAULT_FROM']).to include(client_mail.from.first)
           end
           it "renders the body" do
             expect( client_mail_body ).to match("The following Client was recently added")

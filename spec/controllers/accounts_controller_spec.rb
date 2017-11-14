@@ -26,18 +26,6 @@ RSpec.describe AccountsController, type: :controller do
 
   describe "PUT update" do
 
-    context 'when updating email notifications' do
-
-      let(:updated_user) { User.first }
-
-      before(:each) do
-        patch :update, user: { notify_on_vispdat_completed: '1', current_password: 'abcd1234' }
-      end
-      it 'flips to true' do
-        expect( updated_user.notify_on_vispdat_completed ).to be true
-      end
-    end
-
     context 'with no current password' do
       before(:each) do
         patch :update, user: { first_name: 'Joe', email: 'info@greenriver.com' }
