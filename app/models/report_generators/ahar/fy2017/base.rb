@@ -908,43 +908,28 @@ module ReportGenerators::Ahar::Fy2017
               end_date: @report_end
             ).
             where(fam_where)
-            # make Vets only run faster in postgres 
-            # (SQL server seemed to optimize this more effectively)
-            if vets_only && GrdaWarehouseBase.postgres?
-              sql = with_limited_vet_scope_sql(scope: family_scope.select(*sh_cols))
-              result = GrdaWarehouseBase.connection.select_all(sql)
-              family_served_data = result.map do |row|
-                result.columns.map do |name|
-                  result.send(:column_type, name).type_cast_from_database(row[name])
-                end
-              end
-            else
-              family_served_data = family_scope.pluck(*sh_cols)
+          Rails.logger.debug "Using traditional pluck for family data"
+          family_served_data = family_scope.pluck(*sh_cols)
+          # Remove any non-vet data for vets only run
+          if vets_only
+            family_served_data.delete_if do |row|
+              all_vets.include?(row[service_history_client_id_index])
             end
-            # Save off some supporing info
-            family_served_data.each do |sh|
-              project_name = sh[service_history_project_name_index]
-              project_id = sh[service_history_project_id_index]
-              ds_id = sh[service_history_data_source_id_index]
-              row = ["#{slug}-FAM", project_name, project_id, ds_id]
-              project_counts[row] ||= Set.new
-              project_counts[row] << sh[service_history_client_id_index]
-            end
-            if vets_only
-              family_served_data = family_scope.where(client_id: all_vets).pluck(*sh_cols)
-              family_served_data.each do |sh|
-                project_name = sh[service_history_project_name_index]
-                project_id = sh[service_history_project_id_index]
-                ds_id = sh[service_history_data_source_id_index]
-                row = ["#{slug}-FAM", project_name, project_id, ds_id]
-                project_counts[row] ||= Set.new
-                project_counts[row] << sh[service_history_client_id_index]
-              end
-            end
-            family_served_data.count
-          else
-            0
           end
+          # Save off some supporing info
+          family_served_data.each do |sh|
+            project_name = sh[service_history_project_name_index]
+            project_id = sh[service_history_project_id_index]
+            ds_id = sh[service_history_data_source_id_index]
+            row = ["#{slug}-FAM", project_name, project_id, ds_id]
+            project_counts[row] ||= Set.new
+            project_counts[row] << sh[service_history_client_id_index]
+          end
+          
+          family_served_data.count
+        else
+          0
+        end
         individuals_served = involved_entries_scope.
           hud_project_type(project_type).
           service_within_date_range(
@@ -954,21 +939,15 @@ module ReportGenerators::Ahar::Fy2017
         if fam_ids_by_ds.any?
           individuals_served = individuals_served.where.not(fam_where)
         end
+        Rails.logger.debug "Using traditional pluck for individual data"
+        individuals_served_data = individuals_served.pluck(*sh_cols)
+        # Remove any non-vet data for vets only run
         if vets_only
-          individuals_served = individuals_served.where(client_id: all_vets)
+          individuals_served_data.delete_if do |row|
+            all_vets.include?(row[service_history_client_id_index])
+          end
         end
-        # speed up the postgres query
-        if vets_only && GrdaWarehouseBase.postgres?
-            sql = with_limited_vet_scope_sql(scope: individuals_served.select(*sh_cols))
-            result = GrdaWarehouseBase.connection.select_all(sql)
-            individuals_served_data = result.map do |row|
-              result.columns.map do |name|
-                result.send(:column_type, name).type_cast_from_database(row[name])
-              end
-            end
-        else
-          individuals_served_data = individuals_served.pluck(*sh_cols)
-        end
+        
         individuals_served_data.each do |sh|
           project_name = sh[service_history_project_name_index]
           project_id = sh[service_history_project_id_index]
