@@ -1,6 +1,7 @@
 module ServiceHistory
   class RebuildEnrollmentsJob < ActiveJob::Base
     include ArelHelper
+    queue_as :low_priority
 
     def initialize client_ids:, log_id:
       @client_ids = client_ids
