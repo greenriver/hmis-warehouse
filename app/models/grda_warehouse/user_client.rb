@@ -51,7 +51,7 @@ module GrdaWarehouse
     private 
 
     def date_range
-      errors.add(:end_date, "should be in the future.") if expired?
+      errors.add(:end_date, "should be after start date") if end_date && start_date && end_date <= start_date
     end
 
   end

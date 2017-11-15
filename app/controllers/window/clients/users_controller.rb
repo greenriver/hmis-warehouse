@@ -12,7 +12,7 @@ module Window::Clients
     end
 
     def create
-      @user = user_source.new(user_client_params.merge(client_id: params[:client_id].to_i, start_date: Date.today))
+      @user = user_source.new(user_client_params.merge(client_id: params[:client_id].to_i))
       begin
         @user.save!
       rescue Exception => e
@@ -23,6 +23,10 @@ module Window::Clients
       end
       flash[:notice] = "Relationship added."
       redirect_to action: :index 
+    end
+
+    def update
+      @user.update(user_client_params)
     end
 
     def destroy
@@ -40,6 +44,7 @@ module Window::Clients
         :client_id,  
         :relationship,
         :confidential,
+        :start_date,
         :end_date
       )
     end

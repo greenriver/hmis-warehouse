@@ -8,16 +8,17 @@ RSpec.describe GrdaWarehouse::UserClient, type: :model do
   let(:end_date_nil) { build :grda_warehouse_user_client, end_date: nil, user: user, client: client}
   let(:user) { create :user }
   let(:client) { create :grda_warehouse_hud_client }
+  let(:invalid_range) { build :grda_warehouse_user_client, start_date: Date.today, end_date: Date.yesterday }
   
   describe 'validations' do
     describe 'date_range' do
       context 'when end_date in past' do
         it 'is invalid' do
-          expect( end_date_past ).to be_invalid
+          expect( invalid_range ).to be_invalid
         end
         it 'adds an error message' do
-          end_date_past.valid?
-          expect( end_date_past.errors.size ).to eq 1
+          invalid_range.valid?
+          expect( invalid_range.errors.size ).to eq 1
         end 
       end
 
