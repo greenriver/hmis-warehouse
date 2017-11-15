@@ -38,7 +38,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           if @force_sequential_processing
             ::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id).perform_now
           else
-            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id), queue: :service_history)
+            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id), queue: :low_priority)
 
           end
         end
@@ -60,7 +60,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # you must manually process these in the test environment since there are no workers
       unless Rails.env.test?
         started = Time.now
-        while Delayed::Job.where(queue: :service_history, failed_at: nil).count > 0 do
+        while Delayed::Job.where(queue: :low_priority, failed_at: nil).count > 0 do
           break if ((Time.now - started) / 1.hours) > 12
           sleep(interval)
         end

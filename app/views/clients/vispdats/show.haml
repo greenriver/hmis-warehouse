@@ -9,13 +9,16 @@
 .client__vispdat
   %h1
     .pull-right
-      - unless @vispdat.migrated?
-        = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit', data: { toggle: 'tooltip' } do
+      - unless @vispdat.show_as_readonly?
+        = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit' do
           %span.icon-pencil
-      = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-danger', title: 'Delete', method: :delete, data: { toggle: 'tooltip', confirm: "Are you sure you want to delete the VI-SPDAT for #{@client.full_name}?" } do
+          Edit
+      = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-danger', title: 'Delete', method: :delete, data: { confirm: "Are you sure you want to delete the VI-SPDAT for #{@client.full_name}?" } do
         %span.icon-cross
-      = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
+        Delete
+      = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All' do
         %span.icon-menu
+        VI-SPDAT List
     = content_for :title
     %small(data-toggle='tooltip' title="Vulnerability Index - Service Prioritization Decision Assistance Tool")VI-SPDAT
     .clearfix

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170901195912) do
+ActiveRecord::Schema.define(version: 20171107000152) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,7 +46,7 @@ ActiveRecord::Schema.define(version: 20170901195912) do
   add_index "careplans", ["user_id"], :name=>"index_careplans_on_user_id", :using=>:btree
 
   create_table "claims_amount_paid_location_month", force: :cascade do |t|
-    t.string  "medicaid_id", :null=>false
+    t.string  "medicaid_id",  :null=>false
     t.integer "year"
     t.integer "month"
     t.integer "ip"
@@ -56,11 +56,13 @@ ActiveRecord::Schema.define(version: 20170901195912) do
     t.integer "rx"
     t.integer "other"
     t.integer "total"
+    t.string  "year_month"
+    t.string  "study_period"
   end
   add_index "claims_amount_paid_location_month", ["medicaid_id"], :name=>"index_claims_amount_paid_location_month_on_medicaid_id", :using=>:btree
 
   create_table "claims_claim_volume_location_month", force: :cascade do |t|
-    t.string  "medicaid_id", :null=>false
+    t.string  "medicaid_id",  :null=>false
     t.integer "year"
     t.integer "month"
     t.integer "ip"
@@ -70,6 +72,8 @@ ActiveRecord::Schema.define(version: 20170901195912) do
     t.integer "rx"
     t.integer "other"
     t.integer "total"
+    t.string  "year_month"
+    t.string  "study_period"
   end
   add_index "claims_claim_volume_location_month", ["medicaid_id"], :name=>"index_claims_claim_volume_location_month_on_medicaid_id", :using=>:btree
 
@@ -82,7 +86,7 @@ ActiveRecord::Schema.define(version: 20170901195912) do
   add_index "claims_ed_nyu_severity", ["medicaid_id"], :name=>"index_claims_ed_nyu_severity_on_medicaid_id", :using=>:btree
 
   create_table "claims_roster", force: :cascade do |t|
-    t.string  "medicaid_id",             :null=>false
+    t.string  "medicaid_id",                      :null=>false
     t.string  "last_name"
     t.string  "first_name"
     t.string  "gender"
@@ -98,6 +102,17 @@ ActiveRecord::Schema.define(version: 20170901195912) do
     t.integer "average_days_to_readmit"
     t.string  "pcp"
     t.string  "epic_team"
+    t.integer "member_months_baseline"
+    t.integer "member_months_implementation"
+    t.integer "cost_rank_ty"
+    t.float   "average_ed_visits_baseline"
+    t.float   "average_ed_visits_implementation"
+    t.float   "average_ip_admits_baseline"
+    t.float   "average_ip_admits_implementation"
+    t.float   "average_days_to_readmit_baseline"
+    t.float   "average_days_to_implementation"
+    t.string  "case_manager"
+    t.string  "housing_status"
   end
   add_index "claims_roster", ["medicaid_id"], :name=>"index_claims_roster_on_medicaid_id", :using=>:btree
 
@@ -182,7 +197,7 @@ ActiveRecord::Schema.define(version: 20170901195912) do
   end
 
   create_table "patients", force: :cascade do |t|
-    t.string   "id_in_source",           :null=>false
+    t.string   "id_in_source",             :null=>false
     t.string   "first_name"
     t.string   "middle_name"
     t.string   "last_name"
@@ -195,12 +210,14 @@ ActiveRecord::Schema.define(version: 20170901195912) do
     t.string   "ethnicity"
     t.string   "veteran_status"
     t.string   "ssn"
-    t.datetime "created_at",             :null=>false
-    t.datetime "updated_at",             :null=>false
+    t.datetime "created_at",               :null=>false
+    t.datetime "updated_at",               :null=>false
     t.integer  "client_id"
     t.string   "gender"
     t.datetime "consent_revoked"
     t.string   "medicaid_id"
+    t.string   "housing_status"
+    t.datetime "housing_status_timestamp"
   end
 
   create_table "problems", force: :cascade do |t|

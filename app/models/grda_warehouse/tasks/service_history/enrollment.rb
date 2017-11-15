@@ -261,6 +261,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
+    def head_of_household
+      GrdaWarehouse::Hud::Client.where(PersonalID: head_of_household_id)
+    end
+
     def is_head_of_household?
       self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
     end

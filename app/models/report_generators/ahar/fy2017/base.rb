@@ -69,8 +69,8 @@ module ReportGenerators::Ahar::Fy2017
 
     def run!
       # allow report start to be set via options in sub-classes
-      @report_start ||= '2016-09-30'
-      @report_end ||= '2015-10-01'
+      @report_start ||= '2017-09-30'
+      @report_end ||= '2016-10-01'
       # Find the first queued report
       report = ReportResult.where(report: report_class.first).where(percent_complete: 0, job_status: nil).first
       return unless report.present? 
@@ -908,36 +908,47 @@ module ReportGenerators::Ahar::Fy2017
               end_date: @report_end
             ).
             where(fam_where)
-            # Save off some supporing info
-            family_scope.pluck(*sh_cols).each do |sh|
-              project_name = sh[service_history_project_name_index]
-              project_id = sh[service_history_project_id_index]
-              ds_id = sh[service_history_data_source_id_index]
-              row = ["#{slug}-FAM", project_name, project_id, ds_id]
-              project_counts[row] ||= Set.new
-              project_counts[row] << sh[service_history_client_id_index]
+          Rails.logger.debug "Using traditional pluck for family data"
+          family_served_data = family_scope.pluck(*sh_cols)
+          # Remove any non-vet data for vets only run
+          if vets_only
+            family_served_data.delete_if do |row|
+              all_vets.include?(row[service_history_client_id_index])
             end
-            if vets_only
-              family_scope = family_scope.where(client_id: all_vets)
-            end
-            family_scope.count
-          else
-            0
           end
+          # Save off some supporing info
+          family_served_data.each do |sh|
+            project_name = sh[service_history_project_name_index]
+            project_id = sh[service_history_project_id_index]
+            ds_id = sh[service_history_data_source_id_index]
+            row = ["#{slug}-FAM", project_name, project_id, ds_id]
+            project_counts[row] ||= Set.new
+            project_counts[row] << sh[service_history_client_id_index]
+          end
+          
+          family_served_data.count
+        else
+          0
+        end
         individuals_served = involved_entries_scope.
           hud_project_type(project_type).
           service_within_date_range(
             start_date: @report_start.to_date - 1.day,
             end_date: @report_end
           )
-        if fam_ids_by_ds.any? 
+        if fam_ids_by_ds.any?
           individuals_served = individuals_served.where.not(fam_where)
         end
+        Rails.logger.debug "Using traditional pluck for individual data"
+        individuals_served_data = individuals_served.pluck(*sh_cols)
+        # Remove any non-vet data for vets only run
         if vets_only
-          individuals_served = individuals_served.where(client_id: all_vets)
+          individuals_served_data.delete_if do |row|
+            all_vets.include?(row[service_history_client_id_index])
+          end
         end
-        # Save off some supporing info
-        individuals_served.pluck(*sh_cols).each do |sh|
+        
+        individuals_served_data.each do |sh|
           project_name = sh[service_history_project_name_index]
           project_id = sh[service_history_project_id_index]
           ds_id = sh[service_history_data_source_id_index]
@@ -945,7 +956,7 @@ module ReportGenerators::Ahar::Fy2017
           project_counts[row] ||= Set.new
           project_counts[row] << sh[service_history_client_id_index]
         end
-        individuals_served = individuals_served.count
+        individuals_served = individuals_served_data.count
         @answers["#{slug}-FAM"]['Pers_Avg_Ngt'] = (family_served / 365.0).round(2)
         @answers["#{slug}-IND"]['Pers_Avg_Ngt'] = (individuals_served / 365.0).round(2)
       end
@@ -1716,7 +1727,7 @@ module ReportGenerators::Ahar::Fy2017
 
     def involved_entries_scope
        # make sure we include any project that is acting as one of our housing related projects
-      GrdaWarehouse::ServiceHistory.joins(project: :project_cocs).
+      GrdaWarehouse::ServiceHistory.joins(:client, project: :project_cocs).
         open_between(start_date: @report_start, end_date: @report_end).
         where(p_t[:act_as_project_type].in(PH + TH + ES).
           or(sh_t[:project_type].in((PH + TH + ES)).
@@ -1866,7 +1877,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def service_history_columns
-      [
+      @service_history_columns ||= [
         :client_id, 
         :data_source_id, 
         :date, 
@@ -1890,7 +1901,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def client_columns
-      [
+      @client_columns ||= [
         :PersonalID,
         :LastName,
         :FirstName,
@@ -1909,7 +1920,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def enrollment_columns
-      [
+      @enrollment_columns ||= [
         :ProjectEntryID, 
         :data_source_id, 
         :ResidencePrior, 
@@ -1921,7 +1932,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def disability_columns
-      [
+      @disability_columns ||= [
         :DisabilityType,
         :DisabilityResponse,
         :IndefiniteAndImpairs,

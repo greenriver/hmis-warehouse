@@ -7,18 +7,20 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed=200, bogus_notifier=false, debug: false)
+    def initialize(max_allowed=200, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false)
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
       @soft_delete_date = Time.now
+      @changed_client_date = changed_client_date
     end
     def run!
       remove_unused_warehouse_clients_processed()
       GrdaWarehouseBase.transaction do
         @clients = find_unused_destination_clients
         debug_log "Found #{@clients.size} unused destination clients"
+        remove_unused_service_history
         if @clients.any?
           debug_log "Deleting service history"
           clean_service_history
@@ -135,7 +137,7 @@ module GrdaWarehouse::Tasks
             end
           end
           # Always use the most recently updated 
-          binding.pry if source_clients.first.blank?
+          binding.pry if source_clients.first.blank? && Rails.env.development?
           dest_attr[:VeteranStatus] = source_clients.first[:VeteranStatus]
 
           # See if we should remove anything
@@ -163,7 +165,7 @@ module GrdaWarehouse::Tasks
     def clients_to_munge
       debug_log "Check any client who's source has been updated in the past week"
       wc_t = GrdaWarehouse::WarehouseClient.arel_table
-      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(2.weeks.ago.to_date)).select(:id).pluck(:id)
+      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(@changed_client_date)).select(:id).pluck(:id)
       @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
         joins(:warehouse_client).
         where(wc_t[:source_id].in(updated_client_ids)).
@@ -175,6 +177,24 @@ module GrdaWarehouse::Tasks
     def debug_log message
       logger.info message if @debug
     end
+
+    # Sometimes client merging doesn't do a very good job of cleaning up
+    # the service history table, just make sure we don't have any records 
+    # for clients that no longer exist
+    def remove_unused_service_history
+      sh_client_ids = GrdaWarehouse::ServiceHistory.entry.distinct.pluck(:client_id)
+      client_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+      non_existant_client_ids = sh_client_ids - client_ids
+      if non_existant_client_ids.any?
+        if non_existant_client_ids.size > @max_allowed
+          @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
+          return
+        end
+        debug_log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
+        GrdaWarehouse::ServiceHistory.where(client_id: non_existant_client_ids).delete_all
+      end
+    end
+
     def clean_service_history
       return unless @clients.any?
       sh_size = GrdaWarehouse::ServiceHistory.where(client_id: @clients).count

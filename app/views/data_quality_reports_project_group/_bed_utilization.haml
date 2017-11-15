@@ -41,7 +41,7 @@
             %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
             
             %td= project[:capacity]
-            - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.bed_utilization_attributes.each_with_index do |measure, index|
+            - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
               - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end 
               %td{class: odd_class}
                 - key = "bed_utilization_#{project[:id]}_#{measure}"
@@ -57,7 +57,7 @@
           %th.text-right{colspan: 2} Totals
           %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
           %td= totals[:counts][:capacity]
-          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.bed_utilization_attributes.each_with_index do |measure, index|
+          - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
             - key = "bed_utilization_totals_#{measure}"
             - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end 
             %td{class: odd_class}

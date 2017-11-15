@@ -1,0 +1,7 @@
+%h2 A Client was added.
+
+%p
+  The following Client was recently added by
+  = "#{@user.name}." 
+%p
+  = link_to "Client ##{@client.id}", client_url(@client)

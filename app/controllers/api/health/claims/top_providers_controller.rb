@@ -2,12 +2,15 @@ module Api::Health::Claims
   class TopProvidersController < BaseController
     
     def load_data
-      @data = source.order(sdh_pct: :desc).
-        select(:provider_name, :sdh_pct).
-        distinct.
-        limit(5).
-        map do |row|
-        row.attributes.with_indifferent_access.except(:id, :medicaid_id, :rank)
+      @data = source.group(:provider_name).
+        sum(:indiv_pct).
+        sort_by{|k,v| v}.
+        reverse.
+        first(5).map do |provider_name, indiv_pct|
+          {
+            provider_name: provider_name, 
+            sdh_pct: indiv_pct / 100
+          }
       end
     end
 

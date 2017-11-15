@@ -1,7 +1,7 @@
 - if @report&.report.try(:[], 'enrolled_length_of_stay').present?
   - project_counts = @report.report.with_indifferent_access[:enrolled_length_of_stay][:projects]
   - totals = @report.report.with_indifferent_access[:enrolled_length_of_stay][:totals]
-  - buckets = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.length_of_stay_buckets
+  - buckets = @report.class.length_of_stay_buckets
   .row
     .col-sm-4
       %h3 Length of Stay
@@ -35,9 +35,10 @@
               - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
               %td{class: odd_class}
                 - measure = project_counts[project.id.to_s][:counts][range.to_s]
-                - key = "enrolled_length_of_stay_#{project.id}_#{range}"
-                - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                - if measure.present?
+                  - key = "enrolled_length_of_stay_#{project.id}_#{range}"
+                  - if measure > 0
+                    = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                      = measure
+                  - else
                     = measure
-                - else
-                  = measure

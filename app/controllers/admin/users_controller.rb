@@ -74,6 +74,8 @@ module Admin
         :phone,
         :agency,
         :receive_file_upload_notifications,
+        :notify_on_vispdat_completed,
+        :notify_on_client_added,
         role_ids: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
       )

@@ -22,13 +22,23 @@ module Health::Claims
       end
     end
 
-    # allow for cleaning of data in sub-classes, default to no-op
+    # allow for cleaning of data in sub-classes, default to cleaning up divide by 0
     def clean_rows(dirty)
-      dirty
+      dirty.map do |row|
+        row.map do |value|
+          if value == "#DIV/0!"
+            nil
+          else
+            value
+          end
+        end
+      end 
     end
 
     def validate_headers
-      raise 'Unexpected headers' if sheet.first != column_headers.values
+      sheet_headers = sheet.first.map(&:downcase)
+      db_headers = column_headers.values.map(&:downcase)
+      raise "Unexpected headers in: #{self.class.name} \n #{sheet_headers.inspect} \n Looking for: \n #{db_headers.inspect}" if sheet_headers.sort != db_headers.sort
     end
 
     def self.known_sub_classes

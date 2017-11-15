@@ -72,7 +72,7 @@ module GrdaWarehouse::Tasks
         domestic_violence: :domestic_violence?,
         disability_verified_on: :disability_verified_on,
         housing_assistance_network_released_on: :housing_assistance_network_released_on,
-        sync_with_cas: :sync_with_cas,
+        sync_with_cas: :active_in_cas?,
         dmh_eligible: :dmh_eligible,
         va_eligible: :va_eligible,
         hues_eligible: :hues_eligible,

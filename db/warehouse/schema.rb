@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171026152842) do
+ActiveRecord::Schema.define(version: 20171114132110) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -94,6 +94,7 @@ ActiveRecord::Schema.define(version: 20171026152842) do
     t.boolean  "api_update_in_process",                  :default=>false, :null=>false
     t.datetime "api_update_started_at"
     t.datetime "api_last_updated_at"
+    t.integer  "creator_id"
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
@@ -101,6 +102,7 @@ ActiveRecord::Schema.define(version: 20171026152842) do
   add_index "Client", ["FirstName"], :name=>"client_first_name", :using=>:btree
   add_index "Client", ["LastName"], :name=>"client_last_name", :using=>:btree
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
+  add_index "Client", ["creator_id"], :name=>"index_Client_on_creator_id", :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
@@ -875,19 +877,21 @@ ActiveRecord::Schema.define(version: 20171026152842) do
   add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
 
   create_table "configs", force: :cascade do |t|
-    t.boolean "project_type_override",          :default=>true, :null=>false
-    t.boolean "eto_api_available",              :default=>false, :null=>false
-    t.string  "cas_available_method",           :default=>"cas_flag", :null=>false
-    t.boolean "healthcare_available",           :default=>false, :null=>false
-    t.string  "family_calculation_method",      :default=>"adult_child"
+    t.boolean "project_type_override",                     :default=>true, :null=>false
+    t.boolean "eto_api_available",                         :default=>false, :null=>false
+    t.string  "cas_available_method",                      :default=>"cas_flag", :null=>false
+    t.boolean "healthcare_available",                      :default=>false, :null=>false
+    t.string  "family_calculation_method",                 :default=>"adult_child"
     t.string  "site_coc_codes"
     t.string  "default_coc_zipcodes"
     t.string  "continuum_name"
-    t.string  "cas_url",                        :default=>"https://cas.boston.gov"
-    t.string  "release_duration",               :default=>"Indefinite"
-    t.boolean "allow_partial_release",          :default=>true
-    t.string  "cas_flag_method",                :default=>"manual"
-    t.boolean "window_access_requires_release", :default=>false
+    t.string  "cas_url",                                   :default=>"https://cas.boston.gov"
+    t.string  "release_duration",                          :default=>"Indefinite"
+    t.boolean "allow_partial_release",                     :default=>true
+    t.string  "cas_flag_method",                           :default=>"manual"
+    t.boolean "window_access_requires_release",            :default=>false
+    t.boolean "show_partial_ssn_in_window_search_results", :default=>false
+    t.string  "url_of_blank_consent_form"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -902,6 +906,22 @@ ActiveRecord::Schema.define(version: 20171026152842) do
   end
   add_index "contacts", ["entity_id"], :name=>"index_contacts_on_entity_id", :using=>:btree
   add_index "contacts", ["type"], :name=>"index_contacts_on_type", :using=>:btree
+
+  create_table "data_monitorings", force: :cascade do |t|
+    t.integer "resource_id",     :null=>false
+    t.date    "census"
+    t.date    "calculated_on"
+    t.date    "calculate_after"
+    t.float   "value"
+    t.float   "change"
+    t.integer "iteration"
+    t.integer "of_iterations"
+    t.string  "type"
+  end
+  add_index "data_monitorings", ["calculated_on"], :name=>"index_data_monitorings_on_calculated_on", :using=>:btree
+  add_index "data_monitorings", ["census"], :name=>"index_data_monitorings_on_census", :using=>:btree
+  add_index "data_monitorings", ["resource_id"], :name=>"index_data_monitorings_on_resource_id", :using=>:btree
+  add_index "data_monitorings", ["type"], :name=>"index_data_monitorings_on_type", :using=>:btree
 
   create_table "data_sources", force: :cascade do |t|
     t.string   "name"
@@ -1087,6 +1107,22 @@ ActiveRecord::Schema.define(version: 20171026152842) do
     t.string  "source_id"
   end
   add_index "hmis_staff_x_clients", ["staff_id", "client_id", "relationship_id"], :name=>"index_staff_x_client_s_id_c_id_r_id", :unique=>true, :using=>:btree
+
+  create_table "hud_chronics", force: :cascade do |t|
+    t.date     "date"
+    t.integer  "client_id"
+    t.integer  "months_in_last_three_years"
+    t.boolean  "individual"
+    t.integer  "age"
+    t.date     "homeless_since"
+    t.boolean  "dmh"
+    t.string   "trigger"
+    t.string   "project_names"
+    t.datetime "created_at",                 :null=>false
+    t.datetime "updated_at",                 :null=>false
+    t.integer  "days_in_last_three_years"
+  end
+  add_index "hud_chronics", ["client_id"], :name=>"index_hud_chronics_on_client_id", :using=>:btree
 
   create_table "identify_duplicates_log", force: :cascade do |t|
     t.datetime "started_at"
@@ -1435,6 +1471,7 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
+    "Enrollment"."RunawayYouth",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM ((("Enrollment"
@@ -1475,6 +1512,34 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
+    "Exit"."ExchangeForSex",
+    "Exit"."ExchangeForSexPastThreeMonths",
+    "Exit"."CountOfExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSex",
+    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+    "Exit"."WorkPlaceViolenceThreats",
+    "Exit"."WorkplacePromiseDifference",
+    "Exit"."CoercedToContinueWork",
+    "Exit"."LaborExploitPastThreeMonths",
+    "Exit"."CounselingReceived",
+    "Exit"."IndividualCounseling",
+    "Exit"."FamilyCounseling",
+    "Exit"."GroupCounseling",
+    "Exit"."SessionCountAtExit",
+    "Exit"."PostExitCounselingPlan",
+    "Exit"."SessionsInPlan",
+    "Exit"."DestinationSafeClient",
+    "Exit"."DestinationSafeWorker",
+    "Exit"."PosAdultConnections",
+    "Exit"."PosPeerConnections",
+    "Exit"."PosCommunityConnections",
+    "Exit"."AftercareDate",
+    "Exit"."AftercareProvided",
+    "Exit"."EmailSocialMedia",
+    "Exit"."Telephone",
+    "Exit"."InPersonIndividual",
+    "Exit"."InPersonGroup",
+    "Exit"."CMExitReason",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1599,6 +1664,7 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
+    "IncomeBenefits"."ConnectionWithSOAR",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1783,8 +1849,12 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_filed_by"
     t.boolean  "migrated",                     :default=>false, :null=>false
     t.boolean  "housing_release_confirmed",    :default=>false
+    t.integer  "user_id"
+    t.integer  "priority_score"
+    t.boolean  "active",                       :default=>false
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
+  add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
 
   create_table "warehouse_client_service_history", force: :cascade do |t|
     t.integer "client_id",               :null=>false

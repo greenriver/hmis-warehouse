@@ -61,13 +61,16 @@ module GrdaWarehouse::Tasks
           census[k][:overflow_inventory] = 0
           program_inventory = inventory[[k[census_columns.index(:data_source_id)], k[census_columns.index(:ProjectID)]]] || []
           program_inventory.each do |m|
-            if m.Availability.blank? || m.Availability == 1
-              census[k][:bed_inventory] += m.BedInventory || 0
-            elsif m.InventoryStartDate.year == start_year || m.InventoryEndDate.year == start_year
-              if m.Availability == 2
+            inventory_start = m.InventoryStartDate&.year
+            inventory_end = m.InventoryEndDate&.year
+            no_start = inventory_start.blank? && (inventory_end.blank? || inventory_end >= start_year)
+            open_during_year = inventory_start.present? && inventory_start <= start_year && inventory_end.blank? || (inventory_end.present? && inventory_end >= start_year)
+            # If the inventory was available during the year
+            if open_during_year || no_start
+              if m.Availability.blank? || m.Availability == 1
+                census[k][:bed_inventory] += m.BedInventory || 0
+              else
                 census[k][:seasonal_inventory] += m.BedInventory || 0
-              elsif m.Availability == 3
-                census[k][:overflow_inventory] += m.BedInventory || 0
               end
             end
           end
@@ -104,13 +107,16 @@ module GrdaWarehouse::Tasks
           census[project_type][:overflow_inventory] = 0
           program_inventory = inventory[[project_type[census_columns.index(:data_source_id)], project_type[census_columns.index(:ProjectID)]]] || []
           program_inventory.each do |m|
-            if m.Availability.blank? || m.Availability == 1
-              census[project_type][:bed_inventory] += m.BedInventory || 0
-            elsif m.InventoryStartDate.year == start_year || m.InventoryEndDate.year == start_year
-              if m.Availability == 2
+            inventory_start = m.InventoryStartDate&.year
+            inventory_end = m.InventoryEndDate&.year
+            no_start = inventory_start.blank? && (inventory_end.blank? || inventory_end >= start_year)
+            open_during_year = inventory_start.present? && inventory_start <= start_year && inventory_end.blank? || (inventory_end.present? && inventory_end >= start_year)
+            # If the inventory was available during the year
+            if open_during_year || no_start
+              if m.Availability.blank? || m.Availability == 1
+                census[project_type][:bed_inventory] += m.BedInventory || 0
+              else
                 census[project_type][:seasonal_inventory] += m.BedInventory || 0
-              elsif m.Availability == 3
-                census[project_type][:overflow_inventory] += m.BedInventory || 0
               end
             end
           end

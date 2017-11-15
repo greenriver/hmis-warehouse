@@ -1,4 +1,4 @@
-- title = "Edit VISPDAT for #{@client.name} on #{@vispdat.created_at}"
+- title = "Edit VI-SPDAT for #{@client.name} on #{@vispdat.created_at}"
 - content_for :title, title
 
 = render 'window/clients/breadcrumbs'
@@ -9,10 +9,12 @@
 
 %h1
   .pull-right
-    = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Show', data: { toggle: 'tooltip' } do
+    -# link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Show', data: { toggle: 'tooltip' } do
       %span.icon-eye
-    = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
+      View
+    = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All' do
       %span.icon-menu
+      VI-SPDAT List
   = title
   .clearfix
 %hr

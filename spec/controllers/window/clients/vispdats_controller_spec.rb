@@ -79,6 +79,12 @@ RSpec.describe Window::Clients::VispdatsController, type: :controller do
         expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat)
         expect(assigns(:vispdat)).to be_persisted
       end
+
+      it "sets the user_id to current_user" do
+        post :create, client_id: client.to_param, params: {vispdat: valid_attributes}
+        expect(assigns(:vispdat).user_id).to eq user.id
+      end
+
     end
 
     context "with invalid params" do

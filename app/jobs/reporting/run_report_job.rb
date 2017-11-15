@@ -2,6 +2,9 @@ module Reporting
   class RunReportJob < ActiveJob::Base
     attr_accessor :result_id
     attr_accessor :report
+
+    queue_as :high_priority
+    
     def initialize report:, result_id:, options:
       @report = report
       @result_id = result_id

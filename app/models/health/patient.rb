@@ -15,6 +15,7 @@ module Health
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
     has_one :claims_roster, class_name: Health::Claims::Roster.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
+    has_many :amount_paids, class_name: Health::Claims::AmountPaid.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
@@ -76,6 +77,8 @@ module Health
         row_created: :created_at,
         row_updated: :updated_at,
         medicaid_id: :medicaid_id,
+        housing_status: :housing_status,
+        housing_status_timestamp: :housing_status_timestamp,
       }
     end
 

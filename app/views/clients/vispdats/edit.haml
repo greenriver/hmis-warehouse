@@ -11,10 +11,13 @@
   .pull-right
     = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Show', data: { toggle: 'tooltip' } do
       %span.icon-eye
+      View
     = link_to polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-danger', title: 'Delete', method: :delete, data: { toggle: 'tooltip', confirm: "Are you sure you want to delete the VI-SPDAT for #{@client.full_name}?" } do
       %span.icon-cross
+      Delete
     = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
       %span.icon-menu
+      VI-SPDAT List
   = title
   .clearfix
 %hr

@@ -98,7 +98,17 @@ module GrdaWarehouse
 
     scope :in_progress, -> { where(submitted_at: nil) }
     scope :completed, -> { where.not(submitted_at: nil) }
-    scope :scores, -> { order(submitted_at: :desc).select(:score) }
+    scope :active, -> { where(active: true) }
+    scope :scores, -> { order(submitted_at: :desc).select(:score, :priority_score) }
+    scope :high_vulnerability, -> { 
+      where(priority_score: 731..Float::INFINITY)
+    }
+    scope :medium_vulnerability, -> {
+      where(priority_score: 365..730)
+    }
+    scope :low_vulnerability, -> {
+      where(priority_score: 0..364)
+    }
     scope :visible_by?, -> (user) do
       if user.can_view_vspdat? || user.can_edit_vspdat?
         all
@@ -112,7 +122,8 @@ module GrdaWarehouse
     ####################
     # Callbacks
     ####################
-    before_save :calculate_score, :set_client_housing_release_status
+    before_save :calculate_score, :calculate_priority_score, :set_client_housing_release_status
+    after_update :notify_users
 
     ####################
     # Access
@@ -140,6 +151,18 @@ module GrdaWarehouse
       end
     end
 
+    def notify_users
+      return if changes.empty?
+      notify_vispdat_completed
+    end
+
+    def notify_vispdat_completed
+      before, after = changes[:submitted_at]
+      if before.nil? && after.present?
+        NotifyUser.vispdat_completed( id ).deliver_later
+      end
+    end
+
     def calculate_score
       self.score = pre_survey_score +
       history_score +
@@ -150,6 +173,23 @@ module GrdaWarehouse
     def calculate_score!
       calculate_score
       save
+    end
+
+    def calculate_priority_score
+      homeless = days_homeless
+      begin
+        self.priority_score = if score >= 8 && homeless > 730
+          score + 730
+        elsif score >= 8 && homeless >= 365
+          score + 365
+        elsif score >= 0
+          score
+        else
+          0
+        end
+      rescue
+        0
+      end
     end
 
     def calculate_recommendation

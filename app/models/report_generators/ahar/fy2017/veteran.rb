@@ -41,20 +41,28 @@ module ReportGenerators::Ahar::Fy2017
       )
     end
 
+    def with_limited_vet_scope_sql(scope:)
+      "WITH #{GrdaWarehouse::ServiceHistory.quoted_table_name} AS (#{limit_by_client_id_sql}) #{scope.to_sql}"
+    end
+
+    def limit_by_client_id_sql
+      GrdaWarehouse::ServiceHistory.where(client_id: vet_or_related_client_ids(scope: involved_entries_scope)).to_sql
+    end
+
     def vet_or_related_client_ids(scope:)
-      vet_ids = scope.joins(:client).where(Client: {VeteranStatus: 1}).
+      vet_ids = scope.entry.joins(:client).where(Client: {VeteranStatus: 1}).
         select(:client_id, c_t[:VeteranStatus].as('VeteranStatus').to_sql, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)').
         entry.
         distinct.
         pluck(:client_id, c_t[:VeteranStatus].as('VeteranStatus').to_sql, 'concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id)')
       # filter out anyone with a nil household_id when looking for related
       # folks since that implies an individual (which we should have in the vet_ids above)
-      original = scope.joins(:client).
+      original = scope.entry.joins(:client).
         where(Client: {VeteranStatus: 1}).
         where.not(household_id: nil).
         where.not(household_id: '').
         select("concat(warehouse_client_service_history.household_id, '__', warehouse_client_service_history.data_source_id, '__', warehouse_client_service_history.project_id)")
-      related_ids = scope.
+      related_ids = scope.entry.
         joins(:client).
         where(['concat(warehouse_client_service_history.household_id, \'__\', warehouse_client_service_history.data_source_id, \'__\', warehouse_client_service_history.project_id) in (?)', original]).
         entry.

@@ -10,16 +10,21 @@ module WarehouseReports
         merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
         order( @order )
       @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
+      # Rails really wants to preload things we don't want, stop that.
+      @clients.preload_values = [source_clients: :data_source]
       respond_to do |format|
         format.html do
           @clients = @clients.page(params[:page]).per(100)
         end
         format.xlsx do
+          # Rails really wants to preload things we don't want, stop that.
+          @clients.preload_values = [source_clients: :data_source]
           @most_recent_services = service_history_source.service.where(
             client_id: @clients.select(:id),
             project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
           ).group(:client_id).
           pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql).to_h
+          @chronics = GrdaWarehouse::Chronic.where(date: @filter.date).index_by(&:client_id)
         end
       end
     end

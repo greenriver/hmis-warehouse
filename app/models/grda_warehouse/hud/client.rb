@@ -7,6 +7,8 @@ module GrdaWarehouse::Hud
     include HealthCharts
     include ApplicationHelper
     include HudSharedScopes
+    include HudChronicDefinition
+
     has_many :client_files
     has_many :vispdats
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
@@ -147,6 +149,7 @@ module GrdaWarehouse::Hud
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
+    
     has_many :chronics_in_range, -> (range) do
       where(date: range)
     end, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
@@ -276,12 +279,35 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    ####################
+    # Callbacks
+    ####################
+    after_create :notify_users
+    attr_accessor :send_notifications
+
+    def notify_users
+      NotifyUser.client_added( id ).deliver_later if send_notifications
+    end
+
     def self.full_release_string
       'Full HAN Release'
     end
 
     def self.partial_release_string
       'Limited CAS Release'
+    end
+
+    def active_in_cas?
+      case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      when :cas_flag
+        sync_with_cas
+      when :chronic
+        chronics.where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day}).exists?
+      when :release_present
+        [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
+      else
+        raise NotImplementedError
+      end
     end
 
     def scope_for_ongoing_residential_enrollments
@@ -330,9 +356,16 @@ module GrdaWarehouse::Hud
     end
 
     def show_window_demographic_to?(user)
+      visible_because_of_permission?(user) || visible_because_of_relationship?(user)
+    end
+
+    def visible_because_of_permission?(user)
       (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
     end
 
+    def visible_because_of_relationship?(user)
+      self.user_clients.pluck(:user_id).include?(user.id) && release_valid? && user.can_search_window?
+    end
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
     # This generates methods like: substance_response()
@@ -995,7 +1028,7 @@ module GrdaWarehouse::Hud
         preload(:destination_client).
         map{|m| m.destination_client.id}
       
-      client_ids << text if numeric
+      client_ids << text if numeric && self.destination.where(id: text).exists?
       where(id: client_ids)
     end
 
@@ -1262,17 +1295,35 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def days_homeless_in_last_three_years
-      service_history.homeless.service.
-        service_within_date_range(start_date: 3.years.ago, end_date: Date.today).
+    def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
+      end_date = on_date.to_date
+      start_date = end_date - 3.years
+      GrdaWarehouse::ServiceHistory.where(client_id: client_id).homeless.service.
+        service_within_date_range(start_date: start_date, end_date: end_date).
         select(:date).distinct.
         count
     end
+    def days_homeless_in_last_three_years(on_date: Date.today)
+      self.class.days_homeless_in_last_three_years(client_id: id, on_date: on_date)
+    end
 
-    def days_homeless
-      service_history.homeless.service.
-        select(:date).distinct.
-        count
+    def self.dates_homeless_scope(client_id:, on_date: Date.today)
+      GrdaWarehouse::ServiceHistory.where(client_id: client_id).
+        homeless.service.
+        where(sh_t[:date].lteq(on_date)).
+        select(:date).distinct
+    end
+
+    def self.dates_homeless(client_id:, on_date: Date.today)
+      dates_homeless_scope(client_id: client_id, on_date: on_date).pluck(:date)
+    end
+
+    def self.days_homeless(client_id:, on_date: Date.today)
+      dates_homeless_scope(client_id: client_id, on_date: on_date).count
+    end
+
+    def days_homeless(on_date: Date.today)
+      self.class.days_homeless(client_id: id, on_date: on_date)
     end
 
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)

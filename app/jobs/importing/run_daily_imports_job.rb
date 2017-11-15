@@ -4,6 +4,7 @@ module Importing
     include NotifierConfig
     include ArelHelper
     attr_accessor :send_notifications, :notifier_config
+    queue_as :low_priority
 
     def initialize
       setup_notifier('DailyImporter')
@@ -68,6 +69,7 @@ module Importing
         dates.each do |date|
           GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
           GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
+          GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
         end
         @notifier.ping('Chronically homeless calculated') if @send_notifications
       end
@@ -87,7 +89,7 @@ module Importing
       # pre-populate the cache for data source date spans
       GrdaWarehouse::DataSource.data_spans_by_id()
       @notifier.ping('Data source date spans set') if @send_notifications
-      # Clear the cache, some stuff has probably changed
+
       Rails.cache.clear
 
       # Generate some duplicates if we need to, but not too many
@@ -98,6 +100,23 @@ module Importing
       }
       SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
+
+      if last_saturday_of_month(Date.today.month, Date.today.year) == Date.today
+        @notifier.ping('Rebuilding Service History Indexes...') if @send_notifications
+        @notifier.ping('(this could take a few hours, but only happens on the last Saturday of the month.)') if @send_notifications
+        GrdaWarehouse::ServiceHistory.reindex_table!
+        @notifier.ping('... Service History Indexes Rebuilt') if @send_notifications
+      end
+
+      @notifier.ping('Rebuilding reporting tables...') if @send_notifications
+      GrdaWarehouse::Report::Base.update_fake_materialized_views
+      @notifier.ping('...done rebuilding reporting tables') if @send_notifications
+
+      @notifier.ping('Potentially queing confidence generation') if @send_notifications
+      GrdaWarehouse::Confidence::DaysHomeless.queue_batch
+      GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
+      GrdaWarehouse::Confidence::SourceExits.queue_batch
+
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"
@@ -110,6 +129,11 @@ module Importing
       GrdaWarehouse::DataSource.importable.map do |ds|
         ds.class.advisory_lock_exists?("hud_import_#{ds.id}")
       end.include?(true)
+    end
+
+    def last_saturday_of_month(month, year)
+      end_of_month = Date.new(year, month, 1).end_of_month
+      end_of_month.downto(0).find(&:saturday?)
     end
   end
 end

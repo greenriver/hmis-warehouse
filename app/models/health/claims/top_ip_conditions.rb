@@ -7,8 +7,8 @@ module Health::Claims
         medicaid_id: "ID_Medicaid",
         rank: "Rank",
         description: "Description",
-        indiv_pct: "Indiv_pct",
-        sdh_pct: "SDH_pct",
+        indiv_pct: "Implementation pct",
+        sdh_pct: "Baseline pct",
       }
     end
 

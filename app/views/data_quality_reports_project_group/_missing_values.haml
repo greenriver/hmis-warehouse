@@ -11,14 +11,14 @@
         %tr
           %th{colspan: 5}
           %th.page-bg-color{colspan: 2} Records Missing
-          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+          - @report.class.missing_refused_names.each_with_index do |word, index|
             - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th.text-center{class: odd_class, colspan: 6}= title
         %tr
           %th{colspan: 5}
           %th.page-bg-color{colspan: 2}
-          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+          - @report.class.missing_refused_names.each_with_index do |word, index|
             - title = "#{word.to_s.titleize.gsub('Dob', 'DOB').gsub('Ssn', 'SSN')}"
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th{class: odd_class, colspan: 2} Missing
@@ -32,7 +32,7 @@
           %th Grade
           %th.page-bg-color #
           %th.page-bg-color %
-          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+          - @report.class.missing_refused_names.each_with_index do |word, index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
             %th{class: odd_class} #
             %th{class: odd_class} %
@@ -61,7 +61,7 @@
             %td.page-bg-color= counts["#{project.id}"]['total_missing']
             %td.page-bg-color{style: "border-top-width: 3px; border-top-color: #{grade.color};"}
               = counts["#{project.id}"]['total_missing_percentage']
-            - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+            - @report.class.missing_refused_names.each_with_index do |word, index|
               - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
               - [:missing, :refused, :unknown].each do |type|
                 %td{class: odd_class}
@@ -90,7 +90,7 @@
           %td.page-bg-color= totals['total_missing']
           %td.page-bg-color{style: "border-top-width: 3px; border-top-color: #{grade.color};"}
             = totals['total_missing_percentage']
-          - GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne.missing_refused_names.each_with_index do |word, index|
+          - @report.class.missing_refused_names.each_with_index do |word, index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
             - [:missing, :refused, :unknown].each do |type|
               %td{class: odd_class}

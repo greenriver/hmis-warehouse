@@ -33,7 +33,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def report_scope
-    GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne
+    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
   end
 
   def project_source

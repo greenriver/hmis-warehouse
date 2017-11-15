@@ -37,7 +37,10 @@ module Api::Health::Claims::Patients
       end.map do |date, data|
         data = data.map do |row|
           {date: date}.merge(row.attributes.with_indifferent_access.
-          except(:id, :medicaid_id, :year, :month))
+          except(:id, :medicaid_id, :year, :month)).map do |k,v|
+            v ||= 0
+            [k, v]
+          end.to_h
         end.first
         
       end

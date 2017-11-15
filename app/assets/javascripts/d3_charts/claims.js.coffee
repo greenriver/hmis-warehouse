@@ -274,7 +274,7 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     @chart.append('rect')
       .attr('x', @scale.x(@domain.x[0]))
       .attr('y', @scale.y(@domain.y[1]))
-      .attr('width', @scale.x(@domain.x[@domain.x.length-1]) - @scale.x(@domain.x[0]))
+      .attr('width', @scale.x(@domain.x[@domain.x.length-1]) - @scale.x(@domain.x[0]) + @scale.x.bandwidth())
       .attr('height', @dimensions.height)
       .attr('fill', '#f1f1f1')
     @_drawAxes()
