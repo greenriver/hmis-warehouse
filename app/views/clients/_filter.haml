@@ -28,7 +28,7 @@
             %input.form-control{name: :end_date, type: :date, value: @end_date}
             %span.input-group-addon.icon-calendar
       .row
-        .col-sm-6
+        .col-sm-4
           %p
             %select.select2{name: :data_source_id}
               %option{value: ''} Filter by Data Source
@@ -36,7 +36,7 @@
                 - selected = @data_source_id == ds.id
                 %option{value: ds.id, selected: selected}= ds.name
 
-        .col-sm-6
+        .col-sm-4
           - if can_view_vspdat?
             %select.select2{ name: :vulnerability }
               %option{ value: '' } Filter by VI-SPDAT
@@ -44,6 +44,12 @@
               %option{ value: :medium, selected: params[:vulnerability]=='medium'} Medium Vulnerabilty
               %option{ value: :high, selected: params[:vulnerability]=='high'} High Vulnerabilty
               %option{ value: :all, selected: params[:vulnerability]=='all'} All Clients with VI-SPDATs
+        .col-sm-4
+          %select.select2{ name: :age_group }
+            %option{ value: '' } Filter by Age Group
+            - GrdaWarehouse::Hud::Client.ahar_age_groups.each do |key, range|
+              %option{ value: key, selected: params[:age_group] == key.to_s }
+                = range[:name]
       .row
         .col-xs-10
           .checkbox
