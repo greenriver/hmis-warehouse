@@ -279,6 +279,16 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    ####################
+    # Callbacks
+    ####################
+    after_create :notify_users
+    attr_accessor :send_notifications
+
+    def notify_users
+      NotifyUser.client_added( id ).deliver_later if send_notifications
+    end
+
     def self.full_release_string
       'Full HAN Release'
     end

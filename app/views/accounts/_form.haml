@@ -1,7 +1,8 @@
-.row
-  .col-sm-8
-    = simple_form_for @user, url: account_path do |f|
-      = f.error_notification
+= simple_form_for @user, url: account_path do |f|
+  = f.error_notification
+
+  .row
+    .col-sm-6
       .form-inputs
         = f.input :first_name, required: true
         = f.input :last_name, required: true
@@ -16,3 +17,4 @@
 
       .form-actions
         = f.button :submit, value: 'Update Account'
+

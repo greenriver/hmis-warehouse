@@ -1,6 +1,6 @@
 module Reporting::Hud::Ahar::Fy2017
   class RunReportJob < ActiveJob::Base
-    
+    queue_as :high_priority
 
     def initialize report_id:, result_id:, options:
       @report_id = report_id

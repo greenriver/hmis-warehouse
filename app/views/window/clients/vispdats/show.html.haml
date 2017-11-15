@@ -9,7 +9,7 @@
 .client__vispdat
   %h1
     .pull-right
-      - unless @vispdat.migrated? || @vispdat.show_as_readonly?
+      - unless @vispdat.show_as_readonly?
         = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit', data: { toggle: 'tooltip' } do
           %span.icon-pencil
           Edit

@@ -13,6 +13,38 @@ module GrdaWarehouse::Confidence
       unprocessed.
       where(arel_table[:calculate_after].lteq(Date.today))
     end
+
+    def self.iterations
+      24
+    end
+
+    def self.iteration_length
+      :weeks
+    end
+
+    def self.census_iterations
+      1
+    end
+
+    def self.census_iteration_length
+      :months
+    end
+
+    def self.census_day
+      15
+    end
+
+    # Start a new batch once a month
+    # This should only run once a week, so it should only catch once a month
+    def self.should_start_a_new_batch?
+      Date.today.day <= 7      
+    end
+
+
+    # only run on Saturdays
+    def self.should_run?
+      Date.today.day == 6
+    end
     
     def self.collection_dates_for_client client_id
       most_recent_15th = if Date.today.day >= 15
@@ -32,7 +64,7 @@ module GrdaWarehouse::Confidence
             calculate_after: calculate_after,
             iteration: iteration + 1,
             of_iterations: iterations,
-            client_id: client_id,
+            resource_id: client_id,
             type: name,
           }
         end

@@ -1,5 +1,6 @@
 module Importing::HudZip
   class SixOneOneJob < ActiveJob::Base
+    queue_as :low_priority
   
     def initialize upload_id:, data_source_id:
       @upload_id = upload_id
