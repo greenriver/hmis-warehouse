@@ -1,5 +1,7 @@
 module Reporting
   class RunProjectDataQualityJob < ActiveJob::Base
+    queue_as :high_priority
+
     def perform(report_id:, generate:, send_email:)
       @report_id = report_id.to_i
       @generate = generate

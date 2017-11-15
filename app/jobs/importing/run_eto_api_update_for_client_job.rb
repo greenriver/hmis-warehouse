@@ -1,6 +1,7 @@
 module Importing
   class RunEtoApiUpdateForClientJob < ActiveJob::Base
-
+    queue_as :high_priority
+    
     def perform destination_id:, client_ids:
       if requires_api_update?(destination_id)
         EtoApi::Tasks::UpdateClientDemographics.new(
