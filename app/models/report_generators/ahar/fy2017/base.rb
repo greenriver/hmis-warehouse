@@ -1877,7 +1877,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def service_history_columns
-      [
+      @service_history_columns ||= [
         :client_id, 
         :data_source_id, 
         :date, 
@@ -1901,7 +1901,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def client_columns
-      [
+      @client_columns ||= [
         :PersonalID,
         :LastName,
         :FirstName,
@@ -1920,7 +1920,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def enrollment_columns
-      [
+      @enrollment_columns ||= [
         :ProjectEntryID, 
         :data_source_id, 
         :ResidencePrior, 
@@ -1932,7 +1932,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def disability_columns
-      [
+      @disability_columns ||= [
         :DisabilityType,
         :DisabilityResponse,
         :IndefiniteAndImpairs,
