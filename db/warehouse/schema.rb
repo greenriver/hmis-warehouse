@@ -1325,10 +1325,10 @@ SELECT "Disabilities"."DisabilitiesID",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM (((("Disabilities"
-     JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text)) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text)) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("Disabilities"."DateDeleted" IS NULL)
   END_VIEW_REPORT_DISABILITIES
 
@@ -1354,10 +1354,10 @@ SELECT "EmploymentEducation"."EmploymentEducationID",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM (((("EmploymentEducation"
-     JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text)) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text)) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("EmploymentEducation"."DateDeleted" IS NULL)
   END_VIEW_REPORT_EMPLOYMENT_EDUCATIONS
 
@@ -1471,11 +1471,10 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
-    "Enrollment"."RunawayYouth",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM ((("Enrollment"
-     JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
   WHERE ("Enrollment"."DateDeleted" IS NULL)
@@ -1512,42 +1511,14 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
-    "Exit"."ExchangeForSex",
-    "Exit"."ExchangeForSexPastThreeMonths",
-    "Exit"."CountOfExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
-    "Exit"."WorkPlaceViolenceThreats",
-    "Exit"."WorkplacePromiseDifference",
-    "Exit"."CoercedToContinueWork",
-    "Exit"."LaborExploitPastThreeMonths",
-    "Exit"."CounselingReceived",
-    "Exit"."IndividualCounseling",
-    "Exit"."FamilyCounseling",
-    "Exit"."GroupCounseling",
-    "Exit"."SessionCountAtExit",
-    "Exit"."PostExitCounselingPlan",
-    "Exit"."SessionsInPlan",
-    "Exit"."DestinationSafeClient",
-    "Exit"."DestinationSafeWorker",
-    "Exit"."PosAdultConnections",
-    "Exit"."PosPeerConnections",
-    "Exit"."PosCommunityConnections",
-    "Exit"."AftercareDate",
-    "Exit"."AftercareProvided",
-    "Exit"."EmailSocialMedia",
-    "Exit"."Telephone",
-    "Exit"."InPersonIndividual",
-    "Exit"."InPersonGroup",
-    "Exit"."CMExitReason",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM (((("Exit"
-     JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Exit"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text)) AND (("Exit"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text)) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("Exit"."DateDeleted" IS NULL)
   END_VIEW_REPORT_EXITS
 
@@ -1576,10 +1547,10 @@ SELECT "HealthAndDV"."HealthAndDVID",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM (((("HealthAndDV"
-     JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("HealthAndDV"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text)) AND (("HealthAndDV"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text)) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("HealthAndDV"."DateDeleted" IS NULL)
   END_VIEW_REPORT_HEALTH_AND_DVS
 
@@ -1664,15 +1635,14 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
-    "IncomeBenefits"."ConnectionWithSOAR",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM (((("IncomeBenefits"
-     JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text)) AND (("IncomeBenefits"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text)) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("IncomeBenefits"."DateDeleted" IS NULL)
   END_VIEW_REPORT_INCOME_BENEFITS
 
@@ -1698,10 +1668,10 @@ SELECT "Services"."ServicesID",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM (((("Services"
-     JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+     JOIN "Client" source_clients ON (((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text)) AND (source_clients."DateDeleted" IS NULL))))
      JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
      JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+     JOIN "Enrollment" ON ((((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text)) AND (("Services"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text)) AND ("Enrollment"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
   END_VIEW_REPORT_SERVICES
 
