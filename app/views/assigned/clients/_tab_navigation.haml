@@ -1,0 +1,5 @@
+%ul.nav.nav-tabs.margin-bottom-01
+  %li{ class: (:active if current_page?(assigned_clients_path)) }
+    = link_to 'Active Relationships', assigned_clients_path
+  %li{ class: (:active if current_page?(expired_clients_path)) }
+    = link_to 'Inactive Relationships', expired_clients_path

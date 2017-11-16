@@ -1,6 +1,6 @@
 module Filters
   class Chronic < ::ModelForm
-    attribute :on, Date, default: GrdaWarehouse::Chronic.most_recent_day
+    attribute :on, Date, default: -> (r,_) { GrdaWarehouse::Chronic.most_recent_day }
     attribute :min_age, Integer, default: 0
     attribute :min_days_homeless,  Integer, default: 0
     attribute :individual, Boolean, default: false
