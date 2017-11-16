@@ -10,7 +10,13 @@
 
 = render 'breadcrumbs'
 = render 'tab_navigation', current: client_path(@client)
-%h1= title
+.row
+  .col-sm-8
+    %h1= title
+  .col-sm-4
+    - if can_track_anomalies?
+      = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
+        Track Issues
 
 = render 'client_summary'
 

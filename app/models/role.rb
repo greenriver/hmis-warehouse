@@ -60,6 +60,7 @@ class Role < ActiveRecord::Base
       :can_view_client_user_assignments,
       :can_export_hmis_data,
       :can_confirm_housing_release,
+      :can_track_anomalies,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

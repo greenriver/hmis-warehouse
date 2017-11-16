@@ -174,6 +174,7 @@ Rails.application.routes.draw do
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
+    resources :anomalies, except: [:show], controller: 'clients/anomalies'
     healthcare_routes()
   end
 

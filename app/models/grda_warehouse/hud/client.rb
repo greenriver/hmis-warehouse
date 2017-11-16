@@ -158,6 +158,9 @@ module GrdaWarehouse::Hud
     has_many :notes, class_name: GrdaWarehouse::ClientNotes::Base.name, inverse_of: :client
     has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
     has_many :window_notes, class_name: GrdaWarehouse::ClientNotes::WindowNote.name
+    has_many :anomaly_notes, class_name: GrdaWarehouse::ClientNotes::AnomalyNote.name
+
+    has_many :anomalies, class_name: GrdaWarehouse::Anomaly.name
 
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
     has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
