@@ -1,7 +1,7 @@
 = simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
   .row
     .col-sm-6
-      - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :ha_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household].each do |column|
+      - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :ha_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible].each do |column|
         = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column]
     .col-sm-6
       = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}

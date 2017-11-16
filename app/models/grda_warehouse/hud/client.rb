@@ -760,7 +760,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_columns
-      {
+      @cas_columns ||= {
         disability_verified_on: _('Disability Verification on File'),
         housing_release_status: _('Housing Release Status'),
         full_housing_release: _('Full HAN Release on File'),
@@ -778,7 +778,8 @@ module GrdaWarehouse::Hud
         meth_production_conviction: _('Meth Production Conviction'),
         family_member: _('Part of a family'),
         child_in_household: _('Children under age 18 in household'),
-        ha_eligible: _('Housing Authority Eligible')
+        ha_eligible: _('Housing Authority Eligible'),
+        cspech_eligible: _('CSPECH Eligible'),
       }
     end
 
@@ -789,25 +790,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_readiness_parameters
-      [
-        :hues_eligible,
-        :va_eligible,
-        :dmh_eligible,
-        :sync_with_cas,
-        :hiv_positive,
-        :housing_release_status,
-        :disability_verified_on,
-        :housing_assistance_network_released_on,
-        :chronically_homeless_for_cas,
-        :us_citizen,
-        :asylee,
-        :ineligible_immigrant,
-        :lifetime_sex_offender,
-        :meth_production_conviction,
-        :family_member,
-        :child_in_household,
-        :ha_eligible,
-      ]
+      cas_columns.keys + [:housing_assistance_network_released_on]
     end
 
     def invalidate_service_history
