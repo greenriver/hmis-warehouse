@@ -74,6 +74,9 @@ msgstr ""
 msgid "Front Door Triage"
 msgstr ""
 
+msgid "Full HAN Release"
+msgstr ""
+
 msgid "Full HAN Release on File"
 msgstr ""
 
@@ -123,6 +126,9 @@ msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
 msgid "Life-Time Sex Offender"
+msgstr ""
+
+msgid "Limited CAS Release"
 msgstr ""
 
 msgid "Limited CAS Release on File"

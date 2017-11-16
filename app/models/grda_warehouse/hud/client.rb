@@ -290,10 +290,14 @@ module GrdaWarehouse::Hud
     end
 
     def self.full_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Full HAN Release')
       'Full HAN Release'
     end
 
     def self.partial_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Limited CAS Release')
       'Limited CAS Release'
     end
 
