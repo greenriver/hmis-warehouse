@@ -28,8 +28,8 @@ module HudChronic
 
     def set_sort
       client_at = client_source.arel_table
-      @column = params[:sort] || 'homeless_since'
-      @direction = params[:direction] || 'asc'
+      @column = params[:sort] || 'months_in_last_three_years'
+      @direction = params[:direction] || 'desc'
       table = %w(FirstName LastName).include?( @column ) ? client_at : hc_t
       @order = table[@column].send(@direction)
     end

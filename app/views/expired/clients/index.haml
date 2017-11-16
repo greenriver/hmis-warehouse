@@ -1,9 +1,6 @@
-- title = "Assigned Clients for #{@user.name}"
-- content_for :title, title
+= render 'assigned/clients/tab_navigation'
 
-= render 'tab_navigation'
-
-%h1= title
+%h1 Inactive Relationships
 
 %table.table.table-condensed
   %thead
@@ -13,12 +10,12 @@
       %th
         Relationship
       %th
-        Expires On
+        Expired On
       %th
         Confidential?
       %th
   %tbody
-    - @user_clients.each do |uc|
+    - @expired_clients.each do |uc|
       - client = uc.client
       %tr
         %td

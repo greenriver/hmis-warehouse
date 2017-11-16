@@ -25,6 +25,10 @@ module Window::Clients
       redirect_to action: :index 
     end
 
+    def update
+      @user.update(user_client_params)
+    end
+
     def destroy
       if @user.destroy
         flash[:notice] = "Relationship removed."
@@ -40,6 +44,8 @@ module Window::Clients
         :client_id,  
         :relationship,
         :confidential,
+        :start_date,
+        :end_date
       )
     end
 
