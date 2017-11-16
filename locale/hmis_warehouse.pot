@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-04 16:32-0400\n"
-"PO-Revision-Date: 2017-09-04 16:32-0400\n"
+"POT-Creation-Date: 2017-11-16 11:07-0500\n"
+"PO-Revision-Date: 2017-11-16 11:07-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -39,6 +39,9 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
+msgid "CSPECH Eligible"
+msgstr ""
+
 msgid "Children under age 18 in household"
 msgstr ""
 
@@ -52,6 +55,9 @@ msgid "City of Boston DND Warehouse"
 msgstr ""
 
 msgid "Clients"
+msgstr ""
+
+msgid "Cohorts"
 msgstr ""
 
 msgid "DMH Eligible"
@@ -84,6 +90,9 @@ msgstr ""
 msgid "HUES Eligible"
 msgstr ""
 
+msgid "Health Report"
+msgstr ""
+
 msgid "Housing Authority Eligible"
 msgstr ""
 
@@ -114,7 +123,7 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
-msgid "Life-Time Sex Offender Status"
+msgid "Life-Time Sex Offender"
 msgstr ""
 
 msgid "Limited CAS Release on File"
@@ -124,6 +133,9 @@ msgid "Meth Production Conviction"
 msgstr ""
 
 msgid "Missing Data Percentages"
+msgstr ""
+
+msgid "My Clients"
 msgstr ""
 
 msgid "Organizations"
@@ -196,6 +208,12 @@ msgid "Window into the Warehouse"
 msgstr ""
 
 msgid "Would you really like to delete this report result?"
+msgstr ""
+
+msgid "You can only see files you upload."
+msgstr ""
+
+msgid "You can only see notes you add."
 msgstr ""
 
 msgid "client"
