@@ -2,27 +2,36 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionTwo < Base
     MISSING_THRESHOLD = 10
     def run!
-      start_report()
-      set_project_metadata()
-      set_bed_coverage_data()
-      calculate_missing_universal_elements()
-      add_missing_enrollment_elements()
-      add_agency_entering_data()
-      add_length_of_stay()
-      destination_ph()
-      add_income_answers()
-      add_capacity_answers()
-      meets_data_quality_benchmark()
-      add_bed_utilization()
-      add_missing_values()
-      add_enrolled_length_of_stay()
-      add_clients_dob_enrollment_date()
-      add_night_by_night_missing()
-      add_service_after_close()
-      add_individuals_at_family_projects()
-      add_families_at_individual_projects()
-      add_enrollments_with_no_service()
-      finish_report()
+      progress_methods = [
+        :start_report,
+        :set_project_metadata,
+        :set_bed_coverage_data,
+        :calculate_missing_universal_elements,
+        :add_missing_enrollment_elements,
+        :add_agency_entering_data,
+        :add_length_of_stay,
+        :destination_ph,
+        :add_income_answers,
+        :add_capacity_answers,
+        :meets_data_quality_benchmark,
+        :add_bed_utilization,
+        :add_missing_values,
+        :add_enrolled_length_of_stay,
+        :add_clients_dob_enrollment_date,
+        :add_night_by_night_missing,
+        :add_service_after_close,
+        :add_individuals_at_family_projects,
+        :add_families_at_individual_projects,
+        :add_enrollments_with_no_service,
+        :finish_report,
+      ]
+      progress_methods.each_with_index do |method, i|
+        percent = ((i/progress_methods.size.to_f)* 100) 
+        percent = 0.01 if percent == 0
+        Rails.logger.info "Starting #{method}, #{percent.round(2)}% complete"
+        self.send(method)
+        Rails.logger.info "Completed #{method}"
+      end
     end
 
     def self.length_of_stay_buckets
