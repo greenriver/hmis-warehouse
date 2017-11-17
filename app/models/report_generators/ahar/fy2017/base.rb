@@ -1389,7 +1389,10 @@ module ReportGenerators::Ahar::Fy2017
         sub_types.each do |sub_type, dates_of_stay|
           if client_has_entry_in_sub_type(client_id, sub_type)
             first_entry = first_entry_in_category(client_id, sub_type)
-            @answers[sub_type][length_of_stay_category(client_id, dates_of_stay, first_entry)] += 1
+            # Only count clients who have stays in this category
+            if dates_of_stay.present?
+              @answers[sub_type][length_of_stay_category(client_id, dates_of_stay, first_entry)] += 1
+            end
           end
         end
       end
@@ -1588,7 +1591,6 @@ module ReportGenerators::Ahar::Fy2017
       end
     end
 
-    # FIXME? This should look at service per client, not entries
     # {1 => {PSH-FAM: 10, ES-FAM: 30}}
     def length_of_stay_per_id_by_project_type
       @length_of_stay_per_id_by_project_type ||= {}.tap do |m|
@@ -1613,7 +1615,7 @@ module ReportGenerators::Ahar::Fy2017
         fields = [:date, :client_id, :enrollment_group_id]
         involved_entries_scope.where(
           date: (@report_start...@report_end),
-          record_type: 'service'
+          record_type: :service
         ).
         pluck(*fields).
         map do |row|
