@@ -47,8 +47,13 @@
       %dd= yes_no @vispdat.hiv_release
   .row
     .col-sm-4
-      %dt Housing Release Confirmed?
-      %dd= yes_no @vispdat.housing_release_confirmed
+      - if can_confirm_housing_release?
+        %label{ for: 'housing_release_confirmed', style: "cursor:pointer" }
+          = check_box_tag :housing_release_confirmed, '1', @vispdat.housing_release_confirmed, data: { remote: true, url: polymorphic_path(vispdat_path_generator), method: :patch }
+          %strong Housing Release Confirmed
+      - else
+        %dt Housing Release Confirmed?
+        %dd= yes_no @vispdat.housing_release_confirmed
 
 %h2 History of Housing & Homelessness
 .well

@@ -146,7 +146,7 @@ module GrdaWarehouse
 
     def set_client_housing_release_status
       if housing_release_confirmed_changed?
-        status = housing_release_confirmed? ? 'Full HAN Release' : ''
+        status = housing_release_confirmed? ? GrdaWarehouse::Hud::Client.full_release_string : ''
         client.update_column :housing_release_status, status
       end
     end
