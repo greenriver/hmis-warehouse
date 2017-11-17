@@ -50,6 +50,8 @@ module Window::Clients
         @vispdat.update(vispdat_params.merge(submitted_at: Time.now, active: true, user_id: current_user.id))
         # mark any other actives as inactive
         @client.vispdats.where(active: true).where.not(id: @vispdat.id).update_all(active: false)
+      elsif @vispdat.submitted_at.present?
+        @vispdat.update_column(:housing_release_confirmed, params[:housing_release_confirmed].present? )
       else
         @vispdat.assign_attributes(vispdat_params.merge(user_id: current_user.id))
         @vispdat.save(validate: false)
