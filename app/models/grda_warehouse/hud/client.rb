@@ -279,6 +279,16 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    scope :age_group, -> (start_age: 0, end_age: nil) do
+      start_age = 0 unless start_age.is_a?(Integer)
+      end_age   = nil unless end_age.is_a?(Integer)
+      if end_age.present?
+        where(DOB: end_age.years.ago..start_age.years.ago)
+      else
+        where(arel_table[:DOB].lteq(start_age.years.ago))
+      end
+    end
+
     ####################
     # Callbacks
     ####################
@@ -290,11 +300,29 @@ module GrdaWarehouse::Hud
     end
 
     def self.full_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Full HAN Release')
       'Full HAN Release'
     end
 
     def self.partial_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Limited CAS Release')
       'Limited CAS Release'
+    end
+
+    def self.ahar_age_groups
+      {
+        range_0_to_1: { name: "< 1 yr old", start_age: 0, end_age: 1},
+        range_1_to_5: { name: "1 - 5 yrs old", start_age: 1, end_age: 6},
+        range_6_to_12: { name: "6 - 12 yrs old", start_age: 6, end_age: 13},
+        range_13_to_17: { name: "13 - 17 yrs old", start_age: 13, end_age: 18},
+        range_18_to_24: { name: "18 - 24 yrs old", start_age: 18, end_age: 25},
+        range_25_to_30: { name: "25 - 30 yrs old", start_age: 25, end_age: 31},
+        range_31_to_50: { name: "31 - 50 yrs old", start_age: 31, end_age: 51},
+        range_51_to_61: { name: "51 - 61 yrs old", start_age: 51, end_age: 62},
+        range_62_to_nil: { name: "62+ yrs old", start_age: 62, end_age: nil }
+      }
     end
 
     def active_in_cas?

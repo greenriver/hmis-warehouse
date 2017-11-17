@@ -7,7 +7,7 @@
     Filter
     %span.caret
   .dropdown-menu.dropdown-menu-right.options
-    %p Limit clients by dates served
+    %h3.client__filter-header Limit clients by:
     = form_tag(nil, method: :get) do
       -# preserve sort and search for filtering
       - if params[:sort] 
@@ -16,7 +16,8 @@
         = hidden_field_tag :direction, params[:direction]
       - if params[:q] 
         = hidden_field_tag :q, params[:q]
-      .row
+      %h4 Dates Served
+      .row          
         .col-xs-5
           .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
             %input.form-control{name: :start_date, type: :date, value: @start_date}
@@ -32,7 +33,7 @@
           .checkbox
             %label{for: :data_sharing}
               %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing} 
-              Fully signed data sharing agreement
+              = _('Fully signed data sharing agreement')
       .row
         .col-xs-6
           %p

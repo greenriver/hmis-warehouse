@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-16 11:07-0500\n"
-"PO-Revision-Date: 2017-11-16 11:07-0500\n"
+"POT-Creation-Date: 2017-11-16 13:09-0500\n"
+"PO-Revision-Date: 2017-11-16 13:09-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -75,6 +75,9 @@ msgstr ""
 msgid "Front Door Triage"
 msgstr ""
 
+msgid "Full HAN Release"
+msgstr ""
+
 msgid "Full HAN Release on File"
 msgstr ""
 
@@ -124,6 +127,9 @@ msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
 msgid "Life-Time Sex Offender"
+msgstr ""
+
+msgid "Limited CAS Release"
 msgstr ""
 
 msgid "Limited CAS Release on File"
