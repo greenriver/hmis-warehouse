@@ -68,7 +68,7 @@ module ClientController
       end
 
       if params[:data_sharing].present? && params[:data_sharing] == '1'
-        @clients = @clients.joins(:source_hmis_clients).where(hmis_clients: {consent_form_status: 'Signed fully'})
+        @clients = @clients.full_housing_release_on_file
         @data_sharing = 1
       end
 
