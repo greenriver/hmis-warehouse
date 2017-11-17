@@ -45,13 +45,19 @@ module Window::Clients
     end
 
     def update
+      # We're marking this VI-SPDAT as complete
       if params[:commit]=='Complete'
         # set this one as active
         @vispdat.update(vispdat_params.merge(submitted_at: Time.now, active: true, user_id: current_user.id))
         # mark any other actives as inactive
         @client.vispdats.where(active: true).where.not(id: @vispdat.id).update_all(active: false)
+      # Post completion we are marking the housing release as confirmed
       elsif @vispdat.submitted_at.present?
+        @vispdat.update_attribute(:housing_release_confirmed, params[:housing_release_confirmed].present? )
+        @vispdat.set_client_housing_release_status
         @vispdat.update_column(:housing_release_confirmed, params[:housing_release_confirmed].present? )
+        
+      # We're updating an incomplete VI-SPDAT
       else
         @vispdat.assign_attributes(vispdat_params.merge(user_id: current_user.id))
         @vispdat.save(validate: false)
