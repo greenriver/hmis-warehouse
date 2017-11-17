@@ -61,8 +61,14 @@ module ClientController
         @clients = @clients.joins(:vispdats).merge(vispdats.active)
       end
 
+      age_group = params[:age_group]
+      if age_group.present?
+        group = GrdaWarehouse::Hud::Client.ahar_age_groups[age_group.to_sym]
+        @clients = @clients.age_group( group.slice(:start_age, :end_age) )
+      end
+
       if params[:data_sharing].present? && params[:data_sharing] == '1'
-        @clients = @clients.joins(:source_hmis_clients).where(hmis_clients: {consent_form_status: 'Signed fully'})
+        @clients = @clients.full_housing_release_on_file
         @data_sharing = 1
       end
 
