@@ -1309,15 +1309,16 @@ module ReportGenerators::Ahar::Fy2017
         data_source_id = entry[service_history_data_source_id_index]
         # Default to unknown
         disability_status = 'Disabled_Mx'
-        # If we answerd Universal Data Element: 3.8 Disabling Condition, use that
+        # If we answered Universal Data Element: 3.8 Disabling Condition, use that
         if involved_enrollments_by_entry_id_and_data_source_id[[enrollment_group_id, data_source_id]].present?
           disability_status = HUD::no_yes_reasons_for_missing_data(involved_enrollments_by_entry_id_and_data_source_id[[enrollment_group_id, data_source_id]][enrollment_disabling_condition_index])         
         end
         # Override the previous answer with a YES if:
+        # The previous answer was unknown
         # Disability type = Substance Abuse (10)
         # Data element 4.10 is ‘Alcohol abuse’ or ‘Drug abuse’ or ‘Both alcohol and drug abuse’ [1,2,3]
         # and Expected to be of long-continued duration and substantially impairs ability to live independently is also ‘Yes,’ (IndefiniteAndImpairs == 1)
-        if disabilities_by_client_id[client_id].present?
+        if disability_status == 'Disabled_Mx' && disabilities_by_client_id[client_id].present?
           disabilities = disabilities_by_client_id[client_id].select do |m|
             disability_type = m[disability_disability_type_index]
             long_term = m[disability_indefinite_and_impairs_index]
