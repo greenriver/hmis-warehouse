@@ -1314,11 +1314,11 @@ module ReportGenerators::Ahar::Fy2017
           disability_status = HUD::no_yes_reasons_for_missing_data(involved_enrollments_by_entry_id_and_data_source_id[[enrollment_group_id, data_source_id]][enrollment_disabling_condition_index])         
         end
         # Override the previous answer with a YES if:
-        # The previous answer was unknown
+        # The previous answer was unknown or no
         # Disability type = Substance Abuse (10)
         # Data element 4.10 is ‘Alcohol abuse’ or ‘Drug abuse’ or ‘Both alcohol and drug abuse’ [1,2,3]
         # and Expected to be of long-continued duration and substantially impairs ability to live independently is also ‘Yes,’ (IndefiniteAndImpairs == 1)
-        if disability_status == 'Disabled_Mx' && disabilities_by_client_id[client_id].present?
+        if (disability_status == 'No' || disability_status == 'Disabled_Mx') && disabilities_by_client_id[client_id].present?
           disabilities = disabilities_by_client_id[client_id].select do |m|
             disability_type = m[disability_disability_type_index]
             long_term = m[disability_indefinite_and_impairs_index]
@@ -1391,9 +1391,11 @@ module ReportGenerators::Ahar::Fy2017
           if client_has_entry_in_sub_type(client_id, sub_type)
             first_entry = first_entry_in_category(client_id, sub_type)
             # Only count clients who have stays in this category
-            if dates_of_stay.present?
+            # FIXME: the dates_of_stay is returning as empty for clients who have open enrollments during the reporting period, but for whom we haven't received supporting source data since before the reporting period.
+            # This is seriously increasing the MX count
+            # if dates_of_stay.present?
               @answers[sub_type][length_of_stay_category(client_id, dates_of_stay, first_entry)] += 1
-            end
+            # end
           end
         end
       end
@@ -1614,10 +1616,8 @@ module ReportGenerators::Ahar::Fy2017
       (client_id, enrollment_group_id) = entry.values_at(service_history_client_id_index, service_history_enrollment_group_id_index)
       @dates_by_client_id_enrollment_id ||= begin
         fields = [:date, :client_id, :enrollment_group_id]
-        involved_entries_scope.where(
-          date: (@report_start...@report_end),
-          record_type: :service
-        ).
+        involved_entries_scope.service.
+          where(date: (@report_start...@report_end)).
         pluck(*fields).
         map do |row|
           fields.zip(row).to_h
@@ -1714,7 +1714,7 @@ module ReportGenerators::Ahar::Fy2017
       @clients_by_sub_type ||= begin 
         by_sub_type = SUB_TYPES.map{|m| [m, Set.new]}.to_h
         entries_by_client_id.each do |id, entries|
-          entries.map.each do |entry|
+          entries.each do |entry|
             family = entry_belongs_to_family(entry)
             project_type = entry[service_history_project_type_index]
             by_sub_type[sub_type(project_type, family)] << id
@@ -1760,7 +1760,7 @@ module ReportGenerators::Ahar::Fy2017
       end
     end
 
-    # Find any clients who were served by ES, PSH, TH between 10/1/2015 and 9/30/2016
+    # Find any clients who were served by ES, PSH, TH between report_start and report_end
     def entries_by_client_id
       @entries_by_client_id ||= involved_entries.group_by do |m|
         m[service_history_client_id_index]
@@ -1876,7 +1876,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def sh_cols 
-      service_history_columns.map{|m| m == :project_type ? act_as_project_overlay : m}
+      @sh_cols ||= service_history_columns.map{|m| m == :project_type ? act_as_project_overlay : m}
     end
 
     def service_history_columns
