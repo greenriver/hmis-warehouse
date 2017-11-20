@@ -215,21 +215,32 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_answers(answers, support)
     end
 
+    # FIXME: this needs to look at source services
     def add_service_after_close
+      raise 'FIXME'
       service_after_close = {}
       projects.each do |project|
-        service_after_close[project.id] = client_scope.
+        service_after_close[project.id] = client_scope.entry.
           where(Project: {id: project.id}).
-          where(client_id: service_scope.
-            where(Project: {id: project.id}).
+          merge(Project.night_by_night).
+          where.not(last_date_in_program: nil).
+          pluck(*service_columns.values).
+          map do |row|
+            Hash[service_columns.keys.zip(row)]
+          end.select do |row|
+            raise 'FIXME'
+            client_scope.
+              where(client_id: row[:id].
+              where(Project: {id: project.id}).
+              where(first_date_in_program: row[:first_date_in_program]).
+
             where.not(last_date_in_program: nil).
             where(sh_t[:date].gt(sh_t[:last_date_in_program])).
             distinct.
             select(:client_id)
-          ).pluck(*service_columns.values).
-          map do |row|
-            Hash[service_columns.keys.zip(row)]
+          )
           end
+        end
       end
       answers = {
         service_after_close: service_after_close.map do |project_id, clients|
@@ -264,14 +275,25 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if project.TrackingMethod == 3
           missing_nights[project.id] = client_scope.
             where(Project: {id: project.id}).
-            where.not(
-              client_id: service_scope.
-              where(Project: {id: project.id}).
-              where(date: (self.end - 30.days..self.end)).
-              distinct.select(:client_id)
-            ).pluck(*service_columns.values).
+            pluck(*service_columns.values).
             map do |row|
               Hash[service_columns.keys.zip(row)]
+            end.select do |row|
+              # set the range to the last 30 days of the enrollment or reporting period
+              # if the enrollment is still open
+              end_date = self.end
+              if row[:last_date_in_program].present? && row[:last_date_in_program] < self.end
+                end_date = row[:last_date_in_program]          
+              end
+              start_date = end_date - 30.days              
+              # Only count clients with no service provided within the last 30 days
+              # of their enrollment or the report
+              ! client_scope.where(
+                client_id: row[:id],
+                date: (start_date .. end_date),
+                first_date_in_program: row[:first_date_in_program],
+                Project: {id: project.id}
+              ).exists?
             end
         else
           missing_nights[project.id] = []

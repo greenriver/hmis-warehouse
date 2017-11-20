@@ -135,6 +135,9 @@ module GrdaWarehouse::Hud
       r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
       where(self.project_type_override.in(r_non_homeless))
     end
+    scope :night_by_night, -> do
+      where(TrackingMethod: 3)
+    end
 
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
