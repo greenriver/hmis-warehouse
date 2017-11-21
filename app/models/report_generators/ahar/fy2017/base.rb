@@ -1732,11 +1732,36 @@ module ReportGenerators::Ahar::Fy2017
        # make sure we include any project that is acting as one of our housing related projects
       GrdaWarehouse::ServiceHistory.joins(:client, project: :project_cocs).
         open_between(start_date: @report_start, end_date: @report_end).
-        where(p_t[:act_as_project_type].in(PH + TH + ES).
-          or(sh_t[:project_type].in((PH + TH + ES)).
-          and(p_t[:act_as_project_type].eq(nil)))
-        ).
-        where(ProjectCoC: {CoCCode: @coc_code})
+        hud_project_type(PH + TH + ES).
+        where(ProjectCoC: {CoCCode: @coc_code}).
+        where(clients_with_service)
+    end
+
+    # Only count clients who have at least one day of service during the scope
+    def clients_with_service
+
+      sub_query = GrdaWarehouse::ServiceHistory.service.distinct.
+        hud_project_type(PH).
+        select(:client_id).where(
+        date: (@report_start ... @report_end),
+      ).to_sql
+      ph_sub_query = sh_t[:client_id].in(Arel::Nodes::SqlLiteral.new(sub_query)).and(sh_t[:computed_project_type].in(PH))
+
+      sub_query = GrdaWarehouse::ServiceHistory.service.distinct.
+        hud_project_type(TH).
+        select(:client_id).where(
+        date: (@report_start ... @report_end),
+      ).to_sql
+      th_sub_query = sh_t[:client_id].in(Arel::Nodes::SqlLiteral.new(sub_query)).and(sh_t[:computed_project_type].in(TH))
+
+      sub_query = GrdaWarehouse::ServiceHistory.service.distinct.
+        hud_project_type(ES).
+        select(:client_id).where(
+        date: (@report_start ... @report_end),
+      ).to_sql
+      es_sub_query = sh_t[:client_id].in(Arel::Nodes::SqlLiteral.new(sub_query)).and(sh_t[:computed_project_type].in(ES))
+
+      ph_sub_query.or(th_sub_query).or(es_sub_query)
     end
 
     def involved_entries
