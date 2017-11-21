@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171114132110) do
+ActiveRecord::Schema.define(version: 20171116184557) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1227,6 +1227,20 @@ SELECT "Client"."PersonalID",
            FROM data_sources
           WHERE (data_sources.source_type IS NULL))))
   END_VIEW_REPORT_CLIENTS
+
+  create_table "report_definitions", force: :cascade do |t|
+    t.string "report_group"
+    t.text   "url"
+    t.text   "name"
+    t.text   "description"
+  end
+
+  create_table "report_definitions_users", force: :cascade do |t|
+    t.integer "report_definition_id"
+    t.integer "user_id",              :null=>false
+  end
+  add_index "report_definitions_users", ["report_definition_id", "user_id"], :name=>"report_definition_user", :using=>:btree
+  add_index "report_definitions_users", ["user_id", "report_definition_id"], :name=>"user_report_definition", :using=>:btree
 
   create_table "warehouse_clients", force: :cascade do |t|
     t.string   "id_in_source",    :null=>false

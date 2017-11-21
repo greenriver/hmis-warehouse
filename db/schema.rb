@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171115193025) do
+ActiveRecord::Schema.define(version: 20171108184341) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -113,16 +113,6 @@ ActiveRecord::Schema.define(version: 20171115193025) do
     t.string  "name"
     t.integer "nickname_id"
   end
-
-  create_table "report_definitions", force: :cascade do |t|
-  end
-
-  create_table "report_definitions_users", force: :cascade do |t|
-    t.integer "report_definition_id"
-    t.integer "user_id",              :null=>false
-  end
-  add_index "report_definitions_users", ["report_definition_id", "user_id"], :name=>"report_definition_user", :using=>:btree
-  add_index "report_definitions_users", ["user_id", "report_definition_id"], :name=>"user_report_definition", :using=>:btree
 
   create_table "report_results", force: :cascade do |t|
     t.integer  "report_id"
