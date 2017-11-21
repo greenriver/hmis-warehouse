@@ -1,14 +1,9 @@
 %ul.nav.nav-tabs{role: :tablist}
   - if can_view_reports?
-    %li.active{role: :presentation}
-      %a{href: '#other-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Operational Reports'}}
-        Operational Reports
-    %li{role: :presentation}
-      %a{href: '#data-quality-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Data Quality Reports'}}
-        Data Quality
-    %li{role: :presentation}
-      %a{href: '#cas-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'CAS Reports'}}
-        CAS
+    - GrdaWarehouse::WarehouseReports::ReportDefinition.group(:report_group).count.keys.each_with_index do |group_name, index|
+      %li{role: :presentation, class: (index == 0 ? 'active' : '')}
+        %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
+          #{group_name}
   - if can_view_aggregate_health?
     - active_class = ''
     - if ! can_view_reports?
