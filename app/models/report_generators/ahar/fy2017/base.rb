@@ -466,7 +466,9 @@ module ReportGenerators::Ahar::Fy2017
             sub_type = sub_type(project_type, family)
             exit_date = e[service_history_last_date_in_program_index]
             destination = destination_code(e[service_history_destination_index])
-            if ! counted_clients.include?([id, sub_type, 'entry'])
+            entry_date = e[service_history_first_date_in_program_index]
+            entry_within_report_range = (@report_start.to_date..@report_end.to_date).include?(entry_date.to_date)
+            if entry_within_report_range && ! counted_clients.include?([id, sub_type, 'entry'])
               @answers[sub_type]['Pers_Entered_PSH'] += 1
               counted_clients << [id, sub_type, 'entry']
             end
@@ -900,7 +902,8 @@ module ReportGenerators::Ahar::Fy2017
       }
       project_counts = {}
       groups.each do |slug, project_type|
-        family_served = if fam_ids_by_ds.any?
+        family_served = 0
+        if fam_ids_by_ds.any?
           family_scope = involved_entries_scope.
             hud_project_type(project_type).
             service_within_date_range(
@@ -924,23 +927,23 @@ module ReportGenerators::Ahar::Fy2017
             row = ["#{slug}-FAM", project_name, project_id, ds_id]
             project_counts[row] ||= Set.new
             project_counts[row] << sh[service_history_client_id_index]
-          end
-          
-          family_served_data.count
-        else
-          0
+          end  
+          # Count unique clients served as families
+          family_served = family_served_data.map do |sh|
+            sh[service_history_client_id_index]
+          end.uniq.count
         end
-        individuals_served = involved_entries_scope.
+        individuals_served_scope = involved_entries_scope.
           hud_project_type(project_type).
           service_within_date_range(
             start_date: @report_start.to_date - 1.day,
             end_date: @report_end
           )
         if fam_ids_by_ds.any?
-          individuals_served = individuals_served.where.not(fam_where)
+          individuals_served_scope = individuals_served_scope.where.not(fam_where)
         end
         Rails.logger.debug "Using traditional pluck for individual data"
-        individuals_served_data = individuals_served.pluck(*sh_cols)
+        individuals_served_data = individuals_served_scope.pluck(*sh_cols)
         # Remove any non-vet data for vets only run
         if vets_only
           individuals_served_data.delete_if do |row|
@@ -956,7 +959,10 @@ module ReportGenerators::Ahar::Fy2017
           project_counts[row] ||= Set.new
           project_counts[row] << sh[service_history_client_id_index]
         end
-        individuals_served = individuals_served_data.count
+        # Count unique clients served as individuals
+        individuals_served = individuals_served_data.map do |sh|
+          sh[service_history_client_id_index]
+        end.uniq.count
         @answers["#{slug}-FAM"]['Pers_Avg_Ngt'] = (family_served / 365.0).round(2)
         @answers["#{slug}-IND"]['Pers_Avg_Ngt'] = (individuals_served / 365.0).round(2)
       end
