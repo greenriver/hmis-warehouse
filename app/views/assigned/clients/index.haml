@@ -3,32 +3,6 @@
 
 = render 'tab_navigation'
 
-%h1= title
+%h1= content_for :title
 
-%table.table.table-condensed
-  %thead
-    %tr
-      %th
-        Client
-      %th
-        Relationship
-      %th
-        Expires On
-      %th
-        Confidential?
-      %th
-  %tbody
-    - @user_clients.each do |uc|
-      - client = uc.client
-      %tr
-        %td
-          - if @client_path
-            = link_to client.name, send(@client_path, id: client.id)
-          - else
-            = client.name
-        %td
-          = uc.relationship
-        %td
-          = uc.end_date || 'No Expiration'
-        %td
-          = checkmark(uc.confidential)
+= render 'assigned/clients/client_table', clients: @user_clients
