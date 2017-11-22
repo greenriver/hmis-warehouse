@@ -928,9 +928,9 @@ module ReportGenerators::Ahar::Fy2017
             project_counts[row] ||= Set.new
             project_counts[row] << sh[service_history_client_id_index]
           end  
-          # Count unique clients served as families
+          # Count unique clients served as families on each day
           family_served = family_served_data.map do |sh|
-            sh[service_history_client_id_index]
+            [sh[service_history_client_id_index], sh[service_history_date_index]]
           end.uniq.count
         end
         individuals_served_scope = involved_entries_scope.
@@ -959,9 +959,9 @@ module ReportGenerators::Ahar::Fy2017
           project_counts[row] ||= Set.new
           project_counts[row] << sh[service_history_client_id_index]
         end
-        # Count unique clients served as individuals
+        # Count unique clients served as individuals on each day
         individuals_served = individuals_served_data.map do |sh|
-          sh[service_history_client_id_index]
+          [sh[service_history_client_id_index], sh[service_history_date_index]]
         end.uniq.count
         @answers["#{slug}-FAM"]['Pers_Avg_Ngt'] = (family_served / 365.0).round(2)
         @answers["#{slug}-IND"]['Pers_Avg_Ngt'] = (individuals_served / 365.0).round(2)
@@ -1989,6 +1989,10 @@ module ReportGenerators::Ahar::Fy2017
 
     def service_history_client_id_index
       @service_history_client_id_index ||= service_history_columns.find_index(:client_id)
+    end
+
+    def service_history_date_index
+      @service_history_date_index ||= service_history_columns.find_index(:date)
     end
 
     def service_history_household_id_index
