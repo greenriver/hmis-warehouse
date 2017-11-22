@@ -916,7 +916,7 @@ module ReportGenerators::Ahar::Fy2017
           # Remove any non-vet data for vets only run
           if vets_only
             family_served_data.delete_if do |row|
-              all_vets.include?(row[service_history_client_id_index])
+              ! all_vets.include?(row[service_history_client_id_index])
             end
           end
           # Save off some supporing info
@@ -947,7 +947,7 @@ module ReportGenerators::Ahar::Fy2017
         # Remove any non-vet data for vets only run
         if vets_only
           individuals_served_data.delete_if do |row|
-            all_vets.include?(row[service_history_client_id_index])
+            ! all_vets.include?(row[service_history_client_id_index])
           end
         end
         
