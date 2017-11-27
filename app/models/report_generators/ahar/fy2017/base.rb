@@ -19,7 +19,13 @@ module ReportGenerators::Ahar::Fy2017
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
 
-    PH = [3,9,10,13] # Per Jennifer Flynn @ DND 2016 AHAR includes all 4
+    def self.ph
+      if GrdaWarehouse::Config.get(:ahar_psh_includes_rrh)
+        [3,9,10,13] # Per Jennifer Flynn @ DND 2016 AHAR includes all 4
+      else
+        [3,9,10] # AHAR doesn't generally include RRH
+      end
+    end
     TH = [2]
     ES = [1] 
     ADULT = 18
@@ -386,7 +392,7 @@ module ReportGenerators::Ahar::Fy2017
         gender = gender_code(client_metadata_by_client_id[id][client_gender_index], false).gsub('Mx_Gnd', 'MX')
         
         psh_ind_stays = entries.select do |e|
-          psh = PH.include?(e[service_history_project_type_index])
+          psh = self.class.ph.include?(e[service_history_project_type_index])
           family = entry_belongs_to_family(e)
           # Pick any PSH stays where the client was not in a family 
           psh && ! family
@@ -394,7 +400,7 @@ module ReportGenerators::Ahar::Fy2017
         most_recent_psh_ind_stay = psh_ind_stays.last
         
         psh_fam_stays = entries.select do |e|
-          psh = PH.include?(e[service_history_project_type_index])
+          psh = self.class.ph.include?(e[service_history_project_type_index])
           family = entry_belongs_to_family(e)
           # Pick any PSH stays where the client was in a family 
           psh && family
@@ -460,7 +466,7 @@ module ReportGenerators::Ahar::Fy2017
       entries_by_client_id.each do |id, entries|
         next unless vet_check(client_id: id)
         entries.each do |e|
-          if PH.include?(e[service_history_project_type_index])
+          if self.class.ph.include?(e[service_history_project_type_index])
             project_type = e[service_history_project_type_index]
             family = entry_belongs_to_family(e)
             sub_type = sub_type(project_type, family)
@@ -492,7 +498,7 @@ module ReportGenerators::Ahar::Fy2017
         psh = false
         entries.each do |e|
           break if psh
-          if PH.include?(e[service_history_project_type_index])
+          if self.class.ph.include?(e[service_history_project_type_index])
             psh = true
             project_type = e[service_history_project_type_index]
             family = entry_belongs_to_family(e)
@@ -518,7 +524,7 @@ module ReportGenerators::Ahar::Fy2017
     # def add_psh_destination_answers
     #   entries_by_client_id.each do |id, entries|
     #     destinations = entries.map do |e|
-    #       if e[service_history_destination_index].present? && PH.include?(e[service_history_project_type_index]) && e[service_history_last_date_in_program_index].to_date <= @report_end.to_date
+    #       if e[service_history_destination_index].present? && self.class.ph.include?(e[service_history_project_type_index]) && e[service_history_last_date_in_program_index].to_date <= @report_end.to_date
     #           project_type = e[service_history_project_type_index]
     #           family = entry_belongs_to_family(e)
     #           dest = destination_code(e[service_history_destination_index])
@@ -564,7 +570,7 @@ module ReportGenerators::Ahar::Fy2017
               the_sub_type = 'TH-IND'
             elsif ES.include?(project_type)
               the_sub_type = 'ES-IND'
-            elsif PH.include?(project_type)
+            elsif self.class.ph.include?(project_type)
               the_sub_type = 'PSH-IND'
             end
             unless counted_clients.include?([client_id, the_sub_type])
@@ -611,7 +617,7 @@ module ReportGenerators::Ahar::Fy2017
               group = 'TH-FAM'
             elsif ES.include?(project_type)
               group = 'ES-FAM'
-            elsif PH.include?(project_type)
+            elsif self.class.ph.include?(project_type)
               group = 'PSH-FAM'
             end
             [group, household_id]
@@ -641,7 +647,7 @@ module ReportGenerators::Ahar::Fy2017
           ES.include?(entry[service_history_project_type_index]) && entry_belongs_to_family(entry)
         end
         fam_ph_entries = entries.select do |entry|
-          PH.include?(entry[service_history_project_type_index]) && entry_belongs_to_family(entry)
+          self.class.ph.include?(entry[service_history_project_type_index]) && entry_belongs_to_family(entry)
         end
         if fam_th_entries.any?
           household_types = []
@@ -888,7 +894,7 @@ module ReportGenerators::Ahar::Fy2017
       fam_where = fam_wheres.join(' or ')
 
       groups = {
-        'PSH' => PH,
+        'PSH' => self.class.ph,
         'ES' => ES,
         'TH' => TH,
       }
@@ -1381,7 +1387,7 @@ module ReportGenerators::Ahar::Fy2017
         suffix = 'FAM'
       end
       case project_type
-      when *PH
+      when *self.class.ph
        "PSH-#{suffix}"
       when *TH
         "TH-#{suffix}"
@@ -1412,11 +1418,11 @@ module ReportGenerators::Ahar::Fy2017
       case sub_type
       when 'PSH-FAM'
         entries.select do |entry|
-          PH.include?(entry[service_history_project_type_index]) && entry_belongs_to_family(entry)
+          self.class.ph.include?(entry[service_history_project_type_index]) && entry_belongs_to_family(entry)
         end.first
       when 'PSH-IND'
         entries.select do |entry|
-          PH.include?(entry[service_history_project_type_index]) && ! entry_belongs_to_family(entry)
+          self.class.ph.include?(entry[service_history_project_type_index]) && ! entry_belongs_to_family(entry)
         end.first
       when 'ES-FAM'
         entries.select do |entry|
@@ -1738,7 +1744,7 @@ module ReportGenerators::Ahar::Fy2017
        # make sure we include any project that is acting as one of our housing related projects
       GrdaWarehouse::ServiceHistory.joins(:client, project: :project_cocs).
         open_between(start_date: @report_start, end_date: @report_end).
-        hud_project_type(PH + TH + ES).
+        hud_project_type(self.class.ph + TH + ES).
         where(ProjectCoC: {CoCCode: @coc_code}).
         where(clients_with_service)
     end
@@ -1747,11 +1753,11 @@ module ReportGenerators::Ahar::Fy2017
     def clients_with_service
 
       sub_query = GrdaWarehouse::ServiceHistory.service.distinct.
-        hud_project_type(PH).
+        hud_project_type(self.class.ph).
         select(:client_id).where(
         date: (@report_start ... @report_end),
       ).to_sql
-      ph_sub_query = sh_t[:client_id].in(Arel::Nodes::SqlLiteral.new(sub_query)).and(sh_t[:computed_project_type].in(PH))
+      ph_sub_query = sh_t[:client_id].in(Arel::Nodes::SqlLiteral.new(sub_query)).and(sh_t[:computed_project_type].in(self.class.ph))
 
       sub_query = GrdaWarehouse::ServiceHistory.service.distinct.
         hud_project_type(TH).
@@ -1889,7 +1895,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     #  def project_types_by_project_id_and_data_source_id
-    #   @project_types_by_project_id_and_data_source_id ||= GrdaWarehouse::Hud::Project.where.not(act_as_project_type: nil).where(act_as_project_type: (PH + TH + ES)).pluck(*project_columns).map{|m| [[m[project_project_id_index],m[project_data_source_id_index]], m[project_act_as_project_type_index]] }.to_h
+    #   @project_types_by_project_id_and_data_source_id ||= GrdaWarehouse::Hud::Project.where.not(act_as_project_type: nil).where(act_as_project_type: (self.class.ph + TH + ES)).pluck(*project_columns).map{|m| [[m[project_project_id_index],m[project_data_source_id_index]], m[project_act_as_project_type_index]] }.to_h
     # end
 
     #  def project_columns
