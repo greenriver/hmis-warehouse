@@ -19,11 +19,11 @@ module ReportGenerators::Ahar::Fy2017
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
 
-    if GrdaWarehouse::Config.get(:ahar_psh_includes_rrh)
+    # if GrdaWarehouse::Config.get(:ahar_psh_includes_rrh)
       PH = [3,9,10,13] # Per Jennifer Flynn @ DND 2016 AHAR includes all 4
-    else
+    # else
       PH = [3,9,10] # AHAR doesn't generally include RRH
-    end
+    # end
     TH = [2]
     ES = [1] 
     ADULT = 18
