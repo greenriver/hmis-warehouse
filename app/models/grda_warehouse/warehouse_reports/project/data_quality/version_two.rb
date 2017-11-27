@@ -280,7 +280,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end
           thirty_days_before_end = end_date - 30.days
           max_date = client_scope.service.where(
-            client_id: row[:id],
+            client_id: row[:client_id],
             first_date_in_program: row[:first_date_in_program],
             enrollment_group_id: row[:enrollment_group_id]
           ).maximum(:date)

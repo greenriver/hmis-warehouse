@@ -4,8 +4,14 @@ module WarehouseReports::Project
     before_action :set_projects, :set_project_groups
 
     def show
-      start_date = Date.new(Date.today.year-2,10,1)
-      end_date = Date.new(Date.today.year-1,9,30)
+      
+      if Date.today.month < 10
+        start_date = Date.new(Date.today.year-2,10,1)
+        end_date = Date.new(Date.today.year-1,9,30)
+      else
+        start_date = Date.new(Date.today.year-1,10,1)
+        end_date = Date.new(Date.today.year,9,30)
+      end
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
     end
 
