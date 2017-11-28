@@ -17,7 +17,9 @@
         %span.icon-menu
         VI-SPDAT List
     = content_for :title
-    %small(data-toggle='tooltip' title="Vulnerability Index - Service Prioritization Decision Assistance Tool")VI-SPDAT
+    %small(data-toggle='tooltip' title="Vulnerability Index - Service Prioritization Decision Assistance Tool")
+      = @vispdat.type.demodulize
+      VI-SPDAT
     .clearfix
   %hr
 

@@ -1,7 +1,7 @@
 class NotifyUser < ApplicationMailer
 
   def vispdat_completed vispdat_id
-    @vispdat = GrdaWarehouse::Vispdat.where(id: vispdat_id).first
+    @vispdat = GrdaWarehouse::Vispdat::Base.where(id: vispdat_id).first
     @user = User.where(id: @vispdat.user_id).first
     users_to_notify = User.where(notify_on_vispdat_completed: true).where.not(id: @user.id)
     users_to_notify.each do |user|

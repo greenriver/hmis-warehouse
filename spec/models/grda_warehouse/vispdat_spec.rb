@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Vispdat, type: :model do
+RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   
   let(:vispdat) { create :vispdat }
 
@@ -37,13 +37,13 @@ RSpec.describe GrdaWarehouse::Vispdat, type: :model do
   let(:vispdat) { create :vispdat, score: 8 }
 
   let(:score_8) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat ).to receive(:calculate_score).and_return( 8 )
+    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:calculate_score).and_return( 8 )
   end
   let(:homeless_gt_2_years) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat ).to receive(:days_homeless).and_return( 731 )
+    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:days_homeless).and_return( 731 )
   end
   let(:homeless_1_year) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat ).to receive(:days_homeless).and_return( 365 )
+    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:days_homeless).and_return( 365 )
   end
 
   describe 'priority_score' do

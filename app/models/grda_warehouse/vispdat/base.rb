@@ -1,5 +1,6 @@
-module GrdaWarehouse
-  class Vispdat < GrdaWarehouseBase
+module GrdaWarehouse::Vispdat
+  class Base < GrdaWarehouseBase
+    self.table_name = :vispdats
     ####################
     # Constants
     ####################
@@ -22,7 +23,15 @@ module GrdaWarehouse
       :language_punjabi,
       :language_german
     ]
-    enum sleep_answer: [:sleep_shelters, :sleep_transitional_housing, :sleep_safe_haven, :sleep_outdoors, :sleep_other, :sleep_refused]
+    enum sleep_answer: {
+      sleep_shelters: 0,
+      sleep_transitional_housing: 1,
+      sleep_safe_haven: 2,
+      sleep_outdoors: 3,
+      sleep_other: 4,
+      sleep_refused: 5,
+      sleep_couch_surfing: 6
+    }
 
     enum homeless_period: [:days, :weeks, :months, :years]
 
@@ -36,7 +45,7 @@ module GrdaWarehouse
     # Associations
     ####################
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    has_many :files, class_name: 'GrdaWarehouse::ClientFile'
+    has_many :files, class_name: 'GrdaWarehouse::ClientFile', foreign_key: 'vispdat_id'
 
     ####################
     # Behaviors
@@ -316,7 +325,7 @@ module GrdaWarehouse
       age >= 60 ? 1 : 0
     end
     def sleep_score
-      (sleep_outdoors? || sleep_other? || sleep_refused?) ? 1 : 0
+      (sleep_outdoors? || sleep_couch_surfing? || sleep_other? || sleep_refused?) ? 1 : 0
     end
     def homeless_score
       (years_homeless.to_i > 0 || episodes_homeless.to_i > 3) ? 1 : 0

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171116155352) do
+ActiveRecord::Schema.define(version: 20171128161058) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1825,6 +1825,14 @@ SELECT "Services"."ServicesID",
     t.integer  "user_id"
     t.integer  "priority_score"
     t.boolean  "active",                       :default=>false
+    t.string   "type",                                     :default=>"GrdaWarehouse::Vispdat::Individual"
+    t.integer  "marijuana_answer"
+    t.integer  "incarcerated_before_18_answer"
+    t.integer  "homeless_due_to_ran_away_answer"
+    t.integer  "homeless_due_to_religions_beliefs_answer"
+    t.integer  "homeless_due_to_family_answer"
+    t.integer  "homeless_due_to_gender_identity_answer"
+    t.integer  "violence_between_family_members_answer"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree

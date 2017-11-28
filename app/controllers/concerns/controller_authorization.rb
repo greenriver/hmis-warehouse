@@ -33,12 +33,12 @@ module ControllerAuthorization
   end
 
   def require_can_access_vspdat_list!
-    return true if GrdaWarehouse::Vispdat.any_visible_by?(current_user)    
+    return true if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)    
     not_authorized!
   end
 
   def require_can_create_or_modify_vspdat!
-    return true if GrdaWarehouse::Vispdat.any_modifiable_by(current_user)
+    return true if GrdaWarehouse::Vispdat::Base.any_modifiable_by(current_user)
     not_authorized!
   end
 

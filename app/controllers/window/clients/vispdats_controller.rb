@@ -34,9 +34,11 @@ module Window::Clients
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
 
+    # user param here to determine which vispdat to build
+    # individual, youth or family
     def create
       if @client.vispdats.in_progress.none?
-        @vispdat = @client.vispdats.build(user_id: current_user.id)
+        @vispdat = build_vispdat
         @vispdat.save(validate: false)
       else
         @vispdat = @client.vispdats.in_progress.first
@@ -115,15 +117,21 @@ module Window::Clients
       end
 
       def set_vispdat
-        @vispdat = vispdat_source.find(params[:id].to_i)
+        @vispdat = GrdaWarehouse::Vispdat::Base.find(params[:id].to_i)
+      end
+      
+      def build_vispdat
+        vispdat_type = params[:type] || "GrdaWarehouse::Vispdat::Individual"
+        @client.vispdats.build(user_id: current_user.id, type: vispdat_type)
       end
 
       def vispdat_params
-        params.require(:grda_warehouse_vispdat).permit(*vispdat_source.allowed_parameters)
-      end
-
-      def vispdat_source
-        GrdaWarehouse::Vispdat
+        # this will be one of:
+        # grda_warehouse_vispdat_individual
+        # grda_warehouse_vispdat_youth
+        # grda_warehouse_vispdat_family
+        param_key = @vispdat.class.model_name.param_key 
+        params.require( param_key ).permit(*@vispdat.class.allowed_parameters)
       end
 
       def file_params
