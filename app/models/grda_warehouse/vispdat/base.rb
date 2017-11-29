@@ -172,6 +172,11 @@ module GrdaWarehouse::Vispdat
       end
     end
 
+    def disassociate_files
+      # need unscoped to catch deleted files
+      files.unscoped.where(vispdat_id: id).update_all(vispdat_id: nil)
+    end
+
     def calculate_score
       self.score = pre_survey_score +
       history_score +
