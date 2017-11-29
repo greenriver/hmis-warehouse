@@ -1,0 +1,28 @@
+
+%h2 2nd Parent
+.well.vispdat
+  .row
+    .col-sm-12
+      = f.input :parent2_none, label: 'No second parent currently part of the household'
+  .row
+    .col-sm-4
+      = f.input :parent2_first_name
+    .col-sm-4
+      = f.input :parent2_nickname
+    .col-sm-4
+      = f.input :parent2_last_name
+  .row
+    .col-sm-4
+      = f.input :parent2_language_answer, collection: @vispdat.class.language_options, label: "Language", input_html: { class: 'select2' }
+  .row
+    .col-sm-4
+      = f.input :parent2_dob, label: "Date of Birth", start_year: 100.years.ago.year, end_year: 15.years.ago.year, as: :date_picker
+    .col-sm-4
+      = f.input :parent2_ssn
+  .row
+    .col-sm-4
+      = f.input :parent2_release_signed_on, label: "Consent Form Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
+    .col-sm-4
+      = f.input :parent2_drug_release, as: :radio_buttons, label: false
+    .col-sm-4
+      = f.input :parent2_hiv_release, as: :radio_buttons, label: false

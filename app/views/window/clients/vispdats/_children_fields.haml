@@ -1,0 +1,33 @@
+
+%h2 Children
+.well.vispdat
+  .row
+    .col-sm-8.col-md-offset-1
+      %label How many children under the age of 18 are currently with you?
+    .col-sm-1
+      = f.input :number_of_children_under_18_with_family, label: false
+    .col-sm-1
+      = f.input :number_of_children_under_18_with_family_refused, label: "Refused/Unsure"
+  .row
+    .col-sm-8.col-md-offset-1
+      %label How many children under the age of 18 are not currently with you, but you have reason to believe they will be joining you when you get housed?
+    .col-sm-1
+      = f.input :number_of_children_under_18_not_with_family, label: false
+    .col-sm-1
+      = f.input :number_of_children_under_18_not_with_family_refused, label: "Refused/Unsure"
+  .row
+    .col-sm-4
+      = f.input :any_member_pregnant, "IF HOUSEHOLD INCLUDES A FEMAIL: Is any member of the family currently pregnant?"
+      = f.input :any_member_pregnant_refused, label: "Refused/Unsure"
+
+  .row
+    .col-sm-12
+      - (7 - @vispdat.children.size).times { @vispdat.children.build }
+      - f.fields_for :children do |child|
+        .row
+          .col-sm-4
+            = child.input :first_name
+          .col-sm-4
+            = child.input :last_name
+          .col-sm-4
+            = child.input :dob, label: "Date of Birth", start_year: 18.years.ago.year, end_year: Date.today.year, as: :date_picker

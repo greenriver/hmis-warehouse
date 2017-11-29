@@ -92,7 +92,7 @@ module GrdaWarehouse::Vispdat
       jail
     ).each do |field|
       # if both blank, indicate that refused must be checked
-      validates [field, '_refused'].join.to_sym, presence: { message: 'should be checked if refusing to answering' }, if: -> { send(field.to_sym).blank? }
+      validates [field, '_refused'].join.to_sym, presence: { message: 'should be checked if refusing to answer' }, if: -> { send(field.to_sym).blank? }
 
       # if both blank, indicate a value is needed
       validates field.to_sym, presence: { message: 'please enter a value or mark refused' }, if: -> { send([field, '_refused?'].join.to_sym).blank? }

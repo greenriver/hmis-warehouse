@@ -1,0 +1,57 @@
+%h2 Family Unit
+.well.vispdat
+  .row
+    .col-sm-9
+      %label Are there any children that have been removed from the family by a child protection service within the last 180 days?
+    .col-sm-3
+      = f.input :any_children_removed_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_children_removed_answers), label: false
+  .row
+    .col-sm-9
+      %label Do you have any family legal issues that are being resolved in court or need to be resolved in court that would impact your housing or who may live within your housing?
+    .col-sm-3
+      = f.input :any_family_legal_issues_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_family_legal_issues_answers), label: false
+  .row
+    .col-sm-9
+      %label In the last 180 days have any children lived with family or friends because of your homelessness or housing situation?
+    .col-sm-3
+      = f.input :any_children_lived_with_family_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_children_lived_with_family_answers), label: false
+  .row
+    .col-sm-9
+      %label Has any child in the family experienced abuse or trauma in the last 180 days?
+    .col-sm-3
+      = f.input :any_child_abuse_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_child_abuse_answers), label: false
+  .row
+    .col-sm-9
+      %label 
+    .col-sm-3 IF THERE ARE SCHOOL-AGED CHILDREN: Do your children attend school more often than not each week? 
+      = f.input :children_attend_school_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:children_attend_school_answers), label: false
+  .row
+    .col-sm-9
+      %label Have the members of your family changed in the last 180 days, due to things like divorce, your kids coming back to live with you, someone leaving for military service or incarceration, a relative moving in, or anything like that?
+    .col-sm-3
+      = f.input :family_members_changed_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:family_members_changed_answers), label: false
+  .row
+    .col-sm-9
+      %label Do you anticipate any other adults or children coming to live with you within the first 180 days of being housed?
+    .col-sm-3
+      = f.input :other_family_members_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:other_family_members_answers), label: false
+  .row
+    .col-sm-9
+      %label Do you have two or more planned actvities each week as a family such as outings to the park, going to the library, visiting other family, watching a family movie, or anything like that?
+    .col-sm-3
+      = f.input :planned_family_activities_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:planned_family_activities_answers), label: false
+  .row
+    .col-sm-9
+      %label After school, or on weekends or days when there isn’t school, is the total time children spend each day where there is no interaction with you or another responsible adult 3 or more hours per day for children aged 13 or older?
+    .col-sm-3
+      = f.input :time_spent_alone_13_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:time_spent_alone_13_answers), label: false
+  .row
+    .col-sm-9
+      %label  After school, or on weekends or days when there isn’t school, is the total time children spend each day where there is no interaction with you or another responsible adult 2 or more hours per day for children aged 12 or younger?
+    .col-sm-3
+      = f.input :time_spent_alone_12_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:time_spent_alone_12_answers), label: false
+  .row
+    .col-sm-9
+      %label IF THERE ARE CHILDREN BOTH 12 AND UNDER & 13 AND OVER: Do your older kids spend 2 or more hours on a typical day helping their younger sibling(s) with things like getting ready for school, helping with homework, making them dinner, bathing them, or anything like that?
+    .col-sm-3
+      = f.input :time_spent_helping_siblings_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:time_spent_helping_siblings_answers), label: false

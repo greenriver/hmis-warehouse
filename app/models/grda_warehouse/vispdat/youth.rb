@@ -1,7 +1,14 @@
 module GrdaWarehouse::Vispdat
   class Youth < Base
 
-    %w( marijuana violence_between_family_members homeless_due_to_ran_away homeless_due_to_religions_beliefs homeless_due_to_family homeless_due_to_gender_identity incarcerated_before_18).each do |field|
+    %w( 
+      marijuana violence_between_family_members 
+      homeless_due_to_ran_away 
+      homeless_due_to_religions_beliefs 
+      homeless_due_to_family 
+      homeless_due_to_gender_identity 
+      incarcerated_before_18
+    ).each do |field|
       enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
     end
 

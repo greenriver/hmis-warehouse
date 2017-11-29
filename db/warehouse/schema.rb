@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171128161058) do
+ActiveRecord::Schema.define(version: 20171129172903) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -779,6 +779,16 @@ ActiveRecord::Schema.define(version: 20171128161058) do
     t.integer "days_of_service",    :default=>0, :null=>false
   end
   add_index "censuses_averaged_by_year", ["year", "data_source_id", "ProjectType", "OrganizationID", "ProjectID"], :name=>"index_censuses_ave_year_ds_id_proj_type_org_id_proj_id", :using=>:btree
+
+  create_table "children", force: :cascade do |t|
+    t.string   "first_name"
+    t.string   "last_name"
+    t.date     "dob"
+    t.integer  "family_id"
+    t.datetime "created_at", :null=>false
+    t.datetime "updated_at", :null=>false
+  end
+  add_index "children", ["family_id"], :name=>"index_children_on_family_id", :using=>:btree
 
   create_table "chronics", force: :cascade do |t|
     t.date    "date",                       :null=>false
@@ -1833,6 +1843,34 @@ SELECT "Services"."ServicesID",
     t.integer  "homeless_due_to_family_answer"
     t.integer  "homeless_due_to_gender_identity_answer"
     t.integer  "violence_between_family_members_answer"
+    t.boolean  "parent2_none",                                        :default=>false
+    t.string   "parent2_first_name"
+    t.string   "parent2_nickname"
+    t.string   "parent2_last_name"
+    t.string   "parent2_language_answer"
+    t.date     "parent2_dob"
+    t.string   "parent2_ssn"
+    t.date     "parent2_release_signed_on"
+    t.boolean  "parent2_drug_release",                                :default=>false
+    t.boolean  "parent2_hiv_release",                                 :default=>false
+    t.integer  "number_of_children_under_18_with_family"
+    t.boolean  "number_of_children_under_18_with_family_refused",     :default=>false
+    t.integer  "number_of_children_under_18_not_with_family"
+    t.boolean  "number_of_children_under_18_not_with_family_refused", :default=>false
+    t.boolean  "any_member_pregnant",                                 :default=>false
+    t.boolean  "any_member_pregnant_refused",                         :default=>false
+    t.boolean  "family_member_tri_morbidity_answer",                  :default=>false
+    t.boolean  "any_children_removed_answer",                         :default=>false
+    t.boolean  "any_family_legal_issues_answer",                      :default=>false
+    t.boolean  "any_children_lived_with_family_answer",               :default=>false
+    t.boolean  "any_child_abuse_answer",                              :default=>false
+    t.boolean  "children_attend_school_answer",                       :default=>false
+    t.boolean  "family_members_changed_answer",                       :default=>false
+    t.boolean  "other_family_members_answer",                         :default=>false
+    t.boolean  "planned_family_activities_answer",                    :default=>false
+    t.boolean  "time_spent_alone_13_answer",                          :default=>false
+    t.boolean  "time_spent_alone_12_answer",                          :default=>false
+    t.boolean  "time_spent_helping_siblings_answer",                  :default=>false
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
