@@ -1,11 +1,12 @@
 module GrdaWarehouse::Vispdat
   class Family < Base
 
-    has_many :children, class_name: 'GrdaWarehouse::Vipdat::Child'
+    has_many :children
 
     accepts_nested_attributes_for :children, allow_destroy: true, limit: 7, reject_if: :all_blank
 
     %w(
+      any_member_pregnant
       family_member_tri_morbidity
       any_children_removed
       any_family_legal_issues
@@ -27,7 +28,6 @@ module GrdaWarehouse::Vispdat
     %w(
       number_of_children_under_18_with_family
       number_of_children_under_18_not_with_family
-      any_member_pregnant
     ).each do |field|
       # if both blank, indicate that refused must be checked
       validates [field, '_refused'].join.to_sym, presence: { message: 'should be checked if refusing to answer' }, if: -> { send(field.to_sym).blank? }
@@ -152,7 +152,14 @@ module GrdaWarehouse::Vispdat
     def dob_score
       parent1_age = client.age
       return 0 if parent1_age.blank? && parent2_age.blank?
-      (parent1_age >= 60 || parent2_age >= 60) ? 1 : 0
+      return 1 if parent1_age && parent1_age >= 60
+      return 1 if parent2_age && parent2_age >= 60
+      return 0
+    end
+
+    def parent2_age
+      return if parent2_dob.blank?
+      (Date.today - parent2_dob) / 365.25
     end
 
     def family_size_score

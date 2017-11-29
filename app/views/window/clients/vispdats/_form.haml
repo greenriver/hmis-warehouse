@@ -71,8 +71,8 @@
         = f.input :hiv_release, as: :radio_buttons, label: false
 
   - if @vispdat.family?
-    = render 'parent2_fields'
-    = render 'children_fields'
+    = render 'parent2_fields', f: f
+    = render 'children_fields', f: f
 
 
   %h2 History of Housing & Homelessness
@@ -347,7 +347,7 @@
           = f.input :trauma_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:trauma_answers), label: false
 
   - if @vispdat.family?
-    = render 'family_unit'
+    = render 'family_unit', f: f
 
   %h2 Follow-Up Questions
   .well

@@ -1,3 +1,5 @@
-class GrdaWarehouse::Vispdat::Child < ActiveRecord::Base
-  belongs_to :family, class_name: 'GrdaWarehouse::Vispdat::Family'
+module GrdaWarehouse::Vispdat
+  class Child < GrdaWarehouseBase
+    belongs_to :family
+  end
 end

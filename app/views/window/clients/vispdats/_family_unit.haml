@@ -22,8 +22,8 @@
       = f.input :any_child_abuse_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_child_abuse_answers), label: false
   .row
     .col-sm-9
-      %label 
-    .col-sm-3 IF THERE ARE SCHOOL-AGED CHILDREN: Do your children attend school more often than not each week? 
+      %label IF THERE ARE SCHOOL-AGED CHILDREN: Do your children attend school more often than not each week?
+    .col-sm-3  
       = f.input :children_attend_school_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:children_attend_school_answers), label: false
   .row
     .col-sm-9
