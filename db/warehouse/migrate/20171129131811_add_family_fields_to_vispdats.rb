@@ -16,19 +16,18 @@ class AddFamilyFieldsToVispdats < ActiveRecord::Migration
     add_column :vispdats, :number_of_children_under_18_not_with_family,         :integer
     add_column :vispdats, :number_of_children_under_18_not_with_family_refused, :boolean, default: false
 
-    add_column :vispdats, :any_member_pregnant,                     :boolean, default: false
-    add_column :vispdats, :any_member_pregnant_refused,             :boolean, default: false
-    add_column :vispdats, :family_member_tri_morbidity_answer,      :boolean, default: false
-    add_column :vispdats, :any_children_removed_answer,             :boolean, default: false
-    add_column :vispdats, :any_family_legal_issues_answer,          :boolean, default: false
-    add_column :vispdats, :any_children_lived_with_family_answer,   :boolean, default: false
-    add_column :vispdats, :any_child_abuse_answer,                  :boolean, default: false
-    add_column :vispdats, :children_attend_school_answer,           :boolean, default: false
-    add_column :vispdats, :family_members_changed_answer,           :boolean, default: false
-    add_column :vispdats, :other_family_members_answer,             :boolean, default: false
-    add_column :vispdats, :planned_family_activities_answer,        :boolean, default: false
-    add_column :vispdats, :time_spent_alone_13_answer,              :boolean, default: false
-    add_column :vispdats, :time_spent_alone_12_answer,              :boolean, default: false
-    add_column :vispdats, :time_spent_helping_siblings_answer,      :boolean, default: false
+    add_column :vispdats, :any_member_pregnant_answer,              :integer
+    add_column :vispdats, :family_member_tri_morbidity_answer,      :integer
+    add_column :vispdats, :any_children_removed_answer,             :integer
+    add_column :vispdats, :any_family_legal_issues_answer,          :integer
+    add_column :vispdats, :any_children_lived_with_family_answer,   :integer
+    add_column :vispdats, :any_child_abuse_answer,                  :integer
+    add_column :vispdats, :children_attend_school_answer,           :integer
+    add_column :vispdats, :family_members_changed_answer,           :integer
+    add_column :vispdats, :other_family_members_answer,             :integer
+    add_column :vispdats, :planned_family_activities_answer,        :integer
+    add_column :vispdats, :time_spent_alone_13_answer,              :integer
+    add_column :vispdats, :time_spent_alone_12_answer,              :integer
+    add_column :vispdats, :time_spent_helping_siblings_answer,      :integer
   end
 end

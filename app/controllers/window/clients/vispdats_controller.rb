@@ -145,7 +145,7 @@ module Window::Clients
             :name,
             :note,
             :visible_in_window,
-            tag_list: [],
+            tag_list: []
           )
       end
 

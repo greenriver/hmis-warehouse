@@ -54,6 +54,11 @@ module GrdaWarehouse::Vispdat
       family_unit_score
     end
 
+    # family pre-survey include family size
+    def pre_survey_score
+      dob_score + family_size_score
+    end
+
     # family omits pregnancy question for physical health
     def physical_health_score
       (
@@ -169,11 +174,11 @@ module GrdaWarehouse::Vispdat
     def single_parent_score
       (single_parent_with_2plus_children? ||
        child_age_11_or_younger? ||
-       any_member_pregnant?) ? 1 : 0
+       any_member_pregnant_answer_yes?) ? 1 : 0
     end
 
     def two_parents_score
-      (two_parents_with_3plus_children? || child_age_6_or_younger? || any_member_pregnant?) ? 1 : 0
+      (two_parents_with_3plus_children? || child_age_6_or_younger? || any_member_pregnant_answer_yes?) ? 1 : 0
     end
 
     def single_parent_with_2plus_children?
@@ -181,7 +186,7 @@ module GrdaWarehouse::Vispdat
     end
 
     def child_age_11_or_younger?
-      children.any? { |child| child.dob <= 11.years.ago }
+      children.any? { |child| child.dob && child.dob <= 11.years.ago }
     end
 
     def two_parents_with_3plus_children?
@@ -189,11 +194,44 @@ module GrdaWarehouse::Vispdat
     end
 
     def child_age_6_or_younger?
-      children.any? { |child| child.dob <= 6.years.ago }
+      children.any? { |child| child.dob && child.dob <= 6.years.ago }
     end
 
     def two_parents?
       !parent2_none?
+    end
+
+    def self.allowed_parameters
+      super + [
+        :parent2_none,
+        :parent2_first_name,
+        :parent2_nickname,
+        :parent2_last_name,
+        :parent2_language_answer,
+        :parent2_dob,
+        :parent2_ssn,
+        :parent2_release_signed_on,
+        :parent2_drug_release,
+        :parent2_hiv_release,
+        :number_of_children_under_18_with_family,
+        :number_of_children_under_18_with_family_refused,
+        :number_of_children_under_18_not_with_family,
+        :number_of_children_under_18_not_with_family_refused,
+        :any_member_pregnant_answer,
+        :family_member_tri_morbidity_answer,
+        :any_children_removed_answer,
+        :any_family_legal_issues_answer,
+        :any_children_lived_with_family_answer,
+        :any_child_abuse_answer,
+        :children_attend_school_answer,
+        :family_members_changed_answer,
+        :other_family_members_answer,
+        :planned_family_activities_answer,
+        :time_spent_alone_13_answer,
+        :time_spent_alone_12_answer,
+        :time_spent_helping_siblings_answer,
+        children_attributes: [:id, :first_name, :last_name, :dob, :_destroy]
+      ]
     end
 
     def family?

@@ -1857,20 +1857,19 @@ SELECT "Services"."ServicesID",
     t.boolean  "number_of_children_under_18_with_family_refused",     :default=>false
     t.integer  "number_of_children_under_18_not_with_family"
     t.boolean  "number_of_children_under_18_not_with_family_refused", :default=>false
-    t.boolean  "any_member_pregnant",                                 :default=>false
-    t.boolean  "any_member_pregnant_refused",                         :default=>false
-    t.boolean  "family_member_tri_morbidity_answer",                  :default=>false
-    t.boolean  "any_children_removed_answer",                         :default=>false
-    t.boolean  "any_family_legal_issues_answer",                      :default=>false
-    t.boolean  "any_children_lived_with_family_answer",               :default=>false
-    t.boolean  "any_child_abuse_answer",                              :default=>false
-    t.boolean  "children_attend_school_answer",                       :default=>false
-    t.boolean  "family_members_changed_answer",                       :default=>false
-    t.boolean  "other_family_members_answer",                         :default=>false
-    t.boolean  "planned_family_activities_answer",                    :default=>false
-    t.boolean  "time_spent_alone_13_answer",                          :default=>false
-    t.boolean  "time_spent_alone_12_answer",                          :default=>false
-    t.boolean  "time_spent_helping_siblings_answer",                  :default=>false
+    t.integer  "any_member_pregnant_answer"
+    t.integer  "family_member_tri_morbidity_answer"
+    t.integer  "any_children_removed_answer"
+    t.integer  "any_family_legal_issues_answer"
+    t.integer  "any_children_lived_with_family_answer"
+    t.integer  "any_child_abuse_answer"
+    t.integer  "children_attend_school_answer"
+    t.integer  "family_members_changed_answer"
+    t.integer  "other_family_members_answer"
+    t.integer  "planned_family_activities_answer"
+    t.integer  "time_spent_alone_13_answer"
+    t.integer  "time_spent_alone_12_answer"
+    t.integer  "time_spent_helping_siblings_answer"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
