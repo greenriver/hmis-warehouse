@@ -189,5 +189,9 @@ module GrdaWarehouse::Vispdat
       !parent2_none?
     end
 
+    def family?
+      true
+    end
+
   end
 end

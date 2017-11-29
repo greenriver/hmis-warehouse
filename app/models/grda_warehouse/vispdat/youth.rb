@@ -81,5 +81,9 @@ module GrdaWarehouse::Vispdat
       ]
     end
 
+    def youth?
+      true
+    end
+
   end
 end

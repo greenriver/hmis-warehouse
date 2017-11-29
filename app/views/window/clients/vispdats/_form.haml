@@ -70,7 +70,7 @@
         %label HIV/AIDS Release?
         = f.input :hiv_release, as: :radio_buttons, label: false
 
-  - if @vispdat.is_a? GrdaWarehouse::Vispdat::Family
+  - if @vispdat.family?
     = render 'parent2_fields'
     = render 'children_fields'
 
@@ -161,7 +161,7 @@
       .col-sm-3
         = f.input :legal_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:legal_answers), label: false
 
-    - if @vispdat.is_a? GrdaWarehouse::Vispdat::Youth
+    - if @vispdat.youth?
       .row
         .col-sm-9
           %label Were you ever incarcerated when younger than age 18?
@@ -201,7 +201,7 @@
       .col-sm-3
         = f.input :basic_needs_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:basic_needs_answers), label: false
 
-    - if @vispdat.is_a? GrdaWarehouse::Vispdat::Youth
+    - if @vispdat.youth?
       %h4 Is your current lack of stable housing...
       %br
       .row
@@ -269,7 +269,7 @@
       .col-sm-3
         = f.input :avoid_help_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:avoid_help_answers), label: false
 
-    - unless @vispdat.is_a? GrdaWarehouse::Vispdat::Family
+    - unless @vispdat.family?
       .row
         .col-sm-9
           %label.alert-danger
@@ -288,7 +288,7 @@
       .col-sm-3
         = f.input :drinking_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:drinking_answers), label: false
     
-    - if @vispdat.is_a? GrdaWarehouse::Vispdat::Youth
+    - if @vispdat.youth?
       .row
         .col-sm-9
           %label If you've ever used marijuana, did you ever try it at age 12 or younger?
@@ -321,7 +321,7 @@
       .col-sm-3
         = f.input :brain_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:brain_answers), label: false
 
-    - if @vispdat.is_a? GrdaWarhouse::Vispdat::Family
+    - if @vispdat.family?
       .row
         .col-sm-9
           %label IF THE FAMILY SCORED 1 EACH FOR PHYSICAL HEALTH, SUBSTANCE ABUSE, AND MENTAL HEALTH: Does any single member of your household hava medical condition, mental health concerns, and experience with problematic substance use?
@@ -338,7 +338,7 @@
       .col-sm-3
         = f.input :sell_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:sell_answers), label: false
 
-    - unless @vispdat.is_a? GrdaWarehouse::Vispdat::Youth
+    - unless @vispdat.youth?
       .row
         .col-sm-9
           %label.alert-danger YES OR NO:
@@ -346,9 +346,9 @@
         .col-sm-3
           = f.input :trauma_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:trauma_answers), label: false
 
-  - if @vispdat.is_a? GrdaWarehouse::Vispdat::Family
+  - if @vispdat.family?
     = render 'family_unit'
-    
+
   %h2 Follow-Up Questions
   .well
     .row
