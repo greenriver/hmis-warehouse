@@ -701,6 +701,17 @@ ActiveRecord::Schema.define(version: 20171129172903) do
   add_index "Site", ["data_source_id", "SiteID"], :name=>"unk_Site", :unique=>true, :using=>:btree
   add_index "Site", ["data_source_id"], :name=>"index_Site_on_data_source_id", :using=>:btree
 
+  create_table "anomalies", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "submitted_by"
+    t.string   "description"
+    t.string   "status",       :null=>false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+  add_index "anomalies", ["client_id"], :name=>"index_anomalies_on_client_id", :using=>:btree
+  add_index "anomalies", ["status"], :name=>"index_anomalies_on_status", :using=>:btree
+
   create_table "api_client_data_source_ids", force: :cascade do |t|
     t.string  "warehouse_id"
     t.string  "id_in_data_source"
@@ -903,6 +914,7 @@ ActiveRecord::Schema.define(version: 20171129172903) do
     t.boolean "window_access_requires_release",            :default=>false
     t.boolean "show_partial_ssn_in_window_search_results", :default=>false
     t.string  "url_of_blank_consent_form"
+    t.boolean "ahar_psh_includes_rrh",                     :default=>true
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1193,6 +1205,153 @@ ActiveRecord::Schema.define(version: 20171129172903) do
     t.datetime "updated_at"
     t.datetime "deleted_at"
   end
+
+  create_table "recent_report_enrollments", id: false, force: :cascade do |t|
+    t.string   "ProjectEntryID"
+    t.string   "PersonalID"
+    t.string   "ProjectID"
+    t.date     "EntryDate"
+    t.string   "HouseholdID"
+    t.integer  "RelationshipToHoH"
+    t.integer  "ResidencePrior"
+    t.string   "OtherResidencePrior"
+    t.integer  "ResidencePriorLengthOfStay"
+    t.integer  "DisablingCondition"
+    t.integer  "EntryFromStreetESSH"
+    t.date     "DateToStreetESSH"
+    t.integer  "ContinuouslyHomelessOneYear"
+    t.integer  "TimesHomelessPastThreeYears"
+    t.integer  "MonthsHomelessPastThreeYears"
+    t.integer  "MonthsHomelessThisTime"
+    t.integer  "StatusDocumented"
+    t.integer  "HousingStatus"
+    t.date     "DateOfEngagement"
+    t.integer  "InPermanentHousing"
+    t.date     "ResidentialMoveInDate"
+    t.date     "DateOfPATHStatus"
+    t.integer  "ClientEnrolledInPATH"
+    t.integer  "ReasonNotEnrolled"
+    t.integer  "WorstHousingSituation"
+    t.integer  "PercentAMI"
+    t.string   "LastPermanentStreet"
+    t.string   "LastPermanentCity",                            :limit=>50
+    t.string   "LastPermanentState",                           :limit=>2
+    t.string   "LastPermanentZIP",                             :limit=>10
+    t.integer  "AddressDataQuality"
+    t.date     "DateOfBCPStatus"
+    t.integer  "FYSBYouth"
+    t.integer  "ReasonNoServices"
+    t.integer  "SexualOrientation"
+    t.integer  "FormerWardChildWelfare"
+    t.integer  "ChildWelfareYears"
+    t.integer  "ChildWelfareMonths"
+    t.integer  "FormerWardJuvenileJustice"
+    t.integer  "JuvenileJusticeYears"
+    t.integer  "JuvenileJusticeMonths"
+    t.integer  "HouseholdDynamics"
+    t.integer  "SexualOrientationGenderIDYouth"
+    t.integer  "SexualOrientationGenderIDFam"
+    t.integer  "HousingIssuesYouth"
+    t.integer  "HousingIssuesFam"
+    t.integer  "SchoolEducationalIssuesYouth"
+    t.integer  "SchoolEducationalIssuesFam"
+    t.integer  "UnemploymentYouth"
+    t.integer  "UnemploymentFam"
+    t.integer  "MentalHealthIssuesYouth"
+    t.integer  "MentalHealthIssuesFam"
+    t.integer  "HealthIssuesYouth"
+    t.integer  "HealthIssuesFam"
+    t.integer  "PhysicalDisabilityYouth"
+    t.integer  "PhysicalDisabilityFam"
+    t.integer  "MentalDisabilityYouth"
+    t.integer  "MentalDisabilityFam"
+    t.integer  "AbuseAndNeglectYouth"
+    t.integer  "AbuseAndNeglectFam"
+    t.integer  "AlcoholDrugAbuseYouth"
+    t.integer  "AlcoholDrugAbuseFam"
+    t.integer  "InsufficientIncome"
+    t.integer  "ActiveMilitaryParent"
+    t.integer  "IncarceratedParent"
+    t.integer  "IncarceratedParentStatus"
+    t.integer  "ReferralSource"
+    t.integer  "CountOutreachReferralApproaches"
+    t.integer  "ExchangeForSex"
+    t.integer  "ExchangeForSexPastThreeMonths"
+    t.integer  "CountOfExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer  "WorkPlaceViolenceThreats"
+    t.integer  "WorkplacePromiseDifference"
+    t.integer  "CoercedToContinueWork"
+    t.integer  "LaborExploitPastThreeMonths"
+    t.integer  "HPScreeningScore"
+    t.integer  "VAMCStation"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string   "UserID",                                       :limit=>100
+    t.datetime "DateDeleted"
+    t.string   "ExportID"
+    t.integer  "data_source_id"
+    t.integer  "id"
+    t.integer  "LOSUnderThreshold"
+    t.integer  "PreviousStreetESSH"
+    t.integer  "UrgentReferral"
+    t.integer  "TimeToHousingLoss"
+    t.integer  "ZeroIncome"
+    t.integer  "AnnualPercentAMI"
+    t.integer  "FinancialChange"
+    t.integer  "HouseholdChange"
+    t.integer  "EvictionHistory"
+    t.integer  "SubsidyAtRisk"
+    t.integer  "LiteralHomelessHistory"
+    t.integer  "DisabledHoH"
+    t.integer  "CriminalRecord"
+    t.integer  "SexOffender"
+    t.integer  "DependentUnder6"
+    t.integer  "SingleParent"
+    t.integer  "HH5Plus"
+    t.integer  "IraqAfghanistan"
+    t.integer  "FemVet"
+    t.integer  "ThresholdScore"
+    t.integer  "ERVisits"
+    t.integer  "JailNights"
+    t.integer  "HospitalNights"
+    t.integer  "demographic_id"
+    t.integer  "client_id"
+  end
+  add_index "recent_report_enrollments", ["EntryDate"], :name=>"entrydate_ret_index", :using=>:btree
+  add_index "recent_report_enrollments", ["client_id"], :name=>"client_id_ret_index", :using=>:btree
+  add_index "recent_report_enrollments", ["id"], :name=>"id_ret_index", :unique=>true, :using=>:btree
+
+  create_table "recent_service_history", id: false, force: :cascade do |t|
+    t.integer "id"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.date    "date"
+    t.date    "first_date_in_program"
+    t.date    "last_date_in_program"
+    t.string  "enrollment_group_id",     :limit=>50
+    t.integer "age"
+    t.integer "destination"
+    t.string  "head_of_household_id",    :limit=>50
+    t.string  "household_id",            :limit=>50
+    t.integer "project_id"
+    t.integer "project_type"
+    t.integer "project_tracking_method"
+    t.integer "organization_id"
+    t.integer "housing_status_at_entry"
+    t.integer "housing_status_at_exit"
+    t.integer "service_type"
+    t.integer "computed_project_type"
+    t.boolean "presented_as_individual"
+  end
+  add_index "recent_service_history", ["client_id"], :name=>"client_id_rsh_index", :using=>:btree
+  add_index "recent_service_history", ["computed_project_type"], :name=>"computed_project_type_rsh_index", :using=>:btree
+  add_index "recent_service_history", ["date"], :name=>"date_rsh_index", :using=>:btree
+  add_index "recent_service_history", ["household_id"], :name=>"household_id_rsh_index", :using=>:btree
+  add_index "recent_service_history", ["id"], :name=>"id_rsh_index", :unique=>true, :using=>:btree
+  add_index "recent_service_history", ["project_tracking_method"], :name=>"project_tracking_method_rsh_index", :using=>:btree
+  add_index "recent_service_history", ["project_type"], :name=>"project_type_rsh_index", :using=>:btree
 
   create_view "report_clients", <<-'END_VIEW_REPORT_CLIENTS', :force => true
 SELECT "Client"."PersonalID",
@@ -1820,8 +1979,8 @@ SELECT "Services"."ServicesID",
     t.integer  "picture_answer"
     t.integer  "score"
     t.string   "recommendation"
-    t.datetime "created_at",                   :null=>false
-    t.datetime "updated_at",                   :null=>false
+    t.datetime "created_at",                               :null=>false
+    t.datetime "updated_at",                               :null=>false
     t.datetime "submitted_at"
     t.integer  "homeless_period"
     t.date     "release_signed_on"
@@ -1830,8 +1989,8 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_interviewer_name"
     t.string   "migrated_interviewer_email"
     t.string   "migrated_filed_by"
-    t.boolean  "migrated",                     :default=>false, :null=>false
-    t.boolean  "housing_release_confirmed",    :default=>false
+    t.boolean  "migrated",                                 :default=>false, :null=>false
+    t.boolean  "housing_release_confirmed",                :default=>false
     t.integer  "user_id"
     t.integer  "priority_score"
     t.boolean  "active",                       :default=>false
@@ -1902,6 +2061,7 @@ SELECT "Services"."ServicesID",
   add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], :name=>"index_sh_ds_id_org_id_proj_id_r_type", :using=>:btree
   add_index "warehouse_client_service_history", ["data_source_id"], :name=>"index_warehouse_client_service_history_on_data_source_id", :using=>:btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], :name=>"sh_date_ds_id_org_id_proj_id_proj_type", :using=>:btree
+  add_index "warehouse_client_service_history", ["date"], :name=>"date_index", :using=>:btree
   add_index "warehouse_client_service_history", ["enrollment_group_id"], :name=>"index_warehouse_client_service_history_on_enrollment_group_id", :using=>:btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], :name=>"index_warehouse_client_service_history_on_first_date_in_program", :using=>:btree
   add_index "warehouse_client_service_history", ["household_id"], :name=>"index_warehouse_client_service_history_on_household_id", :using=>:btree
