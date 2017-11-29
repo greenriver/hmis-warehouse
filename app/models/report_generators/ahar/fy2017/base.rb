@@ -1814,7 +1814,17 @@ module ReportGenerators::Ahar::Fy2017
           [hh_id, ds_id, project_id] if hh_id.present?
         end.except(nil, '').map do |k, entries|
           (hh_id, ds_id, project_id) = k
-          [k, entries.group_by{|m| m[service_history_first_date_in_program_index]}.values.first]
+          # Entries contains the entries for all clients within a given household
+          # at a project, since sometimes the entry dates don't match, we'll take the
+          # first enrollment for each client and call that the household enrollments
+          added = Set.new
+          unique_related_entries = []
+          entries.map do |entry|
+            client_id = entry[service_history_client_id_index]
+            unique_related_entries << entry unless added.include?(client_id)
+            added << client_id
+          end
+          [k, unique_related_entries]
         end.to_h
       end
     end

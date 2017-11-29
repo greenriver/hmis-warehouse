@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171127203632) do
+ActiveRecord::Schema.define(version: 20171128161058) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -701,6 +701,17 @@ ActiveRecord::Schema.define(version: 20171127203632) do
   add_index "Site", ["data_source_id", "SiteID"], :name=>"unk_Site", :unique=>true, :using=>:btree
   add_index "Site", ["data_source_id"], :name=>"index_Site_on_data_source_id", :using=>:btree
 
+  create_table "anomalies", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "submitted_by"
+    t.string   "description"
+    t.string   "status",       :null=>false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+  add_index "anomalies", ["client_id"], :name=>"index_anomalies_on_client_id", :using=>:btree
+  add_index "anomalies", ["status"], :name=>"index_anomalies_on_status", :using=>:btree
+
   create_table "api_client_data_source_ids", force: :cascade do |t|
     t.string  "warehouse_id"
     t.string  "id_in_data_source"
@@ -1295,8 +1306,6 @@ ActiveRecord::Schema.define(version: 20171127203632) do
     t.integer  "ERVisits"
     t.integer  "JailNights"
     t.integer  "HospitalNights"
-    t.integer  "RunawayYouth"
-    t.string   "processed_hash"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -1622,7 +1631,6 @@ SELECT "Enrollment"."ProjectEntryID",
     "Enrollment"."ERVisits",
     "Enrollment"."JailNights",
     "Enrollment"."HospitalNights",
-    "Enrollment"."RunawayYouth",
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
    FROM ((("Enrollment"
@@ -1663,34 +1671,6 @@ SELECT "Exit"."ExitID",
     "Exit"."ExportID",
     "Exit".data_source_id,
     "Exit".id,
-    "Exit"."ExchangeForSex",
-    "Exit"."ExchangeForSexPastThreeMonths",
-    "Exit"."CountOfExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
-    "Exit"."WorkPlaceViolenceThreats",
-    "Exit"."WorkplacePromiseDifference",
-    "Exit"."CoercedToContinueWork",
-    "Exit"."LaborExploitPastThreeMonths",
-    "Exit"."CounselingReceived",
-    "Exit"."IndividualCounseling",
-    "Exit"."FamilyCounseling",
-    "Exit"."GroupCounseling",
-    "Exit"."SessionCountAtExit",
-    "Exit"."PostExitCounselingPlan",
-    "Exit"."SessionsInPlan",
-    "Exit"."DestinationSafeClient",
-    "Exit"."DestinationSafeWorker",
-    "Exit"."PosAdultConnections",
-    "Exit"."PosPeerConnections",
-    "Exit"."PosCommunityConnections",
-    "Exit"."AftercareDate",
-    "Exit"."AftercareProvided",
-    "Exit"."EmailSocialMedia",
-    "Exit"."Telephone",
-    "Exit"."InPersonIndividual",
-    "Exit"."InPersonGroup",
-    "Exit"."CMExitReason",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1815,7 +1795,6 @@ SELECT "IncomeBenefits"."IncomeBenefitsID",
     "IncomeBenefits"."NoIndianHealthServicesReason",
     "IncomeBenefits"."OtherInsurance",
     "IncomeBenefits"."OtherInsuranceIdentify",
-    "IncomeBenefits"."ConnectionWithSOAR",
     "Enrollment".id AS enrollment_id,
     source_clients.id AS demographic_id,
     destination_clients.id AS client_id
@@ -1990,8 +1969,8 @@ SELECT "Services"."ServicesID",
     t.integer  "picture_answer"
     t.integer  "score"
     t.string   "recommendation"
-    t.datetime "created_at",                   :null=>false
-    t.datetime "updated_at",                   :null=>false
+    t.datetime "created_at",                               :null=>false
+    t.datetime "updated_at",                               :null=>false
     t.datetime "submitted_at"
     t.integer  "homeless_period"
     t.date     "release_signed_on"
@@ -2000,11 +1979,19 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_interviewer_name"
     t.string   "migrated_interviewer_email"
     t.string   "migrated_filed_by"
-    t.boolean  "migrated",                     :default=>false, :null=>false
-    t.boolean  "housing_release_confirmed",    :default=>false
+    t.boolean  "migrated",                                 :default=>false, :null=>false
+    t.boolean  "housing_release_confirmed",                :default=>false
     t.integer  "user_id"
     t.integer  "priority_score"
-    t.boolean  "active",                       :default=>false
+    t.boolean  "active",                                   :default=>false
+    t.string   "type",                                     :default=>"GrdaWarehouse::Vispdat::Individual"
+    t.integer  "marijuana_answer"
+    t.integer  "incarcerated_before_18_answer"
+    t.integer  "homeless_due_to_ran_away_answer"
+    t.integer  "homeless_due_to_religions_beliefs_answer"
+    t.integer  "homeless_due_to_family_answer"
+    t.integer  "homeless_due_to_gender_identity_answer"
+    t.integer  "violence_between_family_members_answer"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
@@ -2037,6 +2024,7 @@ SELECT "Services"."ServicesID",
   add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], :name=>"index_sh_ds_id_org_id_proj_id_r_type", :using=>:btree
   add_index "warehouse_client_service_history", ["data_source_id"], :name=>"index_warehouse_client_service_history_on_data_source_id", :using=>:btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], :name=>"sh_date_ds_id_org_id_proj_id_proj_type", :using=>:btree
+  add_index "warehouse_client_service_history", ["date"], :name=>"date_index", :using=>:btree
   add_index "warehouse_client_service_history", ["enrollment_group_id"], :name=>"index_warehouse_client_service_history_on_enrollment_group_id", :using=>:btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], :name=>"index_warehouse_client_service_history_on_first_date_in_program", :using=>:btree
   add_index "warehouse_client_service_history", ["household_id"], :name=>"index_warehouse_client_service_history_on_household_id", :using=>:btree
