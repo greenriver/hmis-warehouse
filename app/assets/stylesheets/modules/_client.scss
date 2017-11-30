@@ -224,6 +224,10 @@ $client-match-action-row-height: 22px;
   width: 38em;
   padding: 1em;
 }
+.client__filter-header
+{
+  margin-top: 0;
+}
 .client__sort .dropdown-menu.options
 {
   width: 15em;

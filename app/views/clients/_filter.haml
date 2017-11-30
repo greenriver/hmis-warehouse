@@ -7,7 +7,7 @@
     Filter
     %span.caret
   .dropdown-menu.dropdown-menu-right.options
-    %p Limit clients by dates served
+    %h3.client__filter-header Limit clients by:
     = form_tag(nil, method: "get") do
       -# preserve sort and search for filtering
       - if params[:sort] 
@@ -16,7 +16,8 @@
         = hidden_field_tag :direction, params[:direction]
       - if params[:q] 
         = hidden_field_tag :q, params[:q]
-      .row
+      %h4 Dates Served
+      .row          
         .col-xs-5
           .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
             %input.form-control{name: :start_date, type: :date, value: @start_date}
@@ -28,28 +29,36 @@
             %input.form-control{name: :end_date, type: :date, value: @end_date}
             %span.input-group-addon.icon-calendar
       .row
-        .col-sm-6
-          %p
-            %select.select2{name: :data_source_id}
-              %option{value: ''} Filter by Data Source
-              - GrdaWarehouse::DataSource.importable.each do |ds|
-                - selected = @data_source_id == ds.id
-                %option{value: ds.id, selected: selected}= ds.name
-
-        .col-sm-6
-          - if can_view_vspdat?
-            %select.select2{ name: :vulnerability }
-              %option{ value: '' } Filter by VI-SPDAT
+        .col-sm-4
+          %h4 Data Source
+          %select.select2{ name: :data_source_id, style: 'width: 100%;' }
+            %option{value: ''} All Data Sources
+            - GrdaWarehouse::DataSource.importable.each do |ds|
+              - selected = @data_source_id == ds.id
+              %option{value: ds.id, selected: selected}= ds.name
+        - if can_view_vspdat?
+          .col-sm-4
+            %h4 VSPDAT Vulnerability
+            %select.select2{ name: :vulnerability, style: 'width: 100%;' }
+              %option{ value: '' } All Vulnerabilities
               %option{ value: :low, selected: params[:vulnerability]=='low'} Low Vulnerabilty
               %option{ value: :medium, selected: params[:vulnerability]=='medium'} Medium Vulnerabilty
               %option{ value: :high, selected: params[:vulnerability]=='high'} High Vulnerabilty
               %option{ value: :all, selected: params[:vulnerability]=='all'} All Clients with VI-SPDATs
+        
+        .col-sm-4
+          %h4 Age Group
+          %select.select2{ name: :age_group, style: 'width: 100%;' }
+            %option{ value: '' } All Ages
+            - GrdaWarehouse::Hud::Client.ahar_age_groups.each do |key, range|
+              %option{ value: key, selected: params[:age_group] == key.to_s }
+                = range[:name]
       .row
         .col-xs-10
           .checkbox
             %label{for: :data_sharing}
               %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing} 
-              Fully signed data sharing agreement
+              = _('Fully signed data sharing agreement')
       .row
         .col-xs-6
           %p

@@ -2,27 +2,36 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionTwo < Base
     MISSING_THRESHOLD = 10
     def run!
-      start_report()
-      set_project_metadata()
-      set_bed_coverage_data()
-      calculate_missing_universal_elements()
-      add_missing_enrollment_elements()
-      add_agency_entering_data()
-      add_length_of_stay()
-      destination_ph()
-      add_income_answers()
-      add_capacity_answers()
-      meets_data_quality_benchmark()
-      add_bed_utilization()
-      add_missing_values()
-      add_enrolled_length_of_stay()
-      add_clients_dob_enrollment_date()
-      add_night_by_night_missing()
-      add_service_after_close()
-      add_individuals_at_family_projects()
-      add_families_at_individual_projects()
-      add_enrollments_with_no_service()
-      finish_report()
+      progress_methods = [
+        :start_report,
+        :set_project_metadata,
+        :set_bed_coverage_data,
+        :calculate_missing_universal_elements,
+        :add_missing_enrollment_elements,
+        :add_agency_entering_data,
+        :add_length_of_stay,
+        :destination_ph,
+        :add_income_answers,
+        :add_capacity_answers,
+        :meets_data_quality_benchmark,
+        :add_bed_utilization,
+        :add_missing_values,
+        :add_enrolled_length_of_stay,
+        :add_clients_dob_enrollment_date,
+        :add_night_by_night_missing,
+        :add_service_after_close,
+        :add_individuals_at_family_projects,
+        :add_families_at_individual_projects,
+        :add_enrollments_with_no_service,
+        :finish_report,
+      ]
+      progress_methods.each_with_index do |method, i|
+        percent = ((i/progress_methods.size.to_f)* 100) 
+        percent = 0.01 if percent == 0
+        Rails.logger.info "Starting #{method}, #{percent.round(2)}% complete"
+        self.send(method)
+        Rails.logger.info "Completed #{method}"
+      end
     end
 
     def self.length_of_stay_buckets
@@ -209,18 +218,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def add_service_after_close
       service_after_close = {}
       projects.each do |project|
-        service_after_close[project.id] = client_scope.
+        service_after_close[project.id] = []
+        client_scope.entry.night_by_night.
           where(Project: {id: project.id}).
-          where(client_id: service_scope.
-            where(Project: {id: project.id}).
-            where.not(last_date_in_program: nil).
-            where(sh_t[:date].gt(sh_t[:last_date_in_program])).
-            distinct.
-            select(:client_id)
-          ).pluck(*service_columns.values).
-          map do |row|
-            Hash[service_columns.keys.zip(row)]
+          where.not(last_date_in_program: nil).
+          pluck(*service_columns.values).
+        map do |row|
+          Hash[service_columns.keys.zip(row)]
+        end.each do |row|
+          last_date = client_scope.entry.night_by_night.
+            where(
+              enrollment_group_id: row[:enrollment_group_id],
+              first_date_in_program: row[:first_date_in_program]
+            ).joins(enrollment: :services).maximum('"DateProvided"')
+          if last_date.present? && last_date > row[:last_date_in_program]
+            row[:late_service] = last_date
+            service_after_close[project.id] << row
           end
+        end
       end
       answers = {
         service_after_close: service_after_close.map do |project_id, clients|
@@ -229,7 +244,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
       support = {}
       service_after_close.each do |project_id, clients|
-        max_dates = service_scope.where(Project: {id: project_id}).service.group(:client_id).maximum(:date)
         support["service_after_close_#{project_id}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
           counts: clients.map do |service|
@@ -241,7 +255,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               service[:project_name], 
               service[:first_date_in_program],
               service[:last_date_in_program],
-              max_dates[client_id],
+              service[:late_service],
             ]
           end
         }
@@ -252,20 +266,28 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def add_night_by_night_missing
       missing_nights = {}
       projects.each do |project|
-        if project.TrackingMethod == 3
-          missing_nights[project.id] = client_scope.
-            where(Project: {id: project.id}).
-            where.not(
-              client_id: service_scope.
-              where(Project: {id: project.id}).
-              where(date: (self.end - 30.days..self.end)).
-              distinct.select(:client_id)
-            ).pluck(*service_columns.values).
-            map do |row|
-              Hash[service_columns.keys.zip(row)]
-            end
-        else
-          missing_nights[project.id] = []
+        missing_nights[project.id] = []
+        client_scope.night_by_night.entry.where(Project: {id: project.id}).
+          pluck(*service_columns.values).
+        map do |row|
+          Hash[service_columns.keys.zip(row)]
+        end.each do |row|
+          # set the range to the last 30 days of the enrollment or reporting period
+          # if the enrollment is still open
+          end_date = self.end
+          if row[:last_date_in_program].present? && row[:last_date_in_program] < self.end
+            end_date = row[:last_date_in_program]          
+          end
+          thirty_days_before_end = end_date - 30.days
+          max_date = client_scope.service.where(
+            client_id: row[:client_id],
+            first_date_in_program: row[:first_date_in_program],
+            enrollment_group_id: row[:enrollment_group_id]
+          ).maximum(:date)
+          if max_date.present? && max_date < thirty_days_before_end.to_date
+            row[:max_date] = max_date
+            missing_nights[project.id] << row
+          end
         end
       end
       answers = {
@@ -275,7 +297,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
       support = {}
       missing_nights.each do |project_id, clients|
-        max_dates = service_scope.where(Project: {id: project_id}).service.group(:client_id).maximum(:date)
         support["missing_nights_#{project_id}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
           counts: clients.map do |service|
@@ -287,7 +308,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               service[:project_name], 
               service[:first_date_in_program],
               service[:last_date_in_program],
-              max_dates[client_id],
+              service[:max_date],
             ]
           end
         }
@@ -302,14 +323,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id).values.flatten(1)
         if enrollments_in_project.any?
           enrollments_in_project.each do |enrollment|
-            if enrollment[:dob].present? && enrollment[:dob] >= enrollment[:first_date_in_program]
+            if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
               dob_entry[project.id] << [
                 destination_id_for_client(enrollment[:id]), 
                 enrollment[:first_name], 
                 enrollment[:last_name],
                 enrollment[:dob],
-                enrollment[:project_name],
                 enrollment[:first_date_in_program],
+                enrollment[:project_name],
               ]
             end
           end
@@ -318,7 +339,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       support = {}
       dob_entry.each do |project_id, clients|
         support["incorrect_dob_#{project_id}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Project', 'Entry Date'],
+          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Entry Date', 'Project'],
           counts: clients.to_a
         }
       end

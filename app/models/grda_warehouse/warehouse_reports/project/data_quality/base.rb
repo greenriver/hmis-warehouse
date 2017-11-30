@@ -1,7 +1,9 @@
+require 'memoist'
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
     include ApplicationHelper
     include ArelHelper
+    extend Memoist
     self.table_name = :project_data_quality
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
     belongs_to :project_group, class_name: GrdaWarehouse::ProjectGroup.name
@@ -35,7 +37,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def clients
       @clients ||= begin
-        client_scope.select(*client_columns.values).
+        Rails.logger.debug "Loading Clients"
+        client_scope.entry.select(*client_columns.values).
           distinct.
           pluck(*client_columns.values).
           map do |row|
@@ -45,7 +48,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def clients_for_project project_id
-      client_scope.where(Project: {id: project_id}).
+      client_scope.entry.where(Project: {id: project_id}).
         select(*client_columns.values).
         distinct.
         pluck(*client_columns.values).
@@ -53,10 +56,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           Hash[client_columns.keys.zip(row)]
         end
     end
+    memoize :clients_for_project
 
     def enrollments
       @enrollments ||= begin
-        client_scope.pluck(*enrollment_columns.values).
+        Rails.logger.debug "Loading Enrollments"
+        client_scope.entry.pluck(*enrollment_columns.values).
         map do |row|
           Hash[enrollment_columns.keys.zip(row)]
         end.
@@ -65,15 +70,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def enrollments_for_project project_id, data_source_id
-      enrollments_in_project = {}
-      enrollments.each do |client_id, involved_enrollment|
-        enrollments_in_project[client_id] = involved_enrollment.select do |en| 
-          en[:project_id] == project_id && en[:data_source_id] == data_source_id
+      @enrollments_for_project ||= begin
+        indexed ||= {}
+        enrollments.each do |client_id, involved_enrollments|
+          involved_enrollments.each do |en|
+            indexed[[en[:project_id], en[:data_source_id]]] ||= {}
+            indexed[[en[:project_id], en[:data_source_id]]][client_id] ||= []
+            indexed[[en[:project_id], en[:data_source_id]]][client_id] << en
+          end
         end
+        indexed
       end
-      enrollments_in_project
+      @enrollments_for_project[[project_id, data_source_id]]
     end
-
+    
     def incomes
       @incomes ||= begin
         incomes = {}
@@ -113,6 +123,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       leavers
     end
+    memoize :leavers_for_project
 
     def leavers
       @leavers ||= begin 
@@ -138,7 +149,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def income_columns
-      [
+      @income_columns||= [
         :TotalMonthlyIncome, 
         :IncomeFromAnySource, 
         :InformationDate, 
@@ -147,7 +158,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def amount_columns
-      [
+      @amount_columns ||= [
         :Earned,
         :EarnedAmount, 
         :UnemploymentAmount, 
@@ -168,7 +179,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def enrollment_columns
-      {
+      @enrollment_columns ||= {
         id: c_t[:id].as('id').to_sql,
         project_id: sh_t[:project_id].as('project_id').to_sql,
         project_name: sh_t[:project_name].as('project_name').to_sql,
@@ -193,7 +204,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def client_columns
-      {
+      @client_columns ||= {
         id: c_t[:id].as('id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
@@ -215,11 +226,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_columns
-      {
-        id: c_t[:id].as('client_id').to_sql,
+      @service_columns ||= {
+        id: c_t[:id].as('client_client_id').to_sql,
+        client_id: sh_t[:client_id].as('client_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
         project_name: sh_t[:project_name].as('project_name').to_sql,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
         # date: sh_t[:date].as('date').to_sql,
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
@@ -292,7 +305,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def destination_id_for_client source_id
       @destination_ids ||= begin
-        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.select(c_t[:id])).
+        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.entry.select(c_t[:id])).
           pluck(:source_id, :destination_id).
           to_h
       end
@@ -308,7 +321,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def client_scope
-      service_source.entry.
+      service_source.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).

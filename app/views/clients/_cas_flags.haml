@@ -8,6 +8,6 @@
       = f.input :dmh_eligible, as: :boolean, label: 'DMH Eligible?'
     = f.input :va_eligible, as: :boolean, label: 'VA Eligible?'
     = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
-    = f.input :housing_release_status, collection: GrdaWarehouse::Hud::Client.housing_release_options, include_blank: 'Not Signed'
+    = f.input :housing_release_status, collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed'
     = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas]
     = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171115182249) do
+ActiveRecord::Schema.define(version: 20171128161058) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -95,6 +95,7 @@ ActiveRecord::Schema.define(version: 20171115182249) do
     t.datetime "api_update_started_at"
     t.datetime "api_last_updated_at"
     t.integer  "creator_id"
+    t.boolean  "cspech_eligible",                        :default=>false
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
@@ -903,6 +904,7 @@ ActiveRecord::Schema.define(version: 20171115182249) do
     t.boolean "window_access_requires_release",            :default=>false
     t.boolean "show_partial_ssn_in_window_search_results", :default=>false
     t.string  "url_of_blank_consent_form"
+    t.boolean "ahar_psh_includes_rrh",                     :default=>true
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1967,8 +1969,8 @@ SELECT "Services"."ServicesID",
     t.integer  "picture_answer"
     t.integer  "score"
     t.string   "recommendation"
-    t.datetime "created_at",                   :null=>false
-    t.datetime "updated_at",                   :null=>false
+    t.datetime "created_at",                               :null=>false
+    t.datetime "updated_at",                               :null=>false
     t.datetime "submitted_at"
     t.integer  "homeless_period"
     t.date     "release_signed_on"
@@ -1977,11 +1979,19 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_interviewer_name"
     t.string   "migrated_interviewer_email"
     t.string   "migrated_filed_by"
-    t.boolean  "migrated",                     :default=>false, :null=>false
-    t.boolean  "housing_release_confirmed",    :default=>false
+    t.boolean  "migrated",                                 :default=>false, :null=>false
+    t.boolean  "housing_release_confirmed",                :default=>false
     t.integer  "user_id"
     t.integer  "priority_score"
-    t.boolean  "active",                       :default=>false
+    t.boolean  "active",                                   :default=>false
+    t.string   "type",                                     :default=>"GrdaWarehouse::Vispdat::Individual"
+    t.integer  "marijuana_answer"
+    t.integer  "incarcerated_before_18_answer"
+    t.integer  "homeless_due_to_ran_away_answer"
+    t.integer  "homeless_due_to_religions_beliefs_answer"
+    t.integer  "homeless_due_to_family_answer"
+    t.integer  "homeless_due_to_gender_identity_answer"
+    t.integer  "violence_between_family_members_answer"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
