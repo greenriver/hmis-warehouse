@@ -57,6 +57,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def self.wait_for_processing interval: 30
+      return true
       # you must manually process these in the test environment since there are no workers
       unless Rails.env.test?
         started = Time.now
