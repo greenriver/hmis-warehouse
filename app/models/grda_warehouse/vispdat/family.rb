@@ -238,5 +238,43 @@ module GrdaWarehouse::Vispdat
       true
     end
 
+    FAMILY_QUESTIONS = {
+      sleep: "Where do you and your family sleep most frequently? (check one)",
+      housing: "How long has it been since you and your family lived in permanent stable housing?",
+      homeless: "In the last three years, how many times have you and your family been homeless?",
+      past_six_months: "In the past six months, how many times have you or anyone in your family...",
+      talked_to_police: "Talked to police because they witnessed a crime, were the victim of a crime, or the alleged perpetrator of a crime or because the police told them that they must move along?",
+      been_attacked: "Have you or anyone in your family been attacked or beaten up since they’ve become homeless?",
+      harm_yourself: "Have you or anyone in your family threatened to or tried to harm themself or anyone else in the last year?",
+      legal_stuff: "Do you or anyone in your family have any legal stuff going on right now that may result in them being locked up, having to pay fines, or that make it more difficult to rent a place to live?",
+      force_you: "Does anybody force or trick you or anyone in your family to do things that you do not want to do?",
+      risky_things: "Do you or anyone in your family ever do things that may be considered to be risky like exchange sex for money, run drugs for someone, have unprotected sex with someone they don’t know, share a needle, or anything like that?",
+      owe_money: "Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you or anyone in your family owe them money?",
+      get_money: "Do you or anyone in your family get any money from the government, a pension, an inheritance, working under the table, a regular job, or anything like that?",
+      planned_activities: "Does everyone in your family have planned activities, other than just surviving, that make them feel happy and fulfilled?",
+      basic_needs: "Is everyone in your family currently able to take care of basic needs like bathing, changing clothes, using a restroom, getting food and clean water and other things like that?",
+      homelessness_cause: "Is your family’s current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because other family or friends caused your family to become evicted?",
+      leave_due_to_health: "Has your family ever had to leave an apartment, shelter program, or other place you were staying because of the physical health of you or anyone in your family?",
+      chronic_health_issues: "Do you or anyone in your family have any chronic health issues with your liver, kidneys, stomach, lungs or heart?",
+      space_interest: "If there was space available in a program that specifically assists people that live with HIV or AIDS, would that be of interest to you or anyone in your family?",
+      physical_disabilities: "Does anyone in your family have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?",
+      avoid_help: "When someone in your family is sick or not feeling well, does your family avoid getting medical help?",
+      kicked_out: "Has drinking or drug use by you or anyone in your family led your family to being kicked out of an apartment or program where you were staying in the past?",
+      drug_use: "Will drinking or drug use make it difficult for your family to stay housed or afford your housing?",
+      trouble_housing: "Has your family ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:",
+      mental_health: "A mental health issue or concern?",
+      head_injury: "A past head injury?",
+      learning_disability: "A learning disability, developmental disability, or other impairment?",
+      live_independently: "Do you or anyone in your family have any mental health or brain issues that would make it hard for your family to live independently because help would be needed?",
+      single_member_morbidity: "IF THE FAMILY SCORED 1 EACH FOR PHYSICAL HEALTH, SUBSTANCE ABUSE, AND MENTAL HEALTH: Does any single member of your household have a medical condition, mental health concerns, and experience with problematic substance use?",
+      take_medications: "Are there any medications that a doctor said you or anyone in your family should be taking that, for whatever reason, they are not taking?",
+      sell_medications: "Are there any medications like painkillers that you or anyone in your family don’t take the way the doctor prescribed or where they sell the medication?",
+      abuse_trauma: "YES OR NO: Has your family’s current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you or anyone in your family have experienced?"
+    }
+
+    def question key
+      FAMILY_QUESTIONS[key] || super(key)
+    end
+
   end
 end

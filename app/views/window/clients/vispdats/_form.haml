@@ -79,12 +79,12 @@
   .well.vispdat.vispdat-history
     .row
       .col-sm-4
-        = f.input :sleep_answer, as: :radio_buttons, collection: @vispdat.class.sleep_options, label: "Where do you sleep most frequently? (check one)"
-        = f.input :sleep_answer_other, label: "Other (specify)"
+        = f.input :sleep_answer, as: :radio_buttons, collection: @vispdat.class.sleep_options, label: @vispdat.question(:sleep)
+        = f.input :sleep_answer_other, label: @vispdat.question(:sleep_other)
       .col-sm-4
         .row
           .col-sm-12
-            = f.label :homeless, "How long has it been since you lived in permanent stable housing?"
+            = f.label :homeless, @vispdat.question(:housing)
         .row
           .col-sm-6
             = f.input :homeless, label: false
@@ -94,51 +94,51 @@
           .col-sm-12
             = f.input :homeless_refused, label: "Refused/Unsure", as: :boolean
       .col-sm-4
-        = f.input :episodes_homeless, label: "In the last three years, how many times have you been homeless?"
+        = f.input :episodes_homeless, label: @vispdat.question(:homeless)
         = f.input :episodes_homeless_refused, label: "Refused/Unsure"
 
   %h2 Risks
   .well.vispdat.vispdat-risks-1
-    %h4 In the past six months, how many times have you...
+    %h4= @vispdat.question(:past_six_months)
     %br
     .row
       .col-sm-8.col-md-offset-1
-        %label Received health care at an emergency department/room?
+        %label= @vispdat.question(:received_healthcare)
       .col-sm-1
         = f.input :emergency_healthcare, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :emergency_healthcare_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
-        %label Taken an ambulance to the hospital?
+        %label= @vispdat.question(:taken_ambulance)
       .col-sm-1
         = f.input :ambulance, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :ambulance_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
-        %label Been hospitalized as an inpatient?
+        %label= @vispdat.question(:been_hospitalized)
       .col-sm-1
         = f.input :inpatient, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :inpatient_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
-        %label Used a crisis service, including sexual assault crisis, mental health crisis, family/intimate violence, distress centers and suicide prevention hotlines?
+        %label= @vispdat.question(:used_crisis_service)
       .col-sm-1
         = f.input :crisis_service, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :crisis_service_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
-        %label Talked to police because you witnessed a crime, were the victim of a crime, or the alleged perpetrator of a crime or because the police told you that you must move along?
+        %label= @vispdat.question(:talked_to_police)
       .col-sm-1
         = f.input :talked_to_police, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
         = f.input :talked_to_police_refused, label: "Refused/Unsure"
     .row
       .col-sm-8.col-md-offset-1
-        %label Stayed one or more nights in a holding cell, jail or prison, whether that was a short-term stay like the drunk tank, a longer stay for a more serious offence, or anything in between?
+        %label= @vispdat.question(:stayed_in_prison)
       .col-sm-1
         = f.input :jail, label: false, input_html: {style: 'width: 4em;'}
       .col-sm-1
@@ -147,34 +147,34 @@
   .well.vispdat.vispdat-risks-2
     .row
       .col-sm-9
-        %label Have you been attacked or beaten up since you've become homeless?
+        %label= @vispdat.question(:been_attacked)
       .col-sm-3
         = f.input :attacked_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:attacked_answers), label: false
     .row
       .col-sm-9
-        %label Have you threatened to or tried to harm yourself or anyone else in the last year?
+        %label= @vispdat.question(:harm_yourself)
       .col-sm-3
         = f.input :threatened_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:threatened_answers), label: false
     .row
       .col-sm-9
-        %label Do you have any legal stuff going on right now that may result in you being locked up, having to pay fines, or that make it more difficult to rent a place to live?
+        %label= @vispdat.question(:legal_stuff)
       .col-sm-3
         = f.input :legal_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:legal_answers), label: false
 
     - if @vispdat.youth?
       .row
         .col-sm-9
-          %label Were you ever incarcerated when younger than age 18?
+          %label= @vispdat.question(:jail_before_18)
         .col-sm-3
           = f.input :incarcerated_before_18_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:incarcerated_before_18_answers), label: false
     .row
       .col-sm-9
-        %label Does anybody force or trick you to do things that you do not want to do?
+        %label= @vispdat.question(:force_you)
       .col-sm-3
         = f.input :tricked_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:tricked_answers), label: false
     .row
       .col-sm-9
-        %label Do you ever do things that may be considered to be risky like exchange sex for money, run drugs for someone, have unprotected sex with someone you don’t know, share a needle, or anything like that?
+        %label= @vispdat.question(:risky_things)
       .col-sm-3
         = f.input :risky_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:risky_answers), label: false
 
@@ -182,62 +182,62 @@
   .well.vispdat.vispdat-social
     .row
       .col-sm-9
-        %label Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you owe them money?
+        %label= @vispdat.question(:owe_money)
       .col-sm-3
         = f.input :owe_money_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:owe_money_answers), label: false
     .row
       .col-sm-9
-        %label Do you get any money from the government, a pension, an inheritance, working under the table, a regular job, or anything like that?
+        %label= @vispdat.question(:get_money)
       .col-sm-3
         = f.input :get_money_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:get_money_answers), label: false
     .row
       .col-sm-9
-        %label Do you have planned activities, other than just surviving, that make you feel happy and fulfilled?
+        %label= @vispdat.question(:planned_activities)
       .col-sm-3
         = f.input :activities_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:activities_answers), label: false
     .row
       .col-sm-9
-        %label Are you currently able to take care of basic needs like bathing, changing clothes, using a restroom, getting food and clean water and other things like that?
+        %label= @vispdat.question(:basic_needs)
       .col-sm-3
         = f.input :basic_needs_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:basic_needs_answers), label: false
 
     - if @vispdat.youth?
-      %h4 Is your current lack of stable housing...
+      %h4= @vispdat.question(:lack_of_housing)
       %br
       .row
         .col-sm-8.col-md-offset-1
-          %label Because you ran away from your family home, a group home or a foster home?
+          %label= @vispdat.question(:ran_away)
         .col-sm-3
           = f.input :homeless_due_to_ran_away_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:homeless_due_to_ran_away_answers), label: false
       .row
         .col-sm-8.col-md-offset-1
-          %label Because of a difference in religious or cultural beliefs from your parents, guardians or caregivers?
+          %label= @vispdat.question(:religious_beliefs)
         .col-sm-3
           = f.input :homeless_due_to_religions_beliefs_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:homeless_due_to_religions_beliefs_answers), label: false
       .row
         .col-sm-8.col-md-offset-1
-          %label Because your family or friends caused you to become homeless?
+          %label= @vispdat.question(:homeless_due_to_family)
         .col-sm-3
           = f.input :homeless_due_to_family_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:homeless_due_to_family_answers), label: false
       .row
         .col-sm-8.col-md-offset-1
-          %label Because of conficts around gender identity or sexual orientation?
+          %label= @vispdat.question(:gender_identity)
         .col-sm-3
           = f.input :homeless_due_to_gender_identity_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:homeless_due_to_gender_identity_answers), label: false
       .row
         .col-sm-8.col-md-offset-1
-          %label Because of violence at home between family members?
+          %label= @vispdat.question(:due_to_violence)
         .col-sm-3
           = f.input :violence_between_family_members_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:violence_between_family_members_answers), label: false
       .row
         .col-sm-8.col-md-offset-1
-          %label Because of an unhealthy or abusive relationship, either at home or elsewhere?
+          %label= @vispdat.question(:due_to_abuse)
         .col-sm-3
           = f.input :abusive_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:abusive_answers), label: false
     - else
       .row
         .col-sm-9
-          %label Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?
+          %label= @vispdat.question(:homelessness_cause)
         .col-sm-3
           = f.input :abusive_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:abusive_answers), label: false
 
@@ -245,104 +245,101 @@
   .well.vispdat.vispdat-wellness-1
     .row
       .col-sm-9
-        %label Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?
+        %label= @vispdat.question(:leave_due_to_health)
       .col-sm-3
         = f.input :leave_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:leave_answers), label: false
     .row
       .col-sm-9
-        %label Do you have any chronic health issues with your liver, kidneys, stomach, lungs or heart?
+        %label= @vispdat.question(:chronic_health_issues)
       .col-sm-3
         = f.input :chronic_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:chronic_answers), label: false
     .row
       .col-sm-9
-        %label If there was space available in a program that specically assists people that live with HIV or AIDS, would that be of interest to you?
+        %label= @vispdat.question(:space_interest)
       .col-sm-3
         = f.input :hiv_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:hiv_answers), label: false
     .row
       .col-sm-9
-        %label Do you have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?
+        %label= @vispdat.question(:physical_disabilities)
       .col-sm-3
         = f.input :disability_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:disability_answers), label: false
     .row
       .col-sm-9
-        %label When you are sick or not feeling well, do you avoid getting help?
+        %label= @vispdat.question(:avoid_help)
       .col-sm-3
         = f.input :avoid_help_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:avoid_help_answers), label: false
 
     - unless @vispdat.family?
       .row
         .col-sm-9
-          %label.alert-danger
-            FOR FEMALE RESPONDENTS ONLY:
-          %label Are you currently pregnant?
+          %label= @vispdat.question(:currently_pregnant)
         .col-sm-3
           = f.input :pregnant_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:pregnant_answers), label: false
     .row
       .col-sm-9
-        %label Has your drinking or drug use led you to being kicked out of an apartment or program where you were staying in the past?
+        %label= @vispdat.question(:kicked_out)
       .col-sm-3
         = f.input :eviction_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:eviction_answers), label: false
     .row
       .col-sm-9
-        %label Will drinking or drug use make it difficult for you to stay housed or afford your housing?
+        %label= @vispdat.question(:drug_use)
       .col-sm-3
         = f.input :drinking_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:drinking_answers), label: false
     
     - if @vispdat.youth?
       .row
         .col-sm-9
-          %label If you've ever used marijuana, did you ever try it at age 12 or younger?
+          %label= @vispdat.question(:marijuana)
         .col-sm-3
           = f.input :marijuana_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:marijuana_answers), label: false
 
   .well.vispdat.vispdat-wellness-2
-    %h4 Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:
+    %h4= @vispdat.question(:trouble_housing)
     %br
     .row
       .col-sm-8.col-md-offset-1
-        %label A mental health issue or concern?
+        %label= @vispdat.question(:mental_health)
       .col-sm-3
         = f.input :mental_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:mental_answers), label: false
     .row
       .col-sm-8.col-md-offset-1
-        %label A past head injury?
+        %label= @vispdat.question(:head_injury)
       .col-sm-3
         = f.input :head_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:head_answers), label: false
     .row
       .col-sm-8.col-md-offset-1
-        %label A learning disability, developmental disability, or other impairment?
+        %label= @vispdat.question(:learning_disability)
       .col-sm-3
         = f.input :learning_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:learning_answers), label: false
 
   .well.vispdat.vispdat-wellness-3
     .row
       .col-sm-9
-        %label Do you have any mental health or brain issues that would make it hard for you to live independently because you’d need help?
+        %label= @vispdat.question(:live_independently)
       .col-sm-3
         = f.input :brain_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:brain_answers), label: false
 
     - if @vispdat.family?
       .row
         .col-sm-9
-          %label IF THE FAMILY SCORED 1 EACH FOR PHYSICAL HEALTH, SUBSTANCE ABUSE, AND MENTAL HEALTH: Does any single member of your household hava medical condition, mental health concerns, and experience with problematic substance use?
+          %label= @vispdat.question(:single_member_morbidity)
         .col-sm-3
           = f.input :family_member_tri_morbidity_answer, as: :radio_buttons,collection: @vispdat.class.options_for(:family_member_tri_morbidity_answers), label: false
     .row
       .col-sm-9
-        %label Are there any medications that a doctor said you should be taking that, for whatever reason, you are not taking?
+        %label= @vispdat.question(:take_medications)
       .col-sm-3
         = f.input :medication_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:medication_answers), label: false
     .row
       .col-sm-9
-        %label Are there any medications like painkillers that you don’t take the way the doctor prescribed or where you sell the medication?
+        %label= @vispdat.question(:sell_medications)
       .col-sm-3
         = f.input :sell_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:sell_answers), label: false
 
     - unless @vispdat.youth?
       .row
         .col-sm-9
-          %label.alert-danger YES OR NO:
-          %label Has your current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you have experienced?
+          %label= @vispdat.question(:abuse_trauma)
         .col-sm-3
           = f.input :trauma_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:trauma_answers), label: false
 
@@ -353,7 +350,7 @@
   .well
     .row
       .col-sm-4
-        %label On a regular day, where is it easiest to find you and what time of day is easiest to do so?
+        %label= @vispdat.question(:find_you)
       .col-sm-4
         %label Place
         = f.input :find_location, label: false
@@ -365,14 +362,14 @@
         = f.input :when_answer, label: false, collection: @vispdat.class.when_options
     .row
       .col-sm-4
-        %label Is there a phone number and/or email where someone can safely get in touch with you or leave you a message?
+        %label= @vispdat.question(:contact_info)
       .col-sm-4
         = f.input :phone
       .col-sm-4
         = f.input :email
     .row
       .col-sm-4
-        %label Ok, now I'd like to take your picture so that it is easier to find you and confirm your identity in the future. May I do so?
+        %label= @vispdat.question(:take_picture)
       .col-sm-8
         = f.input :picture_answer, as: :radio_buttons, label: false, collection: @vispdat.class.options_for(:picture_answers)
 
