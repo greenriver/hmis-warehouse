@@ -46,7 +46,7 @@ module GrdaWarehouse::Tasks
           msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
-          client_source.find(id).invalidate_service_history
+          client_source.find(id).force_full_service_history_rebuild
           add_attempt(id)
         else
           # as of 10/19, we no longer check this because our processor doesn't blindly create services, it limits them
@@ -165,7 +165,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(source_enrollments: :project).
         where(id: batch).
         group(:id).
-        pluck(:id, nf( 'COUNT', [enrollment_source.arel_table[:ProjectEntryID]] ).to_sql).
+        pluck(:id, nf( 'COUNT', [nf('DISTINCT', [e_t[:ProjectEntryID], e_t[:data_source_id]])] ).to_sql).
       each do |id, source_enrollment_count|
         @destinations[id][:source][:enrollments] = source_enrollment_count
       end
@@ -180,7 +180,7 @@ module GrdaWarehouse::Tasks
         group(:id).
         pluck(
           :id, 
-          nf('COUNT', [nf('DISTINCT', [ex_t[:ProjectEntryID], ex_t[:PersonalID]])]).to_sql
+          nf('COUNT', [nf('DISTINCT', [ex_t[:ProjectEntryID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql
         ).
       each do |id, source_exit_count|
         @destinations[id][:source][:exits] = source_exit_count

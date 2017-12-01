@@ -34,6 +34,9 @@ module Importing
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
       @notifier.ping('Clients cleaned') if @send_notifications
       GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+      # Make sure we've finished processing the service history before we move on
+      # Some of the later items require this to be finished to be correct.
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
       @notifier.ping('Service history generated') if @send_notifications
       Nickname.populate!
       @notifier.ping('Nicknames updated') if @send_notifications
