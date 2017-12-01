@@ -15,14 +15,15 @@
         %th Most Recent Day Served
         %th.text-right Days Served
         %th.text-right
-          - if any_homeless
-            Homeless / Adjusted Days
-          - else
-            Adjusted Days
+          %span{data: {toggle: :tooltip, title: "Days homeless is a count of the unique dates homeless.  Adjusted days, is the number of days in the project type that don't overlap other enrollments within the same project type."}}
+            - if any_homeless
+              Homeless / Adjusted Days
+            - else
+              Adjusted Days
         %th.text-right Months Served
         %th Household Members
       - total_days = enrollments.map{|m| m[:days]}.sum
-      - total_homeless = enrollments.map{ |m| m[:homeless_days] }.sum
+      - total_homeless = @client.days_homeless
       - total_adjusted_days = enrollments.map{|m| m[:adjusted_days]}.sum
       - total_months = enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
       %tr
