@@ -1684,6 +1684,7 @@ module ReportGenerators::Ahar::Fy2017
           gender_individual = nil
           data_source_id = nil
           project_id = nil
+          force_family = false
           entries.each do |entry|
             age = entry[service_history_age_index] || infer_adulthood(entry[service_history_client_id_index])
             client_id = entry[service_history_client_id_index]
@@ -1692,12 +1693,18 @@ module ReportGenerators::Ahar::Fy2017
             project_id ||= entry[service_history_project_id_index]
             if age.present? && age < ADULT
               child += 1
+              force_family = age <= 12
             else
               adult += 1
             end
           end
           size = child + adult
           family = child > 0 && adult > 0
+
+          # Temporary hack to force all 0-12 year olds to behave as families
+          if size == 1 && force_family
+            family = true
+          end
           
           if child == 1 && adult == 0
             household_type = 'HH_Typ_UY' # Unaccompanied child presenting as an individual
