@@ -16,7 +16,12 @@ module Clients
     end
 
     def create
-      @anomaly = anomaly_scope.new
+      @anomaly = @client.anomalies.build(anomaly_params.merge(
+        status: :new, 
+        submitted_by: current_user.id
+      ))
+      @anomaly.save
+      respond_with(@anomaly, location: client_anomalies_path(@client))
     end
 
     def destroy
@@ -40,7 +45,7 @@ module Clients
     end
 
 
-    private def note_params
+    private def anomaly_params
       params.require(:anomaly).
         permit(
           :status,
