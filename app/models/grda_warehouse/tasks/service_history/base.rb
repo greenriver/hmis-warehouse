@@ -49,7 +49,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           else
             30
           end
-          self.class.wait_for_processing(interval: interval)
+          # self.class.wait_for_processing(interval: interval)
         end
       ensure
         Rails.cache.delete('sanity_check_count')
@@ -57,7 +57,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def self.wait_for_processing interval: 30
-      return true
       # you must manually process these in the test environment since there are no workers
       unless Rails.env.test?
         started = Time.now
