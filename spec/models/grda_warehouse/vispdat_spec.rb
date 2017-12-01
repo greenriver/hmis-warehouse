@@ -469,6 +469,95 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
     end
   end
 
+  describe 'section scoring' do
+    before(:each) do
+      [
+        :dob_score,
+        :sleep_score,
+        :homeless_score,
+        :emergency_service_score,
+        :risk_of_harm_score,
+        :legal_issues_score,
+        :risk_of_exploitation_score,
+        :money_management_score,
+        :meaningful_activity_score,
+        :self_care_score,
+        :social_relationship_score,
+        :physical_health_score,
+        :substance_abuse_score,
+        :mental_health_score,
+        :tri_morbidity_score,
+        :medication_score,
+        :abuse_and_trauma_score
+      ].each do |score|
+        allow( vispdat ).to receive(score).and_return [0,1].sample
+      end
+
+      vispdat.calculate_score
+    end
+    describe 'pre_survey_score' do
+      it 'equals dob_score' do
+        expect( vispdat.pre_survey_score ).to eq vispdat.dob_score
+      end
+    end
+
+    describe 'history_score' do
+      it 'is sum of sleep & homeless scores' do
+        expect( vispdat.history_score ).to eq [
+          vispdat.sleep_score,
+          vispdat.homeless_score
+        ].sum 
+      end
+    end
+
+    describe 'risk_score' do
+      it 'is sum of 4 scores' do
+        expect( vispdat.risk_score ).to eq [
+          vispdat.emergency_service_score,
+          vispdat.risk_of_harm_score,
+          vispdat.legal_issues_score,
+          vispdat.risk_of_exploitation_score
+        ].sum 
+      end
+    end
+
+    describe 'social_score' do
+      it 'is sum of 4 scores' do
+        expect( vispdat.social_score ).to eq [
+          vispdat.money_management_score,
+          vispdat.meaningful_activity_score,
+          vispdat.self_care_score,
+          vispdat.social_relationship_score
+        ].sum 
+      end
+    end
+
+    describe 'wellness_score' do
+      it 'is sum of 5 scores' do
+        expect( vispdat.wellness_score ).to eq [    
+          vispdat.physical_health_score,
+          vispdat.substance_abuse_score,
+          vispdat.mental_health_score,
+          vispdat.tri_morbidity_score,
+          vispdat.medication_score,
+          vispdat.abuse_and_trauma_score
+        ].sum 
+      end
+    end
+
+    describe 'score' do
+      it 'returns total of each section score' do
+        expect( vispdat.score ).to eq [
+          vispdat.pre_survey_score,
+          vispdat.history_score,
+          vispdat.risk_score,
+          vispdat.social_score,
+          vispdat.wellness_score
+        ].sum
+      end
+    end
+  end
+
 
 
 
