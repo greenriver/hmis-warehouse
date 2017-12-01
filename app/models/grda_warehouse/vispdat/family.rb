@@ -60,6 +60,7 @@ module GrdaWarehouse::Vispdat
     end
 
     # family omits pregnancy question for physical health
+    # and asks this under family_size_score
     def physical_health_score
       (
         leave_answer_yes? || 

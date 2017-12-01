@@ -60,4 +60,11 @@ FactoryGirl.define do
     release_signed_on nil
     drug_release nil
   end
+
+  factory :family_vispdat, class: 'GrdaWarehouse::Vispdat::Family' do
+    association :client, factory: :grda_warehouse_hud_client
+  end
+  factory :youth_vispdat, class: 'GrdaWarehouse::Vispdat::Youth' do
+    association :client, factory: :grda_warehouse_hud_client
+  end
 end

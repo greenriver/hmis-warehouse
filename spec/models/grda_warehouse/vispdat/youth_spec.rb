@@ -1,12 +1,12 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
+RSpec.describe GrdaWarehouse::Vispdat::Youth, type: :model do
   
-  let(:vispdat) { create :vispdat }
+  let(:vispdat) { build :youth_vispdat }
 
   describe 'youth?' do
-    it 'returns false' do
-      expect( vispdat.youth? ).to be false
+    it 'returns true' do
+      expect( vispdat.youth? ).to be true
     end
   end
 
@@ -17,102 +17,22 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   end
 
   describe 'individual?' do
-    it 'returns true' do
-      expect( vispdat.individual? ).to be true
-    end
-  end
-
-  context 'when updated' do
-    context 'and completed is set' do
-
-      before(:each) do
-        vispdat.update( submitted_at: Time.now )
-      end
-
-      it 'queues an email' do
-        expect( Delayed::Job.count ).to eq 1
-      end
-      it 'queues a vispdat complete email' do
-        expect( Delayed::Job.first.payload_object.job_data['arguments'] ).to include "NotifyUser", "vispdat_completed"
-      end
-
-    end
-
-    describe 'and completed already set' do
-      
-      let(:vispat) { create :vispdat, completed: Time.now }
-
-      before(:each) do
-        vispdat.update( nickname: 'Joey' )
-      end
-
-      it 'does not queue an email' do
-        expect( Delayed::Job.count ).to eq 0
-      end
-    end
-  end
-
-  let(:vispdat) { create :vispdat, score: 8 }
-
-  let(:score_8) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:calculate_score).and_return( 8 )
-  end
-  let(:homeless_gt_2_years) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:days_homeless).and_return( 731 )
-  end
-  let(:homeless_1_year) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:days_homeless).and_return( 365 )
-  end
-
-  describe 'priority_score' do
-
-    context 'when score >= 8' do
-
-      context 'and homeless > 2 years' do
-        it 'is score + 730' do
-          score_8
-          homeless_gt_2_years
-          vispdat
-          expect( vispdat.priority_score ).to eq vispdat.score+730
-        end
-      end
-      context 'and homeless 1..2 years' do
-        it 'is score + 365' do
-          score_8
-          homeless_1_year
-          vispdat
-          expect( vispdat.priority_score ).to eq vispdat.score+365
-        end
-      end
-    end
-
-    context 'when score 0..7' do
-      let(:vispdat) { create :vispdat, score: 7 }
-      it 'is equal to score' do
-        vispdat
-        expect( vispdat.priority_score ).to eq vispdat.score
-      end
-    end
-
-    context 'when score < 0' do
-      let(:vispdat) { create :vispdat, score: -1 }
-      it 'is 0' do
-        expect( vispdat.priority_score ).to eq 0
-      end
+    it 'returns false' do
+      expect( vispdat.individual? ).to be false
     end
   end
 
   describe 'dob_score' do
-    context 'when client >= 60' do
-      it 'returns 1' do
-        allow( vispdat.client ).to receive(:age).and_return 61
-        expect( vispdat.dob_score ).to eq 1
+    context 'when client > 17' do
+      it 'returns 0' do
+        allow( vispdat.client ).to receive(:age).and_return 18
+        expect( vispdat.dob_score ).to eq 0
       end
     end
-    context 'when client < 60' do
-      it 'returns 0' do
-        allow( vispdat.client ).to receive(:age).and_return 59
-        expect( vispdat.dob_score ).to eq 0
+    context 'when client <= 17' do
+      it 'returns 1' do
+        allow( vispdat.client ).to receive(:age).and_return 16
+        expect( vispdat.dob_score ).to eq 1
       end
     end
   end
@@ -211,6 +131,14 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
         expect( vispdat.legal_issues_score ).to eq 1
       end
     end
+    context 'when incarcerated before 18' do
+      before(:each) do
+        vispdat.incarcerated_before_18_answer = :incarcerated_before_18_answer_yes
+      end
+      it 'returns 1' do
+        expect( vispdat.legal_issues_score ).to eq 1
+      end
+    end
     context 'when legal_answer_no' do
       it 'returns 0' do
         expect( vispdat.legal_issues_score ).to eq 0
@@ -289,14 +217,31 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   end
 
   describe 'social_relationship_score' do
-    context 'when abuse' do
-      before(:each) { vispdat.abusive_answer = :abusive_answer_yes }
+    context 'when ran away' do
+      before(:each) { vispdat.homeless_due_to_ran_away_answer = :homeless_due_to_ran_away_answer_yes }
       it 'returns 1' do
         expect( vispdat.social_relationship_score ).to eq 1
       end
     end
-    context 'when no abuse' do
-      before(:each) { vispdat.abusive_answer = :abusive_answer_no }
+    context 'when lack of housing caused by difference in religious beliefs' do
+      before(:each) { vispdat.homeless_due_to_religions_beliefs_answer = :homeless_due_to_religions_beliefs_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.social_relationship_score ).to eq 1
+      end
+    end
+    context 'when lack of housing caused by family' do
+      before(:each) { vispdat.homeless_due_to_family_answer = :homeless_due_to_family_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.social_relationship_score ).to eq 1
+      end
+    end
+    context 'when lack of housing caused by gender identity' do
+      before(:each) { vispdat.homeless_due_to_gender_identity_answer = :homeless_due_to_gender_identity_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.social_relationship_score ).to eq 1
+      end
+    end
+    context 'when not any' do
       it 'returns 0' do
         expect( vispdat.social_relationship_score ).to eq 0
       end
@@ -356,6 +301,12 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
     end
     context 'when drinking' do
       before(:each) { vispdat.drinking_answer = :drinking_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.substance_abuse_score ).to eq 1
+      end
+    end
+    context 'when marijuana' do
+      before(:each) { vispdat.marijuana_answer = :marijuana_answer_yes }
       it 'returns 1' do
         expect( vispdat.substance_abuse_score ).to eq 1
       end
@@ -456,22 +407,24 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   end
 
   describe 'abuse_and_trauma_score' do
-    context 'when yes' do
-      before(:each) { vispdat.trauma_answer = :trauma_answer_yes }
+    context 'when violence in family' do
+      before(:each) { vispdat.violence_between_family_members_answer = :violence_between_family_members_answer_yes }
       it 'returns 1' do
         expect( vispdat.abuse_and_trauma_score ).to eq 1
       end
     end
-    context 'when no' do
+    context 'when abusive' do
+      before(:each) { vispdat.abusive_answer = :abusive_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.abuse_and_trauma_score ).to eq 1
+      end
+    end
+    context 'when neither' do
       it 'returns 0' do
         expect( vispdat.abuse_and_trauma_score ).to eq 0
       end
     end
   end
-
-
-
-
 
 
 
