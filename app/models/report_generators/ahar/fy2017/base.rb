@@ -1702,10 +1702,9 @@ module ReportGenerators::Ahar::Fy2017
           family = child > 0 && adult > 0
 
           # Temporary hack to force all 0-12 year olds to behave as families
-          if size == 1 && force_family
+          if adult == 0 && force_family
             family = true
           end
-          
           if child == 1 && adult == 0
             household_type = 'HH_Typ_UY' # Unaccompanied child presenting as an individual
           elsif child > 1 && adult == 0
