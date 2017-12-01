@@ -87,7 +87,7 @@
           
           - scope = client.scope_for_residential_enrollments
           - enrollments = client.enrollments_for_rollup(en_scope: scope, include_confidential_names: @include_confidential_names)
-          - total_homeless = client.total_homeless(enrollments)
+          - total_homeless = client.days_homeless
           %p 
             %strong Days Homeless:
             = pluralize(total_homeless, 'day')
