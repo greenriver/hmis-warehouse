@@ -166,7 +166,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
           e_t[:ProjectID].asc,
           e_t[:DateDeleted].asc,
           s_t[:DateDeleted].asc,
-          ex_t[:DateDeleted].asc
+          ex_t[:DateDeleted].asc,
+          e_t[:HouseholdID].asc,
+          ex_t[:Destination].asc
         ).
         pluck(*hash_columns)
     end
@@ -340,12 +342,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
           entry_date: :EntryDate,
           project_id: :ProjectID,
           deleted_at: :DateDeleted,
+          household_id: :HouseholdID,
         }
         
         exit_hash_columns = {
           exit_date: :ExitDate,
           deleted_at: :DateDeleted,
           data_source_id: :data_source_id,
+          destination: :Destination,
         }
         
         service_hash_columns = {
