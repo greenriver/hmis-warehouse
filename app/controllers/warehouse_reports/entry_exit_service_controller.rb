@@ -1,6 +1,6 @@
 module WarehouseReports
   class EntryExitServiceController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     def index
       # Clients who received services for one-day enrollments in housing related projects.
       # this is a translation of an original raw SQL query into Arel

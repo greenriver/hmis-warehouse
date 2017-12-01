@@ -1,26 +1,42 @@
 - content_for :title, _("Warehouse Reports")
 %h1= content_for :title
 
-= render 'tab_navigation'
+:ruby
+  all_report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.all.group_by(&:report_group)
+  if can_view_all_reports?
+    report_definitions = all_report_definitions
+  else
+    report_definitions = current_user.reports.group_by(&:report_group)
+  end
+  active_class = ''
+
+%ul.nav.nav-tabs{role: :tablist}
+  - report_definitions.each_with_index do |(group_name, reports), index|
+    %li{role: :presentation, class: (index == 0 ? 'active' : '')}
+      %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
+        #{group_name}
+  - if can_view_aggregate_health?
+    %li{role: :presentation, class: active_class}
+      %a{href: '#health-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Health Reports'}}
+        Health
+
 .tab-content
-  - if can_view_reports?
-    - report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.all.group_by(&:report_group)
-    - report_definitions.each_with_index do |(group_name, reports), index|
-      - dashed_group_name = group_name.parameterize.dasherize
-      %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: dashed_group_name}
-        %div{class: "warehouse-reports__#{dashed_group_name}"}
-          %h3 
-            #{group_name}
-          - reports.in_groups_of(3) do |report_row|
-            .row
-              - report_row.each do |report|
-                - if report
-                  .col-sm-4
-                    = link_to report.url do
-                      = report.name
-                    %br
-                    = report.description.html_safe
-            %br
+  - report_definitions.each_with_index do |(group_name, reports), index|
+    - dashed_group_name = group_name.parameterize.dasherize
+    %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: dashed_group_name}
+      %div{class: "warehouse-reports__#{dashed_group_name}"}
+        %h3 
+          #{group_name}
+        - reports.in_groups_of(3) do |report_row|
+          .row
+            - report_row.each do |report|
+              - if report
+                .col-sm-4
+                  = link_to report.url do
+                    = report.name
+                  %br
+                  = report.description.html_safe
+          %br
 
   - if can_view_aggregate_health?
     #health-reports.tab-pane{role: :tabpanel}

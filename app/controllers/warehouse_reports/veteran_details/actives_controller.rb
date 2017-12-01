@@ -3,7 +3,7 @@ module WarehouseReports::VeteranDetails
     include ArelHelper
     include ArelTable
     include ClientActiveCalculations
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     before_action :require_can_view_clients!
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end

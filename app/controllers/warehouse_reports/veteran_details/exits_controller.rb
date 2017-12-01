@@ -1,7 +1,7 @@
 module WarehouseReports::VeteranDetails
   class ExitsController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     before_action :require_can_view_clients!
 
     def index

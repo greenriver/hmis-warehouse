@@ -2,7 +2,7 @@ module WarehouseReports
   class LengthOfStayController < ApplicationController
     include ArelHelper
 
-    before_action :require_can_view_reports!, :load_mo
+    before_action :require_can_view_all_reports!, :load_mo
 
     def index
       length_of_stay if request.format.xlsx?

@@ -1,6 +1,6 @@
 module WarehouseReports
   class DisabilitiesController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
 
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)

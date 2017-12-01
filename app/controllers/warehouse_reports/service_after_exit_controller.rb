@@ -2,7 +2,7 @@ module WarehouseReports
   class ServiceAfterExitController < ApplicationController
     include ArelHelper
 
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     def index
       services    = GrdaWarehouse::Hud::Service
       enrollments = GrdaWarehouse::Hud::Enrollment

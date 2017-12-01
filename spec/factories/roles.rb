@@ -4,7 +4,8 @@ FactoryGirl.define do
     verb nil
     can_view_clients true
     can_edit_clients true
-    can_view_reports true
+    can_view_all_reports true
+    can_assign_reports true
     can_view_censuses true
     can_view_census_details true
     can_edit_users true

@@ -1,7 +1,7 @@
 module WarehouseReports
   class FirstTimeHomelessController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
 
     def index
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?

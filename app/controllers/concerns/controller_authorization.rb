@@ -47,6 +47,15 @@ module ControllerAuthorization
     not_authorized!
   end
 
+  def require_can_view_all_reports!
+    return true if current_user.can_view_all_reports?
+  end
+
+  def require_can_assign_reports!
+    return true if current_user.can_assign_reports?
+    not_authorized!
+  end
+
   def require_can_see_this_client_demographics!
     return true if current_user.can_view_client_window?
     # attempt to set the client various ways

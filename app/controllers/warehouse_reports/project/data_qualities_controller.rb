@@ -1,6 +1,6 @@
 module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     before_action :set_projects, :set_project_groups
 
     def show

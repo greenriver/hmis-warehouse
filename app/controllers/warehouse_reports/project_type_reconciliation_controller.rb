@@ -1,6 +1,6 @@
 module WarehouseReports
   class ProjectTypeReconciliationController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     def index
       @projects = project_source.joins(:organization, :data_source).
         where(

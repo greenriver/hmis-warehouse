@@ -1,6 +1,6 @@
 module WarehouseReports
   class DobEntrySameController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       @clients = client_source.distinct

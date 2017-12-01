@@ -1,6 +1,6 @@
 module WarehouseReports
   class MissingValuesController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
 
     POTENTIAL_COLUMNS = (
       GrdaWarehouse::Hud::Client.column_names + GrdaWarehouse::Hud::Enrollment.column_names

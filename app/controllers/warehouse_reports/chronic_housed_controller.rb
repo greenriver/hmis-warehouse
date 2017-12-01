@@ -1,7 +1,7 @@
 module WarehouseReports
   class ChronicHousedController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     before_action :set_range
 
     def index

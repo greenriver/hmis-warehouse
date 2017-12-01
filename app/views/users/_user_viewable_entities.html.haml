@@ -20,6 +20,10 @@
     - collection = model.order(:name).preload(:organization, :data_source).group_by{ |p| "#{p.data_source&.name} / #{p.organization&.name}" }
     - args = { as: :grouped_select, group_method: :last, selected: @user.projects.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[projects][]"} }
     = f.input :projects, **args, collection: collection, placeholder: 'Project', multiple: true
+  - if ( model = GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(current_user) ).exists
+    - collection = model.order(:name).map{ |rd| [rd.name, rd.id] }
+    - args = { selected: @user.reports.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[reports][]" } }
+    = f.input :reports, **args, collection: collection, placeholder: 'Report', multiple: true
 
 - content_for :page_js do
   :coffeescript

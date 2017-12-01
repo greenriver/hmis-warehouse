@@ -1,6 +1,6 @@
 module WarehouseReports::Cas
   class DeclineReasonController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     before_action :set_range
 
     def index

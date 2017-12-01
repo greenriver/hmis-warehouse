@@ -3,7 +3,7 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
 
-    before_action :require_can_view_reports!, :load_filter, :set_sort
+    before_action :require_can_view_all_reports!, :load_filter, :set_sort
 
     def index
       @clients = @clients.includes(:hud_chronics).

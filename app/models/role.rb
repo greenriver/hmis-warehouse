@@ -19,7 +19,6 @@ class Role < ActiveRecord::Base
     perms = [
       :can_view_clients,
       :can_edit_clients,
-      :can_view_reports,
       :can_view_censuses,
       :can_view_census_details,
       :can_edit_users,
@@ -60,6 +59,8 @@ class Role < ActiveRecord::Base
       :can_view_client_user_assignments,
       :can_export_hmis_data,
       :can_confirm_housing_release,
+      :can_view_all_reports,
+      :can_assign_reports
     ]
     perms += self.health_permissions unless exclude_health
     return perms

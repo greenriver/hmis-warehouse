@@ -2,7 +2,7 @@ module WarehouseReports
   class ChronicController < ApplicationController
     include ArelHelper
     include Chronic
-    before_action :require_can_view_reports!, :load_filter, :set_sort
+    before_action :require_can_view_all_reports!, :load_filter, :set_sort
 
     def index
       @clients = @clients.includes(:chronics).

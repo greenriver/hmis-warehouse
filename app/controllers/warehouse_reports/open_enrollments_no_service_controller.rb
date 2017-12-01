@@ -1,6 +1,6 @@
 module WarehouseReports
   class OpenEnrollmentsNoServiceController < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     def index
       @sort_options = sort_options
       date_range_options = params.permit(range: [:start, :end])[:range]

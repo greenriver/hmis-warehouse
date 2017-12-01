@@ -1235,13 +1235,6 @@ SELECT "Client"."PersonalID",
     t.text   "description"
   end
 
-  create_table "report_definitions_users", force: :cascade do |t|
-    t.integer "report_definition_id"
-    t.integer "user_id",              :null=>false
-  end
-  add_index "report_definitions_users", ["report_definition_id", "user_id"], :name=>"report_definition_user", :using=>:btree
-  add_index "report_definitions_users", ["user_id", "report_definition_id"], :name=>"user_report_definition", :using=>:btree
-
   create_table "warehouse_clients", force: :cascade do |t|
     t.string   "id_in_source",    :null=>false
     t.integer  "data_source_id"
