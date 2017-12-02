@@ -1,3 +1,4 @@
+- cas_id = client.cas_client&.id
 .row
   .col-sm-12
     - if client.processed_service_history.present? && client.longterm_stayer?
@@ -5,14 +6,18 @@
         Long-term Stayer
     - if client.sync_with_cas? && client.chronically_homeless_for_cas?
       .alert.alert-warning.client-flag.client-flag__cas
-        = _('Chronically Homeless and in CAS')
+        - if cas_id.present? 
+          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+            = _('Chronically Homeless and in CAS')
+        - else
+          = _('Chronically Homeless and in CAS')
     - elsif client.chronically_homeless_for_cas?
       .alert.alert-warning.client-flag.client-flag__cas
         = _('Chronically Homeless for CAS')
     - elsif client.sync_with_cas?
       .alert.alert-warning.client-flag.client-flag__cas
-        - if id = client.cas_client&.id
-          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{id}", target: '_blank' do
+        - if cas_id.present?
+          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
             = _('Available in CAS')
         - else
           = _('Available in CAS')

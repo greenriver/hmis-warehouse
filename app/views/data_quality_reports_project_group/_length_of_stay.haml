@@ -52,7 +52,7 @@
             %td{class: odd_class}
               - measure = totals[:buckets][range.to_s]
               - key = "enrolled_length_of_stay_totals_#{range}"
-              - if measure > 0
+              - if measure.present? && measure > 0
                 = link_to support_project_group_data_quality_report_path(@project_group, @report, {key: key}), data: {loads_in_pjax_modal: true} do
                   = measure
               - else
