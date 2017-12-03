@@ -5,7 +5,7 @@ module Clients
     before_action :set_client
     
     def index
-      @anomalies = @client.anomalies
+      @anomalies = @client.anomalies.group_by(&:status)
     end
 
     def edit
@@ -13,6 +13,8 @@ module Clients
     end
 
     def update
+      @anomaly.update(anomaly_params)
+      respond_with(@anomaly, location: client_anomalies_path(@client))
     end
 
     def create

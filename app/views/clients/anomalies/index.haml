@@ -2,7 +2,30 @@
 - content_for :modal_title, title
 = render 'form'
 - if @anomalies.any?
-  = render 'anomalies_table'
+  %ul.nav.nav-tabs{role: :tablist}
+    - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
+      - active = if slug == :new then 'active' end
+      %li{class: active}
+        %a{href: "##{slug}", 'aria-controls' => slug}
+          = status
+  .tab-content
+    - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
+      - active = if slug == :new then 'active' end
+      .tab-pane{role: :tabpanel, id: slug, class: active}
+        = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
 - else
   %p.note
     There are no anomalies at this time.
+
+= content_for :page_js do
+  :javascript
+    $('.nav-tabs a').click(function(e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+    $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      window.location.hash = id;
+    });
+    var hash = window.location.hash;
+    $('.nav-tabs a[href="' + hash + '"]').tab('show');

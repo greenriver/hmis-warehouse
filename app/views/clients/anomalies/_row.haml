@@ -1,0 +1,25 @@
+= simple_form_for anomaly, as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id) do |f|
+  %tr
+    %td
+      = f.input :description, label: false
+    %td
+      = f.input :status, collection: anomaly.class.available_stati.invert, label: false, include_blank: false
+    %td
+      = anomaly.updated_at
+    %td
+      = anomaly.user.name
+    %td
+      = f.submit class: 'btn btn-submit', value: 'Update'
+  - if anomaly.versions
+    - anomaly.versions.reverse.each do |version|
+      - object = version.reify
+      %tr.anomaly-history
+        %td
+          = object.description
+        %td
+          = object.current_status
+        %td
+          = object.updated_at
+        %td
+          = User.find(version.whodunnit.to_i).name
+        %td
