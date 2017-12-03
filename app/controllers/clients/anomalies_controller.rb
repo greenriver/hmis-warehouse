@@ -46,6 +46,9 @@ module Clients
       GrdaWarehouse::Hud::Client.destination
     end
 
+    def flash_interpolation_options
+      { resource_name: 'Issue' }
+    end
 
     private def anomaly_params
       params.require(:anomaly).

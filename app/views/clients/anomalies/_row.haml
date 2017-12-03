@@ -1,5 +1,5 @@
 = simple_form_for anomaly, as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id) do |f|
-  %tr
+  %tr.anomaly-current
     %td
       = f.input :description, label: false
     %td

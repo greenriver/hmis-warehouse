@@ -8,7 +8,7 @@
       %li{class: active}
         %a{href: "##{slug}", 'aria-controls' => slug}
           = status
-  .tab-content
+  .tab-content.margin-top-02
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
       - active = if slug == :new then 'active' end
       .tab-pane{role: :tabpanel, id: slug, class: active}
