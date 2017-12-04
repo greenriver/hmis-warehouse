@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171204180630) do
+ActiveRecord::Schema.define(version: 20171206131931) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -94,6 +94,7 @@ ActiveRecord::Schema.define(version: 20171204180630) do
     t.boolean  "api_update_in_process",                  :default=>false, :null=>false
     t.datetime "api_update_started_at"
     t.datetime "api_last_updated_at"
+    t.integer  "user_id"
     t.integer  "creator_id"
     t.boolean  "cspech_eligible",                        :default=>false
   end
@@ -105,6 +106,7 @@ ActiveRecord::Schema.define(version: 20171204180630) do
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
   add_index "Client", ["creator_id"], :name=>"index_Client_on_creator_id", :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
+  add_index "Client", ["user_id"], :name=>"index_Client_on_user_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
     t.string   "DisabilitiesID"
@@ -2088,6 +2090,17 @@ SELECT "Services"."ServicesID",
     t.date     "last_date_served"
   end
   add_index "warehouse_clients_processed", ["routine"], :name=>"index_warehouse_clients_processed_on_routine", :using=>:btree
+
+  create_table "warehouse_reports", force: :cascade do |t|
+    t.json     "parameters"
+    t.json     "data"
+    t.string   "type"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at",  :null=>false
+    t.datetime "updated_at",  :null=>false
+    t.integer  "client_count"
+  end
 
   create_table "weather", force: :cascade do |t|
     t.string   "url",        :null=>false

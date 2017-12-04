@@ -1,5 +1,5 @@
 .well
-  = simple_form_for @filter, as: :filter, url: warehouse_reports_chronic_index_path, html: { method: :get, class: 'jFilter' } do |f|
+  = simple_form_for @filter, as: :filter, remote: true, url: warehouse_reports_chronic_index_path, html: { method: :get, class: 'jFilter' } do |f|
     = f.error_notification
     .row
       .col-sm-3
@@ -20,4 +20,4 @@
       .col-sm-4.text-right
         %label.control-label &nbsp;
         %div
-          = f.button :submit, value: 'Update View'
+          = f.button :submit, value: 'Run Report', data: { disable_with: 'running...' }

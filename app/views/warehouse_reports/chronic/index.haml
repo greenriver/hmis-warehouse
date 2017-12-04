@@ -7,91 +7,12 @@
 = render 'filter'
 = render 'homeless_info'
 
-.warehouse-reports__chronic
-  .row
-    .col-sm-12
-      %h4
-        .pull-left
-          Chronic Clients
-      .clearfix
-      %p.text-muted
-        Chart does not take into account "Received Homeless Service After."
-      .jCharts
-        %p.jLoading.text-center Loading...
-
-
-  .row(style="padding: 1em 1em 0 1em")
-    .col-sm-12
-      %hr
-      .pagination
-        %p= page_entries_info @clients, entry_name: _('client')
-        %p= paginate @clients
-  .row(style="padding: 0 1em")
-    .col-sm-12
-      = render('sort', sort_options: GrdaWarehouse::Chronic.sort_options) if @clients.any?
-
-  - @clients.each do |client|
-    - chronic = client.chronics.first # we can do this because we scope to only the day in question in the controller
-    - source_clients = client.source_clients
-    .warehouse-reports__client
-      .warehouse-reports__client-name
-        %h4
-          = link_to client.full_name, client_path(client)
-          Age:
-          =client.age
-      .row
-        .col-xs-3
-          %dl
-            %dt Homeless since
-            %dd= chronic.homeless_since
-            %dt Days Homeless in last three years
-            %dd= chronic.days_in_last_three_years
-            %dt Months Homeless in last three years
-            %dd= chronic.months_in_last_three_years
-            %dt Disability
-            %dd= client.source_disabilities.select{|m| ! [0,8,9,99].include? m.DisabilityResponse}.map{|m| m.disability_type_text}.uniq.join('<br />').html_safe
-            - if chronic.dmh
-              %dt DMH Client?
-              %dd= checkmark(chronic.dmh)
-            - if client.veteran?
-              %dt Veteran?
-              %dd= checkmark(client.veteran?)
-            - if chronic.trigger.present?
-              %dt Chronic trigger
-              %dd= chronic.trigger
-            - if so_enrolled = @so_clients.include?(client.id)
-              %dt Enrolled in SO
-              %dd= checkmark(so_enrolled)
-            %dt Data Source
-            %dd= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
-        .col-xs-9
-          .rollup{data: {partial: :residential_enrollments, rollup_path: rollup_client_path(client), clients: source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name ] ] }.to_h.to_json, many_clients: source_clients.many?.to_json, high: client.source_clients.size + 1, client_id: client.id}, class: "jClientID-#{client.id}"}
-            .rollup-content
-              - if chronic.project_names.present?
-                .project_names
-                  %h3 Projects Involved in Chronic Determiniation
-                  %p= chronic.project_names.gsub('|', '; ')
-              %button.btn.btn-secondary.jLoadEnrollments
-                Load Residential Enrollment
-          -# client.service_history_entry_in_last_three_years.map{ |m| "#{m.project_name} from #{m.first_date_in_program} to #{m.last_date_in_program}"}.join('<br />').html_safe
-%p= paginate @clients
-
--# load in al the bits of aggregate statistics via ajax
-= content_for :page_js do
-  :javascript
-    // add the chart
-    (function($) {
-      chart = new App.ChartsScatterByDate.Chronic('#{summary_warehouse_reports_chronic_index_path(params)}', '', '', '#{@filter.date}');
-      chart.load();
-
-      $('.jLoadEnrollments').on('click', function(e) {
-        e.preventDefault();
-        var rollupPath = $(this).closest('.rollup').data('rollupPath');
-        var clients = $(this).closest('.rollup').data('clients');
-        var manyClients = $(this).closest('.rollup').data('manyClients');
-        var high = $(this).closest('.rollup').data('high');
-        var clientID = $(this).closest('.rollup').data('clientId');
-        new App.Rollups.Loader($('.jClientID-' + clientID), rollupPath, manyClients, clients, high);
-        $(this).closest('.rollup-content').replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
-      });
-    })(jQuery);
+.warehouse-reports__completed
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Run At
+        %th Report Link
+        %th Report Parameters
+    %tbody.report-listing
+      = render 'reports'

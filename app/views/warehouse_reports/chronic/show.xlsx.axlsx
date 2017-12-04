@@ -1,0 +1,28 @@
+
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'DOB', 'Homeless Since','Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Involved Projects', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources'], :style => title)
+  @clients.each do |client|
+    chronic = client['chronic']
+    disabilities = client['source_disabilities'].gsub('<br />', ', ')
+    data_sources = client['data_sources']
+    sheet.add_row([
+      client['id'], 
+      client['FirstName'], 
+      client['LastName'], 
+      client['DOB'], 
+      chronic['homeless_since'], 
+      chronic['days_in_last_three_years'], 
+      chronic['months_in_last_three_years'], 
+      chronic['trigger'],
+      client['chronic_project_names'],
+      @most_recent_services[client['id']], 
+      disabilities,
+      yn(chronic['dmh']),
+      yn(client['veteran']), 
+      yn(client['so_clients'].include?(client['id'])), 
+      data_sources, 
+    ])
+  end
+end
