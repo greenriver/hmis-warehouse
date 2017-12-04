@@ -42,5 +42,9 @@ module GrdaWarehouse
     def newly_minted?
       status == :new
     end
+
+    def involved_user_ids
+      (versions.pluck(:whodunnit).map(&:to_i) + [submitted_by]).uniq
+    end
   end
 end

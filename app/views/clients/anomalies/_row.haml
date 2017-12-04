@@ -1,4 +1,7 @@
-= simple_form_for anomaly, as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id) do |f|
+- readonly = anomaly.status == 'resolved'
+- wrapper = {}
+- wrapper = {wrapper: :readonly} if readonly
+= simple_form_for(anomaly, {as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id)}.merge(wrapper))do |f|
   %tr.anomaly-current
     %td
       = f.input :description, label: false
@@ -9,7 +12,7 @@
     %td
       = anomaly.user.name
     %td
-      = f.submit class: 'btn btn-submit', value: 'Update'
+      = f.submit class: 'btn btn-submit', value: 'Update' unless readonly
   - if anomaly.versions
     - anomaly.versions.reverse.each do |version|
       - object = version.reify

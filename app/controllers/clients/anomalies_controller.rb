@@ -14,7 +14,12 @@ module Clients
 
     def update
       @anomaly.update(anomaly_params)
-      respond_with(@anomaly, location: client_anomalies_path(@client))
+      NotifyUser.anomaly_updated( 
+        client_id: @client.id, 
+        user_id: current_user.id,
+        involved_user_ids: @anomaly.involved_user_ids
+      ).deliver_later
+      respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
     end
 
     def create
@@ -23,7 +28,11 @@ module Clients
         submitted_by: current_user.id
       ))
       @anomaly.save
-      respond_with(@anomaly, location: client_anomalies_path(@client))
+      NotifyUser.anomaly_identified( 
+        client_id: @client.id, 
+        user_id: current_user.id 
+      ).deliver_later
+      respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
     end
 
     def destroy
