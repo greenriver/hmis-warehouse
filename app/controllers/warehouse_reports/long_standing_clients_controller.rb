@@ -17,10 +17,6 @@ module WarehouseReports
       
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/long_standing_clients')
-    end
-
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end

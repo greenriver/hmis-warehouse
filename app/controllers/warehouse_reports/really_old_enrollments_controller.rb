@@ -12,9 +12,6 @@ module WarehouseReports
         .page(params[:page]).per(25)
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/really_old_enrollments')
-    end
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end

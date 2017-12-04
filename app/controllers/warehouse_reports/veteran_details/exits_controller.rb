@@ -56,10 +56,6 @@ module WarehouseReports::VeteranDetails
         where(client_id: client_source)
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/really_old_enrollments')
-    end
-
     def client_source
       GrdaWarehouse::Hud::Client.destination.veteran
     end

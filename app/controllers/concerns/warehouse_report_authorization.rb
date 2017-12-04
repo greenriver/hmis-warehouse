@@ -13,7 +13,8 @@ module WarehouseReportAuthorization
     # Eventually, this should reference a method on the report model
     # Must respond to `viewable_by`
     def related_report
-      raise NotImplementedError
+      url = url_for(action: :index, only_path: true).sub(/^\//, '')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
   end
 end

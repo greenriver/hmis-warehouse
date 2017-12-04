@@ -57,8 +57,5 @@ module WarehouseReports
     end
     helper_method :relevant_inventory
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/bed_utilization')
-    end
   end
 end

@@ -55,10 +55,6 @@ module WarehouseReports::Cas
       client_source.arel_table
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/chronic_reconciliation')
-    end
-
     private def filter_params
       return {} unless params.has_key? :filter
       params.require(:filter).permit(:date, :homeless_service_after)

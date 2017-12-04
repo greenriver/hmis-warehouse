@@ -51,8 +51,5 @@ module WarehouseReports
       GrdaWarehouse::Chronic
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/chronic_housed')
-    end
   end
 end

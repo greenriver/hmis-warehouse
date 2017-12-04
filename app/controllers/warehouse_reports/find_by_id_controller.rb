@@ -25,10 +25,6 @@ module WarehouseReports
       end
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/find_by_id')
-    end
-
     private def id_params
       params.require(:client)
     end

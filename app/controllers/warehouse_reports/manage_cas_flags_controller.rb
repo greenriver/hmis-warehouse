@@ -163,10 +163,6 @@ module WarehouseReports
     end
     helper_method :housing_release_types
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/manage_cas_flags')
-    end
-
     def client_scope
       GrdaWarehouse::Hud::Client.destination
     end

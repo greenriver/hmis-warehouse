@@ -81,10 +81,6 @@ module WarehouseReports
       GrdaWarehouse::ServiceHistory
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/active_veterans')
-    end
-
     private def sort_column
       sort_options.map{|k,_| k[:column]}.uniq.
         include?(params[:sort]) ? params[:sort] : 'first_date_served'

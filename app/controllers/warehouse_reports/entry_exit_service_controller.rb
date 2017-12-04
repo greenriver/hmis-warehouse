@@ -50,8 +50,5 @@ module WarehouseReports
       GrdaWarehouse::Hud::Project
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/entry_exit_service')
-    end
   end
 end

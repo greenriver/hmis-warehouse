@@ -40,10 +40,6 @@ module WarehouseReports
       end
     end
     helper_method :available_projects
-
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/client_in_project_during_date_range')
-    end
         
     # AHAR reporting dates
     private def oct_1

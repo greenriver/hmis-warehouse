@@ -74,10 +74,6 @@ module WarehouseReports
       render json: @counts
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/first_time_homeless')
-    end
-
     private def history
       GrdaWarehouse::ServiceHistory
     end

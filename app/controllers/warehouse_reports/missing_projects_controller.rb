@@ -11,10 +11,6 @@ module WarehouseReports
       @projects = missing_projects.map{|m| {project_id: m.first, data_source_id: m.last, data_source_name: data_sources[m.last]}}
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/missing_projects')
-    end
-
     private def project_source
       GrdaWarehouse::Hud::Project
     end

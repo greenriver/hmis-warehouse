@@ -28,8 +28,5 @@ module WarehouseReports::VeteranDetails
       GrdaWarehouse::Hud::Client.destination.veteran
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/veteran_details/actives')
-    end
   end
 end

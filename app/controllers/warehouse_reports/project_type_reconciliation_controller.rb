@@ -15,8 +15,5 @@ module WarehouseReports
       GrdaWarehouse::Hud::Project
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project_type_reconciliation')
-    end
   end
 end

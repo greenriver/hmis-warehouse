@@ -56,10 +56,6 @@ module WarehouseReports
       GrdaWarehouse::ServiceHistory
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/disabilities')
-    end
-
     class DisabilityProjectTypeFilter < ModelForm
       attribute :disabilities, Date, lazy: true, default: []
       attribute :project_types, Date, lazy: true, default: []

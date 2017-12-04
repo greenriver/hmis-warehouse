@@ -56,9 +56,5 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client.destination
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/hud_chronics')
-    end
-
   end
 end

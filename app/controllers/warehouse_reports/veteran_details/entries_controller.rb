@@ -47,8 +47,5 @@ module WarehouseReports::VeteranDetails
         where(client_id: client_source)
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/veteran_details/entries')
-    end
   end
 end

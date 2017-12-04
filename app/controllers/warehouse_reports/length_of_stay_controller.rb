@@ -102,8 +102,5 @@ module WarehouseReports
       end
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/length_of_stay')
-    end
   end
 end

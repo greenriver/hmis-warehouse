@@ -128,7 +128,8 @@ module WarehouseReports::Project
     end
 
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality')
+      url = url_for(action: :show, only_path: true).sub(/^\//, '')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
   end
 end

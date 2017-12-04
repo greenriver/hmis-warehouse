@@ -30,8 +30,5 @@ module WarehouseReports::Cas
       GrdaWarehouse::CasReport
     end
 
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/canceled_matches')
-    end
   end
 end

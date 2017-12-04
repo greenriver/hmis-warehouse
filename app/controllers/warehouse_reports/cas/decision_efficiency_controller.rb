@@ -5,7 +5,6 @@ module WarehouseReports::Cas
     before_action  :load_vars
 
     def index
-      
     end
 
     def chart
@@ -21,10 +20,6 @@ module WarehouseReports::Cas
         }
       end
       options
-    end
-
-    def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/decision_efficiency')
     end
 
     private def load_vars
