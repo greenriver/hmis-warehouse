@@ -1,4 +1,3 @@
-
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Veteran Exit Detail") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})

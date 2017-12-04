@@ -2,7 +2,6 @@ module WarehouseReports::VeteranDetails
   class EntriesController < WarehouseReportsController
     include ArelHelper
     include ClientEntryCalculations
-    before_action :require_can_view_clients!
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -26,6 +25,12 @@ module WarehouseReports::VeteranDetails
       
       @buckets = bucket_clients(entries: @entries_in_range_by_type)
       @data = setup_data_structure(start_date: @start_date)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          require_can_view_clients!
+        end
+      end
     end
 
     def client_source

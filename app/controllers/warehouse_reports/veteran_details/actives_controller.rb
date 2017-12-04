@@ -3,7 +3,6 @@ module WarehouseReports::VeteranDetails
     include ArelHelper
     include ArelTable
     include ClientActiveCalculations
-    before_action :require_can_view_clients!
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -17,9 +16,12 @@ module WarehouseReports::VeteranDetails
       @enrollments = begin
         active_client_service_history(range: @range)
       end
-      # respond_to do |format|
-      #   format.html{ @enrollments.page(params[:page]).per(50)}
-      # end
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          require_can_view_clients!
+        end
+      end
     end
 
     def client_source

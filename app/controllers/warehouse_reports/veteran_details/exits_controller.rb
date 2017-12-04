@@ -1,7 +1,6 @@
 module WarehouseReports::VeteranDetails
   class ExitsController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_clients!
 
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
@@ -39,6 +38,13 @@ module WarehouseReports::VeteranDetails
           destination = 99 unless HUD.valid_destinations.keys.include?(row[:destination])
           @buckets[destination] += 1
         end
+
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          require_can_view_clients!
+        end
+      end
     end
 
     def exits_from_homelessness
@@ -51,7 +57,7 @@ module WarehouseReports::VeteranDetails
     end
 
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/veteran_details/exits')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/really_old_enrollments')
     end
 
     def client_source
