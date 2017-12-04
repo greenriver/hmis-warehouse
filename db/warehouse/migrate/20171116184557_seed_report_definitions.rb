@@ -5,7 +5,7 @@ class SeedReportDefinitions < ActiveRecord::Migration
       {
         url: 'warehouse_reports/chronic',
         name: 'Potentially Chronic Clients',
-        description: 'Disabled clients who are currently homeless and have been in a project at least 12 of the last 36 months.'
+        description: 'Disabled clients who are currently homeless and have been in a project at least 12 of the last 36 months.<br />Calculated using HMIS data.'
       },
       {
         url: 'warehouse_reports/client_in_project_during_date_range',
@@ -20,7 +20,7 @@ class SeedReportDefinitions < ActiveRecord::Migration
       {
         url: 'warehouse_reports/hud_chronics',
         name: 'HUD Chronic',
-        description: 'See who is considered chronically homeless according to HUD.'
+        description: 'Clients who meet the HUD definition of Chronically Homeless as outlined in the <a href="https://www.hudexchange.info/resource/4489/hmis-standard-reporting-terminology-glossary/">HMIS Glossary</a>.<br />Calculated using self-report data from entry assessments.'
       },
       {
         url: 'warehouse_reports/first_time_homeless',
