@@ -3,6 +3,7 @@ module WarehouseReports::VeteranDetails
     include ArelHelper
     include ArelTable
     include ClientActiveCalculations
+    include WarehouseReportAuthorization
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 

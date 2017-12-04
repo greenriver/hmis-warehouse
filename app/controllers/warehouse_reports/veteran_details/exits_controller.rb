@@ -1,7 +1,8 @@
 module WarehouseReports::VeteranDetails
   class ExitsController < ApplicationController
     include ArelHelper
-
+    include WarehouseReportAuthorization
+    
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
       # Also handle month based requests from javascript
