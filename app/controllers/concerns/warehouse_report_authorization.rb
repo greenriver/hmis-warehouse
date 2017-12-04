@@ -9,7 +9,7 @@ module WarehouseReportAuthorization
       not_authorized!
     end
 
-    # implment in the specific controller
+    # Override as necessary in the specific controller
     # Eventually, this should reference a method on the report model
     # Must respond to `viewable_by`
     def related_report
