@@ -1,5 +1,5 @@
 module WarehouseReports::Cas
-  class DeclineReasonController < WarehouseReportsController
+  class DeclineReasonController < ApplicationController
     include WarehouseReportAuthorization
     before_action :set_range
 

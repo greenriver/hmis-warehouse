@@ -1,5 +1,5 @@
 module WarehouseReports::VeteranDetails
-  class ExitsController < WarehouseReportsController
+  class ExitsController < ApplicationController
     include ArelHelper
 
     def index

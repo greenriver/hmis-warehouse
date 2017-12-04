@@ -1,5 +1,5 @@
 module WarehouseReports::VeteranDetails
-  class ActivesController < WarehouseReportsController
+  class ActivesController < ApplicationController
     include ArelHelper
     include ArelTable
     include ClientActiveCalculations

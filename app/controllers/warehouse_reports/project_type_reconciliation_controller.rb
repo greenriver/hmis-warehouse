@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ProjectTypeReconciliationController < WarehouseReportsController
+  class ProjectTypeReconciliationController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     def index

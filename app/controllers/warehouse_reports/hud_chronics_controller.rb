@@ -1,5 +1,5 @@
 module WarehouseReports
-  class HudChronicsController < WarehouseReportsController
+  class HudChronicsController < ApplicationController
     include ArelHelper
     include HudChronic
     include WarehouseReportAuthorization

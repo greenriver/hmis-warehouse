@@ -1,5 +1,5 @@
 module WarehouseReports::Cas
-  class ChronicReconciliationController < WarehouseReportsController
+  class ChronicReconciliationController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
 

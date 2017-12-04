@@ -1,5 +1,5 @@
 module WarehouseReports
-  class DobEntrySameController < WarehouseReportsController
+  class DobEntrySameController < ApplicationController
     include WarehouseReportAuthorization
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table

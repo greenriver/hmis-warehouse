@@ -1,5 +1,5 @@
 module WarehouseReports
-  class BedUtilizationController < WarehouseReportsController
+  class BedUtilizationController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     

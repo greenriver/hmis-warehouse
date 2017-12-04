@@ -1,5 +1,5 @@
 module WarehouseReports
-  class FirstTimeHomelessController < WarehouseReportsController
+  class FirstTimeHomelessController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     def index

@@ -1,5 +1,5 @@
 module WarehouseReports::Project
-  class DataQualitiesController < WarehouseReportsController
+  class DataQualitiesController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
     before_action :set_projects, :set_project_groups

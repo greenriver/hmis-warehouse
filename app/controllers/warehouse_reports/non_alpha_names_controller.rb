@@ -1,5 +1,5 @@
 module WarehouseReports
-  class NonAlphaNamesController < WarehouseReportsController
+  class NonAlphaNamesController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     def index

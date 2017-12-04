@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ReallyOldEnrollmentsController < WarehouseReportsController
+  class ReallyOldEnrollmentsController < ApplicationController
     include WarehouseReportAuthorization
     def index
       @date = (params[:date] || '1980-01-01').to_date

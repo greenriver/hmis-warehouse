@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ActiveVeteransController < WarehouseReportsController
+  class ActiveVeteransController < ApplicationController
     include WarehouseReportAuthorization
     def index
       @sort_options = sort_options

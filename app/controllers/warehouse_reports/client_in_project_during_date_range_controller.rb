@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ClientInProjectDuringDateRangeController < WarehouseReportsController
+  class ClientInProjectDuringDateRangeController < ApplicationController
     include WarehouseReportAuthorization
     def index
       @start = ( params.try(:[], :project).try(:[], :start) || oct_1  ).to_date

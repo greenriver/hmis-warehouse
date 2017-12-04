@@ -1,5 +1,5 @@
 module WarehouseReports
-  class MissingValuesController < WarehouseReportsController
+  class MissingValuesController < ApplicationController
     include WarehouseReportAuthorization
     POTENTIAL_COLUMNS = (
       GrdaWarehouse::Hud::Client.column_names + GrdaWarehouse::Hud::Enrollment.column_names

@@ -1,5 +1,5 @@
 module WarehouseReports::Cas
-  class CanceledMatchesController < WarehouseReportsController
+  class CanceledMatchesController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     before_action :set_range

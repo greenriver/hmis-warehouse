@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ChronicController < WarehouseReportsController
+  class ChronicController < ApplicationController
     include ArelHelper
     include Chronic
     include WarehouseReportAuthorization

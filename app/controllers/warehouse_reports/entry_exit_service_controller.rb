@@ -1,5 +1,5 @@
 module WarehouseReports
-  class EntryExitServiceController < WarehouseReportsController
+  class EntryExitServiceController < ApplicationController
     include WarehouseReportAuthorization
     def index
       # Clients who received services for one-day enrollments in housing related projects.

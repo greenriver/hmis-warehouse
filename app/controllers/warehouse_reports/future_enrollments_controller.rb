@@ -1,5 +1,5 @@
 module WarehouseReports
-  class FutureEnrollmentsController < WarehouseReportsController
+  class FutureEnrollmentsController < ApplicationController
     include WarehouseReportAuthorization
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table

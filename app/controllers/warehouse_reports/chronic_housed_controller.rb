@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ChronicHousedController < WarehouseReportsController
+  class ChronicHousedController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     before_action :set_range

@@ -1,5 +1,5 @@
 module WarehouseReports
-  class ManageCasFlagsController < WarehouseReportsController
+  class ManageCasFlagsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :set_flag, only: [:index]
 

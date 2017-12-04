@@ -1,18 +1,10 @@
 class WarehouseReportsController < ApplicationController
-  before_action :require_can_view_any_reports!
+  include WarehouseReportAuthorization
+  # This page just lists the available reports, each report is responsible for access
+  skip_before_action :report_visible?
   def index
 
   end
 
-  def report_visible?
-    return true if related_report.viewable_by(current_user).exists?
-    not_authorized!
-  end
 
-  # implment in the specific controller
-  # Eventually, this should reference a method on the report model
-  # Must respond to `viewable_by`
-  def related_report
-    raise NotImplementedError
-  end
 end

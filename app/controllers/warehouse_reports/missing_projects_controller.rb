@@ -1,5 +1,5 @@
 module WarehouseReports
-  class MissingProjectsController < WarehouseReportsController
+  class MissingProjectsController < ApplicationController
     include WarehouseReportAuthorization
     def index
       enrollment_projects = enrollment_source.distinct.select(:ProjectID, :data_source_id).pluck(:ProjectID, :data_source_id)

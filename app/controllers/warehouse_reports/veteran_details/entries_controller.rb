@@ -1,5 +1,5 @@
 module WarehouseReports::VeteranDetails
-  class EntriesController < WarehouseReportsController
+  class EntriesController < ApplicationController
     include ArelHelper
     include ClientEntryCalculations
 

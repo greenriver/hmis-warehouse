@@ -1,5 +1,5 @@
 module WarehouseReports
-  class OpenEnrollmentsNoServiceController < WarehouseReportsController
+  class OpenEnrollmentsNoServiceController < ApplicationController
     include WarehouseReportAuthorization
     def index
       @sort_options = sort_options

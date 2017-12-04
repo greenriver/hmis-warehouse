@@ -1,5 +1,5 @@
 module WarehouseReports
-  class DisabilitiesController < WarehouseReportsController
+  class DisabilitiesController < ApplicationController
     include WarehouseReportAuthorization
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)

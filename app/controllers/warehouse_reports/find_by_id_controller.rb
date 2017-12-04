@@ -1,5 +1,5 @@
 module WarehouseReports
-  class FindByIdController < WarehouseReportsController
+  class FindByIdController < ApplicationController
     include WarehouseReportAuthorization
     def index
       @ids = []

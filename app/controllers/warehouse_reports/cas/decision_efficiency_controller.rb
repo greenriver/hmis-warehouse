@@ -1,5 +1,5 @@
 module WarehouseReports::Cas
-  class DecisionEfficiencyController < WarehouseReportsController
+  class DecisionEfficiencyController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     before_action  :load_vars

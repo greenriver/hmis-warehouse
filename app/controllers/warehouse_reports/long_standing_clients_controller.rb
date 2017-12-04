@@ -1,5 +1,5 @@
 module WarehouseReports
-  class LongStandingClientsController < WarehouseReportsController
+  class LongStandingClientsController < ApplicationController
     include WarehouseReportAuthorization
     def index
       # using date instead of first_date_in_program below because it is indexed 
