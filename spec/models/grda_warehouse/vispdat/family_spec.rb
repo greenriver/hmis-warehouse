@@ -600,7 +600,6 @@ RSpec.describe GrdaWarehouse::Vispdat::Family, type: :model do
         :tri_morbidity_score,
         :medication_score,
         :abuse_and_trauma_score,
-        :family_unit_score,
         :family_legal_issues_score,
         :needs_of_children_score,
         :family_stability_score,
