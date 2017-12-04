@@ -60,7 +60,8 @@ class Role < ActiveRecord::Base
       :can_export_hmis_data,
       :can_confirm_housing_release,
       :can_view_all_reports,
-      :can_assign_reports
+      :can_assign_reports,
+      :can_view_assigned_reports,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

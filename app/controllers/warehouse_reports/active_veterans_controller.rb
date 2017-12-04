@@ -1,6 +1,6 @@
 module WarehouseReports
-  class ActiveVeteransController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class ActiveVeteransController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       @sort_options = sort_options
       date_range_options = params.permit(range: [:start, :end, project_type: []])[:range]
@@ -79,6 +79,10 @@ module WarehouseReports
     
     def service_history_source
       GrdaWarehouse::ServiceHistory
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/active_veterans')
     end
 
     private def sort_column

@@ -1,6 +1,7 @@
 module WarehouseReports::Project
-  class DataQualitiesController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class DataQualitiesController < WarehouseReportsController
+    include WarehouseReportAuthorization
+    include ArelHelper
     before_action :set_projects, :set_project_groups
 
     def show
@@ -126,12 +127,8 @@ module WarehouseReports::Project
         preload(:contacts, :data_quality_reports)
     end
 
-    def p_t
-      GrdaWarehouse::Hud::Project.arel_table
-    end
-
-    def o_t
-      GrdaWarehouse::Hud::Organization.arel_table
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality')
     end
   end
 end

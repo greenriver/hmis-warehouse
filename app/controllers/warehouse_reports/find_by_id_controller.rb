@@ -1,7 +1,6 @@
 module WarehouseReports
-  class FindByIdController < ApplicationController
-    before_action :require_can_view_all_reports!
-
+  class FindByIdController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       @ids = []
       @clients = []
@@ -24,6 +23,10 @@ module WarehouseReports
           render xlsx: 'search', filename: 'client_details.xlsx'
         end
       end
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/find_by_id')
     end
 
     private def id_params

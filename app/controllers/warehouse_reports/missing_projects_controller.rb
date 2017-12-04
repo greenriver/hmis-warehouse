@@ -1,6 +1,6 @@
 module WarehouseReports
-  class MissingProjectsController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class MissingProjectsController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       enrollment_projects = enrollment_source.distinct.select(:ProjectID, :data_source_id).pluck(:ProjectID, :data_source_id)
       projects = project_source.distinct.select(:ProjectID, :data_source_id).pluck(:ProjectID, :data_source_id)
@@ -9,6 +9,10 @@ module WarehouseReports
       @enrollments = enrollment_source.where(ProjectID: missing_projects.map(&:first)).where(data_source_id: missing_projects.map(&:second))
       @newest = @enrollments.maximum(:EntryDate)
       @projects = missing_projects.map{|m| {project_id: m.first, data_source_id: m.last, data_source_name: data_sources[m.last]}}
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/missing_projects')
     end
 
     private def project_source

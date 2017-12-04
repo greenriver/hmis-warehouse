@@ -1,6 +1,6 @@
 module WarehouseReports::Cas
-  class DeclineReasonController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class DeclineReasonController < WarehouseReportsController
+    include WarehouseReportAuthorization
     before_action :set_range
 
     def index
@@ -31,6 +31,10 @@ module WarehouseReports::Cas
 
     def report_source
       GrdaWarehouse::CasReport
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/decline_reason')
     end
   end
 end

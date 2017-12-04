@@ -1,9 +1,9 @@
 module WarehouseReports
-  class HudChronicsController < ApplicationController
+  class HudChronicsController < WarehouseReportsController
     include ArelHelper
     include HudChronic
-
-    before_action :require_can_view_all_reports!, :load_filter, :set_sort
+    include WarehouseReportAuthorization
+    before_action :load_filter, :set_sort
 
     def index
       @clients = @clients.includes(:hud_chronics).
@@ -54,6 +54,10 @@ module WarehouseReports
 
     def client_source
       GrdaWarehouse::Hud::Client.destination
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/hud_chronics')
     end
 
   end

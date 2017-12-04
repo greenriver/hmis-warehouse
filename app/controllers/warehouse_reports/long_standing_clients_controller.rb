@@ -1,6 +1,6 @@
 module WarehouseReports
-  class LongStandingClientsController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class LongStandingClientsController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       # using date instead of first_date_in_program below because it is indexed 
       # and is identical on entry records
@@ -15,6 +15,10 @@ module WarehouseReports
         page(params[:page]).per(25)
       @clients = client_source.where(id: @entries.map(&:client_id)).preload(source_clients: :data_source).index_by(&:id)
       
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/long_standing_clients')
     end
 
     private def client_source

@@ -1,6 +1,6 @@
 module WarehouseReports
-  class OpenEnrollmentsNoServiceController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class OpenEnrollmentsNoServiceController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       @sort_options = sort_options
       date_range_options = params.permit(range: [:start, :end])[:range]
@@ -61,6 +61,9 @@ module WarehouseReports
       end
     end
 
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/open_enrollments_no_service')
+    end
     
     private def client_source
       GrdaWarehouse::Hud::Client

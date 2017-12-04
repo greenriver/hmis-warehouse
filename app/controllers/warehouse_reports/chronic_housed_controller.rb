@@ -1,7 +1,7 @@
 module WarehouseReports
-  class ChronicHousedController < ApplicationController
+  class ChronicHousedController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_all_reports!
+    include WarehouseReportAuthorization
     before_action :set_range
 
     def index
@@ -49,6 +49,10 @@ module WarehouseReports
 
     def chronic_source
       GrdaWarehouse::Chronic
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/chronic_housed')
     end
   end
 end

@@ -1,6 +1,6 @@
 module WarehouseReports
-  class ReallyOldEnrollmentsController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class ReallyOldEnrollmentsController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       @date = (params[:date] || '1980-01-01').to_date
       et = GrdaWarehouse::Hud::Enrollment.arel_table
@@ -12,6 +12,9 @@ module WarehouseReports
         .page(params[:page]).per(25)
     end
 
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/really_old_enrollments')
+    end
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end

@@ -1,7 +1,6 @@
 module WarehouseReports
-  class DisabilitiesController < ApplicationController
-    before_action :require_can_view_all_reports!
-
+  class DisabilitiesController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
       affirmative_responses = [1,2,3]
@@ -55,6 +54,10 @@ module WarehouseReports
 
     def history_source
       GrdaWarehouse::ServiceHistory
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/disabilities')
     end
 
     class DisabilityProjectTypeFilter < ModelForm

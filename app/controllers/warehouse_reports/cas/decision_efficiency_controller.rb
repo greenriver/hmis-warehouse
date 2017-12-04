@@ -1,8 +1,8 @@
 module WarehouseReports::Cas
-  class DecisionEfficiencyController < ApplicationController
+  class DecisionEfficiencyController < WarehouseReportsController
     include ArelHelper
-
-    before_action :require_can_view_all_reports!, :load_vars
+    include WarehouseReportAuthorization
+    before_action  :load_vars
 
     def index
       
@@ -21,6 +21,10 @@ module WarehouseReports::Cas
         }
       end
       options
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/decision_efficiency')
     end
 
     private def load_vars

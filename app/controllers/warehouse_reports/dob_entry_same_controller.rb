@@ -1,6 +1,6 @@
 module WarehouseReports
-  class DobEntrySameController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class DobEntrySameController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       @clients = client_source.distinct
@@ -10,6 +10,10 @@ module WarehouseReports
         .where.not(DOB: nil)
         .order(DOB: :asc)
         .page(params[:page]).per(25)
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/dob_entry_same')
     end
 
     private def client_source

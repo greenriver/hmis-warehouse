@@ -4,9 +4,9 @@ module GrdaWarehouse::WarehouseReports
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      if user.can_view_all_reports?
         current_scope
-      else
+      elsif user.can_view_assigned_reports?
         joins(:user_viewable_entities)
       end
     end

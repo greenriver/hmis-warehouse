@@ -1,8 +1,8 @@
 module WarehouseReports
-  class LengthOfStayController < ApplicationController
+  class LengthOfStayController < WarehouseReportsController
     include ArelHelper
-
-    before_action :require_can_view_all_reports!, :load_mo
+    include WarehouseReportAuthorization
+    before_action :load_mo
 
     def index
       length_of_stay if request.format.xlsx?
@@ -100,6 +100,10 @@ module WarehouseReports
       else
         ::Filters::MonthAndOrganization.new
       end
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/length_of_stay')
     end
   end
 end

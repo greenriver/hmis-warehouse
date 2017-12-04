@@ -1,8 +1,8 @@
 module WarehouseReports
-  class BedUtilizationController < ApplicationController
+  class BedUtilizationController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_all_reports!
-
+    include WarehouseReportAuthorization
+    
     def index
       options = {}
       if params[:mo].present?
@@ -57,5 +57,8 @@ module WarehouseReports
     end
     helper_method :relevant_inventory
 
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/bed_utilization')
+    end
   end
 end

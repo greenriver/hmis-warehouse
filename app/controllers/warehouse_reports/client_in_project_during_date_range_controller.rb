@@ -1,6 +1,6 @@
 module WarehouseReports
-  class ClientInProjectDuringDateRangeController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class ClientInProjectDuringDateRangeController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       @start = ( params.try(:[], :project).try(:[], :start) || oct_1  ).to_date
       @end   = ( params.try(:[], :project).try(:[], :end) || nov_30 ).to_date
@@ -40,6 +40,10 @@ module WarehouseReports
       end
     end
     helper_method :available_projects
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/client_in_project_during_date_range')
+    end
         
     # AHAR reporting dates
     private def oct_1

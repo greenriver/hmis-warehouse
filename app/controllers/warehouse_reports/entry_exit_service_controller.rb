@@ -1,6 +1,6 @@
 module WarehouseReports
-  class EntryExitServiceController < ApplicationController
-    before_action :require_can_view_all_reports!
+  class EntryExitServiceController < WarehouseReportsController
+    include WarehouseReportAuthorization
     def index
       # Clients who received services for one-day enrollments in housing related projects.
       # this is a translation of an original raw SQL query into Arel
@@ -48,6 +48,10 @@ module WarehouseReports
 
     def project_source
       GrdaWarehouse::Hud::Project
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/entry_exit_service')
     end
   end
 end

@@ -1,6 +1,7 @@
 module WarehouseReports
-  class ManageCasFlagsController < ApplicationController
-    before_filter :set_flag, only: [:index]
+  class ManageCasFlagsController < WarehouseReportsController
+    include WarehouseReportAuthorization
+    before_action :set_flag, only: [:index]
 
     def index
       
@@ -161,6 +162,10 @@ module WarehouseReports
       [:full_housing_release, :limited_cas_release]
     end
     helper_method :housing_release_types
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/manage_cas_flags')
+    end
 
     def client_scope
       GrdaWarehouse::Hud::Client.destination

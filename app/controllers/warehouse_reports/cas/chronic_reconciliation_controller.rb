@@ -1,7 +1,7 @@
 module WarehouseReports::Cas
-  class ChronicReconciliationController < ApplicationController
+  class ChronicReconciliationController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_all_reports!
+    include WarehouseReportAuthorization
 
     def index
       @filter = Filter.new(filter_params)
@@ -53,6 +53,10 @@ module WarehouseReports::Cas
 
     def c_t
       client_source.arel_table
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/chronic_reconciliation')
     end
 
     private def filter_params

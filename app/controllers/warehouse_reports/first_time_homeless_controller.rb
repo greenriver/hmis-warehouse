@@ -1,8 +1,7 @@
 module WarehouseReports
-  class FirstTimeHomelessController < ApplicationController
+  class FirstTimeHomelessController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_all_reports!
-
+    include WarehouseReportAuthorization
     def index
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
       @range = ::Filters::DateRange.new(date_range_options)
@@ -73,6 +72,10 @@ module WarehouseReports
         group(:date).
         count
       render json: @counts
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/first_time_homeless')
     end
 
     private def history

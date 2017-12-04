@@ -1,7 +1,7 @@
 module WarehouseReports::Cas
-  class CanceledMatchesController < ApplicationController
+  class CanceledMatchesController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_all_reports!
+    include WarehouseReportAuthorization
     before_action :set_range
 
     def index
@@ -28,6 +28,10 @@ module WarehouseReports::Cas
 
     def report_source
       GrdaWarehouse::CasReport
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/cas/canceled_matches')
     end
   end
 end

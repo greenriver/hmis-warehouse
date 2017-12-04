@@ -1,7 +1,6 @@
 module WarehouseReports::VeteranDetails
-  class ExitsController < ApplicationController
+  class ExitsController < WarehouseReportsController
     include ArelHelper
-    before_action :require_can_view_all_reports!
     before_action :require_can_view_clients!
 
     def index
@@ -49,6 +48,10 @@ module WarehouseReports::VeteranDetails
           service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         ).
         where(client_id: client_source)
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/veteran_details/exits')
     end
 
     def client_source

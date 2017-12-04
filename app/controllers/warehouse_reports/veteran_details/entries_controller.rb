@@ -1,8 +1,7 @@
 module WarehouseReports::VeteranDetails
-  class EntriesController < ApplicationController
+  class EntriesController < WarehouseReportsController
     include ArelHelper
     include ClientEntryCalculations
-    before_action :require_can_view_all_reports!
     before_action :require_can_view_clients!
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
@@ -41,6 +40,10 @@ module WarehouseReports::VeteranDetails
       service_history_source.
         where(service_history_source.project_type_column => @project_type).
         where(client_id: client_source)
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/veteran_details/entries')
     end
   end
 end
