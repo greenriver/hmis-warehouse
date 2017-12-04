@@ -1,0 +1,6 @@
+%h2 A file was uploaded.
+
+%p
+  A file was uploaded for the following client. 
+%p
+  = link_to "Client ##{@client.id}", client_files_url(@client)

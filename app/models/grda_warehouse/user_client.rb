@@ -26,6 +26,10 @@ module GrdaWarehouse
       where(at[:end_date].lt(Date.today))
     end
 
+    scope :housing_navigators, -> do
+      where relationship: 'Housing Navigator'
+    end
+
     def expired?
       end_date && end_date.past?
     end

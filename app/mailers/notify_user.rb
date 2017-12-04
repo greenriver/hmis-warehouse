@@ -18,4 +18,22 @@ class NotifyUser < ApplicationMailer
     end
   end
 
+  def file_uploaded file_id
+    @file = GrdaWarehouse::ClientFile.find( file_id )
+    @client = @file.client
+    users_to_notify = @client.user_clients.housing_navigators.includes(:user)
+    users_to_notify.each do |user_client|
+      mail(to: user_client&.user&.email, subject: "[Warehouse] A file was uploaded.")
+    end
+  end
+
+  def note_added note_id
+    @note = GrdaWarehouse::ClientNotes::Base.find( note_id )
+    @client = @note.client
+    users_to_notify = @client.user_clients.housing_navigators.includes(:user)
+    users_to_notify.each do |user_client|
+      mail(to: user_client&.user&.email, subject: "[Warehouse] A note was added.")
+    end
+  end
+
 end

@@ -35,10 +35,21 @@ module GrdaWarehouse
     end
 
     ####################
+    # Callbacks
+    ####################
+    after_create :notify_users
+
+    ####################
     # Access
     ####################
     def self.any_visible_by?(user)
       user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
+    def notify_users
+      if client.present? && client.user_clients.housing_navigators.any?
+        NotifyUser.file_uploaded( id ).deliver_later
+      end
     end
 
     def file_exists_and_not_too_large
