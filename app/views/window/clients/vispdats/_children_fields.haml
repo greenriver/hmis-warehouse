@@ -1,13 +1,4 @@
-.modal.fade.saving-modal(data-backdrop='static')
-  .modal-dialog.modal-sm
-    .modal-content
-      .modal-header
-        %h4 Saving...
-      .modal-body
-        %p Please wait while we save your entries
-
-
-%h2 Children
+%h2#children-fields Children
 .well.vispdat
   .row
     .col-sm-8.col-md-offset-1
@@ -30,6 +21,14 @@
       = f.input :any_member_pregnant_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_member_pregnant_answers), label: false
 
   .row
+    .col-sm-10
+      %hr
+    .col-sm-2.text-right
+      = link_to add_child_window_client_vispdat_path, class: 'btn btn-success', title: 'Add Child', method: :put, data: { toggle: 'tooltip' } do
+        %i.icon-plus
+        Add Child
+
+  .row
     .col-sm-12
       .row
         .col-sm-3.col-md-offset-1
@@ -44,14 +43,5 @@
         .col-sm-2
           %label
             %strong Delete
-      - (7 - @vispdat.children.size).times { @vispdat.children.build }
-      = f.fields_for :children do |child|
-        .row{ class: "child-row-#{child.options[:child_index]}" }
-          .col-sm-3.col-md-offset-1
-            = child.input :first_name, label: false, input_html: { class: 'no-auto-save' }
-          .col-sm-3
-            = child.input :last_name, label: false, input_html: { class: 'no-auto-save' }
-          .col-sm-3
-            = child.input :dob, label: false, start_year: 18.years.ago.year, end_year: Date.today.year, as: :date_picker, input_html: { class: 'no-auto-save' }
-          .col-sm-2
-            = child.input :_destroy, as: :boolean, label: false, input_html: { class: 'no-auto-save' }
+      = f.simple_fields_for :children do |child|
+        = render 'child', child: child

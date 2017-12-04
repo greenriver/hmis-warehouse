@@ -193,6 +193,8 @@ Rails.application.routes.draw do
       resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
       resources :vispdats, controller: 'clients/vispdats' do
         member do
+          put :add_child
+          delete :remove_child
           put :upload_file
           delete :destroy_file
         end
