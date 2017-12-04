@@ -38,7 +38,7 @@ module HudChronicDefinition
       return false unless date_to_street
       # how many unique months between data_to_street and on_date
       months_on_street = (on_date.year * 12 + on_date.month) - (date_to_street.year * 12 + date_to_street.month) + 1 # plus one for current month 
-      hud_chronic_data[:months_in_last_three_years] = months_on_street
+      hud_chronic_data[:months_in_last_three_years] = if months_on_street > 36 then 36 else months_on_street end
       months_on_street >= 12
     end
     
@@ -87,7 +87,7 @@ module HudChronicDefinition
       return false unless months_on_street > 100
       months_in_project = (on_date.year * 12 + on_date.month) - (entry.first_date_in_program.year * 12 + entry.first_date_in_program.month) + 1
       months_homeless = (months_on_street - 100) + months_in_project
-      hud_chronic_data[:months_in_last_three_years] = months_homeless
+      hud_chronic_data[:months_in_last_three_years] = if months_homeless > 36 then 36 else months_homeless end
       months_homeless >= 12
     end
 

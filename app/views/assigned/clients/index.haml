@@ -1,27 +1,8 @@
 - title = "Assigned Clients for #{@user.name}"
 - content_for :title, title
-%h1= title
 
-%table.table.table-condensed
-  %thead
-    %tr
-      %th
-        Client
-      %th
-        Relationship
-      %th
-        Confidential?
-      %th
-  %tbody
-    - @user_clients.each do |uc|
-      - client = uc.client
-      %tr
-        %td
-          - if @client_path
-            = link_to client.name, send(@client_path, id: client.id)
-          - else
-            = client.name
-        %td
-          = uc.relationship
-        %td
-          = checkmark(uc.confidential)
+= render 'tab_navigation'
+
+%h1= content_for :title
+
+= render 'assigned/clients/client_table', clients: @user_clients

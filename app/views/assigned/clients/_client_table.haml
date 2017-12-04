@@ -1,0 +1,31 @@
+%table.table.table-condensed
+  %thead
+    %tr
+      %th
+        Client
+      %th
+        Release on file?
+      %th
+        Relationship
+      %th
+        Expires On
+      %th
+        Confidential?
+      %th
+  %tbody
+    - clients.each do |uc|
+      - client = uc.client
+      %tr
+        %td
+          - if @client_path && (client.release_valid? || can_view_clients?)
+            = link_to client.name, send(@client_path, id: client.id)
+          - else
+            = client.name
+        %td
+          = checkmark(client.release_valid?)
+        %td
+          = uc.relationship
+        %td
+          = uc.end_date || 'No Expiration'
+        %td
+          = checkmark(uc.confidential)

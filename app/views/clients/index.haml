@@ -86,7 +86,7 @@
           - days_served = client.processed_service_history.try(:days_served) || 0        
           - scope = client.scope_for_residential_enrollments
           - enrollments = client.enrollments_for_rollup(en_scope: scope, include_confidential_names: @include_confidential_names)
-          - total_homeless = client.total_homeless(enrollments)
+          - total_homeless = client.days_homeless
           %p 
             %strong Days Homeless:
             = pluralize(total_homeless, 'day')
@@ -102,7 +102,7 @@
               %strong VI-SPDAT:
               %span.label{ class: "label-#{vispdat&.score_class}" }= vispdat&.score
               %br
-              %strong VI-SPDAT Priority Score:
+              %strong Priority Score:
               = vispdat&.priority_score
           = render 'chronic_flags', client: client
         

@@ -38,7 +38,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def clients
       @clients ||= begin
         Rails.logger.debug "Loading Clients"
-        client_scope.select(*client_columns.values).
+        client_scope.entry.select(*client_columns.values).
           distinct.
           pluck(*client_columns.values).
           map do |row|
@@ -48,7 +48,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def clients_for_project project_id
-      client_scope.where(Project: {id: project_id}).
+      client_scope.entry.where(Project: {id: project_id}).
         select(*client_columns.values).
         distinct.
         pluck(*client_columns.values).
@@ -61,7 +61,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def enrollments
       @enrollments ||= begin
         Rails.logger.debug "Loading Enrollments"
-        client_scope.pluck(*enrollment_columns.values).
+        client_scope.entry.pluck(*enrollment_columns.values).
         map do |row|
           Hash[enrollment_columns.keys.zip(row)]
         end.
@@ -227,10 +227,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def service_columns
       @service_columns ||= {
-        id: c_t[:id].as('client_id').to_sql,
+        id: c_t[:id].as('client_client_id').to_sql,
+        client_id: sh_t[:client_id].as('client_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
         project_name: sh_t[:project_name].as('project_name').to_sql,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
         # date: sh_t[:date].as('date').to_sql,
         first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
@@ -303,7 +305,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def destination_id_for_client source_id
       @destination_ids ||= begin
-        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.select(c_t[:id])).
+        GrdaWarehouse::WarehouseClient.where(source_id: client_scope.entry.select(c_t[:id])).
           pluck(:source_id, :destination_id).
           to_h
       end
@@ -319,7 +321,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def client_scope
-      service_source.entry.
+      service_source.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).

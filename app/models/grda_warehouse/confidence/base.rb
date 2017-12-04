@@ -43,7 +43,7 @@ module GrdaWarehouse::Confidence
 
     # only run on Saturdays
     def self.should_run?
-      Date.today.day == 6
+      Date.today.wday == 6
     end
     
     def self.collection_dates_for_client client_id

@@ -1,0 +1,7 @@
+- title = "Inactive Relationships for #{@user.name}"
+- content_for :title, title
+= render 'assigned/clients/tab_navigation'
+
+%h1= content_for :title
+
+= render 'assigned/clients/client_table', clients: @expired_clients

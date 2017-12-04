@@ -6,7 +6,7 @@ module Reports
       it = GrdaWarehouse::Hud::Inventory.arel_table
       @inventories = GrdaWarehouse::Hud::Inventory.joins(:project).
         where(it[:InventoryStartDate].gt((Time.now.beginning_of_year - 1.year).to_date).or(it[:InventoryStartDate].eq(nil))).
-        where(computed_project_type: PROJECT_TYPES).
+        where(Project: {computed_project_type: PROJECT_TYPES}).
         distinct
       respond_to do |format|
         format.html

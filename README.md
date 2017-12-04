@@ -45,6 +45,7 @@ There is a simple script to setup a development environment in `bin/setup`. To m
 
 * A running Ruby 2.3+ environment with bundler 1.11+ installed.
 * A local install of postgresql 9.4+ allowing your user to create new databases.
+* A local install of redis for caching. redis-server should be running on the default port
 
 Once these are in place, `bin/setup` should:
 
@@ -73,28 +74,32 @@ We use the following common rails gems and conventions:
 
 # Multiple databases
 
-The project reads/writes from several different databases. We keep track of these different environments by setting up parallel db configs/structures for each non-default database. For example, health care data is configured in config/database_bhchp.yml, and database resources are in db_bhchp. Most things should just work as expected without doing anything special, but there is on exception. When running migrations, we need to use a custom generator, since the default rails one hardcodes the migration output path. So instead of
+The project reads/writes from several different databases. We keep track of these different environments by setting up parallel db configs and structures for each database. Health care data is configured in config/database_health.yml and database resources are in db/health. Warehouse data is configured in config/database_warehouse.yml and resources are in db/warehouse. When running migrations, use the custom generators. 
+
+App migrations can be created with:
 
 ```
 rails generate migration foo
 ```
-
-you'll need to run
-
+and run with 
 ```
-rails generate bhchp_migration foo
+rake db:migrate
 ```
-
-if you want to migrate something in the health care database.
-
-Lastly, all of the expected rake tasks for database manipulation are there, but prefaced with the 'bhchp' namespace. So, for instance
-
+Warehouse migrations can be created with:
 ```
-bundle exec rake db:migrate
+rails generate warehouse_migration foo
+```
+and run with 
+```
+rake warehouse:db:migrate
 ```
 
-becomes
+Health migrations can be created with
 
 ```
-bundle exec rake bhchp:db:migrate
+rails generate health_migration foo
+```
+and run with 
+```
+rake health:db:migrate
 ```

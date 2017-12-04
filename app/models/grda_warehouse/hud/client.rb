@@ -279,6 +279,16 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
+    scope :age_group, -> (start_age: 0, end_age: nil) do
+      start_age = 0 unless start_age.is_a?(Integer)
+      end_age   = nil unless end_age.is_a?(Integer)
+      if end_age.present?
+        where(DOB: end_age.years.ago..start_age.years.ago)
+      else
+        where(arel_table[:DOB].lteq(start_age.years.ago))
+      end
+    end
+
     ####################
     # Callbacks
     ####################
@@ -290,11 +300,29 @@ module GrdaWarehouse::Hud
     end
 
     def self.full_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Full HAN Release')
       'Full HAN Release'
     end
 
     def self.partial_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Limited CAS Release')
       'Limited CAS Release'
+    end
+
+    def self.ahar_age_groups
+      {
+        range_0_to_1: { name: "< 1 yr old", start_age: 0, end_age: 1},
+        range_1_to_5: { name: "1 - 5 yrs old", start_age: 1, end_age: 6},
+        range_6_to_12: { name: "6 - 12 yrs old", start_age: 6, end_age: 13},
+        range_13_to_17: { name: "13 - 17 yrs old", start_age: 13, end_age: 18},
+        range_18_to_24: { name: "18 - 24 yrs old", start_age: 18, end_age: 25},
+        range_25_to_30: { name: "25 - 30 yrs old", start_age: 25, end_age: 31},
+        range_31_to_50: { name: "31 - 50 yrs old", start_age: 31, end_age: 51},
+        range_51_to_61: { name: "51 - 61 yrs old", start_age: 51, end_age: 62},
+        range_62_to_nil: { name: "62+ yrs old", start_age: 62, end_age: nil }
+      }
     end
 
     def active_in_cas?
@@ -760,7 +788,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_columns
-      {
+      @cas_columns ||= {
         disability_verified_on: _('Disability Verification on File'),
         housing_release_status: _('Housing Release Status'),
         full_housing_release: _('Full HAN Release on File'),
@@ -778,7 +806,8 @@ module GrdaWarehouse::Hud
         meth_production_conviction: _('Meth Production Conviction'),
         family_member: _('Part of a family'),
         child_in_household: _('Children under age 18 in household'),
-        ha_eligible: _('Housing Authority Eligible')
+        ha_eligible: _('Housing Authority Eligible'),
+        cspech_eligible: _('CSPECH Eligible'),
       }
     end
 
@@ -789,25 +818,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_readiness_parameters
-      [
-        :hues_eligible,
-        :va_eligible,
-        :dmh_eligible,
-        :sync_with_cas,
-        :hiv_positive,
-        :housing_release_status,
-        :disability_verified_on,
-        :housing_assistance_network_released_on,
-        :chronically_homeless_for_cas,
-        :us_citizen,
-        :asylee,
-        :ineligible_immigrant,
-        :lifetime_sex_offender,
-        :meth_production_conviction,
-        :family_member,
-        :child_in_household,
-        :ha_eligible,
-      ]
+      cas_columns.keys + [:housing_assistance_network_released_on]
     end
 
     def invalidate_service_history
@@ -1375,31 +1386,32 @@ module GrdaWarehouse::Hud
         .count
     end
 
+    def self.enrollment_columns
+      @enrollment_columns ||= {
+        ProjectEntryID: e_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
+        EntryDate: e_t[:EntryDate].as('EntryDate').to_sql,
+        living_situation: e_t[:ResidencePrior].as('living_situation').to_sql,
+        PersonalID: e_t[:PersonalID].as('PersonalID').to_sql,
+        ExitDate: ex_t[:ExitDate].as('ExitDate').to_sql,
+        destination: ex_t[:Destination].as('Destination').to_sql,
+        date: sh_t[:date].as('date').to_sql,
+        project_type: sh_t[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql,
+        project_name: sh_t[:project_name].as('project_name').to_sql,
+        project_tracking_method: sh_t[:project_tracking_method].as('project_tracking_method').to_sql,
+        household_id: sh_t[:household_id].as('household_id').to_sql,
+        record_type: sh_t[:record_type].as('record_type').to_sql,
+        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+        OrganizationName: o_t[:OrganizationName].as('OrganizationName').to_sql,
+        ProjectID: p_t[:ProjectID].as('ProjectID').to_sql,
+        project_id: p_t[:id].as('project_id').to_sql,
+        confidential: p_t[:confidential].as('confidential').to_sql,
+        client_source_id: c_t[:id].as('client_source_id').to_sql,
+      }
+    end
+
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
-        sh_t = GrdaWarehouse::ServiceHistory.arel_table
-        c_t = GrdaWarehouse::Hud::Client.arel_table
-        columns = {
-          ProjectEntryID: e_t[:ProjectEntryID].as('ProjectEntryID').to_sql,
-          EntryDate: e_t[:EntryDate].as('EntryDate').to_sql,
-          living_situation: e_t[:ResidencePrior].as('living_situation').to_sql,
-          PersonalID: e_t[:PersonalID].as('PersonalID').to_sql,
-          ExitDate: ex_t[:ExitDate].as('ExitDate').to_sql,
-          destination: ex_t[:Destination].as('Destination').to_sql,
-          date: sh_t[:date].as('date').to_sql,
-          project_type: sh_t[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql,
-          project_name: sh_t[:project_name].as('project_name').to_sql,
-          project_tracking_method: sh_t[:project_tracking_method].as('project_tracking_method').to_sql,
-          household_id: sh_t[:household_id].as('household_id').to_sql,
-          record_type: sh_t[:record_type].as('record_type').to_sql,
-          data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-          OrganizationName: o_t[:OrganizationName].as('OrganizationName').to_sql,
-          ProjectID: p_t[:ProjectID].as('ProjectID').to_sql,
-          project_id: p_t[:id].as('project_id').to_sql,
-          confidential: p_t[:confidential].as('confidential').to_sql,
-          client_source_id: c_t[:id].as('client_source_id').to_sql,
-        }
         exit_join = e_t.join(ex_t, Arel::Nodes::OuterJoin).
           on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
             and(e_t[:data_source_id].eq(ex_t[:data_source_id]))
@@ -1408,10 +1420,10 @@ module GrdaWarehouse::Hud
           joins(exit_join.join_sources).
           joins(:service_histories, :project).
           where(sh_t[:record_type].in(['service', 'entry'])).
-          select(*columns.values).
-          pluck(*columns.values).
+          select(*self.class.enrollment_columns.values).
+          pluck(*self.class.enrollment_columns.values).
           map do |row|
-            Hash[columns.keys.zip(row)]
+            Hash[self.class.enrollment_columns.keys.zip(row)]
           end
         enrollments_by_project_entry = enrollments.group_by do |m|
           [m[:ProjectEntryID], m[:ProjectID], m[:EntryDate], m[:data_source_id]]
