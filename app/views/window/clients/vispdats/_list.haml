@@ -8,15 +8,15 @@
         %ul.dropdown-menu
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Youth'), data: { method: :post } do
-              %i.fa.fa-fw.fa-child
+              %i.icon-child
               Youth
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Individual'), data: { method: :post } do
-              %i.fa.fa-fw.fa-user
+              %i.icon-individual
               Individual
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Family'), data: { method: :post } do
-              %i.fa.fa-fw.fa-group
+              %i.icon-group
               Family
     -# else
       %button.btn.btn-primary(title="#{@client.full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')

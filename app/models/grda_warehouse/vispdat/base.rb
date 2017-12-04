@@ -1,6 +1,7 @@
 module GrdaWarehouse::Vispdat
   class Base < GrdaWarehouseBase
     self.table_name = :vispdats
+
     ####################
     # Constants
     ####################
@@ -92,7 +93,7 @@ module GrdaWarehouse::Vispdat
       jail
     ).each do |field|
       # if both blank, indicate that refused must be checked
-      validates [field, '_refused'].join.to_sym, presence: { message: 'should be checked if refusing to answering' }, if: -> { send(field.to_sym).blank? }
+      validates [field, '_refused'].join.to_sym, presence: { message: 'should be checked if refusing to answer' }, if: -> { send(field.to_sym).blank? }
 
       # if both blank, indicate a value is needed
       validates field.to_sym, presence: { message: 'please enter a value or mark refused' }, if: -> { send([field, '_refused?'].join.to_sym).blank? }
@@ -170,6 +171,23 @@ module GrdaWarehouse::Vispdat
       if before.nil? && after.present?
         NotifyUser.vispdat_completed( id ).deliver_later
       end
+    end
+
+    def youth?
+      false
+    end
+
+    def individual?
+      false
+    end
+
+    def family?
+      false
+    end
+
+    def disassociate_files
+      # need unscoped to catch deleted files
+      files.unscoped.where(vispdat_id: id).update_all(vispdat_id: nil)
     end
 
     def calculate_score
@@ -462,6 +480,64 @@ module GrdaWarehouse::Vispdat
         :email,
         :picture_answer
       ]
+    end
+
+    BASE_QUESTIONS = {
+
+      # History of Housing & Homelessness
+      sleep: "Where do you sleep most frequently? (check one)",
+      sleep_other: "Other (specify)",
+      housing: "How long has it been since you lived in permanent stable housing?",
+      homeless: "In the last three years, how many times have you been homeless?",
+      
+      # Risks
+      past_six_months: "In the past six months, how many times have you...",
+      received_healthcare: "Received health care at an emergency department/room?",
+      taken_ambulance: "Taken an ambulance to the hospital?",
+      been_hospitalized: "Been hospitalized as an inpatient?",
+      used_crisis_service: "Used a crisis service, including sexual assault crisis, mental health crisis, family/intimate violence, distress centers and suicide prevention hotlines?",
+      talked_to_police: "Talked to police because you witnessed a crime, were the victim of a crime, or the alleged perpetrator of a crime or because the police told you that you must move along?",
+      stayed_in_prison: "Stayed one or more nights in a holding cell, jail or prison, whether that was a short-term stay like the drunk tank, a longer stay for a more serious offence, or anything in between?",
+      been_attacked: "Have you been attacked or beaten up since you've become homeless?",
+      harm_yourself: "Have you threatened to or tried to harm yourself or anyone else in the last year?",
+      legal_stuff: "Do you have any legal stuff going on right now that may result in you being locked up, having to pay fines, or that make it more difficult to rent a place to live?",
+      force_you: "Does anybody force or trick you to do things that you do not want to do?",
+      risky_things: "Do you ever do things that may be considered to be risky like exchange sex for money, run drugs for someone, have unprotected sex with someone you don’t know, share a needle, or anything like that?",
+
+      # Socialization & Daily Functioning
+      owe_money: "Is there any person, past landlord, business, bookie, dealer, or government group like the IRS that thinks you owe them money?",
+      get_money: "Do you get any money from the government, a pension, an inheritance, working under the table, a regular job, or anything like that?",
+      planned_activities: "Do you have planned activities, other than just surviving, that make you feel happy and fulfilled?",
+      basic_needs: "Are you currently able to take care of basic needs like bathing, changing clothes, using a restroom, getting food and clean water and other things like that?",
+      homelessness_cause: "Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?",
+
+      # Wellness
+      leave_due_to_health: "Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?",
+      chronic_health_issues: "Do you have any chronic health issues with your liver, kidneys, stomach, lungs or heart?",
+      space_interest: "If there was space available in a program that specically assists people that live with HIV or AIDS, would that be of interest to you?",
+      physical_disabilities: "Do you have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?",
+      avoid_help: "When you are sick or not feeling well, do you avoid getting help?",
+      currently_pregnant: "FOR FEMALE RESPONDENTS ONLY:  Are you currently pregnant?",
+      kicked_out: "Has your drinking or drug use led you to being kicked out of an apartment or program where you were staying in the past?",
+      drug_use: "Will drinking or drug use make it difficult for you to stay housed or afford your housing?",
+      trouble_housing: "Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:",
+      mental_health: "A mental health issue or concern?",
+      head_injury: "A past head injury?",
+      learning_disability: "A learning disability, developmental disability, or other impairment?",
+      live_independently: "Do you have any mental health or brain issues that would make it hard for you to live independently because you’d need help?",
+      take_medications: "Are there any medications that a doctor said you should be taking that, for whatever reason, you are not taking?",
+      sell_medications: "Are there any medications like painkillers that you don’t take the way the doctor prescribed or where you sell the medication?",
+      abuse_trauma: "Has your current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you have experienced?",
+
+      # Follow-Up Questions
+      find_you: "On a regular day, where is it easiest to find you and what time of day is easiest to do so?",
+      contact_info: "Is there a phone number and/or email where someone can safely get in touch with you or leave you a message?",
+      take_picture: "Ok, now I'd like to take your picture so that it is easier to find you and confirm your identity in the future. May I do so?"
+
+    }
+
+    def question key
+      BASE_QUESTIONS[key]
     end
 
   end

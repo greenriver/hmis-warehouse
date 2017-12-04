@@ -1,0 +1,57 @@
+.modal.fade.saving-modal(data-backdrop='static')
+  .modal-dialog.modal-sm
+    .modal-content
+      .modal-header
+        %h4 Saving...
+      .modal-body
+        %p Please wait while we save your entries
+
+
+%h2 Children
+.well.vispdat
+  .row
+    .col-sm-8.col-md-offset-1
+      %label How many children under the age of 18 are currently with you?
+    .col-sm-1
+      = f.input :number_of_children_under_18_with_family, label: false
+    .col-sm-1
+      = f.input :number_of_children_under_18_with_family_refused, label: "Refused/Unsure"
+  .row
+    .col-sm-8.col-md-offset-1
+      %label How many children under the age of 18 are not currently with you, but you have reason to believe they will be joining you when you get housed?
+    .col-sm-1
+      = f.input :number_of_children_under_18_not_with_family, label: false
+    .col-sm-1
+      = f.input :number_of_children_under_18_not_with_family_refused, label: "Refused/Unsure"
+  .row
+    .col-sm-8.col-md-offset-1
+      %label IF HOUSEHOLD INCLUDES A FEMALE: Is any member of the family currently pregnant?
+    .col-sm-2
+      = f.input :any_member_pregnant_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_member_pregnant_answers), label: false
+
+  .row
+    .col-sm-12
+      .row
+        .col-sm-3.col-md-offset-1
+          %label
+            %strong First Name
+        .col-sm-3
+          %label
+            %strong Last Name
+        .col-sm-3
+          %label
+            %strong Date of Birth
+        .col-sm-2
+          %label
+            %strong Delete
+      - (7 - @vispdat.children.size).times { @vispdat.children.build }
+      = f.fields_for :children do |child|
+        .row{ class: "child-row-#{child.options[:child_index]}" }
+          .col-sm-3.col-md-offset-1
+            = child.input :first_name, label: false, input_html: { class: 'no-auto-save' }
+          .col-sm-3
+            = child.input :last_name, label: false, input_html: { class: 'no-auto-save' }
+          .col-sm-3
+            = child.input :dob, label: false, start_year: 18.years.ago.year, end_year: Date.today.year, as: :date_picker, input_html: { class: 'no-auto-save' }
+          .col-sm-2
+            = child.input :_destroy, as: :boolean, label: false, input_html: { class: 'no-auto-save' }

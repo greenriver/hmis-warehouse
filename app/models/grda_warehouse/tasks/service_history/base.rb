@@ -49,7 +49,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           else
             30
           end
-          self.class.wait_for_processing(interval: interval)
+          # self.class.wait_for_processing(interval: interval)
         end
       ensure
         Rails.cache.delete('sanity_check_count')

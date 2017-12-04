@@ -117,7 +117,11 @@ module Window::Clients
       end
 
       def set_vispdat
-        @vispdat = GrdaWarehouse::Vispdat::Base.find(params[:id].to_i)
+        @vispdat = vispdat_source.find(params[:id].to_i)
+      end
+
+      def vispdat_source
+        GrdaWarehouse::Vispdat::Base
       end
       
       def build_vispdat
@@ -141,7 +145,7 @@ module Window::Clients
             :name,
             :note,
             :visible_in_window,
-            tag_list: [],
+            tag_list: []
           )
       end
 
