@@ -19,7 +19,7 @@ module Clients
         user_id: current_user.id,
         involved_user_ids: @anomaly.involved_user_ids
       ).deliver_later
-      respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
+      respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id, anchor: @anomaly.status))
     end
 
     def create
