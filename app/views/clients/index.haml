@@ -22,7 +22,7 @@
   .col-sm-4
     %p.client__current-sort-filter
       Currently sorted by:
-      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
+      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]      
 .clients__list
   = render 'window/clients/new_client'
   - @clients.preload(:source_clients).each do |client|
@@ -82,9 +82,8 @@
               = client.consent_form_status.presence
         .col-sm-5
           .client__view_client
-            = link_to 'View', client_path(client), class: 'btn btn-secondary'  
-          - days_served = client.processed_service_history.try(:days_served) || 0
-          
+            = link_to 'View', client_path(client), class: 'btn btn-secondary'
+          - days_served = client.processed_service_history.try(:days_served) || 0        
           - scope = client.scope_for_residential_enrollments
           - enrollments = client.enrollments_for_rollup(en_scope: scope, include_confidential_names: @include_confidential_names)
           - total_homeless = client.days_homeless
