@@ -35,5 +35,23 @@ class NotifyUser < ApplicationMailer
       mail(to: user_client&.user&.email, subject: "[Warehouse] A note was added.") if user_client.client_notifications?
     end
   end
+  
+  def anomaly_identified client_id:, user_id:
+    @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
+    users_to_notify = User.where(notify_on_anomaly_identified: true).
+      where.not(id: user_id)
+    users_to_notify.each do |user|
+      mail(to: user.email, subject: "[Warehouse] Client anomaly identified")
+    end
+  end
+
+  def anomaly_updated client_id:, user_id:, involved_user_ids:
+    @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
+    users_to_notify = User.where(id: involved_user_ids).
+      where.not(id: user_id)
+    users_to_notify.each do |user|
+      mail(to: user.email, subject: "[Warehouse] Client anomaly updated")
+    end
+  end
 
 end
