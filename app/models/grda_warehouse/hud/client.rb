@@ -179,6 +179,14 @@ module GrdaWarehouse::Hud
     # scope :unmatched, -> do
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
     # end
+    # 
+    scope :child, -> do
+      where(c_t[:DOB].gt(18.years.ago.to_date))
+    end
+    scope :youth, -> do
+      where(c_t[:DOB].lteq(18.years.ago.to_date).
+        and(c_t[:DOB].gteq(24.years.ago.to_date)))
+    end
      
      #################################
     # Standard Cohort Scopes    
