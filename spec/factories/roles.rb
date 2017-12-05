@@ -39,6 +39,7 @@ FactoryGirl.define do
     can_edit_vspdat true
     can_edit_client_notes true
     can_edit_window_client_notes true
+    can_track_anomalies true
   end
 
   factory :vispdat_viewer, class: 'Role' do

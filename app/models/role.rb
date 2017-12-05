@@ -59,6 +59,7 @@ class Role < ActiveRecord::Base
       :can_view_client_user_assignments,
       :can_export_hmis_data,
       :can_confirm_housing_release,
+      :can_track_anomalies,
       :can_view_all_reports,
       :can_assign_reports,
       :can_view_assigned_reports,

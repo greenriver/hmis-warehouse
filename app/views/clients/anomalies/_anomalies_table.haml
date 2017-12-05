@@ -1,0 +1,16 @@
+- if anomalies.present?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th
+          Description
+        %th
+          Status
+        %th
+          Changed On
+        %th
+          Reported By
+        %th
+    %tbody
+      - anomalies.each do |anomaly|
+        = render 'row', anomaly: anomaly
