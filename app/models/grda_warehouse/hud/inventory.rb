@@ -59,8 +59,16 @@ module GrdaWarehouse::Hud
       where(HouseholdType: 3)
     end
 
+    scope :family, -> do
+      serves_families
+    end
+
     scope :serves_individuals, -> do
       where(i_t[:HouseholdType].not_eq(3).or(i_t[:HouseholdType].eq(nil)))
+    end
+    
+    scope :individual, -> do
+      serves_individuals
     end
 
     scope :serves_children, -> do

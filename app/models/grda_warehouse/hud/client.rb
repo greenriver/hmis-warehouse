@@ -179,6 +179,9 @@ module GrdaWarehouse::Hud
     # scope :unmatched, -> do
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
     # end
+     
+     #################################
+    # Standard Cohort Scopes    
     scope :veteran, -> do
       where(VeteranStatus: 1)
     end
@@ -186,6 +189,8 @@ module GrdaWarehouse::Hud
     scope :non_veteran, -> do
       where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
     end
+    # End Standard Cohort Scopes
+    #################################
 
     scope :currently_homeless, -> do
       # this is somewhat involved in order to make it composable and somewhat efficient

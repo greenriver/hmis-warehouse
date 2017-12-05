@@ -205,6 +205,14 @@ module GrdaWarehouse::Hud
       joins(:destination_client).merge(GrdaWarehouse::Hud::Client.non_veteran)
     end
 
+    scope :family, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
+    end
+
+    scope :individual, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
+    end
+
     # End Standard Cohort Scopes
     #################################
 

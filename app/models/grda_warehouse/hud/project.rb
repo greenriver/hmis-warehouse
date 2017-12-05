@@ -189,6 +189,14 @@ module GrdaWarehouse::Hud
         uniq.select(:id))
     end
 
+    scope :family, -> do
+      serves_families
+    end
+
+    scope :individual, -> do
+      serves_individuals
+    end
+
     # End Standard Cohort Scopes
     #################################
 
