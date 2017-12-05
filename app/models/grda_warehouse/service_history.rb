@@ -186,6 +186,19 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     joins(:data_source).where(data_sources: {visible_in_window: true})
   end
 
+  #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
+    end
+
+    scope :non_veteran, -> do
+      joins(:client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+
+    # End Standard Cohort Scopes
+    #################################
+
   # Only run this on off-hours.  It can take 2-5 hours and hang 
   # the database
   def self.reindex_table!

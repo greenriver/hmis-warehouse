@@ -175,6 +175,23 @@ module GrdaWarehouse::Hud
       self.class.serves_individuals_only.where(id: id).exists?
     end
 
+    #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      where(id: joins(:clients).
+        merge(GrdaWarehouse::Hud::Client.veteran).
+        uniq.select(:id))
+    end
+
+    scope :non_veteran, -> do
+      where(id: joins(:clients).
+        merge(GrdaWarehouse::Hud::Client.non_veteran).
+        uniq.select(:id))
+    end
+
+    # End Standard Cohort Scopes
+    #################################
+
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope

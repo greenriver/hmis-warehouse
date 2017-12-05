@@ -180,8 +180,13 @@ module GrdaWarehouse::Hud
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
     # end
     scope :veteran, -> do
-      where VeteranStatus: 1
+      where(VeteranStatus: 1)
     end
+
+    scope :non_veteran, -> do
+      where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
+    end
+
     scope :currently_homeless, -> do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable

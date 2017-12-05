@@ -44,9 +44,23 @@ module GrdaWarehouse::Hud
     belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :exit
     belongs_to :export, **hud_belongs(Export), inverse_of: :exits
     has_one :project, through: :enrollment
+    has_one :destination_client, through: :enrollment
 
     scope :permanent, -> do
       where(Destination: ::HUD.permanent_destinations)
     end
+
+    #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.veteran)
+    end
+
+    scope :non_veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+
+    # End Standard Cohort Scopes
+    #################################
   end
 end

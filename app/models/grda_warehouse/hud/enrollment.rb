@@ -195,6 +195,19 @@ module GrdaWarehouse::Hud
       where condition
     }
 
+    #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.veteran)
+    end
+
+    scope :non_veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+
+    # End Standard Cohort Scopes
+    #################################
+
     # attempt to collect something like an address out of the LastX fields
     def address
       @address ||= begin

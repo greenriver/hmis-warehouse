@@ -60,7 +60,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :serves_individuals, -> do
-      where.not(HouseholdType: 3)
+      where(i_t[:HouseholdType].not_eq(3).or(i_t[:HouseholdType].eq(nil)))
     end
 
     scope :serves_children, -> do
