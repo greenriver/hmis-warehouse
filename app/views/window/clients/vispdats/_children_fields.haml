@@ -24,7 +24,7 @@
     .col-sm-10
       %hr
     .col-sm-2.text-right
-      = link_to add_child_window_client_vispdat_path, class: 'btn btn-success', title: 'Add Child', method: :put, data: { toggle: 'tooltip' } do
+      = link_to polymorphic_path([:add_child] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-success', title: 'Add Child', method: :put, data: { toggle: 'tooltip' } do
         %i.icon-plus
         Add Child
 

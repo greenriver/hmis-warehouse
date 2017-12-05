@@ -6,5 +6,5 @@
   .col-sm-3
     = child.input :dob, label: false, start_year: 18.years.ago.year, end_year: Date.today.year, as: :date_picker, input_html: { class: 'no-auto-save' }
   .col-sm-2
-    = link_to remove_child_window_client_vispdat_path(child_id: child.object.id), remote: true, method: :delete, class: 'btn btn-danger' do
+    = link_to polymorphic_path([:remove_child] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id, child_id: child.object.id), remote: true, method: :delete, class: 'btn btn-danger' do
       %i.icon-cross

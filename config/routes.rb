@@ -166,8 +166,10 @@ Rails.application.routes.draw do
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
       member do
-        put :upload_file
-        delete :destroy_file
+        put :add_child
+          delete :remove_child
+          put :upload_file
+          delete :destroy_file
       end
     end
     resources :files, controller: 'clients/files'
