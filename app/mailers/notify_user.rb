@@ -23,7 +23,8 @@ class NotifyUser < ApplicationMailer
     @client = @file.client
     users_to_notify = @client.user_clients.includes(:user)
     users_to_notify.each do |user_client|
-      mail(to: user_client&.user&.email, subject: "[Warehouse] A file was uploaded.") if user_client.client_notifications?
+      user = user_client&.user
+      mail(to: user&.email, subject: "[Warehouse] A file was uploaded.") if user_client.client_notifications? && (user.can_manage_window_client_files? || user.can_manage_client_files?)
     end
   end
 
