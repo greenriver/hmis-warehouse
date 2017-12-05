@@ -3,10 +3,10 @@ module Window::Clients
     include WindowClientPathGenerator
 
     before_action :require_can_access_vspdat_list!, only: [:index, :show]
-    before_action :require_can_create_or_modify_vspdat!, only: [:new, :create, :edit, :update, :destroy]
+    before_action :require_can_create_or_modify_vspdat!, only: [:new, :create, :edit, :update, :destroy, :add_child, :remove_child]
 
     before_action :set_client
-    before_action :set_vispdat, only: [:show, :edit, :update, :destroy]
+    before_action :set_vispdat, only: [:show, :edit, :update, :destroy, :add_child, :remove_child]
 
     def index
       @vispdats = @client.vispdats.
@@ -66,6 +66,20 @@ module Window::Clients
       end
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
       respond_with(@vispdat, location: polymorphic_path(vispdats_path_generator, client_id: @client.id))
+    end
+
+    def add_child
+      if @vispdat.family?
+        @child = @vispdat.children.create(first_name: 'First', last_name: 'Last')
+      end
+      redirect_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id, anchor: 'children-fields')
+    end
+
+    def remove_child
+      if @vispdat.family?
+        @child = @vispdat.children.where(id: params[:child_id]).first
+        @child.destroy if @child
+      end
     end
 
     def upload_file
