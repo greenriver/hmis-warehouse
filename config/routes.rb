@@ -77,7 +77,6 @@ Rails.application.routes.draw do
     resources :future_enrollments, only: [:index]
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
-    resources :service_after_exit, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :disabilities, only: [:index]
     resources :chronic, only: [:index] do

@@ -25,7 +25,6 @@ class ClientsController < ApplicationController
       client_scope
     end
     sort_filter_index()
-
   end
 
   def show

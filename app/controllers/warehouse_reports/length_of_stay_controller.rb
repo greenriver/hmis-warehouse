@@ -1,8 +1,8 @@
 module WarehouseReports
   class LengthOfStayController < ApplicationController
     include ArelHelper
-
-    before_action :require_can_view_reports!, :load_mo
+    include WarehouseReportAuthorization
+    before_action :load_mo
 
     def index
       length_of_stay if request.format.xlsx?
@@ -101,5 +101,6 @@ module WarehouseReports
         ::Filters::MonthAndOrganization.new
       end
     end
+
   end
 end

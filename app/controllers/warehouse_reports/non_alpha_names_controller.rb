@@ -1,8 +1,7 @@
 module WarehouseReports
   class NonAlphaNamesController < ApplicationController
     include ArelHelper
-
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       ct = client_source.arel_table
       @clients = client_source

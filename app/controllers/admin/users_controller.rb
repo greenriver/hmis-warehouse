@@ -86,7 +86,8 @@ module Admin
       params.require(:user).permit(
         data_sources: [],
         organizations: [],
-        projects: []
+        projects: [],
+        reports: []
       )
     end
 
