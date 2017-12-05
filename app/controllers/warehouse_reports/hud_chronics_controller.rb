@@ -2,8 +2,8 @@ module WarehouseReports
   class HudChronicsController < ApplicationController
     include ArelHelper
     include HudChronic
-
-    before_action :require_can_view_reports!, :load_filter, :set_sort
+    include WarehouseReportAuthorization
+    before_action :load_filter, :set_sort
 
     def index
       @clients = @clients.includes(:hud_chronics).

@@ -1,6 +1,6 @@
 module WarehouseReports::Cas
   class DeclineReasonController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     before_action :set_range
 
     def index
@@ -32,5 +32,6 @@ module WarehouseReports::Cas
     def report_source
       GrdaWarehouse::CasReport
     end
+
   end
 end

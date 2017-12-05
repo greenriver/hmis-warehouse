@@ -5,8 +5,9 @@
   .col-sm-8
     %h1= title
   .col-sm-4.text-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-      Download Excel
+    - if  can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
 
 = render 'filter'
 .row
@@ -49,7 +50,7 @@
               - enrollments = enrollments.reverse
               %tr
                 %td{rowspan: enrollments.count + 1}
-                  = link_to "#{meta[:first_name]} #{meta[:last_name]}", client_path(client_id)
+                  = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", client_path(client_id)
               - enrollments.each_with_index do |enrollment, index|
                 - highlight = ''
                 - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0

@@ -1,6 +1,6 @@
 module WarehouseReports
   class ReallyOldEnrollmentsController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       @date = (params[:date] || '1980-01-01').to_date
       et = GrdaWarehouse::Hud::Enrollment.arel_table

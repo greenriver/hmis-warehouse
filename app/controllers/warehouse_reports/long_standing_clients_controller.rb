@@ -1,6 +1,6 @@
 module WarehouseReports
   class LongStandingClientsController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       # using date instead of first_date_in_program below because it is indexed 
       # and is identical on entry records

@@ -2,7 +2,8 @@ module WarehouseReports
   class ChronicController < ApplicationController
     include ArelHelper
     include Chronic
-    before_action :require_can_view_reports!, :load_filter, :set_sort
+    include WarehouseReportAuthorization
+    before_action :load_filter, :set_sort
 
     def index
       @clients = @clients.includes(:chronics).
@@ -54,5 +55,6 @@ module WarehouseReports
     def client_source
       GrdaWarehouse::Hud::Client.destination
     end
+
   end
 end

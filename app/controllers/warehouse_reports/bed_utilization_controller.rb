@@ -1,8 +1,8 @@
 module WarehouseReports
   class BedUtilizationController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!
-
+    include WarehouseReportAuthorization
+    
     def index
       options = {}
       if params[:mo].present?

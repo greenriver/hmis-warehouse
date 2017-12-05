@@ -4,7 +4,8 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
 
   let(:user) { create :user }
   let(:admin_role) { create :admin_role }
-
+  let!(:chronic_report) { create :chronic_report }
+  
   before(:each) do
     user.roles << admin_role
     authenticate(user)
