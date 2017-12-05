@@ -17,5 +17,8 @@
     - if vispdat.migrated?
       %span.label.label-danger Migrated
 
+  %td
+    = vispdat.type.demodulize
+
   %td.vspdat-row__score.text-center
     = vispdat.score

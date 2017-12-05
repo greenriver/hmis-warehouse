@@ -146,6 +146,12 @@
       %label Do you have any legal stuff going on right now that may result in you being locked up, having to pay fines, or that make it more difficult to rent a place to live?
     .col-sm-3
       %dd= yes_no @vispdat.answer_for :legal_answer
+  - if @vispdat.youth?
+    .row
+      .col-sm-9
+        %label.text-primary Were you ever incarcerated when younger than age 18?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :incarcerated_before_18_answer
   .row
     .col-sm-9
       %label Does anybody force or trick you to do things that you do not want to do?
@@ -179,11 +185,46 @@
       %label Are you currently able to take care of basic needs like bathing, changing clothes, using a restroom, getting food and clean water and other things like that?
     .col-sm-3
       %dd= yes_no @vispdat.answer_for :basic_needs_answer
-  .row
-    .col-sm-9
-      %label Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?
-    .col-sm-3
-      %dd= yes_no @vispdat.answer_for :abusive_answer
+
+  - if @vispdat.youth?
+    %h4 Is your current lack of stable housing...
+    %br
+    .row
+      .col-sm-8.col-md-offset-1
+        %label.text-primary Because you ran away from your family home, a group home or a foster home?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :homeless_due_to_ran_away_answer
+    .row
+      .col-sm-8.col-md-offset-1
+        %label.text-primary Because of a difference in religious or cultural beliefs from your parents, guardians or caregivers?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :homeless_due_to_religions_beliefs_answer
+    .row
+      .col-sm-8.col-md-offset-1
+        %label.text-primary Because your family or friends caused you to become homeless?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :homeless_due_to_family_answer
+    .row
+      .col-sm-8.col-md-offset-1
+        %label.text-primary Because of conficts around gender identity or sexual orientation?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :homeless_due_to_gender_identity_answer
+    .row
+      .col-sm-8.col-md-offset-1
+        %label.text-primary Because of violence at home between family members?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :violence_between_family_members_answer
+    .row
+      .col-sm-8.col-md-offset-1
+        %label.text-primary Because of an unhealthy or abusive relationship, either at home or elsewhere?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :abusive_answer
+  - else
+    .row
+      .col-sm-9
+        %label Is your current homelessness in any way caused by a relationship that broke down, an unhealthy or abusive relationship, or because family or friends caused you to become evicted?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :abusive_answer
 
 %h2 Wellness
 .well
@@ -237,6 +278,12 @@
     .col-sm-3
       %dd
         = yes_no @vispdat.answer_for :drinking_answer
+  - if @vispdat.youth?
+    .row
+      .col-sm-9
+        %label.text-primary If you've ever used marijuana, did you ever try it at age 12 or younger?
+      .col-sm-3
+        %dd= yes_no @vispdat.answer_for :marijuana_answer
 .well
   %h4 Have you ever had trouble maintaining your housing, or been kicked out of an apartment, shelter program or other place you were staying, because of:
   %br

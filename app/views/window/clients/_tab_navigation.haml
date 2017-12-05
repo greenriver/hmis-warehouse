@@ -16,7 +16,7 @@
     },
     polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
       title: 'VI-SPDAT',
-      permission: GrdaWarehouse::Vispdat.any_visible_by?(current_user)
+      permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
     },
     polymorphic_path(files_path_generator, client_id: @client.id) => {
       title: 'File Uploads',
