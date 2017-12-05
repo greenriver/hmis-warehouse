@@ -17,7 +17,7 @@ module GrdaWarehouse::ClientNotes
     after_create :notify_users
 
     def notify_users
-      if client.present? && client.user_clients.housing_navigators.any?
+      if client.present?
         NotifyUser.note_added( id ).deliver_later
       end
     end

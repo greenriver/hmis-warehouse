@@ -47,8 +47,13 @@ module GrdaWarehouse
     end
 
     def notify_users
-      if client.present? && client.user_clients.housing_navigators.any?
+      if client.present?
         NotifyUser.file_uploaded( id ).deliver_later
+
+        tag_list = ActsAsTaggableOn::Tag.where(name: self.tag_list).pluck(:id)
+        notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
+        to_send = tag_list & notification_triggers
+        FileNotificationMailer.notify(to_send, client.id).deliver_later if to_send.any?
       end
     end
 

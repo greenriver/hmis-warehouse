@@ -14,6 +14,8 @@
           %th
             End Date
           %th
+            Receive Notifications?
+          %th
             Confidential?
           %th
             &nbsp;
@@ -28,12 +30,14 @@
           %td
             = f.input :end_date, as: :date_picker, label: false
           %td.text-center
+            = f.input :client_notifications, label: false, input_html: { data: { toggle: 'tooltip' }, title: 'Check this box to have the user receive notifications when files or notes are added for this client.'}
+          %td.text-center
             = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
           %td
             = f.submit value: 'Add Relationship', class: 'btn btn-primary'
 
 .row
-  .col-sm-3 
+  .col-sm-2 
     %strong Existing User
   .col-sm-2 
     %strong Relationship
@@ -41,9 +45,11 @@
     %strong Start Date
   .col-sm-2 
     %strong End Date
-  .col-sm-2.text-center 
+  .col-sm-1.text-center
+    %strong Receive Notifications?
+  .col-sm-1.text-center 
     %strong Confidential?
-  .col-sm-1 
+  .col-sm-2.text-center
     %strong Delete
 
 %hr
@@ -52,7 +58,7 @@
   = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
     - user = user_client.user
     .row{ class: "user-client-#{user_client.id}" }
-      .col-sm-3
+      .col-sm-2
         = user.name_with_email
       .col-sm-2
         = user_client.relationship
@@ -60,9 +66,11 @@
         = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
       .col-sm-2
         = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
-      .col-sm-2.text-center
+      .col-sm-1.text-center
+        = checkmark(user_client.client_notifications)
+      .col-sm-1.text-center
         = checkmark(user_client.confidential)
-      .col-sm-1
+      .col-sm-2.text-center
         = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-secondary', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
           %span.icon-cross
 - end.empty?
