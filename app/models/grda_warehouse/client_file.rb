@@ -48,8 +48,11 @@ module GrdaWarehouse
 
     def notify_users
       if client.present?
-        NotifyUser.file_uploaded( id ).deliver_later
-
+        # notify related users if the client has a full release and the file is visible in the window
+        if client.release_valid? && visible_in_window
+          NotifyUser.file_uploaded( id ).deliver_later
+        end
+        # Send out administrative notifications as appropriate
         tag_list = ActsAsTaggableOn::Tag.where(name: self.tag_list).pluck(:id)
         notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
         to_send = tag_list & notification_triggers

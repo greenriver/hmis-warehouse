@@ -13,5 +13,15 @@ module GrdaWarehouse::ClientNotes
         where(user_id: user.id)
       end
     end
+
+
+    after_create :notify_users
+
+    def notify_users
+      # notify related users if the client has a full release (otherwise they can't see the notes)
+      if client.present? && client.release_valid?
+        NotifyUser.note_added( id ).deliver_later
+      end
+    end
   end
 end 

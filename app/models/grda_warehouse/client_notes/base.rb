@@ -14,14 +14,6 @@ module GrdaWarehouse::ClientNotes
       where(type: GrdaWarehouse::ClientNotes::ChronicJustification)
     end 
 
-    after_create :notify_users
-
-    def notify_users
-      if client.present?
-        NotifyUser.note_added( id ).deliver_later
-      end
-    end
-
     def self.type_name
       raise "Must be implemented in sub-class"
     end

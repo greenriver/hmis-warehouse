@@ -3,6 +3,13 @@
 - if can_assign_users_to_clients?
   = simple_form_for @user, url: polymorphic_path(users_path_generator, client_id: @client) do |f|
     %table.table.table-condensed
+      %col{width: 200}
+      %col{width: 200}
+      %col{width: 200}
+      %col{width: 200}
+      %col{width: 100}
+      %col{width: 100}
+      %col{width: 200}
       %thead
         %tr
           %th
@@ -35,44 +42,37 @@
             = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
           %td
             = f.submit value: 'Add Relationship', class: 'btn btn-primary'
-
-.row
-  .col-sm-2 
-    %strong Existing User
-  .col-sm-2 
-    %strong Relationship
-  .col-sm-2 
-    %strong Start Date
-  .col-sm-2 
-    %strong End Date
-  .col-sm-1.text-center
-    %strong Receive Notifications?
-  .col-sm-1.text-center 
-    %strong Confidential?
-  .col-sm-2.text-center
-    %strong Delete
-
-%hr
-
-- if @user_clients.each do |user_client|
-  = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-    - user = user_client.user
-    .row{ class: "user-client-#{user_client.id}" }
-      .col-sm-2
-        = user.name_with_email
-      .col-sm-2
-        = user_client.relationship
-      .col-sm-2
-        = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
-      .col-sm-2
-        = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
-      .col-sm-1.text-center
-        = checkmark(user_client.client_notifications)
-      .col-sm-1.text-center
-        = checkmark(user_client.confidential)
-      .col-sm-2.text-center
-        = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-secondary', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
-          %span.icon-cross
-- end.empty?
+- @user_clients.each do |user_client|
+  - user = user_client.user
+  %table.table.table-condensed
+    %col{width: 200}
+    %col{width: 200}
+    %col{width: 200}
+    %col{width: 200}
+    %col{width: 100}
+    %col{width: 100}
+    %col{width: 200}
+    %tbody
+      %tr{ class: "user-client-#{user_client.id}" }
+        %td
+          = user.name_with_email
+        %td
+          = user_client.relationship
+        %td
+          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+            = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
+        %td
+          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+            = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
+        %td.text-center
+          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+            = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, class: 'submit-on-change' }
+        %td.text-center
+          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+            = f.input :confidential, label: false, input_html: { value: user_client.confidential, class: 'submit-on-change' }
+        %td
+          = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-secondary', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
+            %span.icon-cross
+- if @user_clients.blank?
   %p.text-center
     %em This client has no relationships
