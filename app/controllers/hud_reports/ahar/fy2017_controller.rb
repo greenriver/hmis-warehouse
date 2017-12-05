@@ -1,6 +1,6 @@
 module HudReports::Ahar
   class Fy2017Controller < ApplicationController
-    before_action :require_can_view_reports!
+    before_action :require_can_view_all_reports!
     before_action :set_report_result, :set_support
 
     def support

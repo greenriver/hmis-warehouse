@@ -1,7 +1,6 @@
 module WarehouseReports
   class FindByIdController < ApplicationController
-    before_action :require_can_view_reports!
-
+    include WarehouseReportAuthorization
     def index
       @ids = []
       @clients = []

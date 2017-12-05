@@ -1,7 +1,6 @@
 module WarehouseReports
   class DisabilitiesController < ApplicationController
-    before_action :require_can_view_reports!
-
+    include WarehouseReportAuthorization
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
       affirmative_responses = [1,2,3]

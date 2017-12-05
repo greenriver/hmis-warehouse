@@ -1,6 +1,6 @@
 module WarehouseReports
   class MissingProjectsController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       enrollment_projects = enrollment_source.distinct.select(:ProjectID, :data_source_id).pluck(:ProjectID, :data_source_id)
       projects = project_source.distinct.select(:ProjectID, :data_source_id).pluck(:ProjectID, :data_source_id)

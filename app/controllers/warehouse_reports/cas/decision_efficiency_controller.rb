@@ -1,11 +1,10 @@
 module WarehouseReports::Cas
   class DecisionEfficiencyController < ApplicationController
     include ArelHelper
-
-    before_action :require_can_view_reports!, :load_vars
+    include WarehouseReportAuthorization
+    before_action  :load_vars
 
     def index
-      
     end
 
     def chart

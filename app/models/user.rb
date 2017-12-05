@@ -33,7 +33,7 @@ class User < ActiveRecord::Base
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 
-  # load a hash of permission names (e.g. 'can_view_reports')
+  # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
   # of their roles
   def load_effective_permissions
@@ -122,10 +122,14 @@ class User < ActiveRecord::Base
     viewable GrdaWarehouse::Hud::Project
   end
 
+  def reports
+    viewable GrdaWarehouse::WarehouseReports::ReportDefinition
+  end
+
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::UserViewableEntity.transaction do
-      %i( data_sources organizations projects ).each do |type|
+      %i( data_sources organizations projects reports).each do |type|
         ids = ( viewables[type] || [] ).map(&:to_i)
         scope = viewable_join self.send(type)
         scope.where.not( entity_id: ids ).destroy_all
