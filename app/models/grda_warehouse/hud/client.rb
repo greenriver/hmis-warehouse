@@ -10,7 +10,7 @@ module GrdaWarehouse::Hud
     include HudChronicDefinition
 
     has_many :client_files
-    has_many :vispdats
+    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
@@ -372,7 +372,7 @@ module GrdaWarehouse::Hud
     def window_link_for? user
       if show_window_demographic_to?(user)
         window_client_path(self)
-      elsif GrdaWarehouse::Vispdat.any_visible_by?(user)
+      elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
         window_client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
         window_client_files_path(self)
@@ -1266,7 +1266,7 @@ module GrdaWarehouse::Hud
           Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
 
           # move any vi-spdats
-          GrdaWarehouse::Vispdat.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          GrdaWarehouse::Vispdat::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
         end
         # and invaldiate our own service history
         force_full_service_history_rebuild

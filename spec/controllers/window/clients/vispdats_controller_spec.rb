@@ -70,13 +70,13 @@ RSpec.describe Window::Clients::VispdatsController, type: :controller do
     context "with valid params" do
       it "creates a new Vispdat" do
         expect {
-          post :create, client_id: client.to_param, params: {vispdat: valid_attributes}
-        }.to change(GrdaWarehouse::Vispdat, :count).by(1)
+          post :create, client_id: client.to_param, params: {vispdat: valid_attributes, type: 'GrdaWarehouse::Vispdat::Individual'}
+        }.to change(GrdaWarehouse::Vispdat::Individual, :count).by(1)
       end
 
       it "assigns a newly created vispdat as @vispdat" do
         post :create, client_id: client.to_param, params: {vispdat: valid_attributes}
-        expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat)
+        expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat::Individual)
         expect(assigns(:vispdat)).to be_persisted
       end
 
@@ -90,7 +90,7 @@ RSpec.describe Window::Clients::VispdatsController, type: :controller do
     context "with invalid params" do
       it "creates a stub vispdat as @vispdat" do
         post :create, client_id: client.to_param, params: {vispdat: invalid_attributes}
-        expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat)
+        expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat::Individual)
       end
     end
   end

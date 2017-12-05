@@ -780,6 +780,16 @@ ActiveRecord::Schema.define(version: 20171204180630) do
   end
   add_index "censuses_averaged_by_year", ["year", "data_source_id", "ProjectType", "OrganizationID", "ProjectID"], :name=>"index_censuses_ave_year_ds_id_proj_type_org_id_proj_id", :using=>:btree
 
+  create_table "children", force: :cascade do |t|
+    t.string   "first_name"
+    t.string   "last_name"
+    t.date     "dob"
+    t.integer  "family_id"
+    t.datetime "created_at", :null=>false
+    t.datetime "updated_at", :null=>false
+  end
+  add_index "children", ["family_id"], :name=>"index_children_on_family_id", :using=>:btree
+
   create_table "chronics", force: :cascade do |t|
     t.date    "date",                       :null=>false
     t.integer "client_id",                  :null=>false
@@ -1848,8 +1858,8 @@ SELECT "Services"."ServicesID",
     t.integer  "picture_answer"
     t.integer  "score"
     t.string   "recommendation"
-    t.datetime "created_at",                   :null=>false
-    t.datetime "updated_at",                   :null=>false
+    t.datetime "created_at",                                          :null=>false
+    t.datetime "updated_at",                                          :null=>false
     t.datetime "submitted_at"
     t.integer  "homeless_period"
     t.date     "release_signed_on"
@@ -1858,11 +1868,46 @@ SELECT "Services"."ServicesID",
     t.string   "migrated_interviewer_name"
     t.string   "migrated_interviewer_email"
     t.string   "migrated_filed_by"
-    t.boolean  "migrated",                     :default=>false, :null=>false
-    t.boolean  "housing_release_confirmed",    :default=>false
+    t.boolean  "migrated",                                            :default=>false, :null=>false
+    t.boolean  "housing_release_confirmed",                           :default=>false
     t.integer  "user_id"
     t.integer  "priority_score"
-    t.boolean  "active",                       :default=>false
+    t.boolean  "active",                                              :default=>false
+    t.string   "type",                                                :default=>"GrdaWarehouse::Vispdat::Individual"
+    t.integer  "marijuana_answer"
+    t.integer  "incarcerated_before_18_answer"
+    t.integer  "homeless_due_to_ran_away_answer"
+    t.integer  "homeless_due_to_religions_beliefs_answer"
+    t.integer  "homeless_due_to_family_answer"
+    t.integer  "homeless_due_to_gender_identity_answer"
+    t.integer  "violence_between_family_members_answer"
+    t.boolean  "parent2_none",                                        :default=>false
+    t.string   "parent2_first_name"
+    t.string   "parent2_nickname"
+    t.string   "parent2_last_name"
+    t.string   "parent2_language_answer"
+    t.date     "parent2_dob"
+    t.string   "parent2_ssn"
+    t.date     "parent2_release_signed_on"
+    t.boolean  "parent2_drug_release",                                :default=>false
+    t.boolean  "parent2_hiv_release",                                 :default=>false
+    t.integer  "number_of_children_under_18_with_family"
+    t.boolean  "number_of_children_under_18_with_family_refused",     :default=>false
+    t.integer  "number_of_children_under_18_not_with_family"
+    t.boolean  "number_of_children_under_18_not_with_family_refused", :default=>false
+    t.integer  "any_member_pregnant_answer"
+    t.integer  "family_member_tri_morbidity_answer"
+    t.integer  "any_children_removed_answer"
+    t.integer  "any_family_legal_issues_answer"
+    t.integer  "any_children_lived_with_family_answer"
+    t.integer  "any_child_abuse_answer"
+    t.integer  "children_attend_school_answer"
+    t.integer  "family_members_changed_answer"
+    t.integer  "other_family_members_answer"
+    t.integer  "planned_family_activities_answer"
+    t.integer  "time_spent_alone_13_answer"
+    t.integer  "time_spent_alone_12_answer"
+    t.integer  "time_spent_helping_siblings_answer"
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree

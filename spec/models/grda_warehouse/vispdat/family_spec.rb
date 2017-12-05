@@ -1,8 +1,8 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
+RSpec.describe GrdaWarehouse::Vispdat::Family, type: :model do
   
-  let(:vispdat) { create :vispdat }
+  let(:vispdat) { build :family_vispdat }
 
   describe 'youth?' do
     it 'returns false' do
@@ -11,108 +11,125 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   end
 
   describe 'family?' do
-    it 'returns false' do
-      expect( vispdat.family? ).to be false
+    it 'returns true' do
+      expect( vispdat.family? ).to be true
     end
   end
 
   describe 'individual?' do
-    it 'returns true' do
-      expect( vispdat.individual? ).to be true
-    end
-  end
-
-  context 'when updated' do
-    context 'and completed is set' do
-
-      before(:each) do
-        vispdat.update( submitted_at: Time.now )
-      end
-
-      it 'queues an email' do
-        expect( Delayed::Job.count ).to eq 1
-      end
-      it 'queues a vispdat complete email' do
-        expect( Delayed::Job.first.payload_object.job_data['arguments'] ).to include "NotifyUser", "vispdat_completed"
-      end
-
-    end
-
-    describe 'and completed already set' do
-      
-      let(:vispat) { create :vispdat, completed: Time.now }
-
-      before(:each) do
-        vispdat.update( nickname: 'Joey' )
-      end
-
-      it 'does not queue an email' do
-        expect( Delayed::Job.count ).to eq 0
-      end
-    end
-  end
-
-  let(:vispdat) { create :vispdat, score: 8 }
-
-  let(:score_8) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:calculate_score).and_return( 8 )
-  end
-  let(:homeless_gt_2_years) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:days_homeless).and_return( 731 )
-  end
-  let(:homeless_1_year) do
-    allow_any_instance_of( GrdaWarehouse::Vispdat::Individual ).to receive(:days_homeless).and_return( 365 )
-  end
-
-  describe 'priority_score' do
-
-    context 'when score >= 8' do
-
-      context 'and homeless > 2 years' do
-        it 'is score + 730' do
-          score_8
-          homeless_gt_2_years
-          vispdat
-          expect( vispdat.priority_score ).to eq vispdat.score+730
-        end
-      end
-      context 'and homeless 1..2 years' do
-        it 'is score + 365' do
-          score_8
-          homeless_1_year
-          vispdat
-          expect( vispdat.priority_score ).to eq vispdat.score+365
-        end
-      end
-    end
-
-    context 'when score 0..7' do
-      let(:vispdat) { create :vispdat, score: 7 }
-      it 'is equal to score' do
-        vispdat
-        expect( vispdat.priority_score ).to eq vispdat.score
-      end
-    end
-
-    context 'when score < 0' do
-      let(:vispdat) { create :vispdat, score: -1 }
-      it 'is 0' do
-        expect( vispdat.priority_score ).to eq 0
-      end
+    it 'returns false' do
+      expect( vispdat.individual? ).to be false
     end
   end
 
   describe 'dob_score' do
-    context 'when client >= 60' do
+    before(:each) do
+      vispdat.parent2_dob = Date.new(1974,1,1)
+    end
+    context 'when parent ages missing' do
+      it 'returns 0' do
+        allow( vispdat.client ).to receive(:age).and_return nil
+        allow( vispdat ).to receive(:parent2_age).and_return nil
+        expect( vispdat.dob_score ).to eq 0
+      end
+    end
+    context 'when parent1 age >= 60' do
       it 'returns 1' do
         allow( vispdat.client ).to receive(:age).and_return 61
+        allow( vispdat ).to receive(:parent2_age).and_return 59
         expect( vispdat.dob_score ).to eq 1
       end
     end
-    context 'when client < 60' do
+    context 'when parent2 age >= 60' do
+      it 'returns 1' do
+        allow( vispdat.client ).to receive(:age).and_return 59
+        allow( vispdat ).to receive(:parent2_age).and_return 61
+        expect( vispdat.dob_score ).to eq 1
+      end
+    end
+    context 'when both parents under 60' do
       it 'returns 0' do
         allow( vispdat.client ).to receive(:age).and_return 59
+        allow( vispdat ).to receive(:parent2_age).and_return 59
         expect( vispdat.dob_score ).to eq 0
+      end
+    end
+  end
+
+  describe 'family_size_score' do
+    context 'when single_parent_score 1' do
+      before(:each) { allow(vispdat).to receive(:single_parent_score).and_return 1 }
+      it 'returns 1' do
+        expect( vispdat.family_size_score ).to eq 1
+      end
+    end
+    context 'when two_parents_score 1' do
+      before(:each) { allow(vispdat).to receive(:two_parents_score).and_return 1 }
+      it 'returns 1' do
+        expect( vispdat.family_size_score ).to eq 1
+      end
+    end
+    context 'when both 0' do
+      it 'returns 0' do
+        expect( vispdat.family_size_score ).to eq 0
+      end
+    end
+  end
+
+  describe 'single_parent_score' do
+    context 'when single with 2+ children' do
+      before(:each) { expect(vispdat).to receive(:single_parent_with_2plus_children?).and_return true }
+      it 'returns 1' do
+        expect( vispdat.single_parent_score ).to eq 1
+      end
+    end
+    context 'when child 11 or younger' do
+      before(:each) { expect(vispdat).to receive(:child_age_11_or_younger?).and_return true }
+      it 'returns 1' do
+        expect( vispdat.single_parent_score ).to eq 1
+      end
+    end
+    context 'when anyone pregnant' do
+      before(:each) { expect(vispdat).to receive(:any_member_pregnant_answer_yes?).and_return true }
+      it 'returns 1' do
+        expect( vispdat.single_parent_score ).to eq 1
+      end
+    end
+    context 'when none of those' do
+      it 'returns 0' do
+        expect( vispdat.single_parent_score ).to eq 0
+      end
+    end
+  end
+
+  describe 'two_parents_score' do
+    context 'when 2 parents with 3+ kids' do
+      before(:each) do
+        expect(vispdat).to receive(:two_parents_with_3plus_children?).and_return true
+      end
+      it 'returns 1' do
+        expect( vispdat.two_parents_score ).to eq 1
+      end
+    end
+    context 'when kid 6 or younger' do
+      before(:each) do
+        expect(vispdat).to receive(:child_age_6_or_younger?).and_return true
+      end
+      it 'returns 1' do
+        expect( vispdat.two_parents_score ).to eq 1
+      end
+    end
+    context 'when anyone pregnant' do
+      before(:each) do
+        expect(vispdat).to receive(:any_member_pregnant_answer_yes?).and_return true
+      end
+      it 'returns 1' do
+        expect( vispdat.two_parents_score ).to eq 1
+      end
+    end
+    context 'when none of those' do
+      it 'returns 0' do
+        expect( vispdat.two_parents_score ).to eq 0
       end
     end
   end
@@ -334,12 +351,6 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
         expect( vispdat.physical_health_score ).to eq 1
       end
     end
-    context 'when pregnant' do
-      before(:each) { vispdat.pregnant_answer = :pregnant_answer_yes }
-      it 'returns 1' do
-        expect( vispdat.physical_health_score ).to eq 1
-      end
-    end
     context 'when none' do
       it 'returns 0' do
         expect( vispdat.physical_health_score ).to eq 0
@@ -400,11 +411,12 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   end
 
   describe 'tri_morbidity_score' do
-    context 'when all 3 return 1' do
+    context 'when all 3 return 1 and one member has all 3' do
       before(:each) do
         allow(vispdat).to receive(:physical_health_score).and_return 1
         allow(vispdat).to receive(:substance_abuse_score).and_return 1
         allow(vispdat).to receive(:mental_health_score).and_return 1
+        vispdat.family_member_tri_morbidity_answer = :family_member_tri_morbidity_answer_yes
       end
       it 'returns 1' do
         expect( vispdat.tri_morbidity_score ).to eq 1
@@ -469,10 +481,109 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
     end
   end
 
+  describe 'family_legal_issue_score' do
+    context 'when children removed' do
+      before(:each) { vispdat.any_children_removed_answer = :any_children_removed_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.family_legal_issues_score ).to eq 1
+      end
+    end
+    context 'when family legal issues' do
+      before(:each) { vispdat.any_family_legal_issues_answer = :any_family_legal_issues_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.family_legal_issues_score ).to eq 1
+      end
+    end
+    context 'when neither' do
+      it 'returns 0' do
+        expect( vispdat.family_legal_issues_score ).to eq 0
+      end
+    end
+  end
+
+  describe 'needs_of_children_score' do
+    context 'when lived with' do
+      before(:each) { vispdat.any_children_lived_with_family_answer = :any_children_lived_with_family_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.needs_of_children_score ).to eq 1
+      end
+    end
+    context 'when child abuse' do
+      before(:each) { vispdat.any_child_abuse_answer = :any_child_abuse_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.needs_of_children_score ).to eq 1
+      end
+    end
+    context 'when not attending school' do
+      before(:each) { vispdat.children_attend_school_answer = :children_attend_school_answer_no }
+      it 'returns 1' do
+        expect( vispdat.needs_of_children_score ).to eq 1
+      end
+    end
+    context 'when neither' do
+      it 'returns 0' do
+        expect( vispdat.needs_of_children_score ).to eq 0
+      end
+    end
+  end
+
+  describe 'family_stability_score' do
+    context 'when changed' do
+      before(:each) { vispdat.family_members_changed_answer = :family_members_changed_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.family_stability_score ).to eq 1
+      end
+    end
+    context 'when other members' do
+      before(:each) { vispdat.other_family_members_answer = :other_family_members_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.family_stability_score ).to eq 1
+      end
+    end
+    context 'when none' do
+      it 'returns 0' do
+        expect( vispdat.family_stability_score ).to eq 0
+      end
+    end
+  end
+
+  describe 'parental_engagement_score' do
+    context 'when planned activities' do
+      before(:each) { vispdat.planned_family_activities_answer = :planned_family_activities_answer_no }
+      it 'returns 1' do
+        expect( vispdat.parental_engagement_score ).to eq 1
+      end
+    end
+    context 'when 13+ alone' do
+      before(:each) { vispdat.time_spent_alone_13_answer = :time_spent_alone_13_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.parental_engagement_score ).to eq 1
+      end
+    end
+    context 'when 12 under alone' do
+      before(:each) { vispdat.time_spent_alone_12_answer = :time_spent_alone_12_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.parental_engagement_score ).to eq 1
+      end
+    end
+    context 'when siblings help' do
+      before(:each) { vispdat.time_spent_helping_siblings_answer = :time_spent_helping_siblings_answer_yes }
+      it 'returns 1' do
+        expect( vispdat.parental_engagement_score ).to eq 1
+      end
+    end
+    context 'when none' do
+      it 'returns 0' do
+        expect( vispdat.parental_engagement_score ).to eq 0
+      end
+    end
+  end
+
   describe 'section scoring' do
     before(:each) do
       [
         :dob_score,
+        :family_size_score,
         :sleep_score,
         :homeless_score,
         :emergency_service_score,
@@ -488,21 +599,29 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
         :mental_health_score,
         :tri_morbidity_score,
         :medication_score,
-        :abuse_and_trauma_score
+        :abuse_and_trauma_score,
+        :family_legal_issues_score,
+        :needs_of_children_score,
+        :family_stability_score,
+        :parental_engagement_score
       ].each do |score|
         allow( vispdat ).to receive(score).and_return [0,1].sample
       end
 
       vispdat.calculate_score
     end
+
     describe 'pre_survey_score' do
-      it 'equals dob_score' do
-        expect( vispdat.pre_survey_score ).to eq vispdat.dob_score
+      it 'is sum of 2 scores' do
+        expect( vispdat.pre_survey_score ).to eq [
+          vispdat.dob_score,
+          vispdat.family_size_score
+        ].sum
       end
     end
 
     describe 'history_score' do
-      it 'is sum of sleep & homeless scores' do
+      it 'is sum of 2 scores' do
         expect( vispdat.history_score ).to eq [
           vispdat.sleep_score,
           vispdat.homeless_score
@@ -545,6 +664,17 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       end
     end
 
+    describe 'family_unit_score' do
+      it 'is sum of 4 scores' do
+        expect( vispdat.family_unit_score ).to eq [    
+          vispdat.family_legal_issues_score,
+          vispdat.needs_of_children_score,
+          vispdat.family_stability_score,
+          vispdat.parental_engagement_score
+        ].sum 
+      end
+    end
+
     describe 'score' do
       it 'returns total of each section score' do
         expect( vispdat.score ).to eq [
@@ -552,15 +682,12 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
           vispdat.history_score,
           vispdat.risk_score,
           vispdat.social_score,
-          vispdat.wellness_score
+          vispdat.wellness_score,
+          vispdat.family_unit_score
         ].sum
       end
     end
   end
-
-
-
-
 
 
 
