@@ -23,8 +23,19 @@ class NotifyUser < ApplicationMailer
     @client = @file.client
     users_to_notify = @client.user_clients.includes(:user)
     users_to_notify.each do |user_client|
+      next unless user_client.client_notifications?
+
       user = user_client&.user
-      mail(to: user&.email, subject: "[Warehouse] A file was uploaded.") if user_client.client_notifications? && (user.can_manage_window_client_files? || user.can_manage_client_files?)
+
+      @url = if user.can_manage_client_files?
+        client_files_url(@client)
+      elsif user.can_manage_window_client_files?
+        window_client_files_url(@client)
+      else
+      end
+      next if @url.nil?
+
+      mail(to: user&.email, subject: "[Warehouse] A file was uploaded.")
     end
   end
 
@@ -33,7 +44,19 @@ class NotifyUser < ApplicationMailer
     @client = @note.client
     users_to_notify = @client.user_clients.includes(:user)
     users_to_notify.each do |user_client|
-      mail(to: user_client&.user&.email, subject: "[Warehouse] A note was added.") if user_client.client_notifications?
+      next unless user_client.client_notifications?
+
+      user = user_client&.user
+
+      @url = if user.can_edit_client_notes?
+        client_notes_url(@client)
+      elsif user.can_edit_window_client_notes?
+        window_client_notes_url(@client)
+      else
+      end
+      next if @url.nil?
+
+      mail(to: user&.email, subject: "[Warehouse] A note was added.")
     end
   end
   
