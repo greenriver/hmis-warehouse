@@ -15,6 +15,7 @@
       = f.submit class: 'btn btn-submit', value: 'Update' unless readonly
   - if anomaly.versions
     - anomaly.versions.reverse.each do |version|
+      - next unless version.event != 'create'
       - object = version.reify
       %tr.anomaly-history
         %td
