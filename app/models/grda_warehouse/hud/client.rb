@@ -1346,7 +1346,7 @@ module GrdaWarehouse::Hud
       source_enrollments.open_on_date(Date.today).map do |enrollment|
         enrollment.income_benefits.limit(1).
           order(InformationDate: :desc).
-          pluck(:TotalMonthlyIncome)
+          pluck(:TotalMonthlyIncome).first
         end.compact.max || 0
     end
 
