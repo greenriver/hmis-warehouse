@@ -17,7 +17,7 @@ wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
       chronic['months_in_last_three_years'], 
       chronic['trigger'],
       client['chronic_project_names'],
-      @most_recent_services[client['id']], 
+      client['most_recent_service'], 
       disabilities,
       yn(chronic['dmh']),
       yn(client['veteran']), 

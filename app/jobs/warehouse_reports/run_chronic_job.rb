@@ -19,8 +19,15 @@ module WarehouseReports
         preload(source_clients: :data_source).
         merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
         order( @order )
+      @client_ids = @clients.map { |client| client.id }
 
       @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
+
+      most_recent_services = service_history_source.service
+        .where(client_id: @client_ids, project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+        .group(:client_id)
+        .pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql)
+        .to_h
 
       data = @clients.map do |client|
         chronic = client.chronics.first
@@ -45,7 +52,8 @@ module WarehouseReports
           data_sources: data_sources,
           source_clients: source_clients,
           source_disabilities: source_disabilities,
-          data_source: client.data_source
+          data_source: client.data_source,
+          most_recent_service: most_recent_services[client.id]
         )
       end
       report.client_count = @clients.size

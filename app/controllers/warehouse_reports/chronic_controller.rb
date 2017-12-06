@@ -22,16 +22,11 @@ module WarehouseReports
       sort_clients
 
       respond_to do |format|
-        format.xlsx do
-          @client_ids = @clients.map { |client| client['id'] }
-          @most_recent_services = service_history_source.service
-            .where(client_id: @client_ids, project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
-            .group(:client_id)
-            .pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql)
-            .to_h
-          @chronics = GrdaWarehouse::Chronic.where(date: @filter.date).index_by(&:client_id)
-        end
         format.html
+        format.xlsx do
+          date = @report.parameters['filter']['on']
+          headers['Content-Disposition'] = "attachment; filename='Potentially Chronic Clients on #{date}.xlsx'"
+        end
       end
     end
 
