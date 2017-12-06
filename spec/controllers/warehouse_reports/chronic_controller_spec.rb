@@ -12,38 +12,43 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
   end
 
   describe "GET index" do
-    context '.html' do
+    context 'when commit present' do
       before(:each) do
-        get :index
+        get :index, commit: 'Run'
       end
-
-      it 'assigns @clients' do
-        expect( assigns(:clients) ).to be_an ActiveRecord::Relation
+      it 'kicks off a job' do
+        expect( Delayed::Job.count ).to eq 1
       end
-      it 'assigns @filter' do
-        expect( assigns(:filter) ).to be_a Filters::Chronic
-      end
-      it 'assigns @so_clients' do
-        expect( assigns(:so_clients) ).to be_an Array
-      end
-      it 'does not assign @most_recent_services' do
-        expect( assigns(:most_recent_services) ).to be_nil
+      it 'assigns @reports' do
+        expect( assigns(:reports) ).to be_an ActiveRecord::Relation
       end
       it 'renders index' do
         expect( response ).to render_template :index
-        expect( response.content_type ).to eq 'text/html'
       end
     end
+  end
 
+  describe 'GET show' do
+    context '.html' do
+      before(:each) do
+        get :show, id: chronic_report.id
+      end
+      it 'assigns @report' do
+        expect( assigns(:report) ).to eq chronic_report
+      end
+      it 'renders show.html' do
+        expect( response ).to render_template :show
+      end
+    end
     context '.xlsx' do
       before(:each) do
-        get :index, format: :xlsx
+        get :show, id: chronic_report.id, format: :xlsx
       end
-      it 'assigns @most_recent_services' do
-        expect( assigns(:most_recent_services) ).to be_a Hash
+      it 'assigns @report' do
+        expect( assigns(:report) ).to eq chronic_report
       end
-      it 'renders index.xlsx' do
-        expect( response ).to render_template :index
+      it 'renders show.xlsx' do
+        expect( response ).to render_template :show
         expect( response.content_type ).to eq 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       end
     end

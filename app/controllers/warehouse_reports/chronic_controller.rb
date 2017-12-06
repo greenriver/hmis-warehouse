@@ -19,12 +19,13 @@ module WarehouseReports
       @clients = @report.data
       @sort_options = sort_options
 
-      sort_clients
+      sort_clients if @clients&.any?
 
       respond_to do |format|
         format.html
         format.xlsx do
-          date = @report.parameters['filter']['on']
+          filter = @report.parameters['filter']
+          date = filter ? filter['on'] : ''
           headers['Content-Disposition'] = "attachment; filename='Potentially Chronic Clients on #{date}.xlsx'"
         end
       end
