@@ -1,0 +1,19 @@
+
+- report.parameters['filter'].each do |k,v|
+  - next if v.blank?
+  %label.label.label-default.parameter-label
+    =k.humanize.downcase
+  - if %w(veteran individual dmh).include?(k)
+    - if v=='1'
+      %label.label.label-success.parameter-value
+        %strong
+          %i.icon-checkmark
+    - else
+      %label.label.label-danger.parameter-value
+        %strong
+          %i.icon-cross
+  - else
+    %label.label.label-primary.parameter-value
+      %strong
+        = v
+  &nbsp;

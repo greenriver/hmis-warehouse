@@ -3,31 +3,37 @@ module WarehouseReports
     include ArelHelper
     include Chronic
     include WarehouseReportAuthorization
-    before_action :load_filter, :set_sort
+    before_action :load_filter
+    before_action :set_sort, except: [:index, :show, :running]
 
     def index
-      @clients = @clients.includes(:chronics).
-        preload(source_clients: :data_source).
-        merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
-        order( @order )
-      @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
-      # Rails really wants to preload things we don't want, stop that.
-      @clients.preload_values = [source_clients: :data_source]
+      if params[:commit].present?
+        WarehouseReports::RunChronicJob.perform_later(params.merge(current_user_id: current_user.id))
+      end
+      @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
+      @reports = report_source.ordered.limit(50)
+    end
+
+    def show
+      @report = report_source.find(params[:id])
+      @clients = @report.data
+      @sort_options = sort_options
+
+      sort_clients if @clients&.any?
+
       respond_to do |format|
-        format.html do
-          @clients = @clients.page(params[:page]).per(100)
-        end
+        format.html
         format.xlsx do
-          # Rails really wants to preload things we don't want, stop that.
-          @clients.preload_values = [source_clients: :data_source]
-          @most_recent_services = service_history_source.service.where(
-            client_id: @clients.select(:id),
-            project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-          ).group(:client_id).
-          pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql).to_h
-          @chronics = GrdaWarehouse::Chronic.where(date: @filter.date).index_by(&:client_id)
+          filter = @report.parameters['filter']
+          date = filter ? filter['on'] : ''
+          headers['Content-Disposition'] = "attachment; filename='Potentially Chronic Clients on #{date}.xlsx'"
         end
       end
+    end
+
+    def running
+      @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
+      @reports = report_source.ordered.limit(50)
     end
 
     # Present a chart of the counts from the previous three years
@@ -51,9 +57,46 @@ module WarehouseReports
         count
       render json: @counts
     end
+
+    def report_source
+      GrdaWarehouse::WarehouseReports::ChronicReport
+    end
     
     def client_source
       GrdaWarehouse::Hud::Client.destination
+    end
+
+    private 
+
+    def sort_clients
+      @column, @direction = params.slice(:column, :direction).values 
+      @column, @direction = %w(chronic.homeless_since desc) if @column.nil? || @direction.nil?
+      chronic_sort = @column.split('.')
+      @clients = @clients.sort_by do |client|
+        if chronic_sort.size == 2
+          client['chronic'][chronic_sort.last]
+        else
+          client[@column]
+        end
+      end
+      @clients.reverse! if @direction=='desc'
+    end
+
+    def sort_options
+      [
+        {title: 'Last name A-Z', column: 'LastName', direction: 'asc'},
+        {title: 'Last name Z-A', column: 'LastName', direction: 'desc'},
+        {title: 'First name A-Z', column: 'FirstName', direction: 'asc'},
+        {title: 'First name Z-A', column: 'FirstName', direction: 'desc'},
+        {title: 'Age (asc)', column: 'age', direction: 'asc'},
+        {title: 'Age (desc)', column: 'age', direction: 'desc'},
+        {title: 'Homeless since (asc)', column: 'chronic.homeless_since', direction: 'asc'},
+        {title: 'Homeless since (desc)', column: 'chronic.homeless_since', direction: 'desc'},
+        {title: 'Days in 3 yrs (asc)', column: 'chronic.days_in_last_three_years', direction: 'asc'},
+        {title: 'Days in 3 yrs (desc)', column: 'chronic.days_in_last_three_years', direction: 'desc'},
+        {title: 'Months in 3 yrs (asc)', column: 'chronic.months_in_last_three_years', direction: 'asc'},
+        {title: 'Months in 3 yrs (desc)', column: 'chronic.months_in_last_three_years', direction: 'desc'},
+      ]
     end
 
   end

@@ -78,4 +78,11 @@ class NotifyUser < ApplicationMailer
     end
   end
 
+  def chronic_report_finished user_id, report_id
+    @user = User.find(user_id)
+    @report = GrdaWarehouse::WarehouseReports::ChronicReport.find(report_id)
+    @report_url = warehouse_reports_chronic_url(@report)
+    mail(to: @user.email, subject: "[Warehouse] Your Chronic report has finished")
+  end
+
 end

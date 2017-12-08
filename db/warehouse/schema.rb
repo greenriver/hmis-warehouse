@@ -1973,6 +1973,17 @@ SELECT "Services"."ServicesID",
   end
   add_index "warehouse_clients_processed", ["routine"], :name=>"index_warehouse_clients_processed_on_routine", :using=>:btree
 
+  create_table "warehouse_reports", force: :cascade do |t|
+    t.json     "parameters"
+    t.json     "data"
+    t.string   "type"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at",   :null=>false
+    t.datetime "updated_at",   :null=>false
+    t.integer  "client_count"
+  end
+
   create_table "weather", force: :cascade do |t|
     t.string   "url",        :null=>false
     t.text     "body",       :null=>false

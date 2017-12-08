@@ -1,0 +1,14 @@
+- @jobs.each do |job|
+  %tr{class: 'jIncompleteReport'}
+    %td= job.run_at
+    %td(colspan='2')
+      = render 'spinner'
+- @reports.each do |report|
+  %tr
+    %td
+      = report.started_at
+    %td
+      = link_to warehouse_reports_chronic_path(report) do
+        = report.client_count
+        clients
+    %td= render 'parameters', report: report
