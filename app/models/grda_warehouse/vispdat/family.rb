@@ -41,8 +41,7 @@ module GrdaWarehouse::Vispdat
 
     def parent2_age
       return if parent2_dob.blank?
-      age = (Date.today - parent2_dob) / 365.25
-      age.to_i
+      GrdaWarehouse::Hud::Client.age_on(date: Date.today, dob: parent2_dob)
     end
 
     def calculate_score
@@ -165,7 +164,7 @@ module GrdaWarehouse::Vispdat
 
     def parent2_age
       return if parent2_dob.blank?
-      (Date.today - parent2_dob) / 365.25
+      ((Date.today - parent2_dob) / 365.25).to_i
     end
 
     def family_size_score
@@ -211,13 +210,13 @@ module GrdaWarehouse::Vispdat
         :parent2_language_answer,
         :parent2_dob,
         :parent2_ssn,
-        :parent2_release_signed_on,
         :parent2_drug_release,
         :parent2_hiv_release,
         :number_of_children_under_18_with_family,
         :number_of_children_under_18_with_family_refused,
         :number_of_children_under_18_not_with_family,
         :number_of_children_under_18_not_with_family_refused,
+        :number_of_bedrooms,
         :any_member_pregnant_answer,
         :family_member_tri_morbidity_answer,
         :any_children_removed_answer,
@@ -240,6 +239,7 @@ module GrdaWarehouse::Vispdat
     end
 
     FAMILY_QUESTIONS = {
+      number_of_bedrooms: "What is the minimum number of bedrooms required for this family?",
       sleep: "Where do you and your family sleep most frequently? (check one)",
       housing: "How long has it been since you and your family lived in permanent stable housing?",
       homeless: "In the last three years, how many times have you and your family been homeless?",
