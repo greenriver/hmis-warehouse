@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171204180630) do
+ActiveRecord::Schema.define(version: 20171208151137) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2036,6 +2036,7 @@ SELECT "Services"."ServicesID",
     t.integer  "time_spent_alone_13_answer"
     t.integer  "time_spent_alone_12_answer"
     t.integer  "time_spent_helping_siblings_answer"
+    t.integer  "number_of_bedrooms",                                  :default=>0
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree

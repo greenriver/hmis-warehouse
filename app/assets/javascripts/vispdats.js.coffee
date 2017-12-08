@@ -19,3 +19,12 @@ $ ->
       console.log 'done'
     .fail (e) ->
       console.log 'fail'
+
+  $(document).on 'change', '.number-of-bedrooms', (e) ->
+    nob = $('.number-of-bedrooms option:selected')
+    if nob.text() == 'other'
+      e.stopPropagation()
+      $('.number-of-bedrooms-other').prop('disabled', false)
+    else
+      $('.number-of-bedrooms-other').prop('disabled', true)
+      $('.number-of-bedrooms-other').val('')
