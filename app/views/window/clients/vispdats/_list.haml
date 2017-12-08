@@ -6,18 +6,20 @@
           New VI-SPDAT
           %span.caret
         %ul.dropdown-menu
-          %li
-            = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Youth'), data: { method: :post } do
-              %i.icon-child
-              Youth
+          - unless Rails.env.production?
+            %li
+              = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Youth'), data: { method: :post } do
+                %i.icon-child
+                Youth (18-24)
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Individual'), data: { method: :post } do
               %i.icon-individual
               Individual
-          %li
-            = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Family'), data: { method: :post } do
-              %i.icon-group
-              Family
+          - unless Rails.env.production?
+            %li
+              = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Family'), data: { method: :post } do
+                %i.icon-group
+                Family
     -# else
       %button.btn.btn-primary(title="#{@client.full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')
         %span.icon-plus
@@ -33,6 +35,7 @@
       %th.text-left Status
       %th.text-left Type
       %th.text-center Total Score
+      %th Completed By
 
   %tbody
     = render partial: 'vispdat_row', collection: @vispdats, as: :vispdat

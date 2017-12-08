@@ -367,11 +367,12 @@
         = f.input :phone
       .col-sm-4
         = f.input :email
-    .row
-      .col-sm-4
-        %label= @vispdat.question(:take_picture)
-      .col-sm-8
-        = f.input :picture_answer, as: :radio_buttons, label: false, collection: @vispdat.class.options_for(:picture_answers)
+    - if @vispdat.individual?
+      .row
+        .col-sm-4
+          %label= @vispdat.question(:take_picture)
+        .col-sm-8
+          = f.input :picture_answer, as: :radio_buttons, label: false, collection: @vispdat.class.options_for(:picture_answers)
 
   %hr
     .row

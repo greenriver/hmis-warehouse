@@ -91,6 +91,7 @@ module GrdaWarehouse::Tasks
         vispdat_length_homeless_in_days: :most_recent_vispdat_length_homeless_in_days,
         ha_eligible: :ha_eligible,
         cspech_eligible: :cspech_eligible,
+        income_total_monthly: :max_current_total_monthly_income,
       }
     end
   end

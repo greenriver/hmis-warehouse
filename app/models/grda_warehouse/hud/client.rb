@@ -1340,6 +1340,16 @@ module GrdaWarehouse::Hud
       self.class.days_homeless(client_id: id, on_date: on_date)
     end
 
+    # Pull the maximum total monthly income from any open enrollments, looking
+    # only at the most recent assessment per enrollment
+    def max_current_total_monthly_income
+      source_enrollments.open_on_date(Date.today).map do |enrollment|
+        enrollment.income_benefits.limit(1).
+          order(InformationDate: :desc).
+          pluck(:TotalMonthlyIncome).first
+        end.compact.max || 0
+    end
+
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)
       GrdaWarehouse::Tasks::ChronicallyHomeless.new(
         date: date.to_date, 
