@@ -18,7 +18,7 @@
     .col-sm-8.col-md-offset-1
       %label= @vispdat.question(:number_of_bedrooms)
     .col-sm-1
-      - bedrooms = @vispdat.number_of_bedrooms
+      - bedrooms = @vispdat.number_of_bedrooms || 0
       = f.input :number_of_bedrooms, label: false, as: :select, collection: [[2,2],[3,3],[4,4],['other',0]], input_html: { class: 'number-of-bedrooms' }, include_blank: false, selected: (bedrooms.between?(2,4) ? bedrooms : 0)
     .col-sm-1
       = f.input :number_of_bedrooms, label: false, input_html: { min: 1, max: 20, step: '1', disabled: bedrooms.between?(2,4), class: 'number-of-bedrooms-other', value: (bedrooms.between?(2,4) ? '' : bedrooms) }

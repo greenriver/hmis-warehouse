@@ -99,7 +99,7 @@
       .col-sm-9
         = @vispdat.question(:number_of_bedrooms)
       .col-sm-3
-        = @vispdat.number_of_bedrooms
+        = @vispdat.number_of_bedrooms.to_i
     .row
       .col-sm-9
         IF HOUSEHOLD INCLUDES A FEMALE: Is any member of the family currently pregnant?
