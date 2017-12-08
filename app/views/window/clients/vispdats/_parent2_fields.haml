@@ -21,8 +21,6 @@
       = f.input :parent2_ssn, label: "SSN"
   .row
     .col-sm-4
-      = f.input :parent2_release_signed_on, label: "Consent Form Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
-    .col-sm-4
       %label Drug &amp; Alcohol Release?
       = f.input :parent2_drug_release, as: :radio_buttons, label: false
     .col-sm-4
