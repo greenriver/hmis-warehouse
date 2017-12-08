@@ -165,7 +165,7 @@ module GrdaWarehouse::Vispdat
 
     def parent2_age
       return if parent2_dob.blank?
-      (Date.today - parent2_dob) / 365.25
+      ((Date.today - parent2_dob) / 365.25).to_i
     end
 
     def family_size_score
