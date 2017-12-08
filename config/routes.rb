@@ -81,6 +81,7 @@ Rails.application.routes.draw do
     resources :disabilities, only: [:index]
     resources :chronic, only: [:index, :show] do
       get :summary, on: :collection
+      get :running, on: :collection
     end
     resources :hud_chronics, only: [:index] do
       collection do

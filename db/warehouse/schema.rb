@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171206131931) do
+ActiveRecord::Schema.define(version: 20171208151137) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -94,7 +94,6 @@ ActiveRecord::Schema.define(version: 20171206131931) do
     t.boolean  "api_update_in_process",                  :default=>false, :null=>false
     t.datetime "api_update_started_at"
     t.datetime "api_last_updated_at"
-    t.integer  "user_id"
     t.integer  "creator_id"
     t.boolean  "cspech_eligible",                        :default=>false
   end
@@ -106,7 +105,6 @@ ActiveRecord::Schema.define(version: 20171206131931) do
   add_index "Client", ["PersonalID"], :name=>"client_personal_id", :using=>:btree
   add_index "Client", ["creator_id"], :name=>"index_Client_on_creator_id", :using=>:btree
   add_index "Client", ["data_source_id"], :name=>"index_Client_on_data_source_id", :using=>:btree
-  add_index "Client", ["user_id"], :name=>"index_Client_on_user_id", :using=>:btree
 
   create_table "Disabilities", force: :cascade do |t|
     t.string   "DisabilitiesID"
@@ -1912,15 +1910,16 @@ SELECT "Services"."ServicesID",
   add_index "uploads", ["deleted_at"], :name=>"index_uploads_on_deleted_at", :using=>:btree
 
   create_table "user_clients", force: :cascade do |t|
-    t.integer  "user_id",      :null=>false
-    t.integer  "client_id",    :null=>false
-    t.boolean  "confidential", :default=>false, :null=>false
+    t.integer  "user_id",              :null=>false
+    t.integer  "client_id",            :null=>false
+    t.boolean  "confidential",         :default=>false, :null=>false
     t.string   "relationship"
-    t.datetime "created_at",   :null=>false
-    t.datetime "updated_at",   :null=>false
+    t.datetime "created_at",           :null=>false
+    t.datetime "updated_at",           :null=>false
     t.datetime "deleted_at"
     t.date     "start_date"
     t.date     "end_date"
+    t.boolean  "client_notifications", :default=>false
   end
   add_index "user_clients", ["client_id"], :name=>"index_user_clients_on_client_id", :using=>:btree
   add_index "user_clients", ["user_id"], :name=>"index_user_clients_on_user_id", :using=>:btree
@@ -2038,6 +2037,7 @@ SELECT "Services"."ServicesID",
     t.integer  "time_spent_alone_13_answer"
     t.integer  "time_spent_alone_12_answer"
     t.integer  "time_spent_helping_siblings_answer"
+    t.integer  "number_of_bedrooms",                                  :default=>0
   end
   add_index "vispdats", ["client_id"], :name=>"index_vispdats_on_client_id", :using=>:btree
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
@@ -2097,8 +2097,8 @@ SELECT "Services"."ServicesID",
     t.string   "type"
     t.datetime "started_at"
     t.datetime "finished_at"
-    t.datetime "created_at",  :null=>false
-    t.datetime "updated_at",  :null=>false
+    t.datetime "created_at",   :null=>false
+    t.datetime "updated_at",   :null=>false
     t.integer  "client_count"
   end
 

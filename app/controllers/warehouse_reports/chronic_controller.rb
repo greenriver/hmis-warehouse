@@ -4,14 +4,14 @@ module WarehouseReports
     include Chronic
     include WarehouseReportAuthorization
     before_action :load_filter
-    before_action :set_sort, except: [:index, :show]
+    before_action :set_sort, except: [:index, :show, :running]
 
     def index
       if params[:commit].present?
         WarehouseReports::RunChronicJob.perform_later(params.merge(current_user_id: current_user.id))
       end
       @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
-      @reports = report_source.ordered
+      @reports = report_source.ordered.limit(50)
     end
 
     def show
@@ -29,6 +29,11 @@ module WarehouseReports
           headers['Content-Disposition'] = "attachment; filename='Potentially Chronic Clients on #{date}.xlsx'"
         end
       end
+    end
+
+    def running
+      @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
+      @reports = report_source.ordered.limit(50)
     end
 
     # Present a chart of the counts from the previous three years

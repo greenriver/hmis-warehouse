@@ -16,3 +16,14 @@
         %th Report Parameters
     %tbody.report-listing
       = render 'reports'
+= link_to 'Reports', running_warehouse_reports_chronic_index_path, class: 'jReportBlock', remote: true 
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.jReportBlock').hide();
+      setInterval(function() {
+        $('.jReportBlock').click();
+      }, 30000);
+
+    })(jQuery);

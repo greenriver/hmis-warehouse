@@ -1,5 +1,5 @@
 - @jobs.each do |job|
-  %tr
+  %tr{class: 'jIncompleteReport'}
     %td= job.run_at
     %td(colspan='2')
       = render 'spinner'
