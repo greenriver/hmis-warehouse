@@ -1910,15 +1910,16 @@ SELECT "Services"."ServicesID",
   add_index "uploads", ["deleted_at"], :name=>"index_uploads_on_deleted_at", :using=>:btree
 
   create_table "user_clients", force: :cascade do |t|
-    t.integer  "user_id",      :null=>false
-    t.integer  "client_id",    :null=>false
-    t.boolean  "confidential", :default=>false, :null=>false
+    t.integer  "user_id",              :null=>false
+    t.integer  "client_id",            :null=>false
+    t.boolean  "confidential",         :default=>false, :null=>false
     t.string   "relationship"
-    t.datetime "created_at",   :null=>false
-    t.datetime "updated_at",   :null=>false
+    t.datetime "created_at",           :null=>false
+    t.datetime "updated_at",           :null=>false
     t.datetime "deleted_at"
     t.date     "start_date"
     t.date     "end_date"
+    t.boolean  "client_notifications", :default=>false
   end
   add_index "user_clients", ["client_id"], :name=>"index_user_clients_on_client_id", :using=>:btree
   add_index "user_clients", ["user_id"], :name=>"index_user_clients_on_user_id", :using=>:btree

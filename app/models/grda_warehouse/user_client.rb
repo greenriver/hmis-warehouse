@@ -45,6 +45,7 @@ module GrdaWarehouse
         'Primary Case Manager',
         'Case Manager',
         'Nurse Care Manager',
+        'Housing Support Provider',
       ].sort.freeze
     end
 

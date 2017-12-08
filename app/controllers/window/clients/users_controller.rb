@@ -43,6 +43,7 @@ module Window::Clients
         :user_id,
         :client_id,  
         :relationship,
+        :client_notifications,
         :confidential,
         :start_date,
         :end_date
