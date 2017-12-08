@@ -9,7 +9,7 @@
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Youth'), data: { method: :post } do
               %i.icon-child
-              Youth
+              Youth (18-24)
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Individual'), data: { method: :post } do
               %i.icon-individual
