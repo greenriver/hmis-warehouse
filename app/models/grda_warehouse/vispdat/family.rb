@@ -41,8 +41,7 @@ module GrdaWarehouse::Vispdat
 
     def parent2_age
       return if parent2_dob.blank?
-      age = (Date.today - parent2_dob) / 365.25
-      age.to_i
+      GrdaWarehouse::Hud::Client.age_on(date: Date.today, dob: parent2_dob)
     end
 
     def calculate_score

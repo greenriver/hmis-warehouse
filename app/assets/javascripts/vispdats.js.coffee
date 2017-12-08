@@ -24,7 +24,10 @@ $ ->
     nob = $('.number-of-bedrooms option:selected')
     if nob.text() == 'other'
       e.stopPropagation()
+      $('.number-of-bedrooms-other').closest('.form-group').show();
       $('.number-of-bedrooms-other').prop('disabled', false)
     else
+      $('.number-of-bedrooms-other').closest('.form-group').hide();
       $('.number-of-bedrooms-other').prop('disabled', true)
       $('.number-of-bedrooms-other').val('')
+  $('.number-of-bedrooms').trigger('change')

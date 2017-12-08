@@ -13,16 +13,8 @@
       = f.input :parent2_last_name, label: "Last Name"
   .row
     .col-sm-4
-      = f.input :parent2_language_answer, collection: @vispdat.class.language_options, label: "Language", input_html: { class: 'select2' }
-  .row
-    .col-sm-4
       = f.input :parent2_dob, label: "Date of Birth", start_year: 100.years.ago.year, end_year: 15.years.ago.year, as: :date_picker
     .col-sm-4
       = f.input :parent2_ssn, label: "SSN"
-  .row
     .col-sm-4
-      %label Drug &amp; Alcohol Release?
-      = f.input :parent2_drug_release, as: :radio_buttons, label: false
-    .col-sm-4
-      %label HIV/AIDS Release?
-      = f.input :parent2_hiv_release, as: :radio_buttons, label: false
+      = f.input :parent2_language_answer, collection: @vispdat.class.language_options, label: "Language", input_html: { class: 'select2' }
