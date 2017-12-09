@@ -4,8 +4,8 @@ module WarehouseReports
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       @clients = client_source.distinct
-        .joins(:source_enrollments)
-        .preload(:source_enrollments)
+        .joins(source_enrollments: :project)
+        .preload(source_enrollments: :project)
         .where( client_source.arel_table[:DOB].eq et[:EntryDate] ) #'Client.DOB = EntryDate')
         .where.not(DOB: nil)
         .order(DOB: :asc)
