@@ -9,7 +9,11 @@ module HealthCharts
           answer = form.answers[:sections].first[:questions].select do |question|
             question[:question] == "A-6. Where did you sleep last night?"
           end.first
-          [form.collected_at.to_date, self.class.health_housing_positive_outcomes.include?(answer[:answer]), answer[:answer]]
+          if self.class.health_housing_outcomes.keys.include?(answer[:answer])
+            [form.collected_at.to_date, self.class.health_housing_outcomes[answer[:answer].strip], answer[:answer]]
+          end
+          # [form.collected_at.to_date, self.class.health_housing_positive_outcomes.include?(answer[:answer]), answer[:answer]]
+
         end
       end.select{|_,_,answer| answer.present?}.map{|date,outcome,_| [date, outcome]}.to_h
     end
@@ -36,17 +40,17 @@ module HealthCharts
         'Street' => {
           score: 0,
           postitive: false,
-          status: :homeless,
+          status: :street,
         },
         'Shelter' => {
           score: 1,
           postitive: false,
-          status: :homeless,
+          status: :shelter,
         },
         'Doubling Up' =>  {
           score: 2,
           postitive: false,
-          status: :homeless,
+          status: :doubling_up,
         },
         'Transitional Housing / Residential Treatment Program' => {
           score: 3,
@@ -112,7 +116,7 @@ module HealthCharts
       sib_t = source_income_benefits.arel_table
       source_income_benefits.where(sib_t[:InformationDate].gt('2016-07-01')).order(InformationDate: :asc).map do |income|
         [income[:InformationDate], {
-          total: (income[:TotalMonthlyIncome] || 0).to_i, 
+          total: (income[:TotalMonthlyIncome] || 0).to_i,
           earned: (income[:EarnedAmount] || 0).to_i,
           number_of_non_earned_sources: (income.sources - [:Earned]).count,
         }]
