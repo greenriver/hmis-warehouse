@@ -393,8 +393,21 @@ h2.ho-sub__h2 {
 }
 
 .d3-housing-status__chart {
-  height: 300px;
+  height: 350px;
   margin-bottom: 4rem;
+}
+
+.d3-housing-status__chart .y-axis,
+.d3-housing-status__chart .x-axis{
+  path,
+  line {
+    stroke: #CCCCCC;
+  }
+}
+
+.d3-housing-status__chart .y-axis__label {
+  alignment-baseline: middle;
+  @include open-sans-condensed-bold;
 }
 
 .d3-monthly-income__chart,

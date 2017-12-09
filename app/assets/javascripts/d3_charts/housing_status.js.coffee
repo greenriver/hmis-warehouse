@@ -187,7 +187,7 @@ class App.D3Chart.MonthlyIncome extends App.D3Chart.PatientChartBase
 
 class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
   constructor: (container_selector, data, attrs) ->
-    @lineColor = '#cecac5'
+    @lineColor = '#CCCCCC'
     @statusColors = [
       circle: '#ff4d4d'
       band: '#fff5f5'
@@ -247,17 +247,17 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
     }
 
   _drawYearAxis: ->
-    domain = d3.extent(@data, (d) -> d.date)
     scale = d3.scaleLinear()
-      .domain(domain)
+      .domain(@domain.x)
       .range([0, @_chartWidth()])
     xAxis = d3.axisBottom()
-      .ticks(2)
-      .tickFormat(d3.format('d'))
+      .tickValues(@scale.x.domain())
+      .tickSize(20)
       .scale(scale)
     @chart.append('g')
       .call(xAxis)
       .attr('transform', "translate(0, #{@_chartHeight()})")
+      .attr('class', 'x-axis')
 
   _drawStatusAxis: ->
     scale = d3.scaleLinear()
@@ -271,29 +271,30 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
     @chart.append('g')
       .call(yAxis)
       .attr('transform', "translate(#{@_chartWidth()}, 0)")
-
-  _drawAxes: ->
-    @_drawYearAxis()
-    @_drawStatusAxis()
+      .attr('class', 'y-axis')
 
   _drawBands: ->
+    # band = d3.scaleBand().domain(@domain.y).range(@range.y)
     numberOfBands = @stati.length
-    band = d3.scaleLinear().domain(@domain.y).range(@range.y)
-    console.log band
-    @stati.forEach (status, i) =>
-      bandHeight = (@_chartHeight()) / numberOfBands
+    @stati.reverse().forEach (status, i) =>
+      bandHeight = @_chartHeight() / numberOfBands
       @chart.append('rect')
         .attr('height', bandHeight)
         .attr('width', @dimensions.width)
         .attr('x', 0)
         .attr('y', bandHeight * i)
         .attr('fill', @_bandColors().reverse()[i])
-      @chart.append('rect')
-        .attr('height', bandHeight)
-        .attr('width', @dimensions.width)
-        .attr('x', 0)
-        .attr('y', bandHeight * i)
-        .attr('fill', @_bandColors().reverse()[i])
+      @chart.append('text')
+        .attr('x', -85)
+        .attr('y', (bandHeight * i) + (bandHeight / 2))
+        .attr('class', 'y-axis__label')
+        .text(status)
+      @chart.append('circle')
+        .attr('cx', -105)
+        .attr('cy', (bandHeight * i) + (bandHeight / 2))
+        .attr('fill', @_circleColors().reverse()[i])
+        .attr('r', 8)
+        .attr('class', 'y-axis__label-circle')
 
   _drawLine: ->
     line = d3.line()
@@ -319,6 +320,10 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
         .attr('fill', (d) => @_circleColors()[d.status.score])
         .attr('stroke', (d) => @_bandColors()[d.status.score])
         .attr('stroke-width', 2)
+
+  _drawAxes: ->
+    @_drawYearAxis()
+    @_drawStatusAxis()
 
   _draw: ->
     @_drawBands()
