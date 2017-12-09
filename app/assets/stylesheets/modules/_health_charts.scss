@@ -410,6 +410,12 @@ h2.ho-sub__h2 {
   @include open-sans-condensed-bold;
 }
 
+.d3-housing-status__chart .x-axis{
+  text {
+    @include open-sans-normal;
+  }
+}
+
 .d3-monthly-income__chart,
 .d3-ss-matrix__chart {
   height: 300px;

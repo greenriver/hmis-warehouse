@@ -204,7 +204,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       circle: '#43a85e'
       band: '#f4faf6'
     ]
-    @stati = [ 'Street', 'Shelter', 'Doubling Up', 'Temporary', 'Permanent' ]
+    @stati = [ 'Permanent', 'Temporary', 'Doubling Up', 'Shelter', 'Street' ]
 
     super(container_selector, data, attrs)
 
@@ -253,11 +253,20 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
     xAxis = d3.axisBottom()
       .tickValues(@scale.x.domain())
       .tickSize(20)
+      .tickPadding(8)
       .scale(scale)
+      .tickFormat((d) -> "#{d.getMonth() + 1}/#{d.getDate()}/#{d.getFullYear()}")
     @chart.append('g')
       .call(xAxis)
       .attr('transform', "translate(0, #{@_chartHeight()})")
       .attr('class', 'x-axis')
+    @chart.append('line')
+      .attr('y1', 0)
+      .attr('y2', @_chartHeight())
+      .attr('x1', 0)
+      .attr('x2', .5)
+      .attr('stroke', @lineColor)
+      .attr('stroke-width', 1)
 
   _drawStatusAxis: ->
     scale = d3.scaleLinear()
@@ -274,7 +283,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       .attr('class', 'y-axis')
 
   _drawBands: ->
-    # band = d3.scaleBand().domain(@domain.y).range(@range.y)
+    # band = d3.scaleBand().domain(d3.extent([0, 1, 2, 3, 4])).range(@range.y)
     numberOfBands = @stati.length
     @stati.reverse().forEach (status, i) =>
       bandHeight = @_chartHeight() / numberOfBands
