@@ -96,7 +96,7 @@ gem 'letsencrypt_plugin'
 # gem 'capistrano-rails', group: :development
 
 gem 'newrelic_rpm', require: false
-# gem "temping", require: false
+gem "temping", require: false
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false

@@ -2,6 +2,8 @@ module GrdaWarehouse::Hud
   class Enrollment < Base
     include ArelHelper
     include HudSharedScopes
+    include TsqlImport
+    require 'temping'
     self.table_name = 'Enrollment'
     self.hud_key = 'ProjectEntryID'
     acts_as_paranoid column: :DateDeleted
@@ -196,7 +198,7 @@ module GrdaWarehouse::Hud
     }
 
     #################################
-    # Standard Cohort Scopes
+    # Standard Demographic Scopes
     scope :veteran, -> do
       joins(:destination_client).merge(GrdaWarehouse::Hud::Client.veteran)
     end
@@ -213,8 +215,18 @@ module GrdaWarehouse::Hud
       joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
     end
 
-    # End Standard Cohort Scopes
+    # End Standard Demographic Scopes
     #################################
+    
+    def self.youth_columns
+      {
+        personal_id: :PersonalID, 
+        project_id: :ProjectID, 
+        household_id: :HouseholdID, 
+        data_source_id: :data_source_id, 
+        client_id: c_t[:id].as('client_id').to_sql,
+      }.freeze
+    end
 
     # attempt to collect something like an address out of the LastX fields
     def address

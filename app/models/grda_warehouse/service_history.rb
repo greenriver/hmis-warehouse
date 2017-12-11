@@ -196,6 +196,65 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
       joins(:client).merge(GrdaWarehouse::Hud::Client.non_veteran)
     end
 
+    scope :family, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
+    end
+
+    scope :individual, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
+    end
+
+    scope :youth, -> do
+      where(age: (18..24))
+    end
+
+    scope :children, -> do
+      where(age: (0..18))
+    end
+    # Client age on date is 18-24
+    # Presented alone or as the head of household with no one else > 24
+    scope :unaccompanied_youth, -> do
+      youth.where(other_clients_over_25: 0, other_clients_under_18: 0 )
+    end
+
+    scope :unaccompanied_youth_in_date_range, -> (range: (Date.today..Data.today)) do
+      unaccompanied_youth.where(range: range)
+    end
+
+    # entry.unaccompanied_youth_in_date_range(range: range).where(client_id: service_unaccompanied_youth(range: range))
+
+    # entry.unaccompanied_youth_in_date_range(range: range).where(client_id: service_unaccompanied_youth(range: range)).where(last_date_in_program: range)
+
+    scope :service_unaccompanied_youth, -> (range: (Date.today..Data.today)) do
+      service.unaccompanied_youth_in_date_range(range: range)
+    end
+
+    scope :entry_unaccompanied_youth, -> (range: (Date.today..Data.today)) do
+      entry.
+      open_between(start_date: range.first, end_date: range.last).
+      unaccompanied_youth
+    end
+
+    scope :unaccompanied_parenting_youth_in_date_range, -> (range: (Date.today..Data.today)) do
+      youth.
+      where(range: range).
+      where(other_clients_over_25: 0).
+      where(sh_t[:other_clients_under_18].gt(0))
+    end
+
+    scope :children_only_in_date_range, -> (range: (Date.today..Data.today)) do
+      children.
+      where(range: range).
+      where(other_clients_over_25: 0, other_clients_between_18_and_25: 0)
+    end
+
+    scope :juvenile_parents_in_date_range, -> (range: (Date.today..Data.today)) do
+      children_only_in_date_range(range: range).
+      where(sh_t[:other_clients_under_18].gt(0)).
+      where(head_of_household: true)
+    end
+
+
     # End Standard Cohort Scopes
     #################################
 

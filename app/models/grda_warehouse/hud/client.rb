@@ -183,9 +183,9 @@ module GrdaWarehouse::Hud
     scope :child, -> do
       where(c_t[:DOB].gt(18.years.ago.to_date))
     end
-    scope :youth, -> do
-      where(c_t[:DOB].lteq(18.years.ago.to_date).
-        and(c_t[:DOB].gteq(24.years.ago.to_date)))
+    scope :youth, -> (on: Date.today) do
+      where(c_t[:DOB].lteq(on - 18.years).
+        and(c_t[:DOB].gteq(on - 24.years)))
     end
      
      #################################
