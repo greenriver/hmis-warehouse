@@ -12,7 +12,6 @@ module HealthCharts
           if self.class.health_housing_outcomes.keys.include?(answer[:answer])
             [form.collected_at.to_date, self.class.health_housing_outcomes[answer[:answer].strip], answer[:answer]]
           end
-          # [form.collected_at.to_date, self.class.health_housing_positive_outcomes.include?(answer[:answer]), answer[:answer]]
 
         end
       end.select{|_,_,answer| answer.present?}.map{|date,outcome,_| [date, outcome]}.to_h
@@ -39,42 +38,34 @@ module HealthCharts
       {
         'Street' => {
           score: 0,
-          postitive: false,
           status: :street,
         },
         'Shelter' => {
           score: 1,
-          postitive: false,
           status: :shelter,
         },
         'Doubling Up' =>  {
           score: 2,
-          postitive: false,
           status: :doubling_up,
         },
         'Transitional Housing / Residential Treatment Program' => {
           score: 3,
-          postitive: false,
           status: :temporary,
         },
         'Motel' => {
           score: 3,
-          postitive: false,
           status: :temporary,
         },
         'Assisted Living / Nursing Home / Rest Home' => {
           score: 4,
-          postitive: false,
           status: :permanent,
         },
         'Supportive Housing' => {
           score: 4,
-          postitive: false,
           status: :permanent,
         },
         'Housing with No Supports' => {
           score: 4,
-          postitive: false,
           status: :permanent,
         },
         # 'Unknown',

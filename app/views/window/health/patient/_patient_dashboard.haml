@@ -3,9 +3,6 @@
   .row
     .col-xs-12
       = d3_base_chart('d3-housing-status__chart', 'd3-housing-status__dates', 'Housing Status')
-      -# .d3-housing-status__hints.ho-hints.clearfix
-      -#   = housing_status_hint('housed')
-      -#   = housing_status_hint('not-housed')
   .row
     .col-xs-12.col-md-6
       = d3_base_chart('d3-ss-matrix__chart', 'd3-ss-matrix__dates', 'Self-Sufficiency Matrix Scores')
@@ -21,12 +18,13 @@
         selector: '.d3-housing-status__chart',
         data: data,
         type: 'hs',
+        viewBoxSizing: true
       }
       ssChart = {
         margin: {top: 10, right: 40, bottom: 70, left: 40},
         selector: '.d3-ss-matrix__chart',
         data: ssData,
-        type: 'ss'
+        type: 'ss',
       }
       var charts = [hsChart, ssChart]
       var pc = new App.D3Chart.PatientCharts(charts)

@@ -6,6 +6,7 @@ class App.D3Chart.PatientCharts
     charts.forEach((chart) =>
       attrs = {
         margin: chart.margin,
+        viewBoxSizing: chart.viewBoxSizing or false,
         dates_container: $(chart.selector).data('dates')
       }
       if chart.type == 'hs'
@@ -20,7 +21,7 @@ class App.D3Chart.PatientCharts
 
 class App.D3Chart.PatientChartBase extends App.D3Chart.Base
   constructor: (container_selector, data, attrs) ->
-    super(container_selector, attrs.margin)
+    super(container_selector, attrs.margin, attrs.viewBoxSizing)
     @data = @_loadData(data)
     console.log @data
     if @data.length > 0
@@ -204,7 +205,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       circle: '#43a85e'
       band: '#f4faf6'
     ]
-    @stati = [ 'Permanent', 'Temporary', 'Doubling Up', 'Shelter', 'Street' ]
+    @stati = [ 'Street', 'Shelter', 'Doubling Up', 'Temporary', 'Permanent' ]
 
     super(container_selector, data, attrs)
 
@@ -214,16 +215,10 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
   _bandColors: ->
     @statusColors.map (c) -> c.band
 
-  _chartWidth: ->
-    @dimensions.chartWidth - @margin.left - @margin.right
-
-  _chartHeight: ->
-    @dimensions.chartHeight - @margin.top - @margin.bottom
-
   _loadRange: ->
     {
-      x: [0, @_chartWidth()],
-      y: [@_chartHeight(), 0],
+      x: [0, @dimensions.width],
+      y: [@dimensions.height, 0],
       color: @_circleColors()
     }
 
@@ -249,7 +244,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
   _drawYearAxis: ->
     scale = d3.scaleLinear()
       .domain(@domain.x)
-      .range([0, @_chartWidth()])
+      .range([0, @dimensions.width])
     xAxis = d3.axisBottom()
       .tickValues(@scale.x.domain())
       .tickSize(20)
@@ -258,35 +253,35 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       .tickFormat((d) -> "#{d.getMonth() + 1}/#{d.getDate()}/#{d.getFullYear()}")
     @chart.append('g')
       .call(xAxis)
-      .attr('transform', "translate(0, #{@_chartHeight()})")
+      .attr('transform', "translate(0, #{@dimensions.height})")
       .attr('class', 'x-axis')
-    @chart.append('line')
-      .attr('y1', 0)
-      .attr('y2', @_chartHeight())
-      .attr('x1', 0)
-      .attr('x2', .5)
-      .attr('stroke', @lineColor)
-      .attr('stroke-width', 1)
 
   _drawStatusAxis: ->
     scale = d3.scaleLinear()
       .domain([0, 5])
-      .range([@_chartHeight(), 0])
+      .range([@dimensions.height, 0])
     yAxis = d3.axisLeft()
       .ticks(4)
-      .tickSize(@_chartWidth())
+      .tickSize(@dimensions.width)
       .tickFormat('')
       .scale(scale)
+    # Add vertical axis line on left
+    @chart.append('line')
+      .attr('y1', 0)
+      .attr('y2', @dimensions.height)
+      .attr('x1', 0)
+      .attr('x2', .5)
+      .attr('stroke', @lineColor)
+      .attr('stroke-width', 1)
     @chart.append('g')
       .call(yAxis)
-      .attr('transform', "translate(#{@_chartWidth()}, 0)")
+      .attr('transform', "translate(#{@dimensions.width}, 0)")
       .attr('class', 'y-axis')
 
   _drawBands: ->
-    # band = d3.scaleBand().domain(d3.extent([0, 1, 2, 3, 4])).range(@range.y)
-    numberOfBands = @stati.length
+    band = d3.scaleBand().domain(@stati).range([0, @dimensions.height])
+    bandHeight = band.bandwidth()
     @stati.reverse().forEach (status, i) =>
-      bandHeight = @_chartHeight() / numberOfBands
       @chart.append('rect')
         .attr('height', bandHeight)
         .attr('width', @dimensions.width)
@@ -338,7 +333,6 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
     @_drawBands()
     @_drawLine()
     @_drawCircles()
-
 
   draw: ->
     super
