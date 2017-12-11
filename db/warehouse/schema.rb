@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171208151137) do
+ActiveRecord::Schema.define(version: 20171211142747) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -96,6 +96,7 @@ ActiveRecord::Schema.define(version: 20171208151137) do
     t.datetime "api_last_updated_at"
     t.integer  "creator_id"
     t.boolean  "cspech_eligible",                        :default=>false
+    t.date     "consent_form_signed_on"
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
@@ -1005,6 +1006,8 @@ ActiveRecord::Schema.define(version: 20171208151137) do
     t.boolean  "visible_in_window"
     t.string   "migrated_username"
     t.integer  "vispdat_id"
+    t.date     "consent_form_signed_on"
+    t.boolean  "consent_form_confirmed"
   end
   add_index "files", ["type"], :name=>"index_files_on_type", :using=>:btree
   add_index "files", ["vispdat_id"], :name=>"index_files_on_vispdat_id", :using=>:btree

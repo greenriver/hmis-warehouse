@@ -33,6 +33,9 @@
         %h3 VI-SPDAT Scores
         - @client.vispdats.completed.scores.each do |vispdat|
           %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
+      - if @client.consent_form_expired?
+        %h3 Consent Form
+        %span.label.label-danger Expired
       = render 'window/clients/required_documents'
     .col-sm-4
       - if (eto_available || ! Rails.env.production?) && @client.image 

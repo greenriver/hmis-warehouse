@@ -13,7 +13,6 @@
             Upload Release
         .modal-body
           = f.input :name, as: :string, :required => true
-          -# = f.input :tag_list, collection: @file.class.available_tags, label: 'Contains', input_html: { value: f.object.tag_list, multiple: :multiple, readonly: true }, selected: 'Consent Form'
           = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
           = f.input :file, as: :file, :required => true
         .modal-footer
@@ -43,15 +42,13 @@
       .col-sm-12
         %h3 Consent Form
         %p 
-          Please indicate when the client signed the consent form, if it included a Drug &amp; Alcohol Release, if it included an HIV/AIDS Release, and upload the signed document.
+          Please indicate if the client has a Drug & Alcohol Release, and an HIV/AIDS Release.
           - if @consent_form_url.present?
             = link_to @consent_form_url do
               A blank consent form is available here.
         %p Consent forms will be confirmed manually by an administrator before client information is shared. Uploading a consent form notifies the appropriate administrator.
     .row
       .col-sm-4
-        
-        = f.input :release_signed_on, label: "Consent Form Signed On?", start_year: 5.years.ago.year, end_year: Date.today.year, as: :date_picker
         - if @vispdat.files.empty?
           %a.btn.btn-default(data-toggle='modal' data-target='#upload-file')
             %i.icon-upload2
@@ -60,8 +57,6 @@
           = link_to polymorphic_path(file_path_generator, id: @vispdat.files.first) do
             %i.fa.fa-file
             Signed Consent Form
-        - if can_confirm_housing_release?
-          = f.input :housing_release_confirmed, as: :boolean
 
       .col-sm-4
         %label Drug &amp; Alcohol Release?

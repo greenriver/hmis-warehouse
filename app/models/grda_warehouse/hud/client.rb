@@ -862,6 +862,10 @@ module GrdaWarehouse::Hud
       consent_form_status == 'Signed fully'
     end
 
+    def consent_form_expired?
+      consent_form_signed_on.present? && consent_form_signed_on < 1.year.ago
+    end
+
     def service_date_range
       @service_date_range ||= begin
         at = service_history.arel_table

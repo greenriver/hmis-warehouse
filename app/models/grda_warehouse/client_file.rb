@@ -38,12 +38,25 @@ module GrdaWarehouse
     # Callbacks
     ####################
     after_create :notify_users
+    after_save :set_client_consent
+    after_destroy :clear_client_consent
 
     ####################
     # Access
     ####################
     def self.any_visible_by?(user)
       user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
+    def set_client_consent
+      if consent_form_confirmed_changed? || consent_form_signed_on_changed?
+        date = consent_form_confirmed? ? consent_form_signed_on : nil
+        client.update_column :consent_form_signed_on, date
+      end
+    end
+
+    def clear_client_consent
+      client.update_column :consent_form_signed_on, nil
     end
 
     def notify_users
