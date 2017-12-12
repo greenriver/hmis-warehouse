@@ -17,6 +17,20 @@ module Importing
         lock_checks -= 1
       end
       start_time = Time.now
+
+      # expire client consent form if past 1 year
+      release_duration = GrdaWarehouse::Config.get :release_duration
+      if release_duration == 'One Year'
+        clients_with_consent = GrdaWarehouse::Hud::Client.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < 1.year.ago
+            client.update_columns(
+              consent_form_signed_on: nil, 
+              housing_release_status: nil)
+          end
+        end
+      end
+
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
