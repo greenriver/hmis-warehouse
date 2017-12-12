@@ -8,30 +8,29 @@ module HealthCharts
         if first_section.present?
           answer = form.answers[:sections].first[:questions].select do |question|
             question[:question] == "A-6. Where did you sleep last night?"
-          end.first
-          if self.class.health_housing_outcomes.keys.include?(answer[:answer])
-            [form.collected_at.to_date, self.class.health_housing_outcomes[answer[:answer].strip], answer[:answer]]
+          end.first[:answer]
+          if self.class.health_housing_outcome(answer)
+            {
+              date: form.collected_at.to_date,
+              score: self.class.health_housing_score(answer),
+              status: answer
+            }
           end
-
         end
-      end.select{|_,_,answer| answer.present?}.map{|date,outcome,_| [date, outcome]}.to_h
+      end.compact
     end
 
     def self.health_housing_bucket(answer)
       case answer
       when *health_housing_temporary_outcomes
         'Temporary Housing'
-      when *health_housing_pemanent_outcomes
+      when *health_housing_permanent_outcomes
         'Permanent Housing'
       when *health_housing_negative_outcomes
         answer
       else
         nil
       end
-    end
-
-    def self.health_housing_positive_outcome?(answer)
-      health_housing_positive_outcomes.include?(answer)
     end
 
     def self.health_housing_outcomes
@@ -73,11 +72,19 @@ module HealthCharts
       }.freeze
     end
 
+    def self.health_housing_outcome(answer)
+      health_housing_outcomes.keys.include?(answer)
+    end
+
+    def self.health_housing_score(answer)
+       health_housing_outcomes[answer][:score]
+    end
+
     def self.health_housing_temporary_outcomes
       health_housing_outcomes.select{|_,v| v[:status] == :temporary}.keys
     end
 
-    def self.health_housing_pemanent_outcomes
+    def self.health_housing_permanent_outcomes
       health_housing_outcomes.select{|_,v| v[:status] == :permanent}.keys
     end
 

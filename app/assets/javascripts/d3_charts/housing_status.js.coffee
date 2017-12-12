@@ -23,7 +23,6 @@ class App.D3Chart.PatientChartBase extends App.D3Chart.Base
   constructor: (container_selector, data, attrs) ->
     super(container_selector, attrs.margin, attrs.viewBoxSizing)
     @data = @_loadData(data)
-    console.log @data
     if @data.length > 0
       @range = @_loadRange()
       @domain = @_loadDomain()
@@ -209,6 +208,16 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
 
     super(container_selector, data, attrs)
 
+  _loadData: (data)->
+    data?.forEach (d) ->
+      d.date = new Date(d.date)
+
+    if data.length != 0
+      data.sort (a, b) =>
+        a.date - b.date
+    else
+      []
+
   _circleColors: ->
     @statusColors.map (c) -> c.circle
 
@@ -303,7 +312,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
   _drawLine: ->
     line = d3.line()
       .x((d) => @scale.x(d.date))
-      .y((d) => @scale.y(d.status.score + .5))
+      .y((d) => @scale.y(d.score + .5))
     @chart.append('path')
       .data([@data])
       .attr('class', 'line')
@@ -317,12 +326,11 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       .data(@data)
       .enter()
       .append('circle')
-        .attr('class', (d) => "#{d.status.status}_#{d.status.score}")
         .attr('cx', (d) => @scale.x(d.date))
-        .attr('cy', (d) => @scale.y(d.status.score + .5))
+        .attr('cy', (d) => @scale.y(d.score + .5))
         .attr('r', 10)
-        .attr('fill', (d) => @_circleColors()[d.status.score])
-        .attr('stroke', (d) => @_bandColors()[d.status.score])
+        .attr('fill', (d) => @_circleColors()[d.score])
+        .attr('stroke', (d) => @_bandColors()[d.score])
         .attr('stroke-width', 2)
 
   _drawAxes: ->
