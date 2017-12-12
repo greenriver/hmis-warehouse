@@ -2,12 +2,13 @@
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment
     include TsqlImport
+    include ArelHelper
     include ActiveSupport::Benchmarkable
     
     after_commit :force_validity_calculation
 
     def service_history_valid?
-      processed_hash == calculate_hash
+      processed_hash.present? && processed_hash == calculate_hash
     end
     def source_data_changed?
       ! service_history_valid?
@@ -27,6 +28,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
       action = false
+      return false if destination_client.blank?
       if should_rebuild?
         action = :update if create_service_history!
       elsif should_patch?
@@ -109,12 +111,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def client_age_at date
-      return unless destination_client.DOB.present? && date.present?
-      dob = destination_client.DOB.to_date
-      age = date.to_date.year - dob.year
-      age -= 1 if dob > date.to_date.years_ago( age )
-      # You have to be explicit here -= does not return age
-      return age
+      destination_client.age_on(date)
+    end
+
+    def client_age_at_entry
+      @client_age_at_entry ||= destination_client.age_on(self.EntryDate)
     end
 
     def calculate_hash
@@ -214,8 +215,126 @@ module GrdaWarehouse::Tasks::ServiceHistory
         record_type: nil,
         housing_status_at_entry: self.HousingStatus,
         housing_status_at_exit: exit&.HousingAssessment,
+        other_clients_over_25: other_clients_over_25,
+        other_clients_under_18: other_clients_under_18,
+        other_clients_between_18_and_25: other_clients_between_18_and_25,
+        unaccompanied_youth: unaccompanied_youth?,
+        parenting_youth: parenting_youth?,
+        parenting_juvenile: parenting_juvenile?,
+        head_of_household: head_of_household?,
+        children_only: children_only?,
+        individual_adult: individual_adult?,
+        individual_elder: individual_elder?,
       }
     end
+
+    def household_birthdates
+      @household_birthdates ||= begin
+        self.class.joins(:destination_client).
+          where(
+            HouseholdID: self.HouseholdID,
+            ProjectID: self.ProjectID,
+            data_source_id: self.data_source_id
+          ).where.not(
+            PersonalID: self.PersonalID
+          ).pluck(c_t[:DOB].as('dob').to_sql)
+      end
+    end
+
+    def household_ages_at_entry
+      household_birthdates.map do |dob|
+        GrdaWarehouse::Hud::Client.age(date: self.EntryDate, dob: dob)
+      end
+    end
+
+    def other_clients_over_25
+      @other_clients_over_25 ||= if self.HouseholdID.blank?
+         0
+      else
+        household_ages_at_entry.count do |age|
+          age.present? && age > 24
+        end
+      end
+    end
+
+    def other_clients_under_18
+      @other_clients_under_18 ||= if self.HouseholdID.blank?
+        0
+      else
+        household_ages_at_entry.count do |age|
+          age.present? && age < 18
+        end
+      end
+    end
+
+    def other_clients_between_18_and_25
+      @other_clients_between_18_and_25 ||= if self.HouseholdID.blank?
+        0
+      else
+        household_ages_at_entry.count do |age|
+          youth?(age)
+        end
+      end
+    end
+
+    def child?(age)
+      age.present? && age < 18
+    end
+
+    def youth?(age)
+      age.present? && age < 25 && age > 17
+    end
+
+    def adult?(age)
+      age.present? && age > 17
+    end
+
+    def elder?(age)
+      age.present? && age > 64
+    end
+
+    # only 18-24 aged clients in the enrollment
+    def unaccompanied_youth?
+      @unaccompanied_youth ||= begin
+        youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 == 0
+      end
+    end
+
+    # client is a youth and presents with someone under 18, no other adults over 25 present
+    def parenting_youth?
+      @parenting_youth ||= begin
+        youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 > 0 
+      end
+    end
+
+    # client is under 18 and head of household and has at least one other client under 18 in enrollment
+    def parenting_juvenile?
+      @parenting_juvenile ||= begin
+        child?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0 && other_clients_under_18 > 0 
+      end
+    end
+
+    # everyone involved is under 18
+    def children_only?
+      @children_only ||= begin
+        child?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0
+      end
+    end
+
+    # Everyone is over 18
+    def individual_adult?
+      @individual_adult ||= begin
+        adult?(client_age_at_entry) && other_clients_under_18 == 0
+      end
+    end
+
+    # Client is over 65 and everyone else is an adult
+    def individual_elder?
+      @individual_elder ||= begin
+        elder?(client_age_at_entry) && other_clients_under_18 == 0
+      end
+    end
+
 
     def service_type_from_project_type project_type
       # ProjectType
@@ -252,7 +371,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household_id
-      @head_of_household_id ||= if is_head_of_household?
+      @head_of_household_id ||= if head_of_household?
         self.PersonalID
       else
         self.class.where(
@@ -266,8 +385,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def head_of_household
       GrdaWarehouse::Hud::Client.where(PersonalID: head_of_household_id)
     end
-
-    def is_head_of_household?
+ 
+    def head_of_household?
       self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
     end
 
@@ -290,9 +409,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end.to_h
       else
         # Fetch all services provided between the start of the enrollment and the end of the build period
-        services.where(DateProvided: (self.EntryDate..build_until)).
-        order(DateProvided: :asc).
-        pluck(:DateProvided, :TypeProvided).to_h
+        @source_services ||= begin
+          services.where(DateProvided: (self.EntryDate..build_until)).
+          order(DateProvided: :asc).
+          pluck(:DateProvided, :TypeProvided).to_h
+        end
       end
     end
 

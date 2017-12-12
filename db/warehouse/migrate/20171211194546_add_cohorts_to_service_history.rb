@@ -44,7 +44,7 @@ class AddCohortsToServiceHistory < ActiveRecord::Migration
         default: false,
         null: false,
       },
-      family: {
+      parenting_juvenile: {
         type: :boolean,
         default: false,
         null: false,
@@ -60,6 +60,11 @@ class AddCohortsToServiceHistory < ActiveRecord::Migration
         null: false,
       },
       individual_elder: {
+        type: :boolean,
+        default: false,
+        null: false,
+      },
+      head_of_household: {
         type: :boolean,
         default: false,
         null: false,

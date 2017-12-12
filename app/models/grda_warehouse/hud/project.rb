@@ -175,6 +175,13 @@ module GrdaWarehouse::Hud
       self.class.serves_individuals_only.where(id: id).exists?
     end
 
+    scope :serves_children, -> do
+      joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_children)
+    end
+    def serves_children?
+      self.class.serves_children.where(id: id).exists?
+    end
+
     #################################
     # Standard Cohort Scopes
     scope :veteran, -> do
@@ -403,6 +410,16 @@ module GrdaWarehouse::Hud
         :computed_project_type
       else
         :ProjectType
+      end
+    end
+
+    def main_population
+      if serves_families? 
+        'Family' 
+      elsif serves_children?
+        'Children'
+      else 
+        'Individuals' 
       end
     end
 

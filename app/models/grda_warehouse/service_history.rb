@@ -209,49 +209,24 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     end
 
     scope :children, -> do
-      where(age: (0..18))
+      where(age: (0...18))
     end
     # Client age on date is 18-24
     # Presented alone or as the head of household with no one else > 24
     scope :unaccompanied_youth, -> do
-      youth.where(other_clients_over_25: 0, other_clients_under_18: 0 )
+      where(unaccompanied_youth: true)
     end
 
-    scope :unaccompanied_youth_in_date_range, -> (range: (Date.today..Data.today)) do
-      unaccompanied_youth.where(range: range)
+    scope :parenting_youth, -> do
+      where(parenting: true)
     end
 
-    # entry.unaccompanied_youth_in_date_range(range: range).where(client_id: service_unaccompanied_youth(range: range))
-
-    # entry.unaccompanied_youth_in_date_range(range: range).where(client_id: service_unaccompanied_youth(range: range)).where(last_date_in_program: range)
-
-    scope :service_unaccompanied_youth, -> (range: (Date.today..Data.today)) do
-      service.unaccompanied_youth_in_date_range(range: range)
+    scope :children_only, -> do
+      where(children_only: true)
     end
 
-    scope :entry_unaccompanied_youth, -> (range: (Date.today..Data.today)) do
-      entry.
-      open_between(start_date: range.first, end_date: range.last).
-      unaccompanied_youth
-    end
-
-    scope :unaccompanied_parenting_youth_in_date_range, -> (range: (Date.today..Data.today)) do
-      youth.
-      where(range: range).
-      where(other_clients_over_25: 0).
-      where(sh_t[:other_clients_under_18].gt(0))
-    end
-
-    scope :children_only_in_date_range, -> (range: (Date.today..Data.today)) do
-      children.
-      where(range: range).
-      where(other_clients_over_25: 0, other_clients_between_18_and_25: 0)
-    end
-
-    scope :juvenile_parents_in_date_range, -> (range: (Date.today..Data.today)) do
-      children_only_in_date_range(range: range).
-      where(sh_t[:other_clients_under_18].gt(0)).
-      where(head_of_household: true)
+    scope :parenting_juvenile, -> do
+      where(parenting_juvenile: true)
     end
 
 

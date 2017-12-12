@@ -2069,10 +2069,11 @@ SELECT "Services"."ServicesID",
     t.integer "other_clients_between_18_and_25", :default=>0, :null=>false
     t.boolean "unaccompanied_youth",             :default=>false, :null=>false
     t.boolean "parenting_youth",                 :default=>false, :null=>false
-    t.boolean "family",                          :default=>false, :null=>false
+    t.boolean "parenting_juvenile",              :default=>false, :null=>false
     t.boolean "children_only",                   :default=>false, :null=>false
     t.boolean "individual_adult",                :default=>false, :null=>false
     t.boolean "individual_elder",                :default=>false, :null=>false
+    t.boolean "head_of_household",               :default=>false, :null=>false
   end
   add_index "warehouse_client_service_history", ["client_id"], :name=>"index_service_history_on_client_id", :using=>:btree
   add_index "warehouse_client_service_history", ["computed_project_type"], :name=>"index_warehouse_client_service_history_on_computed_project_type", :using=>:btree
