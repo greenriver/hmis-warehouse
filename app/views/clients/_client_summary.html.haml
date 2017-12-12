@@ -3,7 +3,7 @@
   .row
     .col-sm-12
       %h3 Aliases
-      - client_aliases(@client).each do |a|
+      - client_aliases(@client).uniq.each do |a|
         = a
         &nbsp;
   .row
