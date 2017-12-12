@@ -10,10 +10,11 @@
             %span{"aria-hidden" => "true"} &times;
           %h4.modal-title
             %i.icon-upload2
-            Upload Release
+            Upload Consent Form
         .modal-body
           = f.input :name, as: :string, :required => true
           = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
+          = f.input :consent_form_signed_on, as: :date_picker
           = f.input :file, as: :file, :required => true
         .modal-footer
           %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
