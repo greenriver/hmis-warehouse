@@ -38,8 +38,11 @@
                         = f.input :consent_form_signed_on, as: :date_picker, label: false, input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
 
                     %td.text-center
-                      = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
-                        = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
+                      - if can_confirm_housing_release?
+                        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+                          = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
+                      - else
+                        = checkmark file.consent_form_confirmed
                   - else
                     %td
                     %td
