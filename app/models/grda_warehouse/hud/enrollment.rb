@@ -3,7 +3,6 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
-    require 'temping'
     self.table_name = 'Enrollment'
     self.hud_key = 'ProjectEntryID'
     acts_as_paranoid column: :DateDeleted
