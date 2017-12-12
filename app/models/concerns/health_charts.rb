@@ -3,7 +3,7 @@ module HealthCharts
   included do
 
     def health_housing_stati
-      case_management_notes.map do |form|
+      stati = case_management_notes.map do |form|
         first_section = form.answers[:sections].first
         if first_section.present?
           answer = form.answers[:sections].first[:questions].select do |question|
@@ -18,6 +18,14 @@ module HealthCharts
           end
         end
       end.compact
+      if patient.housing_status_timestamp.present?
+        stati << {
+          date: patient.housing_status_timestamp.to_date,
+          score: self.class.health_housing_score(patient.housing_status),
+          status: patient.housing_status,
+        }
+      end
+      stati.sort_by{|m| m[:date]}
     end
 
     def self.health_housing_bucket(answer)

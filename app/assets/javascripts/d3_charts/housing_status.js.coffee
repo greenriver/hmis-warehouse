@@ -226,7 +226,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
     @statusColors.map (c) -> c.band
 
   _formatDate: (date) ->
-    "#{date.getMonth() + 1}/#{date.getDate()}/#{date.getFullYear()}"
+    date.toDateString()
 
   _loadRange: ->
     {
