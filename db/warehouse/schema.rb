@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171208151137) do
+ActiveRecord::Schema.define(version: 20171211194546) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2043,27 +2043,36 @@ SELECT "Services"."ServicesID",
   add_index "vispdats", ["user_id"], :name=>"index_vispdats_on_user_id", :using=>:btree
 
   create_table "warehouse_client_service_history", force: :cascade do |t|
-    t.integer "client_id",               :null=>false
+    t.integer "client_id",                       :null=>false
     t.integer "data_source_id"
-    t.date    "date",                    :null=>false
-    t.date    "first_date_in_program",   :null=>false
+    t.date    "date",                            :null=>false
+    t.date    "first_date_in_program",           :null=>false
     t.date    "last_date_in_program"
-    t.string  "enrollment_group_id",     :limit=>50
+    t.string  "enrollment_group_id",             :limit=>50
     t.integer "age"
     t.integer "destination"
-    t.string  "head_of_household_id",    :limit=>50
-    t.string  "household_id",            :limit=>50
-    t.string  "project_id",              :limit=>50
-    t.string  "project_name",            :limit=>150
+    t.string  "head_of_household_id",            :limit=>50
+    t.string  "household_id",                    :limit=>50
+    t.string  "project_id",                      :limit=>50
+    t.string  "project_name",                    :limit=>150
     t.integer "project_type"
     t.integer "project_tracking_method"
-    t.string  "organization_id",         :limit=>50
-    t.string  "record_type",             :limit=>50, :null=>false
+    t.string  "organization_id",                 :limit=>50
+    t.string  "record_type",                     :limit=>50, :null=>false
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
     t.integer "service_type"
     t.integer "computed_project_type"
     t.boolean "presented_as_individual"
+    t.integer "other_clients_over_25",           :default=>0, :null=>false
+    t.integer "other_clients_under_18",          :default=>0, :null=>false
+    t.integer "other_clients_between_18_and_25", :default=>0, :null=>false
+    t.boolean "unaccompanied_youth",             :default=>false, :null=>false
+    t.boolean "parenting_youth",                 :default=>false, :null=>false
+    t.boolean "family",                          :default=>false, :null=>false
+    t.boolean "children_only",                   :default=>false, :null=>false
+    t.boolean "individual_adult",                :default=>false, :null=>false
+    t.boolean "individual_elder",                :default=>false, :null=>false
   end
   add_index "warehouse_client_service_history", ["client_id"], :name=>"index_service_history_on_client_id", :using=>:btree
   add_index "warehouse_client_service_history", ["computed_project_type"], :name=>"index_warehouse_client_service_history_on_computed_project_type", :using=>:btree
