@@ -47,11 +47,16 @@ h2.ho-sub__h2 {
   border: 1px solid $ho-color-2;
   max-width: 300px;
   min-width: 100px;
+  pointer-events: none;
 }
 
 .d3-tooltip__item {
   position: relative;
   padding-left: 13px;
+}
+
+.d3-tooltip__item--primary {
+  padding-left: 0;
 }
 
 .d3-tooltip__item.d3-tooltip__label {
@@ -414,6 +419,10 @@ h2.ho-sub__h2 {
   text {
     @include open-sans-normal;
   }
+}
+
+.d3-housing-status__chart .status__line{
+  pointer-events: none;
 }
 
 .d3-monthly-income__chart,

@@ -207,6 +207,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
     @stati = [ 'Street', 'Shelter', 'Doubling Up', 'Temporary', 'Permanent' ]
 
     super(container_selector, data, attrs)
+    @tooltip = d3.select('#d3-tooltip')
 
   _loadData: (data)->
     data?.forEach (d) ->
@@ -223,6 +224,9 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
 
   _bandColors: ->
     @statusColors.map (c) -> c.band
+
+  _formatDate: (date) ->
+    "#{date.getMonth() + 1}/#{date.getDate()}/#{date.getFullYear()}"
 
   _loadRange: ->
     {
@@ -259,7 +263,7 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       .tickSize(20)
       .tickPadding(8)
       .scale(scale)
-      .tickFormat((d) -> "#{d.getMonth() + 1}/#{d.getDate()}/#{d.getFullYear()}")
+      .tickFormat((d) => @_formatDate(d))
     @chart.append('g')
       .call(xAxis)
       .attr('transform', "translate(0, #{@dimensions.height})")
@@ -274,35 +278,37 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       .tickSize(@dimensions.width)
       .tickFormat('')
       .scale(scale)
+    yAxisGroup = @chart.append('g')
+      .call(yAxis)
+      .attr('transform', "translate(#{@dimensions.width}, 0)")
+      .attr('class', 'y-axis')
     # Add vertical axis line on left
-    @chart.append('line')
+    yAxisGroup.append('line')
       .attr('y1', 0)
       .attr('y2', @dimensions.height)
       .attr('x1', 0)
       .attr('x2', .5)
       .attr('stroke', @lineColor)
       .attr('stroke-width', 1)
-    @chart.append('g')
-      .call(yAxis)
-      .attr('transform', "translate(#{@dimensions.width}, 0)")
-      .attr('class', 'y-axis')
+      .attr('transform', "translate(#{@dimensions.width * -1}, 0)")
 
   _drawBands: ->
     band = d3.scaleBand().domain(@stati).range([0, @dimensions.height])
     bandHeight = band.bandwidth()
+    bands = @chart.append('g').attr('class', 'status__bands')
     @stati.reverse().forEach (status, i) =>
-      @chart.append('rect')
+      bands.append('rect')
         .attr('height', bandHeight)
         .attr('width', @dimensions.width)
         .attr('x', 0)
         .attr('y', bandHeight * i)
         .attr('fill', @_bandColors().reverse()[i])
-      @chart.append('text')
+      bands.append('text')
         .attr('x', -85)
         .attr('y', (bandHeight * i) + (bandHeight / 2))
         .attr('class', 'y-axis__label')
         .text(status)
-      @chart.append('circle')
+      bands.append('circle')
         .attr('cx', -105)
         .attr('cy', (bandHeight * i) + (bandHeight / 2))
         .attr('fill', @_circleColors().reverse()[i])
@@ -315,14 +321,15 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
       .y((d) => @scale.y(d.score + .5))
     @chart.append('path')
       .data([@data])
-      .attr('class', 'line')
+      .attr('class', 'status__line')
       .attr('d', line)
       .attr('fill', 'none')
       .attr('stroke', @lineColor)
       .attr('stroke-width', 2)
 
   _drawCircles: ->
-    @chart.selectAll('.status')
+    circleGroup = @chart.append('g').attr('class', 'status__circles')
+    circleGroup.selectAll('circle')
       .data(@data)
       .enter()
       .append('circle')
@@ -332,6 +339,42 @@ class App.D3Chart.HousingStatus extends App.D3Chart.PatientChartBase
         .attr('fill', (d) => @_circleColors()[d.score])
         .attr('stroke', (d) => @_bandColors()[d.score])
         .attr('stroke-width', 2)
+        .on('mouseover', (d) => @_showTooltip(d))
+        .on('mousemove', (d) => return)
+        .on('mouseout', (d) => @_removeTooltip())
+
+  _positionTooltip: ->
+    rect = @tooltip.node().getBoundingClientRect()
+    height = rect.bottom - rect.top
+    width = rect.width/2
+
+    @tooltip.style('top', (d3.event.pageY-height)+'px')
+    @tooltip.style('left', (d3.event.pageX-width)+'px')
+
+  _showTooltip: (data) ->
+    @tooltip
+      .style('left', event.pageX+'px')
+      .style('top', event.pageY+'px')
+      .style('display', 'block')
+    @tooltip.selectAll('div').remove()
+    @tooltip.append('div')
+      .attr('class', 'd3-tooltip__item d3-tooltip__label')
+      .text(@_formatDate(data.date))
+    @tooltip.append('div')
+      .attr('class', 'd3-tooltip__item d3-tooltip__item--primary')
+      .text(data.status)
+
+    @tooltip.transition()
+      .duration(50)
+      .style('opacity', 1)
+
+  _removeTooltip: ->
+    @tooltip.transition()
+      .duration(500)
+      .style('opacity', 0)
+      .on 'end', () ->
+        d3.select(@)
+          .style('display', 'none')
 
   _drawAxes: ->
     @_drawYearAxis()
