@@ -75,7 +75,7 @@ module HealthCharts
           score: 4,
           status: :permanent,
         },
-        'Housing with No Support Services' => {
+        'Housing with no Support Services' => {
           score: 4,
           status: :permanent,
         },
