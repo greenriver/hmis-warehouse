@@ -22,7 +22,8 @@
   .col-sm-4
     %p.client__current-sort-filter
       Currently sorted by:
-      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]      
+      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
+  %p= paginate @clients, params: {sort: @column, direction: @direction}
 .clients__list
   = render 'window/clients/new_client'
   - @clients.preload(:source_clients).each do |client|

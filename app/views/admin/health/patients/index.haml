@@ -8,11 +8,12 @@
     = render 'search_form'
   .col-sm-4
     = render 'sort', sort_options: sort_options
+
 = simple_form_for :patients, url: admin_health_patients_path do |f|
   = f.error_notification
   .form-inputs
     %p= page_entries_info @patients, entry_name: _('patient')
-    %p= paginate @patients
+    %p= paginate @patients, params: {sort: @column, direction: @direction}
     %table.table.table-striped
       %thead
         %tr
@@ -48,4 +49,4 @@
                 = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
   .form-actions
     = f.button :submit, value: 'Update Connections'
-  %p= paginate @patients
+  %p= paginate @patients, params: {sort: @column, direction: @direction}
