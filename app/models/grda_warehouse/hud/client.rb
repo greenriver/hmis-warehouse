@@ -267,7 +267,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true)
+        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
         select(:client_id).distinct
       )
