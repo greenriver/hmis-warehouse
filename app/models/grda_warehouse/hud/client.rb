@@ -1309,6 +1309,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def last_seen
+      service_history.homeless.service.maximum(:date)
+    end
+
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
       end_date = on_date.to_date
       start_date = end_date - 3.years

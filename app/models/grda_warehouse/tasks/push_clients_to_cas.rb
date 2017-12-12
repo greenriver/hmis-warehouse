@@ -92,6 +92,7 @@ module GrdaWarehouse::Tasks
         ha_eligible: :ha_eligible,
         cspech_eligible: :cspech_eligible,
         income_total_monthly: :max_current_total_monthly_income,
+        last_seen: :last_seen
       }
     end
   end
