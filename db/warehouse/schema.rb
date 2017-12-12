@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171211194546) do
+ActiveRecord::Schema.define(version: 20171212182935) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1172,6 +1172,48 @@ ActiveRecord::Schema.define(version: 20171211194546) do
   add_index "import_logs", ["created_at"], :name=>"index_import_logs_on_created_at", :using=>:btree
   add_index "import_logs", ["data_source_id"], :name=>"index_import_logs_on_data_source_id", :using=>:btree
   add_index "import_logs", ["updated_at"], :name=>"index_import_logs_on_updated_at", :using=>:btree
+
+  create_table "new_service_history", force: :cascade do |t|
+    t.integer "client_id",                       :null=>false
+    t.integer "data_source_id"
+    t.date    "date",                            :null=>false
+    t.date    "first_date_in_program",           :null=>false
+    t.date    "last_date_in_program"
+    t.string  "enrollment_group_id",             :limit=>50
+    t.integer "age",                             :limit=>2
+    t.integer "destination"
+    t.string  "head_of_household_id",            :limit=>50
+    t.string  "household_id",                    :limit=>50
+    t.string  "project_id",                      :limit=>50
+    t.string  "project_name",                    :limit=>150
+    t.integer "project_type",                    :limit=>2
+    t.integer "project_tracking_method"
+    t.string  "organization_id",                 :limit=>50
+    t.string  "record_type",                     :limit=>50, :null=>false
+    t.integer "housing_status_at_entry"
+    t.integer "housing_status_at_exit"
+    t.integer "service_type",                    :limit=>2
+    t.integer "computed_project_type",           :limit=>2
+    t.boolean "presented_as_individual"
+    t.integer "other_clients_over_25",           :limit=>2, :default=>0, :null=>false
+    t.integer "other_clients_under_18",          :limit=>2, :default=>0, :null=>false
+    t.integer "other_clients_between_18_and_25", :limit=>2, :default=>0, :null=>false
+    t.boolean "unaccompanied_youth",             :default=>false, :null=>false
+    t.boolean "parenting_youth",                 :default=>false, :null=>false
+    t.boolean "parenting_juvenile",              :default=>false, :null=>false
+    t.boolean "children_only",                   :default=>false, :null=>false
+    t.boolean "individual_adult",                :default=>false, :null=>false
+    t.boolean "individual_elder",                :default=>false, :null=>false
+    t.boolean "head_of_household",               :default=>false, :null=>false
+  end
+  add_index "new_service_history", ["client_id", "record_type"], :name=>"index_sh_on_client_id", :using=>:btree
+  add_index "new_service_history", ["computed_project_type", "record_type", "client_id"], :name=>"index_sh_on_computed_project_type", :using=>:btree
+  add_index "new_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], :name=>"index_sh_ds_proj_org_r_type", :using=>:btree
+  add_index "new_service_history", ["date", "household_id", "record_type"], :name=>"index_sh_on_household_id", :using=>:btree
+  add_index "new_service_history", ["enrollment_group_id", "project_tracking_method"], :name=>"index_sh__enrollment_id_track_meth", :using=>:btree
+  add_index "new_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], :name=>"index_wsh_on_last_date_in_program", :using=>:btree
+  add_index "new_service_history", ["first_date_in_program"], :name=>"index_new_service_history_on_first_date_in_program", :using=>:brin
+  add_index "new_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], :name=>"index_sh_date_ds_org_proj_proj_type", :using=>:btree
 
   create_table "project_data_quality", force: :cascade do |t|
     t.integer  "project_id"
