@@ -218,7 +218,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     end
 
     scope :parenting_youth, -> do
-      where(parenting: true)
+      where(parenting_youth: true)
     end
 
     scope :children_only, -> do

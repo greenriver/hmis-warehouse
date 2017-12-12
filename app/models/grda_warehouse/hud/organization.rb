@@ -10,7 +10,7 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_belongs(Export), inverse_of: :organizations
     belongs_to :data_source, inverse_of: :organizations
     has_many :service_histories, 
-      class_name: 'GrdaWarehouse::ServiceHistory',
+      class_name: GrdaWarehouse::ServiceHistory.name,
       foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID],
       inverse_of: :organization
     has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
