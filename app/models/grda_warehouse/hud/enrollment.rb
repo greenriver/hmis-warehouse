@@ -186,6 +186,11 @@ module GrdaWarehouse::Hud
       where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
     end
 
+    scope :open_on_date, -> (date=Date.today) do
+      range = ::Filters::DateRange.new(start: date, end: date)
+      open_during_range(range)
+    end
+
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
 
     scope :any_address, -> {

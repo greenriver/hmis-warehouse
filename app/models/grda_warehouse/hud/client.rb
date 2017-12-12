@@ -10,7 +10,7 @@ module GrdaWarehouse::Hud
     include HudChronicDefinition
 
     has_many :client_files
-    has_many :vispdats
+    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
@@ -158,6 +158,9 @@ module GrdaWarehouse::Hud
     has_many :notes, class_name: GrdaWarehouse::ClientNotes::Base.name, inverse_of: :client
     has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
     has_many :window_notes, class_name: GrdaWarehouse::ClientNotes::WindowNote.name
+    has_many :anomaly_notes, class_name: GrdaWarehouse::ClientNotes::AnomalyNote.name
+
+    has_many :anomalies, class_name: GrdaWarehouse::Anomaly.name
 
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
     has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
@@ -367,7 +370,7 @@ module GrdaWarehouse::Hud
     def window_link_for? user
       if show_window_demographic_to?(user)
         window_client_path(self)
-      elsif GrdaWarehouse::Vispdat.any_visible_by?(user)
+      elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
         window_client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
         window_client_files_path(self)
@@ -1261,7 +1264,7 @@ module GrdaWarehouse::Hud
           Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
 
           # move any vi-spdats
-          GrdaWarehouse::Vispdat.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          GrdaWarehouse::Vispdat::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
         end
         # and invaldiate our own service history
         force_full_service_history_rebuild
@@ -1330,6 +1333,16 @@ module GrdaWarehouse::Hud
 
     def days_homeless(on_date: Date.today)
       self.class.days_homeless(client_id: id, on_date: on_date)
+    end
+
+    # Pull the maximum total monthly income from any open enrollments, looking
+    # only at the most recent assessment per enrollment
+    def max_current_total_monthly_income
+      source_enrollments.open_on_date(Date.today).map do |enrollment|
+        enrollment.income_benefits.limit(1).
+          order(InformationDate: :desc).
+          pluck(:TotalMonthlyIncome).first
+        end.compact.max || 0
     end
 
     def homeless_dates_for_chronic_in_past_three_years(date: Date.today)

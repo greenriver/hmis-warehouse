@@ -1,0 +1,91 @@
+- title = "Potentially Chronic Clients on #{@report.parameters['date']}"
+- content_for :title, title
+%h1
+  = title
+  %hr
+= render '/warehouse_reports/breadcrumbs'
+
+.warehouse-reports__chronic
+  .row
+    .col-sm-12
+      %h4 Report Parameters
+      = render 'parameters', report: @report
+  .row
+    .col-sm-12
+      %h4
+        .pull-left
+          Chronic Clients
+      .clearfix
+      %p.text-muted
+        Chart does not take into account "Received Homeless Service After."
+      .jCharts
+        %p.jLoading.text-center Loading...
+
+  .row(style="padding: 1em")
+    .col-sm-12
+      = render('sort') if @clients.any?
+
+  - @clients.each do |client|
+    - chronic = client['chronic']
+    - source_clients = client['source_clients']
+    .warehouse-reports__client
+      .warehouse-reports__client-name
+        %h4
+          = link_to client.slice("FirstName", "LastName").values.join(' '), client_path(id: client['id'])
+          Age:
+          =client['age']
+      .row
+        .col-xs-3
+          %dl
+            %dt Homeless since
+            %dd= chronic['homeless_since']
+            %dt Days Homeless in last three years
+            %dd= chronic['days_in_last_three_years']
+            %dt Months Homeless in last three years
+            %dd= chronic['months_in_last_three_years']
+            %dt Disability
+            %dd= client['source_disabilities'].html_safe
+            - if chronic['dmh']
+              %dt DMH Client?
+              %dd= checkmark(chronic['dmh'])
+            - if client['veteran']
+              %dt Veteran?
+              %dd= checkmark(client['veteran'])
+            - if chronic['trigger'].present?
+              %dt Chronic trigger
+              %dd= chronic['trigger'].html_safe
+            - if so_enrolled = client['so_clients'].include?(client['id'])
+              %dt Enrolled in SO
+              %dd= checkmark(so_enrolled)
+            %dt Data Source
+            %dd= client['source_clients'].map { |sc| sc['data_source_short_name'] }.join(', ')
+        .col-xs-9
+          .rollup{data: {partial: :residential_enrollments, rollup_path: rollup_client_path(id: client['id']), clients: source_clients.each_with_index.map{ |c, i| [ c['id'], [ i, c['uuid'], c['data_source_short_name'] ] ] }.to_h.to_json, many_clients: source_clients.many?.to_json, high: client['source_clients'].size + 1, client_id: client['id']}, class: "jClientID-#{client['id']}"}
+            .rollup-content
+              - if client['chronic_project_names'].present?
+                .project_names
+                  %h3 Projects Involved in Chronic Determiniation
+                  %p= client['chronic_project_names'].gsub('|', '; ')
+              %button.btn.btn-secondary.jLoadEnrollments
+                Load Residential Enrollment
+          -# client.service_history_entry_in_last_three_years.map{ |m| "#{m.project_name} from #{m.first_date_in_program} to #{m.last_date_in_program}"}.join('<br />').html_safe
+
+-# load in al the bits of aggregate statistics via ajax
+= content_for :page_js do
+  :javascript
+    // add the chart
+    (function($) {
+      chart = new App.ChartsScatterByDate.Chronic('#{summary_warehouse_reports_chronic_index_path(@report.parameters)}', '', '', '#{@report.parameters["date"]}');
+      chart.load();
+
+      $('.jLoadEnrollments').on('click', function(e) {
+        e.preventDefault();
+        var rollupPath = $(this).closest('.rollup').data('rollupPath');
+        var clients = $(this).closest('.rollup').data('clients');
+        var manyClients = $(this).closest('.rollup').data('manyClients');
+        var high = $(this).closest('.rollup').data('high');
+        var clientID = $(this).closest('.rollup').data('clientId');
+        new App.Rollups.Loader($('.jClientID-' + clientID), rollupPath, manyClients, clients, high);
+        $(this).closest('.rollup-content').replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
+      });
+    })(jQuery);

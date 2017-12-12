@@ -1,9 +1,8 @@
 module WarehouseReports::VeteranDetails
   class ExitsController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!
-    before_action :require_can_view_clients!
-
+    include WarehouseReportAuthorization
+    
     def index
       date_range_options = params.permit(range: [:start, :end])[:range]
       # Also handle month based requests from javascript
@@ -40,6 +39,13 @@ module WarehouseReports::VeteranDetails
           destination = 99 unless HUD.valid_destinations.keys.include?(row[:destination])
           @buckets[destination] += 1
         end
+
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          require_can_view_clients!
+        end
+      end
     end
 
     def exits_from_homelessness

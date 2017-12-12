@@ -95,6 +95,12 @@ module ArelHelper
   def hc_t
     GrdaWarehouse::HudChronic.arel_table
   end
+  def wc_t
+    GrdaWarehouse::WarehouseClient.arel_table
+  end
+  def ib_t
+    GrdaWarehouse::Hud::IncomeBenefit.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -258,6 +264,15 @@ module ArelHelper
     end
     def ch_t
       GrdaWarehouse::Chronic.arel_table
+    end
+    def hc_t
+      GrdaWarehouse::HudChronic.arel_table
+    end
+    def wc_t
+      GrdaWarehouse::WarehouseClient.arel_table
+    end
+    def ib_t
+      GrdaWarehouse::Hud::IncomeBenefit.arel_table
     end
   end
 end

@@ -3,10 +3,10 @@ module Window::Clients
     include WindowClientPathGenerator
 
     before_action :require_can_access_vspdat_list!, only: [:index, :show]
-    before_action :require_can_create_or_modify_vspdat!, only: [:new, :create, :edit, :update, :destroy]
+    before_action :require_can_create_or_modify_vspdat!, only: [:new, :create, :edit, :update, :destroy, :add_child, :remove_child]
 
     before_action :set_client
-    before_action :set_vispdat, only: [:show, :edit, :update, :destroy]
+    before_action :set_vispdat, only: [:show, :edit, :update, :destroy, :add_child, :remove_child]
 
     def index
       @vispdats = @client.vispdats.
@@ -34,9 +34,11 @@ module Window::Clients
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
 
+    # user param here to determine which vispdat to build
+    # individual, youth or family
     def create
       if @client.vispdats.in_progress.none?
-        @vispdat = @client.vispdats.build(user_id: current_user.id)
+        @vispdat = build_vispdat
         @vispdat.save(validate: false)
       else
         @vispdat = @client.vispdats.in_progress.first
@@ -64,6 +66,20 @@ module Window::Clients
       end
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
       respond_with(@vispdat, location: polymorphic_path(vispdats_path_generator, client_id: @client.id))
+    end
+
+    def add_child
+      if @vispdat.family?
+        @child = @vispdat.children.create(first_name: 'First', last_name: 'Last')
+      end
+      redirect_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id, anchor: 'children-fields')
+    end
+
+    def remove_child
+      if @vispdat.family?
+        @child = @vispdat.children.where(id: params[:child_id]).first
+        @child.destroy if @child
+      end
     end
 
     def upload_file
@@ -118,12 +134,22 @@ module Window::Clients
         @vispdat = vispdat_source.find(params[:id].to_i)
       end
 
-      def vispdat_params
-        params.require(:grda_warehouse_vispdat).permit(*vispdat_source.allowed_parameters)
+      def vispdat_source
+        GrdaWarehouse::Vispdat::Base
+      end
+      
+      def build_vispdat
+        vispdat_type = params[:type] || "GrdaWarehouse::Vispdat::Individual"
+        @client.vispdats.build(user_id: current_user.id, type: vispdat_type)
       end
 
-      def vispdat_source
-        GrdaWarehouse::Vispdat
+      def vispdat_params
+        # this will be one of:
+        # grda_warehouse_vispdat_individual
+        # grda_warehouse_vispdat_youth
+        # grda_warehouse_vispdat_family
+        param_key = @vispdat.class.model_name.param_key 
+        params.require( param_key ).permit(*@vispdat.class.allowed_parameters)
       end
 
       def file_params
@@ -133,7 +159,7 @@ module Window::Clients
             :name,
             :note,
             :visible_in_window,
-            tag_list: [],
+            tag_list: []
           )
       end
 

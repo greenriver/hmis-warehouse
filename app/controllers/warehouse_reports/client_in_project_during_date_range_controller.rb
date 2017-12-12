@@ -1,6 +1,6 @@
 module WarehouseReports
   class ClientInProjectDuringDateRangeController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       @start = ( params.try(:[], :project).try(:[], :start) || oct_1  ).to_date
       @end   = ( params.try(:[], :project).try(:[], :end) || nov_30 ).to_date

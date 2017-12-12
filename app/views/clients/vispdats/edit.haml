@@ -1,4 +1,4 @@
-- title = "Edit VISPDAT for #{@client.name} on #{@vispdat.created_at}"
+- title = "Edit #{@vispdat.type.demodulize} VISPDAT for #{@client.name} on #{@vispdat.created_at}"
 - content_for :title, title
 
 = render 'clients/breadcrumbs'
@@ -19,7 +19,12 @@
       %span.icon-menu
       VI-SPDAT List
   = title
+  %br
+  %small
+    Completed by
+    = @vispdat.user&.name
   .clearfix
+
 %hr
 
 - if @vispdat.migrated?

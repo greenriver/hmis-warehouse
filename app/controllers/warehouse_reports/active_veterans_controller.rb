@@ -1,6 +1,6 @@
 module WarehouseReports
   class ActiveVeteransController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       @sort_options = sort_options
       date_range_options = params.permit(range: [:start, :end, project_type: []])[:range]

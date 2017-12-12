@@ -1,8 +1,9 @@
-- if can_view_reports?
-  .vsm-group.vsm-group__group-a
+.vsm-group.vsm-group__group-a
+  - if can_view_all_reports?
     = link_to reports_path, class: 'vsm-item-link' do
       .vsm-item-link--description
         = _("HUD Reports")
+  - if can_view_assigned_reports? || can_view_all_reports?
     = link_to warehouse_reports_path, class: 'vsm-item-link' do
       .vsm-item-link--description
         = _("Reports")

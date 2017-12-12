@@ -4,45 +4,51 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
 
   let(:user) { create :user }
   let(:admin_role) { create :admin_role }
-
+  let!(:chronic_report) { create :chronic_report }
+  
   before(:each) do
     user.roles << admin_role
     authenticate(user)
   end
 
   describe "GET index" do
-    context '.html' do
+    context 'when commit present' do
       before(:each) do
-        get :index
+        get :index, commit: 'Run'
       end
-
-      it 'assigns @clients' do
-        expect( assigns(:clients) ).to be_an ActiveRecord::Relation
+      pending 'kicks off a job' do
+        expect( Delayed::Job.count ).to eq 1
       end
-      it 'assigns @filter' do
-        expect( assigns(:filter) ).to be_a Filters::Chronic
+      pending 'assigns @reports' do
+        expect( assigns(:reports) ).to be_an ActiveRecord::Relation
       end
-      it 'assigns @so_clients' do
-        expect( assigns(:so_clients) ).to be_an Array
-      end
-      it 'does not assign @most_recent_services' do
-        expect( assigns(:most_recent_services) ).to be_nil
-      end
-      it 'renders index' do
+      pending 'renders index' do
         expect( response ).to render_template :index
-        expect( response.content_type ).to eq 'text/html'
       end
     end
+  end
 
+  describe 'GET show' do
+    context '.html' do
+      before(:each) do
+        get :show, id: chronic_report.id
+      end
+      pending 'assigns @report' do
+        expect( assigns(:report) ).to eq chronic_report
+      end
+      pending 'renders show.html' do
+        expect( response ).to render_template :show
+      end
+    end
     context '.xlsx' do
       before(:each) do
-        get :index, format: :xlsx
+        get :show, id: chronic_report.id, format: :xlsx
       end
-      it 'assigns @most_recent_services' do
-        expect( assigns(:most_recent_services) ).to be_a Hash
+      pending 'assigns @report' do
+        expect( assigns(:report) ).to eq chronic_report
       end
-      it 'renders index.xlsx' do
-        expect( response ).to render_template :index
+      pending 'renders show.xlsx' do
+        expect( response ).to render_template :show
         expect( response.content_type ).to eq 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       end
     end

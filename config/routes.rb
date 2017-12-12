@@ -77,13 +77,13 @@ Rails.application.routes.draw do
     resources :future_enrollments, only: [:index]
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
-    resources :service_after_exit, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :disabilities, only: [:index]
-    resources :chronic, only: [:index] do
+    resources :chronic, only: [:index, :show] do
       get :summary, on: :collection
+      get :running, on: :collection
     end
-    resources :hud_chronics, only: :index do
+    resources :hud_chronics, only: [:index] do
       collection do
         get :summary
       end
@@ -166,14 +166,17 @@ Rails.application.routes.draw do
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
       member do
-        put :upload_file
-        delete :destroy_file
+        put :add_child
+          delete :remove_child
+          put :upload_file
+          delete :destroy_file
       end
     end
     resources :files, controller: 'clients/files'
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
+    resources :anomalies, except: [:show], controller: 'clients/anomalies'
     healthcare_routes()
   end
 
@@ -193,6 +196,8 @@ Rails.application.routes.draw do
       resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
       resources :vispdats, controller: 'clients/vispdats' do
         member do
+          put :add_child
+          delete :remove_child
           put :upload_file
           delete :destroy_file
         end

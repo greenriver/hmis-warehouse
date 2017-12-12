@@ -1,6 +1,6 @@
 module WarehouseReports
   class FutureEnrollmentsController < ApplicationController
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       @clients = client_source.

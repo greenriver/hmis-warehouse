@@ -1,4 +1,4 @@
-- title = "Edit VI-SPDAT for #{@client.name} on #{@vispdat.created_at}"
+- title = "Edit #{@vispdat.type.demodulize} VI-SPDAT for #{@client.name} on #{@vispdat.created_at}"
 - content_for :title, title
 
 = render 'window/clients/breadcrumbs'
@@ -16,6 +16,10 @@
       %span.icon-menu
       VI-SPDAT List
   = title
+  %br
+  %small
+    Completed by
+    = @vispdat.user&.name
   .clearfix
 %hr
 

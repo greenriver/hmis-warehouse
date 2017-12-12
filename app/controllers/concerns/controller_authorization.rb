@@ -33,12 +33,12 @@ module ControllerAuthorization
   end
 
   def require_can_access_vspdat_list!
-    return true if GrdaWarehouse::Vispdat.any_visible_by?(current_user)    
+    return true if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)    
     not_authorized!
   end
 
   def require_can_create_or_modify_vspdat!
-    return true if GrdaWarehouse::Vispdat.any_modifiable_by(current_user)
+    return true if GrdaWarehouse::Vispdat::Base.any_modifiable_by(current_user)
     not_authorized!
   end
 
@@ -46,6 +46,17 @@ module ControllerAuthorization
     return true if current_user.can_edit_window_client_notes? || current_user.can_see_own_window_client_notes?
     not_authorized!
   end
+
+  def require_can_view_any_reports!
+    return true if current_user.can_view_all_reports? || current_user.can_view_assigned_reports?
+    not_authorized!
+  end
+
+  def require_can_view_client_and_history!
+    return true if current_user.can_view_clients? && current_user.can_view_client_history_calendar?
+    not_authorized!
+  end
+
 
   def require_can_see_this_client_demographics!
     return true if current_user.can_view_client_window?

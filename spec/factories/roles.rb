@@ -4,7 +4,9 @@ FactoryGirl.define do
     verb nil
     can_view_clients true
     can_edit_clients true
-    can_view_reports true
+    can_view_all_reports true
+    can_view_assigned_reports true
+    can_assign_reports true
     can_view_censuses true
     can_view_census_details true
     can_edit_users true
@@ -37,6 +39,7 @@ FactoryGirl.define do
     can_edit_vspdat true
     can_edit_client_notes true
     can_edit_window_client_notes true
+    can_track_anomalies true
   end
 
   factory :vispdat_viewer, class: 'Role' do

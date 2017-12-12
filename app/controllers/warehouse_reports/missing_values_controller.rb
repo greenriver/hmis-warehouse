@@ -1,7 +1,6 @@
 module WarehouseReports
   class MissingValuesController < ApplicationController
-    before_action :require_can_view_reports!
-
+    include WarehouseReportAuthorization
     POTENTIAL_COLUMNS = (
       GrdaWarehouse::Hud::Client.column_names + GrdaWarehouse::Hud::Enrollment.column_names
     ).reject{ |n| n =~ /^date|(?<![a-z])(?:id|date)$/i }.sort.freeze
@@ -359,7 +358,7 @@ module WarehouseReports
             end
           end
         end
-
     end
+    
   end
 end

@@ -1,7 +1,7 @@
 module WarehouseReports::Cas
   class ChronicReconciliationController < ApplicationController
     include ArelHelper
-    before_action :require_can_view_reports!
+    include WarehouseReportAuthorization
 
     def index
       @filter = Filter.new(filter_params)

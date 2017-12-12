@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :vispdat, class: 'GrdaWarehouse::Vispdat' do
+  factory :vispdat, class: 'GrdaWarehouse::Vispdat::Individual' do
     association :client, factory: :grda_warehouse_hud_client
     nickname 'Test'
     language_answer 1
@@ -59,5 +59,12 @@ FactoryGirl.define do
     recommendation nil
     release_signed_on nil
     drug_release nil
+  end
+
+  factory :family_vispdat, class: 'GrdaWarehouse::Vispdat::Family' do
+    association :client, factory: :grda_warehouse_hud_client
+  end
+  factory :youth_vispdat, class: 'GrdaWarehouse::Vispdat::Youth' do
+    association :client, factory: :grda_warehouse_hud_client
   end
 end

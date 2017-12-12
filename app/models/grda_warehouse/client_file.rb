@@ -5,7 +5,7 @@ module GrdaWarehouse
     include ArelHelper
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :vispdat
+    belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base'
     validates_presence_of :name
     validates_inclusion_of :visible_in_window, in: [true, false]
     validate :file_exists_and_not_too_large
@@ -35,10 +35,29 @@ module GrdaWarehouse
     end
 
     ####################
+    # Callbacks
+    ####################
+    after_create :notify_users
+
+    ####################
     # Access
     ####################
     def self.any_visible_by?(user)
       user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
+    def notify_users
+      if client.present?
+        # notify related users if the client has a full release and the file is visible in the window
+        if client.release_valid? && visible_in_window
+          NotifyUser.file_uploaded( id ).deliver_later
+        end
+        # Send out administrative notifications as appropriate
+        tag_list = ActsAsTaggableOn::Tag.where(name: self.tag_list).pluck(:id)
+        notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
+        to_send = tag_list & notification_triggers
+        FileNotificationMailer.notify(to_send, client.id).deliver_later if to_send.any?
+      end
     end
 
     def file_exists_and_not_too_large
