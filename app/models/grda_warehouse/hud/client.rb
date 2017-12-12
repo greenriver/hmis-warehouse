@@ -182,26 +182,29 @@ module GrdaWarehouse::Hud
     scope :veteran, -> do
       where VeteranStatus: 1
     end
-    scope :currently_homeless, -> do
+    scope :currently_homeless, -> (chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable
       # clearer and composable but less efficient would be to use an exists subquery
-      sh  = GrdaWarehouse::ServiceHistory
-      at  = arel_table
-      sht = sh.arel_table
-      inner_table = sht.
-        project(sht[:client_id]).
-        group(sht[:client_id]).
-        where( sht[:record_type].eq 'entry' ).
-        where( sht[:project_type].in GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES ).
-        where( sht[:last_date_in_program].eq nil ).
-        as('sht')
-      joins "INNER JOIN #{inner_table.to_sql} ON #{at[:id].eq(inner_table[:client_id]).to_sql}"
+      
+      if chronic_types_only
+        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      else
+        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      end 
+      
+      inner_table = sh_t.
+        project(sh_t[:client_id]).
+        group(sh_t[:client_id]).
+        where( sh_t[:record_type].eq 'entry' ).
+        where( sh_t[:project_type].in(project_types)).
+        where( sh_t[:last_date_in_program].eq nil ).
+        as('sh_t')
+      joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
     scope :disabled, -> do
-      at = arel_table
       dt = Disability.arel_table
-      where Disability.where( dt[:data_source_id].eq at[:data_source_id] ).where( dt[:PersonalID].eq at[:PersonalID] ).exists
+      where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
     end
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
@@ -255,26 +258,18 @@ module GrdaWarehouse::Hud
     end
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
-      c_t = arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       where(id:
-        GrdaWarehouse::ServiceHistory.service.
+        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
-        where(
-          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-        ).select(:client_id).distinct
+        select(:client_id).distinct
       )
     end
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
-      c_t = arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       where(id:
-        GrdaWarehouse::ServiceHistory.service.
+        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
-        where(
-          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-        ).select(:client_id).distinct
+        select(:client_id).distinct
       )
     end
 
@@ -881,7 +876,7 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      service_history.homeless.
+      service_history.homeless(chronic_types_only: true).
         from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
