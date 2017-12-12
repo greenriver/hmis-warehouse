@@ -1,5 +1,5 @@
 class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
-  self.table_name = 'new_service_history'
+  self.table_name = 'warehouse_client_service_history'
 
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history
   belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID]
