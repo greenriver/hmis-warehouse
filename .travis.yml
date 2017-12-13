@@ -19,3 +19,6 @@ script:
   - bundle exec rake warehouse:db:schema:load
   - bundle exec rake health:db:schema:load
   - bundle exec rspec
+
+addons:
+  postgresql: "9.5"
