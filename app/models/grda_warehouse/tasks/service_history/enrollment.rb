@@ -45,10 +45,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
         days << service_record(date, type_provided)
       end
       if days.any?
-        if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
-          type_provided = build_for_dates.values.last
-          days += add_extrapolated_days(days.map{|m| m[:date]}, type_provided)
-        end
         insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
         update(processed_hash: calculate_hash)
       end
@@ -133,8 +129,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
       extrapolated_dates = dates.map do |date|
         (date.beginning_of_month .. date.end_of_month).to_a
       end.flatten(1).uniq
+      # Don't build extrapolations for any day we already have
+      extrapolated_dates -= dates
       extrapolated_dates -= extrapolated_dates_from_service_history_for_enrollment
       extrapolated_dates -= service_dates_from_service_history_for_enrollment
+
       extrapolated_dates.map do |date|
         extrapolated_record(date, type_provided)
       end

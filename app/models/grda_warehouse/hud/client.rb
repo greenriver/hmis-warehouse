@@ -976,7 +976,7 @@ module GrdaWarehouse::Hud
           if m.enrollment_group_id.present?
             day[:group] = "#{m.enrollment_group_id}"
           end
-          if m.record_type == 'service'
+          if m.record_type == 'service' || m.record_type == 'extrapolated'
             day[:start] = m.date.to_date
           elsif m.record_type == 'exit'
             day[:start] = if m.last_date_in_program.present?
