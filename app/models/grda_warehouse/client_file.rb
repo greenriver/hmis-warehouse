@@ -39,7 +39,6 @@ module GrdaWarehouse
     ####################
     after_create :notify_users
     after_save :set_client_consent
-    after_destroy :clear_client_consent
 
     ####################
     # Access
@@ -53,10 +52,6 @@ module GrdaWarehouse
         date = consent_form_confirmed? ? consent_form_signed_on : nil
         client.update_column :consent_form_signed_on, date
       end
-    end
-
-    def clear_client_consent
-      client.update_column :consent_form_signed_on, nil
     end
 
     def notify_users
