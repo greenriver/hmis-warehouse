@@ -2,10 +2,12 @@
 .client__summary
   .row
     .col-sm-12
-      %h3 Aliases
-      - client_aliases(@client).uniq.each do |a|
-        = a
-        &nbsp;
+      - aliases = client_aliases(@client).uniq
+      - if aliases.any?
+        %h3 Aliases
+        - aliases.each do |a|
+          = a
+          &nbsp;
   .row
     .col-sm-4
       %h3 Service Summary

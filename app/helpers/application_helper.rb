@@ -127,7 +127,9 @@ module ApplicationHelper
     else
       client_scope = client.source_clients
     end
-    client_scope.map do |n|
+    client_scope.
+      where.not(FirstName: client.FirstName, LastName: client.LastName, MiddleName: client.MiddleName).
+      map do |n|
       sn = n.data_source.short_name
       content_tag( :em, sn, class: "ds-#{sn.downcase}" ) + " #{n.full_name}"
     end

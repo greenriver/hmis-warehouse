@@ -324,7 +324,9 @@ module GrdaWarehouse::Hud
     end
 
     def alternate_names
-      source_clients.map(&:full_name).uniq.join(',')
+      aliases = source_clients.map(&:full_name).uniq
+      aliases - [full_name]
+      aliases.join(',')
     end
 
     def active_in_cas?
