@@ -34,7 +34,8 @@ module Clients
     end
 
     def update
-      @file.update(file_params)
+      allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
+      @file.update(allowed_params)
     end
     
     def file_scope
