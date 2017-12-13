@@ -28,7 +28,7 @@
                     %div{class: e[:class]}
                       %em.service-type__program-type
                         = e[:service_type]
-                      - if e[:record_type] != 'service' && e[:record_type] != 'extrapolated'
+                      - if ! GrdaWarehouse::Hud::Client.service_types.include?(e[:record_type])
                         = "#{@programs[[e[:database_id],e[:program_id]]]&.first&.organization&.OrganizationName}:"
                       = @programs[[e[:database_id],e[:program_id]]].first.ProjectName
 

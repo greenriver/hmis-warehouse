@@ -30,7 +30,7 @@
                       %em.service-type__program-type
                         = e[:service_type]
                       - if project.present?
-                        - if e[:record_type] != 'service' && e[:record_type] != 'extrapolated'
+                        - if ! GrdaWarehouse::Hud::Client.service_types.include?(e[:record_type])
                           = "#{project.organization.OrganizationName}:"
                         = GrdaWarehouse::Hud::Project.confidentialize(name: project.ProjectName)
 

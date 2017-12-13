@@ -967,7 +967,7 @@ module GrdaWarehouse::Hud
           if m.enrollment_group_id.present?
             day[:group] = "#{m.enrollment_group_id}"
           end
-          if self.class.service_types.include?(m.record_type)
+          if service_types.include?(m.record_type)
             day[:start] = m.date.to_date
           elsif m.record_type == 'exit'
             day[:start] = if m.last_date_in_program.present?
@@ -1431,7 +1431,7 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def service_types
+    def self.service_types
       @service_types ||= begin
         service_types = ['service']
         if GrdaWarehouse::Config.get(:so_day_as_month)
@@ -1440,6 +1440,11 @@ module GrdaWarehouse::Hud
         service_types
       end
     end
+
+    def service_types
+      self.class.service_types
+    end
+
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
