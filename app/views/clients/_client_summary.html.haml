@@ -1,6 +1,12 @@
 - eto_available = GrdaWarehouse::Config.get(:eto_api_available)
 .client__summary
   .row
+    .col-sm-12
+      %h3 Aliases
+      - client_aliases(@client).uniq.each do |a|
+        = a
+        &nbsp;
+  .row
     .col-sm-4
       %h3 Service Summary
       - if @client.service_history.empty?

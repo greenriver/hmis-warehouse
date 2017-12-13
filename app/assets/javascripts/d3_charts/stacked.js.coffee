@@ -1,7 +1,7 @@
 #= require ./namespace
 #= require ./base
 
-class App.D3Chart.StackedLegend 
+class App.D3Chart.StackedLegend
   constructor: (selector, keys, colors) ->
     @legend = d3.select(selector)
     @keys = keys
@@ -50,7 +50,7 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
     rect = @tooltip.node().getBoundingClientRect()
     height = rect.bottom - rect.top
     width = rect.width/2
-    
+
     @tooltip.style('top', (d3.event.pageY-height)+'px')
     @tooltip.style('left', (d3.event.pageX-width)+'px')
 
@@ -96,7 +96,7 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
       .keys(@keys)
       .order(d3.stackOrderNone)
       .offset(d3.stackOffsetNone)
-    if @scale && @stackData 
+    if @scale && @stackData
       @chart.selectAll('g.bar')
         .data(stackGenerator(@stackData))
         .enter()
@@ -113,5 +113,5 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
               .attr('width', (d) => @scale.x.bandwidth())
               .on('mouseover', (d) => @_showTooltip(d.data))
               .on('mouseout', (d) => @_removeTooltip(d.data))
-    else 
+    else
       console.log('Please add data & scale!')

@@ -18,6 +18,48 @@ class NotifyUser < ApplicationMailer
     end
   end
 
+  def file_uploaded file_id
+    @file = GrdaWarehouse::ClientFile.find( file_id )
+    @client = @file.client
+    users_to_notify = @client.user_clients.includes(:user)
+    users_to_notify.each do |user_client|
+      next unless user_client.client_notifications?
+
+      user = user_client&.user
+
+      @url = if user.can_manage_client_files?
+        client_files_url(@client)
+      elsif user.can_manage_window_client_files?
+        window_client_files_url(@client)
+      else
+      end
+      next if @url.nil?
+
+      mail(to: user&.email, subject: "[Warehouse] A file was uploaded.")
+    end
+  end
+
+  def note_added note_id
+    @note = GrdaWarehouse::ClientNotes::Base.find( note_id )
+    @client = @note.client
+    users_to_notify = @client.user_clients.includes(:user)
+    users_to_notify.each do |user_client|
+      next unless user_client.client_notifications?
+
+      user = user_client&.user
+
+      @url = if user.can_edit_client_notes?
+        client_notes_url(@client)
+      elsif user.can_edit_window_client_notes?
+        window_client_notes_url(@client)
+      else
+      end
+      next if @url.nil?
+
+      mail(to: user&.email, subject: "[Warehouse] A note was added.")
+    end
+  end
+  
   def anomaly_identified client_id:, user_id:
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
     users_to_notify = User.where(notify_on_anomaly_identified: true).
@@ -34,6 +76,13 @@ class NotifyUser < ApplicationMailer
     users_to_notify.each do |user|
       mail(to: user.email, subject: "[Warehouse] Client anomaly updated")
     end
+  end
+
+  def chronic_report_finished user_id, report_id
+    @user = User.find(user_id)
+    @report = GrdaWarehouse::WarehouseReports::ChronicReport.find(report_id)
+    @report_url = warehouse_reports_chronic_url(@report)
+    mail(to: @user.email, subject: "[Warehouse] Your Chronic report has finished")
   end
 
 end

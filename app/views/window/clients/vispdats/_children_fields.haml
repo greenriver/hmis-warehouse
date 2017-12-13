@@ -16,6 +16,13 @@
       = f.input :number_of_children_under_18_not_with_family_refused, label: "Refused/Unsure"
   .row
     .col-sm-8.col-md-offset-1
+      %label= @vispdat.question(:number_of_bedrooms)
+    .col-sm-2
+      - bedrooms = @vispdat.number_of_bedrooms || 0
+      = f.input :number_of_bedrooms, label: false, as: :select, collection: [[2,2],[3,3],[4,4],['other',0]], input_html: { class: 'number-of-bedrooms select2' }, include_blank: false, selected: (bedrooms.between?(2,4) ? bedrooms : 0)
+      = f.input :number_of_bedrooms, input_html: { min: 1, max: 20, step: '1', disabled: bedrooms.between?(2,4), class: 'number-of-bedrooms-other', value: (bedrooms.between?(2,4) ? '' : bedrooms) }
+  .row
+    .col-sm-8.col-md-offset-1
       %label IF HOUSEHOLD INCLUDES A FEMALE: Is any member of the family currently pregnant?
     .col-sm-2
       = f.input :any_member_pregnant_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_member_pregnant_answers), label: false

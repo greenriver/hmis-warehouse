@@ -78,17 +78,33 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
   end
 
-  scope :homeless, -> do
-    where(project_type_column => GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+  scope :homeless, -> (chronic_types_only: false) do
+    if chronic_types_only
+      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    else
+      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
+
+    where(project_type_column => project_types)
   end
-  scope :hud_homeless, -> do
+
+  scope :hud_homeless, -> (chronic_types_only: false) do
+    if chronic_types_only
+      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    else
+      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
+
     hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 
-  scope :currently_homeless, -> (date: Date.today) do 
-    # Limit currently homeless to ES, SH, SO since PSH and TH etc. are 
-    # technically housed
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+  scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do 
+    if chronic_types_only
+      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    else
+      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
+    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - project_types
 
     entry.
       ongoing(on_date: date).
@@ -101,10 +117,13 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
       )
   end
 
-  scope :hud_currently_homeless, -> (date: Date.today) do
-    # Limit currently homeless to ES, SH, SO since PSH and TH etc. are 
-    # technically housed
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+  scope :hud_currently_homeless, -> (date: Date.today, chronic_types_only: false) do
+    if chronic_types_only
+      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    else
+      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
+    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - project_types
 
     entry.
       ongoing(on_date: date).

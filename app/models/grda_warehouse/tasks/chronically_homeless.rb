@@ -138,7 +138,7 @@ module GrdaWarehouse::Tasks
 
     def active_client_scope
       service_history_source.
-      hud_currently_homeless(date: @date).
+      hud_currently_homeless(date: @date, chronic_types_only: true).
       where.not(client_id: dmh_clients).
       joins(:processed_client).
       select(:client_id).
