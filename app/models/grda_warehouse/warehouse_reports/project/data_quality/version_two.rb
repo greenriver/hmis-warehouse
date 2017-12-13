@@ -832,48 +832,48 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       clients.each do |client|
         if client[:first_name].blank? || client[:last_name].blank? || missing?(client[:name_data_quality])
-          missing_name << client[:id]
+          missing_name << client[:destination_id]
         end
         if client[:ssn].blank? || missing?(client[:ssn_data_quality])
-          missing_ssn << client[:id]
+          missing_ssn << client[:destination_id]
         end
         if client[:dob].blank? || missing?(client[:dob_data_quality])
-          missing_dob << client[:id]
+          missing_dob << client[:destination_id]
         end
         if client[:veteran_status].blank? || missing?(client[:veteran_status])
-          missing_veteran << client[:id]
+          missing_veteran << client[:destination_id]
         end
         if client[:ethnicity].blank? || missing?(client[:ethnicity])
-          missing_ethnicity << client[:id]
+          missing_ethnicity << client[:destination_id]
         end
         # If we have no race info, whatsoever
         if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
-          missing_race << client[:id]
+          missing_race << client[:destination_id]
         end
         if client[:gender].blank? || missing?(client[:gender])
-          missing_gender << client[:id]
+          missing_gender << client[:destination_id]
         end
 
         if client[:first_name].blank? || client[:last_name].blank? || refused?(client[:name_data_quality])
-          refused_name << client[:id]
+          refused_name << client[:destination_id]
         end
         if client[:ssn].blank? || refused?(client[:ssn_data_quality])
-          refused_ssn << client[:id]
+          refused_ssn << client[:destination_id]
         end
         if client[:dob].blank? || refused?(client[:dob_data_quality])
-          refused_dob << client[:id]
+          refused_dob << client[:destination_id]
         end
         if client[:veteran_status].blank? || refused?(client[:veteran_status])
-          refused_veteran << client[:id]
+          refused_veteran << client[:destination_id]
         end
         if client[:ethnicity].blank? || refused?(client[:ethnicity])
-          refused_ethnicity << client[:id]
+          refused_ethnicity << client[:destination_id]
         end
         if refused?(client[:race_none])
-          refused_race << client[:id]
+          refused_race << client[:destination_id]
         end
         if client[:gender].blank? || refused?(client[:gender])
-          refused_gender << client[:id]
+          refused_gender << client[:destination_id]
         end
       end
 
@@ -927,11 +927,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       support = {
         total_clients: {
           headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: clients.map{|m| [m[:id], m[:first_name], m[:last_name]]},
+          counts: clients.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
         },
         total_leavers: {
           headers: ['Client ID'],
-          counts: leavers.map{|m| Array.wrap(m)}
+          counts: clients.select{|m| leavers.include?(m[:id])}.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
         },
         missing_name: {
           headers: ['Client ID'],
@@ -1033,16 +1033,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_destination = Set.new
       enrollments.each do |client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_disabling_condition << client_id if missing?(enrollment[:disabling_condition])
-          missing_prior_living << client_id if missing?(enrollment[:residence_prior])
-          refused_disabling_condition << client_id if refused?(enrollment[:disabling_condition])
-          refused_prior_living << client_id if refused?(enrollment[:residence_prior])
+          missing_disabling_condition << enrollment[:destination_id] if missing?(enrollment[:disabling_condition])
+          missing_prior_living << enrollment[:destination_id] if missing?(enrollment[:residence_prior])
+          refused_disabling_condition << enrollment[:destination_id] if refused?(enrollment[:disabling_condition])
+          refused_prior_living << enrollment[:destination_id] if refused?(enrollment[:residence_prior])
         end
       end
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
-          missing_destination << client_id if missing?(enrollment[:destination])
-          refused_destination << client_id if refused?(enrollment[:destination])
+          missing_destination << enrollment[:destination_id] if missing?(enrollment[:destination])
+          refused_destination << enrollment[:destination_id] if refused?(enrollment[:destination])
         end
       end
 
@@ -1115,7 +1115,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           # count a stay in any month as a month
           months_in_project += (start_of_enrollment..end_of_enrollment).map{|date| [date.year, date.month]}.uniq.count
         end
-        one_year_enrollments << client_id if months_in_project > 12
+        one_year_enrollments << client_enrollments.first[:destination_id] if months_in_project > 12
       end
       one_year_enrollments_percentage = (one_year_enrollments.size.to_f/client_count*100).round(2) rescue 0
 
@@ -1136,7 +1136,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       ph_destinations = Set.new
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
-          ph_destinations << client_id if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
+          ph_destinations << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
       ph_destinations_percentage = (ph_destinations.size.to_f/leavers.size*100).round(2) rescue 0
