@@ -22,6 +22,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :entry, -> { where record_type: 'entry' }
   scope :exit, -> { where record_type: 'exit' }
   scope :service, -> { where record_type: 'service' }
+  scope :extrapolated, -> { where record_type: 'extrapolated' }
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service

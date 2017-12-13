@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171212182935) do
+ActiveRecord::Schema.define(version: 20171213002924) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -915,6 +915,7 @@ ActiveRecord::Schema.define(version: 20171212182935) do
     t.boolean "show_partial_ssn_in_window_search_results", :default=>false
     t.string  "url_of_blank_consent_form"
     t.boolean "ahar_psh_includes_rrh",                     :default=>true
+    t.boolean "so_day_as_month",                           :default=>true
   end
 
   create_table "contacts", force: :cascade do |t|

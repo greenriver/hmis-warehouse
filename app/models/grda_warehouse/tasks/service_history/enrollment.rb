@@ -45,6 +45,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
         days << service_record(date, type_provided)
       end
       if days.any?
+        if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+          type_provided = build_for_dates.values.last
+          days += add_extrapolated_days(days.map{|m| m[:date]}, type_provided)
+        end
         insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
         update(processed_hash: calculate_hash)
       end
@@ -69,6 +73,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
         build_for_dates.each do |date, type_provided|
           days << service_record(date, type_provided)
+        end
+        if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+          type_provided = build_for_dates.values.last
+          days += add_extrapolated_days(build_for_dates.keys, type_provided)
         end
         # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
         # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
@@ -110,6 +118,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
       })
     end
 
+    def extrapolated_record date, type_provided
+      default_day.merge({
+        date: date,
+        age: client_age_at(date),
+        service_type: type_provided,
+        record_type: :extrapolated,
+      })
+    end
+
+    # build out all days within the month
+    # don't build for any dates we already have
+    def add_extrapolated_days dates, type_provided
+      extrapolated_dates = dates.map do |date|
+        (date.beginning_of_month .. date.end_of_month).to_a
+      end.flatten(1).uniq
+      extrapolated_dates -= extrapolated_dates_from_service_history_for_enrollment
+      extrapolated_dates -= service_dates_from_service_history_for_enrollment
+      extrapolated_dates.map do |date|
+        extrapolated_record(date, type_provided)
+      end
+    end
+
     def client_age_at date
       destination_client.age_on(date)
     end
@@ -124,14 +154,26 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_dates_from_service_history_for_enrollment
       return [] unless destination_client.present?
-      service_history_source.where(
-        client_id: destination_client.id, 
-        enrollment_group_id: self.ProjectEntryID, 
-        data_source_id: data_source_id, 
-        project_id: self.ProjectID,
-        record_type: :service
-      ).order(date: :asc).
-      pluck(:date)
+      @service_dates_from_service_history_for_enrollment ||= service_history_source.
+        service.where(
+          client_id: destination_client.id, 
+          enrollment_group_id: self.ProjectEntryID, 
+          data_source_id: data_source_id, 
+          project_id: self.ProjectID,
+        ).order(date: :asc).
+        pluck(:date)
+    end
+
+    def extrapolated_dates_from_service_history_for_enrollment
+      return [] unless destination_client.present?
+      @extrapolated_dates_from_service_history_for_enrollment ||= service_history_source.
+        extrapolated.where(
+          client_id: destination_client.id, 
+          enrollment_group_id: self.ProjectEntryID, 
+          data_source_id: data_source_id, 
+          project_id: self.ProjectID,
+        ).order(date: :asc).
+        pluck(:date)
     end
 
     def remove_existing_service_history_for_enrollment
@@ -141,7 +183,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         enrollment_group_id: self.ProjectEntryID, 
         data_source_id: data_source_id, 
         project_id: self.ProjectID,
-        record_type: [:entry, :exit, :service],
+        record_type: [:entry, :exit, :service, :extrapolated],
       ).delete_all
     end
 
@@ -403,16 +445,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def build_for_dates
-      if entry_exit_tracking?
-        (self.EntryDate..build_until).map do |date|
-          [date, service_type_from_project_type(project.computed_project_type)]
-        end.to_h
-      else
-        # Fetch all services provided between the start of the enrollment and the end of the build period
-        @source_services ||= begin
+      @build_for_dates ||= begin
+        if entry_exit_tracking?
+          (self.EntryDate..build_until).map do |date|
+            [date, service_type_from_project_type(project.computed_project_type)]
+          end.to_h
+        else
+          # Fetch all services provided between the start of the enrollment and the end of the build period
           services.where(DateProvided: (self.EntryDate..build_until)).
-          order(DateProvided: :asc).
-          pluck(:DateProvided, :TypeProvided).to_h
+            order(DateProvided: :asc).
+            pluck(:DateProvided, :TypeProvided).to_h
         end
       end
     end
