@@ -328,6 +328,20 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.revoke_expired_consent
+      release_duration = GrdaWarehouse::Config.get :release_duration
+      if release_duration == 'One Year'
+        clients_with_consent = self.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < 1.year.ago
+            client.update_columns(
+              consent_form_signed_on: nil, 
+              housing_release_status: nil)
+          end
+        end
+      end
+    end
+
     def active_in_cas?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
