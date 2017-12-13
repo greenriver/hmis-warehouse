@@ -323,6 +323,10 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def alternate_names
+      source_clients.map(&:full_name).uniq.join(',')
+    end
+
     def active_in_cas?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
