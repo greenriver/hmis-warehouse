@@ -42,7 +42,7 @@ module GrdaWarehouse::Tasks
       @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
       @date = date
       @hard_stop = @date.beginning_of_month
-      @count_so_as_full_month = count_so_as_full_month
+      @count_so_as_full_month = GrdaWarehouse::Config.get(:so_day_as_month)
       @dry_run = dry_run
       @clients = client_ids
       @limited = client_ids.present? && client_ids.any?
