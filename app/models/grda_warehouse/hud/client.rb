@@ -324,9 +324,13 @@ module GrdaWarehouse::Hud
     end
 
     def alternate_names
-      aliases = source_clients.map(&:full_name).uniq
-      aliases - [full_name]
-      aliases.join(',')
+      source_clients.
+        where.not(
+          FirstName: self.FirstName, 
+          LastName: self.LastName, 
+          MiddleName: self.MiddleName
+        ).
+        map(&:full_name).uniq.join(',')
     end
 
     def active_in_cas?
