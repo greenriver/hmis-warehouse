@@ -967,7 +967,7 @@ module GrdaWarehouse::Hud
           if m.enrollment_group_id.present?
             day[:group] = "#{m.enrollment_group_id}"
           end
-          if m.record_type == 'service' || m.record_type == 'extrapolated'
+          if self.class.service_types.include?(m.record_type)
             day[:start] = m.date.to_date
           elsif m.record_type == 'exit'
             day[:start] = if m.last_date_in_program.present?
@@ -1296,7 +1296,7 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history.where(record_type: [:entry, :exit, :service]).delete_all
+      service_history.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
       source_enrollments.update_all(processed_hash: nil)
       invalidate_service_history
     end
