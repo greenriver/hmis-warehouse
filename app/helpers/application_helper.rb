@@ -122,16 +122,13 @@ module ApplicationHelper
 
   # generates a list of HTML snippets representing the names the user is known by in different data sources
   def client_aliases(client)
-    if controller_path.include?('window')
-      client_scope = client.source_clients.visible_in_window
-    else
-      client_scope = client.source_clients
-    end
-    client_scope.map do |n|
-      sn = n.data_source.short_name
-      content_tag( :em, sn, class: "ds-#{sn.downcase}" ) + " #{n.full_name}"
-    end
 
+    names = client.client_names(window: controller_path.include?('window'))
+    names.map do |name|
+      sn = name[:ds]
+      full_name = name[:name]
+      content_tag( :em, sn, class: "ds-#{sn.downcase}" ) + " #{full_name}"
+    end
   end
 
   def human_locale(locale)

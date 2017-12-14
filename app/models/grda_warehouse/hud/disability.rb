@@ -40,6 +40,19 @@ module GrdaWarehouse::Hud
     belongs_to :export, class_name: 'GrdaWarehouse::Hud::Export', primary_key: [:ExportID, :data_source_id], foreign_key: [:ExportID, :data_source_id], inverse_of: :disabilities
     has_one :destination_client, through: :client
 
+    #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.veteran)
+    end
+
+    scope :non_veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+
+    # End Standard Cohort Scopes
+    #################################
+
     def self.disability_types
       {
         5 => :physical,

@@ -4,7 +4,7 @@
   .clients__client-card
     .row
       .col-sm-5
-        - if ( akas = client_aliases client ).empty?
+        - if ( akas = client_aliases(client)).empty?
           - main_client_name = client.source_clients.visible_in_window.first.data_source.short_name
         - else
           - main_client_name = akas.shift

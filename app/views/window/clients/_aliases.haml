@@ -1,0 +1,11 @@
+- aliases = @client.client_names.uniq.select{|m| m[:name] != @client.full_name}
+- if aliases.any?
+  .client-aliases.margin-bottom-02
+    %h3 Aliases
+    - aliases.each do |name|
+      - sn = name[:ds]
+      - full_name = name[:name]
+      %em{class: "ds-#{sn.downcase}"}
+        = sn
+      = full_name
+      &nbsp;

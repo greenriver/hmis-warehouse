@@ -175,6 +175,38 @@ module GrdaWarehouse::Hud
       self.class.serves_individuals_only.where(id: id).exists?
     end
 
+    scope :serves_children, -> do
+      joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_children)
+    end
+    def serves_children?
+      self.class.serves_children.where(id: id).exists?
+    end
+
+    #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      where(id: joins(:clients).
+        merge(GrdaWarehouse::Hud::Client.veteran).
+        uniq.select(:id))
+    end
+
+    scope :non_veteran, -> do
+      where(id: joins(:clients).
+        merge(GrdaWarehouse::Hud::Client.non_veteran).
+        uniq.select(:id))
+    end
+
+    scope :family, -> do
+      serves_families
+    end
+
+    scope :individual, -> do
+      serves_individuals
+    end
+
+    # End Standard Cohort Scopes
+    #################################
+
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
@@ -378,6 +410,16 @@ module GrdaWarehouse::Hud
         :computed_project_type
       else
         :ProjectType
+      end
+    end
+
+    def main_population
+      if serves_families? 
+        'Family' 
+      elsif serves_children?
+        'Children'
+      else 
+        'Individuals' 
       end
     end
 
