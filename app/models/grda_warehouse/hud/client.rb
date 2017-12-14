@@ -338,13 +338,25 @@ module GrdaWarehouse::Hud
     end
 
     def alternate_names
-      source_clients.
-        where.not(
-          FirstName: self.FirstName, 
-          LastName: self.LastName, 
-          MiddleName: self.MiddleName
-        ).
-        map(&:full_name).uniq.join(',')
+      names = client_names.map do |m|
+        m[:name]
+      end.uniq
+      names -= [full_name]
+      names.join(',')
+    end
+
+    def client_names window: true
+      client_scope = if window
+        source_clients.visible_in_window
+      else
+        source_clients
+      end
+      client_scope.includes(:data_source).map do |m|
+        {
+          ds: m.data_source.short_name,
+          name: m.full_name,
+        }
+      end
     end
 
     def active_in_cas?
