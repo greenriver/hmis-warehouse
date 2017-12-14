@@ -34,6 +34,16 @@ module GrdaWarehouse
       end
     end
 
+    scope :consent_forms, -> do
+      tagged_with 'Consent Form'
+    end
+    scope :confirmed, -> do
+      where(consent_form_confirmed: true)
+    end
+    scope :signed_on, -> (date) do
+      where(consent_form_signed_on: date)
+    end
+
     ####################
     # Callbacks
     ####################
@@ -48,9 +58,8 @@ module GrdaWarehouse
     end
 
     def set_client_consent
-      if consent_form_confirmed_changed? || consent_form_signed_on_changed?
-        date = consent_form_confirmed? ? consent_form_signed_on : nil
-        client.update_column :consent_form_signed_on, date
+      if consent_form_signed_on_changed?
+        client.update_column :consent_form_signed_on, consent_form_signed_on
       end
     end
 

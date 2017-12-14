@@ -36,9 +36,19 @@
         %h3 VI-SPDAT Scores
         - @client.vispdats.completed.scores.each do |vispdat|
           %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
-      - if @client.consent_form_expired?
-        %h3 Consent Form
+
+      %h3 Consent Form
+      - if @client.consent_form_valid?
+        %span.label.label-success(style='color:#000')= @client.consent_form_validity_period
+      - else
         %span.label.label-danger Expired
+
+      - if @client.consent_form_valid? && @client.consent_form_confirmed?
+        %span.label.label-success(style='color:#000') Confirmed
+
+      - if @client.consent_forms.none?
+        %span.label.label-default None on file
+
       = render 'window/clients/required_documents'
     .col-sm-4
       - if (eto_available || ! Rails.env.production?) && @client.image 
