@@ -52,6 +52,11 @@ module ControllerAuthorization
     not_authorized!
   end
 
+  def require_can_view_client_and_history!
+    return true if current_user.can_view_clients? && current_user.can_view_client_history_calendar?
+    not_authorized!
+  end
+
 
   def require_can_see_this_client_demographics!
     return true if current_user.can_view_client_window?

@@ -47,11 +47,16 @@ h2.ho-sub__h2 {
   border: 1px solid $ho-color-2;
   max-width: 300px;
   min-width: 100px;
+  pointer-events: none;
 }
 
 .d3-tooltip__item {
   position: relative;
   padding-left: 13px;
+}
+
+.d3-tooltip__item--primary {
+  padding-left: 0;
 }
 
 .d3-tooltip__item.d3-tooltip__label {
@@ -393,12 +398,34 @@ h2.ho-sub__h2 {
 }
 
 .d3-housing-status__chart {
-  height: 180px;
+  height: 350px;
+  margin-bottom: 4rem;
+}
+
+.d3-housing-status__chart .y-axis,
+.d3-housing-status__chart .x-axis{
+  path,
+  line {
+    stroke: #CCCCCC;
+  }
+}
+
+.d3-housing-status__chart .y-axis__label {
+  alignment-baseline: middle;
+  @include open-sans-condensed-bold;
+}
+
+.d3-housing-status__chart .x-axis{
+  text {
+    @include open-sans-normal;
+  }
+}
+
+.d3-housing-status__chart .status__line{
+  pointer-events: none;
 }
 
 .d3-monthly-income__chart,
 .d3-ss-matrix__chart {
   height: 300px;
 }
-
-

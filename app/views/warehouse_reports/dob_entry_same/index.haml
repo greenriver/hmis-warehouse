@@ -13,11 +13,14 @@
         %th Client
         %th DOB
         %th First Enrollment Date
+        %th Project
     %tbody
       - @clients.each do |client|
         - if client.DOB == client.source_enrollments.sort_by{|m| m[:EntryDate]}.first.EntryDate
+          - enrollment = client.source_enrollments.sort_by{|m| m[:EntryDate]}.first
           %tr
             %td= link_to client.name, client_path(client)
             %td= client.DOB
-            %td= client.source_enrollments.sort_by{|m| m[:EntryDate]}.first.EntryDate
+            %td= enrollment.EntryDate
+            %td= enrollment.project&.ProjectName
 %p= paginate @clients

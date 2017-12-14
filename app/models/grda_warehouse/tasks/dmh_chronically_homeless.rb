@@ -29,7 +29,7 @@ module GrdaWarehouse::Tasks
         debug_log "Calculating chronicity for #{client_id}"
         reset_for_batch()
         dmh_client_scope = service_history_source.
-          hud_currently_homeless(date: @date).
+          hud_currently_homeless(date: @date, chronic_types_only: true).
           where(client_id: client_id).
           where(dmh_projects_filter).
           service_within_date_range(start_date: @date - 3.years, end_date: @date)

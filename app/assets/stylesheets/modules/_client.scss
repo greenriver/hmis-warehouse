@@ -5,7 +5,9 @@
 .service-type__bed_night,
 .service-type__service,
 .service-type__entry,
-.service-type__exit
+.service-type__exit,
+.service-type__extrapolated,
+.service-type__first,
 {
   background-color: $gray-020;
   margin: 0.2em 0;
@@ -20,6 +22,15 @@
 .service-type__exit
 {
   background-color: $cas-red;
+  color: white;
+}
+.service-type__extrapolated
+{
+  background-color: $gray-040;
+}
+.service-type__first 
+{
+  background-color: $cob-sg-optimistic-blue;
   color: white;
 }
 .service-type__program-type {

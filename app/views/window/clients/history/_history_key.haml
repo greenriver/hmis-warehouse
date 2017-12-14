@@ -1,0 +1,23 @@
+.history__key
+  %h4 Service History Key
+  .service-type__entry.client__service_type_1
+    .service-type__program-type 
+      %em Project Type
+    Entry Date
+  .service-type__service.client__service_type_1
+    .service-type__program-type 
+      %em Project Type
+    Service Provided
+  - if GrdaWarehouse::Config.get(:so_day_as_month)
+    .service-type__extrapolated.client__service_type_1
+      .service-type__program-type 
+        %em Project Type
+      Extrapolated Street Outreach
+  .service-type__exit.client__service_type_1
+    .service-type__program-type 
+      %em Project Type
+    Exit Date
+  .service-type__first.client__service_type_1
+    .service-type__program-type 
+      %em Project Type
+    First Residential Service
