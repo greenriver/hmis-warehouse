@@ -34,16 +34,33 @@ module GrdaWarehouse
       end
     end
 
+    scope :consent_forms, -> do
+      tagged_with 'Consent Form'
+    end
+    scope :confirmed, -> do
+      where(consent_form_confirmed: true)
+    end
+    scope :signed_on, -> (date) do
+      where(consent_form_signed_on: date)
+    end
+
     ####################
     # Callbacks
     ####################
     after_create :notify_users
+    after_save :set_client_consent
 
     ####################
     # Access
     ####################
     def self.any_visible_by?(user)
       user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
+    def set_client_consent
+      if consent_form_signed_on_changed?
+        client.update_column :consent_form_signed_on, consent_form_signed_on
+      end
     end
 
     def notify_users

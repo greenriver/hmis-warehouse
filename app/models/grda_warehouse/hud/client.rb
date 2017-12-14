@@ -337,6 +337,18 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.revoke_expired_consent
+      release_duration = GrdaWarehouse::Config.get :release_duration
+      if release_duration == 'One Year'
+        clients_with_consent = self.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < 1.year.ago
+            client.update_columns(housing_release_status: nil)
+          end
+        end
+      end
+    end
+
     def alternate_names
       names = client_names.map do |m|
         m[:name]
@@ -891,6 +903,41 @@ module GrdaWarehouse::Hud
     # Find the most-recently updated source_hmis_client with a non-null consent_form
     def signed_consent_form_fully?
       consent_form_status == 'Signed fully'
+    end
+
+    def consent_form_valid?
+      duration = GrdaWarehouse::Config.get(:release_duration)
+      if duration == 'One Year'
+        consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
+      else
+        consent_form_signed_on.present?
+      end
+    end
+
+    def consent_form_validity_period
+      duration = GrdaWarehouse::Config.get(:release_duration)
+      if duration == 'One Year'
+        "Valid Until #{consent_form_signed_on + 1.year}"
+      else
+        'Valid (Indefinite)'
+      end
+    end
+
+    def consent_forms
+      client_files.consent_forms
+    end
+
+    def consent_forms?
+      consent_forms.any?
+    end
+
+    def consent_form_confirmed?
+      duration = GrdaWarehouse::Config.get(:release_duration)
+      if duration == 'One Year'
+        consent_forms.confirmed.signed_on(consent_form_signed_on).any?
+      else
+        consent_forms.confirmed.any?
+      end
     end
 
     def service_date_range

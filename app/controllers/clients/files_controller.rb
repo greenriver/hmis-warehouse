@@ -16,6 +16,8 @@ module Clients
           visible_in_window: file_params[:visible_in_window],
           note: file_params[:note],
           name: file_params[:name],
+          consent_form_signed_on: file_params[:consent_form_signed_on],
+          consent_form_confirmed: file_params[:consent_form_confirmed]
         )
         tag_list = file_params[:tag_list].select(&:present?)
         @file.tag_list.add(tag_list)
@@ -29,6 +31,11 @@ module Clients
         return
       end
       redirect_to action: :index 
+    end
+
+    def update
+      allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
+      @file.update(allowed_params)
     end
     
     def file_scope

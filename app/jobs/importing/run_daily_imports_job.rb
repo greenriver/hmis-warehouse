@@ -17,6 +17,10 @@ module Importing
         lock_checks -= 1
       end
       start_time = Time.now
+
+      # expire client consent form if past 1 year
+      GrdaWarehouse::Hud::Client.revoke_expired_consent
+
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!

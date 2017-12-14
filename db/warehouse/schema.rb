@@ -96,6 +96,7 @@ ActiveRecord::Schema.define(version: 20171213002924) do
     t.datetime "api_last_updated_at"
     t.integer  "creator_id"
     t.boolean  "cspech_eligible",                        :default=>false
+    t.date     "consent_form_signed_on"
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
@@ -992,7 +993,7 @@ ActiveRecord::Schema.define(version: 20171213002924) do
   end
 
   create_table "files", force: :cascade do |t|
-    t.string   "type",              :null=>false
+    t.string   "type",                   :null=>false
     t.string   "file"
     t.string   "content_type"
     t.binary   "content"
@@ -1006,6 +1007,8 @@ ActiveRecord::Schema.define(version: 20171213002924) do
     t.boolean  "visible_in_window"
     t.string   "migrated_username"
     t.integer  "vispdat_id"
+    t.date     "consent_form_signed_on"
+    t.boolean  "consent_form_confirmed"
   end
   add_index "files", ["type"], :name=>"index_files_on_type", :using=>:btree
   add_index "files", ["vispdat_id"], :name=>"index_files_on_vispdat_id", :using=>:btree
