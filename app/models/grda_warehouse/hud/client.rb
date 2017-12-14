@@ -1125,6 +1125,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.age date:, dob:
+      return nil unless date.present? && dob.present?
       age = date.year - dob.year
       age -= 1 if dob > date.years_ago(age)
       return age
