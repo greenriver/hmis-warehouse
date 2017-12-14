@@ -96,7 +96,8 @@ module Window::Clients
           visible_in_window: true,
           note: file_params[:note],
           name: file_params[:name],
-          vispdat_id: @vispdat.id
+          vispdat_id: @vispdat.id,
+          consent_form_signed_on: file_params[:consent_form_signed_on]
         )
         consent_form = 'Consent Form'
         # @file.tag_list.add(tag_list.select(&:present?))
@@ -159,6 +160,7 @@ module Window::Clients
             :name,
             :note,
             :visible_in_window,
+            :consent_form_signed_on,
             tag_list: []
           )
       end

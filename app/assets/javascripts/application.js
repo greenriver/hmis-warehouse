@@ -45,6 +45,7 @@
 //= require util
 //= require site_menu
 //= require vispdats
+//= require files
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps

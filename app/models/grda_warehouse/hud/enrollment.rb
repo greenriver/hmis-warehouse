@@ -2,6 +2,7 @@ module GrdaWarehouse::Hud
   class Enrollment < Base
     include ArelHelper
     include HudSharedScopes
+    include TsqlImport
     self.table_name = 'Enrollment'
     self.hud_key = 'ProjectEntryID'
     acts_as_paranoid column: :DateDeleted
@@ -138,7 +139,9 @@ module GrdaWarehouse::Hud
     has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], autosave: false
     has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
     has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
-    belongs_to :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :enrollment_group_id, :project_id], foreign_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
+    # NOTE: you will want to limit this to a particular record_type
+    has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
+    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID]
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)
@@ -199,6 +202,37 @@ module GrdaWarehouse::Hud
       condition = conditions.reduce(conditions.shift){ |c1, c2| c1.or c2 }
       where condition
     }
+
+    #################################
+    # Standard Demographic Scopes
+    scope :veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.veteran)
+    end
+
+    scope :non_veteran, -> do
+      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+
+    scope :family, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
+    end
+
+    scope :individual, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
+    end
+
+    # End Standard Demographic Scopes
+    #################################
+    
+    def self.youth_columns
+      {
+        personal_id: :PersonalID, 
+        project_id: :ProjectID, 
+        household_id: :HouseholdID, 
+        data_source_id: :data_source_id, 
+        client_id: c_t[:id].as('client_id').to_sql,
+      }.freeze
+    end
 
     # attempt to collect something like an address out of the LastX fields
     def address

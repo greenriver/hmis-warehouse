@@ -19,6 +19,17 @@
             %td= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
       
       = f.input :housing_release_status, collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed'
+      .row
+        .col-sm-6
+          %label Consent Form Signed On
+          %div
+            %i.icon-calendar
+            = @client.consent_form_signed_on
+        .col-sm-6
+          %label Consent Form Confirmed
+          %div
+            = checkmark @client.client_files.where(consent_form_signed_on: @client.consent_form_signed_on).first&.consent_form_confirmed
+      %hr
       - if can_view_hiv_status?
         = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible]
         = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive]

@@ -33,6 +33,10 @@ module GrdaWarehouse::Hud
       ]
     end
 
+    FAMILY_HOUSEHOLD_TYPE = 3
+    INDIVIDUAL_HOUSEHOLD_TYPE = 1
+    CHILD_ONLY_HOUSEHOLD_TYPE = 4
+
     belongs_to :export, **hud_belongs(Export), inverse_of: :inventories
     has_one :project, through: :project_coc, source: :project
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories
@@ -56,15 +60,24 @@ module GrdaWarehouse::Hud
     end
 
     scope :serves_families, -> do
-      where(HouseholdType: 3)
+      where(HouseholdType: FAMILY_HOUSEHOLD_TYPE)
+    end
+
+    scope :family, -> do
+      serves_families
     end
 
     scope :serves_individuals, -> do
-      where.not(HouseholdType: 3)
+      where(i_t[:HouseholdType].not_eq(FAMILY_HOUSEHOLD_TYPE).
+          or(i_t[:HouseholdType].eq(nil)))
+    end
+    
+    scope :individual, -> do
+      serves_individuals
     end
 
     scope :serves_children, -> do
-      where(HouseholdType: 4)
+      where(HouseholdType: CHILD_ONLY_HOUSEHOLD_TYPE)
     end
 
     # when we export, we always need to replace InventoryID with the value of id

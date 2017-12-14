@@ -300,8 +300,9 @@ module GrdaWarehouse::Vispdat
     end
 
     def expired?
-      return true unless release_signed_on
-      release_signed_on && release_signed_on < 1.year.ago
+      signed_on = client.consent_form_signed_on
+      return true unless signed_on
+      signed_on && signed_on < 1.year.ago
     end
 
     ####################

@@ -179,8 +179,22 @@ module GrdaWarehouse::Hud
     # scope :unmatched, -> do
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
     # end
+    # 
+    scope :child, -> do
+      where(c_t[:DOB].gt(18.years.ago.to_date))
+    end
+    scope :youth, -> (on: Date.today) do
+      where(DOB: (on - 24.years .. on - 18.years))
+    end
+     
+     #################################
+    # Standard Cohort Scopes    
     scope :veteran, -> do
-      where VeteranStatus: 1
+      where(VeteranStatus: 1)
+    end
+
+    scope :non_veteran, -> do
+      where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
     end
     scope :currently_homeless, -> (chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
@@ -321,6 +335,40 @@ module GrdaWarehouse::Hud
         range_51_to_61: { name: "51 - 61 yrs old", start_age: 51, end_age: 62},
         range_62_to_nil: { name: "62+ yrs old", start_age: 62, end_age: nil }
       }
+    end
+
+    def self.revoke_expired_consent
+      release_duration = GrdaWarehouse::Config.get :release_duration
+      if release_duration == 'One Year'
+        clients_with_consent = self.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < 1.year.ago
+            client.update_columns(housing_release_status: nil)
+          end
+        end
+      end
+    end
+
+    def alternate_names
+      names = client_names.map do |m|
+        m[:name]
+      end.uniq
+      names -= [full_name]
+      names.join(',')
+    end
+
+    def client_names window: true
+      client_scope = if window
+        source_clients.visible_in_window
+      else
+        source_clients
+      end
+      client_scope.includes(:data_source).map do |m|
+        {
+          ds: m.data_source.short_name,
+          name: m.full_name,
+        }
+      end
     end
 
     def active_in_cas?
@@ -857,6 +905,41 @@ module GrdaWarehouse::Hud
       consent_form_status == 'Signed fully'
     end
 
+    def consent_form_valid?
+      duration = GrdaWarehouse::Config.get(:release_duration)
+      if duration == 'One Year'
+        consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
+      else
+        consent_form_signed_on.present?
+      end
+    end
+
+    def consent_form_validity_period
+      duration = GrdaWarehouse::Config.get(:release_duration)
+      if duration == 'One Year'
+        "Valid Until #{consent_form_signed_on + 1.year}"
+      else
+        'Valid (Indefinite)'
+      end
+    end
+
+    def consent_forms
+      client_files.consent_forms
+    end
+
+    def consent_forms?
+      consent_forms.any?
+    end
+
+    def consent_form_confirmed?
+      duration = GrdaWarehouse::Config.get(:release_duration)
+      if duration == 'One Year'
+        consent_forms.confirmed.signed_on(consent_form_signed_on).any?
+      else
+        consent_forms.confirmed.any?
+      end
+    end
+
     def service_date_range
       @service_date_range ||= begin
         at = service_history.arel_table
@@ -953,7 +1036,7 @@ module GrdaWarehouse::Hud
           if m.enrollment_group_id.present?
             day[:group] = "#{m.enrollment_group_id}"
           end
-          if m.record_type == 'service'
+          if service_types.include?(m.record_type)
             day[:start] = m.date.to_date
           elsif m.record_type == 'exit'
             day[:start] = if m.last_date_in_program.present?
@@ -1282,7 +1365,7 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history.where(record_type: [:entry, :exit, :service]).delete_all
+      service_history.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
       source_enrollments.update_all(processed_hash: nil)
       invalidate_service_history
     end
@@ -1417,17 +1500,33 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.service_types
+      @service_types ||= begin
+        service_types = ['service']
+        if GrdaWarehouse::Config.get(:so_day_as_month)
+          service_types << 'extrapolated'
+        end
+        service_types
+      end
+    end
+
+    def service_types
+      self.class.service_types
+    end
+
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
+        
         exit_join = e_t.join(ex_t, Arel::Nodes::OuterJoin).
           on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
             and(e_t[:data_source_id].eq(ex_t[:data_source_id]))
           )
+        
         enrollments = scope.
           joins(exit_join.join_sources).
           joins(:service_histories, :project).
-          where(sh_t[:record_type].in(['service', 'entry'])).
+          where(sh_t[:record_type].in(service_types + ['entry'])).
           select(*self.class.enrollment_columns.values).
           pluck(*self.class.enrollment_columns.values).
           map do |row|
@@ -1452,7 +1551,7 @@ module GrdaWarehouse::Hud
               meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name
             end
           end
-          dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
+          dates_served = e.select{|m| service_types.include?(m[:record_type])}.map{|m| m[:date]}.uniq
           # days that are not also served by a later enrollment of the same project type
           # unless this is a bed-night style project, in which case we count all nights
           count_until = if meta[:project_tracking_method] == 3
@@ -1484,7 +1583,7 @@ module GrdaWarehouse::Hud
             project_type: ::HUD::project_type_brief(meta[:project_type]),
             project_type_id: meta[:project_type],
             class: "client__service_type_#{meta[:project_type]}",
-            most_recent_service: e.select{|m| m[:record_type] == 'service'}.last.try(:[], :date),
+            most_recent_service: e.select{|m| service_types.include?(m[:record_type])}.last.try(:[], :date),
             new_episode: new_episode?(enrollments: enrollments, project_type: meta[:project_type], entry_date: meta[:EntryDate]),
             # support: dates_served,
           }

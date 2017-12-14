@@ -23,6 +23,11 @@
         %th Target Population
         %td= HUD.target_population @project.TargetPopulation
       %tr
+        %th Household Type
+        %td
+          %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
+            = @project.main_population
+      %tr
         %th Continuum Project
         %td= checkmark(@project.ContinuumProject == 1)
       %tr

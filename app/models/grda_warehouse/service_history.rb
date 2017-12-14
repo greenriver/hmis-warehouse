@@ -21,11 +21,19 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :entry, -> { where record_type: 'entry' }
   scope :exit, -> { where record_type: 'exit' }
-  scope :service, -> { where record_type: 'service' }
+  scope :service, -> { where record_type: service_types }
+  scope :extrapolated, -> { where record_type: 'extrapolated' }
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service
   scope :first_date, -> { where record_type: 'first' }
+
+  def self.service_types
+    service_types = ['service']
+    if GrdaWarehouse::Config.get(:so_day_as_month)
+      service_types << 'extrapolated'
+    end
+  end
   scope :residential, -> {
     where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   }
@@ -204,6 +212,53 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :visible_in_window, -> do
     joins(:data_source).where(data_sources: {visible_in_window: true})
   end
+
+  #################################
+    # Standard Cohort Scopes
+    scope :veteran, -> do
+      joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
+    end
+
+    scope :non_veteran, -> do
+      joins(:client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+
+    scope :family, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
+    end
+
+    scope :individual, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
+    end
+
+    scope :youth, -> do
+      where(age: (18..24))
+    end
+
+    scope :children, -> do
+      where(age: (0...18))
+    end
+    # Client age on date is 18-24
+    # Presented alone or as the head of household with no one else > 24
+    scope :unaccompanied_youth, -> do
+      where(unaccompanied_youth: true)
+    end
+
+    scope :parenting_youth, -> do
+      where(parenting_youth: true)
+    end
+
+    scope :children_only, -> do
+      where(children_only: true)
+    end
+
+    scope :parenting_juvenile, -> do
+      where(parenting_juvenile: true)
+    end
+
+
+    # End Standard Cohort Scopes
+    #################################
 
   # Only run this on off-hours.  It can take 2-5 hours and hang 
   # the database

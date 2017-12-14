@@ -39,6 +39,8 @@ module Admin
         :allow_partial_release,
         :window_access_requires_release,
         :show_partial_ssn_in_window_search_results,
+        :so_day_as_month,
+        :ahar_psh_includes_rrh,
         tag_list: [],
         file_notification_list: [],
       )

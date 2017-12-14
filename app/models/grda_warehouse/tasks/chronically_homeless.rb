@@ -42,7 +42,7 @@ module GrdaWarehouse::Tasks
       @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
       @date = date
       @hard_stop = @date.beginning_of_month
-      @count_so_as_full_month = count_so_as_full_month
+      @count_so_as_full_month = GrdaWarehouse::Config.get(:so_day_as_month)
       @dry_run = dry_run
       @clients = client_ids
       @limited = client_ids.present? && client_ids.any?
@@ -212,20 +212,20 @@ module GrdaWarehouse::Tasks
         dates_served = e.map{|m| m[:date]}.uniq
         # special treatment for SO
         # Count all days in any month served
-        if count_so_as_full_month?(meta)
-          so_dates_served = []
-          dates_served.map do |date|
-            Date.new(date.year, date.month, 01)
-          end.uniq.each do |first_of_month|
-            last_of_month = first_of_month.end_of_month
-            first_of_month.upto(last_of_month) do |d|
-              so_dates_served << d
-            end
-          end
-          debug_log "SO Dates Served in #{meta[:project_name]}: #{so_dates_served.size}"
-          # debug_log so_dates_served.inspect
-          dates_served = so_dates_served.uniq
-        end
+        # if count_so_as_full_month?(meta)
+        #   so_dates_served = []
+        #   dates_served.map do |date|
+        #     Date.new(date.year, date.month, 01)
+        #   end.uniq.each do |first_of_month|
+        #     last_of_month = first_of_month.end_of_month
+        #     first_of_month.upto(last_of_month) do |d|
+        #       so_dates_served << d
+        #     end
+        #   end
+        #   debug_log "SO Dates Served in #{meta[:project_name]}: #{so_dates_served.size}"
+        #   # debug_log so_dates_served.inspect
+        #   dates_served = so_dates_served.uniq
+        # end
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
         count_until = if bed_night?(meta)
