@@ -38,7 +38,7 @@
       - if @client.consent_form_valid?
         %span.label.label-success(style='color:#000')= @client.consent_form_validity_period
       - else
-        %span.label.label-danger Expired
+        %span.label.label-danger= @client.expired_or_missing_consent_notice
 
       - if @client.consent_form_valid? && @client.consent_form_confirmed?
         %span.label.label-success(style='color:#000') Confirmed

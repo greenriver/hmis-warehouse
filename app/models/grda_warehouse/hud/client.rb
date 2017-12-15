@@ -874,21 +874,31 @@ module GrdaWarehouse::Hud
       consent_form_status == 'Signed fully'
     end
 
+    def release_duration
+      duration ||= GrdaWarehouse::Config.get(:release_duration)
+    end
+
     def consent_form_valid?
-      duration = GrdaWarehouse::Config.get(:release_duration)
-      if duration == 'One Year'
+      if release_duration == 'One Year'
         consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
       else
         consent_form_signed_on.present?
       end
     end
 
-    def consent_form_validity_period
-      duration = GrdaWarehouse::Config.get(:release_duration)
-      if duration == 'One Year'
-        "Valid Until #{consent_form_signed_on + 1.year}"
+    def expired_or_missing_consent_notice
+      if release_duration == 'One Year'
+        consent_forms? ? 'Expired' : ''
       else
-        'Valid (Indefinite)'
+        ''
+      end
+    end
+
+    def consent_form_validity_period
+      if release_duration == 'One Year'
+        consent_forms? ? "Valid Until #{consent_form_signed_on + 1.year}" : ''
+      else
+        consent_forms? ? 'Valid (Indefinite)' : ''
       end
     end
 
@@ -901,8 +911,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_form_confirmed?
-      duration = GrdaWarehouse::Config.get(:release_duration)
-      if duration == 'One Year'
+      if release_duration == 'One Year'
         consent_forms.confirmed.signed_on(consent_form_signed_on).any?
       else
         consent_forms.confirmed.any?
