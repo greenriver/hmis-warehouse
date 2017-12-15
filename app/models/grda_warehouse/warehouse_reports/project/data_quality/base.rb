@@ -200,6 +200,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         ssn_data_quality: c_t[:SSNDataQuality].as('ssn_data_quality').to_sql,
         dob: c_t[:DOB].as('dob').to_sql,
         dob_data_quality: c_t[:DOBDataQuality].as('dob_data_quality').to_sql,
+        destination_id: sh_t[:client_id].as('destination_id').to_sql,
       }
     end
 
@@ -222,6 +223,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         black_af_american: c_t[:BlackAfAmerican].as('black_af_american').to_sql,
         native_hi_other_pacific: c_t[:NativeHIOtherPacific].as('native_hi_other_pacific').to_sql,
         white: c_t[:White].as('white').to_sql,
+        destination_id: sh_t[:client_id].as('destination_id').to_sql,
       }
     end
 

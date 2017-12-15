@@ -179,29 +179,46 @@ module GrdaWarehouse::Hud
     # scope :unmatched, -> do
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
     # end
-    scope :veteran, -> do
-      where VeteranStatus: 1
+    # 
+    scope :child, -> do
+      where(c_t[:DOB].gt(18.years.ago.to_date))
     end
-    scope :currently_homeless, -> do
+    scope :youth, -> (on: Date.today) do
+      where(DOB: (on - 24.years .. on - 18.years))
+    end
+     
+     #################################
+    # Standard Cohort Scopes    
+    scope :veteran, -> do
+      where(VeteranStatus: 1)
+    end
+
+    scope :non_veteran, -> do
+      where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
+    end
+    scope :currently_homeless, -> (chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable
       # clearer and composable but less efficient would be to use an exists subquery
-      sh  = GrdaWarehouse::ServiceHistory
-      at  = arel_table
-      sht = sh.arel_table
-      inner_table = sht.
-        project(sht[:client_id]).
-        group(sht[:client_id]).
-        where( sht[:record_type].eq 'entry' ).
-        where( sht[:project_type].in GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES ).
-        where( sht[:last_date_in_program].eq nil ).
-        as('sht')
-      joins "INNER JOIN #{inner_table.to_sql} ON #{at[:id].eq(inner_table[:client_id]).to_sql}"
+      
+      if chronic_types_only
+        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      else
+        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      end 
+      
+      inner_table = sh_t.
+        project(sh_t[:client_id]).
+        group(sh_t[:client_id]).
+        where( sh_t[:record_type].eq 'entry' ).
+        where( sh_t[:project_type].in(project_types)).
+        where( sh_t[:last_date_in_program].eq nil ).
+        as('sh_t')
+      joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
     scope :disabled, -> do
-      at = arel_table
       dt = Disability.arel_table
-      where Disability.where( dt[:data_source_id].eq at[:data_source_id] ).where( dt[:PersonalID].eq at[:PersonalID] ).exists
+      where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
     end
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
@@ -255,26 +272,18 @@ module GrdaWarehouse::Hud
     end
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
-      c_t = arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       where(id:
-        GrdaWarehouse::ServiceHistory.service.
+        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
-        where(
-          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-        ).select(:client_id).distinct
+        select(:client_id).distinct
       )
     end
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
-      c_t = arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       where(id:
-        GrdaWarehouse::ServiceHistory.service.
+        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
-        where(
-          project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-        ).select(:client_id).distinct
+        select(:client_id).distinct
       )
     end
 
@@ -337,6 +346,28 @@ module GrdaWarehouse::Hud
             client.update_columns(housing_release_status: nil)
           end
         end
+      end
+    end
+
+    def alternate_names
+      names = client_names.map do |m|
+        m[:name]
+      end.uniq
+      names -= [full_name]
+      names.join(',')
+    end
+
+    def client_names window: true
+      client_scope = if window
+        source_clients.visible_in_window
+      else
+        source_clients
+      end
+      client_scope.includes(:data_source).map do |m|
+        {
+          ds: m.data_source.short_name,
+          name: m.full_name,
+        }
       end
     end
 
@@ -937,7 +968,7 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      service_history.homeless.
+      service_history.homeless(chronic_types_only: true).
         from(GrdaWarehouse::ServiceHistory.quoted_table_name).
         maximum(:date)
     end
@@ -1014,7 +1045,7 @@ module GrdaWarehouse::Hud
           if m.enrollment_group_id.present?
             day[:group] = "#{m.enrollment_group_id}"
           end
-          if m.record_type == 'service'
+          if service_types.include?(m.record_type)
             day[:start] = m.date.to_date
           elsif m.record_type == 'exit'
             day[:start] = if m.last_date_in_program.present?
@@ -1103,6 +1134,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.age date:, dob:
+      return nil unless date.present? && dob.present?
       age = date.year - dob.year
       age -= 1 if dob > date.years_ago(age)
       return age
@@ -1343,7 +1375,7 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history.where(record_type: [:entry, :exit, :service]).delete_all
+      service_history.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
       source_enrollments.update_all(processed_hash: nil)
       invalidate_service_history
     end
@@ -1478,17 +1510,33 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.service_types
+      @service_types ||= begin
+        service_types = ['service']
+        if GrdaWarehouse::Config.get(:so_day_as_month)
+          service_types << 'extrapolated'
+        end
+        service_types
+      end
+    end
+
+    def service_types
+      self.class.service_types
+    end
+
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
+        
         exit_join = e_t.join(ex_t, Arel::Nodes::OuterJoin).
           on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
             and(e_t[:data_source_id].eq(ex_t[:data_source_id]))
           )
+        
         enrollments = scope.
           joins(exit_join.join_sources).
           joins(:service_histories, :project).
-          where(sh_t[:record_type].in(['service', 'entry'])).
+          where(sh_t[:record_type].in(service_types + ['entry'])).
           select(*self.class.enrollment_columns.values).
           pluck(*self.class.enrollment_columns.values).
           map do |row|
@@ -1513,7 +1561,7 @@ module GrdaWarehouse::Hud
               meta[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name
             end
           end
-          dates_served = e.select{|m| m[:record_type] == 'service'}.map{|m| m[:date]}.uniq
+          dates_served = e.select{|m| service_types.include?(m[:record_type])}.map{|m| m[:date]}.uniq
           # days that are not also served by a later enrollment of the same project type
           # unless this is a bed-night style project, in which case we count all nights
           count_until = if meta[:project_tracking_method] == 3
@@ -1545,7 +1593,7 @@ module GrdaWarehouse::Hud
             project_type: ::HUD::project_type_brief(meta[:project_type]),
             project_type_id: meta[:project_type],
             class: "client__service_type_#{meta[:project_type]}",
-            most_recent_service: e.select{|m| m[:record_type] == 'service'}.last.try(:[], :date),
+            most_recent_service: e.select{|m| service_types.include?(m[:record_type])}.last.try(:[], :date),
             new_episode: new_episode?(enrollments: enrollments, project_type: meta[:project_type], entry_date: meta[:EntryDate]),
             # support: dates_served,
           }

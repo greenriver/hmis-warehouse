@@ -11,10 +11,12 @@
       = f.input :eto_api_available, label: 'Is the ETO API available?'
       = f.input :healthcare_available, label: 'Enable Healthcare section?'
       = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
+      = f.input :ahar_psh_includes_rrh, label: 'Should AHAR include RRH in PSH?'
       = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations
       = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
       = f.input :window_access_requires_release, label: 'Block access to the window if a client doesn\'t have a release?'
       = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
+      = f.input :so_day_as_month, label: 'Extrapolate all street outreach contacts to cover the entire month?'
       = f.input :cas_url, label: 'CAS Site URL'
       = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
     .col-sm-6
