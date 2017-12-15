@@ -1,0 +1,9 @@
+.client-consent-status
+  %h3 Consent Form
+  - status = @client.release_current_status
+  - if status == 'None on file'
+    .alert.alert-warning= status
+  - elsif status == 'Expired'
+    .alert.alert-danger= status
+  - else
+    .alert.alert-success=status

@@ -17,9 +17,9 @@ module Clients
         nil
       end
       if update_params[:housing_release_status].present?
-        update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
+        update_params[:consent_form_signed_on] = @client.consent_form_signed_on || Time.now
       else
-        update_params[:housing_assistance_network_released_on] = nil
+        update_params[:consent_form_signed_on] = nil
       end
       if @client.update(update_params)
         flash[:notice] = 'Client updated'

@@ -61,6 +61,13 @@ module GrdaWarehouse
       if consent_form_signed_on_changed?
         client.update_column :consent_form_signed_on, consent_form_signed_on
       end
+      if consent_form_confirmed_changed?
+        if consent_form_confirmed
+          client.update_column(:housing_release_status, client.class.full_release_string)
+        else
+          client.update_column(:housing_release_status, '')
+        end
+      end
     end
 
     def notify_users

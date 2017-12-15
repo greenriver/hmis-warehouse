@@ -38,14 +38,12 @@
         %strong
           = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
       = render 'clients/chronic_flags', client: @client
+      = render 'window/clients/consent_form_flags'
     - if required_documents.any?
       .col-sm-4
         = render 'window/clients/required_documents'
 
     - if eto_available
-      .col-sm-4.client__data-sharing-agreement
-        %h3 Data Sharing Agreement
-        = @client.consent_form_status.presence ||'No consent forms on file'
       - if @client.image
         .col-sm-4
           .client__image
