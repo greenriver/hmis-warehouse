@@ -893,7 +893,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_readiness_parameters
-      cas_columns.keys + [:consent_form_signed_on]
+      cas_columns.keys + [:housing_assistance_network_released_on]
     end
 
     def invalidate_service_history

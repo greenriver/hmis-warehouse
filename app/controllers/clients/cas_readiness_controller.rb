@@ -18,11 +18,7 @@ module Clients
           nil
         end
       end
-      if update_params[:housing_release_status].present?
-        update_params[:consent_form_signed_on] = @client.consent_form_signed_on || Time.now
-      else
-        update_params[:consent_form_signed_on] = nil
-      end
+      
       if @client.update(update_params)
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files

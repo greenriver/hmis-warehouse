@@ -16,11 +16,7 @@ module Clients
       else
         nil
       end
-      if update_params[:housing_release_status].present?
-        update_params[:consent_form_signed_on] = @client.consent_form_signed_on || Time.now
-      else
-        update_params[:consent_form_signed_on] = nil
-      end
+      
       if @client.update(update_params)
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later
