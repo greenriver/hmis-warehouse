@@ -229,7 +229,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         joins(:destination_client).
         where(Client: {id: sh_t[:client_id]}).
         joins(join_sh_t_sql).
-        where(warehouse_client_service_history: {record_type: [:entry, :exit, :service]}).
+        where(service_history_source.table_name => {record_type: [:entry, :exit, :service]}).
         order(sh_t[:date].asc, sh_t[:record_type].asc).
         pluck(*service_history_hash_columns)
     end
