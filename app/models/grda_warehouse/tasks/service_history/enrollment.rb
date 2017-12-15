@@ -550,8 +550,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    def service_history_source
+    def self.service_history_source
       GrdaWarehouse::ServiceHistory
+    end
+    def service_history_source
+      self.class.service_history_source
     end
 
     def force_validity_calculation
