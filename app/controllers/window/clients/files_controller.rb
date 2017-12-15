@@ -23,7 +23,8 @@ module Window::Clients
     def create
       @file = file_source.new
       begin
-        file = file_params[:file]
+        allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
+        file = allowed_params[:file]
         @file.assign_attributes(
           file: file,
           client_id: @client.id,
@@ -31,12 +32,12 @@ module Window::Clients
           content_type: file&.content_type,
           content: file&.read,
           visible_in_window: true,
-          note: file_params[:note],
-          name: file_params[:name],
-          consent_form_signed_on: file_params[:consent_form_signed_on],
-          consent_form_confirmed: file_params[:consent_form_confirmed]
+          note: allowed_params[:note],
+          name: allowed_params[:name],
+          consent_form_signed_on: allowed_params[:consent_form_signed_on],
+          consent_form_confirmed: allowed_params[:consent_form_confirmed]
         )
-        tag_list = file_params[:tag_list].select(&:present?)
+        tag_list = allowed_params[:tag_list].select(&:present?)
         @file.tag_list.add(tag_list)
         @file.save!
 

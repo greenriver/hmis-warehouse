@@ -311,18 +311,6 @@ module GrdaWarehouse::Hud
       NotifyUser.client_added( id ).deliver_later if send_notifications
     end
 
-    def self.full_release_string
-      # Return the untranslated string, but force the translator to see it
-      _('Full HAN Release')
-      'Full HAN Release'
-    end
-
-    def self.partial_release_string
-      # Return the untranslated string, but force the translator to see it
-      _('Limited CAS Release')
-      'Limited CAS Release'
-    end
-
     def self.ahar_age_groups
       {
         range_0_to_1: { name: "< 1 yr old", start_age: 0, end_age: 1},
@@ -496,13 +484,54 @@ module GrdaWarehouse::Hud
       }
     end
 
+    ##############################
+    # NOTE: this section deals with the release/consent form as uploaded
+    # and maintained in the warehouse
+    def self.full_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Full HAN Release')
+      'Full HAN Release'
+    end
+
+    def self.partial_release_string
+      # Return the untranslated string, but force the translator to see it
+      _('Limited CAS Release')
+      'Limited CAS Release'
+    end
+
+    def release_current_status
+      if housing_release_status.blank?
+        'None on file'
+      elsif release_duration == 'One Year'
+        if consent_form_valid?
+          "Valid Until #{consent_form_signed_on + 1.year}"
+        else
+          'Expired'
+        end
+      else
+        _(housing_release_status)
+      end
+    end
+
+    def release_duration
+      duration ||= GrdaWarehouse::Config.get(:release_duration)
+    end
+    
     def release_valid?
       housing_release_status == self.class.full_release_string
     end
 
-    def release_expired?
-      !release_valid?
+    def consent_form_valid?
+      if release_duration == 'One Year'
+        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
+      else
+        release_valid?
+      end
     end
+
+
+    # End Release information
+    ##############################
 
     # cas needs a simplified version of this
     def cas_substance_response
@@ -894,6 +923,8 @@ module GrdaWarehouse::Hud
       [self.FirstName,self.MiddleName,self.LastName].select(&:present?).join(' ')
     end
 
+    ########################
+    # NOTE: this section deals with the consent form as seen in ETO via the API
     def consent_form_status
       @consent_form_status ||= source_hmis_clients.joins(:client).
         where.not(consent_form_status: nil).
@@ -904,41 +935,8 @@ module GrdaWarehouse::Hud
     def signed_consent_form_fully?
       consent_form_status == 'Signed fully'
     end
-
-    def consent_form_valid?
-      duration = GrdaWarehouse::Config.get(:release_duration)
-      if duration == 'One Year'
-        consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
-      else
-        consent_form_signed_on.present?
-      end
-    end
-
-    def consent_form_validity_period
-      duration = GrdaWarehouse::Config.get(:release_duration)
-      if duration == 'One Year'
-        "Valid Until #{consent_form_signed_on + 1.year}"
-      else
-        'Valid (Indefinite)'
-      end
-    end
-
-    def consent_forms
-      client_files.consent_forms
-    end
-
-    def consent_forms?
-      consent_forms.any?
-    end
-
-    def consent_form_confirmed?
-      duration = GrdaWarehouse::Config.get(:release_duration)
-      if duration == 'One Year'
-        consent_forms.confirmed.signed_on(consent_form_signed_on).any?
-      else
-        consent_forms.confirmed.any?
-      end
-    end
+    # End NOTE
+    #############################
 
     def service_date_range
       @service_date_range ||= begin

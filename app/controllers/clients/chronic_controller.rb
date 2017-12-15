@@ -16,11 +16,7 @@ module Clients
       else
         nil
       end
-      if update_params[:housing_release_status].present?
-        update_params[:housing_assistance_network_released_on] = @client.housing_assistance_network_released_on || Time.now
-      else
-        update_params[:housing_assistance_network_released_on] = nil
-      end
+      
       if @client.update(update_params)
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later

@@ -369,3 +369,13 @@ $client-match-action-row-height: 22px;
   float: left;
   margin-right: 2%;
 }
+
+.client-consent-status .alert
+{
+  text-align: center;
+  margin-top: 0.5em;
+  margin-bottom: 0.25em;
+  padding: 1em 0.5em;
+  display: inline-block;
+  padding: 0.5em 0.5em;
+}
