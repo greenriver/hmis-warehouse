@@ -229,7 +229,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         joins(:destination_client).
         where(Client: {id: sh_t[:client_id]}).
         joins(join_sh_t_sql).
-        where(warehouse_client_service_history: {record_type: [:entry, :exit, :service]}).
+        where(service_history_source.table_name => {record_type: [:entry, :exit, :service]}).
         order(sh_t[:date].asc, sh_t[:record_type].asc).
         pluck(*service_history_hash_columns)
     end
@@ -550,8 +550,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    def service_history_source
+    def self.service_history_source
       GrdaWarehouse::ServiceHistory
+    end
+    def service_history_source
+      self.class.service_history_source
     end
 
     def force_validity_calculation

@@ -23,9 +23,9 @@ module WarehouseReports
         @cohort = params.try(:[], :first_time_homeless).try(:[], :cohort) || 'all'
         case @cohort
         when 'individual-only'
-          @clients = @clients.where(warehouse_client_service_history: {presented_as_individual: true})
+          @clients = @clients.where(history.table_name => {presented_as_individual: true})
         when 'family-only'
-          @clients = @clients.where(warehouse_client_service_history: {presented_as_individual: false})
+          @clients = @clients.where(history.table_name => {presented_as_individual: false})
         when 'veterans'
           @clients = @clients.where(VeteranStatus: 1)
         end
