@@ -27,8 +27,8 @@ class App.D3Chart.TopBarCharts
 class App.D3Chart.TopBar
   constructor: (container_selector, data, yAttr, yLabel, mainType) ->
     @attrs = {all: 'sdh_pct', patient: 'indiv_pct'}
-    @mainType = mainType
-    @subType = if mainType == 'patient' then 'all'
+    @mainType = 'patient'#mainType
+    @subType = 'all' #if mainType == 'patient' then 'all'
     @yAttr = yAttr
     @yLabel = yLabel
     @data = data
@@ -68,7 +68,8 @@ class App.D3Chart.TopBar
     {
       x: [0, @dimensions.width],
       height: 20,
-      color: if @mainType == 'patient' then ['#777777', '#00549E'] else ['#008DA8', '#00549E']
+      # color: if @mainType == 'patient' then ['#777777', '#00549E'] else ['#008DA8', '#00549E']
+      color: ['#777777', '#00549E'] 
     }
 
   _loadXDomain: () ->

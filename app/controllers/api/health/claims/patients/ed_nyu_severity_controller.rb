@@ -10,7 +10,7 @@ module Api::Health::Claims::Patients
           # sdh[row.category] = row.indiv_pct
           sdh[row.category] = row.sdh_pct
         end
-        [individual, sdh]
+        [sdh, individual]
       end
     end
 

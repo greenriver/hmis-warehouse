@@ -46,12 +46,12 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
       x: [0, @dimensions.width],
       y: [@dimensions.height, 0],
       color: @colors,
-      xColor: ['#00549E', '#777777'],
-      icon: ['icon-user', 'icon-users']
+      xColor: ['#777777', '#00549E'],
+      icon: ['icon-users', 'icon-user']
     }
 
   _loadDomain: ->
-    labels = ['Implementation Period', 'Baseline']
+    labels = ['Baseline', 'Implementation Period']
     {
       x: @claims.map((claim) -> claim.group),
       y: [0, 100],
@@ -79,8 +79,8 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     that = @
     step = @scale.x.step()
     width = @scale.x.bandwidth()
-    x1 = @scale.x('Implementation Period') - (step-width) + 5
-    x22 = @scale.x('Baseline') + (width+(step-width)) - 5 
+    x1 = @scale.x('Baseline') - (step-width) + 5
+    x22 = @scale.x('Implementation Period') + (width+(step-width)) - 5 
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
