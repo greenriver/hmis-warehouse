@@ -201,17 +201,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(id: id).
         includes(:exit, :services, :destination_client).
         references(:exit, :services, :destination_client).
-        order(
-          e_t[:EntryDate].asc, 
-          ex_t[:ExitDate].asc, 
-          s_t[:DateProvided].asc,
-          e_t[:ProjectID].asc,
-          e_t[:DateDeleted].asc,
-          s_t[:DateDeleted].asc,
-          ex_t[:DateDeleted].asc,
-          e_t[:HouseholdID].asc,
-          ex_t[:Destination].asc
-        ).
+        order(*enrollment_column_order.map(&:to_sql).join(', ') + ' NULLS FIRST').
         pluck(*hash_columns)
     end
 
@@ -230,7 +220,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         where(Client: {id: sh_t[:client_id]}).
         joins(join_sh_t_sql).
         where(service_history_source.table_name => {record_type: [:entry, :exit, :service]}).
-        order(sh_t[:date].asc, sh_t[:record_type].asc).
+        order(*service_history_hash_columns_order).
         pluck(*service_history_hash_columns)
     end
 
@@ -494,61 +484,100 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # if any of the destination data has changed
     # or if the enrollment has been connected to a new destination client
     def self.hash_columns
-      @hash_columns ||= begin
-        client_hash_columns = {
-          destination_client_id: :id,
-        }
-        enrollment_hash_columns = {
-          id: :id,
-          data_source_id: :data_source_id,
-          entry_date: :EntryDate,
-          project_id: :ProjectID,
-          deleted_at: :DateDeleted,
-          household_id: :HouseholdID,
-        }
-        
-        exit_hash_columns = {
-          exit_date: :ExitDate,
-          deleted_at: :DateDeleted,
-          data_source_id: :data_source_id,
-          destination: :Destination,
-        }
-        
-        service_hash_columns = {
-          date_provided: :DateProvided,
-          deleted_at: :DateDeleted,
-          data_source_id: :data_source_id,
-        }
-        
+      @hash_columns ||= begin        
         columns = enrollment_hash_columns.values.map do |col|
-          e_t[col].as(col.to_s).to_sql
+          e_t[col].as("e_t_#{col.to_s}").to_sql
         end
         columns += exit_hash_columns.values.map do |col|
-          ex_t[col].as(col.to_s).to_sql
+          ex_t[col].as("ex_t_#{col.to_s}").to_sql
         end
         columns += service_hash_columns.values.map do |col|
-          s_t[col].as(col.to_s).to_sql
+          s_t[col].as("s_t_#{col.to_s}").to_sql
         end
         columns += client_hash_columns.values.map do |col|
-          c_t[col].as(col.to_s).to_sql
+          c_t[col].as("c_t_#{col.to_s}").to_sql
         end
         columns
       end
     end
 
+    def self.enrollment_column_order
+      @enrollment_column_order ||= begin
+        columns = enrollment_hash_columns.values.map do |col|
+          e_t[col].asc
+        end
+        columns += exit_hash_columns.values.map do |col|
+          ex_t[col].asc
+        end
+        columns += service_hash_columns.values.map do |col|
+          s_t[col].asc
+        end
+        columns += client_hash_columns.values.map do |col|
+          c_t[col].asc
+        end
+        columns    
+      end
+    end
+
+    def self.client_hash_columns 
+       @client_hash_columns ||= {
+          destination_client_id: :id,
+       }
+    end
+    def self.enrollment_hash_columns 
+      @enrollment_hash_columns ||= {
+        id: :id,
+        data_source_id: :data_source_id,
+        entry_date: :EntryDate,
+        project_id: :ProjectID,
+        deleted_at: :DateDeleted,
+        household_id: :HouseholdID,
+      }
+    end
+        
+    def self.exit_hash_columns 
+      @exit_hash_columns ||= {
+        exit_date: :ExitDate,
+        deleted_at: :DateDeleted,
+        data_source_id: :data_source_id,
+        destination: :Destination,
+      }
+    end
+        
+    def self.service_hash_columns 
+      @service_hash_columns = {
+        date_provided: :DateProvided,
+        deleted_at: :DateDeleted,
+        data_source_id: :data_source_id,
+      }
+    end
+
     def self.service_history_hash_columns
       @service_history_hash_columns ||= begin
-        service_history_columns = {
-          client_id: :client_id,
-          date: :date,
-          record_type: :record_type,
-        }
         columns = service_history_columns.values.map do |col|
           sh_t[col].as(col.to_s).to_sql
         end
         columns
       end
     end
+
+    def self.service_history_hash_columns_order
+      @service_history_hash_columns_order ||= begin
+        columns = service_history_columns.values.map do |col|
+          sh_t[col].asc
+        end
+        columns
+      end
+    end
+
+    def self.service_history_columns 
+      @service_history_columns ||= {
+        client_id: :client_id,
+        date: :date,
+        record_type: :record_type,
+      }
+    end
+
 
     def self.service_history_source
       GrdaWarehouse::ServiceHistory
