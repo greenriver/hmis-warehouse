@@ -205,22 +205,36 @@ module GrdaWarehouse::Tasks::ServiceHistory
         pluck(*hash_columns)
     end
 
-    def self.service_history_rows(id)
-      # setup a somewhat compliacated join with service history
-      join_sh_t_sql = e_t.join(sh_t).
-      on(e_t[:ProjectID].eq(sh_t[:project_id]).
-        and(e_t[:data_source_id].eq(sh_t[:data_source_id])).
-        and(e_t[:ProjectEntryID].eq(sh_t[:enrollment_group_id]))
-      ).to_sql.gsub('SELECT FROM "Enrollment"', '')
+    # def self.service_history_rows(id)
+    #   # setup a somewhat complicated join with service history
+    #   join_sh_t_sql = e_t.join(sh_t).
+    #   on(e_t[:ProjectID].eq(sh_t[:project_id]).
+    #     and(e_t[:data_source_id].eq(sh_t[:data_source_id])).
+    #     and(e_t[:ProjectEntryID].eq(sh_t[:enrollment_group_id]))
+    #   ).to_sql.gsub('SELECT FROM "Enrollment"', '')
 
-      # This must be explicitly ordered since the database doesn't always
-      # return data in the same order
-      where(id: id).
-        joins(:destination_client).
-        where(Client: {id: sh_t[:client_id]}).
-        joins(join_sh_t_sql).
-        where(service_history_source.table_name => {record_type: [:entry, :exit, :service]}).
-        order(*service_history_hash_columns_order).
+    #   # This must be explicitly ordered since the database doesn't always
+    #   # return data in the same order
+    #   where(id: id).
+    #     joins(:destination_client).
+    #     where(Client: {id: sh_t[:client_id]}).
+    #     joins(join_sh_t_sql).
+    #     where(service_history_source.table_name => {record_type: [:entry, :exit, :service]}).
+    #     order(*service_history_hash_columns_order).
+    #     pluck(*service_history_hash_columns)
+    # end
+
+    # even with the load of the enrollment via active record, this is *way* faster
+    def self.service_history_rows(id)
+      en = self.find(id)
+      service_history_source.
+        where(
+          service_history_source.table_name => {record_type: [:entry, :exit, :service]},
+          client_id: en.destination_client.id, 
+          enrollment_group_id: en.ProjectEntryID, 
+          data_source_id: en.data_source_id, 
+          project_id: en.ProjectID,
+        ).order(*service_history_hash_columns_order).
         pluck(*service_history_hash_columns)
     end
 
