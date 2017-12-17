@@ -71,7 +71,7 @@ module GrdaWarehouse::Tasks
         calculated_last_homeless_night: :date_of_last_homeless_service,
         domestic_violence: :domestic_violence?,
         disability_verified_on: :disability_verified_on,
-        housing_assistance_network_released_on: :housing_assistance_network_released_on,
+        housing_assistance_network_released_on: :consent_form_signed_on,
         sync_with_cas: :active_in_cas?,
         dmh_eligible: :dmh_eligible,
         va_eligible: :va_eligible,
