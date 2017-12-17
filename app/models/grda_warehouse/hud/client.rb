@@ -902,6 +902,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def service_history_invalidated?
+      processed_service_history.blank?
+    end
+
     def destination?
       source_clients.size > 0
     end

@@ -59,6 +59,7 @@ class ClientMatchesController < ApplicationController
       dst = @client_match.destination_client.destination_client
       src = @client_match.source_client
       dst.merge_from(src, reviewed_by: current_user, reviewed_at: @client_match.updated_at, client_match_id: @client_match.id)
+      Importing::RunAddServiceHistoryJob.perform_later
     end
     respond_to do |format|
       format.json {render json: @client_match.as_json(methods: [:source_group_id])}

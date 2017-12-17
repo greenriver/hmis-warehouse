@@ -46,7 +46,7 @@ module GrdaWarehouse::Tasks
           msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
-          client_source.find(id).force_full_service_history_rebuild
+          client_source.find(id).invalidate_service_history
           add_attempt(id)
         else
         end 

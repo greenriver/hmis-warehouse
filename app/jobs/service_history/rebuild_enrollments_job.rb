@@ -24,8 +24,14 @@ module ServiceHistory
         # Rails.logger.debug "rebuilding enrollments for #{client_id}"
         client = GrdaWarehouse::Hud::Client.destination.find_by_id(client_id)
         next if client.blank?
+        # If this client has been invalidated, remove all service history and rebuild
+        if client.service_history_invalidated?
+          client.force_full_service_history_rebuild
+        end
+        # You must join in the project here or it will try to rebuild enrollments
+        # with no project
         enrollments = GrdaWarehouse::Hud::Client.where(id: client_id).
-          joins(:source_enrollments).
+          joins(source_enrollments: :project).
           pluck(e_t[:id].as('enrollment_id').to_sql)
         Rails.logger.info "===RebuildEnrollmentsJob=== Processing #{enrollments.size} enrollments for #{client_id}"
         rebuild_types = []

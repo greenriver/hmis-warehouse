@@ -150,7 +150,7 @@ module GrdaWarehouse::Tasks
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
             logger.info "Invalidating service history for #{dest.id}"
-            dest.force_full_service_history_rebuild
+            dest.invalidate_service_history
           end
           # We can speed this up if we want later.  If there's only one source client and the 
           # updated dates match, there's no need to update the destination
@@ -260,7 +260,7 @@ module GrdaWarehouse::Tasks
       @notifier.ping msg if @send_notifications
       GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
         map do |client|
-          client.force_full_service_history_rebuild
+          client.invalidate_service_history
         end
     end
 
