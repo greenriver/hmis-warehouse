@@ -49,18 +49,17 @@ module GrdaWarehouse::Confidence
     def self.calculate_queued_for_client client_id
       source_enrollment_count = GrdaWarehouse::Hud::Client.where(id: client_id).
         joins(:source_enrollments).count
-      queued.where(resource_id: client_id).each do |se|
-        se.value = source_enrollment_count
-        se.calculated_on = Date.today
-        if previous = previous_census_date(client_id: client_id, source_enrollment: se)
-          previous_iteration = find_by(
-            resource_id: client_id,
-            census: previous
-          )
-          se.change = se.value - previous_iteration.value rescue nil
-        end
-        se.save
+      se = queued.where(resource_id: client_id).first
+      se.value = source_enrollment_count
+      se.calculated_on = Date.today
+      if previous = previous_census_date(client_id: client_id, source_enrollment: se)
+        previous_iteration = find_by(
+          resource_id: client_id,
+          census: previous
+        )
+        se.change = se.value - previous_iteration.value rescue nil
       end
+      se.save
     end
 
     def self.previous_census_date client_id:, source_enrollment:
