@@ -34,31 +34,32 @@ module GrdaWarehouse::Confidence
       15
     end
 
-    # Start a new batch once a month
-    # This should only run once a week, so it should only catch once a month
+    # Start a new batch if we don't have one in the previous month
     def self.should_start_a_new_batch?
-      Date.today.day <= 7      
+      # Date.today.day <= 7
+      ! self.where(census: fifteenth_of_last_month).exists?
     end
 
 
-    # only run on Saturdays
+    # If there are any that are ready for calculation
     def self.should_run?
-      Date.today.wday == 6
+      # Date.today.wday == 6
+      self.where(calculated_on: nil).
+      where(arel_table[:calculate_after].lt(Date.today)).exists?
     end
-    
+
+    def self.fifteenth_of_last_month
+      1.months.ago.beginning_of_month.change(day: 15).to_date
+    end
+
     def self.collection_dates_for_client client_id
-      most_recent_15th = if Date.today.day >= 15
-        Date.today.beginning_of_month.change(day: 15).to_date
-      else
-        1.months.ago.beginning_of_month.change(day: 15).to_date
-      end
       collections = []
       iterations.times do |iteration|
         iteration -= 1 # we want to start counting at 0
         calculate_after = Date.today + iteration.public_send(iteration_length)
         census_iterations.times do |census_iteration|
           census_iteration -= 1 # we want to start counting at 0
-          census_date = most_recent_15th - census_iteration.public_send(census_iteration_length)
+          census_date = fifteenth_of_last_month - census_iteration.public_send(census_iteration_length)
           collections << {
             census: census_date,
             calculate_after: calculate_after,

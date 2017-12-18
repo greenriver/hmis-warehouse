@@ -119,7 +119,7 @@ module Importing
       GrdaWarehouse::Report::Base.update_fake_materialized_views
       @notifier.ping('...done rebuilding reporting tables') if @send_notifications
 
-      @notifier.ping('Potentially queing confidence generation') if @send_notifications
+      @notifier.ping('Potentially queuing confidence generation') if @send_notifications
       GrdaWarehouse::Confidence::DaysHomeless.queue_batch
       GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
       GrdaWarehouse::Confidence::SourceExits.queue_batch
