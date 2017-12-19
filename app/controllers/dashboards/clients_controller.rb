@@ -4,14 +4,6 @@ module Dashboards
 
     before_action :require_can_view_censuses!
     
-    def client_source
-      GrdaWarehouse::Hud::Client.destination
-    end
-
-    def service_history_source
-      GrdaWarehouse::ServiceHistory
-    end
-
     def sub_population_key
       :all_clients
     end

@@ -19,4 +19,11 @@
   %li{role: :presentation, class: active_class}
     - tab_title = 'Veteran'
     = link_to tab_title, dashboards_veterans_path, role: :tab, aria: {controls: tab_title}
+
+  - active_class = ''
+  - if active == 'youths'
+    - active_class = 'active'
+  %li{role: :presentation, class: active_class}
+    - tab_title = 'Youth'
+    = link_to tab_title, dashboards_youths_path, role: :tab, aria: {controls: tab_title}
   

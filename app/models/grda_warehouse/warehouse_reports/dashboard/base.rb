@@ -7,14 +7,17 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         active: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::ActiveClients,
+          youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::ActiveClients,
         },
         entered: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::EnteredClients,
+          youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::EnteredClients,
         },
         housed: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::HousedClients,
+          youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::HousedClients,
         }, 
       }
     end
@@ -22,7 +25,8 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def self.available_sub_populations
       {
         'All Clients' => :all_clients, 
-        'Veterans' => :veteran
+        'Veterans' => :veteran,
+        'Youth' => :youths,
       }
     end
 

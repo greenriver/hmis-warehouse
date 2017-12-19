@@ -1,0 +1,17 @@
+- content_for :title, 'Clients Housed'
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+= render 'housed'
+
+= content_for :page_js do
+  :javascript
+    (function($){
+      var ph_chart = $('#housed-chart');
+      var housed_chart = new App.Dashboards.Clients.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'), '#{sub_population_key}', {ph_only: true});
+
+      var destination_chart = $('#destination-chart');
+      var exits_chart = new App.Dashboards.Clients.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'), '#{sub_population_key}');
+
+    })(jQuery);

@@ -227,18 +227,13 @@ Rails.application.routes.draw do
   end
   resources :dashboards, only: [:index]
   namespace :dashboards do
-    resources :veterans, only: [:index] do
-      collection do
-        get :active
-        get :housed
-        get :entered
-      end
-    end
-    resources :clients, only: [:index] do
-      collection do
-        get :active
-        get :housed
-        get :entered
+    [:veterans, :clients, :youths].each do |sub_population|
+      resources(sub_population, only: [:index]) do
+        collection do
+          get :active
+          get :housed
+          get :entered
+        end
       end
     end
   end

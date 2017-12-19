@@ -1,24 +1,24 @@
 module Dashboards
-  class VeteransController < BaseController
+  class YouthsController < BaseController
     include ArelHelper
 
     before_action :require_can_view_censuses!
     
     def sub_population_key
-      :veteran
+      :youths
     end
     helper_method :sub_population_key
 
     def active_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients
+      GrdaWarehouse::WarehouseReports::Dashboard::Youth::ActiveClients
     end
 
     def housed_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients
+      GrdaWarehouse::WarehouseReports::Dashboard::Youth::HousedClients
     end
 
     def entered_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients
+      GrdaWarehouse::WarehouseReports::Dashboard::Youth::EnteredClients
     end
   end
 end

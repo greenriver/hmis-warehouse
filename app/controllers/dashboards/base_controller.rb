@@ -41,8 +41,6 @@ module Dashboards
       render layout: !request.xhr?
     end
 
-    
-
     def entered
       @report = entered_report_class.ordered.first
       data = @report[:data].with_indifferent_access
@@ -59,38 +57,5 @@ module Dashboards
       render layout: !request.xhr?
     end
 
-    
-
-    private def client_source
-      raise 'Implement in sub-class'
-    end
-
-    def service_history_source
-      GrdaWarehouse::ServiceHistory
-    end
-
-    def homeless_service_history_source
-      service_history_source.
-        where(service_history_source.project_type_column => 
-        GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
-        where(client_id: client_source)
-    end
-
-    def residential_service_history_source
-      service_history_source.
-        where(
-           service_history_source.project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
-        ).
-        where(client_id: client_source)
-    end
-
-    def exits_from_homelessness
-      service_history_source.exit.
-        joins(:client).
-        where(
-          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        ).
-        where(client_id: client_source)
-    end
   end
 end
