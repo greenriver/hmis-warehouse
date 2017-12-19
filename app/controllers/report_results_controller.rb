@@ -139,6 +139,7 @@ class ReportResultsController < ApplicationController
           :coc_code,
           project_id: [],
           project_type:[],
+          project_group_ids: []
         ],
         results: ReportGenerators::Ahar::Fy2016::Base.questions,
       )
