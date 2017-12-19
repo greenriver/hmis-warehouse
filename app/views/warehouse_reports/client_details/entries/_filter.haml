@@ -1,21 +1,18 @@
 .row.margin-bottom-02
   .col-sm-12
-    = simple_form_for @range, as: :range, url: warehouse_reports_veteran_details_entries_path, html: { method: :get, class: 'jFilter' } do |f|
+    = simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :entries], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
       = f.error_notification
       .row
         .col-sm-3
-          .input-group.date{data: {provide: :datepicker}}
-            = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-            %span.input-group-addon.icon-calendar
+          = f.input :start, label: false, as: :date_picker
         .col-sm-3
-          .input-group.date{data: {provide: :datepicker}}
-            = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
-            %span.input-group-addon.icon-calendar
+          = f.input :end, label: false, as: :date_picker
         .col-sm-2
           = select_tag(:project_type, options_from_collection_for_select(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES, :first, :last, params[:project_type]), class: 'select2')
-        .col-sm-4
+        .col-sm-3
+          = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: false, include_blank: false
+        .col-sm-3
           = f.button :submit, value: 'Update View'
-
 - content_for :page_js do
   :javascript
     $('#new_range').submit(function(e){

@@ -101,7 +101,7 @@ Rails.application.routes.draw do
     end
     resources :missing_values, only: [:index]
     resources :active_veterans, only: [:index]
-    namespace :veteran_details do
+    namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
       resources :actives, only: [:index]

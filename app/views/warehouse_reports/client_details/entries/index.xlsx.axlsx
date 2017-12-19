@@ -1,6 +1,6 @@
 
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Veteran Entry Detail") do |sheet|
+wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Entry Detail") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row([
     'Warehouse Client ID',

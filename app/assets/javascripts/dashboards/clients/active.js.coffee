@@ -1,6 +1,6 @@
 #= require ./namespace
 
-class App.Dashboards.Veterans.Active
+class App.Dashboards.Clients.Active
   constructor: (@chart, @labels, @data) ->
     Chart.defaults.global.defaultFontSize = 10
     Chart.defaults.global.elements.rectangle.backgroundColor = '#45789C'

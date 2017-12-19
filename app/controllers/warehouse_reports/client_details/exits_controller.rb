@@ -1,19 +1,22 @@
-module WarehouseReports::VeteranDetails
+module WarehouseReports::ClientDetails
   class ExitsController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     
     def index
-      date_range_options = params.permit(range: [:start, :end])[:range]
+      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
+      date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       # Also handle month based requests from javascript
       if params[:month].present?
+        @sub_population = (params.try(:[], :sub_population).presence || :all_clients).to_sym
         month = params.permit(:month)
-        @range = ::Filters::DateRange.new(
+        @range = ::Filters::DateRangeWithSubPopulation.new(
           start: Date.strptime(month[:month], "%B %Y").beginning_of_month,
           end: Date.strptime(month[:month], "%B %Y").end_of_month,
+          sub_population: @sub_population
         )
       else
-        @range = ::Filters::DateRange.new(date_range_options)
+        @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
       end
       columns = {
         client_id: sh_t[:client_id].as('client_id').to_sql,
@@ -27,7 +30,7 @@ module WarehouseReports::VeteranDetails
 
       @clients = exits_from_homelessness
       if params[:ph]
-        @clients = @clients.where(destination: HUD.permanent_destinations)
+        @clients = @clients.where(destination: ::HUD.permanent_destinations)
       end
       @clients = @clients.ended_between(start_date: @range.start, end_date: @range.end + 1.day).
         order(date: :asc).
@@ -58,7 +61,12 @@ module WarehouseReports::VeteranDetails
     end
 
     def client_source
-      GrdaWarehouse::Hud::Client.destination.veteran
+      case @sub_population
+      when :veteran
+        GrdaWarehouse::Hud::Client.destination.veteran
+      when :all_clients
+        GrdaWarehouse::Hud::Client.destination
+      end
     end
 
     def service_history_source

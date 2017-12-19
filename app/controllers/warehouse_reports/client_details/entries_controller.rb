@@ -1,4 +1,4 @@
-module WarehouseReports::VeteranDetails
+module WarehouseReports::ClientDetails
   class EntriesController < ApplicationController
     include ArelHelper
     include ClientEntryCalculations
@@ -7,8 +7,9 @@ module WarehouseReports::VeteranDetails
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
     def index
-      date_range_options = params.permit(range: [:start, :end])[:range]
-      @range = ::Filters::DateRange.new(date_range_options)
+      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
+      date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
+      @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
       @project_type_code = params[:project_type]&.to_sym || :es
       @project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[@project_type_code]
 
@@ -35,7 +36,12 @@ module WarehouseReports::VeteranDetails
     end
 
     def client_source
-      GrdaWarehouse::Hud::Client.destination.veteran
+      case @sub_population
+      when :veteran
+        GrdaWarehouse::Hud::Client.destination.veteran
+      when :all_clients
+        GrdaWarehouse::Hud::Client.destination
+      end
     end
 
     def service_history_source

@@ -34,7 +34,7 @@
         }
         else if (status == 'success') {
           var chart = $('#active-chart');
-          var active_chart = new App.Dashboards.Veterans.Active(chart, chart.data('labels'), chart.data('data'));
+          var active_chart = new App.Dashboards.Clients.Active(chart, chart.data('labels'), chart.data('data'));
         }
       });
       $('.jRemoteHoused').load('#{housed_dashboards_clients_path()}', function(response, status, xhr) {
@@ -43,10 +43,10 @@
         }
         else if(status == 'success') {
           var ph_chart = $('#housed-chart');
-          var housed_chart = new App.Dashboards.Veterans.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'));
+          var housed_chart = new App.Dashboards.Clients.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'), {ph_only: true});
 
           var destination_chart = $('#destination-chart');
-          var exits_chart = new App.Dashboards.Veterans.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'));
+          var exits_chart = new App.Dashboards.Clients.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'));
         }
       });
       $('.jRemoteEntered').load('#{entered_dashboards_clients_path()}', function(response, status, xhr) {
@@ -55,7 +55,7 @@
         }
         else if (status == 'success') {
           var chart = $('#entered-chart');
-          var housed_chart = new App.Dashboards.Veterans.Entered(chart, chart.data('labels'), chart.data('data'));
+          var housed_chart = new App.Dashboards.Clients.Entered(chart, chart.data('labels'), chart.data('data'));
         }
       });
       
