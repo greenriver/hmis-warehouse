@@ -16,8 +16,26 @@ module ReportGenerators::SystemPerformance::Fy2016
       if @report.options['coc_code'].present?
         scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
       end
+      if @report.options['sub_population'].present?
+        scope = sub_population_scope scope, @report.options['sub_population']
+      end
 
       return scope
+    end
+
+    def sub_population_scope scope, sub_population
+      scope_hash = {
+        all_clients: scope,
+        veteran: scope.veteran,
+        youth: scope.unaccompanied_youth,
+        parenting_youth: scope.parenting_youth,
+        parenting_children: scope.parenting_juvenile,
+        individual_adults: scope.individual_adult,
+        non_veteran: scope.non_veteran,
+        family: scope.family,
+        children: scope.children_only,
+      }
+      scope_hash[sub_population.to_sym]
     end
 
     # Age should be calculated at report start or enrollment start, whichever is greater
