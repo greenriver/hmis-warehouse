@@ -1,0 +1,11 @@
+%h2 Census
+.well
+  .jCharts
+    %p.jLoading.text-center Loading...
+
+- content_for :page_js do
+  :javascript
+    (function($) {
+      census = new App.Census.CombinedProjectType('#{json_census_project_types_path({veteran: true})}', 'Censuses::ProjectType', '#{@census_start_date}', '#{@census_end_date}');
+      census.load();
+    })(jQuery);

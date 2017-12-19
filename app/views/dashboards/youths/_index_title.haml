@@ -1,0 +1,4 @@
+- content_for :title, 'Unaccompanied Youth Dashboard'
+- @show_census = false
+%h1= content_for :title
+= render 'dashboards/tabs', active: 'youths'
