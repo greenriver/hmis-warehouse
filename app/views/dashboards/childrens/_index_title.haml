@@ -1,0 +1,4 @@
+- content_for :title, 'Children Only Dashboard'
+- @show_census = false
+%h1= content_for :title
+= render 'dashboards/tabs', active: 'children_only'

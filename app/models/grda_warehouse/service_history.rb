@@ -1,5 +1,6 @@
 class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   self.table_name = 'warehouse_client_service_history'
+  include ArelHelper
 
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history
   belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID]
@@ -238,6 +239,11 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     scope :children, -> do
       where(age: (0...18))
     end
+
+    scope :adult, -> do
+      where(sh_t[:age].gteq(18))
+    end
+
     # Client age on date is 18-24
     # Presented alone or as the head of household with no one else > 24
     scope :unaccompanied_youth, -> do
@@ -254,6 +260,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
     scope :parenting_juvenile, -> do
       where(parenting_juvenile: true)
+    end
+
+    scope :individual_adult, -> do
+      individual.adult
     end
 
 

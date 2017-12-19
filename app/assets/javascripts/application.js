@@ -53,7 +53,7 @@
 //= require_directory ./weather
 //= require_directory ./charts_scatter_by_date
 //= require_directory ./dashboards
-//= require_directory ./dashboards/veterans
+//= require_directory ./dashboards/clients
 //= require_directory ./warehouse_reports/cas
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts

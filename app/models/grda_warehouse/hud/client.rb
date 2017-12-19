@@ -180,15 +180,57 @@ module GrdaWarehouse::Hud
     #   source.where.not(id: GrdaWarehouse::WarehouseClient.select(:source_id))
     # end
     # 
-    scope :child, -> do
-      where(c_t[:DOB].gt(18.years.ago.to_date))
+         
+    scope :child, -> (on: Date.today) do
+      where(c_t[:DOB].gt(on - 18.years))
     end
+    
     scope :youth, -> (on: Date.today) do
       where(DOB: (on - 24.years .. on - 18.years))
     end
-     
-     #################################
-    # Standard Cohort Scopes    
+    
+    scope :adult, -> (on: Date.today) do
+      where(c_t[:DOB].lteq(on - 18.years))
+    end
+    
+    #################################
+    # Standard Cohort Scopes
+    
+    scope :individual_adult, -> (start_date: Date.today, end_date: Date.today) do
+      adult(on: start_date).
+      joins(service_history: :project).
+      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).individual_adult)
+    end
+
+    scope :unaccompanied_youth, -> (start_date: Date.today, end_date: Date.today) do
+      youth(on: start_date).
+      joins(:service_history).
+      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).unaccompanied_youth)
+    end
+
+    scope :children_only, -> (start_date: Date.today, end_date: Date.today) do
+      child(on: start_date).
+      joins(:service_history).
+      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).children_only)
+    end
+
+    scope :parenting_youth, -> (start_date: Date.today, end_date: Date.today) do
+      youth(on: start_date).
+      joins(:service_history).
+      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).parenting_youth)
+    end
+    
+    scope :parenting_juvenile, -> (start_date: Date.today, end_date: Date.today) do
+      youth(on: start_date).
+      joins(:service_history).
+      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).parenting_juvenile)
+    end
+
+    scope :family, -> (start_date: Date.today, end_date: Date.today) do
+      joins(service_history: :project).
+      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).family)
+    end
+      
     scope :veteran, -> do
       where(VeteranStatus: 1)
     end
@@ -196,6 +238,9 @@ module GrdaWarehouse::Hud
     scope :non_veteran, -> do
       where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
     end
+
+    # End Standard Cohorts
+    #################################
     scope :currently_homeless, -> (chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable

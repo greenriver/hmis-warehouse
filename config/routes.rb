@@ -42,6 +42,20 @@ Rails.application.routes.draw do
     end
   end
 
+  def sub_populations
+    [
+      :childrens,
+      :clients,
+      :families,
+      :individual_adults,
+      :non_veterans,
+      :parenting_childrens,
+      :parenting_youths,
+      :veterans,
+      :youths,
+    ].freeze
+  end
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       resources :support, only: [:index], controller: 'report_results/support'
@@ -102,7 +116,7 @@ Rails.application.routes.draw do
     end
     resources :missing_values, only: [:index]
     resources :active_veterans, only: [:index]
-    namespace :veteran_details do
+    namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
       resources :actives, only: [:index]
@@ -228,18 +242,13 @@ Rails.application.routes.draw do
   end
   resources :dashboards, only: [:index]
   namespace :dashboards do
-    resources :veterans, only: [:index] do
-      collection do
-        get :active
-        get :housed
-        get :entered
-      end
-    end
-    resources :clients, only: [:index] do
-      collection do
-        get :active
-        get :housed
-        get :entered
+    sub_populations.each do |sub_population|
+      resources(sub_population, only: [:index]) do
+        collection do
+          get :active
+          get :housed
+          get :entered
+        end
       end
     end
   end

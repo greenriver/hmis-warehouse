@@ -1,0 +1,49 @@
+- title = "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Detail"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+.row
+  .col-sm-8
+    %h1= title
+  .col-sm-4.text-right
+    - if  can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+
+= render 'filter'
+.row
+  .col-sm-12
+    %p
+      The following
+      = @enrollments.count
+      clients with
+      = @enrollments.values.flatten(1).count
+      enrollments, have at least one day of service between
+      = @start_date
+      and
+      = "#{@end_date}."
+
+.row
+  .col-sm-12
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th
+            Client
+          %th
+            Project Type
+          %th
+            Project
+          %th
+            Entry Date
+      %tbody
+        - @enrollments.each do |client_id, enrollments|
+          - enrollments.each do |enrollment|
+            %tr
+              %td
+                = link_to_if can_view_clients?, "#{enrollment[:first_name]} #{enrollment[:last_name]}", client_path(id: client_id)
+              %td
+                = HUD.project_type(enrollment[:project_type])
+              %td
+                = enrollment[:project_name]
+              %td
+                = enrollment[:first_date_in_program]

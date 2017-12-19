@@ -1,0 +1,26 @@
+= simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :exits], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
+  = f.error_notification
+  .row
+    .col-sm-3
+      = f.input :start, label: false, as: :date_picker
+    .col-sm-3
+      = f.input :end, label: false, as: :date_picker
+    .col-sm-2
+      .checkbox
+        %label{for: :ph}
+          = check_box_tag(:ph, true, params[:ph].present?)
+          PH Only
+    .col-sm-3
+      = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: false, include_blank: false
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+
+- content_for :page_js do
+  :javascript
+    $('#new_range').submit(function(e){
+      var $form = $(this);
+      // disable things *immediately after* submit
+      setTimeout(function(){
+        $form.find(':input').prop('disabled', true);
+      }, 0);
+    });

@@ -1,42 +1,48 @@
-.well
-  %p Counts are unduplicated per project type, but may be counted in multiple types.
-  - month_name = @start_date.to_time.strftime('%B')
-  %h3= "Clients with at least one day of service in #{month_name}"
-  .summary.text-center
-    .row
-      - @client_enrollment_totals_by_type.sort_by{|project_type, _| HUD.project_type_brief(project_type)}.each do |project_type, clients|
-        .col-sm-3
-          .big-block
-            .title
-              = HUD.project_type_brief(project_type)
-            .body
-              = clients
-  %h3= "Of the clients above, those with at least one entry record in #{month_name}"
-  .summary.text-center
-    .row
-      - @client_entry_totals_by_type.sort_by{|project_type, _| HUD.project_type_brief(project_type)}.each do |project_type, clients|
-        .col-sm-3
-          .big-block
-            .title
-              = HUD.project_type_brief(project_type)
-            .body
-              = link_to clients, warehouse_reports_veteran_details_entries_path(project_type: HUD.project_type_brief(project_type).downcase, range: {start: @start_date, end: @end_date})
+- if @report.present?
+  .well
+    %p Counts are unduplicated per project type, but may be counted in multiple types.
+    - month_name = @start_date.to_time.strftime('%B')
+    %h3= "Clients with at least one day of service in #{month_name}"
+    .summary.text-center
+      .row
+        - @client_enrollment_totals_by_type.sort_by{|project_type, _| project_type = project_type.to_i; HUD.project_type_brief(project_type)}.each do |project_type, clients|
+          - project_type = project_type.to_i
+          .col-sm-3
+            .big-block
+              .title
+                = HUD.project_type_brief(project_type)
+              .body
+                = clients
+    %h3= "Of the clients above, those with at least one entry record in #{month_name}"
+    .summary.text-center
+      .row
+        - @client_entry_totals_by_type.sort_by{|project_type, _| project_type = project_type.to_i; HUD.project_type_brief(project_type)}.each do |project_type, clients|
+          - project_type = project_type.to_i
+          .col-sm-3
+            .big-block
+              .title
+                = HUD.project_type_brief(project_type)
+              .body
+                = link_to clients, polymorphic_path([:warehouse_reports, :client_details, :entries], project_type: HUD.project_type_brief(project_type).downcase, range: {start: @start_date, end: @end_date, sub_population: sub_population_key})
 
-  %h3= "Project Re-Entry in #{month_name}"
-  %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_h.values.to_json, data: @data.to_json}}
-  %h3 Unduplicated Clients
-  .summary
-    .row
-      .col-sm-12
-        %p
-          In
-          = "#{month_name},"
-          %strong
-            = @first_time_total_deduplicated 
-          clients appeared for the first time in one of the project types above. Of those 
-          = "#{@first_time_total_deduplicated}," 
-          %strong
-            = link_to warehouse_reports_first_time_homeless_index_path(first_time_homeless: {start: @start_date, end: @end_date, cohort: :veterans, project_types: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES}) do
-              = @first_time_ever
-          had no prior record of any type in the system.
-        
+    %h3= "Project Re-Entry in #{month_name}"
+    %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_h.values.to_json, data: @data.to_json}}
+    %h3 Unduplicated Clients
+    .summary
+      .row
+        .col-sm-12
+          %p
+            In
+            = "#{month_name},"
+            %strong
+              = @first_time_total_deduplicated 
+            clients appeared for the first time in one of the project types above. Of those 
+            = "#{@first_time_total_deduplicated}," 
+            %strong
+
+              = link_to polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, sub_population: sub_population_key, project_types: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES}) do
+                = @first_time_ever
+            had no prior record of any type in the system.
+          
+    .updated_on.small.text-muted
+      Last Updated on: #{@report.finished_at.to_date}

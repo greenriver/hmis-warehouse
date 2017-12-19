@@ -1,12 +1,8 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "First Time Homeless") do |sheet|
+wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]}") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'Age', 'Individual or Family', 'Date of First Service', 'Project Type', 'Project', 'Organization', 'Data Sources'], :style => title)
+  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'Age', 'Date of First Service', 'Project Type', 'Project', 'Organization', 'Data Sources'], :style => title)
   @clients.each do |client|
-    cohort = 'Individual'
-    if ! client.first_service_history.presented_as_individual
-      cohort = 'Family'
-    end
-    sheet.add_row [client.id, client.FirstName, client.LastName, client.age, cohort, client.first_service_history.date, ::HUD.project_type(client.first_service_history.project_type), client.first_service_history.project_name, client.first_service_history.organization.try(:OrganizationName), client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ') ] 
+    sheet.add_row [client.id, client.FirstName, client.LastName, client.age(), client.first_service_history.date, ::HUD.project_type(client.first_service_history.project_type), client.first_service_history.project_name, client.first_service_history.organization.try(:OrganizationName), client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ') ] 
   end
 end

@@ -124,6 +124,15 @@ module Importing
       GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
       GrdaWarehouse::Confidence::SourceExits.queue_batch
 
+      # Precalculate the dashboards
+      @notifier.ping('Updating dashboards') if @send_notifications
+      GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type.each do |report_type, reports|
+        reports.each do |sub_population, _|
+          WarehouseReports::DashboardReportJob.perform_later(report_type.to_s, sub_population.to_s)
+        end
+      end
+
+
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"
