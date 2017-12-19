@@ -137,8 +137,10 @@ class ReportResultsController < ApplicationController
           :report_end,
           :data_source_id,
           :coc_code,
+          :sub_population,
           project_id: [],
           project_type:[],
+          project_group_ids: []
         ],
         results: ReportGenerators::Ahar::Fy2016::Base.questions,
       )

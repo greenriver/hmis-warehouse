@@ -5,6 +5,9 @@ module ReportGenerators::SystemPerformance::Fy2016
     def add_filters scope:
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
+        project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
+        project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
+        project_ids = project_ids | project_group_project_ids
         scope = scope.joins(:project).where(Project: { id: project_ids})
       end
       if @report.options['data_source_id'].present?
@@ -13,8 +16,26 @@ module ReportGenerators::SystemPerformance::Fy2016
       if @report.options['coc_code'].present?
         scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
       end
+      if @report.options['sub_population'].present?
+        scope = sub_population_scope scope, @report.options['sub_population']
+      end
 
       return scope
+    end
+
+    def sub_population_scope scope, sub_population
+      scope_hash = {
+        all_clients: scope,
+        veteran: scope.veteran,
+        youth: scope.unaccompanied_youth,
+        parenting_youth: scope.parenting_youth,
+        parenting_children: scope.parenting_juvenile,
+        individual_adults: scope.individual_adult,
+        non_veteran: scope.non_veteran,
+        family: scope.family,
+        children: scope.children_only,
+      }
+      scope_hash[sub_population.to_sym]
     end
 
     # Age should be calculated at report start or enrollment start, whichever is greater

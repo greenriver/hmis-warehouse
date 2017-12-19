@@ -5,6 +5,8 @@
     .row.margin-bottom-02
       .col-sm-4
         = f.input :project_id, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: 'select2'}, as: :select, collection: Reports::SystemPerformance::Fy2016::Base.available_projects, required: false
+        = f.input :project_group_ids, input_html: { name: 'report_result[options][project_group_ids][]', multiple: true, class: 'select2' }, as: :select, collection: GrdaWarehouse::ProjectGroup.all, required: false, label: 'Project Groups'
+        = f.input :sub_population, input_html: { name: 'report_result[options][sub_population]', class: 'select2' }, as: :select, collection: Reports::SystemPerformance::Fy2016::Base.available_sub_populations, required: false, label: 'Sub Population'
         = f.input :data_source_id, input_html: {name: 'report_result[options][data_source_id]', class: 'select2'}, as: :select, collection: Reports::SystemPerformance::Fy2016::Base.available_data_sources, required: false
       .col-sm-4
         = f.input :coc_code, input_html: {name: 'report_result[options][coc_code]'}, hint: 'MA-500', required: false
