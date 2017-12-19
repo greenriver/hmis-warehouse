@@ -28,6 +28,20 @@ module Reports::SystemPerformance::Fy2016
       GrdaWarehouse::DataSource.importable
     end
 
+    def self.available_sub_populations
+      [
+        ['All Clients', :all_clients],
+        ['Veteran', :veteran],
+        ['Youth', :youth],
+        ['Parenting Youth', :parenting_youth],
+        ['Parenting Children', :parenting_children],
+        ['Individual Adults', :individual_adults],
+        ['Non Veteran', :non_veteran],
+        ['Family', :family],
+        ['Children', :children],
+      ]
+    end
+
     def value_for_options options
       return '' unless options.present?
       display_string = "Report Start: #{options['report_start']}; Report End: #{options['report_end']}"
@@ -35,6 +49,7 @@ module Reports::SystemPerformance::Fy2016
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
       display_string << project_id_string(options)
       display_string << project_group_string(options)
+      display_string << sub_population_string(options)
       display_string
     end
 
@@ -61,6 +76,14 @@ module Reports::SystemPerformance::Fy2016
       end
       ''
     end
+
+    def sub_population_string options
+      if (sub_population = options['sub_population']) && sub_population.present?
+        return "; Sub Population: #{sub_population.humanize.titleize}"
+      end
+      ''
+    end
+
 
   end
 end
