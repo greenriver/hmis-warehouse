@@ -1,0 +1,4 @@
+- content_for :title, 'Client Dashboard'
+- @show_census = true
+%h1= content_for :title
+= render 'dashboards/tabs', active: 'clients'

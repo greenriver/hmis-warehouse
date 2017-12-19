@@ -66,6 +66,20 @@ module WarehouseReports::ClientDetails
         GrdaWarehouse::Hud::Client.destination.veteran
       when :all_clients
         GrdaWarehouse::Hud::Client.destination
+      when :youth
+        GrdaWarehouse::Hud::Client.destination.unaccompanied_youth(start_date: @start_date, end_date: @end_date)
+      when :parenting_youth
+        GrdaWarehouse::Hud::Client.destination.parenting_youth(start_date: @range.start, end_date: @range.end)
+      when :parenting_children
+        GrdaWarehouse::Hud::Client.destination.parenting_juvenile(start_date: @range.start, end_date: @range.end)
+      when :individual_adults
+        GrdaWarehouse::Hud::Client.destination.individual_adult(start_date: @start_date, end_date: @end_date)
+      when :non_veteran
+        GrdaWarehouse::Hud::Client.destination.non_veteran
+      when :family
+        GrdaWarehouse::Hud::Client.destination.family(start_date: @start_date, end_date: @end_date)
+      when :children
+        GrdaWarehouse::Hud::Client.destination.children_only(start_date: @start_date, end_date: @end_date)
       end
     end
 

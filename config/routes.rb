@@ -42,6 +42,20 @@ Rails.application.routes.draw do
     end
   end
 
+  def sub_populations
+    [
+      :childrens,
+      :clients,
+      :families,
+      :individual_adults,
+      :non_veterans,
+      :parenting_childrens,
+      :parenting_youths,
+      :veterans,
+      :youths,
+    ].freeze
+  end
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       resources :support, only: [:index], controller: 'report_results/support'
@@ -227,7 +241,7 @@ Rails.application.routes.draw do
   end
   resources :dashboards, only: [:index]
   namespace :dashboards do
-    [:veterans, :clients, :youths].each do |sub_population|
+    sub_populations.each do |sub_population|
       resources(sub_population, only: [:index]) do
         collection do
           get :active

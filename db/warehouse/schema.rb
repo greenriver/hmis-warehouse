@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171218211735) do
+ActiveRecord::Schema.define(version: 20171219160943) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -575,7 +575,7 @@ ActiveRecord::Schema.define(version: 20171218211735) do
   add_index "Inventory", ["DateCreated"], :name=>"inventory_date_created", :using=>:btree
   add_index "Inventory", ["DateUpdated"], :name=>"inventory_date_updated", :using=>:btree
   add_index "Inventory", ["ExportID"], :name=>"inventory_export_id", :using=>:btree
-  add_index "Inventory", ["ProjectID"], :name=>"index_Inventory_on_ProjectID", :using=>:btree
+  add_index "Inventory", ["ProjectID", "CoCCode", "data_source_id"], :name=>"index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id", :using=>:btree
   add_index "Inventory", ["data_source_id", "InventoryID"], :name=>"unk_Inventory", :unique=>true, :using=>:btree
   add_index "Inventory", ["data_source_id"], :name=>"index_Inventory_on_data_source_id", :using=>:btree
 
@@ -646,7 +646,7 @@ ActiveRecord::Schema.define(version: 20171218211735) do
   add_index "ProjectCoC", ["DateUpdated"], :name=>"project_coc_date_updated", :using=>:btree
   add_index "ProjectCoC", ["ExportID"], :name=>"project_coc_export_id", :using=>:btree
   add_index "ProjectCoC", ["data_source_id", "ProjectCoCID"], :name=>"unk_ProjectCoC", :unique=>true, :using=>:btree
-  add_index "ProjectCoC", ["data_source_id"], :name=>"index_ProjectCoC_on_data_source_id", :using=>:btree
+  add_index "ProjectCoC", ["data_source_id", "ProjectID", "CoCCode"], :name=>"index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode", :using=>:btree
 
   create_table "Services", force: :cascade do |t|
     t.string   "ServicesID"

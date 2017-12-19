@@ -1,13 +1,6 @@
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Housed < GrdaWarehouse::WarehouseReports::Dashboard::Base
 
-    def self.sub_populations
-      {
-        veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients,
-        all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::HousedClients,
-      }
-    end
-
     def self.params
       {
         start_date: '2014-07-01'.to_date
@@ -55,7 +48,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         @buckets[destination][:source_data][date.strftime('%b %Y')] += 1 
       end
 
-      @all_exits_labels = @buckets.values.first[:source_data].keys
+      @all_exits_labels = @buckets&.values&.first.try(:[], :source_data)&.keys
       @ph_exits = @buckets.deep_dup.select{|_,m| m[:ph]}
       
       # Add some chart.js friendly counts

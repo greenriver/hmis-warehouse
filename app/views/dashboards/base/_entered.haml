@@ -39,7 +39,7 @@
           = "#{@first_time_total_deduplicated}," 
           %strong
 
-            = link_to polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, cohort: sub_population_key, project_types: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES}) do
+            = link_to polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, sub_population: sub_population_key, project_types: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES}) do
               = @first_time_ever
           had no prior record of any type in the system.
         

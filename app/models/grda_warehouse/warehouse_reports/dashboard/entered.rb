@@ -3,13 +3,6 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     include ArelHelper
     include ApplicationHelper
 
-    def self.sub_populations
-      {
-        veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients,
-        all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::EnteredClients,
-      }
-    end
-
     def self.params
       {
         start_date: 1.months.ago.beginning_of_month.to_date,
@@ -74,8 +67,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         joins(:client, :organization).
         where(client_id: 
           homeless_service_history_source.
-          where(record_type: [:service, :entry]). # this catches the situation where we have an open enrollment but no service and the enrollment opens within the date
-          where(sh_t[:date].gteq(start_date).and(sh_t[:date].lteq(end_date))).
+          open_between(start_date: start_date, end_date: end_date + 1.day).
           select(:client_id)
         ).
         order(date: :asc).

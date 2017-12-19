@@ -1,0 +1,14 @@
+= render 'entered_title'
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+= render 'entered'
+
+= content_for :page_js do
+  :javascript
+    (function($){
+      var chart = $('#entered-chart');
+      var housed_chart = new App.Dashboards.Clients.Entered(chart, chart.data('labels'), chart.data('data'));
+
+    })(jQuery);

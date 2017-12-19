@@ -8,16 +8,34 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::ActiveClients,
           youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::ActiveClients,
+          non_veteran: GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::ActiveClients,
+          individual_adults: GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::ActiveClients,
+          parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::ActiveClients,
+          parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::ActiveClients,
+          children: GrdaWarehouse::WarehouseReports::Dashboard::Children::ActiveClients,
+          family: GrdaWarehouse::WarehouseReports::Dashboard::Families::ActiveClients,
         },
         entered: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::EnteredClients,
           youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::EnteredClients,
+          non_veteran: GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::EnteredClients,
+          individual_adults: GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::EnteredClients,
+          parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::EnteredClients,
+          parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::EnteredClients,
+          children: GrdaWarehouse::WarehouseReports::Dashboard::Children::EnteredClients,
+          family: GrdaWarehouse::WarehouseReports::Dashboard::Families::EnteredClients,
         },
         housed: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::HousedClients,
           youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::HousedClients,
+          non_veteran: GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::HousedClients,
+          individual_adults: GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::HousedClients,
+          parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::HousedClients,
+          parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::HousedClients,
+          children: GrdaWarehouse::WarehouseReports::Dashboard::Children::HousedClients,
+          family: GrdaWarehouse::WarehouseReports::Dashboard::Families::HousedClients,
         }, 
       }
     end
@@ -26,8 +44,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       {
         'All Clients' => :all_clients, 
         'Veterans' => :veteran,
-        'Youth' => :youths,
-      }
+        'Youth' => :youth,
+        'Family' => :family,
+        'Children' => :children,
+        'Parenting Youth' => :parenting_youth,
+        'Parenting Juveniles' => :parenting_children,
+        'Individual Adults' => :individual_adults,
+        'Non-Veterans' => :non_veteran,
+      }.sort.to_h.freeze
     end
 
     def service_history_source
@@ -36,34 +60,15 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def homeless_service_history_source
       service_history_source.
-        joins(:client).
-        where(
-          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        ).
-        where(client_id: client_source)
-    end
-
-    def homeless_service_history_source
-      service_history_source.
-        where(service_history_source.project_type_column => 
-        GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
-        where(client_id: client_source)
-    end
-
-    def residential_service_history_source
-      service_history_source.
-        where(
-           service_history_source.project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
-        ).
+        joins(:client, :project).
+        homeless.
         where(client_id: client_source)
     end
 
     def exits_from_homelessness
       service_history_source.exit.
         joins(:client).
-        where(
-          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        ).
+        homeless.
         where(client_id: client_source)
     end
 

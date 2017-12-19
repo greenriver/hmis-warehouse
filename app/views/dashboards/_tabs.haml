@@ -1,29 +1,51 @@
+:ruby
+  dashboard_tabs = {
+    'census' => { 
+      title: 'Nightly Census',
+      path: censuses_path,
+    },
+    'clients' => {
+      title: 'Client',
+      path: dashboards_clients_path,
+    },
+    'individual_adults'  => {
+      title: 'Individual Adults',
+      path: dashboards_individual_adults_path,
+    },
+    'veteran'  => {
+      title: 'Veteran',
+      path: dashboards_veterans_path,
+    },
+    'non_veteran'  => {
+      title: 'Non-Veteran',
+      path: dashboards_non_veterans_path,
+    },
+    'family'  => {
+      title: 'Family',
+      path: dashboards_families_path,
+    },
+    'youths'  => {
+      title: 'Unaccompanied Youth',
+      path: dashboards_youths_path,
+    },
+    'parenting_youth'  => {
+      title: 'Parenting Youth',
+      path: dashboards_parenting_youths_path,
+    },
+    'children_only'  => {
+      title: 'Children Only',
+      path: dashboards_childrens_path,
+    },
+    'parenting_children'  => {
+      title: 'Parenting Juveniles',
+      path: dashboards_parenting_childrens_path,
+    },
+  }
 %ul.margin-bottom-02.nav.nav-tabs{role: :tablist}
-  - active_class = ''
-  - if active == 'census'
-    - active_class = 'active'
-  %li{role: :presentation, class: active_class}
-    - tab_title = 'Nightly Census'
-    = link_to tab_title, censuses_path, role: :tab, aria: {controls: tab_title}
-
-  - active_class = ''
-  - if active == 'clients'
-    - active_class = 'active'
-  %li{role: :presentation, class: active_class}
-    - tab_title = 'Client'
-    = link_to tab_title, dashboards_clients_path, role: :tab, aria: {controls: tab_title}
-    
-  - active_class = ''
-  - if active == 'veteran'
-    - active_class = 'active'
-  %li{role: :presentation, class: active_class}
-    - tab_title = 'Veteran'
-    = link_to tab_title, dashboards_veterans_path, role: :tab, aria: {controls: tab_title}
-
-  - active_class = ''
-  - if active == 'youths'
-    - active_class = 'active'
-  %li{role: :presentation, class: active_class}
-    - tab_title = 'Youth'
-    = link_to tab_title, dashboards_youths_path, role: :tab, aria: {controls: tab_title}
-  
+  - dashboard_tabs.each do |key, sub_population|
+    - active_class = ''
+    - if active == key
+      - active_class = 'active'
+    %li{role: :presentation, class: active_class}
+      - tab_title = sub_population[:title]
+      = link_to tab_title, sub_population[:path], role: :tab, aria: {controls: tab_title}

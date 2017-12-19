@@ -1,0 +1,22 @@
+- @show_census = false
+= render 'index_title'
+
+.jRemoteActive
+  %h2 Active Clients
+  .text-center
+    Loading...
+
+.jRemoteEntered
+  %h2 Clients Entering Programs
+  .text-center
+    Loading...
+
+.jRemoteHoused
+  %h2 Clients Housed
+  .text-center
+    Loading...
+
+- if @show_census
+  = render 'census'
+
+= render 'index_js'
