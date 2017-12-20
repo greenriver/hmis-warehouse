@@ -1,0 +1,17 @@
+- @jobs.each do |job|
+  - parameters = YAML.load(job.handler).job_data['arguments'].first
+  - parameters['range'].delete('_aj_hash_with_indifferent_access')
+  - report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.new(parameters: parameters)
+  %tr{class: 'jIncompleteReport'}
+    %td= job.run_at
+    %td= render 'spinner'
+    %td= render 'parameters', report: report
+- @reports.each do |report|
+  %tr
+    %td
+      = report.started_at
+    %td
+      = link_to warehouse_reports_active_veteran_path(report) do
+        = report.client_count
+        clients
+    %td= render 'parameters', report: report

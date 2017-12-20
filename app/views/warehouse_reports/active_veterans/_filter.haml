@@ -1,23 +1,15 @@
-= simple_form_for @range, as: :range, url: warehouse_reports_active_veterans_path, html: { method: :get, class: 'jFilter' } do |f|
+= simple_form_for @range, as: :range, remote: true, url: warehouse_reports_active_veterans_path, html: { method: :get, class: 'jFilter' } do |f|
   = f.error_notification
   .row
-    .col-sm-6
+    .col-sm-4
       = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, as: :date_picker, label: false
-    .col-sm-6
-
+    .col-sm-4
       = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, as: :date_picker, label: false
-  .row(style="margin-top:1rem;")
-    .col-sm-6
+    .col-sm-4
       = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }, label: false
-    .col-sm-6
-      = f.button :submit, value: 'Update View', class: 'pull-right'
-
-- content_for :page_js do
-  :javascript
-    $('#new_range').submit(function(e){
-      var $form = $(this);
-      // disable things *immediately after* submit
-      setTimeout(function(){
-        $form.find(':input').prop('disabled', true);
-      }, 0);
-    })
+  .row
+    .col-sm-12
+      %div.pull-right
+        = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
+        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+          Download Excel
