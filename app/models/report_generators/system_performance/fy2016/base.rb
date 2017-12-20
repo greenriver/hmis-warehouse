@@ -3,11 +3,13 @@ module ReportGenerators::SystemPerformance::Fy2016
   include ArelHelper
 
     def add_filters scope:
+      project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
+      if project_group_ids.any?
+        project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
+        @report.options['project_id'] |= project_group_project_ids
+      end
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
-        project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
-        project_ids = project_ids | project_group_project_ids
         scope = scope.joins(:project).where(Project: { id: project_ids})
       end
       if @report.options['data_source_id'].present?
