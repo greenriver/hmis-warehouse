@@ -1,4 +1,4 @@
 module GrdaWarehouse::WarehouseReports
-  class ChronicReport < Base
+  class HudChronicReport < Base
   end
 end

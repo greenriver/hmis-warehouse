@@ -97,9 +97,10 @@ Rails.application.routes.draw do
       get :summary, on: :collection
       get :running, on: :collection
     end
-    resources :hud_chronics, only: [:index] do
+    resources :hud_chronics, only: [:index, :show] do
       collection do
         get :summary
+        get :running
       end
     end
     resources :chronic_housed, only: [:index]
