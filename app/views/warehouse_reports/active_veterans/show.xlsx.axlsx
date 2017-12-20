@@ -1,7 +1,9 @@
 
 wb = xlsx_package.workbook
+
 wb.add_worksheet(name: "Active Veterans") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  
   sheet.add_row([
     'Warehouse Client ID',
     'First Name', 
@@ -17,46 +19,18 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
     'Entry', 
     'Exit'
   ], :style => title)
-  @enrollments = @enrollments.values.flatten(1).group_by{|m| m[:client_id]}
+
   @clients.each do |client|
     row = [
-      client.id, 
-      client.FirstName, 
-      client.LastName,
-      client.DOB, 
-      client.SSN,
-      client.source_clients.map{ |m| if m.VeteranStatus == 1 then GrdaWarehouse::DataSource.short_name(m.data_source_id) end}.compact.uniq.join(', '),
-      client&.first_service_history&.date,
-      @enrollments[client.id].size,
+      client['id'], 
+      client['FirstName'], 
+      client['LastName'],
+      client['DOB'], 
+      client['SSN'],
+      client['data_sources'].join(', '),
+      client['first_date_served'],
+      client['enrollments'].size
     ]
-    @enrollments[client.id].each do |enrollment|
-      row += [
-        enrollment['data_sources.short_name'],
-        HUD::project_type_brief(enrollment[:project_type]),
-        enrollment[:project_name],
-        enrollment[:first_date_in_program],
-        enrollment[:last_date_in_program],
-      ]
-      sheet.add_row(row)
-    end
+    sheet.add_row(row)
   end
-
-  # @enrollments.values.flatten(1).each do |enrollment|
-  #   client = @clients[enrollment[:client_id]]
-  #   sheet.add_row([
-  #     client.id, 
-  #     client.FirstName, 
-  #     client.LastName, 
-  #     client.DOB, 
-  #     client.SSN,
-  #     client.source_clients.map{ |m| if m.VeteranStatus == 1 then GrdaWarehouse::DataSource.short_name(m.data_source_id) end}.compact.uniq.join(', '),
-  #     client.processed_service_history.first_date_served,  
-  #     client.processed_service_history.days_served, 
-  #     enrollment['data_sources.short_name'],
-  #     HUD::project_type_brief(enrollment[:project_type]),
-  #     enrollment[:project_name],
-  #     enrollment[:first_date_in_program],
-  #     enrollment[:last_date_in_program],
-  #   ])
-  # end
 end

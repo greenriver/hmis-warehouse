@@ -11,5 +11,3 @@
     .col-sm-12
       %div.pull-right
         = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
-        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-          Download Excel
