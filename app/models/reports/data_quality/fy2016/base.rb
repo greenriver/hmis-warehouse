@@ -39,10 +39,21 @@ module Reports::DataQuality::Fy2016
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
       display_string << project_id_string(options)
       display_string << "; Project Types: #{options['project_type'].map{|m| HUD.project_type(m.to_i) if m.present?}.compact.join(', ')}" if options['project_type'].present? && options['project_type'].delete_if(&:blank?).any?
+      display_string << project_group_string(options)
       display_string
     end
 
-    protected def project_id_string options
+    protected 
+
+    def project_group_string options
+      if (pg_ids = options['project_group_ids']&.compact) && pg_ids&.any?
+        names = GrdaWarehouse::ProjectGroup.where(id: pg_ids).pluck(:name)
+        return "; Project Groups: #{names.join(', ')}"
+      end
+      ''
+    end
+
+    def project_id_string options
       str = ''
       if options['project_id'].present? 
         if options['project_id'].is_a?(Array)
