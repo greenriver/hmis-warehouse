@@ -52,35 +52,25 @@ module WarehouseReports::ClientDetails
     end
 
     def exits_from_homelessness
-      service_history_source.exit.
+      scope = service_history_source.exit.
         joins(:client).
-        where(
-          service_history_source.project_type_column => GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        ).
-        where(client_id: client_source)
+        homeless
+      history_scope(scope, @sub_population)
     end
 
-    def client_source
-      case @sub_population
-      when :veteran
-        GrdaWarehouse::Hud::Client.destination.veteran
-      when :all_clients
-        GrdaWarehouse::Hud::Client.destination
-      when :youth
-        GrdaWarehouse::Hud::Client.destination.unaccompanied_youth(start_date: @start_date, end_date: @end_date)
-      when :parenting_youth
-        GrdaWarehouse::Hud::Client.destination.parenting_youth(start_date: @range.start, end_date: @range.end)
-      when :parenting_children
-        GrdaWarehouse::Hud::Client.destination.parenting_juvenile(start_date: @range.start, end_date: @range.end)
-      when :individual_adults
-        GrdaWarehouse::Hud::Client.destination.individual_adult(start_date: @start_date, end_date: @end_date)
-      when :non_veteran
-        GrdaWarehouse::Hud::Client.destination.non_veteran
-      when :family
-        GrdaWarehouse::Hud::Client.destination.family(start_date: @start_date, end_date: @end_date)
-      when :children
-        GrdaWarehouse::Hud::Client.destination.children_only(start_date: @start_date, end_date: @end_date)
-      end
+    def history_scope scope, sub_population
+      scope_hash = {
+        all_clients: scope,
+        veteran: scope.veteran,
+        youth: scope.unaccompanied_youth,
+        parenting_youth: scope.parenting_youth,
+        parenting_children: scope.parenting_juvenile,
+        individual_adults: scope.individual_adult,
+        non_veteran: scope.non_veteran,
+        family: scope.family,
+        children: scope.children_only,
+      }
+      scope_hash[sub_population.to_sym]
     end
 
     def service_history_source
