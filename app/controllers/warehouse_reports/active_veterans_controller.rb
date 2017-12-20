@@ -18,7 +18,7 @@ module WarehouseReports
       @clients = @report.data
       @sort_options = sort_options
 
-      # sort_clients if @clients&.any?
+      sort_clients if @clients&.any?
 
       respond_to do |format|
         format.html
@@ -51,11 +51,7 @@ module WarehouseReports
       @column, @direction = %w(chronic.homeless_since desc) if @column.nil? || @direction.nil?
       veteran_sort = @column.split('.')
       @clients = @clients.sort_by do |client|
-        if veteran_sort.size == 2
-          client['veteran'][veteran_sort.last]
-        else
-          client[@column]
-        end
+        client[@column]
       end
       @clients.reverse! if @direction=='desc'
     end
