@@ -2,7 +2,6 @@ module WarehouseReports::ClientDetails
   class ActivesController < ApplicationController
     include ArelHelper
     include ArelTable
-    include ClientActiveCalculations
     include WarehouseReportAuthorization
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
@@ -26,27 +25,61 @@ module WarehouseReports::ClientDetails
       end
     end
 
-    def client_source
-      case @sub_population
-      when :veteran
-        GrdaWarehouse::Hud::Client.destination.veteran
-      when :all_clients
-        GrdaWarehouse::Hud::Client.destination
-      when :youth
-        GrdaWarehouse::Hud::Client.destination.unaccompanied_youth(start_date: @start_date, end_date: @end_date)
-      when :parenting_youth
-        GrdaWarehouse::Hud::Client.destination.parenting_youth(start_date: @range.start, end_date: @range.end)
-      when :parenting_children
-        GrdaWarehouse::Hud::Client.destination.parenting_juvenile(start_date: @range.start, end_date: @range.end)
-      when :individual_adults
-        GrdaWarehouse::Hud::Client.destination.individual_adult(start_date: @start_date, end_date: @end_date)
-      when :non_veteran
-        GrdaWarehouse::Hud::Client.destination.non_veteran
-      when :family
-        GrdaWarehouse::Hud::Client.destination.family(start_date: @start_date, end_date: @end_date)
-      when :children
-        GrdaWarehouse::Hud::Client.destination.children_only(start_date: @start_date, end_date: @end_date)
-      end
+    def history_scope scope, sub_population
+      scope_hash = {
+        all_clients: scope,
+        veteran: scope.veteran,
+        youth: scope.unaccompanied_youth,
+        parenting_youth: scope.parenting_youth,
+        parenting_children: scope.parenting_juvenile,
+        individual_adults: scope.individual_adult,
+        non_veteran: scope.non_veteran,
+        family: scope.family,
+        children: scope.children_only,
+      }
+      scope_hash[sub_population.to_sym]
+    end
+
+    def service_history_columns
+      {
+        client_id: sh_t[:client_id].as('client_id').to_sql, 
+        project_id:  sh_t[:project_id].as('project_id').to_sql, 
+        first_date_in_program:  sh_t[:first_date_in_program].as('first_date_in_program').to_sql, 
+        last_date_in_program:  sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        project_name:  sh_t[:project_name].as('project_name').to_sql, 
+        project_type:  sh_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        organization_id:  sh_t[:organization_id].as('organization_id').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
+        last_name: c_t[:LastName].as('last_name').to_sql,
+      }
+    end
+
+    def active_client_service_history range: 
+      homeless_service_history_source.joins(:client).
+        entry.
+        open_between(start_date: range.start, end_date: range.end + 1.day).
+        where(
+          client_id: homeless_service_history_source.
+                      service_within_date_range(start_date: range.start, end_date: range.end + 1.day).
+                      select(:client_id)
+        ).
+        pluck(*service_history_columns.values).
+        map do |row|
+          Hash[service_history_columns.keys.zip(row)]
+        end.select do |row|
+          # throw out any that start after the range
+          row[:first_date_in_program] <= range.end
+        end.
+        group_by{|m| m[:client_id]}
+    end
+
+    def service_history_source
+      GrdaWarehouse::ServiceHistory
+    end
+
+    def homeless_service_history_source
+      scope = service_history_source.homeless
+      history_scope(scope, @sub_population)
     end
 
   end

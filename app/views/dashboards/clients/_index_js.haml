@@ -22,10 +22,10 @@
         }
         else if(status == 'success') {
           var ph_chart = $('#housed-chart');
-          var housed_chart = new App.Dashboards.Clients.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'), {ph_only: true});
+          var housed_chart = new App.Dashboards.Clients.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'), '#{sub_population_key}', {ph_only: true});
 
           var destination_chart = $('#destination-chart');
-          var exits_chart = new App.Dashboards.Clients.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'));
+          var exits_chart = new App.Dashboards.Clients.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'), '#{sub_population_key}');
         }
       });
       $('.jRemoteEntered').load('#{entered_dashboards_clients_path()}', function(response, status, xhr) {

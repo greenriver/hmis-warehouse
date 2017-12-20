@@ -1,14 +1,15 @@
 - title = "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Exit Detail"
 - content_for :title, title
-%h1= title
-= render '/warehouse_reports/breadcrumbs'
 .row
-  .col-sm-10
-    = render 'filter'
-  .col-sm-2.text-right
+  .col-sm-8
+    %h1= title
+  .col-sm-4.text-right
     - if  can_view_clients?
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
+= render '/warehouse_reports/breadcrumbs'
+
+= render 'filter'
 
 .row
   .col-sm-12

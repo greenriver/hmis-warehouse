@@ -5,7 +5,7 @@ module Dashboards
     before_action :require_can_view_censuses!
     
     def sub_population_key
-      :parenting_youths
+      :parenting_youth
     end
     helper_method :sub_population_key
 
