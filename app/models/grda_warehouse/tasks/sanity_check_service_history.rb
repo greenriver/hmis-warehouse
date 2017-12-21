@@ -62,7 +62,7 @@ module GrdaWarehouse::Tasks
           @notifier.ping msg
         end
         logger.info rebuilding_message
-        GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+        GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
       end
     end
 
