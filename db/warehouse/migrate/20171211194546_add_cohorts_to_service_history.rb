@@ -1,10 +1,13 @@
 class AddCohortsToServiceHistory < ActiveRecord::Migration
   def up
-    
-    sql = "ALTER TABLE #{GrdaWarehouse::ServiceHistory.quoted_table_name} "
-    sql << columns.map do |column, options|
+    any_to_add = (columns.keys.map(&:to_s) - GrdaWarehouse::ServiceHistory.column_names).any?
+    return unless any_to_add
+    sql = "ALTER TABLE  #{GrdaWarehouse::ServiceHistory.quoted_table_name} "
+    sql << columns.select do |column, _|
+      ! GrdaWarehouse::ServiceHistory.column_names.include?(column.to_s)
+    end.map do |column, options|
       "ADD COLUMN \"#{column}\" #{options[:type]} DEFAULT #{options[:default]} NOT NULL"
-    end.join(', ')
+    end.compact.join(', ')
     puts "Adding columns: #{sql}"
     GrdaWarehouseBase.connection.execute(sql)
   end

@@ -1,0 +1,6 @@
+%small.vispdat-completed-by.text-muted
+  Administered 
+  - if @vispdat.user.present? 
+    by
+  = "#{@vispdat.user&.name} on #{@vispdat.created_at}"
+%hr
