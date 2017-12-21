@@ -20,8 +20,11 @@ module Importing
 
       # expire client consent form if past 1 year
       GrdaWarehouse::Hud::Client.revoke_expired_consent
+      @notifier.ping('Revoked expired client consent if appropriate') if @send_notifications
 
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
+      @notifier.ping('Pushed Clients to CAS') if @send_notifications
+
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       @notifier.ping('Duplicates identified') if @send_notifications
@@ -55,7 +58,7 @@ module Importing
       @notifier.ping('Nicknames updated') if @send_notifications
       UniqueName.update!
       @notifier.ping('Unique names generated') if @send_notifications
-      
+
       GrdaWarehouse::Tasks::CensusImport.new.run!
       @notifier.ping('Census imported') if @send_notifications
       GrdaWarehouse::Tasks::CensusAverages.new.run!
