@@ -15,6 +15,7 @@ module ServiceHistory
         # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
         enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(id)
         enrollment.rebuild_service_history!
+      end
     end
 
     def enqueue(job, queue: :low_priority)

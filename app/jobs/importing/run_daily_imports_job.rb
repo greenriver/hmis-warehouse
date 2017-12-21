@@ -22,8 +22,8 @@ module Importing
       GrdaWarehouse::Hud::Client.revoke_expired_consent
       @notifier.ping('Revoked expired client consent if appropriate') if @send_notifications
 
-      GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
-      @notifier.ping('Pushed Clients to CAS') if @send_notifications
+      # GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
+      @notifier.ping('DISABLED: Pushed Clients to CAS') if @send_notifications
 
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
