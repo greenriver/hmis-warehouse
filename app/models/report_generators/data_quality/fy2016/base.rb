@@ -7,6 +7,11 @@ module ReportGenerators::DataQuality::Fy2016
     attr_reader :all_clients
 
     def add_filters scope:
+      project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
+      if project_group_ids.any?
+        project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
+        @report.options['project_id'] |= project_group_project_ids
+      end
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
         scope = scope.joins(:project).where(Project: { id: project_ids})
