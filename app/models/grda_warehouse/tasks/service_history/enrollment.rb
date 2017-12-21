@@ -57,11 +57,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       return false unless force || source_data_changed?
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Checked for changes'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-      self.class.transaction do 
-        remove_existing_service_history_for_enrollment()
-        # sometimes we have enrollments for projects that no longer exist
-        return false unless project.present?
-        days = []
+      days = []
+      if project.present?
         date = self.EntryDate
         type_provided = project.computed_project_type
         days << entry_record(date, type_provided)
@@ -81,7 +78,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
           type_provided = build_for_dates.values.last
           days << exit_record(date, type_provided)
         end
-        insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
+      end
+      self.class.transaction do 
+        remove_existing_service_history_for_enrollment()
+        # sometimes we have enrollments for projects that no longer exist
+        return false unless project.present?
+        if days.any?
+          insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
+        end
       end
       update(processed_hash: calculate_hash)
       return true
@@ -191,8 +195,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
 
       # Break this into two queries to speed it up and keep RAM usage in check
-      rows = source_rows(id) + service_history_rows(id)
-      Digest::SHA256.hexdigest(rows.to_s)
+      # 
+      # Ignore service history side, these should always be invalidated if clients are merged
+      #rows = source_rows(id) + service_history_rows(id) 
+      # rows = source_rows(id)
+      # Digest::SHA256.hexdigest(rows.to_s)
+
+      rows = source_rows(id)
+      Digest::SHA256.hexdigest rows.join('|')
     end
 
     def self.source_rows(id)
@@ -202,7 +212,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         includes(:exit, :services, :destination_client).
         references(:exit, :services, :destination_client).
         order(*enrollment_column_order.map(&:to_sql).join(', ') + ' NULLS FIRST').
-        pluck(*hash_columns)
+        pluck(nf('CONCAT', hash_columns).to_sql)
     end
 
     # def self.service_history_rows(id)
@@ -498,20 +508,20 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # if any of the destination data has changed
     # or if the enrollment has been connected to a new destination client
     def self.hash_columns
-      @hash_columns ||= begin        
+      @hash_columns ||= begin
         columns = enrollment_hash_columns.values.map do |col|
-          e_t[col].as("e_t_#{col.to_s}").to_sql
+          [e_t[col], '_']
         end
         columns += exit_hash_columns.values.map do |col|
-          ex_t[col].as("ex_t_#{col.to_s}").to_sql
+          [ex_t[col], '_']
         end
         columns += service_hash_columns.values.map do |col|
-          s_t[col].as("s_t_#{col.to_s}").to_sql
+          [s_t[col], '_']
         end
         columns += client_hash_columns.values.map do |col|
-          c_t[col].as("c_t_#{col.to_s}").to_sql
+          [c_t[col], '_']
         end
-        columns
+        columns.flatten
       end
     end
 
