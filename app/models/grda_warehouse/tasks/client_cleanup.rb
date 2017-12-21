@@ -253,12 +253,14 @@ module GrdaWarehouse::Tasks
         client_age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
         incorrect_age_clients << id if age.present? && (age != client_age || age < 0)
         less_than_zero << id if age.present? && age < 0
+        invalidate_clients << id if age.present? && age != client_age
       end
       msg =  "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
       msg +=  " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size > 0
       logger.info msg
       @notifier.ping msg if @send_notifications
-      GrdaWarehouse::Hud::Client.where(id: incorrect_age_clients.to_a).
+      # Only invalidate clients if the age is wrong, if it's less than zero but hasn't changed, this is just wasted effort
+      GrdaWarehouse::Hud::Client.where(id: invalidate_clients.to_a).
         map do |client|
           client.invalidate_service_history
         end

@@ -14,8 +14,7 @@ module ServiceHistory
         Rails.logger.info "===RebuildEnrollmentsByBatchJob=== Processing enrollment #{id}"
         # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
         enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(id)
-      end
-
+        enrollment.rebuild_service_history!
     end
 
     def enqueue(job, queue: :low_priority)
