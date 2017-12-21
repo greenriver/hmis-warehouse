@@ -20,8 +20,11 @@ module Importing
 
       # expire client consent form if past 1 year
       GrdaWarehouse::Hud::Client.revoke_expired_consent
+      @notifier.ping('Revoked expired client consent if appropriate') if @send_notifications
 
-      GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
+      # GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
+      @notifier.ping('DISABLED: Pushed Clients to CAS') if @send_notifications
+
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       @notifier.ping('Duplicates identified') if @send_notifications
@@ -33,25 +36,34 @@ module Importing
       # Sometimes client data changes in such a way as to leave behind stub
       # clients with no enrollments, this clears those out.
       # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
+      
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
       @notifier.ping('Clients cleaned') if @send_notifications
-      GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+
+      range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
+      GrdaWarehouse::Hud::Enrollment.open_during_range(range).pluck_in_batches(:id, batch_size: 250) do |batch|
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      end
+
+      # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
       # Make sure we've finished processing the service history before we move on
       # Some of the later items require this to be finished to be correct.
       GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
       @notifier.ping('Service history generated') if @send_notifications
+      GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
+      @notifier.ping('Earliest residential services generated') if @send_notifications
       Nickname.populate!
       @notifier.ping('Nicknames updated') if @send_notifications
       UniqueName.update!
       @notifier.ping('Unique names generated') if @send_notifications
+
       GrdaWarehouse::Tasks::CensusImport.new.run!
       @notifier.ping('Census imported') if @send_notifications
       GrdaWarehouse::Tasks::CensusAverages.new.run!
       @notifier.ping('Census averaged') if @send_notifications
-      GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
-      @notifier.ping('Earliest residential services generated') if @send_notifications
+      
       # Only run the chronic calculator on the 1st and 15th
       # but run it for the past 2 of each
       if Date.today.day.in?([1,15])
@@ -86,13 +98,13 @@ module Importing
       # The sanity check should always be last
       # It has the potential to run for a long time since it 
       # self-heals the warehouse for anyone it finds that is broken
-      # and then re-checks itself
-      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1000).run!
+      # and then re-checks itself.
+      # For now we are checking all destination clients.  This should catch any old 
+      # entries or exits that were added or removed.
+      dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
       @notifier.ping('Sanity checked') if @send_notifications
-      # Make sure we don't have anyone who needs re-generation, even if they have
-      # birthdays that are incorrect
-      GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-      @notifier.ping('Service history added') if @send_notifications
+      
       # pre-populate the cache for data source date spans
       GrdaWarehouse::DataSource.data_spans_by_id()
       @notifier.ping('Data source date spans set') if @send_notifications
