@@ -240,6 +240,7 @@ module GrdaWarehouse::Tasks
       logger.info "Finding any clients with incorrect ages in the last 3 years of service history and invalidating them."
       incorrect_age_clients = Set.new
       less_than_zero = Set.new
+      invalidate_clients = Set.new
       service_history_ages = GrdaWarehouse::ServiceHistory.entry.
         pluck(:client_id, :age, :first_date_in_program)
       clients = GrdaWarehouse::Hud::Client.
