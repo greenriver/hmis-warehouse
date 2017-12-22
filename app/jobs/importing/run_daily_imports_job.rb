@@ -42,7 +42,7 @@ module Importing
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
       @notifier.ping('Clients cleaned') if @send_notifications
 
-      range = ::Filters::DateRange.new(start: 1.weeks.ago, end: Date.today)
+      range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
       GrdaWarehouse::Hud::Enrollment.open_during_range(range).joins(:project, :destination_client).pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
