@@ -61,6 +61,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
     end
 
+    def homeless_service_history_source
+      scope = service_history_source.
+        joins(:client, :project).
+        homeless
+      history_scope(scope)
+    end
+
     # all enrollments for clients who were active during the date range
     def entered_enrollments_by_type start_date:, end_date:
       enrollments_by_type = homeless_service_history_source.entry.

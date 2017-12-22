@@ -6,6 +6,8 @@ module GrdaWarehouse::WarehouseReports::Dashboard::Youth
         unaccompanied_youth(start_date: @start_date, end_date: @end_date)
     end
 
-
+    def history_scope(scope)
+      scope.unaccompanied_youth
+    end
   end
 end

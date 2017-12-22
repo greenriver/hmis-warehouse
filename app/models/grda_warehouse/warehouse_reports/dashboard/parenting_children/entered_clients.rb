@@ -6,6 +6,8 @@ module GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren
         parenting_juvenile(start_date: @start_date, end_date: @end_date)
     end
 
-
+    def history_scope(scope)
+      scope.parenting_juvenile
+    end
   end
 end

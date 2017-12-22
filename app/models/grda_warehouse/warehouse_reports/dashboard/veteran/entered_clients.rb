@@ -5,6 +5,8 @@ module GrdaWarehouse::WarehouseReports::Dashboard::Veteran
       GrdaWarehouse::Hud::Client.destination.veteran
     end
 
-
+    def history_scope(scope)
+      scope.veteran
+    end
   end
 end
