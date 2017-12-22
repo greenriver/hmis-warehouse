@@ -3,7 +3,7 @@ wb = xlsx_package.workbook
 
 wb.add_worksheet(name: "Active Veterans") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  
+
   sheet.add_row([
     'Warehouse Client ID',
     'First Name', 
@@ -31,6 +31,15 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
       client['first_date_served'],
       client['enrollments'].size
     ]
+    client['enrollments'].each do |enrollment|
+      row += [
+        enrollment['ds_short_name'],
+        HUD::project_type_brief(enrollment['project_type']),
+        enrollment['project_name'],
+        enrollment['first_date_in_program'],
+        enrollment['last_date_in_program']
+      ]
+    end
     sheet.add_row(row)
   end
 end
