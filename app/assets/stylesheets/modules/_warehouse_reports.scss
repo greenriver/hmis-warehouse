@@ -25,12 +25,14 @@
   font-weight: bold;
 }
 .warehouse-reports__completed .parameter-label,
-.warehouse-reports__chronic .parameter-label
+.warehouse-reports__chronic .parameter-label,
+.warehouse-reports__disabled .parameter-label
 {
   border-radius: 5px 0px 0px 5px;
 }
 .warehouse-reports__completed .parameter-value,
-.warehouse-reports__chronic .parameter-value
+.warehouse-reports__chronic .parameter-value,
+.warehouse-reports__disabled .parameter-value
 {
   border-radius: 0px 5px 5px 0px;
 }

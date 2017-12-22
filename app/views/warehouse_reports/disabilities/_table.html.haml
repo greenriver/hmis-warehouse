@@ -1,0 +1,16 @@
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Last Name
+      %th First Name
+      %th Disability & Response
+  %tbody
+    - @clients.each do |client|
+      %tr
+        %td
+          %nobr= link_to client.LastName, client_path(client)
+        %td
+          %nobr= link_to client.FirstName, client_path(client)     
+        %td
+          - disabilities = client.source_disabilities.map {|disability| "#{disability.disability_type_text}: #{disability.response}"}.uniq
+          = disabilities.join('<br />').html_safe
