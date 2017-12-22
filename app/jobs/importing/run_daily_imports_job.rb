@@ -46,6 +46,9 @@ module Importing
       GrdaWarehouse::Hud::Enrollment.open_during_range(range).joins(:project, :destination_client).pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
+      # Fix anyone who received a new exit or entry added prior to the last year
+      dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
 
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
       # Make sure we've finished processing the service history before we move on
