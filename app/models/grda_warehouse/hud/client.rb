@@ -1451,7 +1451,13 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::ServiceHistory.where(client_id: client_id).
         homeless.service.
         where(sh_t[:date].lteq(on_date)).
+        where.not(date: dates_housed_scope(client_id: client_id)).
         select(:date).distinct
+    end
+
+    def self.dates_housed_scope(client_id:, on_date: Date.today)
+      GrdaWarehouse::ServiceHistory.residential_non_homeless.service.
+        where(client_id: client_id).select(:date).distinct
     end
 
     def self.dates_homeless(client_id:, on_date: Date.today)

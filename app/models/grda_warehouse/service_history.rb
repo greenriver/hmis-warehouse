@@ -42,6 +42,16 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :hud_residential, -> do
     hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   end
+
+  scope :residential_non_homeless, -> do
+    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    where(project_type_column => r_non_homeless)
+  end
+  scope :hud_residential_non_homeless, -> do
+    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    hud_project_type(r_non_homeless)
+    end
+
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table
     where_closed = at[:first_date_in_program].lteq(on_date).
