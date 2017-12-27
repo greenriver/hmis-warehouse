@@ -404,6 +404,13 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def deceased?
+      deceased_on.present?
+    end
+    def deceased_on
+      @deceased_on ||= source_exits.where(Destination: ::HUD.valid_destinations.invert['Deceased']).pluck(:ExitDate).last
+    end
+
     def active_in_cas?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
