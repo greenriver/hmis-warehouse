@@ -84,9 +84,6 @@
         .col-sm-5
           .client__view_client
             = link_to 'View', client_path(client), class: 'btn btn-secondary'
-          - days_served = client.processed_service_history.try(:days_served) || 0        
-          - scope = client.scope_for_residential_enrollments
-          - enrollments = client.enrollments_for_rollup(en_scope: scope, include_confidential_names: @include_confidential_names)
           - total_homeless = client.days_homeless
           %p 
             %strong Days Homeless:
