@@ -1018,19 +1018,26 @@ module GrdaWarehouse::Hud
         maximum(:date)
     end
 
+    def confidential_project_ids
+      @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
+    end
+
+    def project_confidential?(project_id:, data_source_id:)
+      confidential_project_ids.include?([project_id, data_source_id])
+    end
+
     def last_projects_served_by(include_confidential_names: false)
-      # FIXME: this is a hack because processed_service_history's date sometimes doesn't match any service history record
-      # astoundingly, this is faster than a more sensible database query that doesn't return everything
-      sh = service_history.joins(:project).
-        pluck(:date, :project_name, :confidential).
+      sh = service_history.service.
+        pluck(:date, :project_name, :data_source_id, :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?
-      sh.last.map do |_,project_name, confidential|
+      sh.last.map do |_,project_name, data_source_id, project_id|
+        confidential = project_confidential?(project_id: project_id, data_source_id: data_source_id)
         if ! confidential || include_confidential_names
           project_name
         else
-          'Confidential Program'
+          GrdaWarehouse::Hud::Project.confidential_project_name
         end
       end.uniq.sort
       # service_history.where( date: processed_service_history.select(:last_date_served) ).order(:project_name).distinct.pluck(:project_name)
@@ -1553,10 +1560,8 @@ module GrdaWarehouse::Hud
         household_id: sh_t[:household_id].as('household_id').to_sql,
         record_type: sh_t[:record_type].as('record_type').to_sql,
         data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-        OrganizationName: o_t[:OrganizationName].as('OrganizationName').to_sql,
-        ProjectID: p_t[:ProjectID].as('ProjectID').to_sql,
-        project_id: p_t[:id].as('project_id').to_sql,
-        confidential: p_t[:confidential].as('confidential').to_sql,
+        ProjectID: sh_t[:project_id].as('ProjectID').to_sql,
+        OrganizationID: sh_t[:organization_id].as('organization_id').to_sql,
         client_source_id: c_t[:id].as('client_source_id').to_sql,
       }
     end
@@ -1586,7 +1591,7 @@ module GrdaWarehouse::Hud
         
         enrollments = scope.
           joins(exit_join.join_sources).
-          joins(:service_histories, :project).
+          joins(:service_histories).
           where(sh_t[:record_type].in(service_types + ['entry'])).
           select(*self.class.enrollment_columns.values).
           pluck(*self.class.enrollment_columns.values).
@@ -1600,6 +1605,16 @@ module GrdaWarehouse::Hud
         enrollments_by_project_entry.map do |_, e|
           e.sort_by!{|m| m[:date]}
           meta = e.select{|m| m[:record_type] == 'entry'}.first
+          # Joining in project and organization is very expensive, some simple queries are much faster
+          meta[:confidential] = project_confidential?(project_id: meta[:ProjectID], data_source_id: meta[:data_source_id])
+          meta[:project_id] = GrdaWarehouse::Hud::Project.where(
+            ProjectID: meta[:ProjectID], 
+            data_source_id: meta[:data_source_id]
+          ).pluck(:id).first
+          meta[:OrganizationName] = GrdaWarehouse::Hud::Organization.where(
+            OrganizationID: meta[:OrganizationID], 
+            data_source_id: meta[:data_source_id]
+          ).pluck(:OrganizationName).first
           # Hide confidential program names, if appropriate
           meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
           if meta[:confidential]

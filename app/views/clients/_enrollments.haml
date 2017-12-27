@@ -55,7 +55,7 @@
             %em.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]
           - if e[:confidential_project] && @include_confidential_names
-            .confidential_project{data: {toggle: :tooltip, title: "Confidential Project"}}
+            .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
         %td
           - if include_links
