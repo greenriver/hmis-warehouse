@@ -1560,8 +1560,10 @@ module GrdaWarehouse::Hud
         household_id: sh_t[:household_id].as('household_id').to_sql,
         record_type: sh_t[:record_type].as('record_type').to_sql,
         data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-        ProjectID: sh_t[:project_id].as('ProjectID').to_sql,
-        OrganizationID: sh_t[:organization_id].as('organization_id').to_sql,
+        OrganizationName: o_t[:OrganizationName].as('OrganizationName').to_sql,
+        ProjectID: p_t[:ProjectID].as('ProjectID').to_sql,
+        project_id: p_t[:id].as('project_id').to_sql,
+        confidential: p_t[:confidential].as('confidential').to_sql,
         client_source_id: c_t[:id].as('client_source_id').to_sql,
       }
     end
@@ -1591,7 +1593,7 @@ module GrdaWarehouse::Hud
         
         enrollments = scope.
           joins(exit_join.join_sources).
-          joins(:service_histories).
+          joins(:service_histories, :project).
           where(sh_t[:record_type].in(service_types + ['entry'])).
           select(*self.class.enrollment_columns.values).
           pluck(*self.class.enrollment_columns.values).
@@ -1605,16 +1607,6 @@ module GrdaWarehouse::Hud
         enrollments_by_project_entry.map do |_, e|
           e.sort_by!{|m| m[:date]}
           meta = e.select{|m| m[:record_type] == 'entry'}.first
-          # Joining in project and organization is very expensive, some simple queries are much faster
-          meta[:confidential] = project_confidential?(project_id: meta[:ProjectID], data_source_id: meta[:data_source_id])
-          meta[:project_id] = GrdaWarehouse::Hud::Project.where(
-            ProjectID: meta[:ProjectID], 
-            data_source_id: meta[:data_source_id]
-          ).pluck(:id).first
-          meta[:OrganizationName] = GrdaWarehouse::Hud::Organization.where(
-            OrganizationID: meta[:OrganizationID], 
-            data_source_id: meta[:data_source_id]
-          ).pluck(:OrganizationName).first
           # Hide confidential program names, if appropriate
           meta[:project_name] = "#{meta[:project_name]} < #{meta[:OrganizationName]}"
           if meta[:confidential]
