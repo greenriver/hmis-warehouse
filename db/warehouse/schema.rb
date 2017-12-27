@@ -1257,9 +1257,9 @@ ActiveRecord::Schema.define(version: 20171222151018) do
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
-    t.string   "ProjectEntryID"
+    t.string   "ProjectEntryID",                               :limit=>50
     t.string   "PersonalID"
-    t.string   "ProjectID"
+    t.string   "ProjectID",                                    :limit=>50
     t.date     "EntryDate"
     t.string   "HouseholdID"
     t.integer  "RelationshipToHoH"
@@ -2165,6 +2165,7 @@ SELECT "Services"."ServicesID",
   add_index "warehouse_client_service_history", ["enrollment_group_id", "project_tracking_method"], :name=>"index_sh__enrollment_id_track_meth", :using=>:btree
   add_index "warehouse_client_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], :name=>"index_wsh_on_last_date_in_program", :using=>:btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], :name=>"index_new_service_history_on_first_date_in_program", :using=>:brin
+  add_index "warehouse_client_service_history", ["project_id", "data_source_id"], :name=>"index_sh_proj_ds_id", :using=>:btree
   add_index "warehouse_client_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], :name=>"index_sh_date_ds_org_proj_proj_type", :using=>:btree
 
   create_table "warehouse_clients_processed", force: :cascade do |t|

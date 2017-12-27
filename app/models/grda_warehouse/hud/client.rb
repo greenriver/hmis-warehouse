@@ -404,6 +404,13 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def deceased?
+      deceased_on.present?
+    end
+    def deceased_on
+      @deceased_on ||= source_exits.where(Destination: ::HUD.valid_destinations.invert['Deceased']).pluck(:ExitDate).last
+    end
+
     def active_in_cas?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
@@ -1011,19 +1018,26 @@ module GrdaWarehouse::Hud
         maximum(:date)
     end
 
+    def confidential_project_ids
+      @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
+    end
+
+    def project_confidential?(project_id:, data_source_id:)
+      confidential_project_ids.include?([project_id, data_source_id])
+    end
+
     def last_projects_served_by(include_confidential_names: false)
-      # FIXME: this is a hack because processed_service_history's date sometimes doesn't match any service history record
-      # astoundingly, this is faster than a more sensible database query that doesn't return everything
-      sh = service_history.joins(:project).
-        pluck(:date, :project_name, :confidential).
+      sh = service_history.service.
+        pluck(:date, :project_name, :data_source_id, :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?
-      sh.last.map do |_,project_name, confidential|
+      sh.last.map do |_,project_name, data_source_id, project_id|
+        confidential = project_confidential?(project_id: project_id, data_source_id: data_source_id)
         if ! confidential || include_confidential_names
           project_name
         else
-          'Confidential Program'
+          GrdaWarehouse::Hud::Project.confidential_project_name
         end
       end.uniq.sort
       # service_history.where( date: processed_service_history.select(:last_date_served) ).order(:project_name).distinct.pluck(:project_name)
