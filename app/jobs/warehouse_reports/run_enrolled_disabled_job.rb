@@ -8,20 +8,16 @@ module WarehouseReports
       report.started_at = DateTime.now
       report.parameters = params
 
-      filter_params = params.require(:filter).permit(
-        disabilities: [],
-        project_types: [],
-      ) rescue {}
-      filter = DisabilityProjectTypeFilter.new(filter_params)
+      filter_params = params[:filter]
 
       clients = []
-      if filter.disabilities.empty?
+      if filter_params[:disabilities].empty?
         clients = client_source.none
       else
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_histories).
-          where(Disabilities: {DisabilityType: filter.disabilities, DisabilityResponse: [1,2,3]}).
-          where(Project: {project_source.project_type_column => filter.project_types}).
-          merge(history.entry.ongoing.where(history.project_type_column => filter.project_types)).
+          where(Disabilities: {DisabilityType: filter_params[:disabilities], DisabilityResponse: [1,2,3]}).
+          where(Project: {project_source.project_type_column => filter_params[:project_types]}).
+          merge(history.entry.ongoing.where(history.project_type_column => filter_params[:project_types])).
           distinct.
           includes(source_disabilities: :project).
           order(LastName: :asc, FirstName: :asc)
@@ -50,11 +46,6 @@ module WarehouseReports
 
     def history
       GrdaWarehouse::ServiceHistory
-    end
-
-    class DisabilityProjectTypeFilter < ModelForm
-      attribute :disabilities, Date, lazy: true, default: []
-      attribute :project_types, Date, lazy: true, default: []
     end
 
   end

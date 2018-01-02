@@ -26,7 +26,7 @@
           %tr
             %th Last Name
             %th First Name
-            %th Disability & Response
+            %th Disability
         %tbody
           - @clients.each do |client|
             %tr
@@ -35,4 +35,5 @@
               %td
                 %nobr= link_to client['FirstName'], client_path(client['id'])
               %td
-                = client['disabilities'].join(',')
+                - client['disabilities'].each do |disability|
+                  %label.label.label-info= disability
