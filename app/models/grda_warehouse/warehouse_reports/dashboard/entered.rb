@@ -61,6 +61,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
     end
 
+    def homeless_service_history_source
+      scope = service_history_source.
+        joins(:client, :project).
+        homeless
+      history_scope(scope)
+    end
+
     # all enrollments for clients who were active during the date range
     def entered_enrollments_by_type start_date:, end_date:
       enrollments_by_type = homeless_service_history_source.entry.
@@ -84,12 +91,17 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     end
 
     def client_totals_from_enrollments enrollments: 
-      enrollments.map do |project_type, clients| 
+      totals = enrollments.map do |project_type, clients| 
         [
           project_type, 
           clients.count,
         ]
       end.to_h
+      # force empty results for all homeless types
+      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.each do |project_type|
+         totals[project_type] ||= 0
+      end
+      totals
     end
 
     def entries_in_range_from_enrollments enrollments:, start_date:, end_date:
@@ -107,14 +119,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     # limit enrollments to those that were open during the range
     def enrollments_ongoing_in_date_range enrollments:, start_date:, end_date:
-      enrollments.map do |project_type, clients|
+      ongoing_enrollments = enrollments.map do |project_type, clients|
         [
           project_type,
           clients.map do |id, enrollments|
             ongoing = enrollments.select do |enrollment|
               enrollment_end = enrollment[:last_date_in_program] || Date.today
               # Excellent discussion of why this works:
-              # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overla
+              # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
               # start_date < enrollment_end && end_date > enrollment[:first_date_in_program]
               dates_overlap(start_date, end_date, enrollment[:first_date_in_program], enrollment_end)
               
@@ -125,6 +137,11 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           end.to_h
         ]
       end.to_h
+      # force empty results for all homeless types
+      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.each do |project_type|
+         ongoing_enrollments[project_type] ||= {}
+      end
+      ongoing_enrollments
     end
 
     def bucket_clients entries:

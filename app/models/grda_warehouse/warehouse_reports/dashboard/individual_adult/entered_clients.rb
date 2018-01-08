@@ -6,6 +6,9 @@ module GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult
         individual_adult(start_date: @start_date, end_date: @end_date)
     end
 
+    def history_scope(scope)
+      scope.individual_adult
+    end
 
   end
 end

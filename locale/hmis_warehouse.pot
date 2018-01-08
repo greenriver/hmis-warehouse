@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-16 13:09-0500\n"
-"PO-Revision-Date: 2017-11-16 13:09-0500\n"
+"POT-Creation-Date: 2017-12-21 09:18-0500\n"
+"PO-Revision-Date: 2017-12-21 09:18-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -79,6 +79,9 @@ msgid "Full HAN Release"
 msgstr ""
 
 msgid "Full HAN Release on File"
+msgstr ""
+
+msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
@@ -178,6 +181,15 @@ msgid "Shelter Agency Contacts"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
+msgstr ""
+
+msgid "This is a Family VI-SPDAT"
+msgstr ""
+
+msgid "This is a Youth VI-SPDAT"
+msgstr ""
+
+msgid "This is an Individual VI-SPDAT"
 msgstr ""
 
 msgid "U.S Citizen or Permanent Resident"

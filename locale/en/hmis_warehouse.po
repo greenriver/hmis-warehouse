@@ -80,6 +80,9 @@ msgstr ""
 msgid "Full HAN Release on File"
 msgstr ""
 
+msgid "Fully signed data sharing agreement"
+msgstr ""
+
 msgid "HIV+"
 msgstr ""
 
@@ -177,6 +180,15 @@ msgid "Shelter Agency Contacts"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
+msgstr ""
+
+msgid "This is a Family VI-SPDAT"
+msgstr ""
+
+msgid "This is a Youth VI-SPDAT"
+msgstr ""
+
+msgid "This is an Individual VI-SPDAT"
 msgstr ""
 
 msgid "U.S Citizen or Permanent Resident"
