@@ -1,21 +1,31 @@
 - title = "Active Veterans"
 - content_for :title, title
-%h1= title
-= render '/warehouse_reports/breadcrumbs'
-.row
-  .col-sm-6
-    = render 'filter'
-  .col-sm-4
-    = render 'sort', sort_options: @sort_options
-  .col-sm-2.text-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-      Download Excel
+%h1
+  = title
+%hr
 
-=# debug @enrollments
+= render '/warehouse_reports/breadcrumbs'
+
+.well
+  .row
+    .col-sm-12
+      = render 'filter'
+
 .warehouse-reports__active-veterans
-  .pagination
-    %p= page_entries_info @clients, entry_name: _('client')
-    %p= paginate @clients
-  = render 'veteran_table'
-                  
-%p= paginate @clients
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Run At
+        %th Report Link
+        %th Report Parameters
+    %tbody.report-listing
+      = render 'reports'
+
+= link_to 'Refresh', running_warehouse_reports_active_veterans_path, class: 'jReportBlock', remote: true, style: 'display:none'
+
+= content_for :page_js do
+  :coffeescript
+    $ ->
+      setInterval ->
+        $('.jReportBlock').click()
+      , 30*1000

@@ -11,8 +11,5 @@
           - sorted = details[:title]
         - else
           - title = "<span class='icon-checkbox-unchecked'></span> #{details[:title]} #{opt[:direction]}".html_safe
-        %li= sort_as_link(title, opt[:column], opt[:direction].to_s)
-
-%p.client__current-sort-filter
-  Currently sorted by:
-  %strong= sorted
+        %li
+          = link_to title, params.merge!(direction: opt[:direction], column: opt[:column])

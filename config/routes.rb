@@ -108,6 +108,12 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    resources :active_veterans, only: [:index, :show] do
+      collection do
+        get :summary
+        get :running
+      end
+    end
     resources :chronic_housed, only: [:index]
     resources :first_time_homeless, only: [:index] do
       get :summary, on: :collection
