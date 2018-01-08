@@ -19,7 +19,7 @@ module WarehouseReports
       respond_to do |format|
         format.html
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename='Enrolled Clients with Disabilities.xlsx'"
+          headers['Content-Disposition'] = "attachment; filename=Enrolled Clients with Disabilities.xlsx"
         end
       end
     end
