@@ -25,7 +25,7 @@ module WarehouseReports
         format.xlsx do
           range = @report.parameters['range'] || {}
           start_date, end_date = range['start'], range['end']
-          headers['Content-Disposition'] = "attachment; filename='Homeless Veterans from #{start_date} to #{end_date}.xlsx'"
+          headers['Content-Disposition'] = "attachment; filename=Homeless Veterans from #{start_date} to #{end_date}.xlsx"
         end
       end
     end
