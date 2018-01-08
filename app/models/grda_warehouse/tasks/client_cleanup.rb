@@ -96,7 +96,7 @@ module GrdaWarehouse::Tasks
     #     b. DOB
     #     c. FirstName
     #     d. LastName
-    #     e. Veteran Status (if yes)
+    #     e. Veteran Status (if yes or no)
     #   3. Never remove attribute unless it doesn't exist in any of the sources (never remove name)
     def update_client_demographics_based_on_sources
       batch_size = 1000
@@ -122,13 +122,9 @@ module GrdaWarehouse::Tasks
           source_clients.each do |sc|
             attributes.each do |attribute|
               dest_attr[attribute] = sc[attribute] if dest_attr[attribute].blank? && sc[attribute].present?
-              # if we have any yes answers for veteran status, trump everything else
-              # Per DND 2/15/2017 this should now be set to the most recently changed
-              # source client
-              # dest_attr[attribute] = sc[attribute] if attribute == :VeteranStatus && sc[attribute] == 1
-              # 
-              # Now, only replace yes or no with yes or no
-              # or if we don't currently have a yes or no, replace it with the newest value
+
+              # Only replace yes or no with yes or no
+              # If we don't currently have a yes or no, replace it with the newest value, unless the newest value is nil
               if attribute == :VeteranStatus
                 if (['1','2'].include?(dest_attr[attribute].to_s) && ['1','2'].include?(sc[attribute].to_s)) || ! ['1','2'].include?(dest_attr[attribute].to_s)
                   dest_attr[attribute] = sc[attribute]
