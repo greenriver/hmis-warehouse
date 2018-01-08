@@ -3,12 +3,12 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'Disability & Response'], :style => title)
   @clients.each do |client|
-    disabilities = client.source_disabilities.map {|disability| "#{disability.disability_type_text}: #{disability.response}"}.uniq
+    disabilities = client['disabilities'].join(', ')
     sheet.add_row [
-      client.id, 
-      client.FirstName, 
-      client.LastName, 
-      disabilities.join('; ')
+      client['id'], 
+      client['FirstName'], 
+      client['LastName'], 
+      disabilities
     ] 
   end
 end

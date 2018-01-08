@@ -1,0 +1,39 @@
+- title = 'Enrolled Clients with Disabilities'
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+
+%h1
+  = title
+  %small
+    Clients who are currently enrolled in a project in the selected project types who have provided an affirmative answer to the selected disability types.
+%hr
+
+.warehouse-reports__disabled
+  .row
+    .col-sm-12
+      %h4 Report Parameters
+      = render 'parameters', report: @report
+
+  .row(style="padding-top:1em")
+    .col-sm-12.text-right
+      = link_to params.merge(format: :xlsx), class: 'btn btn-secondary' do
+        Download Excel
+
+  .row(style="padding-top:1em")
+    .col-sm-12
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Last Name
+            %th First Name
+            %th Disability
+        %tbody
+          - @clients.each do |client|
+            %tr
+              %td
+                %nobr= link_to client['LastName'], client_path(client['id'])
+              %td
+                %nobr= link_to client['FirstName'], client_path(client['id'])
+              %td
+                - client['disabilities'].each do |disability|
+                  %label.label.label-info= disability

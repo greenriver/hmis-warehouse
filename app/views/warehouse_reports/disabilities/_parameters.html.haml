@@ -1,0 +1,14 @@
+
+- report.parameters['filter']['disabilities'].each do |id|
+  - next if id.blank?
+  %label.label.label-primary
+    %strong
+      = ::HUD::disability_types[id.to_i]
+  &nbsp;
+
+- report.parameters['filter']['project_types'].each do |id|
+  - next if id.blank?
+  %label.label.label-default
+    %strong
+      = ::HUD::project_types[id.to_i]
+  &nbsp;
