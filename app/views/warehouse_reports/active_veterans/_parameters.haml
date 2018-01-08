@@ -1,0 +1,9 @@
+
+- report.parameters['range'].each do |k,v|
+  - next if v.blank?
+  %label.label.label-default.parameter-label
+    =k.humanize.downcase
+  %label.label.label-primary.parameter-value
+    %strong
+      = v.is_a?(Array) ? v.compact.delete_if(&:blank?).map(&:upcase).join(', ') : v
+  &nbsp;

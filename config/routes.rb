@@ -92,12 +92,23 @@ Rails.application.routes.draw do
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
-    resources :disabilities, only: [:index]
+    resources :disabilities, only: [:index, :show] do
+      collection do
+        get :summary
+        get :running
+      end
+    end
     resources :chronic, only: [:index, :show] do
       get :summary, on: :collection
       get :running, on: :collection
     end
     resources :hud_chronics, only: [:index, :show] do
+      collection do
+        get :summary
+        get :running
+      end
+    end
+    resources :active_veterans, only: [:index, :show] do
       collection do
         get :summary
         get :running

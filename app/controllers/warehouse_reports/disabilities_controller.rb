@@ -1,30 +1,39 @@
 module WarehouseReports
   class DisabilitiesController < ApplicationController
     include WarehouseReportAuthorization
+
+    before_action :set_jobs, only: [:index, :running]
+
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
-      affirmative_responses = [1,2,3]
-      if @filter.disabilities.empty?
-        @clients = client_source.none
-      else
-        @clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_histories).
-          where(Disabilities: {DisabilityType: @filter.disabilities, DisabilityResponse: affirmative_responses}).
-          where(Project: {project_source.project_type_column => @filter.project_types}).
-          merge(history.entry.ongoing.where(history.project_type_column => @filter.project_types)).
-          distinct.
-          includes(source_disabilities: :project).
-          order(LastName: :asc, FirstName: :asc)
+      if params[:commit].present?
+        WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id))
       end
+      @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
+    end
+
+    def show
+      @report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.find params[:id]
+      @clients = @report.data
+
       respond_to do |format|
-        format.html {
-          @clients = @clients.page(params[:page]).per(25)
-        }
-        format.xlsx {}
+        format.html
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Enrolled Clients with Disabilities.xlsx"
+        end
       end
     end
 
+    def running
+      @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
+    end
+
+    def set_jobs
+      @jobs = Delayed::Job.where(queue: 'enrolled_disabled_report').order(run_at: :desc)
+    end
+
     def filter_params
-      params.require(:filter).permit(
+      filter_params = params.require(:filter).permit(
         disabilities: [],
         project_types: [],
       ) rescue {}
@@ -40,26 +49,9 @@ module WarehouseReports
     end
     helper_method :available_project_types
 
-    private def history
-      GrdaWarehouse::ServiceHistory
-    end
-
-    private def client_source
-      GrdaWarehouse::Hud::Client.destination
-    end
-
-    def project_source
-      GrdaWarehouse::Hud::Project
-    end
-
-    def history_source
-      GrdaWarehouse::ServiceHistory
-    end
-
     class DisabilityProjectTypeFilter < ModelForm
-      attribute :disabilities, Date, lazy: true, default: []
-      attribute :project_types, Date, lazy: true, default: []
-
+      attribute :disabilities, Array, lazy: true, default: []
+      attribute :project_types, Array, lazy: true, default: []
     end
   end
 end

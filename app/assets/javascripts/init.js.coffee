@@ -14,3 +14,9 @@ App.init = ->
 $ ->
   App.init()
   $('.datepicker.enable-on-load').prop('disabled', false)
+
+  poller = $('[data-poll-every]').first()
+  if poller.length > 0
+    setInterval ->
+      poller.click()
+    , poller.data('poll-every')*1000
