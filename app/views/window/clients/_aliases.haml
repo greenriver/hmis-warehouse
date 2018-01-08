@@ -1,4 +1,7 @@
 - aliases = @client.client_names.uniq.select{|m| m[:name] != @client.full_name}
+- if @client.deceased?
+  .alert.alert-danger
+    = "Marked deceased on: #{@client.deceased_on}"
 - if aliases.any?
   .client-aliases.margin-bottom-02
     %h3 Aliases

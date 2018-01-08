@@ -43,15 +43,18 @@ module Importing
       @notifier.ping('Clients cleaned') if @send_notifications
 
       range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
-      GrdaWarehouse::Hud::Enrollment.open_during_range(range).pluck_in_batches(:id, batch_size: 250) do |batch|
+      GrdaWarehouse::Hud::Enrollment.open_during_range(range).joins(:project, :destination_client).pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
-
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
       # Make sure we've finished processing the service history before we move on
       # Some of the later items require this to be finished to be correct.
       GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
       @notifier.ping('Service history generated') if @send_notifications
+      # Fix anyone who received a new exit or entry added prior to the last year
+      dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
+      @notifier.ping('Full sanity check complete') if @send_notifications
       GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
       @notifier.ping('Earliest residential services generated') if @send_notifications
       Nickname.populate!

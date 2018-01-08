@@ -6,6 +6,8 @@ module GrdaWarehouse::WarehouseReports::Dashboard::Children
         children_only(start_date: @start_date, end_date: @end_date)
     end
 
-
+    def history_scope(scope)
+      scope.children_only
+    end
   end
 end

@@ -151,7 +151,7 @@ group :development do
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph'
   gem 'stackprof'     # For Ruby MRI 2.1+
-  gem 'rb-readline'
+  # gem 'rb-readline'
 end
 
 group :test do

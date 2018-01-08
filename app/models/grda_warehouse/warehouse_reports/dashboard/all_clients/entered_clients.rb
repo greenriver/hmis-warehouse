@@ -5,6 +5,8 @@ module GrdaWarehouse::WarehouseReports::Dashboard::AllClients
       GrdaWarehouse::Hud::Client.destination
     end
 
-
+    def history_scope(scope)
+      scope
+    end
   end
 end

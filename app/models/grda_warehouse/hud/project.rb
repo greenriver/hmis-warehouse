@@ -139,6 +139,10 @@ module GrdaWarehouse::Hud
       where(TrackingMethod: 3)
     end
 
+    scope :confidential, -> do
+      where(confidential: true)
+    end
+
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
