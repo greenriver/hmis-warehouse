@@ -1,5 +1,5 @@
 = cache(['clients', 'disability_types', @client, controller_path], expires_in: 4.hours) do
-  - items = @client.source_enrollment_disabilities.preload( enrollment: :client ).group_by(&:enrollment).sort_by{ |e,_| e.EntryDate }.reverse
+  - items = @client.source_enrollment_disabilities.order(InformationDate: :desc).preload( enrollment: :client ).group_by(&:enrollment).sort_by{ |e,_| e.EntryDate }.reverse
   - if items.any?
     %div
       %table.table
@@ -13,6 +13,7 @@
             %th Developmental
             %th HIV/AIDS
             %th Chronic
+            %th Indefinite and Impairs?
         %tbody
           - items.each do |enrollment, disabilities|
             :ruby
@@ -30,5 +31,6 @@
               %td= lighten_no aggregated[:developmental]
               %td= lighten_no aggregated[:hiv]
               %td= lighten_no aggregated[:chronic]
+              %td= lighten_no yes_no disabilities.detect(&:indefinite_and_impairs?)&.indefinite_and_impairs?# lighten_no aggregated[:indefinite_and_impairs]
   - else
     No disability records found

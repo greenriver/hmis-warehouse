@@ -1,7 +1,7 @@
-module Reports::Pit::Fy2017
+module Reports::Pit::Fy2018
   class Base < Report
     def self.report_name
-      'PIT - FY 2017'
+      'PIT - FY 2018'
     end
 
     def continuum_name

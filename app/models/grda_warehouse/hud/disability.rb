@@ -70,6 +70,10 @@ module GrdaWarehouse::Hud
         self.DisabilityType == hud_key
       end
     end
+
+    def indefinite_and_impairs?
+      self.IndefiniteAndImpairs == 1
+    end
     
     # see Disabilities.csv spec version 5
     def response

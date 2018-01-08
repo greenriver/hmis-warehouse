@@ -68,6 +68,13 @@ namespace :reports do
       r = Reports::Pit::Fy2017::ByProject.where(name: 'PIT By Project').first_or_create
       r.update(weight: 2, report_results_summary: rs)
 
+      rs = ReportResultsSummaries::Pit::Fy2018.where(name: 'Point in Time Counts - FY 2018').first_or_create
+      rs.update(weight: 0)
+      r = Reports::Pit::Fy2018::Base.where(name: 'PIT - 2018').first_or_create
+      r.update(weight: 1, report_results_summary: rs)
+      r = Reports::Pit::Fy2018::ByProject.where(name: 'PIT By Project - 2018').first_or_create
+      r.update(weight: 2, report_results_summary: rs)
+
       rs = ReportResultsSummaries::Hic::Fy2017.where(name: 'Housing Inventory Counts - FY 2017').first_or_create
       rs.update(weight: 0)
       r = Reports::Hic::Fy2017::Base.where(name: 'HIC').first_or_create
