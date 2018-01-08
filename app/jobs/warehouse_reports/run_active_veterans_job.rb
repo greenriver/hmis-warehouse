@@ -31,8 +31,11 @@ module WarehouseReports
         where(client_id: clients.map(&:id)).pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
-        end.
+        end.compact.
         group_by{|m| m[:client_id]}
+      
+      # remove anyone who doesn't actually have an open enrollment during the time (these can be added by extrapolated SO or poor data where we have service on the exit date)
+      clients = clients.select{|c| enrollments.keys.include?(c.id)}
 
       data = clients.map do |client|
 
@@ -50,7 +53,6 @@ module WarehouseReports
           first_date_served: client.processed_service_history.first_date_served
         )
       end
-
       report.client_count = clients.size
       report.finished_at = DateTime.now
       report.data = data.to_json

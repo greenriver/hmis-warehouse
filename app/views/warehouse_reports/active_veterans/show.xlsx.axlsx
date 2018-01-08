@@ -29,7 +29,7 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
       client['SSN'],
       client['data_sources'].join(', '),
       client['first_date_served'],
-      client['enrollments'].size
+      client['enrollments']&.size
     ]
     client['enrollments'].each do |enrollment|
       row += [
