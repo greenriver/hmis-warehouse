@@ -221,7 +221,7 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def add_chronic_answers
-      [:es, :sh, :so].each do |k, _|
+      HOMELESS_SUB_BREAKDOWNS.each do |k, _|
         family_households = filter_households_by_makeup(project_type: k, household_type: :family, households: households)
         clients_in_families = family_households.values.flatten.map{|m| m[:client_id]}
         chronic_in_project_type = chronic_client_ids & client_ids_in_project_type(project_type: k)
