@@ -16,14 +16,21 @@
       .tab-pane{role: :tabpanel, class: active, id: title}
         - active = ''
         - sections.each do |section_title, section|
+          - _, breakdowns = section.first
           %h3= section_title.humanize
           .table-responsive
             %table.table.table-condensed.table-hover
               %thead
                 %tr
+                  %th
+                  %th{colspan: breakdowns.count - 1}
+                    %span{data: {toggle: :tooltip, title: 'Where sheltered only, data shows in ES column'}}
+                      Sheltered
+                  %th
+                    Unsheltered
+                %tr
                   %th.report-result__section-header
                     Question
-                  - _, breakdowns = section.first
                   - breakdowns.keys.each do |k| 
                     %th.report-result__section-header=k.upcase
               %tbody

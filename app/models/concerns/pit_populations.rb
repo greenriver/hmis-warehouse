@@ -19,6 +19,8 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless_households: {},
+        chronically_homeless_persons: {},
       }, 
       children: {
         total_number_of_households: {}, 
@@ -35,6 +37,7 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless_persons: {},
       }, 
       adults:{
         total_number_of_households: {}, 
@@ -52,16 +55,11 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless_persons: {},
       }
     },
     homeless_sub: {
       homeless_subpopulations: {
-        chronically_homeless_individuals: {},
-        chronically_homeless_families: {},
-        persons_in_chronically_homeless_familes: {},
-        chronically_homeless_veteran_individuals: {},
-        chronically_homeless_veteran_families: {},
-        persons_in_chronically_homeless_veteran_familes: {},
         adults_with_serious_mental_illness: {},
         adults_with_serious_mental_illness_indefinite_and_impairs: {},
         adults_with_substance_use_disorder: {},
@@ -89,6 +87,7 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless_persons: {},
       }, 
       youth_family: {
         total_number_of_households: {}, 
@@ -107,6 +106,8 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless_households: {},
+        chronically_homeless_persons: {},
       }
     }, 
     veteran: {
@@ -126,6 +127,9 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless: {},
+        chronically_homeless_persons: {},
+        chronically_homeless_households: {},
       }, 
       veteran_adults: {
         total_number_of_households: {}, 
@@ -143,11 +147,13 @@ module PitPopulations
         american_indian_or_alaska_native: {},
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
+        chronically_homeless_persons: {},
       }
     },
   }
 
   HOMELESS_BREAKDOWNS = [:es, :th, :so]
+  HOMELESS_CHILD_BREAKDOWNS = [:es, :th, :sh, :so]
   HOMELESS_ADULT_BREAKDOWNS = [:es, :th, :sh, :so]
   HOMELESS_SUB_BREAKDOWNS = [:es, :sh, :so]
   UNACCOMPANIED_YOUTH_BREAKDOWNS = [:es, :th, :sh, :so]
@@ -161,14 +167,14 @@ module PitPopulations
         breakdowns.merge!(HOMELESS_BREAKDOWNS.map{|m| [m, 0]}.to_h)
       end
       @answers[:homeless][:children].each do |q, breakdowns|
-        breakdowns.merge!(HOMELESS_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+        breakdowns.merge!(HOMELESS_CHILD_BREAKDOWNS.map{|m| [m, 0]}.to_h)
       end
       @answers[:homeless][:adults].each do |q, breakdowns|
         breakdowns.merge!(HOMELESS_ADULT_BREAKDOWNS.map{|m| [m, 0]}.to_h)
       end
       @answers[:homeless_sub].each do |tab, questions|
         questions.each do |q, breakdowns|
-          breakdowns.merge!(HOMELESS_SUB_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+          breakdowns.merge!(HOMELESS_SUB_BREAKDOWNS.map{|m| [m, 0]}.to_h) 
         end
       end
       @answers[:youth][:youth_family].each do |q, breakdowns|

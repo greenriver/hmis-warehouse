@@ -6,7 +6,7 @@
       .col-sm-4
         = f.input :pit_date, input_html: {name: 'report_result[options][pit_date]', value: default_pit_date}, as: :date_picker, label: 'PIT date'
       .col-sm-4
-        = f.input :chronic_date, input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date}, as: :date_picker
+        = f.input :chronic_date, collection: GrdaWarehouse::HudChronic.distinct.order(date: :desc).pluck(:date), input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date, class: 'select2'}
     .row
       .col-sm-12.margin-bottom-02
         = f.button :button, class: 'btn btn-primary pull-right' do

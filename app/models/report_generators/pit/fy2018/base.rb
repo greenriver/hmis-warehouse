@@ -221,13 +221,14 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def add_chronic_answers
-      HOMELESS_SUB_BREAKDOWNS.each do |k, _|
+      [:es, :sh, :so].each do |k, _|
         family_households = filter_households_by_makeup(project_type: k, household_type: :family, households: households)
         clients_in_families = family_households.values.flatten.map{|m| m[:client_id]}
         chronic_in_project_type = chronic_client_ids & client_ids_in_project_type(project_type: k)
         chronic_clients_in_families = chronic_in_project_type & clients_in_families
+
+        # All
         chronic_individuals = chronic_in_project_type - chronic_clients_in_families
-        
         chronic_households = family_households.select do |_, members|
           chronic = false
           members.each do |m|
@@ -235,23 +236,32 @@ module ReportGenerators::Pit::Fy2018
           end
           chronic
         end
-        @answers[:homeless_sub][:homeless_subpopulations][:chronically_homeless_individuals][k] = chronic_individuals.size
-        @support[:homeless_sub][:homeless_subpopulations][:chronically_homeless_individuals][k] = {
-          headers: ['Client ID'], 
-          counts: chronic_individuals.map{|m| [m]}
-        }
-        @answers[:homeless_sub][:homeless_subpopulations][:chronically_homeless_families][k] = chronic_households.size unless k == :sh
-        @support[:homeless_sub][:homeless_subpopulations][:chronically_homeless_families][k] = {
-          headers: ['Client ID'], 
-          counts: chronic_households.values.flatten.map{|m|[m[:client_id]]}
-        } unless k == :sh
 
-        @answers[:homeless_sub][:homeless_subpopulations][:persons_in_chronically_homeless_familes][k] = chronic_clients_in_families.size unless k == :sh
-        @support[:homeless_sub][:homeless_subpopulations][:persons_in_chronically_homeless_familes][k] = {
-          headers: ['Client ID'], 
-          counts: chronic_clients_in_families.map{|m| [m]}
-        } unless k == :sh
+        # Children only
+        child_only_households = filter_households_by_makeup(project_type: k, household_type: :children, households: households)
+        child_clients = child_only_households.values.flatten.map{|m| m[:client_id]}
+        chronic_child_individuals = chronic_individuals & child_clients
 
+        # Individual Adults
+        adult_only_households = filter_households_by_makeup(project_type: k, household_type: :adults, households: households)
+        adult_clients = adult_only_households.values.flatten.map{|m| m[:client_id]}
+        chronic_adult_individuals = chronic_individuals & adult_clients
+
+        # Youth
+        youth_households = filter_households_by_makeup(project_type: k, household_type: :youth, households: households)
+        youth_clients = youth_households.values.flatten.map{|m| m[:client_id]}
+
+        chronic_youth_individuals = chronic_individuals & youth_clients
+        chronic_youth_in_families = chronic_clients_in_families & youth_clients
+        chronic_youth_households = youth_households.select do |_, members|
+          chronic = false
+          members.each do |m|
+            chronic = true if (chronic_youth_individuals + chronic_youth_in_families).include?(m[:client_id])
+          end
+          chronic
+        end
+
+        # Vets
         chronic_veteran_individuals = chronic_individuals & veteran_client_ids
         chronic_veterans_in_families = chronic_clients_in_families & veteran_client_ids
         veteran_chronic_housenolds = chronic_households.select do |_, members|
@@ -261,9 +271,58 @@ module ReportGenerators::Pit::Fy2018
           end
           veteran
         end
-        @answers[:homeless_sub][:homeless_subpopulations][:chronically_homeless_veteran_individuals][k] = chronic_veteran_individuals.size
-        @answers[:homeless_sub][:homeless_subpopulations][:chronically_homeless_veteran_families][k] = veteran_chronic_housenolds.size unless k == :sh
-        @answers[:homeless_sub][:homeless_subpopulations][:persons_in_chronically_homeless_veteran_familes][k] = chronic_veterans_in_families.size unless k == :sh
+      
+        # Family
+        @answers[:homeless][:family][:chronically_homeless_persons][k] = chronic_clients_in_families.size
+        @support[:homeless][:family][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_clients_in_families.map{|m| [m]}
+        }
+        @answers[:homeless][:family][:chronically_homeless_households][k] = chronic_households.size
+
+        # Child only
+        @answers[:homeless][:children][:chronically_homeless_persons][k] = chronic_child_individuals.size
+        @support[:homeless][:children][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_child_individuals.map{|m| [m]}
+        }
+
+        # Individual Adult
+        @answers[:homeless][:adults][:chronically_homeless_persons][k] = chronic_adult_individuals.size
+        @support[:homeless][:adults][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_adult_individuals.map{|m| [m]}
+        }
+        
+        # Unaccompanied Youth
+        @answers[:youth][:unaccompanied_youth][:chronically_homeless_persons][k] = chronic_youth_individuals.size
+        @support[:youth][:unaccompanied_youth][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_youth_individuals.map{|m| [m]}
+        }
+        
+        # Parenting Youth
+        @answers[:youth][:youth_family][:chronically_homeless_persons][k] = chronic_youth_in_families.size
+        @support[:youth][:youth_family][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_youth_in_families.map{|m| [m]}
+        }
+        @answers[:youth][:youth_family][:chronically_homeless_households][k] = chronic_youth_households.size
+
+        # Veterans - Adult only
+        @answers[:veteran][:veteran_adults][:chronically_homeless_persons][k] = chronic_veteran_individuals.size
+        @support[:veteran][:veteran_adults][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_veteran_individuals.map{|m| [m]}
+        }
+
+        # Veterans - Family
+        @answers[:veteran][:veteran_family][:chronically_homeless_persons][k] = chronic_veterans_in_families.size
+        @support[:veteran][:veteran_family][:chronically_homeless_persons][k] = {
+          headers: ['Client ID'], 
+          counts: chronic_veterans_in_families.map{|m| [m]}
+        }
+        @answers[:veteran][:veteran_family][:chronically_homeless_households][k] = veteran_chronic_housenolds.size
       end
     end
 
@@ -345,8 +404,8 @@ module ReportGenerators::Pit::Fy2018
             headers: ['Client ID'], 
             counts: youth_parents.map{|m| [m]}
           }
-          # Limit client details to parents only
-          client_ids = child_parents + youth_parents
+          # Limit client details to youth only
+          client_ids = youth_parents
         when :veteran_family, :veteran_adults
           @answers[section][household_type][:number_of_persons][k] = client_ids.size
           @support[section][household_type][:number_of_persons][k] = {
@@ -561,6 +620,8 @@ module ReportGenerators::Pit::Fy2018
       end
     end
 
+    # Since we are only looking at service on one day, group anyone 
+    # together who has the same household_id
     def households
       @households ||= begin
         involved_clients.values.flatten.each do |service|
@@ -750,11 +811,11 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def chronic_scope
-      GrdaWarehouse::Chronic.where(date: @chronic_date)
+      GrdaWarehouse::HudChronic.where(date: @chronic_date)
     end
 
     def sh_cols
-      {
+      @sh_cols ||= {
         project_type: act_as_project_overlay,
         client_id: sh_t[:client_id].as('client_id').to_sql, 
         enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
@@ -763,6 +824,10 @@ module ReportGenerators::Pit::Fy2018
         project_id: sh_t[:project_id].as('project_id').to_sql,
         data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
         RelationshipToHoH: e_t[:RelationshipToHoH].as('RelationshipToHoH').to_sql,
+        unaccompanied_youth: sh_t[:unaccompanied_youth].as('unaccompanied_youth').to_sql,
+        parenting_youth: sh_t[:parenting_youth].as('parenting_youth').to_sql,
+        parenting_juvenile: sh_t[:parenting_juvenile].as('parenting_juvenile').to_sql,
+        children_only: sh_t[:children_only].as('children_only').to_sql,
       }
     end
 
