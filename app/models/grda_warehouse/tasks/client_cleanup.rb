@@ -44,9 +44,9 @@ module GrdaWarehouse::Tasks
     def rebuild_service_history_for_incorrect_clients
       if ! @dry_run
         adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
+        debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
+        adder.run!
       end
-      debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
-      adder.run!
     end
 
     def find_unused_destination_clients
