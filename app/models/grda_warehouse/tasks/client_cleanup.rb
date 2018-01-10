@@ -87,7 +87,17 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def self.choose_attributes_from_sources(dest_attr, source_clients)
+    def choose_attributes_from_sources dest_attr, source_clients
+      dest_attr = choose_best_name(dest_attr, source_clients)
+      dest_attr = choose_best_ssn(dest_attr, source_clients)
+      dest_attr = choose_best_dob(dest_attr, source_clients)
+      dest_attr = choose_best_veteran_status(dest_attr, source_clients)
+      dest_attr = choose_best_gender(dest_attr, source_clients)
+
+      dest_attr
+    end
+
+    def choose_best_name dest_attr, source_clients
       # Get the best name (has name and quality is full or partial, oldest breaks the tie)
       non_blank_names = source_clients.select{|sc| (sc[:FirstName].present? or sc[:LastName].present?)}
       if non_blank_names.any?
@@ -103,21 +113,10 @@ module GrdaWarehouse::Tasks
           dest_attr[:LastName] = best_name_client[:LastName]
         end
       end
+      dest_attr
+    end
 
-      # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
-      non_blank_dob = source_clients.select{|sc| sc[:DOB].present?}
-      if non_blank_dob.any?
-        dest_attr[:DOB] = non_blank_dob.sort do |a, b| 
-          comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
-          if comp == 0
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-          end
-          comp
-        end.last[:DOB]
-      else
-        dest_attr[:DOB] = nil if dest_attr[:DOB].present? # none of the records have one now
-      end
-
+    def choose_best_ssn dest_attr, source_clients
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select{|sc| sc[:SSN].present?}
       if non_blank_ssn.any?
@@ -131,7 +130,10 @@ module GrdaWarehouse::Tasks
       else
         dest_attr[:SSN] = nil if dest_attr[:SSN].present? # none of the records have one now
       end
+      dest_attr
+    end
 
+    def choose_best_veteran_status dest_attr, source_clients
       # Get the best Veteran status (has 0/1, newest breaks the tie)
       no_yes = [0, 1]
       yes_no_vet_status_clients = source_clients.select{|sc| no_yes.include?(sc[:VeteranStatus])}
@@ -139,7 +141,27 @@ module GrdaWarehouse::Tasks
         yes_no_vet_status_clients = source_clients if yes_no_vet_status_clients.none? #if none have yes/no we consider them all in the sort test
         dest_attr[:VeteranStatus] = yes_no_vet_status_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:VeteranStatus]
       end
+      dest_attr
+    end
 
+    def choose_best_dob dest_attr, source_clients
+      # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
+      non_blank_dob = source_clients.select{|sc| sc[:DOB].present?}
+      if non_blank_dob.any?
+        dest_attr[:DOB] = non_blank_dob.sort do |a, b| 
+          comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
+          if comp == 0
+            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
+          end
+          comp
+        end.last[:DOB]
+      else
+        dest_attr[:DOB] = nil if dest_attr[:DOB].present? # none of the records have one now
+      end
+      dest_attr
+    end
+
+    def choose_best_gender dest_attr, source_clients
       # Get the best Gender (has 0..4, newest breaks the tie)
       known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
@@ -180,7 +202,7 @@ module GrdaWarehouse::Tasks
               Hash[client_columns.keys.zip(row)]
             end
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
-          dest_attr = self.class.choose_attributes_from_sources(dest_attr, source_clients)
+          dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]

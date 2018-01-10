@@ -38,7 +38,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:FirstName]).to eq('Correct')
       expect(@dest_attr[:LastName]).to eq('Update')
     end
@@ -50,7 +50,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         map do |row|
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:FirstName]).to eq('Blair')
       expect(@dest_attr[:LastName]).to eq('Abbott')
     end
@@ -63,7 +63,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
@@ -76,7 +76,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
@@ -89,7 +89,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:DOB]).to be_nil
     end
 
@@ -101,7 +101,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_1).to eq(@dest_attr[:DOB])
     end
 
@@ -113,7 +113,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_2).to eq(@dest_attr[:DOB])
     end
 
@@ -125,7 +125,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_1).to eq(@dest_attr[:DOB])
     end
 
@@ -137,7 +137,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:SSN]).to be_nil
     end
 
@@ -149,7 +149,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
@@ -161,7 +161,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
@@ -173,7 +173,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
@@ -185,7 +185,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(99).to eq(@dest_attr[:VeteranStatus])
     end
 
@@ -198,7 +198,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:VeteranStatus]).to eq(@veteran)
     end
 
@@ -211,7 +211,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@civilian).to eq(@dest_attr[:VeteranStatus])
     end
 
@@ -224,7 +224,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@veteran).to eq(@dest_attr[:VeteranStatus])
     end
 
@@ -236,7 +236,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(99).to eq(@dest_attr[:Gender])
     end
 
@@ -249,7 +249,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(3).to eq(@dest_attr[:Gender])
     end
 
@@ -262,7 +262,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(1).to eq(@dest_attr[:Gender])
     end
 
@@ -275,7 +275,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
 
-      @dest_attr = GrdaWarehouse::Tasks::ClientCleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(4).to eq(@dest_attr[:Gender])
     end
   end
