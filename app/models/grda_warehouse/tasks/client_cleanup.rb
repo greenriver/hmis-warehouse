@@ -195,6 +195,8 @@ module GrdaWarehouse::Tasks
         dobs: Set.new,
         genders: Set.new,
         veteran_statuses: Set.new,
+        new_vets: Set.new,
+        newly_not_vets: Set.new,
       }
       munge_clients = clients_to_munge
       client_source = GrdaWarehouse::Hud::Client
@@ -225,6 +227,8 @@ module GrdaWarehouse::Tasks
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
           changed[:genders] << dest.id if dest.Gender != dest_attr[:Gender]
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
+          changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
+          changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
           progress.progress += 1
         end
         processed += batch_size
