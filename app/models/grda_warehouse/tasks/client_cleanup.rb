@@ -87,32 +87,33 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def self.update_dest_attr_from_sources(dest_attr, source_clients)
+    def self.choose_attributes_from_sources(dest_attr, source_clients)
       # Get the best name (has name and quality is full or partial, oldest breaks the tie)
-      best_name_client = source_clients.select{|sc| (sc[:FirstName].present? or sc[:LastName].present?)}.
-                     sort do |a, b| 
-                        comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
-                        if comp == 0
-                          comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-                        end
-                        comp
-                     end.last
-      if best_name_client
-        dest_attr[:FirstName] = best_name_client[:FirstName]
-        dest_attr[:LastName] = best_name_client[:LastName]
+      non_blank_names = source_clients.select{|sc| (sc[:FirstName].present? or sc[:LastName].present?)}
+      if non_blank_names.any?
+        best_name_client = non_blank_names.sort do |a, b| 
+          comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
+          if comp == 0
+            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
+          end
+          comp
+        end.last
+        if best_name_client.present?
+          dest_attr[:FirstName] = best_name_client[:FirstName]
+          dest_attr[:LastName] = best_name_client[:LastName]
+        end
       end
 
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select{|sc| sc[:DOB].present?}
       if non_blank_dob.any?
-        dest_attr[:DOB] = non_blank_dob.
-                         sort do |a, b| 
-                            comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
-                            if comp == 0
-                              comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-                            end
-                            comp
-                         end.last[:DOB]
+        dest_attr[:DOB] = non_blank_dob.sort do |a, b| 
+          comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
+          if comp == 0
+            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
+          end
+          comp
+        end.last[:DOB]
       else
         dest_attr[:DOB] = nil if dest_attr[:DOB].present? # none of the records have one now
       end
@@ -120,20 +121,19 @@ module GrdaWarehouse::Tasks
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select{|sc| sc[:SSN].present?}
       if non_blank_ssn.any?
-        dest_attr[:SSN] = non_blank_ssn.
-                       sort do |a, b| 
-                          comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
-                          if comp == 0
-                            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-                          end
-                          comp
-                       end.last[:SSN]
+        dest_attr[:SSN] = non_blank_ssn.sort do |a, b| 
+          comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
+          if comp == 0
+            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
+          end
+          comp
+        end.last[:SSN]
       else
         dest_attr[:SSN] = nil if dest_attr[:SSN].present? # none of the records have one now
       end
 
       # Get the best Veteran status (has 0/1, newest breaks the tie)
-      no_yes = ['0', '1']
+      no_yes = [0, 1]
       yes_no_vet_status_clients = source_clients.select{|sc| no_yes.include?(sc[:VeteranStatus])}
       if !no_yes.include?(dest_attr[:VeteranStatus]) or yes_no_vet_status_clients.any?
         yes_no_vet_status_clients = source_clients if yes_no_vet_status_clients.none? #if none have yes/no we consider them all in the sort test
@@ -141,13 +141,13 @@ module GrdaWarehouse::Tasks
       end
 
       # Get the best Gender (has 0..4, newest breaks the tie)
-      known_values = ['0', '1', '2', '3', '4']
+      known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
       if !known_values.include?(dest_attr[:Gender]) or known_value_gender_clients.any?
         known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
         dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
       end
-
+      dest_attr
     end
 
     # Populate source client changes onto the destination client
@@ -169,30 +169,18 @@ module GrdaWarehouse::Tasks
       total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
       progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C')
-      client_columns = {
-        FirstName: c_t[:FirstName].as('FirstName').to_sql, 
-        LastName: c_t[:LastName].as('LastName').to_sql, 
-        SSN: c_t[:SSN].as('SSN').to_sql, 
-        DOB: c_t[:DOB].as('DOB').to_sql,
-        Gender: c_t[:Gender].as('Gender').to_sql,
-        VeteranStatus: c_t[:VeteranStatus].as('VeteranStatus').to_sql, 
-        NameDataQuality: cl([c_t[:NameDataQuality], 99]), 
-        SSNDataQuality: cl([c_t[:SSNDataQuality], 99]), 
-        DOBDataQuality: cl([c_t[:DOBDataQuality], 99]), 
-        DateCreated: c_t[:DateCreated].as('DateCreated').to_sql,
-        DateUpdated: c_t[:DateUpdated].as('DateUpdated').to_sql,
-      }
+      
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
-          source_clients = dest.source_clients
-            pluck(*client_columns).
+          source_clients = dest.source_clients.
+            pluck(*client_columns.values).
             map do |row|
-              Hash[client_columns.zip(row)]
+              Hash[client_columns.keys.zip(row)]
             end
-          dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns)
-          self.class.update_dest_attr_from_sources(dest_attr, source_clients)
+          dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
+          dest_attr = self.class.choose_attributes_from_sources(dest_attr, source_clients)
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
@@ -207,6 +195,22 @@ module GrdaWarehouse::Tasks
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"
       end
+    end
+
+    def client_columns 
+      @client_columns ||= {
+        FirstName: c_t[:FirstName].as('FirstName').to_sql, 
+        LastName: c_t[:LastName].as('LastName').to_sql, 
+        SSN: c_t[:SSN].as('SSN').to_sql, 
+        DOB: c_t[:DOB].as('DOB').to_sql,
+        Gender: c_t[:Gender].as('Gender').to_sql,
+        VeteranStatus: c_t[:VeteranStatus].as('VeteranStatus').to_sql, 
+        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql, 
+        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql, 
+        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql, 
+        DateCreated: c_t[:DateCreated].as('DateCreated').to_sql,
+        DateUpdated: c_t[:DateUpdated].as('DateUpdated').to_sql,
+      }
     end
 
     def clients_to_munge
