@@ -35,7 +35,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     before(:each) do
       destination_client.update(DEFAULT_DEST_ATTR)
       @dest_attr = destination_client.attributes.with_indifferent_access
-      source_1.save
+
       [source_1, source_2].each do |client|
         GrdaWarehouse::WarehouseClient.create(
           id_in_source: client.PersonalID,
