@@ -68,9 +68,48 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect('Right').to eq(@dest_attr[:LastName])
     end
 
+    it "chooses the first and last name of the highest quality record, even if the quality is nil" do
+      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
+      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect('Right').to eq(@dest_attr[:FirstName])
+      expect('Right').to eq(@dest_attr[:LastName])
+    end
+
+    it "chooses the first and last name of the highest quality record, and treats nil like 99" do
+      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
+      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect('Right').to eq(@dest_attr[:FirstName])
+      expect('Right').to eq(@dest_attr[:LastName])
+    end
+
     it "chooses the oldest record's names when quality is equivalent" do
       source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2017,5,1)})
       source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2016,5,1)})
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect('Right').to eq(@dest_attr[:FirstName])
+      expect('Right').to eq(@dest_attr[:LastName])
+    end
+
+    it "chooses the oldest, and treats nil like 99" do
+      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil, DateCreated: Date.new(2017,5,1)})
+      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 99, DateCreated: Date.new(2016,5,1)})
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
         map do |row|
           Hash[@cleanup.client_columns.keys.zip(row)]
@@ -105,8 +144,32 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@dob_1).to eq(@dest_attr[:DOB])
     end
 
+    it "only updates DOB from clients with a value, even if the quality is nil" do
+      source_1.update({DOB: @dob_1, DOBDataQuality: nil})
+      source_2.update({DOB: nil, DOBDataQuality: 9})
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@dob_1).to eq(@dest_attr[:DOB])
+    end
+
     it "chooses the highest quality DOB" do
       source_1.update({DOB: @dob_1, DOBDataQuality: 99})
+      source_2.update({DOB: @dob_2, DOBDataQuality: 9})
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@dob_2).to eq(@dest_attr[:DOB])
+    end
+
+    it "chooses the highest quality DOB and treats nil like 99" do
+      source_1.update({DOB: @dob_1, DOBDataQuality: nil})
       source_2.update({DOB: @dob_2, DOBDataQuality: 9})
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
         map do |row|
