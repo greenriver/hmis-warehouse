@@ -12,4 +12,10 @@ FactoryGirl.define do
     # association :client, factory: :grda_warehouse_hud_client
     source_type :sftp
   end
+  factory :source_data_source, class: 'GrdaWarehouse::DataSource' do
+    name 'HMIS Vendor'
+    short_name 'HV'
+    # association :client, factory: :grda_warehouse_hud_client
+    source_type :sftp
+  end
 end
