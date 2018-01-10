@@ -43,7 +43,7 @@ module GrdaWarehouse::Tasks
 
     def rebuild_service_history_for_incorrect_clients
       if ! @dry_run
-        adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
+        adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true)
         debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
         adder.run!
       end
