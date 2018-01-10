@@ -212,7 +212,6 @@ module GrdaWarehouse::Tasks
               Hash[client_columns.keys.zip(row)]
             end
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
-          original_attributes = dest_attr.dup
           choose_attributes_from_sources(dest_attr, source_clients)
 
           # invalidate client if DOB has changed
@@ -223,18 +222,18 @@ module GrdaWarehouse::Tasks
           # We can speed this up if we want later.  If there's only one source client and the 
           # updated dates match, there's no need to update the destination
           dest.update(dest_attr) unless @dry_run
-          changed[:dobs] += 1 if original_attributes[:DOB] != dest_attr[:DOB]
-          changed[:genders] += 1 if original_attributes[:Gender] != dest_attr[:Gender]
-          changed[:veteran_statuses] += 1 if original_attributes[:VeteranStatus] != dest_attr[:VeteranStatus]
+          changed[:dobs] += 1 if dest.DOB != dest_attr[:DOB]
+          changed[:genders] += 1 if dest.Gender != dest_attr[:Gender]
+          changed[:veteran_statuses] += 1 if dest.VeteranStatus != dest_attr[:VeteranStatus]
           progress.progress += 1
         end
         processed += batch_size
-        if @debug
-          logger.debug '=========== Changed Counts ============'
-          logger.debug changed.inspect
-          logger.debug '=========== End Changed Counts ============'
-        end
         logger.info "Updated demographics for #{processed} destination clients"
+      end
+      if @debug
+        logger.debug '=========== Changed Counts ============'
+        logger.debug changed.inspect
+        logger.debug '=========== End Changed Counts ============'
       end
     end
 
