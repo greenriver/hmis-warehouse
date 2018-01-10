@@ -192,9 +192,9 @@ module GrdaWarehouse::Tasks
       batch_size = 1000
       processed = 0
       changed = {
-        dobs: 0,
-        genders: 0,
-        veteran_statuses: 0,
+        dobs: Set.new,
+        genders: Set.new,
+        veteran_statuses: Set.new,
       }
       munge_clients = clients_to_munge
       client_source = GrdaWarehouse::Hud::Client
@@ -222,9 +222,9 @@ module GrdaWarehouse::Tasks
           # We can speed this up if we want later.  If there's only one source client and the 
           # updated dates match, there's no need to update the destination
           dest.update(dest_attr) unless @dry_run
-          changed[:dobs] += 1 if dest.DOB != dest_attr[:DOB]
-          changed[:genders] += 1 if dest.Gender != dest_attr[:Gender]
-          changed[:veteran_statuses] += 1 if dest.VeteranStatus != dest_attr[:VeteranStatus]
+          changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
+          changed[:genders] << dest.id if dest.Gender != dest_attr[:Gender]
+          changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           progress.progress += 1
         end
         processed += batch_size
@@ -232,6 +232,7 @@ module GrdaWarehouse::Tasks
       end
       if @debug
         logger.debug '=========== Changed Counts ============'
+        logger.debug changed.map{|k,ids| [k, ids.count]}.to_h.inspect
         logger.debug changed.inspect
         logger.debug '=========== End Changed Counts ============'
       end
