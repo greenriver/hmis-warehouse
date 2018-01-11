@@ -253,8 +253,8 @@ module GrdaWarehouse::Tasks
         NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql, 
         SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql, 
         DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql, 
-        DateCreated: c_t[:DateCreated].as('DateCreated').to_sql,
-        DateUpdated: c_t[:DateUpdated].as('DateUpdated').to_sql,
+        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
+        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
       }
     end
 
