@@ -69,10 +69,10 @@ module Importing
       
       # Only run the chronic calculator on the 1st and 15th
       # but run it for the past 2 of each
-      if Date.today.day.in?([1,15])
-        this_month = Date.today.beginning_of_month
+      if start_time.to_date.day.in?([1,15])
+        this_month = start_time.to_date.beginning_of_month
         last_month = this_month - 1.month
-        if Date.today.day < 15
+        if start_time.to_date.day < 15
           two_months_ago = this_month - 2.months
           dates = [
             this_month,
@@ -123,7 +123,7 @@ module Importing
       SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
 
-      if last_saturday_of_month(Date.today.month, Date.today.year) == Date.today
+      if last_saturday_of_month(start_time.to_date.month, start_time.to_date.year) == start_time.to_date
         @notifier.ping('Rebuilding Service History Indexes...') if @send_notifications
         @notifier.ping('(this could take a few hours, but only happens on the last Saturday of the month.)') if @send_notifications
         GrdaWarehouse::ServiceHistory.reindex_table!
