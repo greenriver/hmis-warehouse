@@ -62,14 +62,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       service_history_source.
         joins(:client, :project).
         homeless.
-        where(client_id: client_source)
+        where(client_id: client_source.select(:id))
     end
 
     def exits_from_homelessness
       service_history_source.exit.
         joins(:client).
         homeless.
-        where(client_id: client_source)
+        where(client_id: client_source.select(:id))
     end
 
     def service_history_columns

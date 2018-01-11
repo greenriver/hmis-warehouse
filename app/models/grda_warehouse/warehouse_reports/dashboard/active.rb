@@ -16,8 +16,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
       @month_name = @range.start.to_time.strftime('%B')
       @enrollments = active_client_service_history(range: @range)
-      @clients = @enrollments.keys
-      @client_count = @clients.count
+      @clients = []
 
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort.to_h
       @data = {
@@ -33,19 +32,27 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         },
       }
       @labels.each do |key, _|
-        @data[:clients][:data] << @enrollments.values.
+        project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
+        enrollments_for_type = @enrollments.values.
           flatten(1).
           select do |m| 
             ::HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
-          end.map do |enrollment|
+          end
+        clients_served = homeless_service_history_source.
+          service_within_date_range(start_date: @range.start, end_date: @range.end + 1.day).
+          where(service_history_source.project_type_column => project_type).
+          distinct.
+          pluck(:client_id)
+        enrollments_for_type = enrollments_for_type.select{|e| clients_served.include?(e[:client_id])}
+        client_ids = enrollments_for_type.map do |enrollment|
             enrollment[:client_id]
-          end.uniq.count
-        @data[:enrollments][:data] << @enrollments.values.
-          flatten(1).
-          select do |m| 
-            ::HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
-          end.count
+          end.uniq
+        @data[:clients][:data] << client_ids.count
+        @data[:enrollments][:data] << enrollments_for_type.count
+        @clients += client_ids
       end
+      @clients = @clients.uniq
+      @client_count = @clients.size
       {
         enrollments: @enrollments,
         month_name: @month_name,
@@ -60,19 +67,11 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def active_client_service_history range: 
       homeless_service_history_source.entry.
         joins(:client, :project).
-        open_between(start_date: range.start, end_date: range.end + 1.day).
-        where(client_id: homeless_service_history_source.
-          service_within_date_range(start_date: range.start, end_date: range.end + 1.day).
-          select(:client_id)
-        ).
+        open_between(start_date: range.start, end_date: range.end).
         pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
-        end.select do |row|
-          # throw out any that start after the range
-          row[:first_date_in_program] <= range.end
-        end.
-        group_by{|m| m[:client_id]}
+        end.group_by{|m| m[:client_id]}
     end
 
   end

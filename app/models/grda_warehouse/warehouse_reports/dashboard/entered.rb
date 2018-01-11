@@ -85,7 +85,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         group_by{ |m| m[:project_type]}
         {}.tap do |m|
           enrollments_by_type.each do |project_type, enrollments|
-            m[project_type] = enrollments.group_by{|e| e[:client_id]}
+            clients_served = homeless_service_history_source.
+              service_within_date_range(start_date: start_date, end_date: end_date + 1.day).
+              where(service_history_source.project_type_column => project_type).
+              distinct.
+              pluck(:client_id)
+            # Only include enrollments where the client had service during the range in the project type
+            m[project_type] = enrollments.select{|e| clients_served.include?(e[:client_id])}.group_by{|e| e[:client_id]}
           end
         end
     end
