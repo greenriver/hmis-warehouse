@@ -100,8 +100,8 @@ module Import::HMISSixOneOne::Shared
     def fetch_existing_for_project_batch data_source_id:, keys:
       self.with_deleted.where(data_source_id: data_source_id).
         where(self.hud_key => keys).
-        pluck(self.hud_key, :DateUpdated, :id).map do |key, updated_at, id|
-          [key, OpenStruct.new({updated_at: updated_at, id: id})]
+        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id).map do |key, updated_at, deleted_at, id|
+          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id})]
         end.to_h
     end
 

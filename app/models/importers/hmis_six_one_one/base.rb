@@ -252,15 +252,15 @@ module Importers::HMISSixOneOne
     end
 
     def import_inventories
-      import_project_based_class(inventory_source)
+      import_enrollment_based_class(inventory_source)
     end
 
     def import_project_cocs
-      import_project_based_class(project_coc_source)
+      import_enrollment_based_class(project_coc_source)
     end
 
     def import_geographies
-      import_project_based_class(geography_source)
+      import_enrollment_based_class(geography_source)
     end
     
     def import_funders
