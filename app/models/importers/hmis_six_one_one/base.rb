@@ -162,25 +162,6 @@ module Importers::HMISSixOneOne
         })
       end
 
-      # This dump should be authoritative for any inventory and ProjectCoC 
-      # that is connected to an included project
-      def remove_project_related_data
-        [
-          inventory_source,
-          project_coc_source,
-          geography_source,
-        ].each do |klass|
-          file = importable_files.key(klass)
-          next unless @import.summary[klass.file_name].present?
-          @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
-            projects: @projects, 
-            range: @range, 
-            data_source_id: @data_source.id,
-            deleted_at: @soft_delete_time,
-          })
-        end
-      end
-
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
       involved_exit_ids = exit_source.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_exit_ids.each_slice(1000) do |ids|
@@ -192,6 +173,25 @@ module Importers::HMISSixOneOne
         enrollment_source.where(id: ids).update_all(DateDeleted: @soft_delete_time)
       end
       @import.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
+    end
+
+    # This dump should be authoritative for any inventory and ProjectCoC 
+    # that is connected to an included project
+    def remove_project_related_data
+      [
+        inventory_source,
+        project_coc_source,
+        geography_source,
+      ].each do |klass|
+        file = importable_files.key(klass)
+        next unless @import.summary[klass.file_name].present?
+        @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
+          projects: @projects, 
+          range: @range, 
+          data_source_id: @data_source.id,
+          deleted_at: @soft_delete_time,
+        })
+      end
     end
 
     def import_enrollment_based_class klass
