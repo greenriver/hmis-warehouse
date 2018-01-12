@@ -63,11 +63,13 @@ module Importing
       # Maintain some summary data to speed up searches and history display and other things
       # To keep this manageable, we'll just deal with clients we've seen in the past year
       # When we sanity check and rebuild using the per-client method, this gets correctly maintained
+      @notifier.ping('Updating service history summaries') if @send_notifications
       client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
         joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id').to_sql)
       client_ids.each do |id|
         GrdaWarehouse::Tasks::ServiceHistory::Base.new().mark_processed(id)
       end
+      @notifier.ping('Updated service history summaries') if @send_notifications
 
       Nickname.populate!
       @notifier.ping('Nicknames updated') if @send_notifications
