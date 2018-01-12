@@ -168,6 +168,7 @@ module Importers::HMISSixOneOne
         [
           inventory_source,
           project_coc_source,
+          geography_source,
         ].each do |klass|
           file = importable_files.key(klass)
           next unless @import.summary[klass.file_name].present?
