@@ -35,7 +35,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
     end
 
     # Each import should be authoritative for inventory for all projects included
-    def delete_involved projects:, range:, data_source_id:, deleted_at:
+    def self.delete_involved projects:, range:, data_source_id:, deleted_at:
       deleted_count = 0
       projects.each do |project|
         del_scope = self.where(ProjectID: project.ProjectID, data_source_id: data_source_id)
