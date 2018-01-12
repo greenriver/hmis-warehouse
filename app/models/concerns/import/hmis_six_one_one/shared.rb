@@ -77,8 +77,8 @@ module Import::HMISSixOneOne::Shared
 
     def delete_involved projects:, range:, data_source_id:, deleted_at:
       deleted_count = 0
-      # If we this is recorded for a specific date, we need to reference
-      # that field and only delete those that occured prior to the ExportEndDate
+      # If this is recorded for a specific date, we need to reference
+      # that field and only delete those that occurred prior to the ExportEndDate
       projects.each do |project|
         del_scope = self.joins(enrollment: :project).
         where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).

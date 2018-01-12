@@ -4,8 +4,8 @@ require 'charlock_holmes'
 require 'newrelic_rpm'
 
 # Assumptions:
-# The import is authoratative for the date range specified in the Export.csv file
-# The import is authoratative for the projects specified in the Project.csv file
+# The import is authoritative for the date range specified in the Export.csv file
+# The import is authoritative for the projects specified in the Project.csv file
 # There's no reason to have client records with no enrollments
 # All tables that hang off a client also hang off enrollments
 
@@ -55,6 +55,7 @@ module Importers::HMISSixOneOne
           @projects.each(&:update_changed_project_types)
           @projects.each(&:import!)
           # Import data that's not directly related to enrollments
+          remove_project_related_data()
           import_organizations()
           import_inventories()
           import_project_cocs()
@@ -131,8 +132,8 @@ module Importers::HMISSixOneOne
       import_enrollment_based_class(income_benefits_source)
     end
     
-    # This dump should be authoriative for any enrollment that was open during the 
-    # specified date range at any of the involved projexts
+    # This dump should be authoritative for any enrollment that was open during the 
+    # specified date range at any of the involved projects
     # Models this needs to handle
     # Enrollment
     # EnrollmentCoc
@@ -159,6 +160,24 @@ module Importers::HMISSixOneOne
           data_source_id: @data_source.id,
           deleted_at: @soft_delete_time,
         })
+      end
+
+      # This dump should be authoritative for any inventory and ProjectCoC 
+      # that is connected to an included project
+      def remove_project_related_data
+        [
+          inventory_source,
+          project_coc_source,
+        ].each do |klass|
+          file = importable_files.key(klass)
+          next unless @import.summary[klass.file_name].present?
+          @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
+            projects: @projects, 
+            range: @range, 
+            data_source_id: @data_source.id,
+            deleted_at: @soft_delete_time,
+          })
+        end
       end
 
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
