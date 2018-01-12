@@ -31,30 +31,25 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           data: [],
         },
       }
+      @cleaned_enrollments = {}
       @labels.each do |key, _|
-        project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
-        enrollments_for_type = @enrollments.values.
-          flatten(1).
+        project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key].first
+        clients_served = client_ids_served_within_range_and_project_type(project_type)
+        enrollments_for_type = @enrollments.values.flatten(1).
           select do |m| 
-            ::HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
+            m[:project_type] == project_type && clients_served.include?(m[:client_id])
           end
-        clients_served = homeless_service_history_source.
-          service_within_date_range(start_date: @range.start, end_date: @range.end + 1.day).
-          where(service_history_source.project_type_column => project_type).
-          distinct.
-          pluck(:client_id)
-        enrollments_for_type = enrollments_for_type.select{|e| clients_served.include?(e[:client_id])}
-        client_ids = enrollments_for_type.map do |enrollment|
-            enrollment[:client_id]
-          end.uniq
+
+        client_ids = enrollments_for_type.map{ |e| e[:client_id]}.uniq
         @data[:clients][:data] << client_ids.count
         @data[:enrollments][:data] << enrollments_for_type.count
         @clients += client_ids
+        @cleaned_enrollments[project_type] = enrollments_for_type
       end
       @clients = @clients.uniq
       @client_count = @clients.size
       {
-        enrollments: @enrollments,
+        enrollments: @cleaned_enrollments,
         month_name: @month_name,
         range: @range,
         clients: @clients,
@@ -62,6 +57,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         labels: @labels,
         data: @data,
       }
+    end
+
+    def client_ids_served_within_range_and_project_type project_type
+      homeless_service_history_source.
+        service_within_date_range(start_date: @range.start, end_date: @range.end).
+        where(service_history_source.project_type_column => project_type).
+        distinct.
+        pluck(:client_id)
     end
 
     def active_client_service_history range: 

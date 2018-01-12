@@ -19,19 +19,24 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
       # Summary of previous stat - all enrolled clients
       open_enrollments_by_project = enrollments_ongoing_in_date_range(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
-
+      # a simple hash of counts for display
       @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: open_enrollments_by_project)
 
+      # enrollments into projects during the range
+      # confirmed, counts of unique clients matches buckets 1/12/2018
       @entries_in_range_by_type = entries_in_range_from_enrollments(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
-
+      # a simple hash of counts for display
       @client_entry_totals_by_type = client_totals_from_enrollments(enrollments: @entries_in_range_by_type)
       
       @buckets = bucket_clients(entries: @entries_in_range_by_type)
-      @first_time_total_deduplicated = @buckets.map{|_,groups| groups[:first_time].keys}.flatten.uniq.count
+
+      first_time_client_ids = @buckets.map{|_,groups| groups[:first_time].keys}.flatten
+      @first_time_total_deduplicated = first_time_client_ids.uniq.count
       @first_time_ever = homeless_service_history_source.first_date.joins(:client).
         where(date: (@start_date..@end_date)).
+        where(client_id: first_time_client_ids).
         count
-
+ 
       # build hashes suitable for chartjs
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort_by(&:first)
       @data = setup_data_structure(start_date: @start_date)
@@ -72,9 +77,10 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def entered_enrollments_by_type start_date:, end_date:
       enrollments_by_type = homeless_service_history_source.entry.
         joins(:client, :organization).
+        where(sh_t[:first_date_in_program].lteq(end_date)).
         where(client_id: 
           homeless_service_history_source.
-          open_between(start_date: start_date, end_date: end_date + 1.day).
+          open_between(start_date: start_date, end_date: end_date).
           select(:client_id)
         ).
         order(date: :asc).
@@ -86,7 +92,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         {}.tap do |m|
           enrollments_by_type.each do |project_type, enrollments|
             clients_served = homeless_service_history_source.
-              service_within_date_range(start_date: start_date, end_date: end_date + 1.day).
+              service_within_date_range(start_date: start_date, end_date: end_date).
               where(service_history_source.project_type_column => project_type).
               distinct.
               pluck(:client_id)

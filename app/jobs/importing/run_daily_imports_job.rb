@@ -43,7 +43,9 @@ module Importing
       @notifier.ping('Clients cleaned') if @send_notifications
 
       range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
-      GrdaWarehouse::Hud::Enrollment.open_during_range(range).joins(:project, :destination_client).pluck_in_batches(:id, batch_size: 250) do |batch|
+      GrdaWarehouse::Hud::Enrollment.open_during_range(range).
+        joins(:project, :destination_client).
+        pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
@@ -57,6 +59,16 @@ module Importing
       @notifier.ping('Full sanity check complete') if @send_notifications
       GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
       @notifier.ping('Earliest residential services generated') if @send_notifications
+      
+      # Maintain some summary data to speed up searches and history display and other things
+      # To keep this manageable, we'll just deal with clients we've seen in the past year
+      # When we sanity check and rebuild using the per-client method, this gets correctly maintained
+      client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
+        joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id').to_sql)
+      client_ids.each do |id|
+        GrdaWarehouse::Tasks::ServiceHistory::Base.new().mark_processed(id)
+      end
+
       Nickname.populate!
       @notifier.ping('Nicknames updated') if @send_notifications
       UniqueName.update!

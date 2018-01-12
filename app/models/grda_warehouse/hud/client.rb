@@ -1588,7 +1588,8 @@ module GrdaWarehouse::Hud
         
         exit_join = e_t.join(ex_t, Arel::Nodes::OuterJoin).
           on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
-            and(e_t[:data_source_id].eq(ex_t[:data_source_id]))
+            and(e_t[:data_source_id].eq(ex_t[:data_source_id])).
+            and(e_t[:PersonalID].eq(ex_t[:PersonalID]))
           )
         
         enrollments = scope.

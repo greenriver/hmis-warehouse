@@ -38,7 +38,8 @@ module GrdaWarehouse::Hud
     CHILD_ONLY_HOUSEHOLD_TYPE = 4
 
     belongs_to :export, **hud_belongs(Export), inverse_of: :inventories
-    has_one :project, through: :project_coc, source: :project
+    # has_one :project, through: :project_coc, source: :project
+    has_one :project, **hud_one(Project), inverse_of: :inventories
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories
 
     alias_attribute :start_date, :InventoryStartDate

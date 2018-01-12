@@ -9,18 +9,24 @@ module WarehouseReports
 
       @clients = client_source
       if @range.valid?
-        @clients = @clients.
-          joins(:first_service_history).
+        @project_types = params.try(:[], :first_time_homeless).try(:[], :project_types) || GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+        @project_types.reject!(&:empty?)
+        @project_types.map!(&:to_i)
+        if @project_types.empty?
+          @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+        end
+
+        # Find client ids of those who's first entry was in the range and who received at least
+        # one service of the type within the range
+        client_ids = clients_with_starts_and_service_in_range()
+
+        @clients = @clients.joins(:first_service_history).
           preload(:first_service_history, first_service_history: [:organization, :project], source_clients: :data_source).
-          entered_in_range(@range.range).
+          where(sh_t[:record_type].eq('first')).
+          where(id: client_ids).
+          distinct.
           select( :id, :FirstName, :LastName, sh_t[:date], :VeteranStatus, :DOB ).
           order( sh_t[:date], :LastName, :FirstName )
-        @project_types = params.try(:[], :first_time_homeless).try(:[], :project_types) || []
-        @project_types.reject!(&:empty?)
-        if @project_types.any?
-          @project_types.map!(&:to_i)
-          @clients = @clients.where(sh_t[history.project_type_column].in(@project_types))
-        end
       else
         @clients = @clients.none
       end
@@ -32,28 +38,42 @@ module WarehouseReports
       end
     end
 
+    # Limit to clients who had their first enrollment within the range, *and* had at least one day of service
+    # during the range as well in the same project type
+    def clients_with_starts_and_service_in_range
+      [].tap do |client_ids|
+        @project_types.each do |project_type|
+          client_ids << history.first_date.
+            started_between(start_date: @range.start, end_date: @range.end).
+            where(history.project_type_column => project_type).
+            where(
+              client_id: history.service_within_date_range(start_date: @range.start, end_date: @range.end ).
+                where(history.project_type_column => project_type).
+                select(:client_id)
+            ).distinct.pluck(:client_id)
+        end
+      end.flatten
+    end
+
     # Present a chart of the counts from the previous year
     def summary
       start_date = params[:start] || 1.year.ago
       end_date = params[:end] || 1.day.ago
       @project_types = params.try(:[], :project_types) || '[]'
       @project_types = JSON.parse(params[:project_types])
+      @project_types.map!(&:to_i)
+      if @project_types.empty?
+        @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+      end
       @sub_population = (params.try(:[], :sub_population) || :all_clients).to_sym
       
       @range = ::Filters::DateRange.new({start: start_date, end: end_date})
-      @counts = history.first_date.
-        select(:date).
-        where(date: @range.range)
-
-      if @project_types.any?
-        @project_types.map!(&:to_i)
-        @counts = @counts.where(sh_t[history.project_type_column].in(@project_types))
-      end
-
-      @counts = @counts.
-        order(date: :asc).
-        group(:date).
-        count
+      client_ids = clients_with_starts_and_service_in_range()
+      @counts = history.first_date.select(:date, :client_id).where(client_id: client_ids).where(date: @range.range)
+      @counts = @counts.where(sh_t[history.project_type_column].in(@project_types)).
+        order(date: :asc).pluck(:date, :client_id).
+        group_by{|date, client_id| date}.
+        map{|date, clients| [date, clients.count]}.to_h
       render json: @counts
     end
 

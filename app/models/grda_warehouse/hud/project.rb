@@ -86,7 +86,8 @@ module GrdaWarehouse::Hud
     has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs
     has_many :services, through: :enrollments, source: :services
     has_many :exits, through: :enrollments, source: :exit
-    has_many :inventories, through: :project_cocs, source: :inventories
+    # has_many :inventories, through: :project_cocs, source: :inventories
+    has_many :inventories, **hud_many(Inventory), inverse_of: :project
     has_many :clients, through: :enrollments, source: :client
     has_many :funders, class_name: 'GrdaWarehouse::Hud::Funder', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :projects
     has_many :affiliations, **hud_many(Affiliation), inverse_of: :project

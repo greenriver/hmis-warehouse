@@ -13,10 +13,9 @@ module WarehouseReports::ClientDetails
       
       @start_date = @range.start
       @end_date = @range.end
-      # @enrollments = Rails.cache.fetch("active-vet-enrollments", expires_in: CACHE_EXPIRY) do
-      @enrollments = begin
-        active_client_service_history(range: @range)
-      end
+
+      @enrollments = active_client_service_history(range: @range)
+
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -57,10 +56,11 @@ module WarehouseReports::ClientDetails
     def active_client_service_history range: 
       homeless_service_history_source.joins(:client).
         entry.
-        open_between(start_date: range.start, end_date: range.end + 1.day).
+        open_between(start_date: range.start, end_date: range.end).
         where(
           client_id: homeless_service_history_source.
-                      service_within_date_range(start_date: range.start, end_date: range.end + 1.day).
+                      service_within_date_range(start_date: range.start, end_date: range.end).
+                      distinct.
                       select(:client_id)
         ).
         pluck(*service_history_columns.values).
@@ -78,8 +78,7 @@ module WarehouseReports::ClientDetails
     end
 
     def homeless_service_history_source
-      scope = service_history_source.homeless
-      history_scope(scope, @sub_population)
+      history_scope(service_history_source.homeless, @sub_population)
     end
 
   end
