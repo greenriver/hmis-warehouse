@@ -28,8 +28,6 @@ module GrdaWarehouse::Tasks
         row.each do |k,v|
           row[k] = service_history_source.column_types[k.to_s].type_cast_from_database(v)
         end
-
-        end
         {
           client_id: row.client_id.to_i,
           date: row.date,
