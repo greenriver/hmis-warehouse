@@ -1,4 +1,4 @@
-# provides some conviences method to all the view models
+# provides some conveniences method to all the view models
 module GrdaWarehouse::Report
   class Base < GrdaWarehouseBase
     include ArelHelper
@@ -12,7 +12,7 @@ module GrdaWarehouse::Report
       super
     end
 
-    # some convenience methods, because we seem to need to provide primary and foreign keys for all these relationships even though they're inferrable
+    # some convenience methods, because we seem to need to provide primary and foreign keys for all these relationships even though they're inferable
 
     def self.belongs(model)
       n = basename.to_s.pluralize.to_sym

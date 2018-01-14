@@ -235,11 +235,11 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     end
 
     scope :family, -> do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
+      where(presented_as_individual: false)
     end
 
     scope :individual, -> do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
+      where(presented_as_individual: true)
     end
 
     scope :youth, -> do

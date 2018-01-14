@@ -69,7 +69,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def active_client_service_history range: 
       homeless_service_history_source.entry.
-        joins(:client, :project).
+        joins(:client).
         open_between(start_date: range.start, end_date: range.end).
         pluck(*service_history_columns.values).
         map do |row|

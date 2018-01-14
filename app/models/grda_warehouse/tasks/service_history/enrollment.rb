@@ -249,7 +249,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def default_day
-      {
+      @default_day ||= {
         client_id: destination_client.id,
         date: nil,
         first_date_in_program: self.EntryDate,
@@ -280,6 +280,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         children_only: children_only?,
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
+        presented_as_individual: presented_as_individual?,
       }
     end
 
@@ -380,6 +381,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def individual_adult?
       @individual_adult ||= begin
         adult?(client_age_at_entry) && other_clients_under_18 == 0
+      end
+    end
+
+    # This is a proxy for if the project served individuals or families
+    # True = individuals
+    def presented_as_individual?
+      if @presented_as_individual.blank?
+        @presented_as_individual = project.serves_only_individuals?
+      else
+        @presented_as_individual
       end
     end
 
