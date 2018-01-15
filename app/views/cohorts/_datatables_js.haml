@@ -2,16 +2,48 @@
   :javascript
     (function($) {
       var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
+
+      $.fn.dataTableExt.ofnSearch['html-input'] = function(value) {
+        var jquery_val = $(value);
+        var select = jquery_val.find('select');
+        if (select.length > 0) {
+          return select.val() || '';
+        } else {
+          return jquery_val.find('input').last().val() || '';
+        }
+      };
+
       var datatable = $('.datatable').DataTable({
-          scrollY: false,
-          scrollX: true,
-          //scrollCollapse: true,
-          //fixedColumns:   {
-          //  leftColumns: 2,
-          //  rightColumns: 1,
-          //  heightMatch: 'none'
-          // }
+        scrollY: false,
+        scrollX: true,
+        //scrollCollapse: true,
+        //fixedColumns:   {
+        //  leftColumns: 2,
+        //  rightColumns: 1,
+        //  heightMatch: 'none'
+        // }
+        columnDefs: [
+          { 
+            "type": "html-input",
+            "targets": #{(0..@cohort.visible_columns.count).map{|i| i + 5}}
+          }
+        ] 
       });
+      $(".datatable td input").on('change', function() {
+        var $td = $(this).parents('td');
+        $td.find("input[type!='hidden']").attr('value', this.value);
+        datatable.cell($td).invalidate().draw();
+      });
+      // The following should work, but somehow interferes with Select2
+      //$(".datatable td select").on('change', function() {
+      //   var $td = $(this).parents('td');
+      //   var value = this.value;
+      //   $td.find('option').each(function(i, o) {
+      //     $(o).removeAttr('selected');
+      //     if ($(o).val() == value) $(o).attr('selected', true);
+      //   })
+      //   datatable.cell($td).invalidate().draw();
+      // });    
       datatable.on('draw', function() {
         App.init();
       });
