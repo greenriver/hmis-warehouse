@@ -370,12 +370,16 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.consent_validity_period
+      1.years
+    end
+
     def self.revoke_expired_consent
       release_duration = GrdaWarehouse::Config.get :release_duration
       if release_duration == 'One Year'
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
-          if client.consent_form_signed_on < 1.year.ago
+          if client.consent_form_signed_on < consent_validity_period.ago
             client.update_columns(housing_release_status: nil)
           end
         end
@@ -556,7 +560,7 @@ module GrdaWarehouse::Hud
         'None on file'
       elsif release_duration == 'One Year'
         if consent_form_valid?
-          "Valid Until #{consent_form_signed_on + 1.year}"
+          "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
         else
           'Expired'
         end
@@ -575,7 +579,7 @@ module GrdaWarehouse::Hud
 
     def consent_form_valid?
       if release_duration == 'One Year'
-        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
+        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
       else
         release_valid?
       end
