@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180114181159) do
+ActiveRecord::Schema.define(version: 20180115165003) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -98,6 +98,7 @@ ActiveRecord::Schema.define(version: 20180114181159) do
     t.integer  "creator_id"
     t.boolean  "cspech_eligible",                        :default=>false
     t.date     "consent_form_signed_on"
+    t.integer  "vispdat_prioritization_days_homeless"
   end
   add_index "Client", ["DateCreated"], :name=>"client_date_created", :using=>:btree
   add_index "Client", ["DateUpdated"], :name=>"client_date_updated", :using=>:btree
