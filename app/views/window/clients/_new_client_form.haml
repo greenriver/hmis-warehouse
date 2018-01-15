@@ -55,8 +55,9 @@
         = f.input :Gender, collection: HUD::genders.invert
       .col-sm-2
         = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status'
-      .col-sm-3
-        = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative, include_blank: false, label: 'Create client in Data Source'
+      - if GrdaWarehouse::DataSource.authoritative.count > 1
+        .col-sm-3
+          = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative, include_blank: false, label: 'Create client in Data Source'
     .form-actions
       - if @bypass_search
         = f.input :bypass_search, as: :hidden, input_html: {value: 1}
