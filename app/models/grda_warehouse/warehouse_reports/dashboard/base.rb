@@ -60,7 +60,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def homeless_service_history_source
       service_history_source.
-        joins(:client, :project).
+        joins(:client).
         homeless.
         where(client_id: client_source.distinct.select(:id))
     end
@@ -90,6 +90,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # make a hash of the object, truncate it to an appropriate size and then turn it into
       # a css friendly hash code
       "#%06x" % (Zlib::crc32(Marshal.dump(object)) & 0xffffff)
+    end
+
+    def run_and_save!
+      self.started_at = DateTime.now
+      self.parameters = self.class.params
+      self.data = run!
+      self.finished_at = DateTime.now
+      save()
     end
 
   end
