@@ -375,7 +375,6 @@ module GrdaWarehouse::Hud
     end
 
     def self.revoke_expired_consent
-      release_duration = GrdaWarehouse::Config.get :release_duration
       if release_duration == 'One Year'
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
@@ -570,6 +569,10 @@ module GrdaWarehouse::Hud
     end
 
     def release_duration
+      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
+    end
+
+    def self.release_duration
       @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
     end
     
