@@ -106,6 +106,8 @@ module ClientController
       clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
       existing_matches = look_for_existing_match(clean_params)
       @bypass_search = false
+      # If we only have one authoritative data source, we don't bother sending it, just use it 
+      clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id
       @client = client_source.new(clean_params)
 
       params_valid = validate_new_client_params(clean_params)
