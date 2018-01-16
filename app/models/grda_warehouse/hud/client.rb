@@ -570,7 +570,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_duration
-      duration ||= GrdaWarehouse::Config.get(:release_duration)
+      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
     end
     
     def release_valid?

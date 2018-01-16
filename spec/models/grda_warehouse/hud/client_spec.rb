@@ -2,6 +2,10 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do  
   let(:client) { build :grda_warehouse_hud_client }
+  let(:client_signed_yesterday) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday}
+  let(:client_signed_2_years_ago) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date}
+  let(:client_signed_2_years_ago_short_consent) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date}
+  let(:config) { create :config, release_duration: 'One Year' }
 
   context 'when created' do
     before(:each) do
@@ -60,6 +64,39 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
 
+    end
+  end
+
+  describe 'consent form release validity' do
+    context 'when consent validity is indefinite' do
+      before(:each) do
+        config.release_duration = 'Indefinite'
+        config.save
+      end
+      context 'client with signed consent has valid consent' do
+        it 'when signed yesterday' do
+          expect( client_signed_yesterday.consent_form_valid? ).to be true
+        end
+        it 'when signed 2 years ago' do
+          expect( client_signed_2_years_ago.consent_form_valid? ).to be true
+        end
+      end
+    end
+    context 'when consent validity is one year', skip: 'Config is very aggressively cached and doesn\'t work correctly in rspec yet' do
+      before(:each) do
+        config.release_duration = 'One Year'
+        config.save
+      end
+      context 'client with signed consent has ' do
+        it 'valid consent when signed yesterday' do
+          config.release_duration = 'One Year'
+          config.save
+          expect( client_signed_yesterday.consent_form_valid? ).to be true
+        end
+        it 'invalid consent when signed 2 years ago' do
+          expect( client_signed_2_years_ago_short_consent.consent_form_valid? ).to be false
+        end
+      end
     end
   end
 
