@@ -88,6 +88,23 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           expect( client.consent_form_valid? ).to be true
         end
       end
+      it 'there should be three clients with full housing release strings' do
+
+        client_signed_yesterday.save
+        client_signed_2_years_ago.save
+        client_signed_2_years_ago_short_consent.save
+
+        expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(3)
+      end
+
+      it 'after revoking consent, three should have a full housing release string' do
+        client_signed_yesterday.save
+        client_signed_2_years_ago.save
+        client_signed_2_years_ago_short_consent.save
+        GrdaWarehouse::Hud::Client.instance_variable_set(:@release_duration, 'Indefinite')
+        GrdaWarehouse::Hud::Client.revoke_expired_consent
+        expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(3)
+      end
     end
     context 'when consent validity is one year' do
       before(:each) do
