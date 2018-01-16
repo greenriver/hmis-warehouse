@@ -37,6 +37,6 @@
         = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible]
       = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas]
 
-  = render 'vispdat'
+  = render 'vispdat', f: f
   = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
   = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'
