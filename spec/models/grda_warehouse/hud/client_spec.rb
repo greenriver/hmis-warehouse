@@ -73,12 +73,19 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         config.release_duration = 'Indefinite'
         config.save
       end
-      context 'client with signed consent has valid consent' do
-        it 'when signed yesterday' do
+      context 'client with signed consent has ' do
+        it 'valid consent when signed yesterday' do
           expect( client_signed_yesterday.consent_form_valid? ).to be true
         end
-        it 'when signed 2 years ago' do
+        it 'valid consent when signed 2 years ago' do
           expect( client_signed_2_years_ago.consent_form_valid? ).to be true
+        end
+        it 'invalid consent when release not set' do
+          expect( client.consent_form_valid? ).to be false
+        end
+        it 'valid consent when release set but consent not signed' do
+          client.housing_release_status = client.class.full_release_string
+          expect( client.consent_form_valid? ).to be true
         end
       end
     end
@@ -95,6 +102,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         it 'invalid consent when signed 2 years ago' do
           expect( client_signed_2_years_ago_short_consent.consent_form_valid? ).to be false
+        end
+        it 'invalid consent when not signed' do
+          expect( client.consent_form_valid? ).to be false
+        end
+        it 'invalid consent when release not set' do
+          expect( client.consent_form_valid? ).to be false
+        end
+        it 'invalid consent when release set but consent not signed' do
+          client.housing_release_status = client.class.full_release_string
+          expect( client.consent_form_valid? ).to be false
         end
       end
     end
