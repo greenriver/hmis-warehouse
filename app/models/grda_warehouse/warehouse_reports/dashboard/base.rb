@@ -72,7 +72,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     #   count
     # end
     
-    protected def service_scope project_type
+    def service_scope project_type
       homeless_service_history_source.
       service_within_date_range(start_date: @range.start, end_date: @range.end).
       where(service_history_source.project_type_column => project_type)
@@ -97,9 +97,9 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       @entry_dates_by_client = {}
       homeless_service_history_source.
       entry.
-      started_between(start_date: @range.start, end_date: @range.end).
+      where(sh_t[:first_date_in_program].lteq(@range.end)).
       where(service_history_source.project_type_column => project_type).
-      where(client_id: service_scope(project_type).distinct.select(:client_id)).
+      where(client_id: service_scope(project_type).started_between(start_date: @range.start, end_date: @range.end).distinct.select(:client_id)).
       order(first_date_in_program: :desc).
       pluck(:client_id, :first_date_in_program).
       each do |client_id, first_date_in_program|

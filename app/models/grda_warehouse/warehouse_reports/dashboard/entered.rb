@@ -59,7 +59,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         distinct.
         pluck(:client_id) 
 
-      # # ensure that the counts are in the same order as the labels
+      # ensure that the counts are in the same order as the labels
       @labels.each do |project_type_sym, _|
         @buckets.each do |project_type, bucket|
           project_type_key = ::HUD::project_type_brief(project_type).downcase.to_sym
@@ -112,7 +112,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     end
 
     def days_since_last_entry entry_dates
-      entry_dates.last(2).reduce(:-).abs
+      entry_dates.first(2).reduce(:-).abs
     end
 
     def setup_data_structure start_date:
