@@ -2,8 +2,12 @@ module GrdaWarehouse::WarehouseReports::Dashboard
   class Active < GrdaWarehouse::WarehouseReports::Dashboard::Base
 
     def self.params
+      start = 1.months.ago.beginning_of_month.to_date
+      if Rails.env.development?
+        start = 6.months.ago.beginning_of_month.to_date
+      end
       {
-        start: 1.months.ago.beginning_of_month.to_date, 
+        start: start, 
         end: 1.months.ago.end_of_month.to_date,
       }
     end
@@ -12,12 +16,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       start_date = parameters.with_indifferent_access[:start]
       end_date = parameters.with_indifferent_access[:end]
       @range = ::Filters::DateRange.new({start: start_date, end: end_date})
+      @month_name = @range.start.to_time.strftime('%B')
     end
 
     def init
       set_date_range()
-      @month_name = @range.start.to_time.strftime('%B')
+
       @clients = []
+      @enrollments = {}
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort.to_h
       @data = {
         clients: {
@@ -39,12 +45,12 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       
       @labels.each do |key, _|
         project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
-        service_counts_by_client = service_counts(project_type)
+ 
         enrollment_counts_by_client = enrollment_counts(project_type)
         enrollment_count = enrollment_counts_by_client.values.sum
-        @data[:clients][:data] << service_counts_by_client.count
+        @data[:clients][:data] << enrollment_counts_by_client.count
         @data[:enrollments][:data] << enrollment_count
-        @clients += service_counts_by_client.keys
+        @clients += enrollment_counts_by_client.keys
         @enrollments[project_type] = enrollment_count
       end
       @clients.uniq!
@@ -58,23 +64,6 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         labels: @labels,
         data: @data,
       }
-    end
-
-    def service_counts project_type
-      homeless_service_history_source.
-      service_within_date_range(start_date: @range.start, end_date: @range.end).
-      where(service_history_source.project_type_column => project_type).
-      group(:client_id).
-      count
-    end
-
-    def enrollment_counts project_type
-      homeless_service_history_source.
-      service_within_date_range(start_date: @range.start, end_date: @range.end).
-      where(service_history_source.project_type_column => project_type).
-      group(:client_id).
-      select(nf('DISTINCT', [ct(sh_t[:enrollment_group_id], '_', sh_t[:data_source_id])]).to_sql).
-      count
     end
 
     def client_ids_served_within_range_and_project_type project_type

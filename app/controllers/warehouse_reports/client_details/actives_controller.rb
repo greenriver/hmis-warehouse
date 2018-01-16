@@ -55,14 +55,8 @@ module WarehouseReports::ClientDetails
 
     def active_client_service_history range: 
       homeless_service_history_source.joins(:client).
-        entry.
-        open_between(start_date: range.start, end_date: range.end).
-        where(
-          client_id: homeless_service_history_source.
-                      service_within_date_range(start_date: range.start, end_date: range.end).
-                      distinct.
-                      select(:client_id)
-        ).
+        service_within_date_range(start_date: range.start, end_date: range.end).
+        distinct.
         pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
