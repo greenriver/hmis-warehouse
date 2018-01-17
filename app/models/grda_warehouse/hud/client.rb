@@ -194,41 +194,35 @@ module GrdaWarehouse::Hud
     end
     
     #################################
-    # Standard Cohort Scopes
-    
+    # Standard Cohort Scopes    
+         
     scope :individual_adult, -> (start_date: Date.today, end_date: Date.today) do
       adult(on: start_date).
-      joins(service_history: :project).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).individual_adult)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.individual_adult.select(:client_id))
     end
 
     scope :unaccompanied_youth, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).unaccompanied_youth)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.unaccompanied_youth.select(:client_id))
     end
 
     scope :children_only, -> (start_date: Date.today, end_date: Date.today) do
       child(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).children_only)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.children_only.select(:client_id))
     end
 
     scope :parenting_youth, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).parenting_youth)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
     end
     
     scope :parenting_juvenile, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).parenting_juvenile)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
     end
 
     scope :family, -> (start_date: Date.today, end_date: Date.today) do
-      joins(service_history: :project).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).family)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.family.select(:client_id))
     end
       
     scope :veteran, -> do
@@ -237,6 +231,14 @@ module GrdaWarehouse::Hud
 
     scope :non_veteran, -> do
       where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
+    end
+
+    # Some aliases for our inconsistencies
+    class << self
+      alias_method :individual_adults, :individual_adult
+      alias_method :all_clients, :all
+      alias_method :children, :children_only
+      alias_method :parenting_children, :parenting_juvenile
     end
 
     # End Standard Cohorts

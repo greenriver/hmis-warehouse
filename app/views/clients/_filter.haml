@@ -31,34 +31,27 @@
       .row
         .col-sm-4
           %h4 Data Source
-          %select.select2{ name: :data_source_id, style: 'width: 100%;' }
-            %option{value: ''} All Data Sources
-            - GrdaWarehouse::DataSource.importable.each do |ds|
-              - selected = @data_source_id == ds.id
-              %option{value: ds.id, selected: selected}= ds.name
+          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.importable.each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
+
         - if can_view_vspdat?
           .col-sm-4
             %h4 VSPDAT Vulnerability
-            %select.select2{ name: :vulnerability, style: 'width: 100%;' }
-              %option{ value: '' } All Vulnerabilities
-              %option{ value: :low, selected: params[:vulnerability]=='low'} Low Vulnerabilty
-              %option{ value: :medium, selected: params[:vulnerability]=='medium'} Medium Vulnerabilty
-              %option{ value: :high, selected: params[:vulnerability]=='high'} High Vulnerabilty
-              %option{ value: :all, selected: params[:vulnerability]=='all'} All Clients with VI-SPDATs
-        
+            = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability]), class: 'select2', style: 'width: 100%;')
+          
         .col-sm-4
           %h4 Age Group
-          %select.select2{ name: :age_group, style: 'width: 100%;' }
-            %option{ value: '' } All Ages
-            - GrdaWarehouse::Hud::Client.ahar_age_groups.each do |key, range|
-              %option{ value: key, selected: params[:age_group] == key.to_s }
-                = range[:name]
+          = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
+          
       .row
         .col-xs-10
           .checkbox
             %label{for: :data_sharing}
               %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing} 
               = _('Fully signed data sharing agreement')
+      .row.margin-bottom-02
+        .col-sm-6
+          %h4 Population
+          = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population]), class: 'select2', style: 'width: 100%;')
       .row
         .col-xs-6
           %p
