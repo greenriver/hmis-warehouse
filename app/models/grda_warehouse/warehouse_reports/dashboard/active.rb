@@ -3,9 +3,9 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def self.params
       start = 1.months.ago.beginning_of_month.to_date
-      unless Rails.env.production?
-        start = 6.months.ago.beginning_of_month.to_date
-      end
+      # unless Rails.env.production?
+      #   start = 6.months.ago.beginning_of_month.to_date
+      # end
       {
         start: start, 
         end: 1.months.ago.end_of_month.to_date,
@@ -64,24 +64,6 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         labels: @labels,
         data: @data,
       }
-    end
-
-    def client_ids_served_within_range_and_project_type project_type
-      homeless_service_history_source.
-        service_within_date_range(start_date: @range.start, end_date: @range.end).
-        where(service_history_source.project_type_column => project_type).
-        distinct.
-        pluck(:client_id)
-    end
-
-    def active_client_service_history range: 
-      homeless_service_history_source.entry.
-        joins(:client).
-        open_between(start_date: range.start, end_date: range.end).
-        pluck(*service_history_columns.values).
-        map do |row|
-          Hash[service_history_columns.keys.zip(row)]
-        end.group_by{|m| m[:client_id]}
     end
 
   end

@@ -50,6 +50,7 @@ module WarehouseReports::ClientDetails
         organization_id:  sh_t[:organization_id].as('organization_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
       }
     end
 

@@ -5,9 +5,9 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def self.params
       start = 1.months.ago.beginning_of_month.to_date
-      unless Rails.env.production?
-        start = 6.months.ago.beginning_of_month.to_date
-      end
+      # unless Rails.env.production?
+      #   start = 6.months.ago.beginning_of_month.to_date
+      # end
       {
         start: start, 
         end: 1.months.ago.end_of_month.to_date,
