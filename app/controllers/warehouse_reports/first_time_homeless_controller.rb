@@ -10,7 +10,7 @@ module WarehouseReports
       if @range.valid?
         @first_time_client_ids = Set.new
         @project_types = params.try(:[], :first_time_homeless).try(:[], :project_types) || GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
-        @project_types.reject!(&:empty?)
+        @project_types.reject!(&:blank?)
         @project_types.map!(&:to_i)
         if @project_types.empty?
           @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
