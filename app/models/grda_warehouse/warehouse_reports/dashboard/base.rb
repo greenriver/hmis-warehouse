@@ -75,6 +75,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def service_scope project_type
       homeless_service_history_source.
       service_within_date_range(start_date: @range.start, end_date: @range.end).
+      open_between(start_date: @range.start, end_date: @range.end).
       where(service_history_source.project_type_column => project_type)
     end
 
