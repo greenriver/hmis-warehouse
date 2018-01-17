@@ -41,6 +41,14 @@ module ClientController
         )
       end
 
+      # Filter by population
+      if params[:population].present?
+        population = params[:population].to_sym
+        if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values.include?(population)
+          @clients = @clients.public_send(population)
+        end
+      end
+
       if params[:data_source_id].present?
         @data_source_id = params[:data_source_id].to_i
         @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: {data_source_id: @data_source_id})
@@ -80,7 +88,7 @@ module ClientController
       @column = sort_column
       @direction = sort_direction
       @sort_columns = client_sort_columns + client_processed_sort_columns
-      @active_filter = @data_source_id.present? || @start_date.present? || params[:data_sharing].present?
+      @active_filter = @data_source_id.present? || @start_date.present? || params[:data_sharing].present? || params[:vulnerability].present? || params[:population].present? || age_group.present?
     end
 
     def title_for_show
