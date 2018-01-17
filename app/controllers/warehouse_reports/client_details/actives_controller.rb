@@ -56,13 +56,11 @@ module WarehouseReports::ClientDetails
     def active_client_service_history range: 
       homeless_service_history_source.joins(:client).
         service_within_date_range(start_date: range.start, end_date: range.end).
+        open_between(start_date: range.start, end_date: range.end).
         distinct.
         pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
-        end.select do |row|
-          # throw out any that start after the range
-          row[:first_date_in_program] <= range.end
         end.
         group_by{|m| m[:client_id]}
     end
