@@ -19,7 +19,7 @@ class CreateServiceHistoryEnrollmentsTable < ActiveRecord::Migration
       t.column  "record_type", :record_type, :limit=>50, :null=>false
       t.integer "housing_status_at_entry"
       t.integer "housing_status_at_exit"
-      t.column "service_type", :smallint, :null=>false
+      t.column "service_type", :smallint
       t.column "computed_project_type", :smallint
       t.boolean "presented_as_individual"
       t.column "other_clients_over_25", :smallint, :default=>0, :null=>false
@@ -48,7 +48,7 @@ class CreateServiceHistoryEnrollmentsTable < ActiveRecord::Migration
       t.column :record_type, :record_type, :limit=>50, :null=>false
       t.date :date, null: false
       t.column "age", :smallint
-      t.column "service_type", :smallint, :null=>false
+      t.column "service_type", :smallint
     end
 
     add_index :service_history_services, [:date, :service_history_enrollment_id], name: :index_shs_date_en_id

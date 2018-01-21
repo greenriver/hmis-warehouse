@@ -81,13 +81,14 @@ module GrdaWarehouse::Hud
     has_one :api_id, class_name: GrdaWarehouse::ApiClientDataSourceId.name
     has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
 
-    has_many :service_history, class_name: 'GrdaWarehouse::ServiceHistory', inverse_of: :client
-    has_many :service_history_entry, -> { entry }, class_name: 'GrdaWarehouse::ServiceHistory'
+    has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
+    has_many :service_history_enrollments
+    has_many :service_history_entry, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
     has_many :service_history_entry_in_last_three_years, -> {
       entry_in_last_three_years
-    }, class_name: 'GrdaWarehouse::ServiceHistory'
+    }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
 
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :enrollments, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client
@@ -1436,8 +1437,8 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
-      source_enrollments.update_all(processed_hash: nil)
+      service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
+      source_enrollments.update_all(processed_as: nil)
       invalidate_service_history
     end
 

@@ -8,7 +8,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     after_commit :force_validity_calculation
 
     def service_history_valid?
-      processed_hash.present? && processed_hash == calculate_hash
+      processed_as.present? && processed_as == calculate_hash
     end
     def source_data_changed?
       ! service_history_valid?
@@ -39,14 +39,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def patch_service_history!
       days = []
+      # load the associated service history enrollment to get the id
       build_for_dates.except(
         *service_dates_from_service_history_for_enrollment()
       ).each do |date, type_provided|
         days << service_record(date, type_provided)
       end
       if days.any?
-        insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
-        update(processed_hash: calculate_hash)
+        insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
+        update(processed_as: calculate_hash)
       end
       return true
     end
@@ -60,57 +61,69 @@ module GrdaWarehouse::Tasks::ServiceHistory
       days = []
       if project.present?
         date = self.EntryDate
-        type_provided = project.computed_project_type
-        days << entry_record(date, type_provided)
-        # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
-        # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-        build_for_dates.each do |date, type_provided|
-          days << service_record(date, type_provided)
+        self.class.transaction do
+          remove_existing_service_history_for_enrollment()
+          entry_day = entry_record(date)
+          insert = build_service_history_enrollment_insert(entry_day)
+          @entry_record_id = service_history_enrollment_source.connection.insert(insert.to_sql)
+          # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
+          # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
+          build_for_dates.each do |date, type_provided|
+            days << service_record(date, type_provided)
+          end
+          if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+            type_provided = build_for_dates.values.last
+            days += add_extrapolated_days(build_for_dates.keys, type_provided)
+          end
+          # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
+          # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
+          if exit.present?
+            date = exit.ExitDate
+            insert = build_service_history_enrollment_insert(exit_record(date))
+            service_history_enrollment_source.connection.insert(insert.to_sql)
+          end
         end
-        if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
-          type_provided = build_for_dates.values.last
-          days += add_extrapolated_days(build_for_dates.keys, type_provided)
-        end
-        # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
-        # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-        if exit.present?
-          date = exit.ExitDate
-          type_provided = build_for_dates.values.last
-          days << exit_record(date, type_provided)
-        end
-      end
-      self.class.transaction do 
-        remove_existing_service_history_for_enrollment()
+      
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
         if days.any?
-          insert_batch(service_history_source, days.first.keys, days.map(&:values), transaction: false)
+          insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
         end
       end
-      update(processed_hash: calculate_hash)
+      update(processed_as: calculate_hash)
       return true
     end
 
-    def entry_record date, type_provided
+    def set_entry_record_id
+      @entry_record_id ||= service_history_enrollment.id
+    end
+
+    def build_service_history_enrollment_insert day
+      insert = Arel::Nodes::InsertStatement.new
+      insert.relation = she_t
+      insert.columns = day.keys.map{|k| she_t[k]}
+      insert.values = Arel::Nodes::Values.new(day.values, insert.columns)
+      return insert
+    end
+
+    def entry_record date
       default_day.merge({
         date: date,
         age: client_age_at(date),
-        service_type: type_provided,
         record_type: :entry,
       })
     end
 
-    def exit_record date, type_provided
+    def exit_record date
       default_day.merge({
         date: date,
         age: client_age_at(date),
-        service_type: type_provided,
         record_type: :exit,
       })
     end
 
     def service_record date, type_provided
-      default_day.merge({
+      default_service_day.merge({
         date: date,
         age: client_age_at(date),
         service_type: type_provided,
@@ -119,7 +132,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def extrapolated_record date, type_provided
-      default_day.merge({
+      default_service_day.merge({
         date: date,
         age: client_age_at(date),
         service_type: type_provided,
@@ -157,36 +170,36 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_dates_from_service_history_for_enrollment
       return [] unless destination_client.present?
-      @service_dates_from_service_history_for_enrollment ||= service_history_source.
+      set_entry_record_id()
+      @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
         service.where(
-          client_id: destination_client.id, 
-          enrollment_group_id: self.ProjectEntryID, 
-          data_source_id: data_source_id, 
-          project_id: self.ProjectID,
+          service_history_enrollment_id: @entry_record_id
         ).order(date: :asc).
         pluck(:date)
     end
 
     def extrapolated_dates_from_service_history_for_enrollment
       return [] unless destination_client.present?
-      @extrapolated_dates_from_service_history_for_enrollment ||= service_history_source.
+      set_entry_record_id()
+      @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
-          client_id: destination_client.id, 
-          enrollment_group_id: self.ProjectEntryID, 
-          data_source_id: data_source_id, 
-          project_id: self.ProjectID,
+          service_history_enrollment_id: @entry_record_id 
         ).order(date: :asc).
         pluck(:date)
     end
 
     def remove_existing_service_history_for_enrollment
       return unless destination_client.present?
-      service_history_source.where(
+      # service_history_service_source.where(
+      #   service_history_enrollment_id: service_history_enrollment.id
+      # ).delete_all
+
+      service_history_enrollment_source.where(
         client_id: destination_client.id, 
         enrollment_group_id: self.ProjectEntryID, 
         data_source_id: data_source_id, 
         project_id: self.ProjectID,
-        record_type: [:entry, :exit, :service, :extrapolated],
+        record_type: [:entry, :exit],
       ).delete_all
     end
 
@@ -235,18 +248,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # end
 
     # even with the load of the enrollment via active record, this is *way* faster
-    def self.service_history_rows(id)
-      en = self.find(id)
-      service_history_source.
-        where(
-          service_history_source.table_name => {record_type: [:entry, :exit, :service]},
-          client_id: en.destination_client.id, 
-          enrollment_group_id: en.ProjectEntryID, 
-          data_source_id: en.data_source_id, 
-          project_id: en.ProjectID,
-        ).order(*service_history_hash_columns_order).
-        pluck(*service_history_hash_columns)
-    end
+    # def self.service_history_rows(id)
+    #   en = self.find(id)
+    #   service_history_source.
+    #     where(
+    #       service_history_source.table_name => {record_type: [:entry, :exit, :service]},
+    #       client_id: en.destination_client.id, 
+    #       enrollment_group_id: en.ProjectEntryID, 
+    #       data_source_id: en.data_source_id, 
+    #       project_id: en.ProjectID,
+    #     ).order(*service_history_hash_columns_order).
+    #     pluck(*service_history_hash_columns)
+    # end
 
     def default_day
       @default_day ||= {
@@ -281,6 +294,17 @@ module GrdaWarehouse::Tasks::ServiceHistory
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
         presented_as_individual: presented_as_individual?,
+      }
+    end
+
+    def default_service_day
+      set_entry_record_id()
+      @default_service_day ||= {
+        service_history_enrollment_id: @entry_record_id,
+        date: nil,
+        service_type: nil,
+        age: nil,
+        record_type: nil,
       }
     end
 
@@ -587,38 +611,45 @@ module GrdaWarehouse::Tasks::ServiceHistory
       }
     end
 
-    def self.service_history_hash_columns
-      @service_history_hash_columns ||= begin
-        columns = service_history_columns.values.map do |col|
-          sh_t[col].as(col.to_s).to_sql
-        end
-        columns
-      end
+    # def self.service_history_hash_columns
+    #   @service_history_hash_columns ||= begin
+    #     columns = service_history_columns.values.map do |col|
+    #       sh_t[col].as(col.to_s).to_sql
+    #     end
+    #     columns
+    #   end
+    # end
+
+    # def self.service_history_hash_columns_order
+    #   @service_history_hash_columns_order ||= begin
+    #     columns = service_history_columns.values.map do |col|
+    #       sh_t[col].asc
+    #     end
+    #     columns
+    #   end
+    # end
+
+    # def self.service_history_columns 
+    #   @service_history_columns ||= {
+    #     client_id: :client_id,
+    #     date: :date,
+    #     record_type: :record_type,
+    #   }
+    # end
+
+
+    def self.service_history_enrollment_source
+      GrdaWarehouse::ServiceHistoryEnrollment
+    end
+    def service_history_enrollment_source
+      self.class.service_history_enrollment_source
     end
 
-    def self.service_history_hash_columns_order
-      @service_history_hash_columns_order ||= begin
-        columns = service_history_columns.values.map do |col|
-          sh_t[col].asc
-        end
-        columns
-      end
+    def self.service_history_service_source
+      GrdaWarehouse::ServiceHistoryService
     end
-
-    def self.service_history_columns 
-      @service_history_columns ||= {
-        client_id: :client_id,
-        date: :date,
-        record_type: :record_type,
-      }
-    end
-
-
-    def self.service_history_source
-      GrdaWarehouse::ServiceHistory
-    end
-    def service_history_source
-      self.class.service_history_source
+    def service_history_service_source
+      self.class.service_history_service_source
     end
 
     def force_validity_calculation

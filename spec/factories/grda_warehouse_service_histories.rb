@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :grda_warehouse_service_history, class: 'GrdaWarehouse::ServiceHistory' do
+  factory :grda_warehouse_service_history, class: 'GrdaWarehouse::ServiceHistoryEnrollment' do
     # client_id
     # data_source_id
     # date

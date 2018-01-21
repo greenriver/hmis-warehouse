@@ -71,31 +71,31 @@ module GrdaWarehouse::Tasks
 
     def columns
       {
-        client_id: sh_t[:client_id], 
-        date: sh_t[:date], 
-        age: sh_t[:age], 
-        data_source_id: sh_t[:data_source_id], 
-        last_date_in_program: sh_t[:last_date_in_program],
-        enrollment_group_id: sh_t[:enrollment_group_id],
-        project_id: sh_t[:project_id],
-        organization_id: sh_t[:organization_id],
-        household_id: sh_t[:household_id],
-        project_name: sh_t[:project_name],
-        project_type: sh_t[:project_type],
-        computed_project_type: sh_t[:computed_project_type],
-        project_tracking_method: sh_t[:project_tracking_method],
-        service_type: sh_t[:service_type],
-        presented_as_individual: sh_t[:presented_as_individual],
-        other_clients_over_25: sh_t[:other_clients_over_25],
-        other_clients_under_18: sh_t[:other_clients_under_18],
-        other_clients_between_18_and_25: sh_t[:other_clients_between_18_and_25],
-        unaccompanied_youth: sh_t[:unaccompanied_youth],
-        parenting_youth: sh_t[:parenting_youth],
-        parenting_juvenile: sh_t[:parenting_juvenile],
-        children_only: sh_t[:children_only],
-        individual_adult: sh_t[:individual_adult],
-        individual_elder: sh_t[:individual_elder],
-        head_of_household: sh_t[:head_of_household],
+        client_id: she_t[:client_id], 
+        date: she_t[:date], 
+        age: she_t[:age], 
+        data_source_id: she_t[:data_source_id], 
+        last_date_in_program: she_t[:last_date_in_program],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        project_id: she_t[:project_id],
+        organization_id: she_t[:organization_id],
+        household_id: she_t[:household_id],
+        project_name: she_t[:project_name],
+        project_type: she_t[:project_type],
+        computed_project_type: she_t[:computed_project_type],
+        project_tracking_method: she_t[:project_tracking_method],
+        service_type: she_t[:service_type],
+        presented_as_individual: she_t[:presented_as_individual],
+        other_clients_over_25: she_t[:other_clients_over_25],
+        other_clients_under_18: she_t[:other_clients_under_18],
+        other_clients_between_18_and_25: she_t[:other_clients_between_18_and_25],
+        unaccompanied_youth: she_t[:unaccompanied_youth],
+        parenting_youth: she_t[:parenting_youth],
+        parenting_juvenile: she_t[:parenting_juvenile],
+        children_only: she_t[:children_only],
+        individual_adult: she_t[:individual_adult],
+        individual_elder: she_t[:individual_elder],
+        head_of_household: she_t[:head_of_household],
       }
     end
 
@@ -104,15 +104,15 @@ module GrdaWarehouse::Tasks
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def query
       # construct inner table to find minimum dates per client
       ct = GrdaWarehouse::Hud::Client.arel_table
-      ht1 = Arel::Table.new sh_t.table_name
+      ht1 = Arel::Table.new she_t.table_name
       ht1.table_alias = 'ht1'
-      ht2 = Arel::Table.new sh_t.table_name
+      ht2 = Arel::Table.new she_t.table_name
       ht2.table_alias = 'ht2'
       mdt = Arel::Table.new 'min_dates'
       at  = Arel::Table.new 'already_there'
@@ -127,11 +127,11 @@ module GrdaWarehouse::Tasks
         as(mdt.table_name)
 
       # find ids of relevant records (it would be better, but not *that much* better, to do this in one go, but Arel doesn't seem to be able to)
-      final_query = sh_t.join(inner_table).on(
-          sh_t[:client_id].eq(mdt[:client_id]).and( sh_t[:date].eq mdt[:min_date] )
+      final_query = she_t.join(inner_table).on(
+          she_t[:client_id].eq(mdt[:client_id]).and( she_t[:date].eq mdt[:min_date] )
         ).
-        where( sh_t[:record_type].eq 'entry' ).
-        where( sh_t[service_history_source.project_type_column].in projects ).
+        where( she_t[:record_type].eq 'entry' ).
+        where( she_t[service_history_source.project_type_column].in projects ).
         project(*columns.values)
     end
 

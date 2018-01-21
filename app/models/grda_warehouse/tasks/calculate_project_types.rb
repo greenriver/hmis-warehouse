@@ -42,7 +42,7 @@ module GrdaWarehouse::Tasks
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def debug_log message
