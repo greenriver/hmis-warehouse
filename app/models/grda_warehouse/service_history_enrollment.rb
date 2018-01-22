@@ -251,7 +251,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :adult, -> do
-      where(sh_t[:age].gteq(18))
+      where(she_t[:age].gteq(18))
     end
 
     # Client age on date is 18-24
