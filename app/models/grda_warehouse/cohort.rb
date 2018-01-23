@@ -26,6 +26,8 @@ module GrdaWarehouse
 
     def self.available_columns
       [
+        ::CohortColumns::FirstDateHomeless.new(),
+        ::CohortColumns::Chronic.new(),
         ::CohortColumns::Agency.new(),
         ::CohortColumns::CaseManager.new(),
         ::CohortColumns::HousingManager.new(),
@@ -42,11 +44,14 @@ module GrdaWarehouse
         ::CohortColumns::Rank.new(),
         ::CohortColumns::StFrancisHouse.new(),
         ::CohortColumns::LastGroupReviewDate.new(),
+        ::CohortColumns::LastDateApproached.new(),
         ::CohortColumns::PreContemplativeLastDateApproached.new(),
-        ::CohortColumns::HousingTrack.new(),
+        ::CohortColumns::HousingTrackSuggested.new(),
+        ::CohortColumns::HousingTrackEnrolled.new(),
         ::CohortColumns::VaEligible.new(),
         ::CohortColumns::VashEligible.new(),
         ::CohortColumns::Chapter115.new(),
+        ::CohortColumns::Veteran.new()
       ]
     end
 

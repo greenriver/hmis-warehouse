@@ -9,8 +9,5 @@ module CohortColumns
       :string
     end
     
-    def as_input default_value:, client_id:
-      content_tag(:div, content_tag(:input, nil, value: default_value, name: "#{column}[#{client_id}]"), class: "form-group string optional #{column}")
-    end
   end
 end

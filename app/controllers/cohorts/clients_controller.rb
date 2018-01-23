@@ -6,6 +6,7 @@ module Cohorts
     before_action :require_can_create_cohorts!
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show]
+    skip_after_action :log_activity, only: [:index, :show]
 
     # Return a json object of {cohort_client.id : updated_at}
     # for easy poling

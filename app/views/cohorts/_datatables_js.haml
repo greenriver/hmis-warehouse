@@ -13,6 +13,15 @@
         }
       };
 
+      $.fn.dataTableExt.ofnSearch['popover-content'] = function(value) {
+        if (value.length > 0) {
+          var jqueryVal = $.parseHTML(value);
+          return _.map(jqueryVal, function(node) {return $(node).data('content')}).join();
+        } else {
+          return '';
+        }
+      };
+
       var datatable = $('.datatable').DataTable({
         scrollY: false,
         scrollX: true,
@@ -26,6 +35,10 @@
           { 
             "type": "html-input",
             "targets": #{(0..@cohort.visible_columns.count).map{|i| i + 5}}
+          },
+          {
+            "type": 'popover-content',
+            "targets": [4]
           }
         ] 
       });
@@ -45,6 +58,6 @@
       //   datatable.cell($td).invalidate().draw();
       // });    
       datatable.on('draw', function() {
-        App.init();
+         App.init();
       });
     })(jQuery);
