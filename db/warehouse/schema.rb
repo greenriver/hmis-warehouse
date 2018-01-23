@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180123145547) do
+ActiveRecord::Schema.define(version: 20180123151137) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2001,6 +2001,7 @@ SELECT "Services"."ServicesID",
     t.integer "age",                           :limit=>2
     t.integer "service_type",                  :limit=>2
   end
+  add_index "service_history_services", ["date", "service_history_enrollment_id"], :name=>"index_shs_date_en_id", :using=>:btree
   add_index "service_history_services", ["date"], :name=>"index_shs_date", :using=>:brin
   add_index "service_history_services", ["service_history_enrollment_id", "date"], :name=>"index_shs_en_id_date", :using=>:btree
 
