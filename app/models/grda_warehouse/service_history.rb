@@ -1,5 +1,6 @@
 class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   self.table_name = 'service_history'
+  self.primary_key = "id"
 
   include ArelHelper
 
