@@ -1269,6 +1269,30 @@ module GrdaWarehouse::Hud
       source_enrollments.any_address.sort_by(&:EntryDate).map(&:address_lat_lon).uniq
     end
 
+    def previous_permanent_locations_for_display
+      labels = ('A'..'Z').to_a
+      seen_addresses = {}
+      source_enrollments.
+        any_address.
+        order(EntryDate: :desc).
+        preload(:client).
+        map do |enrollment|
+          lat_lon = enrollment.address_lat_lon
+          address = {
+            year: enrollment.EntryDate.year,
+            client_id: enrollment.client.id,
+            label: seen_addresses[enrollment.address] ||= labels.shift,
+            city: enrollment.LastPermanentCity,
+            state: enrollment.LastPermanentState,
+            zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0')
+          }
+          if lat_lon.present?
+            address.merge!(lat_lon)
+          end
+          address
+      end
+    end
+
     # takes an array of tags representing the types of documents needed to be document ready
     # returns an array of hashes representing the state of each required document
     def document_readiness(required_documents)
