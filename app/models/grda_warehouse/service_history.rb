@@ -226,6 +226,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
   end
 
+  scope :in_project_type, -> (project_types) do
+    where(project_type_column => project_types)
+  end
+
   scope :visible_in_window, -> do
     joins(:data_source).where(data_sources: {visible_in_window: true})
   end

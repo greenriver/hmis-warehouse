@@ -76,7 +76,8 @@ module GrdaWarehouse::Hud
       class_name: GrdaWarehouse::ProjectGroup.name,
       join_table: :project_project_groups
 
-    has_many :service_history, class_name: 'GrdaWarehouse::ServiceHistory', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
+    has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
+    has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
     has_many :project_cocs, **hud_many(ProjectCoc), inverse_of: :project
     has_many :sites, through: :project_cocs, source: :sites
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :project

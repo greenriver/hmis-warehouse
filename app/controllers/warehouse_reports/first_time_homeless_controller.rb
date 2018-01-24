@@ -16,16 +16,15 @@ module WarehouseReports
           @project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
         end
 
-        set_first_time_client_ids()
-        set_first_time_ever()
-        
+        set_first_time_homeless_client_ids()
+
         @clients = client_source.joins(:first_service_history).
           preload(:first_service_history, first_service_history: [:organization, :project], source_clients: :data_source).
-          where(sh_t[:record_type].eq('first')).
-          where(id: @first_time_ever.to_a).
+          where(she_t[:record_type].eq('first')).
+          where(id: @first_time_client_ids.to_a).
           distinct.
-          select( :id, :FirstName, :LastName, sh_t[:date], :VeteranStatus, :DOB ).
-          order( sh_t[:date], :LastName, :FirstName )
+          select( :id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB ).
+          order( she_t[:date], :LastName, :FirstName )
       else
         @clients = client_source.none
       end
@@ -37,21 +36,20 @@ module WarehouseReports
       end
     end
 
-    def set_first_time_client_ids
-      # fetch all entry dates for clients above
-      # This has a side-effect of saving off the client ids for those who this is the first time in the
-      # project type
-      @buckets = @project_types.map do |project_type|
-        entry_dates = entry_dates_by_client(project_type)
-        [project_type, bucket_clients(entry_dates)]
-      end.to_h
+    def set_first_time_homeless_client_ids
+      @project_types.each do |project_type|
+        @first_time_client_ids += first_time_homeless_within_range(project_type).distinct.pluck(:client_id)
+      end
     end
 
-    def set_first_time_ever
-      @first_time_ever = service_history_source.homeless.first_date.
-          where(client_id: @first_time_client_ids.to_a, first_date_in_program: @range.range).
-          distinct.
-          pluck(:client_id)
+    def first_time_homeless_within_range project_type
+      first_scope = enrollment_source.entry.in_project_type(project_type).
+        with_service_between(start_date: @range.start, end_date: @range.end).
+        where(client_id: enrollment_source.first_date.
+          started_between(start_date: @range.start, end_date: @range.end).
+          in_project_type(project_type).select(:client_id)
+        )
+      history_scope(first_scope, @sub_population)
     end
 
     def client_source
@@ -72,11 +70,14 @@ module WarehouseReports
       @sub_population = (params.try(:[], :sub_population) || :all_clients).to_sym
       
       @range = ::Filters::DateRange.new({start: start_date, end: end_date})
-      set_first_time_client_ids()
-      set_first_time_ever()
-      @counts = GrdaWarehouse::ServiceHistory.first_date.select(:date, :client_id).
-        where(client_id: @first_time_ever.to_a).where(date: @range.range)
-      @counts = @counts.where(sh_t[GrdaWarehouse::ServiceHistory.project_type_column].in(@project_types)).
+
+      set_first_time_homeless_client_ids()
+
+      @counts = enrollment_source.first_date.
+        select(:date, :client_id).
+        where(client_id: @first_time_client_ids.to_a).
+        where(date: @range.range).
+        in_project_type(@project_types).
         order(date: :asc).pluck(:date, :client_id).
         group_by{|date, client_id| date}.
         map{|date, clients| [date, clients.count]}.to_h
@@ -98,66 +99,13 @@ module WarehouseReports
       scope_hash[sub_population.to_sym]
     end
 
-    def service_history_source
-      GrdaWarehouse::ServiceHistory
+    def enrollment_source
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
-    def service_scope project_type
-      homeless_service_history_source(project_type).
-      service_within_date_range(start_date: @range.start, end_date: @range.end).
-      where(service_history_source.project_type_column => project_type)
+    def service_source
+      GrdaWarehouse::ServiceHistoryService
     end
 
-    def homeless_service_history_source project_type
-      scope = service_history_source.
-        where(service_history_source.project_type_column => project_type)
-      history_scope(scope, @sub_population)
-    end
-
-    def entry_dates_by_client project_type
-      @entry_dates_by_client = {}
-      homeless_service_history_source(project_type).
-      entry.
-      where(sh_t[:first_date_in_program].lteq(@range.end)).
-      where(service_history_source.project_type_column => project_type).
-      where(client_id: service_scope(project_type).started_between(start_date: @range.start, end_date: @range.end).distinct.select(:client_id)).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :first_date_in_program).
-      each do |client_id, first_date_in_program|
-        @entry_dates_by_client[client_id] ||= []
-        @entry_dates_by_client[client_id] << first_date_in_program
-      end
-      @entry_dates_by_client
-    end
-
-    def bucket_clients clients
-      buckets = {
-        sixty_plus: 0,
-        thirty_to_sixty: 0,
-        less_than_thirty: 0,
-        first_time: 0,
-      }
-
-      clients.each do |client_id, entry_dates|
-        if entry_dates.count == 1
-          buckets[:first_time] += 1
-          @first_time_client_ids << client_id
-        else
-          days = days_since_last_entry(entry_dates)
-          if days < 30
-            buckets[:less_than_thirty] += 1
-          elsif (30..60).include?(days)
-            buckets[:thirty_to_sixty] += 1
-          else # days > 60
-            buckets[:sixty_plus] += 1
-          end
-        end
-      end
-      buckets
-    end
-
-    def days_since_last_entry entry_dates
-      entry_dates.first(2).reduce(:-).abs
-    end
   end
 end

@@ -76,7 +76,7 @@ module GrdaWarehouse::Hud
     has_many :window_source_clients, -> {visible_in_window}, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
     has_one :processed_service_history, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
-    has_one :first_service_history, -> { where record_type: 'first' }, class_name: 'GrdaWarehouse::ServiceHistory'
+    has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
 
     has_one :api_id, class_name: GrdaWarehouse::ApiClientDataSourceId.name
     has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
@@ -199,31 +199,31 @@ module GrdaWarehouse::Hud
          
     scope :individual_adult, -> (start_date: Date.today, end_date: Date.today) do
       adult(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.individual_adult.select(:client_id))
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.individual_adult.select(:client_id))
     end
 
     scope :unaccompanied_youth, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.unaccompanied_youth.select(:client_id))
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.unaccompanied_youth.select(:client_id))
     end
 
     scope :children_only, -> (start_date: Date.today, end_date: Date.today) do
       child(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.children_only.select(:client_id))
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.children_only.select(:client_id))
     end
 
     scope :parenting_youth, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
     end
     
     scope :parenting_juvenile, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
     end
 
     scope :family, -> (start_date: Date.today, end_date: Date.today) do
-      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.family.select(:client_id))
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.family.select(:client_id))
     end
       
     scope :veteran, -> do
@@ -271,7 +271,7 @@ module GrdaWarehouse::Hud
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
-      sh  = GrdaWarehouse::ServiceHistory
+      sh  = GrdaWarehouse::ServiceHistoryEnrollment
       sht = sh.arel_table
       joins(:first_service_history).
         where( sht[:date].gteq s ).
@@ -674,8 +674,8 @@ module GrdaWarehouse::Hud
             LastName: c_t[:LastName].as('LastName').to_sql,
             last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
           }
-          hh_where = hids.map{|hh_id, ds_id| "(household_id = '#{hh_id}' and #{GrdaWarehouse::ServiceHistory.quoted_table_name}.data_source_id = #{ds_id})"}.join(' or ')
-          entries = GrdaWarehouse::ServiceHistory.entry
+          hh_where = hids.map{|hh_id, ds_id| "(household_id = '#{hh_id}' and #{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.data_source_id = #{ds_id})"}.join(' or ')
+          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry
             .joins(:client)
             .where(hh_where)
             .where.not(client_id: id )

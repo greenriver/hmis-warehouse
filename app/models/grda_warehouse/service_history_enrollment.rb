@@ -1,9 +1,9 @@
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include ArelHelper
 
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history, autosave: false
-  belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history, autosave: false
-  belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history, autosave: false
+  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history_entry, autosave: false
+  belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
   belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :service_history, autosave: false
   has_one :enrollment_coc_at_entry, through: :enrollment, inverse_of: :service_history, autosave: false
   has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
@@ -218,6 +218,20 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     #   and(sht[:project_type].in(project_types)).
     #   or(pt[:act_as_project_type].in(project_types)))
     # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
+  end
+
+  scope :in_project_type, -> (project_types) do
+    where(project_type_column => project_types)
+  end
+
+  scope :with_service_between, -> (start_date: ,end_date: ) do
+    where(
+      GrdaWarehouse::ServiceHistoryService.where( 
+        shs_t[:service_history_enrollment_id].eq(arel_table[:id])
+      ).
+      where(date: (start_date..end_date)).
+      exists
+    )
   end
 
   scope :visible_in_window, -> do
