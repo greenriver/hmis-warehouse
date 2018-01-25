@@ -1,7 +1,7 @@
 = render partial: 'breadcrumbs'
 %h1= _("Report Result: #{@report.name}")
 = render 'queue_form'
-- console
+
 :ruby
   columns = ['percent_complete', 'created_at']
   directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
