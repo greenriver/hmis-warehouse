@@ -1,20 +1,20 @@
 %table.table.table-condensed.datatable.cohort-client__table
   %thead
     %tr
-      %th
-        Last Name
-      %th
-        First Name
-      %th
-        Age
-        - if @cohort.effective_date
-          .nobr
-            = "(On #{@cohort.effective_date})"
+      - if @first_name_column
+        %th
+          Last Name
+      - if @last_name_column
+        %th
+          First Name
+      - if @rank_column
+        %th
+          Rank
       %th
         Add Note
       %th.client_notes
         Notes
-      - @cohort.visible_columns.each do |column|
+      - @visible_columns.each do |column|
         %th
           = column.title
       %th

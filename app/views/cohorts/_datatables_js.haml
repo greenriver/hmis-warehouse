@@ -25,20 +25,18 @@
       var datatable = $('.datatable').DataTable({
         scrollY: false,
         scrollX: true,
-        //scrollCollapse: true,
-        //fixedColumns:   {
-        //  leftColumns: 2,
-        //  rightColumns: 1,
-        //  heightMatch: 'none'
-        // }
+        scrollCollapse: true,
+        fixedColumns: {
+         leftColumns: #{@frozen_column_count}
+        },
         columnDefs: [
           { 
             "type": "html-input",
-            "targets": #{(0..@cohort.visible_columns.count).map{|i| i + 5}}
+            "targets": #{@input_column_indexes}
           },
           {
             "type": 'popover-content',
-            "targets": [4]
+            "targets": [#{@frozen_column_count} + 1]
           }
         ] 
       });

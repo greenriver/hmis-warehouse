@@ -17,7 +17,9 @@
       %span.icon-users
       Add Clients
 - if @cohort.effective_date
-  %p 
+  %p
+    %strong
+      *
     Data pulled from the client record and shown here will be pulled using the effective date
     %strong
       = @cohort.effective_date

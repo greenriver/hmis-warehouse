@@ -10,7 +10,22 @@ class CohortsController < ApplicationController
   end
 
   def show
-
+    @rank_column = @cohort.visible_columns.find{|c| c.column == 'rank'}
+    @first_name_column = @cohort.visible_columns.find{|c| c.column == 'first_name'}
+    @last_name_column = @cohort.visible_columns.find{|c| c.column == 'last_name'}
+    @frozen_column_count = (
+      (@rank_column.nil? ? 0 : 1) + (@first_name_column.nil? ? 0 : 1) + (@last_name_column.nil? ? 0 : 1)
+    )
+    @visible_columns = @cohort.visible_columns - [@rank_column, @first_name_column, @last_name_column]
+    @input_column_indexes = @visible_columns.each_with_index.map do |c,i| 
+      next if c.input_type == 'read_only'
+      # account for the note columns
+      if i > @frozen_column_count
+        i + 2
+      else
+        i
+      end
+    end.compact
   end
 
   def edit
@@ -22,7 +37,6 @@ class CohortsController < ApplicationController
   end
 
   def create
-
     begin
       @cohort = cohort_source.create!(cohort_params)
       respond_with(@cohort, location: cohort_path(@cohort))

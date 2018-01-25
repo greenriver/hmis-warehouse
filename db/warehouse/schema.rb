@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180117210259) do
+ActiveRecord::Schema.define(version: 20180125214133) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -891,6 +891,7 @@ ActiveRecord::Schema.define(version: 20180117210259) do
     t.boolean  "veteran",                                :default=>false
     t.string   "housing_track_suggested"
     t.string   "housing_track_enrolled"
+    t.integer  "adjusted_days_homeless"
   end
   add_index "cohort_clients", ["client_id"], :name=>"index_cohort_clients_on_client_id", :using=>:btree
   add_index "cohort_clients", ["cohort_id"], :name=>"index_cohort_clients_on_cohort_id", :using=>:btree
