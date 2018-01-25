@@ -1,15 +1,17 @@
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include ArelHelper
 
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history_entry, autosave: false
+  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history_enrollments, autosave: false
   belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
   belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
-  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :service_history, autosave: false
+  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
+  has_one :source_client, through: :enrollment, source: :client, autosave: false
   has_one :enrollment_coc_at_entry, through: :enrollment, inverse_of: :service_history, autosave: false
   has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
-  belongs_to :data_source, inverse_of: :service_history, autosave: false
+  belongs_to :data_source, autosave: false
   belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history, autosave: false
   has_many :service_history_services, inverse_of: :service_history_enrollment
+  has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
   # make a scope for every project type and a type? method for instances
   GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k,v|
@@ -41,6 +43,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :hud_residential, -> do
     hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+  end
+
+  scope :hud_non_residential, -> do
+    joins(:project).merge(GrdaWarehouse::Hud::Project.hud_non_residential)
   end
 
   scope :residential_non_homeless, -> do
@@ -210,14 +216,6 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # HUD reporting Project Type overlay
   scope :hud_project_type, -> (project_types) do
     where(computed_project_type: project_types)
-    # pt = GrdaWarehouse::Hud::Project.arel_table
-    # sht = arel_table
-    # joins(:project).
-    # where(
-    #   pt[:act_as_project_type].eq(nil).
-    #   and(sht[:project_type].in(project_types)).
-    #   or(pt[:act_as_project_type].in(project_types)))
-    # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
   end
 
   scope :in_project_type, -> (project_types) do
