@@ -11,8 +11,8 @@ wb.add_worksheet(name: "Open Enrollments") do |sheet|
     'Most Recent Date Served',
   ], :style => title)
   @entries.each do |entry|
-    client = @clients[entry[:client_id]]
-    max_date = @max_dates[[entry[:data_source_id], entry[:project_id], entry[:enrollment_group_id], entry[:project_name], entry[:client_id]]]
+    client = @clients[entry.client_id]
+    max_date = @max_dates[entry.id]
     sheet.add_row([
       client[:id], 
       client[:FirstName], 
