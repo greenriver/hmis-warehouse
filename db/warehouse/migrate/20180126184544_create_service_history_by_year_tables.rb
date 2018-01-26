@@ -5,6 +5,8 @@ class CreateServiceHistoryByYearTables < ActiveRecord::Migration
     end
     # invalidate all enrollments that think they've been processed
     GrdaWarehouse::Hud::Enrollment.update_all(processed_as: nil)
+
+    enrollment_table = GrdaWarehouse::ServiceHistoryEnrollment.table_name
      
     create_table GrdaWarehouse::ServiceHistoryService.parent_table do |t|
       t.references :service_history_enrollment, index: false, :null=>false, foreign_key: {on_delete: :cascade}
@@ -24,7 +26,10 @@ class CreateServiceHistoryByYearTables < ActiveRecord::Migration
       add_index name, [:date, :client_id], name: "index_shs_#{year}_date_client_id"
       add_index name, [:date, :project_type], name: "index_shs_#{year}_date_project_type"
       add_index name, :date, name: "index_shs_#{year}_date_brin", :using=>:brin
+      
+      add_foreign_key name, enrollment_table, on_delete: :cascade
     end
+    # Don't forget the remainder
     name = GrdaWarehouse::ServiceHistoryService.remainder_table
     year = 1900
     remainder_check = " date < DATE '#{GrdaWarehouse::ServiceHistoryService.sub_tables.keys.min}-01-01' OR date > '#{GrdaWarehouse::ServiceHistoryService.sub_tables.keys.min}-12-31'"
@@ -35,6 +40,8 @@ class CreateServiceHistoryByYearTables < ActiveRecord::Migration
     add_index name, [:date, :client_id], name: "index_shs_#{year}_date_client_id"
     add_index name, [:date, :project_type], name: "index_shs_#{year}_date_project_type"
     add_index name, :date, name: "index_shs_#{year}_date_brin", :using=>:brin
+    name = GrdaWarehouse::ServiceHistoryService.remainder_table
+    add_foreign_key name, enrollment_table, on_delete: :cascade
 
     trigger_ifs = []
     GrdaWarehouse::ServiceHistoryService.sub_tables.each do |year, name|

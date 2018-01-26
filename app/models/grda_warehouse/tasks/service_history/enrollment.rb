@@ -87,7 +87,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
         if days.any?
-          insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
+          insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000)
         end
       end
       update(processed_as: calculate_hash)
@@ -201,6 +201,33 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_id: self.ProjectID,
         record_type: [:entry, :exit],
       ).delete_all
+      reset_instance_variables()
+    end
+
+    def reset_instance_variables
+      @extrapolated_dates_from_service_history_for_enrollment = nil
+      @service_dates_from_service_history_for_enrollment = nil
+      @calculate_hash = nil
+      @head_of_household_id = nil
+      @household_birthdates = nil
+      @other_clients_over_25 = nil
+      @other_clients_under_18 = nil
+      @other_clients_between_18_and_25 = nil
+      @client_age_at_entry = nil
+      @unaccompanied_youth = nil
+      @parenting_youth = nil
+      @parenting_juvenile = nil
+      @children_only = nil
+      @individual_adult = nil
+      @individual_elder = nil
+      @presented_as_individual = nil
+      @default_day = nil
+      @entry_record_id = nil
+      @street_outreach_acts_as_bednight = nil
+      @entry_exit_tracking = nil
+      @build_until = nil
+      @build_for_dates = nil
+      @default_service_day = nil
     end
 
     def self.calculate_hash_for(id)
@@ -305,6 +332,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         service_type: nil,
         age: nil,
         record_type: nil,
+        client_id: destination_client.id,
+        project_type: project.computed_project_type,
       }
     end
 

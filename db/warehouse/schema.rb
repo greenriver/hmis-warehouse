@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180126184544) do
+ActiveRecord::Schema.define(version: 20180126230757) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2004,6 +2004,77 @@ SELECT "Services"."ServicesID",
     t.integer "project_type",                  :limit=>2
   end
 
+  create_view "service_history", <<-'END_VIEW_SERVICE_HISTORY', :force => true
+SELECT service_history_services.id,
+    service_history_services.client_id,
+    service_history_enrollments.data_source_id,
+    service_history_services.date,
+    service_history_enrollments.first_date_in_program,
+    service_history_enrollments.last_date_in_program,
+    service_history_enrollments.enrollment_group_id,
+    service_history_enrollments.project_id,
+    service_history_services.age,
+    service_history_enrollments.destination,
+    service_history_enrollments.head_of_household_id,
+    service_history_enrollments.household_id,
+    service_history_enrollments.project_name,
+    service_history_services.project_type,
+    service_history_enrollments.project_tracking_method,
+    service_history_enrollments.organization_id,
+    service_history_services.record_type,
+    service_history_enrollments.housing_status_at_entry,
+    service_history_enrollments.housing_status_at_exit,
+    service_history_services.service_type,
+    service_history_enrollments.computed_project_type,
+    service_history_enrollments.presented_as_individual,
+    service_history_enrollments.other_clients_over_25,
+    service_history_enrollments.other_clients_under_18,
+    service_history_enrollments.other_clients_between_18_and_25,
+    service_history_enrollments.unaccompanied_youth,
+    service_history_enrollments.parenting_youth,
+    service_history_enrollments.parenting_juvenile,
+    service_history_enrollments.children_only,
+    service_history_enrollments.individual_adult,
+    service_history_enrollments.individual_elder,
+    service_history_enrollments.head_of_household
+   FROM (service_history_services
+     JOIN service_history_enrollments ON ((service_history_services.service_history_enrollment_id = service_history_enrollments.id)))
+UNION
+ SELECT service_history_enrollments.id,
+    service_history_enrollments.client_id,
+    service_history_enrollments.data_source_id,
+    service_history_enrollments.date,
+    service_history_enrollments.first_date_in_program,
+    service_history_enrollments.last_date_in_program,
+    service_history_enrollments.enrollment_group_id,
+    service_history_enrollments.project_id,
+    service_history_enrollments.age,
+    service_history_enrollments.destination,
+    service_history_enrollments.head_of_household_id,
+    service_history_enrollments.household_id,
+    service_history_enrollments.project_name,
+    service_history_enrollments.project_type,
+    service_history_enrollments.project_tracking_method,
+    service_history_enrollments.organization_id,
+    service_history_enrollments.record_type,
+    service_history_enrollments.housing_status_at_entry,
+    service_history_enrollments.housing_status_at_exit,
+    service_history_enrollments.service_type,
+    service_history_enrollments.computed_project_type,
+    service_history_enrollments.presented_as_individual,
+    service_history_enrollments.other_clients_over_25,
+    service_history_enrollments.other_clients_under_18,
+    service_history_enrollments.other_clients_between_18_and_25,
+    service_history_enrollments.unaccompanied_youth,
+    service_history_enrollments.parenting_youth,
+    service_history_enrollments.parenting_juvenile,
+    service_history_enrollments.children_only,
+    service_history_enrollments.individual_adult,
+    service_history_enrollments.individual_elder,
+    service_history_enrollments.head_of_household
+   FROM service_history_enrollments
+  END_VIEW_SERVICE_HISTORY
+
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
     t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
     t.integer "service_history_enrollment_id", :null=>false
@@ -3107,6 +3178,58 @@ SELECT "Services"."ServicesID",
   add_foreign_key "files", "vispdats"
   add_foreign_key "import_logs", "data_sources"
   add_foreign_key "service_history_services", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2000", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2001", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2002", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2003", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2004", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2005", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2006", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2007", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2008", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2009", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2010", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2011", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2012", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2013", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2014", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2015", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2016", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2017", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2018", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2019", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2020", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2021", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2022", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2023", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2024", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2025", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2026", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2027", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2028", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2029", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2030", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2031", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2032", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2033", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2034", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2035", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2036", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2037", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2038", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2039", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2040", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2041", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2042", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2043", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2044", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2045", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2046", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2047", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2048", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2049", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2050", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_remainder", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "warehouse_clients", "\"Client\"", column: "destination_id"
   add_foreign_key "warehouse_clients", "\"Client\"", column: "source_id"
   add_foreign_key "warehouse_clients", "data_sources"
