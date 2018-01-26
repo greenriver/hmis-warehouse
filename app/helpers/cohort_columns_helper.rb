@@ -1,7 +1,7 @@
 module CohortColumnsHelper
   def input_for(column, default_value:, client_id:)
     name = "cohort_client[#{column.column}]"
-    content_tag(:div, class: "form-group #{column.input_type} optional #{column.column} jCohortClientInput") do
+    content_tag(:div, class: "form-group #{column.input_type} optional #{column.column} jCohortClientInput cohort-client__input") do
       case column.input_type
       when 'string'
         content_tag(:input, nil, value: default_value, name: name)
@@ -16,7 +16,7 @@ module CohortColumnsHelper
                     class: "input-group date optional #{column.column}",
                     data: {provide: :datepicker}
                    ) do
-          concat content_tag(:input, nil, class: "form-control", value: default_value, name: name, style: 'width:115px')
+          concat content_tag(:input, nil, type: :text, class: "form-control", value: default_value&.to_date, name: name, style: 'width:115px')
           concat content_tag(:span, nil, class: 'input-group-addon icon-calendar')
         end
       when 'radio'

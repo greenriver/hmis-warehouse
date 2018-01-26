@@ -32,11 +32,11 @@
         columnDefs: [
           { 
             "type": "html-input",
-            "targets": #{@input_column_indexes}
+            "targets": #{@input_column_indexes} // convert to method call to find correct columns
           },
           {
             "type": 'popover-content',
-            "targets": [#{@frozen_column_count} + 1]
+            "targets": [#{@frozen_column_count} + 1] // convert to method call to find correct columns
           }
         ] 
       });

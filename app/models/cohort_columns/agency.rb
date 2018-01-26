@@ -4,7 +4,9 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Agency'
 
     def available_options
-      GrdaWarehouse::Hud::Project.distinct.order(ProjectName: :asc).pluck(:ProjectName)
+      Rails.cache.fetch("all_project_names", expires_at: 5.minutes) do
+        GrdaWarehouse::Hud::Project.distinct.order(ProjectName: :asc).pluck(:ProjectName)
+      end
     end
 
     def default_input_type

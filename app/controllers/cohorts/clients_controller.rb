@@ -57,6 +57,7 @@ module Cohorts
 
     def update
       if @client.update(cohort_update_params)
+        raise cohort_update_params.inspect
         respond_to do |format|
           format.html do
             flash[:notice] = 'Saved'

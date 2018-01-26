@@ -3,6 +3,7 @@
 
 %p Please choose the columns to display when viewing this cohort.
 = simple_form_for @cohort, as: :column_state, url: cohort_columns_path(@cohort) do |f|
-  - @column_state.each do |column|
-    = f.input column.column, label: column.title, as: :boolean, input_html: {checked: column.visible}
+  - GrdaWarehouse::Cohort.available_columns.each do |column|
+    - visible = @column_state.find{|m| m.class == column.class}&.visible
+    = f.input column.column, label: column.title, as: :boolean, input_html: {checked: visible}
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'

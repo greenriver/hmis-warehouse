@@ -20,13 +20,13 @@
       .row          
         .col-xs-5
           .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
-            %input.form-control{name: :start_date, type: :date, value: @start_date}
+            %input.form-control{name: :start_date, type: :text, value: @start_date}
             %span.input-group-addon.icon-calendar
         .col-xs-1{style: 'padding-top: 5px;'}
           to
         .col-xs-5
           .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
-            %input.form-control{name: :end_date, type: :date, value: @end_date}
+            %input.form-control{name: :end_date, type: :text, value: @end_date}
             %span.input-group-addon.icon-calendar
       .row
         .col-sm-4

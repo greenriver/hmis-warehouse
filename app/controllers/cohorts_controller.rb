@@ -2,7 +2,7 @@ class CohortsController < ApplicationController
   include PjaxModalController
   helper CohortColumnsHelper
   before_action :require_can_view_cohorts!
-  before_action :set_cohort, only: [:show, :edit, :update, :destroy]
+  before_action :set_cohort, only: [:edit, :update, :destroy]
 
   def index
     @cohort = cohort_source.new
@@ -10,6 +10,7 @@ class CohortsController < ApplicationController
   end
 
   def show
+    @cohort = cohort_source.where(id: params[:id].to_i).preload(cohort_clients: [:cohort_client_notes, :client]).first
     @rank_column = @cohort.visible_columns.find{|c| c.column == 'rank'}
     @first_name_column = @cohort.visible_columns.find{|c| c.column == 'first_name'}
     @last_name_column = @cohort.visible_columns.find{|c| c.column == 'last_name'}

@@ -883,7 +883,6 @@ ActiveRecord::Schema.define(version: 20180125214133) do
     t.date     "va_eligible"
     t.string   "vash_eligible"
     t.string   "chapter_115"
-    t.text     "notes"
     t.datetime "first_date_homeless"
     t.datetime "last_date_approached"
     t.boolean  "chronic",                                :default=>false
