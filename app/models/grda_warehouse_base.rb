@@ -9,4 +9,9 @@ class GrdaWarehouseBase < ActiveRecord::Base
   def self.postgres?
     connection.adapter_name == 'PostgreSQL'
   end
+
+  def self.reset_connection
+    self.connection.disconnect!
+    self.establish_connection DB_WAREHOUSE
+  end
 end
