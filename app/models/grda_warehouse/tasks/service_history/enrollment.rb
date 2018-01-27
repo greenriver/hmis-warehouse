@@ -168,13 +168,26 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @calculate_hash ||= self.class.calculate_hash_for(id)
     end
 
+    # limit the date range so we can speed up partitioning searches
+    def date_range
+      beginning_of_range = service_history_enrollment.first_date_in_program
+      @date_range ||= if service_history_enrollment.last_date_in_program.present?
+        end_of_range = service_history_enrollment.last_date_in_program
+        shs_t[:date].between(beginning_of_range..end_of_range)
+      else
+        shs_t[:date].gt(beginning_of_range)
+      end
+    end
+
     def service_dates_from_service_history_for_enrollment
       return [] unless destination_client.present?
       set_entry_record_id()
+      
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
         service.where(
           service_history_enrollment_id: @entry_record_id
-        ).order(date: :asc).
+        ).where(date_range).
+        order(date: :asc).
         pluck(:date)
     end
 
@@ -183,8 +196,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       set_entry_record_id()
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
-          service_history_enrollment_id: @entry_record_id 
-        ).order(date: :asc).
+          service_history_enrollment_id: @entry_record_id
+        ).where(date_range).
+        order(date: :asc).
         pluck(:date)
     end
 
@@ -228,6 +242,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @build_until = nil
       @build_for_dates = nil
       @default_service_day = nil
+      @date_range = nil
     end
 
     def self.calculate_hash_for(id)

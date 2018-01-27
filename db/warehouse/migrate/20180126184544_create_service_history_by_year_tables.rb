@@ -32,7 +32,7 @@ class CreateServiceHistoryByYearTables < ActiveRecord::Migration
     # Don't forget the remainder
     name = GrdaWarehouse::ServiceHistoryService.remainder_table
     year = 1900
-    remainder_check = " date < DATE '#{GrdaWarehouse::ServiceHistoryService.sub_tables.keys.min}-01-01' OR date > '#{GrdaWarehouse::ServiceHistoryService.sub_tables.keys.min}-12-31'"
+    remainder_check = " date < DATE '#{GrdaWarehouse::ServiceHistoryService.sub_tables.keys.min}-01-01' OR date > '#{GrdaWarehouse::ServiceHistoryService.sub_tables.keys.max}-12-31'"
     sql = "CREATE TABLE #{name} (CHECK ( #{remainder_check} ) ) INHERITS (#{GrdaWarehouse::ServiceHistoryService.parent_table});"
     execute(sql)
     add_index name, :id, unique: true 
