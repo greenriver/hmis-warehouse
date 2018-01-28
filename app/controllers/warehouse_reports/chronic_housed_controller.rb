@@ -5,13 +5,14 @@ module WarehouseReports
     before_action :set_range
 
     def index
-      @clients = client_source.joins(:source_projects, :permanent_source_exits_from_homelessness, :chronics).
+      @chronics = chronic_source.where(date: @range.range).group_by(&:client_id)
+      @clients = client_source.joins(:service_history_enrollments).
         where(
-          ex_t[:ExitDate].gt(@range.start).
-          and(ex_t[:Destination].in(::HUD.permanent_destinations))
+          she_t[:last_date_in_program].gt(@range.start).
+          and(she_t[:destination].in(::HUD.permanent_destinations))
         ).
-        where(chronics: {date: @range.range}).
-        order(ex_t[:ExitDate].asc).
+        where(id: @chronics.keys).
+        order(she_t[:last_date_in_program].asc).
         distinct.
         pluck(*columns.values).
         map do |row|
@@ -26,9 +27,8 @@ module WarehouseReports
         client_id: c_t[:id].as('client_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
-        exit_date: ex_t[:ExitDate].as('exit_date').to_sql,
-        destination: ex_t[:Destination].as('destination').to_sql,
-        chronic_date: ch_t[:date].as('date').to_sql,
+        exit_date: she_t[:last_date_in_program].as('exit_date').to_sql,
+        destination: she_t[:destination].as('destination').to_sql,
       }
     end
 
