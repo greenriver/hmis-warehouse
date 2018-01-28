@@ -1448,19 +1448,23 @@ module GrdaWarehouse::Hud
     end
 
     def self.dates_homeless_scope(client_id:, on_date: Date.today)
-      GrdaWarehouse::ServiceHistory.where(client_id: client_id).
-        homeless.service.
-        where(sh_t[:date].lteq(on_date)).
+      GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
+        homeless.
+        where(shs_t[:date].lteq(on_date)).
         where.not(date: dates_housed_scope(client_id: client_id)).
         select(:date).distinct
     end
 
     def self.dates_homeless_in_last_three_years_scope(client_id:, on_date: Date.today)
-      end_date = on_date.to_date
-      start_date = end_date - 3.years
-      GrdaWarehouse::ServiceHistory.where(client_id: client_id).homeless.service.
-        service_within_date_range(start_date: start_date, end_date: end_date).
-        select(:date).distinct
+      Rails.cache.fetch([client_id, "dates_homeless_in_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
+        end_date = on_date.to_date
+        start_date = end_date - 3.years
+        GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
+          homeless.
+          where(date: start_date..end_date).
+          where.not(date: dates_housed_scope(client_id: client_id)).
+          select(:date).distinct
+      end
     end
 
     def homeless_months_in_last_three_years(on_date: Date.today)
@@ -1474,16 +1478,20 @@ module GrdaWarehouse::Hud
     end
 
     def self.dates_housed_scope(client_id:, on_date: Date.today)
-      GrdaWarehouse::ServiceHistory.residential_non_homeless.service.
+      GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
         where(client_id: client_id).select(:date).distinct
     end
 
     def self.dates_homeless(client_id:, on_date: Date.today)
-      dates_homeless_scope(client_id: client_id, on_date: on_date).pluck(:date)
+      Rails.cache.fetch([client_id, "dates_homeless", on_date], expires_at: CACHE_EXPIRY) do
+        dates_homeless_scope(client_id: client_id, on_date: on_date).pluck(:date)
+      end
     end
 
     def self.days_homeless(client_id:, on_date: Date.today)
-      dates_homeless_scope(client_id: client_id, on_date: on_date).count
+      Rails.cache.fetch([client_id, "days_homeless", on_date], expires_at: CACHE_EXPIRY) do
+        dates_homeless_scope(client_id: client_id, on_date: on_date).count
+      end
     end
 
     def days_homeless(on_date: Date.today)
@@ -1641,7 +1649,9 @@ module GrdaWarehouse::Hud
     end
 
     private def calculated_end_of_enrollment enrollment:, enrollments:
-      if enrollment.project.bed_night_tracking?
+      if enrollment.project.street_outreach_and_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+        enrollment.last_date_in_program&.end_of_month
+      elsif enrollment.project.bed_night_tracking?
           enrollment.last_date_in_program
       else
         enrollments.select do |m| 

@@ -56,7 +56,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   scope :hud_residential_non_homeless, -> do
     r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     hud_project_type(r_non_homeless)
-    end
+  end
 
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table

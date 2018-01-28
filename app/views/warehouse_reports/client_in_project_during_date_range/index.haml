@@ -15,7 +15,7 @@
 .warehouse-reports__chronic
   .row
     .col-sm-8
-      %p= page_entries_info @clients, entry_name: _('client')
+      %p= page_entries_info @enrollments, entry_name: _('enrollments')
     .col-sm-4
       .pull-right
         = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
@@ -29,11 +29,12 @@
         %th Cumulative Days Homeless
         %th Days Homeless in The Past Three Years
     %tbody
-      - @clients.each do |client|
+      - @enrollments.each do |enrollment|
+        - client = enrollment.client
         %tr
           %td= link_to client.LastName, client_path(client)
           %td= link_to client.FirstName, client_path(client)
-          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+          %td= enrollment.data_source.short_name
           %td= client.days_homeless
           %td= client.days_homeless_in_last_three_years
-%p= paginate @clients
+%p= paginate @enrollments

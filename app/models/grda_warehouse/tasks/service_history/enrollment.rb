@@ -184,7 +184,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       set_entry_record_id()
       
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
-        service.where(
+        where(
+          record_type: :service,
           service_history_enrollment_id: @entry_record_id
         ).where(date_range).
         order(date: :asc).
@@ -204,10 +205,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def remove_existing_service_history_for_enrollment
       return unless destination_client.present?
-      # service_history_service_source.where(
-      #   service_history_enrollment_id: service_history_enrollment.id
-      # ).delete_all
-
       service_history_enrollment_source.where(
         client_id: destination_client.id, 
         enrollment_group_id: self.ProjectEntryID, 

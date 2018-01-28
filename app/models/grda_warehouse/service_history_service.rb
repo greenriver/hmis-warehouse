@@ -3,7 +3,36 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   belongs_to :service_history_enrollment, inverse_of: :service_history_services
 
   scope :service, -> { where record_type: service_types }
-  scope :extrapolated, -> { where record_type: 'extrapolated' }
+  scope :extrapolated, -> { where record_type: :extrapolated }
+
+  scope :residential_non_homeless, -> do
+    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    where(project_type: r_non_homeless)
+  end
+  scope :hud_residential_non_homeless, -> do
+    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    hud_project_type(r_non_homeless)
+  end
+
+  scope :homeless, -> (chronic_types_only: false) do
+    if chronic_types_only
+      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    else
+      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
+
+    where(project_type: project_types)
+  end
+
+  scope :hud_homeless, -> (chronic_types_only: false) do
+    if chronic_types_only
+      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    else
+      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
+
+    hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+  end
 
   def self.service_types
     service_types = ['service']

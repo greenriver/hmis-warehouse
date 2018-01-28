@@ -1,6 +1,7 @@
 module WarehouseReports
   class ClientInProjectDuringDateRangeController < ApplicationController
     include WarehouseReportAuthorization
+    include ArelHelper
     def index
       @start = ( params.try(:[], :project).try(:[], :start) || oct_1  ).to_date
       @end   = ( params.try(:[], :project).try(:[], :end) || nov_30 ).to_date
@@ -15,21 +16,19 @@ module WarehouseReports
       @project = project_source.where(ProjectID: @project_id.first, data_source_id: @project_id.last).first
 
       st = service_history_source.arel_table
-      @clients = client_source.where(
-        id: service_history_source.
-              where( project_id: @project.ProjectID, data_source_id: @project.data_source_id ).
-              where( st[:date].gteq @start ).
-              where( st[:date].lteq @end ).
-              select(:client_id).
-              distinct
-      )
-      @clients.joins(:enrollments)
+      @enrollments = service_history_source.entry.
+        where( project_id: @project.ProjectID, data_source_id: @project.data_source_id ).
+          open_between(start_date: @start, end_date: @end).
+          joins(:client, :data_source).
+          preload(:client, :data_source).
+          order(c_t[:LastName].asc(), c_t[:FirstName].asc())
+      
       respond_to do |format|
         format.html do
-          @clients = @clients.page(params[:page]).per(25)
+          @enrollments = @enrollments.page(params[:page]).per(25)
         end
         format.xlsx do
-          @clients
+          @enrollments
         end
       end
     end
@@ -64,7 +63,7 @@ module WarehouseReports
     end
 
     private def service_history_source
-      GrdaWarehouse::ServiceHistory.service
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
   end
 end

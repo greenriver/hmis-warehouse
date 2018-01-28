@@ -13,12 +13,13 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
     'Cummulative Days Homeless',
     'Days Homeless in The Past Three Years',
   ])
-  @clients.each do |client|
+  @enrollments.each do |enrollment|
+    client = enrollment.client
     sheet.add_row([
       client.id,
       client.FirstName,
       client.LastName,
-      client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', '),
+      enrollment.data_source.short_name,
       client.days_homeless,
       client.days_homeless_in_last_three_years,
     ])
