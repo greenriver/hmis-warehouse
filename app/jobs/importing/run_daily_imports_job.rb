@@ -137,13 +137,6 @@ module Importing
       SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
 
-      if last_saturday_of_month(start_time.to_date.month, start_time.to_date.year) == start_time.to_date
-        @notifier.ping('Rebuilding Service History Indexes...') if @send_notifications
-        @notifier.ping('(this could take a few hours, but only happens on the last Saturday of the month.)') if @send_notifications
-        GrdaWarehouse::ServiceHistory.reindex_table!
-        @notifier.ping('... Service History Indexes Rebuilt') if @send_notifications
-      end
-
       @notifier.ping('Rebuilding reporting tables...') if @send_notifications
       GrdaWarehouse::Report::Base.update_fake_materialized_views
       @notifier.ping('...done rebuilding reporting tables') if @send_notifications
