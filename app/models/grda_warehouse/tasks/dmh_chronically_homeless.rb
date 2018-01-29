@@ -28,7 +28,7 @@ module GrdaWarehouse::Tasks
       @clients.each_with_index do |client_id, index|
         debug_log "Calculating chronicity for #{client_id}"
         reset_for_batch()
-        dmh_client_scope = service_history_source.
+        dmh_client_scope = service_history_enrollments_source.
           hud_currently_homeless(date: @date, chronic_types_only: true).
           where(client_id: client_id).
           where(dmh_projects_filter).
@@ -37,16 +37,17 @@ module GrdaWarehouse::Tasks
           debug_log "Found previous residential history, using #{homeless_reset(client_id: client_id)} instead of #{@date - 3.years} as beginning of calculation"
           dmh_client_scope = dmh_client_scope.where(date: homeless_reset(client_id: client_id)..@date)
         end
-        dmh_days_homeless = dmh_client_scope.select(:date).
-          distinct.
+        dmh_days_homeless = dmh_client_scope.pluck(shs_t[:date].as('date').to_sql).
+          uniq.
           count
           debug_log "Found #{dmh_days_homeless} DMH homeless days"
-        mainstream_days_homeless = service_history_source.service.
+        mainstream_days_homeless = service_history_enrollments_source.
+          hud_homeless(chronic_types_only: true).
+          joins(:service_history_services, :project).
           where(client_id: client_id).
-          where(service_history_source.project_type_column => CHRONIC_PROJECT_TYPES).
           where.not(dmh_projects_filter).
-          select(:date).
-          distinct.
+          pluck(shs_t[:date].as('date').to_sql).
+          uniq.
           count
         if dmh_days_homeless > 0 && dmh_days_homeless + mainstream_days_homeless >= 365 && mainstream_days_homeless >= 90
           adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)

@@ -1455,6 +1455,19 @@ module GrdaWarehouse::Hud
         select(:date).distinct
     end
 
+    def self.dates_in_hud_chronic_homeless_last_three_years_scope(client_id:, on_date: Date.today, chronic_only: true)
+      Rails.cache.fetch([client_id, "dates_in_hud_chronic_homeless_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
+        end_date = on_date.to_date
+        start_date = end_date - 3.years
+        GrdaWarehouse::ServiceHistoryService.service.
+          where(client_id: client_id).
+          hud_homeless(chronic_types_only: true).
+          where(date: start_date..end_date).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id, on_date: end_date)).
+          select(:date).distinct
+      end
+    end
+
     def self.dates_homeless_in_last_three_years_scope(client_id:, on_date: Date.today)
       Rails.cache.fetch([client_id, "dates_homeless_in_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
         end_date = on_date.to_date
@@ -1462,9 +1475,18 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           homeless.
           where(date: start_date..end_date).
-          where.not(date: dates_housed_scope(client_id: client_id)).
+          where.not(date: dates_hud_non_chronic_residential_scope(client_id: client_id)).
           select(:date).distinct
       end
+    end
+
+    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date:
+      end_date = on_date.to_date
+      start_date = end_date - 3.years
+      GrdaWarehouse::ServiceHistoryService.hud_residential_non_homeless.
+        where(date: start_date..end_date).
+        where(client_id: client_id).
+        select(:date).distinct
     end
 
     def homeless_months_in_last_three_years(on_date: Date.today)
@@ -1518,43 +1540,45 @@ module GrdaWarehouse::Hud
 
     # Add one to the number of new episodes
     def homeless_episodes_since date:
-      source_enrollments
-        .chronic
-        .where(EntryDate: date..Date.today)
-        .map(&:new_episode?)
-        .count(true) + 1 
+      start_date = date.to_date
+      end_date = Date.today
+      enrollments = service_history_enrollments.entry.
+        open_between(start_date: start_date, end_date: end_date)
+      chronic_enrollments = service_history_enrollments.entry.
+        hud_homeless(chronic_types_only: true)
+      chronic_enrollments.map do |enrollment|
+        new_episode?(enrollments: enrollments, enrollment: enrollment)
+      end.count(true)
     end
 
     def homeless_episodes_between start_date:, end_date:
-      source_enrollments
-        .chronic
-        .where(EntryDate: start_date..end_date)
-        .map(&:new_episode?)
-        .count(true)
+      enrollments = service_history_enrollments.entry.
+        open_between(start_date: start_date, end_date: end_date)
+      chronic_enrollments = service_history_enrollments.entry.
+        hud_homeless(chronic_types_only: true)
+      chronic_enrollments.map do |enrollment|
+        new_episode?(enrollments: enrollments, enrollment: enrollment)
+      end.count(true)
     end
 
-    def months_served_since date:
-      service_history.
-        service
-        .homeless
-        .where(date: date..Date.today)
-        .order(date: :asc)
-        .pluck(:date)
-        .map{|m| [m.month, m.year]}
-        .uniq
-        .count
-    end
+    # def months_served_since date:
+    #   service_history.
+    #     service
+    #     .homeless
+    #     .where(date: date..Date.today)
+    #     .order(date: :asc)
+    #     .pluck(:date)
+    #     .map{|m| [m.month, m.year]}
+    #     .uniq
+    #     .count
+    # end
 
     def months_served_between start_date:, end_date:
-      service_history.
-        service
-        .homeless
-        .where(date: start_date..end_date)
-        .order(date: :asc)
-        .pluck(:date)
-        .map{|m| [m.month, m.year]}
-        .uniq
-        .count
+      days_chronic_in_last_three_years = self.class.dates_in_hud_chronic_homeless_last_three_years_scope(client_id: id, on_date: Date.today, chronic_only: true).pluck(:date)
+      days_chronic_in_last_three_years.select{|date| (start_date.to_date..end_date.to_date).include?(date.to_date)}.
+        map{|m| [m.month, m.year]}.
+        uniq.
+        count
     end
 
     def self.service_types

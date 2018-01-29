@@ -9,7 +9,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_one :enrollment_coc_at_entry, through: :enrollment, inverse_of: :service_history, autosave: false
   has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
   belongs_to :data_source, autosave: false
-  belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history, autosave: false
+  belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
   has_many :service_history_services, inverse_of: :service_history_enrollment
   has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
@@ -24,8 +24,6 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :entry, -> { where record_type: 'entry' }
   scope :exit, -> { where record_type: 'exit' }
-  scope :service, -> { where record_type: service_types }
-  scope :extrapolated, -> { where record_type: 'extrapolated' }
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service
@@ -154,8 +152,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :service_within_date_range, -> (start_date: , end_date: ) do
-    at = arel_table
-    service.where(at[:date].gteq(start_date).and(at[:date].lteq(end_date)))
+    joins(:service_history_services).
+    merge(GrdaWarehouse::ServiceHistoryService.service).
+    where(shs_t[:date].gteq(start_date).and(shs_t[:date].lteq(end_date)))
   end
 
   scope :entry_within_date_range, -> (start_date: , end_date: ) do

@@ -11,7 +11,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
   scope :hud_residential_non_homeless, -> do
     r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    hud_project_type(r_non_homeless)
+    where(project_type: r_non_homeless)
   end
 
   scope :homeless, -> (chronic_types_only: false) do
@@ -31,7 +31,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
       project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
 
-    hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+    where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 
   def self.service_types
