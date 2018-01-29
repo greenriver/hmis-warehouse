@@ -1,17 +1,17 @@
-= simple_form_for @mo, as: :mo, url: fetch_length_warehouse_reports_length_of_stay_index_path, html: { method: :get } do |f|
+= simple_form_for @filter, as: :mo, url: fetch_length_warehouse_reports_length_of_stay_index_path, html: { method: :get } do |f|
   = f.error_notification
   .row
     .col-sm-3
       .input-group.date{data: {provide: :datepicker}}
-        = f.input :start, input_html: {value: @mo.start, class: 'form-control jStart'}, label: false
+        = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
         %span.input-group-addon.icon-calendar
     .col-sm-3
       .input-group.date{data: {provide: :datepicker}}
-        = f.input :end, input_html: {value: @mo.end, class: 'form-control jEnd'}, label: false
+        = f.input :end, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
         %span.input-group-addon.icon-calendar
     .col-sm-3
       .input-group
-        = f.input :org, collection: @mo.disambiguated_organizations, selected: @mo.org, prompt: 'Organization', include_blank: true, label: false, input_html: {class: :select2}
+        = f.input :org, collection: @filter.disambiguated_organizations, selected: @filter.org, prompt: 'Organization', include_blank: true, label: false, input_html: {class: :select2}
     .col-sm-3
       = f.button :submit, value: 'Update View'
       = link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do

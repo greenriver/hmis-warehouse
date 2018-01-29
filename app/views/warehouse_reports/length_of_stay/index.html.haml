@@ -38,6 +38,7 @@
       var headers = #{@headers.to_json};
       var chartKeys = #{( @headers - %w(average) ).to_json};
       function makeChart(data) {
+        console.log(data);
         var anyNonZero = !!data.find(function(d){
           return chartKeys.find(function(k){ return d[1][k] > 0 });
         });
