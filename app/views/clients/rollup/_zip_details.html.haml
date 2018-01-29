@@ -1,6 +1,6 @@
 = cache(['clients', 'zip_details', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
-  - prev = @client.source_enrollments.any_address.preload(:client).sort_by(&:EntryDate).reverse.group_by{ |e| e.EntryDate.year }
-  - if prev.present?
+  - addresses = @client.previous_permanent_locations_for_display
+  - if addresses.present?
     %table.table
       %thead
         %tr
@@ -11,24 +11,14 @@
           %th{ data: { field: 'LastPermanentZIP' } } Last Permanenent Zip
           %th Label
       %tbody
-        - labels = ('A'..'Z').to_a
-        - seen   = {}
-        - prev.each do |year, enrollments|
-          - enrollments = enrollments.uniq(&:address)
-          - enrollment  = enrollments.first
+        - addresses.each do |address|
           %tr
-            %td{ rowspan: enrollments.size }= year
-            %td.id-sqr{ 'data-id' => enrollment.client.id }
-            %td= enrollment.LastPermanentCity
-            %td= enrollment.LastPermanentState
-            %td= enrollment.LastPermanentZIP.try(:rjust, 5, '0')
-            %td= seen[enrollment.address] ||= labels.shift
-          - enrollments[1..-1].each do |enrollment|
-            %tr
-              %td.id-sqr{ 'data-id' => enrollment.client.id }
-              %td= enrollment.LastPermanentCity
-              %td= enrollment.LastPermanentState
-              %td= enrollment.LastPermanentZIP.try(:rjust, 5, '0')
-              %td= seen[enrollment.address] ||= labels.shift
+            %td= address[:year]
+            %td.id-sqr{ 'data-id' => address[:client_id] }
+            %td= address[:city]
+            %td= address[:state]
+            %td= address[:zip]
+            %td= address[:label]     
   - else
-    No previous addresses
+    %p
+      No previous addresses
