@@ -280,11 +280,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             end_date = row[:last_date_in_program]          
           end
           thirty_days_before_end = end_date - 30.days
-          max_date = client_scope.service.where(
+          max_date = client_scope.joins(:service_history_services).where(
             client_id: row[:client_id],
             first_date_in_program: row[:first_date_in_program],
             enrollment_group_id: row[:enrollment_group_id]
-          ).maximum(:date)
+          ).pluck(shs_t[:date].maximum.to_sql)&.first
           if max_date.present? && max_date < thirty_days_before_end.to_date
             row[:max_date] = max_date
             missing_nights[project.id] << row
@@ -374,7 +374,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end.to_h
         service_histories = service_scope.
           where(Project: {id: project.id}).
-          order(date: :asc).
+          order(shs_t[:date].asc).
           pluck(*service_columns.values).
           map do |row|
             Hash[service_columns.keys.zip(row)]
@@ -1226,7 +1226,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_capacity_answers
-      total_services_provided = service_scope.service_within_date_range(start_date: self.start, end_date: self.end).select(:client_id, :date).distinct.to_a.count
+      total_services_provided = service_scope.
+        service_within_date_range(start_date: self.start, end_date: self.end).
+        distinct.
+        pluck(she_t[:client_id].as('client_id').to_sql, shs_t[:date].as('date').to_sql).
+        count
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
       average_stay_length = (total_services_provided.to_f/clients.size).round(2)
