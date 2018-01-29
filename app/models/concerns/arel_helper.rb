@@ -107,6 +107,12 @@ module ArelHelper
   def ib_t
     GrdaWarehouse::Hud::IncomeBenefit.arel_table
   end
+  def d_t
+    GrdaWarehouse::Hud::Disability.arel_table
+  end
+  def hdv_t
+    GrdaWarehouse::Hud::HealthAndDv.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -285,6 +291,12 @@ module ArelHelper
     end
     def ib_t
       GrdaWarehouse::Hud::IncomeBenefit.arel_table
+    end
+    def d_t
+      GrdaWarehouse::Hud::Disability.arel_table
+    end
+    def hdv_t
+      GrdaWarehouse::Hud::HealthAndDv.arel_table
     end
   end
 end
