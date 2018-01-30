@@ -1,0 +1,19 @@
+- if can_view_vspdat?
+  %h3 VI-SPDAT Related
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th
+          Days homeless in past 3 years, HMIS Based
+        %th 
+          Days reported on VI-SPDAT
+        %th 
+          Days for use in VI-SPDAT Prioritization
+    %tbody
+      %tr
+        %td
+          = @client.days_homeless_in_last_three_years
+        %td
+          = @client.most_recent_vispdat_length_homeless_in_days
+        %td
+          = f.input :vispdat_prioritization_days_homeless, label: false, input_html: {value: f.object.vispdat_prioritization_days_homeless || @client.days_homeless_in_last_three_years}

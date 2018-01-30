@@ -104,22 +104,19 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
+    # this gets called at the end of rebuild enrollments job
+    # and nightly for clients who had enrollments processed in batches
     def mark_processed client_id
       processed = warehouse_clients_processed_source.
         where(client_id: client_id, routine: :service_history).
         first_or_initialize
       processed.last_service_updated_at = Date.today
-      processed.days_served = service_history_source.service.
-        where(client_id: client_id).
-        select(:date).
-        distinct.
-        count
       # The index gets in the way of calculating these quickly.  It is *much* faster
       # to simply bring back all of the dates and use ruby to get the correct one
-      processed.first_date_served = service_history_source.service.
-        where(client_id: client_id).order(date: :desc).pluck(:date).last
-      processed.last_date_served = service_history_source.service.
-        where(client_id: client_id).order(date: :desc).pluck(:date).first
+      dates = service_history_source.service.where(client_id: client_id).order(date: :desc).pluck(:date)
+      processed.first_date_served = dates.last
+      processed.last_date_served = dates.first
+      processed.days_served = dates.uniq.count
       processed.save
       destination_client_scope.clear_view_cache(client_id)
     end

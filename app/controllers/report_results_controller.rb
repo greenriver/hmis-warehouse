@@ -156,10 +156,10 @@ class ReportResultsController < ApplicationController
     end
 
     def default_pit_date
-      'Jan 25, 2017'
+      'Jan 31, 2018'
     end
     
     def default_chronic_date
-      'Jan 25, 2017'
+      'Jan 31, 2018'
     end
 end

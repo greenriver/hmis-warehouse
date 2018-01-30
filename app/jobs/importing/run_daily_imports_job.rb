@@ -43,7 +43,9 @@ module Importing
       @notifier.ping('Clients cleaned') if @send_notifications
 
       range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
-      GrdaWarehouse::Hud::Enrollment.open_during_range(range).joins(:project, :destination_client).pluck_in_batches(:id, batch_size: 250) do |batch|
+      GrdaWarehouse::Hud::Enrollment.open_during_range(range).
+        joins(:project, :destination_client).
+        pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
@@ -57,6 +59,18 @@ module Importing
       @notifier.ping('Full sanity check complete') if @send_notifications
       GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
       @notifier.ping('Earliest residential services generated') if @send_notifications
+      
+      # Maintain some summary data to speed up searches and history display and other things
+      # To keep this manageable, we'll just deal with clients we've seen in the past year
+      # When we sanity check and rebuild using the per-client method, this gets correctly maintained
+      @notifier.ping('Updating service history summaries') if @send_notifications
+      client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
+        joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id').to_sql)
+      client_ids.each do |id|
+        GrdaWarehouse::Tasks::ServiceHistory::Base.new().mark_processed(id)
+      end
+      @notifier.ping('Updated service history summaries') if @send_notifications
+
       Nickname.populate!
       @notifier.ping('Nicknames updated') if @send_notifications
       UniqueName.update!
@@ -69,10 +83,10 @@ module Importing
       
       # Only run the chronic calculator on the 1st and 15th
       # but run it for the past 2 of each
-      if Date.today.day.in?([1,15])
-        this_month = Date.today.beginning_of_month
+      if start_time.to_date.day.in?([1,15])
+        this_month = start_time.to_date.beginning_of_month
         last_month = this_month - 1.month
-        if Date.today.day < 15
+        if start_time.to_date.day < 15
           two_months_ago = this_month - 2.months
           dates = [
             this_month,
@@ -123,7 +137,7 @@ module Importing
       SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
 
-      if last_saturday_of_month(Date.today.month, Date.today.year) == Date.today
+      if last_saturday_of_month(start_time.to_date.month, start_time.to_date.year) == start_time.to_date
         @notifier.ping('Rebuilding Service History Indexes...') if @send_notifications
         @notifier.ping('(this could take a few hours, but only happens on the last Saturday of the month.)') if @send_notifications
         GrdaWarehouse::ServiceHistory.reindex_table!
@@ -139,15 +153,14 @@ module Importing
       GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
       GrdaWarehouse::Confidence::SourceExits.queue_batch
 
-      # Pre-calculate the dashboards on the weekends
-      if start_time.to_date.wday > 5
-        @notifier.ping('Updating dashboards') if @send_notifications
-        GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type.each do |report_type, reports|
-          reports.each do |sub_population, _|
-            WarehouseReports::DashboardReportJob.perform_later(report_type.to_s, sub_population.to_s)
-          end
+      # Pre-calculate the dashboards
+      @notifier.ping('Updating dashboards') if @send_notifications
+      GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type.each do |report_type, reports|
+        reports.each do |sub_population, _|
+          WarehouseReports::DashboardReportJob.perform_later(report_type.to_s, sub_population.to_s)
         end
       end
+  
 
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)

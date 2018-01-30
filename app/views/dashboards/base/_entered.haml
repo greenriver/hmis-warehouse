@@ -1,6 +1,5 @@
 - if @report.present?
   .well
-    %p Counts are unduplicated per project type, but may be counted in multiple types.
     - month_name = @start_date.to_time.strftime('%B')
     %h3= "Clients with at least one day of service in #{month_name}"
     .summary.text-center
@@ -13,6 +12,8 @@
                 = HUD.project_type_brief(project_type)
               .body
                 = clients
+    .description.muted-text
+      %p Counts of clients are unduplicated per project type, but may be counted in multiple types.
     %h3= "Of the clients above, those with at least one entry record in #{month_name}"
     .summary.text-center
       .row

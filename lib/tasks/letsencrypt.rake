@@ -7,11 +7,11 @@ namespace :letsencrypt do
     cert_filepath = "certificates/#{domain}-fullchain.pem"
     raw = File.open(Rails.root.join(cert_filepath), 'r')
     cert = OpenSSL::X509::Certificate.new(raw)
-    if Date.today > cert.not_after - 1.week
-      # puts 'Reqeuesting a new certificate'
+    if Date.today > cert.not_after - 29.days
+      # puts 'Requesting a new certificate'
       Rake::Task['letsencrypt_plugin'].invoke
     else
-      # puts 'NOT Reqeuesting a new certificate, old certificate is fine'
+      # puts 'NOT Requesting a new certificate, old certificate is fine'
     end
   end
 

@@ -86,7 +86,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     d_2_start = at[:first_date_in_program]
     d_2_end = at[:last_date_in_program]
     # Currently does not count as an overlap if one starts on the end of the other
-    where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
+    where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
   end
 
   scope :homeless, -> (chronic_types_only: false) do
@@ -172,12 +172,12 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :started_between, -> (start_date: , end_date: ) do
     at = arel_table
-    where(at[:first_date_in_program].gteq(start_date).and(at[:first_date_in_program].lt(end_date)))
+    where(at[:first_date_in_program].gteq(start_date).and(at[:first_date_in_program].lteq(end_date)))
   end
 
   scope :ended_between, -> (start_date: , end_date: ) do
     at = arel_table
-    where(at[:last_date_in_program].gteq(start_date).and(at[:last_date_in_program].lt(end_date)))
+    where(at[:last_date_in_program].gteq(start_date).and(at[:last_date_in_program].lteq(end_date)))
   end
 
   scope :coc_funded, -> do
@@ -235,11 +235,11 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     end
 
     scope :family, -> do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
+      where(presented_as_individual: false)
     end
 
     scope :individual, -> do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
+      where(presented_as_individual: true)
     end
 
     scope :youth, -> do

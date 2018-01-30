@@ -5,7 +5,7 @@
   spesh = @client.
     source_enrollment_health_and_dvs.
     preload( enrollment: :client ).
-    select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:ProjectEntryID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID] ).
+    select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:ProjectEntryID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID], ht[:CurrentlyFleeing] ).
     order(et[:EntryDate].desc).
     distinct
 - if spesh.any?
@@ -25,6 +25,7 @@
         %th Veteran Status
         %th Disabling Condition
         %th Domestic Violence
+        %th Currently Fleeing?
         %th Pregnancy Status
         %th Due Date
     %tbody
@@ -35,6 +36,7 @@
           %td= hud_1_8 h.enrollment.client.VeteranStatus
           %td= hud_1_8 h.enrollment.DisablingCondition
           %td= hud_1_8 h.DomesticViolenceVictim
+          %td= hud_1_8 h.CurrentlyFleeing
           %td= hud_1_8 h.PregnancyStatus
           %td= hud_1_8 h.DueDate
 - else

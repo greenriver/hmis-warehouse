@@ -45,6 +45,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       all_exits.each do |row|
         destination = row[:destination]
         date = row[:date].to_date
+        @buckets[destination][:source_data][date.strftime('%b %Y')] ||= 0
         @buckets[destination][:source_data][date.strftime('%b %Y')] += 1 
       end
 

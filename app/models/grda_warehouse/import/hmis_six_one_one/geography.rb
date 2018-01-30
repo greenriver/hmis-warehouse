@@ -36,5 +36,15 @@ module GrdaWarehouse::Import::HMISSixOneOne
       row[:Address] = row.delete(:Address1)
       return row
     end
+
+    # Each import should be authoritative for inventory for all projects included
+    def self.delete_involved projects:, range:, data_source_id:, deleted_at:
+      deleted_count = 0
+      projects.each do |project|
+        del_scope = self.where(ProjectID: project.ProjectID, data_source_id: data_source_id)
+        deleted_count += del_scope.update_all(DateDeleted: deleted_at)
+      end
+      deleted_count
+    end
   end
 end

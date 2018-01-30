@@ -1,11 +1,9 @@
 module GrdaWarehouse::WarehouseReports::Dashboard::Children
   class ActiveClients < GrdaWarehouse::WarehouseReports::Dashboard::Active
 
-    def client_source
-      GrdaWarehouse::Hud::Client.destination.
-        children_only(start_date: @range.start, end_date: @range.end)
+    def history_scope(scope)
+      scope.children_only
     end
-
 
   end
 end

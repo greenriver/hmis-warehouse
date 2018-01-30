@@ -2,23 +2,28 @@ module GrdaWarehouse::WarehouseReports::Dashboard
   class Active < GrdaWarehouse::WarehouseReports::Dashboard::Base
 
     def self.params
+      start = 1.months.ago.beginning_of_month.to_date
+      # unless Rails.env.production?
+      #   start = 6.months.ago.beginning_of_month.to_date
+      # end
       {
-        start: 1.months.ago.beginning_of_month.to_date, 
+        start: start, 
         end: 1.months.ago.end_of_month.to_date,
       }
     end
 
-    def run!
-      # Active Clients
+    def set_date_range
       start_date = parameters.with_indifferent_access[:start]
       end_date = parameters.with_indifferent_access[:end]
       @range = ::Filters::DateRange.new({start: start_date, end: end_date})
-
       @month_name = @range.start.to_time.strftime('%B')
-      @enrollments = active_client_service_history(range: @range)
-      @clients = @enrollments.keys
-      @client_count = @clients.count
+    end
 
+    def init
+      set_date_range()
+
+      @clients = []
+      @enrollments = {}
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort.to_h
       @data = {
         clients: {
@@ -32,20 +37,24 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           data: [],
         },
       }
+    end
+
+    def run!
+      # Active Clients
+      init() # setup some useful buckets
+      
       @labels.each do |key, _|
-        @data[:clients][:data] << @enrollments.values.
-          flatten(1).
-          select do |m| 
-            ::HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
-          end.map do |enrollment|
-            enrollment[:client_id]
-          end.uniq.count
-        @data[:enrollments][:data] << @enrollments.values.
-          flatten(1).
-          select do |m| 
-            ::HUD::project_type_brief(m[:project_type]).downcase.to_sym == key
-          end.count
+        project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
+ 
+        enrollment_counts_by_client = enrollment_counts(project_type)
+        enrollment_count = enrollment_counts_by_client.values.sum
+        @data[:clients][:data] << enrollment_counts_by_client.count
+        @data[:enrollments][:data] << enrollment_count
+        @clients += enrollment_counts_by_client.keys
+        @enrollments[project_type] = enrollment_count
       end
+      @clients.uniq!
+      @client_count = @clients.size
       {
         enrollments: @enrollments,
         month_name: @month_name,
@@ -55,24 +64,6 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         labels: @labels,
         data: @data,
       }
-    end
-
-    def active_client_service_history range: 
-      homeless_service_history_source.entry.
-        joins(:client, :project).
-        open_between(start_date: range.start, end_date: range.end + 1.day).
-        where(client_id: homeless_service_history_source.
-          service_within_date_range(start_date: range.start, end_date: range.end + 1.day).
-          select(:client_id)
-        ).
-        pluck(*service_history_columns.values).
-        map do |row|
-          Hash[service_history_columns.keys.zip(row)]
-        end.select do |row|
-          # throw out any that start after the range
-          row[:first_date_in_program] <= range.end
-        end.
-        group_by{|m| m[:client_id]}
     end
 
   end

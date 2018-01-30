@@ -194,41 +194,35 @@ module GrdaWarehouse::Hud
     end
     
     #################################
-    # Standard Cohort Scopes
-    
+    # Standard Cohort Scopes    
+         
     scope :individual_adult, -> (start_date: Date.today, end_date: Date.today) do
       adult(on: start_date).
-      joins(service_history: :project).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).individual_adult)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.individual_adult.select(:client_id))
     end
 
     scope :unaccompanied_youth, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).unaccompanied_youth)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.unaccompanied_youth.select(:client_id))
     end
 
     scope :children_only, -> (start_date: Date.today, end_date: Date.today) do
       child(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).children_only)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.children_only.select(:client_id))
     end
 
     scope :parenting_youth, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).parenting_youth)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
     end
     
     scope :parenting_juvenile, -> (start_date: Date.today, end_date: Date.today) do
       youth(on: start_date).
-      joins(:service_history).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).parenting_juvenile)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
     end
 
     scope :family, -> (start_date: Date.today, end_date: Date.today) do
-      joins(service_history: :project).
-      merge(GrdaWarehouse::ServiceHistory.open_between(start_date: start_date, end_date: end_date).family)
+      where(id: GrdaWarehouse::ServiceHistory.entry.open_between(start_date: start_date, end_date: end_date).distinct.family.select(:client_id))
     end
       
     scope :veteran, -> do
@@ -237,6 +231,14 @@ module GrdaWarehouse::Hud
 
     scope :non_veteran, -> do
       where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
+    end
+
+    # Some aliases for our inconsistencies
+    class << self
+      alias_method :individual_adults, :individual_adult
+      alias_method :all_clients, :all
+      alias_method :children, :children_only
+      alias_method :parenting_children, :parenting_juvenile
     end
 
     # End Standard Cohorts
@@ -370,12 +372,15 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.consent_validity_period
+      1.years
+    end
+
     def self.revoke_expired_consent
-      release_duration = GrdaWarehouse::Config.get :release_duration
       if release_duration == 'One Year'
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
-          if client.consent_form_signed_on < 1.year.ago
+          if client.consent_form_signed_on < consent_validity_period.ago
             client.update_columns(housing_release_status: nil)
           end
         end
@@ -556,7 +561,7 @@ module GrdaWarehouse::Hud
         'None on file'
       elsif release_duration == 'One Year'
         if consent_form_valid?
-          "Valid Until #{consent_form_signed_on + 1.year}"
+          "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
         else
           'Expired'
         end
@@ -566,7 +571,11 @@ module GrdaWarehouse::Hud
     end
 
     def release_duration
-      duration ||= GrdaWarehouse::Config.get(:release_duration)
+      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
+    end
+
+    def self.release_duration
+      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
     end
     
     def release_valid?
@@ -575,7 +584,7 @@ module GrdaWarehouse::Hud
 
     def consent_form_valid?
       if release_duration == 'One Year'
-        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= 1.year.ago
+        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
       else
         release_valid?
       end
@@ -945,7 +954,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_readiness_parameters
-      cas_columns.keys + [:housing_assistance_network_released_on]
+      cas_columns.keys + [:housing_assistance_network_released_on, :vispdat_prioritization_days_homeless]
     end
 
     def invalidate_service_history
@@ -1260,6 +1269,30 @@ module GrdaWarehouse::Hud
       source_enrollments.any_address.sort_by(&:EntryDate).map(&:address_lat_lon).uniq
     end
 
+    def previous_permanent_locations_for_display
+      labels = ('A'..'Z').to_a
+      seen_addresses = {}
+      source_enrollments.
+        any_address.
+        order(EntryDate: :desc).
+        preload(:client).
+        map do |enrollment|
+          lat_lon = enrollment.address_lat_lon
+          address = {
+            year: enrollment.EntryDate.year,
+            client_id: enrollment.client.id,
+            label: seen_addresses[enrollment.address] ||= labels.shift,
+            city: enrollment.LastPermanentCity,
+            state: enrollment.LastPermanentState,
+            zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0')
+          }
+          if lat_lon.present?
+            address.merge!(lat_lon)
+          end
+          address
+      end
+    end
+
     # takes an array of tags representing the types of documents needed to be document ready
     # returns an array of hashes representing the state of each required document
     def document_readiness(required_documents)
@@ -1449,13 +1482,12 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def days_homeless_for_vispdat_prioritization
+      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
+    end
+
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
-      end_date = on_date.to_date
-      start_date = end_date - 3.years
-      GrdaWarehouse::ServiceHistory.where(client_id: client_id).homeless.service.
-        service_within_date_range(start_date: start_date, end_date: end_date).
-        select(:date).distinct.
-        count
+      dates_homeless_in_last_three_years_scope(client_id: client_id, on_date: on_date).count
     end
     def days_homeless_in_last_three_years(on_date: Date.today)
       self.class.days_homeless_in_last_three_years(client_id: id, on_date: on_date)
@@ -1467,6 +1499,24 @@ module GrdaWarehouse::Hud
         where(sh_t[:date].lteq(on_date)).
         where.not(date: dates_housed_scope(client_id: client_id)).
         select(:date).distinct
+    end
+
+    def self.dates_homeless_in_last_three_years_scope(client_id:, on_date: Date.today)
+      end_date = on_date.to_date
+      start_date = end_date - 3.years
+      GrdaWarehouse::ServiceHistory.where(client_id: client_id).homeless.service.
+        service_within_date_range(start_date: start_date, end_date: end_date).
+        select(:date).distinct
+    end
+
+    def homeless_months_in_last_three_years(on_date: Date.today)
+      self.class.dates_homeless_in_last_three_years_scope(client_id: id, on_date: on_date).
+        pluck(:date).
+        map{ |date| [date.month, date.year]}.uniq
+    end
+
+    def months_homeless_in_last_three_years(on_date: Date.today)
+      homeless_months_in_last_three_years(on_date: on_date).count
     end
 
     def self.dates_housed_scope(client_id:, on_date: Date.today)
@@ -1588,7 +1638,8 @@ module GrdaWarehouse::Hud
         
         exit_join = e_t.join(ex_t, Arel::Nodes::OuterJoin).
           on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
-            and(e_t[:data_source_id].eq(ex_t[:data_source_id]))
+            and(e_t[:data_source_id].eq(ex_t[:data_source_id])).
+            and(e_t[:PersonalID].eq(ex_t[:PersonalID]))
           )
         
         enrollments = scope.

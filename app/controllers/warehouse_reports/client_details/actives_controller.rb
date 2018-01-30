@@ -13,10 +13,9 @@ module WarehouseReports::ClientDetails
       
       @start_date = @range.start
       @end_date = @range.end
-      # @enrollments = Rails.cache.fetch("active-vet-enrollments", expires_in: CACHE_EXPIRY) do
-      @enrollments = begin
-        active_client_service_history(range: @range)
-      end
+
+      @enrollments = active_client_service_history(range: @range)
+
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -51,24 +50,18 @@ module WarehouseReports::ClientDetails
         organization_id:  sh_t[:organization_id].as('organization_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
+        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
       }
     end
 
     def active_client_service_history range: 
       homeless_service_history_source.joins(:client).
-        entry.
-        open_between(start_date: range.start, end_date: range.end + 1.day).
-        where(
-          client_id: homeless_service_history_source.
-                      service_within_date_range(start_date: range.start, end_date: range.end + 1.day).
-                      select(:client_id)
-        ).
+        service_within_date_range(start_date: range.start, end_date: range.end).
+        open_between(start_date: range.start, end_date: range.end).
+        distinct.
         pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
-        end.select do |row|
-          # throw out any that start after the range
-          row[:first_date_in_program] <= range.end
         end.
         group_by{|m| m[:client_id]}
     end
@@ -78,8 +71,7 @@ module WarehouseReports::ClientDetails
     end
 
     def homeless_service_history_source
-      scope = service_history_source.homeless
-      history_scope(scope, @sub_population)
+      history_scope(service_history_source.homeless, @sub_population)
     end
 
   end

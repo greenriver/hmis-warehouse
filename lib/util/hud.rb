@@ -516,9 +516,9 @@ module HUD
     {
       0 => 'Female',
       1 => 'Male',
-      2 => 'Transgender male to female',
-      3 => 'Transgender female to male',
-      4 => 'Doesn’t identify as male, female, or transgender',
+      2 => 'Trans Female (MTF or Male to Female)',
+      3 => 'Trans Male (FTM or Female to Male)',
+      4 => 'Gender non-conforming (i.e. not exclusively male or female)',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',

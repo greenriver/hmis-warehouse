@@ -15,15 +15,11 @@ module WarehouseReports::ClientDetails
 
       @start_date = @range.start
       @end_date = @range.end
-      @enrollments_by_type = entered_enrollments_by_type(start_date: @start_date, end_date: @end_date)
 
-      @client_enrollment_totals_by_type = client_totals_from_enrollments(enrollments: @enrollments_by_type)
-      
-      @entries_in_range_by_type = entries_in_range_from_enrollments(enrollments: @enrollments_by_type, start_date: @start_date, end_date: @end_date)
+      @enrollments = enrollments_by_client(@project_type)
+      # put clients in buckets
+      @buckets = bucket_clients(@enrollments)
 
-      @client_entry_totals_by_type = client_totals_from_enrollments(enrollments: @entries_in_range_by_type)
-      
-      @buckets = bucket_clients(entries: @entries_in_range_by_type)
       @data = setup_data_structure(start_date: @start_date)
       respond_to do |format|
         format.html {}
@@ -33,28 +29,27 @@ module WarehouseReports::ClientDetails
       end
     end
 
-    def client_source
-      case @sub_population
-      when :veteran
-        GrdaWarehouse::Hud::Client.destination.veteran
-      when :all_clients
-        GrdaWarehouse::Hud::Client.destination
-      when :youth
-        GrdaWarehouse::Hud::Client.destination.unaccompanied_youth(start_date: @start_date, end_date: @end_date)
-      when :parenting_youth
-        GrdaWarehouse::Hud::Client.destination.parenting_youth(start_date: @range.start, end_date: @range.end)
-      when :parenting_children
-        GrdaWarehouse::Hud::Client.destination.parenting_juvenile(start_date: @range.start, end_date: @range.end)
-      when :individual_adults
-        GrdaWarehouse::Hud::Client.destination.individual_adult(start_date: @start_date, end_date: @end_date)
-      when :non_veteran
-        GrdaWarehouse::Hud::Client.destination.non_veteran
-      when :family
-        GrdaWarehouse::Hud::Client.destination.family(start_date: @start_date, end_date: @end_date)
-      when :children
-        GrdaWarehouse::Hud::Client.destination.children_only(start_date: @start_date, end_date: @end_date)
-      end
+    def service_scope project_type
+      homeless_service_history_source.
+      service_within_date_range(start_date: @range.start, end_date: @range.end).
+      where(service_history_source.project_type_column => project_type)
     end
+
+    def enrollments_by_client project_type
+      homeless_service_history_source.
+      joins(:client, :organization).
+      entry.
+      where(sh_t[:first_date_in_program].lteq(@range.end)).
+      where(service_history_source.project_type_column => project_type).
+      where(client_id: service_scope(project_type).started_between(start_date: @range.start, end_date: @range.end).distinct.select(:client_id)).
+      order(first_date_in_program: :desc).
+      pluck(*entered_columns.values).
+      map do |row| 
+        Hash[entered_columns.keys.zip(row)]
+      end.
+      group_by{ |row| row[:client_id] }
+    end
+
 
     def history_scope scope, sub_population
       scope_hash = {
@@ -120,94 +115,25 @@ module WarehouseReports::ClientDetails
       }
     end
 
-    def client_totals_from_enrollments enrollments: 
-      enrollments.map do |project_type, clients| 
-        [
-          project_type, 
-          clients.count,
-        ]
-      end.to_h
-    end
+    def bucket_clients enrollments
+      buckets = {
+        sixty_plus: Set.new,
+        thirty_to_sixty: Set.new,
+        less_than_thirty: Set.new,
+        first_time: Set.new,
+      }
 
-    def entries_in_range_from_enrollments enrollments:, start_date:, end_date:
-        enrollments.map do |project_type, clients|
-        [
-          project_type,
-          clients.select do |_, enrollments|
-            enrollments.map do |enrollment|
-              (start_date..end_date).include?(enrollment[:first_date_in_program])
-            end.any?
-          end
-        ]
-      end.to_h
-    end
-
-    # limit enrollments to those that were open during the range
-    def enrollments_ongoing_in_date_range enrollments:, start_date:, end_date:
-      enrollments.map do |project_type, clients|
-        [
-          project_type,
-          clients.map do |id, enrollments|
-            ongoing = enrollments.select do |enrollment|
-              enrollment_end = enrollment[:last_date_in_program] || Date.today
-              # Excellent discussion of why this works:
-              # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overla
-              # start_date < enrollment_end && end_date > enrollment[:first_date_in_program]
-              dates_overlap(start_date, end_date, enrollment[:first_date_in_program], enrollment_end)
-              
-            end
-            [id, ongoing]
-          end.select do |_, enrollments|
-            enrollments.any?
-          end.to_h
-        ]
-      end.to_h
-    end
-
-    # all enrollments for clients who were active during the date range
-    def entered_enrollments_by_type start_date:, end_date:
-      enrollments_by_type = homeless_service_history_source.entry.
-        joins(:client, :organization).
-        where(client_id: 
-          homeless_service_history_source.
-          where(record_type: [:service, :entry]). # this catches the situation where we have an open enrollment but no service and the enrollment opens within the date
-          where(sh_t[:date].gteq(start_date).and(sh_t[:date].lteq(end_date))).
-          select(:client_id)
-        ).
-        order(date: :asc).
-        pluck(*entered_columns.values).
-        map do |row| 
-          Hash[entered_columns.keys.zip(row)]
-        end.
-        group_by{ |m| m[:project_type]}
-        {}.tap do |m|
-          enrollments_by_type.each do |project_type, enrollments|
-            m[project_type] = enrollments.group_by{|e| e[:client_id]}
-          end
-        end
-    end
-
-    def bucket_clients entries:
-      buckets = {}
-      entries.each do |project_type, clients|
-        buckets[project_type] ||= {
-          sixty_plus: {},
-          thirty_to_sixty: {},
-          less_than_thirty: {},
-          first_time: {},
-        }
-        clients.each do |client_id, enrollments|
-          if enrollments.count == 1
-            buckets[project_type][:first_time][client_id] = enrollments
-          else
-            days = days_since_last_entry(enrollments)
-            if days < 30
-              buckets[project_type][:less_than_thirty][client_id] = enrollments
-            elsif (30..60).include?(days)
-              buckets[project_type][:thirty_to_sixty][client_id] = enrollments
-            else # days > 60
-              buckets[project_type][:sixty_plus][client_id] = enrollments
-            end
+      enrollments.each do |client_id, entries|
+        if entries.count == 1
+          buckets[:first_time] << client_id
+        else
+          days = days_since_last_entry(entries)
+          if days < 30
+            buckets[:less_than_thirty] << client_id
+          elsif (30..60).include?(days)
+            buckets[:thirty_to_sixty] << client_id
+          else # days > 60
+            buckets[:sixty_plus] << client_id
           end
         end
       end
@@ -215,7 +141,7 @@ module WarehouseReports::ClientDetails
     end
 
     def days_since_last_entry enrollments
-      enrollments.last(2).map{|m| m[:first_date_in_program]}.reduce(:-).abs
+      enrollments.first(2).map{|m| m[:first_date_in_program]}.reduce(:-).abs
     end
 
   end

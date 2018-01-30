@@ -90,9 +90,9 @@
             = pluralize(total_homeless, 'day')
             %br
             %strong Between:
-            = client.processed_service_history.try(:first_date_served)
+            = client.date_of_first_service
             and
-            =client.processed_service_history.try(:last_date_served)
+            =client.date_of_last_service
 
             - if can_view_vspdat?
               - vispdat = client.vispdats.completed.scores.first

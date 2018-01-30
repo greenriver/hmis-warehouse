@@ -1,0 +1,47 @@
+- title = "Clients with Expired or Expiring Consent"
+- content_for :title, title
+%h1= title 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+
+.warehouse-reports__missing-projects
+  %p
+    The following clients have consent that will expire within the next 30 days.
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Client
+        %th Expiration Date
+        %th Related Users
+
+    %tbody
+      - @expiring_clients.each do |client|
+        %tr
+          %td
+            = link_to(client_path(client)) do 
+              = client.full_name
+          %td
+            = client.consent_form_signed_on + client.class.consent_validity_period
+          %td
+            - @users[client.id].each do |user| 
+              = user.name_with_email
+              %br
+  %p
+    The following clients expired consent.
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Client
+        %th Expiration Date
+        %th Related Users
+
+    %tbody
+      - @expired_clients.each do |client|
+        %tr
+          %td
+            = link_to(client_path(client)) do 
+              = client.full_name
+          %td
+            = client.consent_form_signed_on + client.class.consent_validity_period
+          %td
+
+

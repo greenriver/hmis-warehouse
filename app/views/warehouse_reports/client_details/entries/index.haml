@@ -13,7 +13,7 @@
 .row
   .col-sm-12
     %p
-      = @buckets.values.map(&:values).flatten.map(&:keys).flatten.count
+      = @enrollments.count
       Clients have entries in 
       = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[@project_type_code]
       between
@@ -22,48 +22,47 @@
       = "#{@end_date}."
 
 
-- @buckets.values.each do |groups|
-  - groups.each do |group, clients|
-    .row
-      .col-sm-12
-        %h3
-          = @data[group][:label]
-          = "(#{clients.count})"
-        %table.table.table-condensed
-          %thead
+- @buckets.each do |group, clients|
+  .row
+    .col-sm-12
+      %h3
+        = @data[group][:label]
+        = "(#{clients.count})"
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th
+              Client
+            %th
+              Entry
+            %th
+              Exit
+            %th
+              Project Type
+            %th
+              Project
+            %th
+              Organization
+        %tbody
+          - clients.each do |client_id|
+            - meta = @enrollments[client_id].first
+            - enrollments = @enrollments[client_id]
             %tr
-              %th
-                Client
-              %th
-                Entry
-              %th
-                Exit
-              %th
-                Project Type
-              %th
-                Project
-              %th
-                Organization
-          %tbody
-            - clients.each do |client_id, enrollments|
-              - meta = enrollments.first
-              - enrollments = enrollments.reverse
-              %tr
-                %td{rowspan: enrollments.count + 1}
-                  = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", client_path(client_id)
-              - enrollments.each_with_index do |enrollment, index|
-                - highlight = ''
-                - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
-                %tr{class: highlight}
-                  %td
-                    = enrollment[:first_date_in_program]
-                  %td
-                    = enrollment[:last_date_in_program]
-                  %td
-                    = HUD.project_type(enrollment[:project_type])
-                  %td
-                    = enrollment[:project_name]
-                  %td
-                    = enrollment[:organization_name]
-                  
-            
+              %td{rowspan: enrollments.count + 1}
+                = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", client_path(client_id)
+            - enrollments.each_with_index do |enrollment, index|
+              - highlight = ''
+              - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
+              %tr{class: highlight}
+                %td
+                  = enrollment[:first_date_in_program]
+                %td
+                  = enrollment[:last_date_in_program]
+                %td
+                  = HUD.project_type(enrollment[:project_type])
+                %td
+                  = enrollment[:project_name]
+                %td
+                  = enrollment[:organization_name]
+                
+          

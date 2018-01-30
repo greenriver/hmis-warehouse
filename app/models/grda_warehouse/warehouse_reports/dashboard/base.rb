@@ -59,17 +59,62 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     end
 
     def homeless_service_history_source
-      service_history_source.
-        joins(:client, :project).
-        homeless.
-        where(client_id: client_source)
+      scope = service_history_source.
+        homeless
+      history_scope(scope)
+    end
+
+    # def service_counts project_type
+    #   homeless_service_history_source.
+    #   service_within_date_range(start_date: @range.start, end_date: @range.end).
+    #   where(service_history_source.project_type_column => project_type).
+    #   group(:client_id).
+    #   count
+    # end
+    
+    def service_scope project_type
+      homeless_service_history_source.
+      service_within_date_range(start_date: @range.start, end_date: @range.end).
+      open_between(start_date: @range.start, end_date: @range.end).
+      where(service_history_source.project_type_column => project_type)
+    end
+
+    def enrollment_counts project_type
+      service_scope(project_type).
+      group(:client_id).
+      select(nf('DISTINCT', [ct(sh_t[:enrollment_group_id], '_', sh_t[:data_source_id])]).to_sql).
+      count
+    end
+
+    def entry_counts project_type
+      service_scope(project_type).
+      started_between(start_date: @range.start, end_date: @range.end).
+      group(:client_id).
+      select(nf('DISTINCT', [ct(sh_t[:enrollment_group_id], '_', sh_t[:data_source_id])]).to_sql).
+      count
+    end
+
+    def entry_dates_by_client project_type
+      @entry_dates_by_client = {}
+      homeless_service_history_source.
+      entry.
+      where(sh_t[:first_date_in_program].lteq(@range.end)).
+      where(service_history_source.project_type_column => project_type).
+      where(client_id: service_scope(project_type).started_between(start_date: @range.start, end_date: @range.end).distinct.select(:client_id)).
+      order(first_date_in_program: :desc).
+      pluck(:client_id, :first_date_in_program).
+      each do |client_id, first_date_in_program|
+        @entry_dates_by_client[client_id] ||= []
+        @entry_dates_by_client[client_id] << first_date_in_program
+      end
+      @entry_dates_by_client
     end
 
     def exits_from_homelessness
       service_history_source.exit.
         joins(:client).
         homeless.
-        where(client_id: client_source)
+        where(client_id: client_source.distinct.select(:id))
     end
 
     def service_history_columns
@@ -90,6 +135,14 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # make a hash of the object, truncate it to an appropriate size and then turn it into
       # a css friendly hash code
       "#%06x" % (Zlib::crc32(Marshal.dump(object)) & 0xffffff)
+    end
+
+    def run_and_save!
+      self.started_at = DateTime.now
+      self.parameters = self.class.params
+      self.data = run!
+      self.finished_at = DateTime.now
+      save()
     end
 
   end

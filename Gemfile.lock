@@ -134,7 +134,7 @@ GEM
       json (>= 1.7)
       mime-types (>= 1.16)
       mimemagic (>= 0.3.0)
-    charlock_holmes (0.7.3)
+    charlock_holmes (0.7.5)
     choice (0.2.0)
     chronic (0.10.2)
     coderay (1.1.1)

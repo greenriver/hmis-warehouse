@@ -35,6 +35,8 @@
             Project
           %th
             Entry Date
+          %th
+            Exit Date
       %tbody
         - @enrollments.each do |client_id, enrollments|
           - enrollments.each do |enrollment|
@@ -47,3 +49,5 @@
                 = enrollment[:project_name]
               %td
                 = enrollment[:first_date_in_program]
+              %td
+                = enrollment[:last_date_in_program]

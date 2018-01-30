@@ -5,7 +5,7 @@ module Reports::Pit::Fy2017
     end
 
     def continuum_name
-      'Boston Continuum of Care'
+      @continuum_name ||= GrdaWarehouse::Config.get(:continuum_name)
     end
 
     def download_type
