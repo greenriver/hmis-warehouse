@@ -110,16 +110,24 @@ module HealthCharts
 
 
     def health_self_sufficiency_scores
-      self_sufficiency_assessments.order(collected_at: :asc).map do |assessment|
+      self_sufficiency_assessments.order(collected_at: :desc).limit(4).map do |assessment|
         # these should only have one section at this time
+        scores = []
         if assessment.answers[:sections].count > 0
-          assessment.answers[:sections].first[:questions].select do |row|
-            row[:question] == 'Total'
-          end.map do |score|
-            [assessment.collected_at, score[:answer].to_f.round]
+          scores = assessment.answers[:sections].first[:questions].select do |row|
+            ssm_question_titles.include?(row[:question])
+          end.map do |row|
+            title = row[:question].gsub('SCORE', '').titleize
+            value = row[:answer].to_f.round
+            [title, value]
           end
         end
-      end.compact.flatten(1).to_h
+        {
+          collected_at: assessment.collected_at,
+          collection_location: assessment.collection_location,
+          scores: scores,
+        }
+      end.compact
     end
 
     def health_income_benefits_over_time
@@ -131,6 +139,34 @@ module HealthCharts
           number_of_non_earned_sources: (income.sources - [:Earned]).count,
         }]
       end.to_h
+    end
+
+
+    def ssm_question_titles
+      @ssm_question_titles ||= [
+        "HOUSING SCORE",
+        "INCOME/MONEY MANAGEMENT SCORE",
+        "NON-CASH BENEFITS SCORE",
+        "DISABILITIES SCORE",
+        "FOOD SCORE",
+        "EMPLOYMENT SCORE",
+        "ADULT EDUCATION/TRAINING SCORE",
+        "MOBILITY/TRANSPORTATION SCORE",
+        "LIFE SKILLS & ADLs SCORE",
+        "HEALTH CARE COVERAGE SCORE",
+        "PHYSICAL HEALTH SCORE",
+        "MENTAL HEALTH SCORE",
+        "SUBSTANCE USE SCORE",
+        "CRIMINAL JUSTICE SCORE",
+        "LEGAL NON-CRIMINAL SCORE",
+        "SAFETY SCORE",
+        "RISK SCORE",
+        "FAMILY & SOCIAL RELATIONSHIPS SCORE",
+        "COMMUNITY INVOLVEMENT SCORE",
+        "DAILY TIME MANAGEMENT SCORE",
+        "PARENTING SKILLS SCORE",
+        "Total"
+      ]
     end
   end
 end
