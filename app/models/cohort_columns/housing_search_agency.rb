@@ -10,7 +10,7 @@ module CohortColumns
     end
 
     def default_input_type
-      :select2_input
+      :select2
     end
   end
 end

@@ -3,59 +3,13 @@
     (function($) {
       var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
 
-      $.fn.dataTableExt.ofnSearch['html-input'] = function(value) {
-        var jquery_val = $(value);
-        var select = jquery_val.find('select');
-        if (select.length > 0) {
-          return select.val() || '';
-        } else {
-          return jquery_val.find('input').last().val() || '';
-        }
-      };
-
-      $.fn.dataTableExt.ofnSearch['popover-content'] = function(value) {
-        if (value.length > 0) {
-          var jqueryVal = $.parseHTML(value);
-          return _.map(jqueryVal, function(node) {return $(node).data('content')}).join();
-        } else {
-          return '';
-        }
-      };
-
       var datatable = $('.datatable').DataTable({
         scrollY: false,
         scrollX: true,
         scrollCollapse: true,
         fixedColumns: {
-         leftColumns: #{@frozen_column_count}
+         leftColumns: 4
         },
-        columnDefs: [
-          { 
-            "type": "html-input",
-            "targets": #{@input_column_indexes} // convert to method call to find correct columns
-          },
-          {
-            "type": 'popover-content',
-            "targets": [#{@frozen_column_count} + 1] // convert to method call to find correct columns
-          }
-        ] 
-      });
-      $(".datatable td input").on('change', function() {
-        var $td = $(this).parents('td');
-        $td.find("input[type!='hidden']").attr('value', this.value);
-        datatable.cell($td).invalidate().draw();
-      });
-      // The following should work, but somehow interferes with Select2
-      //$(".datatable td select").on('change', function() {
-      //   var $td = $(this).parents('td');
-      //   var value = this.value;
-      //   $td.find('option').each(function(i, o) {
-      //     $(o).removeAttr('selected');
-      //     if ($(o).val() == value) $(o).attr('selected', true);
-      //   })
-      //   datatable.cell($td).invalidate().draw();
-      // });    
-      datatable.on('draw', function() {
-         App.init();
+        order: [[1, 'asc']]
       });
     })(jQuery);

@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Veteran'
 
     def default_input_type
-      :radio
+      :radio_buttons
     end
 
     def available_options

@@ -1,24 +1,26 @@
 %table.table.table-condensed.datatable.cohort-client__table
   %thead
     %tr
-      - if @first_name_column
-        %th
-          Last Name
-      - if @last_name_column
-        %th
-          First Name
-      - if @rank_column
-        %th
-          Rank
       %th
-        Add Note
-      %th.client_notes
-        Notes
-      - @visible_columns.each do |column|
+      - @cohort.visible_columns.each do |column|
         %th
           = column.title
-      %th
-        Remove
   %tbody
     - @cohort.cohort_clients.each do |cohort_client|
-      = render 'client_table_row', cohort_client: cohort_client
+      - client = cohort_client.client
+      = cache(['cohort_clients', @cohort, cohort_client, client], expires_in: 8.hours) do
+        %tr.jCohortClient{data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
+          %td
+            = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true}, title: 'Edit', class: 'btn btn-primary btn-sm' do
+              %span.icon-pencil 
+              Edit
+
+          - @cohort.visible_columns.each do |column|
+            %td
+              - if column.input_type == 'read_only'
+                = column.value(cohort_client)
+              - elsif column.input_type == 'notes'
+                = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
+                  #{cohort_client.cohort_client_notes.length}
+              - else
+                = cohort_client.public_send(column.column)

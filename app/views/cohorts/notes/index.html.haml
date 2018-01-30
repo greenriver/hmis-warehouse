@@ -1,0 +1,10 @@
+- @cohort_client.cohort_client_notes.each do |note|
+  = note.note
+  %p.attribution
+    = note.user.name
+    on
+    = note.updated_at.to_date
+  %br
+test
+- content_for :modal_title do
+  Notes for #{@cohort_client.client.full_name}

@@ -10,6 +10,9 @@ module Cohorts
 
     def update
       columns = cohort_source.available_columns.deep_dup
+      if params.include? :order
+        columns = columns.sort_by{|x| params[:order].index x.column.to_s}
+      end
       columns.each do |column|
         column.visible = if cohort_params[column.column.to_s] == '0' then false else true end
       end

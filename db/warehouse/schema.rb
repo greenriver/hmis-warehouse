@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180125214133) do
+ActiveRecord::Schema.define(version: 20180130173319) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -871,7 +871,7 @@ ActiveRecord::Schema.define(version: 20180125214133) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.string   "sif_eligible"
+    t.boolean  "sif_eligible",                           :default=>false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -880,11 +880,12 @@ ActiveRecord::Schema.define(version: 20180125214133) do
     t.string   "st_francis_house"
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
-    t.date     "va_eligible"
-    t.string   "vash_eligible"
+    t.string   "va_eligible"
+    t.boolean  "vash_eligible",                          :default=>false
     t.string   "chapter_115"
-    t.datetime "first_date_homeless"
-    t.datetime "last_date_approached"
+    t.text     "notes"
+    t.date     "first_date_homeless"
+    t.date     "last_date_approached"
     t.boolean  "chronic",                                :default=>false
     t.string   "dnd_rank"
     t.boolean  "veteran",                                :default=>false

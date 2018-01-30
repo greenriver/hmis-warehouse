@@ -3,6 +3,7 @@ module Cohorts
     include PjaxModalController
     include ArelHelper
     include Chronic
+    helper CohortColumnsHelper
     before_action :require_can_create_cohorts!
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show]
@@ -16,6 +17,10 @@ module Cohorts
           render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
         end
       end
+    end
+
+    def edit
+      @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     # Return the entire row of html layout false
@@ -56,8 +61,12 @@ module Cohorts
     end
 
     def update
-      if @client.update(cohort_update_params)
-        raise cohort_update_params.inspect
+      update_params = cohort_update_params
+      update_params['chronic'] = _debool(update_params['chronic'])
+      update_params['vash_eligible'] = _debool(update_params['vash_eligible'])
+      update_params['sif_eligible'] = _debool(update_params['sif_eligible'])
+      update_params['veteran'] = _debool(update_params['veteran'])
+      if @client.update(update_params)
         respond_to do |format|
           format.html do
             flash[:notice] = 'Saved'
@@ -94,7 +103,7 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:cohort_client).permit(*cohort_source.available_columns.map(&:column))
+      params.require(:grda_warehouse_cohort_client).permit(*cohort_source.available_columns.map(&:column))
     end
 
     def client_scope
@@ -124,5 +133,15 @@ module Cohorts
     def flash_interpolation_options
       { resource_name: @cohort.name }
     end
+
+
+    private def _debool(bool_str)
+      case bool_str
+      when true, "yes", "true", "1" then true
+      else
+        false
+      end
+    end
+
   end
 end

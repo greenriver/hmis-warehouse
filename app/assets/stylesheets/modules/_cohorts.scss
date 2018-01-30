@@ -1,8 +1,12 @@
-.cohort-client__input.radio {
-  width: 110px;
-  label {
-    padding-left: 5px !important;
+.cohort-client__input {
+  input[type=radio] {
+    margin-right: 5px !important;
   }
+}
+
+.modal-dialog {
+  width: 800px;
+  margin: 30px auto;
 }
 
 th.client_notes {
@@ -13,4 +17,11 @@ th.client_notes {
 td.client_notes {
   width: 150px;
   display: table;
+}
+
+ul.draggable-list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+ul.draggable-list li span { padding-left: 1.3em; }
+
+li.draggable-list__item {
+  border: solid 1px;
 }

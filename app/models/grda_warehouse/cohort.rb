@@ -56,7 +56,8 @@ module GrdaWarehouse
         ::CohortColumns::VaEligible.new(),
         ::CohortColumns::VashEligible.new(),
         ::CohortColumns::Chapter115.new(),
-        ::CohortColumns::Veteran.new()
+        ::CohortColumns::Veteran.new(),
+        ::CohortColumns::Notes.new()
       ]
     end
 

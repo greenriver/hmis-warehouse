@@ -1,9 +1,33 @@
 - title = "Edit #{@cohort.name}"
 - content_for :modal_title, title
 
-%p Please choose the columns to display when viewing this cohort.
+%p 
+  Please choose the columns to display when viewing this cohort.
+  %br
+  %i
+    Click and drag items to change order (be sure to click the update button when done)
 = simple_form_for @cohort, as: :column_state, url: cohort_columns_path(@cohort) do |f|
-  - GrdaWarehouse::Cohort.available_columns.each do |column|
-    - visible = @column_state.find{|m| m.class == column.class}&.visible
-    = f.input column.column, label: column.title, as: :boolean, input_html: {checked: visible}
+  %ul.draggable-list
+    - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}}
+    - ordered_columns.each_with_index do |column, i|
+      - visible = @column_state.find{|m| m.class == column.class}&.visible
+      %li.draggable-list__item{id: "sorted-col-#{column.column}"}
+        %label{for: "column_state_#{column.column}"}
+          %span.ui-icon.ui-icon-arrowthick-2-n-s
+          %input{type: 'checkbox', value: '1', checked: visible, name: "column_state[#{column.column}]", id: "column_state_#{column.column}"}
+          = column.title
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'
+
+- content_for :page_js do
+  :javascript
+    $(function() {
+      $('.draggable-list').sortable();
+
+      $(document).on('submit', '#edit_column_state', function(event) {
+        var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
+          return item.replace('sorted-col-', '')
+        });
+        var input = $('<input>').attr('type', 'hidden').attr('name', 'order').val(order);
+        $('#edit_column_state').append($(input));
+      });
+    });
