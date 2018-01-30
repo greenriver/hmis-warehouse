@@ -8,6 +8,13 @@ module CohortColumns
     def default_input_type
       :string
     end
-    
+
+    def has_default_value?
+      false
+    end
+
+    def default_value client_id
+      nil
+    end    
   end
 end

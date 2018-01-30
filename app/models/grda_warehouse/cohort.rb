@@ -4,7 +4,7 @@ module GrdaWarehouse
     validates_presence_of :name
     serialize :column_state, Array
 
-    has_many :cohort_clients
+    has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
 
     attr_accessor :client_ids

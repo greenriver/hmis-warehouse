@@ -7,5 +7,13 @@ module CohortColumns
       :integer
     end
 
+    def has_default_value?
+      true
+    end
+
+    def default_value client_id
+      GrdaWarehouse::Hud::Client.days_homeless(client_id: client_id)
+    end
+
   end
 end

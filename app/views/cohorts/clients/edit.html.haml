@@ -40,7 +40,7 @@
             - @cohort_client.cohort_client_notes.each do |cohort_client_note|
               = render partial: 'grda_warehouse/cohort_client_notes/cohort_client_note', locals: {cohort_client_note: cohort_client_note}
           - else
-            - options = {as: column.input_type}
+            - options = {as: column.input_type, label: column.title}
             - options[:collection] = column.available_options if column.respond_to? :available_options
             = f.input column.column.to_sym, options
   .right

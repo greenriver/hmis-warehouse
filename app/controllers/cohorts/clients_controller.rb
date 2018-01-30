@@ -87,6 +87,11 @@ module Cohorts
       ch = cohort_client_source.with_deleted.
         where(cohort_id: cohort_id, client_id: client_id).first_or_initialize
       ch.deleted_at = nil
+      cohort_source.available_columns.each do |column|
+        if column.has_default_value?
+          ch[column.column] = column.default_value(client_id)
+        end
+      end
       ch.save if ch.changed? || ch.new_record?
     end
 
