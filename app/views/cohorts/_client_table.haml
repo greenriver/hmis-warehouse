@@ -22,5 +22,7 @@
               - elsif column.input_type == 'notes'
                 = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
                   #{cohort_client.cohort_client_notes.length}
+              - elsif column.input_type == 'radio_buttons'
+                = checkmark cohort_client.public_send(column.column)
               - else
                 = cohort_client.public_send(column.column)
