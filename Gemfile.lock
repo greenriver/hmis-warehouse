@@ -68,7 +68,6 @@ GEM
     auto-session-timeout (0.9.5)
     autoprefixer-rails (6.5.4)
       execjs
-    awesome_print (1.8.0)
     aws-sdk-core (2.9.28)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
@@ -555,7 +554,6 @@ DEPENDENCIES
   attribute_normalizer
   auto-session-timeout
   autoprefixer-rails
-  awesome_print
   aws-sdk-rails
   axlsx!
   axlsx_rails

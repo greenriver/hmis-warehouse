@@ -145,7 +145,6 @@ group :development do
   gem 'letter_opener'
   gem 'list_matcher', require: false   # for the forms:desmush rake task
 
-  gem 'awesome_print'
   gem 'ruby-prof'
   gem 'memory_profiler'
   gem 'rack-mini-profiler', require: false
