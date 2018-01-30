@@ -17,7 +17,8 @@ class CohortsController < ApplicationController
   end
 
   def destroy
-
+    @cohort.destroy
+    redirect_to cohorts_path()
   end
 
   def create
