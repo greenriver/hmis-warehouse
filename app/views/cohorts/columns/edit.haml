@@ -6,6 +6,8 @@
   %br
   %i
     Click and drag items to change order (be sure to click the update button when done)
+  %br
+  The first three columns will be frozen on the left.
 = simple_form_for @cohort, as: :column_state, url: cohort_columns_path(@cohort) do |f|
   %ul.draggable-list
     - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}}
@@ -13,7 +15,7 @@
       - visible = @column_state.find{|m| m.class == column.class}&.visible
       %li.draggable-list__item{id: "sorted-col-#{column.column}"}
         %label{for: "column_state_#{column.column}"}
-          %span.ui-icon.ui-icon-arrowthick-2-n-s
+          %span.icon-move
           %input{type: 'checkbox', value: '1', checked: visible, name: "column_state[#{column.column}]", id: "column_state_#{column.column}"}
           = column.title
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'

@@ -19,9 +19,24 @@ td.client_notes {
   display: table;
 }
 
-ul.draggable-list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-ul.draggable-list li span { padding-left: 1.3em; }
+ul.draggable-list 
+{ 
+  list-style-type: none; margin: 0; padding: 0; width: 60%; 
+}
+ul.draggable-list li 
+{
+  padding: 0.5em 1em;
+}
 
 li.draggable-list__item {
-  border: solid 1px;
+  background-color: $gray-015;
+}
+
+#edit_column_state .draggable-list .icon-move
+{
+  padding-right: 0;
+}
+#edit_column_state .draggable-list input
+{
+  margin-right: 1em;
 }

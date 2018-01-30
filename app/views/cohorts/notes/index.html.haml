@@ -1,3 +1,8 @@
+.row
+  .col-sm-12.text-right
+    = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm' do
+      %i.icon-plus
+      Add a note
 - @cohort_client.cohort_client_notes.each do |note|
   = note.note
   %p.attribution
