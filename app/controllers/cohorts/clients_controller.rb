@@ -3,7 +3,6 @@ module Cohorts
     include PjaxModalController
     include ArelHelper
     include Chronic
-    helper CohortColumnsHelper
     before_action :require_can_create_cohorts!
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show]
