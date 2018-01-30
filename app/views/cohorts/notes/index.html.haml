@@ -1,6 +1,6 @@
 .row
   .col-sm-12.text-right
-    = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm' do
+    = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
       %i.icon-plus
       Add a note
 - @cohort_client.cohort_client_notes.each do |note|
@@ -9,7 +9,6 @@
     = note.user.name
     on
     = note.updated_at.to_date
-  %br
-test
+
 - content_for :modal_title do
   Notes for #{@cohort_client.client.full_name}
