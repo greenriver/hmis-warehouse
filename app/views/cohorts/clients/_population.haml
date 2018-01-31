@@ -3,6 +3,6 @@
     = f.error_notification
     .row
       .col-sm-6
-        = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients'), :last, :first, params[:population]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
+        = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans', 'Individual Adults'), :last, :first, params[:population]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
       .col-sm-6
         = f.button :submit, value: 'Show'
