@@ -7,7 +7,7 @@
       - group.each_with_index do |column, index|
         - if column.nil?
           - next
-        .col-sm-3
+        .col-sm-6
           - if column.input_type == 'read_only'
             %label
               = column.title
