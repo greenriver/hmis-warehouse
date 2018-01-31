@@ -2,7 +2,7 @@
 - content_for :modal_title do
   Editing #{@cohort_client.client.full_name}
 = simple_form_for @cohort_client, url: cohort_cohort_client_path(@cohort, @cohort_client), method: :patch do |f|
-  - @cohort.visible_columns.in_groups_of(4).each do |group|
+  - @cohort.visible_columns.in_groups_of(1).each do |group|
     .row
       - group.each_with_index do |column, index|
         - if column.nil?

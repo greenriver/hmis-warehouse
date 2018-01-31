@@ -26,10 +26,10 @@
     where appropriate.
 
 - if @cohort.clients.blank?
-  %p.alert.alert-info
-    This cohort is currently empty,
-    = link_to new_cohort_cohort_client_path(@cohort) do
-      Add some.
+  %p.text-center
+    = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
+      %i.icon-plus
+      Add Clients
 
 .row
   .col-sm-12.overflow-scroll

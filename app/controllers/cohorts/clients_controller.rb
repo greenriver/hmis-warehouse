@@ -34,6 +34,7 @@ module Cohorts
     def new
       @clients = []
       @filter = ::Filters::Chronic.new(params[:filter])
+      @population = params[:population]
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
         load_filter()
@@ -41,6 +42,10 @@ module Cohorts
           preload(source_clients: :data_source).
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
+      elsif @population
+        @clients = client_source.joins(:service_history).
+          merge(GrdaWarehouse::ServiceHistory.entry.ongoing.send(@population)).
+          distinct
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_scope.ransack(params[:q])
         @clients = @q.result(distinct: true)
