@@ -1513,6 +1513,12 @@ module GrdaWarehouse::Hud
         select(:date).distinct
     end
 
+    def self.dates_hud_non_chronic_residential_scope client_id:
+      GrdaWarehouse::ServiceHistoryService.hud_residential_non_homeless.
+      where(client_id: client_id).
+        select(:date).distinct
+    end
+
     def homeless_months_in_last_three_years(on_date: Date.today)
       self.class.dates_homeless_in_last_three_years_scope(client_id: id, on_date: on_date).
         pluck(:date).

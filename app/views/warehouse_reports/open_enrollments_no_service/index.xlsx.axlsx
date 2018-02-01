@@ -8,7 +8,7 @@ wb.add_worksheet(name: "Open Enrollments") do |sheet|
     'Last Name', 
     'Project', 
     'Entry Date', 
-    'Most Recent Date Served',
+    'Most Recent Date Served (in the last three years)',
   ], :style => title)
   @entries.each do |entry|
     client = @clients[entry.client_id]
