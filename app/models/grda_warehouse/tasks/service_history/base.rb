@@ -83,9 +83,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def ensure_there_are_no_extra_enrollments_in_service_history client_id
-      client = GrdaWarehouse::Hud::Client.destination.find_by_id(client_id)
+      client = GrdaWarehouse::Hud::Client.destination.find(client_id)
       return unless client.present?
-      sh_enrollments = service_history_source.where(client_id: client_id).
+      sh_enrollments = service_history_enrollment_source.entry.where(client_id: client_id).
         order(enrollment_group_id: :asc, project_id: :asc, data_source_id: :asc).
         distinct.
         pluck(:enrollment_group_id, :project_id, :data_source_id)
@@ -95,7 +95,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         pluck(:ProjectEntryID, :ProjectID, :data_source_id)
       extra_enrollments = sh_enrollments - source_enrollments
       extra_enrollments.each do |enrollment_group_id, project_id, data_source_id|
-        service_history_source.where(
+        service_history_enrollment_source.where(
           client_id: client_id,
           enrollment_group_id: enrollment_group_id,
           project_id: project_id,
@@ -113,7 +113,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
       processed.last_service_updated_at = Date.today
       # The index gets in the way of calculating these quickly.  It is *much* faster
       # to simply bring back all of the dates and use ruby to get the correct one
-      dates = service_history_source.service.where(client_id: client_id).order(date: :desc).pluck(:date)
+      dates = service_history_enrollment_source.entry.
+        joins(:service_history_services).
+        where(client_id: client_id).
+        order(date: :desc).
+        pluck(:date)
       processed.first_date_served = dates.last
       processed.last_date_served = dates.first
       processed.days_served = dates.uniq.count
@@ -127,6 +131,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def destination_client_scope
       client_source.destination
+    end
+
+    def service_history_enrollment_source
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def service_history_source

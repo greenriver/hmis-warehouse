@@ -4,7 +4,7 @@
   = content_for :title
   = @years
   years
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 = simple_form_for(:clients, url: warehouse_reports_long_standing_clients_path, html: {method: :get}) do |f|
   %label{for: :years}

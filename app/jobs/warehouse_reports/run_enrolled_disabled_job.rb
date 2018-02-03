@@ -14,10 +14,10 @@ module WarehouseReports
       if filter_params[:disabilities].empty?
         clients = client_source.none
       else
-        clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_histories).
+        clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           where(Disabilities: {DisabilityType: filter_params[:disabilities], DisabilityResponse: [1,2,3]}).
           where(Project: {project_source.project_type_column => filter_params[:project_types]}).
-          merge(history.entry.ongoing.where(history.project_type_column => filter_params[:project_types])).
+          merge(service_history_enrollment_source.entry.ongoing.in_project_type(filter_params[:project_types])).
           distinct.
           includes(source_disabilities: :project).
           order(LastName: :asc, FirstName: :asc)
@@ -44,8 +44,8 @@ module WarehouseReports
       GrdaWarehouse::Hud::Project
     end
 
-    def history
-      GrdaWarehouse::ServiceHistory
+    def service_history_enrollment_source
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
   end

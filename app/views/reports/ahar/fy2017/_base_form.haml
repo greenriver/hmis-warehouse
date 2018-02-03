@@ -4,7 +4,7 @@
   = f.input :continuum_name, input_html: {value: GrdaWarehouse::Config.get(:continuum_name)}, required: true, label: 'Continuum Name'
   -# f.input :coc_zip_codes, input_html: {value: GrdaWarehouse::Config.get(:default_coc_zipcodes)}, required: true, label: 'CoC Zipcodes', hint: 'comma separated.  eg. 02108, 02109'
   = f.input :report_start, input_html: {value: '2016-10-01'.to_date}, required: true, as: :date_picker, label: 'Start Date'
-  = f.input :report_end, input_html: {value: '2017-09-30'.to_date}, required: true, as: :date_picker, label: 'Start Date'
+  = f.input :report_end, input_html: {value: '2017-09-30'.to_date}, required: true, as: :date_picker, label: 'End Date'
 .col-sm-4
   = f.input :oct_night, input_html: {value: '2016-10-26'.to_date}, required: true, label: 'October night', as: :date_picker
   = f.input :jan_night, input_html: {value: '2017-01-25'.to_date}, required: true, label: 'January night', as: :date_picker

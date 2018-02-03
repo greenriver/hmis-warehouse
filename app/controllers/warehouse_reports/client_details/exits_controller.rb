@@ -19,12 +19,12 @@ module WarehouseReports::ClientDetails
         @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
       end
       columns = {
-        client_id: sh_t[:client_id].as('client_id').to_sql,
-        date: sh_t[:date].as('date').to_sql, 
-        destination: sh_t[:destination].as('destination').to_sql, 
+        client_id: she_t[:client_id].as('client_id').to_sql,
+        date: she_t[:date].as('date').to_sql, 
+        destination: she_t[:destination].as('destination').to_sql, 
         first_name: c_t[:FirstName].as('first_name').to_sql, 
         last_name: c_t[:LastName].as('last_name').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
+        project_name: she_t[:project_name].as('project_name').to_sql,
       }
       @buckets = Hash.new(0)
 
@@ -54,7 +54,8 @@ module WarehouseReports::ClientDetails
     def exits_from_homelessness
       scope = service_history_source.exit.
         joins(:client).
-        homeless
+        homeless.
+        order(:last_date_in_program)
       history_scope(scope, @sub_population)
     end
 
@@ -74,7 +75,7 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
   end
 end

@@ -279,7 +279,7 @@ module GrdaWarehouse::Tasks
     # the service history table, just make sure we don't have any records 
     # for clients that no longer exist
     def remove_unused_service_history
-      sh_client_ids = GrdaWarehouse::ServiceHistory.entry.distinct.pluck(:client_id)
+      sh_client_ids = service_history_source.entry.distinct.pluck(:client_id)
       client_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       non_existant_client_ids = sh_client_ids - client_ids
       if non_existant_client_ids.any?
@@ -289,14 +289,14 @@ module GrdaWarehouse::Tasks
         end
         debug_log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
         if ! @dry_run
-          GrdaWarehouse::ServiceHistory.where(client_id: non_existant_client_ids).delete_all
+          service_history_source.where(client_id: non_existant_client_ids).delete_all
         end
       end
     end
 
     def clean_service_history
       return unless @clients.any?
-      sh_size = GrdaWarehouse::ServiceHistory.where(client_id: @clients).count
+      sh_size = service_history_source.where(client_id: @clients).count
       if @clients.size > @max_allowed
         @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
         @clients = []
@@ -304,7 +304,7 @@ module GrdaWarehouse::Tasks
       end
       logger.info "Deleting Service History for #{@clients.size} clients comprising #{sh_size} records"
       if ! @dry_run
-        GrdaWarehouse::ServiceHistory.where(client_id: @clients).delete_all
+        service_history_source.where(client_id: @clients).delete_all
       end
     end
 
@@ -350,10 +350,10 @@ module GrdaWarehouse::Tasks
       incorrect_age_clients = Set.new
       less_than_zero = Set.new
       invalidate_clients = Set.new
-      service_history_ages = GrdaWarehouse::ServiceHistory.entry.
+      service_history_ages = service_history_source.entry.
         pluck(:client_id, :age, :first_date_in_program)
       clients = GrdaWarehouse::Hud::Client.
-        where(id:GrdaWarehouse::ServiceHistory.entry.
+        where(id:service_history_source.entry.
           distinct.select(:client_id)).
         pluck(:id, :DOB).
         map.to_h
@@ -379,7 +379,8 @@ module GrdaWarehouse::Tasks
     def add_missing_ages_to_service_history
       logger.info "Finding any clients with DOBs with service histories missing ages..."
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
-      without_dob = GrdaWarehouse::ServiceHistory.where.not(record_type: 'first').where(age: nil).select(:client_id).distinct.pluck(:client_id)
+      without_dob = service_history_source.where.not(record_type: 'first').
+        where(age: nil).select(:client_id).distinct.pluck(:client_id)
       to_fix = with_dob & without_dob
       logger.info "... found #{to_fix.size}"
       if to_fix.size > 100
@@ -393,7 +394,7 @@ module GrdaWarehouse::Tasks
               where(age: nil).
               joins(:enrollment).
               select(e_t[:id].as('id').to_sql)
-          ).update_all(processed_hash: nil)
+          ).update_all(processed_as: nil)
           client.invalidate_service_history   
         end
       end
@@ -405,6 +406,10 @@ module GrdaWarehouse::Tasks
       age = date.year - dob.to_date.year
       age -= 1 if dob.to_date > date.years_ago( age )
       age
+    end
+
+    def service_history_source
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
   end
 end

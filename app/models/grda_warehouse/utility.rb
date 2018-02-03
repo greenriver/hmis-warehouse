@@ -2,7 +2,7 @@ class GrdaWarehouse::Utility
   def self.clear!
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
     tables = [
-      GrdaWarehouse::ServiceHistory,
+      GrdaWarehouse::ServiceHistoryEnrollment,
       GrdaWarehouse::WarehouseClientsProcessed,
       GrdaWarehouse::WarehouseClient,
       GrdaWarehouse::CensusByYear,
@@ -37,7 +37,7 @@ class GrdaWarehouse::Utility
     end
   end
   def self.modifier(model)
-    return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client].include?(model)
+    return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client,GrdaWarehouse::ServiceHistoryEnrollment].include?(model)
     'RESTRICT'
   end
 end

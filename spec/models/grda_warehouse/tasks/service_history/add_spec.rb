@@ -41,7 +41,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       it 'generate 20 service records' do
         expect(GrdaWarehouse::ServiceHistory.service.count).to eq(20)
       end
-      it 'generage 10 unique dates of service' do
+      it 'generate 10 unique dates of service' do
         expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(10)
       end
     end

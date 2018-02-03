@@ -95,7 +95,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           assessments = income_source.where(data_source_id: ds_id).
             where(PersonalID: personal_id).
             where(ProjectEntryID: enrollment_group_id).
-            where(i_t[:InformationDate].lteq(self.end)).
+            where(ib_t[:InformationDate].lteq(self.end)).
             where(DataCollectionStage: [3, 1, 2]).
             order(InformationDate: :asc).
           pluck(*income_columns).map do |row|
@@ -181,13 +181,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def enrollment_columns
       @enrollment_columns ||= {
         id: c_t[:id].as('id').to_sql,
-        project_id: sh_t[:project_id].as('project_id').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        destination: sh_t[:destination].as('destination').to_sql,
-        household_id: sh_t[:household_id].as('household_id').to_sql,
+        project_id: she_t[:project_id].as('project_id').to_sql,
+        project_name: she_t[:project_name].as('project_name').to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        destination: she_t[:destination].as('destination').to_sql,
+        household_id: she_t[:household_id].as('household_id').to_sql,
         personal_id: c_t[:PersonalID].as('personal_id').to_sql,
         data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
         residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,
@@ -200,7 +200,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         ssn_data_quality: c_t[:SSNDataQuality].as('ssn_data_quality').to_sql,
         dob: c_t[:DOB].as('dob').to_sql,
         dob_data_quality: c_t[:DOBDataQuality].as('dob_data_quality').to_sql,
-        destination_id: sh_t[:client_id].as('destination_id').to_sql,
+        destination_id: she_t[:client_id].as('destination_id').to_sql,
       }
     end
 
@@ -223,21 +223,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         black_af_american: c_t[:BlackAfAmerican].as('black_af_american').to_sql,
         native_hi_other_pacific: c_t[:NativeHIOtherPacific].as('native_hi_other_pacific').to_sql,
         white: c_t[:White].as('white').to_sql,
-        destination_id: sh_t[:client_id].as('destination_id').to_sql,
+        destination_id: she_t[:client_id].as('destination_id').to_sql,
       }
     end
 
     def service_columns
       @service_columns ||= {
         id: c_t[:id].as('client_client_id').to_sql,
-        client_id: sh_t[:client_id].as('client_id').to_sql,
+        client_id: she_t[:client_id].as('client_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-        # date: sh_t[:date].as('date').to_sql,
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        project_name: she_t[:project_name].as('project_name').to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+        # date: shs_t[:date].as('date').to_sql,
+        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
       }
     end
 
@@ -319,7 +319,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def client_scope
@@ -331,7 +331,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_scope
-      service_source.service.
+      service_source.includes(:service_history_services).
+        references(:service_history_services).
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, enrollment: :client).
@@ -352,22 +353,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         '2 - 3 years' => (730..1094),
         '3 years or more' => (1095..1.0/0),
       }
-    end
-
-    def c_t
-      client_source.arel_table
-    end
-
-    def sh_t
-      service_source.arel_table
-    end
-
-    def e_t
-      GrdaWarehouse::Hud::Enrollment.arel_table
-    end
-
-    def i_t
-      income_source.arel_table
     end
 
     def income_source

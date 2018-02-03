@@ -14,7 +14,7 @@ wb.add_worksheet(name: "Chronic Clients Housed") do |sheet|
       client.client_id,
       client.first_name,
       client.last_name,
-      exits.map(&:chronic_date).uniq.join('; '),
+      @chronics[client.client_id].map(&:date).uniq.join('; '),
       exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join(';'),
     ])
   end
