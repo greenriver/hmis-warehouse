@@ -10,11 +10,11 @@ module WarehouseReports
       if params[:commit].present?
         WarehouseReports::RunActiveVeteransJob.perform_later(params.merge(current_user_id: current_user.id))
       end
-      @reports = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.ordered.limit(50)
+      @reports = report_source.select(report_source.column_names - ['data']).ordered.limit(50)
     end
 
     def show
-      @report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.find params[:id]
+      @report = report_source.find params[:id]
       @clients = @report.data
       @sort_options = sort_options
 
@@ -31,9 +31,13 @@ module WarehouseReports
     end
 
     def running
-      @reports = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.ordered.limit(50)
+      @reports = report_source.ordered.limit(50)
     end
-    
+
+    def report_source
+      GrdaWarehouse::WarehouseReports::ActiveVeteransReport
+    end
+
     private 
 
     def set_jobs

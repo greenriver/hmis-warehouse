@@ -6,7 +6,7 @@
   .col-sm-4.text-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
       Download Excel
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 - if @projects.any?
   %table.table.table-condensed

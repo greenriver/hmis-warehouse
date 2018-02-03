@@ -42,7 +42,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
       end
       # All enrollments are TrackingMethod = 3 (night-by-night)
       it 'generate 23 service records' do
-        expect(GrdaWarehouse::ServiceHistory.service.count).to eq(23)
+        expect(GrdaWarehouse::ServiceHistoryService.service.count).to eq(23)
       end
       it 'generage 13 unique dates of service' do
         expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(13)

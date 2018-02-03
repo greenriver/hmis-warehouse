@@ -47,7 +47,7 @@ module GrdaWarehouse::Report
 
     def self.update_recent_history_table
       sql = GrdaWarehouse::ServiceHistory.service.joins(project: :organization).
-      where(date: [8.months.ago.beginning_of_month.to_date..1.months.ago.end_of_month.to_date]).
+      where(date: [8.months.ago.beginning_of_month.to_date..Date.today.end_of_month.to_date]).
       select(*sh_columns).to_sql.gsub('FROM', 'INTO recent_service_history FROM')
       self.connection.execute <<-SQL
         DROP TABLE IF EXISTS recent_service_history;

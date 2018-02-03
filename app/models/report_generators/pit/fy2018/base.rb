@@ -791,7 +791,7 @@ module ReportGenerators::Pit::Fy2018
 
     def first_entry_date client_id:
       @first_entries ||= begin
-        GrdaWarehouse::ServiceHistory.
+        GrdaWarehouse::ServiceHistoryEnrollment.
           first_date.where(
             client_id: involved_clients.keys
           ).
@@ -801,13 +801,15 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def service_history_scope
-      GrdaWarehouse::ServiceHistory.
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:service_history_services).
         where(
-          date: @pit_date, 
-          record_type: 'service', 
+          shs_t[:date].eq(@pit_date).
+          and(shs_t[:record_type].eq('service'))
         ).
         joins(:project).
-        joins(:enrollment)
+        joins(:enrollment).
+        distinct
     end
 
     def chronic_scope
@@ -817,18 +819,22 @@ module ReportGenerators::Pit::Fy2018
     def sh_cols
       @sh_cols ||= {
         project_type: act_as_project_overlay,
-        client_id: sh_t[:client_id].as('client_id').to_sql, 
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
-        age: sh_t[:age].as('age').to_sql, 
-        household_id: sh_t[:household_id].as('household_id').to_sql, 
-        project_id: sh_t[:project_id].as('project_id').to_sql,
-        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
+        client_id: she_t[:client_id].as('client_id').to_sql, 
+        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
+        age: shs_t[:age].as('age').to_sql, 
+        household_id: she_t[:household_id].as('household_id').to_sql, 
+        project_id: she_t[:project_id].as('project_id').to_sql,
+        data_source_id: she_t[:data_source_id].as('data_source_id').to_sql,
         RelationshipToHoH: e_t[:RelationshipToHoH].as('RelationshipToHoH').to_sql,
-        unaccompanied_youth: sh_t[:unaccompanied_youth].as('unaccompanied_youth').to_sql,
-        parenting_youth: sh_t[:parenting_youth].as('parenting_youth').to_sql,
-        parenting_juvenile: sh_t[:parenting_juvenile].as('parenting_juvenile').to_sql,
-        children_only: sh_t[:children_only].as('children_only').to_sql,
+        unaccompanied_youth: she_t[:unaccompanied_youth].as('unaccompanied_youth').to_sql,
+        parenting_youth: she_t[:parenting_youth].as('parenting_youth').to_sql,
+        parenting_juvenile: she_t[:parenting_juvenile].as('parenting_juvenile').to_sql,
+        children_only: she_t[:children_only].as('children_only').to_sql,
       }
+    end
+
+    def act_as_project_overlay
+      nf( 'COALESCE', [ p_t[:act_as_project_type], shs_t[:project_type] ] ).as('project_type').to_sql
     end
 
     def client_columns
@@ -861,32 +867,6 @@ module ReportGenerators::Pit::Fy2018
         DomesticViolenceVictim: hdv_t[:DomesticViolenceVictim].as('DomesticViolenceVictim').to_sql,
         CurrentlyFleeing: hdv_t[:CurrentlyFleeing].as('CurrentlyFleeing').to_sql,
       }
-    end
-
-    def act_as_project_overlay
-      pt = GrdaWarehouse::Hud::Project.arel_table
-      st = GrdaWarehouse::ServiceHistory.arel_table
-      nf( 'COALESCE', [ pt[:act_as_project_type], st[:project_type] ] ).as('project_type').to_sql
-    end
-
-    def sh_t
-      GrdaWarehouse::ServiceHistory.arel_table
-    end
-
-    def c_t
-      GrdaWarehouse::Hud::Client.arel_table
-    end
-
-    def e_t
-      GrdaWarehouse::Hud::Enrollment.arel_table
-    end
-
-    def d_t
-      GrdaWarehouse::Hud::Disability.arel_table
-    end
-
-    def hdv_t
-      GrdaWarehouse::Hud::HealthAndDv.arel_table
     end
   end
 end

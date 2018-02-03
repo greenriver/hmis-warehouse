@@ -31,18 +31,27 @@ module WarehouseReports::ClientDetails
 
     def service_scope project_type
       homeless_service_history_source.
-      service_within_date_range(start_date: @range.start, end_date: @range.end).
-      where(service_history_source.project_type_column => project_type)
+        with_service_between(start_date: @range.start, end_date: @range.end).
+        in_project_type(project_type)
     end
 
     def enrollments_by_client project_type
+      # limit to clients with an entry within the range and service within the range in the type
+      involved_client_ids = homeless_service_history_source.
+        entry.
+        started_between(start_date: @range.start, end_date: @range.end).
+        in_project_type(project_type).
+        with_service_between(start_date: @range.start, end_date: @range.end).
+        distinct.
+        select(:client_id)
+      # get all of their entry records regardless of date range
       homeless_service_history_source.
-      joins(:client, :organization).
-      entry.
-      where(sh_t[:first_date_in_program].lteq(@range.end)).
-      where(service_history_source.project_type_column => project_type).
-      where(client_id: service_scope(project_type).started_between(start_date: @range.start, end_date: @range.end).distinct.select(:client_id)).
-      order(first_date_in_program: :desc).
+        entry.
+        joins(:client, :organization).
+        where(client_id: involved_client_ids).
+        where(she_t[:first_date_in_program].lteq(@range.end)).
+        in_project_type(project_type).
+        order(first_date_in_program: :desc).
       pluck(*entered_columns.values).
       map do |row| 
         Hash[entered_columns.keys.zip(row)]
@@ -67,22 +76,22 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def homeless_service_history_source
       scope = service_history_source.
-        where(service_history_source.project_type_column => @project_type)
+        in_project_type(@project_type)
       history_scope(scope, @sub_population)
     end
 
     def entered_columns 
       {
-        project_type: sh_t[service_history_source.project_type_column].as('project_type').to_sql, 
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
-        client_id: sh_t[:client_id].as('client_id').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
+        project_type: she_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        client_id: she_t[:client_id].as('client_id').to_sql,
+        project_name: she_t[:project_name].as('project_name').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
         organization_name: o_t[:OrganizationName].as('organization_name').to_sql,

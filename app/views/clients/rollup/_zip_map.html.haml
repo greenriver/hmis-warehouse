@@ -1,16 +1,12 @@
-- # the labels need to be paired up with the addresses as shown in the zip details partial
-- labels    = ('A'..'Z').to_a
-  
 -# %img{ src: "//maps.googleapis.com/maps/api/staticmap?#{params.map(&:to_query).join('&')}", style: 'display:block;margin: 0 auto;' }
-- places = @client.previous_permanent_locations.reverse.compact
-- if places.any?
-  - marker_labels = []
-  - labels[0...places.size].zip(places[0...labels.size]).each do |label, place|
-    - marker_labels << label
+- addresses = @client.previous_permanent_locations_for_display.select{|m| m[:lat].present?}
+- markers = addresses.map{|m| [m[:lat], m[:lon]]}.uniq
+- labels = addresses.map{|m| m[:label]}.uniq
+- if addresses.any?
   #client__previous-addresses
   :coffeescript
-    markers = #{places.map{|m| [m[:lat], m[:lon]]}.to_json} 
-    labels = #{marker_labels.to_json}
+    markers = #{markers.to_json} 
+    labels = #{labels.to_json}
     map = new App.Maps.MapWithMarkers('client__previous-addresses', markers, labels)
 - else
   No previous addresses

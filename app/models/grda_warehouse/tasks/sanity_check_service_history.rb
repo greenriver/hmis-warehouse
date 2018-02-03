@@ -131,7 +131,7 @@ module GrdaWarehouse::Tasks
       service_history_source.entry.
         where(client_id: batch).
         group(:client_id).
-        pluck(:client_id, nf( 'COUNT', [sh_t[:enrollment_group_id]] ).to_sql).
+        pluck(:client_id, nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql).
       each do |id, enrollment_count|
         @destinations[id][:service_history][:enrollments] = enrollment_count
       end
@@ -141,7 +141,7 @@ module GrdaWarehouse::Tasks
       service_history_source.exit.
         where(client_id: batch).
         group(:client_id).
-        pluck(:client_id, nf( 'COUNT', [sh_t[:enrollment_group_id]] ).to_sql).
+        pluck(:client_id, nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql).
       each do |id, exit_count|
         @destinations[id][:service_history][:exits] = exit_count
       end
@@ -174,37 +174,6 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def load_service_counts(batch)
-      service_history_source.service.bed_night.
-        where(client_id: batch).
-        group(:client_id).
-        pluck(
-          :client_id, 
-          nf('COUNT', [nf('DISTINCT', [checksum(GrdaWarehouse::ServiceHistory, [sh_t[:enrollment_group_id], sh_t[:date]])])]).to_sql
-        ).
-      each do |id, service_count|
-        @destinations[id][:service_history][:service] = service_count
-      end
-    end
-
-    def load_source_service_counts(batch)
-      # Sometimes we see a service record duplicated, make sure we don't count
-      # the duplicates
-      st = GrdaWarehouse::Hud::Service.arel_table
-      batch.each_slice(200) do |ids|
-        client_source.joins(source_enrollments: [:services, :project]).
-          where(id: ids, Project: {TrackingMethod: 3}).
-          group(:id).
-          pluck(
-            :id,
-            nf('COUNT', [nf('DISTINCT', [checksum(GrdaWarehouse::Hud::Service, [st[:DateProvided], st[:ProjectEntryID]])])]).to_sql 
-          ).
-        each do |id, source_service_count|
-          @destinations[id][:source][:service] = source_service_count
-        end
-      end
-    end
-
     def client_source
       GrdaWarehouse::Hud::Client
     end
@@ -218,7 +187,7 @@ module GrdaWarehouse::Tasks
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def clients_processed_source

@@ -22,7 +22,7 @@ module ServiceHistory
       to_sanity_check = []
       @client_ids.each do |client_id|
         # Rails.logger.debug "rebuilding enrollments for #{client_id}"
-        client = GrdaWarehouse::Hud::Client.destination.find_by_id(client_id)
+        client = GrdaWarehouse::Hud::Client.destination.find(client_id)
         next if client.blank?
         # If this client has been invalidated, remove all service history and rebuild
         if client.service_history_invalidated?

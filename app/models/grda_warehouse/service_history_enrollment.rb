@@ -1,21 +1,17 @@
-class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
-  self.table_name = 'service_history'
-  self.primary_key = "id"
-
+class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include ArelHelper
 
-  def readonly?
-    true
-  end
-
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history
-  belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID]
-  belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID]
-  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :service_histories
-  has_one :enrollment_coc_at_entry, through: :enrollment
-  has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
-  belongs_to :data_source
-  belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id
+  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
+  has_one :source_client, through: :enrollment, source: :client, autosave: false
+  has_one :enrollment_coc_at_entry, through: :enrollment, inverse_of: :service_history, autosave: false
+  has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
+  belongs_to :data_source, autosave: false
+  belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
+  has_many :service_history_services, inverse_of: :service_history_enrollment
+  has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
   # make a scope for every project type and a type? method for instances
   GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k,v|
@@ -28,8 +24,6 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :entry, -> { where record_type: 'entry' }
   scope :exit, -> { where record_type: 'exit' }
-  scope :service, -> { where record_type: service_types }
-  scope :extrapolated, -> { where record_type: 'extrapolated' }
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service
@@ -49,6 +43,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   end
 
+  scope :hud_non_residential, -> do
+    joins(:project).merge(GrdaWarehouse::Hud::Project.hud_non_residential)
+  end
+
   scope :residential_non_homeless, -> do
     r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     where(project_type_column => r_non_homeless)
@@ -56,7 +54,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   scope :hud_residential_non_homeless, -> do
     r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     hud_project_type(r_non_homeless)
-    end
+  end
 
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table
@@ -154,8 +152,9 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   end
 
   scope :service_within_date_range, -> (start_date: , end_date: ) do
-    at = arel_table
-    service.where(at[:date].gteq(start_date).and(at[:date].lteq(end_date)))
+    joins(:service_history_services).
+    merge(GrdaWarehouse::ServiceHistoryService.service).
+    where(shs_t[:date].gteq(start_date).and(shs_t[:date].lteq(end_date)))
   end
 
   scope :entry_within_date_range, -> (start_date: , end_date: ) do
@@ -177,8 +176,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   }
 
   scope :started_between, -> (start_date: , end_date: ) do
-    at = arel_table
-    where(at[:first_date_in_program].gteq(start_date).and(at[:first_date_in_program].lteq(end_date)))
+    where(first_date_in_program: (start_date..end_date))
   end
 
   scope :ended_between, -> (start_date: , end_date: ) do
@@ -216,18 +214,20 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   # HUD reporting Project Type overlay
   scope :hud_project_type, -> (project_types) do
     where(computed_project_type: project_types)
-    # pt = GrdaWarehouse::Hud::Project.arel_table
-    # sht = arel_table
-    # joins(:project).
-    # where(
-    #   pt[:act_as_project_type].eq(nil).
-    #   and(sht[:project_type].in(project_types)).
-    #   or(pt[:act_as_project_type].in(project_types)))
-    # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
   end
 
   scope :in_project_type, -> (project_types) do
     where(project_type_column => project_types)
+  end
+
+  scope :with_service_between, -> (start_date: ,end_date: ) do
+    where(
+      GrdaWarehouse::ServiceHistoryService.where( 
+        shs_t[:service_history_enrollment_id].eq(arel_table[:id])
+      ).
+      where(date: (start_date..end_date)).
+      exists
+    )
   end
 
   scope :visible_in_window, -> do
@@ -261,7 +261,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     end
 
     scope :adult, -> do
-      where(sh_t[:age].gteq(18))
+      where(she_t[:age].gteq(18))
     end
 
     # Client age on date is 18-24

@@ -65,6 +65,12 @@ module ArelHelper
   def sh_t
     GrdaWarehouse::ServiceHistory.arel_table
   end
+  def she_t
+    GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+  end
+  def shs_t
+    GrdaWarehouse::ServiceHistoryService.arel_table
+  end
   def s_t
     GrdaWarehouse::Hud::Service.arel_table
   end
@@ -100,6 +106,12 @@ module ArelHelper
   end
   def ib_t
     GrdaWarehouse::Hud::IncomeBenefit.arel_table
+  end
+  def d_t
+    GrdaWarehouse::Hud::Disability.arel_table
+  end
+  def hdv_t
+    GrdaWarehouse::Hud::HealthAndDv.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -238,6 +250,12 @@ module ArelHelper
     def sh_t
       GrdaWarehouse::ServiceHistory.arel_table
     end
+    def she_t
+      GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+    end
+    def shs_t
+      GrdaWarehouse::ServiceHistoryService.arel_table
+    end
     def s_t
       GrdaWarehouse::Hud::Service.arel_table
     end
@@ -273,6 +291,12 @@ module ArelHelper
     end
     def ib_t
       GrdaWarehouse::Hud::IncomeBenefit.arel_table
+    end
+    def d_t
+      GrdaWarehouse::Hud::Disability.arel_table
+    end
+    def hdv_t
+      GrdaWarehouse::Hud::HealthAndDv.arel_table
     end
   end
 end
