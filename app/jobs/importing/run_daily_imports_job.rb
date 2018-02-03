@@ -57,8 +57,8 @@ module Importing
       dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
       @notifier.ping('Full sanity check complete') if @send_notifications
-      # Rebuild ALL residential first dates
-      GrdaWarehouse::Tasks::EarliestResidentialService.new(true).run!
+      # Rebuild residential first dates
+      GrdaWarehouse::Tasks::EarliestResidentialService.new().run!
       @notifier.ping('Earliest residential services generated') if @send_notifications
       
       # Maintain some summary data to speed up searches and history display and other things
