@@ -4,7 +4,7 @@
 = simple_form_for(anomaly, {as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id)}.merge(wrapper))do |f|
   %tr.anomaly-current
     %td
-      = f.input :description, label: false
+      = f.input :description, label: false, as: :text, input_html: {rows: 8}
     %td
       = f.input :status, collection: anomaly.class.available_stati.invert, label: false, include_blank: false
     %td

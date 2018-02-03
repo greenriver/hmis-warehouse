@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180115195008) do
+ActiveRecord::Schema.define(version: 20180203202523) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -280,6 +280,7 @@ ActiveRecord::Schema.define(version: 20180115195008) do
     t.integer  "HospitalNights"
     t.integer  "RunawayYouth"
     t.string   "processed_hash"
+    t.string   "processed_as"
   end
   add_index "Enrollment", ["DateCreated"], :name=>"enrollment_date_created", :using=>:btree
   add_index "Enrollment", ["DateDeleted"], :name=>"index_Enrollment_on_DateDeleted", :using=>:btree
@@ -727,6 +728,18 @@ ActiveRecord::Schema.define(version: 20180115195008) do
   add_index "api_client_data_source_ids", ["data_source_id"], :name=>"index_api_client_data_source_ids_on_data_source_id", :using=>:btree
   add_index "api_client_data_source_ids", ["warehouse_id"], :name=>"index_api_client_data_source_ids_on_warehouse_id", :using=>:btree
 
+  create_table "cas_enrollments", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "enrollment_id"
+    t.date     "entry_date"
+    t.date     "exit_date"
+    t.datetime "created_at",    :null=>false
+    t.datetime "updated_at",    :null=>false
+    t.json     "history"
+  end
+  add_index "cas_enrollments", ["client_id"], :name=>"index_cas_enrollments_on_client_id", :using=>:btree
+  add_index "cas_enrollments", ["enrollment_id"], :name=>"index_cas_enrollments_on_enrollment_id", :using=>:btree
+
   create_table "cas_reports", force: :cascade do |t|
     t.integer  "client_id",                          :null=>false
     t.integer  "match_id",                           :null=>false
@@ -848,6 +861,17 @@ ActiveRecord::Schema.define(version: 20180115195008) do
   add_index "client_notes", ["client_id"], :name=>"index_client_notes_on_client_id", :using=>:btree
   add_index "client_notes", ["user_id"], :name=>"index_client_notes_on_user_id", :using=>:btree
 
+  create_table "cohort_client_changes", force: :cascade do |t|
+    t.integer  "cohort_client_id", :null=>false
+    t.integer  "cohort_id",        :null=>false
+    t.integer  "user_id",          :null=>false
+    t.string   "change"
+    t.datetime "changed_at",       :null=>false
+    t.string   "reason"
+  end
+  add_index "cohort_client_changes", ["change"], :name=>"index_cohort_client_changes_on_change", :using=>:btree
+  add_index "cohort_client_changes", ["changed_at"], :name=>"index_cohort_client_changes_on_changed_at", :using=>:btree
+
   create_table "cohort_client_notes", force: :cascade do |t|
     t.integer  "cohort_client_id", :null=>false
     t.text     "note"
@@ -873,7 +897,7 @@ ActiveRecord::Schema.define(version: 20180115195008) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.string   "sif_eligible"
+    t.boolean  "sif_eligible",                           :default=>false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -882,10 +906,17 @@ ActiveRecord::Schema.define(version: 20180115195008) do
     t.string   "st_francis_house"
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
-    t.string   "housing_track"
-    t.date     "va_eligible"
-    t.string   "vash_eligible"
+    t.string   "va_eligible"
+    t.boolean  "vash_eligible",                          :default=>false
     t.string   "chapter_115"
+    t.date     "first_date_homeless"
+    t.date     "last_date_approached"
+    t.boolean  "chronic",                                :default=>false
+    t.string   "dnd_rank"
+    t.boolean  "veteran",                                :default=>false
+    t.string   "housing_track_suggested"
+    t.string   "housing_track_enrolled"
+    t.integer  "adjusted_days_homeless"
   end
   add_index "cohort_clients", ["client_id"], :name=>"index_cohort_clients_on_client_id", :using=>:btree
   add_index "cohort_clients", ["cohort_id"], :name=>"index_cohort_clients_on_cohort_id", :using=>:btree
@@ -1358,6 +1389,7 @@ ActiveRecord::Schema.define(version: 20180115195008) do
     t.integer  "HospitalNights"
     t.integer  "RunawayYouth"
     t.string   "processed_hash"
+    t.string   "processed_as"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -1373,18 +1405,18 @@ ActiveRecord::Schema.define(version: 20180115195008) do
     t.date    "first_date_in_program"
     t.date    "last_date_in_program"
     t.string  "enrollment_group_id",     :limit=>50
-    t.integer "age"
+    t.integer "age",                     :limit=>2
     t.integer "destination"
     t.string  "head_of_household_id",    :limit=>50
     t.string  "household_id",            :limit=>50
     t.integer "project_id"
-    t.integer "project_type"
+    t.integer "project_type",            :limit=>2
     t.integer "project_tracking_method"
     t.integer "organization_id"
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
-    t.integer "service_type"
-    t.integer "computed_project_type"
+    t.integer "service_type",            :limit=>2
+    t.integer "computed_project_type",   :limit=>2
     t.boolean "presented_as_individual"
   end
   add_index "recent_service_history", ["client_id"], :name=>"client_id_rsh_index", :using=>:btree
@@ -1937,6 +1969,962 @@ SELECT "Services"."ServicesID",
   add_index "report_tokens", ["contact_id"], :name=>"index_report_tokens_on_contact_id", :using=>:btree
   add_index "report_tokens", ["report_id"], :name=>"index_report_tokens_on_report_id", :using=>:btree
 
+  create_table "service_history_enrollments", force: :cascade do |t|
+    t.integer "client_id",                       :null=>false
+    t.integer "data_source_id"
+    t.date    "date",                            :null=>false
+    t.date    "first_date_in_program",           :null=>false
+    t.date    "last_date_in_program"
+    t.string  "enrollment_group_id",             :limit=>50
+    t.string  "project_id",                      :limit=>50
+    t.integer "age",                             :limit=>2
+    t.integer "destination"
+    t.string  "head_of_household_id",            :limit=>50
+    t.string  "household_id",                    :limit=>50
+    t.string  "project_name",                    :limit=>150
+    t.integer "project_type",                    :limit=>2
+    t.integer "project_tracking_method"
+    t.string  "organization_id",                 :limit=>50
+    t.string  "record_type",                     :limit=>50, :null=>false
+    t.integer "housing_status_at_entry"
+    t.integer "housing_status_at_exit"
+    t.integer "service_type",                    :limit=>2
+    t.integer "computed_project_type",           :limit=>2
+    t.boolean "presented_as_individual"
+    t.integer "other_clients_over_25",           :limit=>2, :default=>0, :null=>false
+    t.integer "other_clients_under_18",          :limit=>2, :default=>0, :null=>false
+    t.integer "other_clients_between_18_and_25", :limit=>2, :default=>0, :null=>false
+    t.boolean "unaccompanied_youth",             :default=>false, :null=>false
+    t.boolean "parenting_youth",                 :default=>false, :null=>false
+    t.boolean "parenting_juvenile",              :default=>false, :null=>false
+    t.boolean "children_only",                   :default=>false, :null=>false
+    t.boolean "individual_adult",                :default=>false, :null=>false
+    t.boolean "individual_elder",                :default=>false, :null=>false
+    t.boolean "head_of_household",               :default=>false, :null=>false
+  end
+  add_index "service_history_enrollments", ["client_id", "record_type"], :name=>"index_she_on_client_id", :using=>:btree
+  add_index "service_history_enrollments", ["computed_project_type", "record_type", "client_id"], :name=>"index_she_on_computed_project_type", :using=>:btree
+  add_index "service_history_enrollments", ["data_source_id", "project_id", "organization_id", "record_type"], :name=>"index_she_ds_proj_org_r_type", :using=>:btree
+  add_index "service_history_enrollments", ["date", "household_id", "record_type"], :name=>"index_she_on_household_id", :using=>:btree
+  add_index "service_history_enrollments", ["date", "record_type", "presented_as_individual"], :name=>"index_she_date_r_type_indiv", :using=>:btree
+  add_index "service_history_enrollments", ["enrollment_group_id", "project_tracking_method"], :name=>"index_she__enrollment_id_track_meth", :using=>:btree
+  add_index "service_history_enrollments", ["first_date_in_program", "last_date_in_program", "record_type", "date"], :name=>"index_she_on_last_date_in_program", :using=>:btree
+  add_index "service_history_enrollments", ["first_date_in_program"], :name=>"index_she_on_first_date_in_program", :using=>:brin
+  add_index "service_history_enrollments", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], :name=>"index_she_date_ds_org_proj_proj_type", :using=>:btree
+
+  create_table "service_history_services", force: :cascade do |t|
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+
+  create_view "service_history", <<-'END_VIEW_SERVICE_HISTORY', :force => true
+SELECT service_history_services.id,
+    service_history_services.client_id,
+    service_history_enrollments.data_source_id,
+    service_history_services.date,
+    service_history_enrollments.first_date_in_program,
+    service_history_enrollments.last_date_in_program,
+    service_history_enrollments.enrollment_group_id,
+    service_history_enrollments.project_id,
+    service_history_services.age,
+    service_history_enrollments.destination,
+    service_history_enrollments.head_of_household_id,
+    service_history_enrollments.household_id,
+    service_history_enrollments.project_name,
+    service_history_services.project_type,
+    service_history_enrollments.project_tracking_method,
+    service_history_enrollments.organization_id,
+    service_history_services.record_type,
+    service_history_enrollments.housing_status_at_entry,
+    service_history_enrollments.housing_status_at_exit,
+    service_history_services.service_type,
+    service_history_enrollments.computed_project_type,
+    service_history_enrollments.presented_as_individual,
+    service_history_enrollments.other_clients_over_25,
+    service_history_enrollments.other_clients_under_18,
+    service_history_enrollments.other_clients_between_18_and_25,
+    service_history_enrollments.unaccompanied_youth,
+    service_history_enrollments.parenting_youth,
+    service_history_enrollments.parenting_juvenile,
+    service_history_enrollments.children_only,
+    service_history_enrollments.individual_adult,
+    service_history_enrollments.individual_elder,
+    service_history_enrollments.head_of_household
+   FROM (service_history_services
+     JOIN service_history_enrollments ON ((service_history_services.service_history_enrollment_id = service_history_enrollments.id)))
+UNION
+ SELECT service_history_enrollments.id,
+    service_history_enrollments.client_id,
+    service_history_enrollments.data_source_id,
+    service_history_enrollments.date,
+    service_history_enrollments.first_date_in_program,
+    service_history_enrollments.last_date_in_program,
+    service_history_enrollments.enrollment_group_id,
+    service_history_enrollments.project_id,
+    service_history_enrollments.age,
+    service_history_enrollments.destination,
+    service_history_enrollments.head_of_household_id,
+    service_history_enrollments.household_id,
+    service_history_enrollments.project_name,
+    service_history_enrollments.project_type,
+    service_history_enrollments.project_tracking_method,
+    service_history_enrollments.organization_id,
+    service_history_enrollments.record_type,
+    service_history_enrollments.housing_status_at_entry,
+    service_history_enrollments.housing_status_at_exit,
+    service_history_enrollments.service_type,
+    service_history_enrollments.computed_project_type,
+    service_history_enrollments.presented_as_individual,
+    service_history_enrollments.other_clients_over_25,
+    service_history_enrollments.other_clients_under_18,
+    service_history_enrollments.other_clients_between_18_and_25,
+    service_history_enrollments.unaccompanied_youth,
+    service_history_enrollments.parenting_youth,
+    service_history_enrollments.parenting_juvenile,
+    service_history_enrollments.children_only,
+    service_history_enrollments.individual_adult,
+    service_history_enrollments.individual_elder,
+    service_history_enrollments.head_of_household
+   FROM service_history_enrollments
+  END_VIEW_SERVICE_HISTORY
+
+  create_table "service_history_services_2000", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2000", ["client_id", "date", "record_type"], :name=>"index_shs_2000_date_client_id", :using=>:btree
+  add_index "service_history_services_2000", ["date"], :name=>"index_shs_2000_date_brin", :using=>:brin
+  add_index "service_history_services_2000", ["id"], :name=>"index_service_history_services_2000_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2000", ["project_type", "date", "record_type"], :name=>"index_shs_2000_date_project_type", :using=>:btree
+  add_index "service_history_services_2000", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2000_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2001", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2001", ["client_id", "date", "record_type"], :name=>"index_shs_2001_date_client_id", :using=>:btree
+  add_index "service_history_services_2001", ["date"], :name=>"index_shs_2001_date_brin", :using=>:brin
+  add_index "service_history_services_2001", ["id"], :name=>"index_service_history_services_2001_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2001", ["project_type", "date", "record_type"], :name=>"index_shs_2001_date_project_type", :using=>:btree
+  add_index "service_history_services_2001", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2001_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2002", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2002", ["client_id", "date", "record_type"], :name=>"index_shs_2002_date_client_id", :using=>:btree
+  add_index "service_history_services_2002", ["date"], :name=>"index_shs_2002_date_brin", :using=>:brin
+  add_index "service_history_services_2002", ["id"], :name=>"index_service_history_services_2002_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2002", ["project_type", "date", "record_type"], :name=>"index_shs_2002_date_project_type", :using=>:btree
+  add_index "service_history_services_2002", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2002_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2003", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2003", ["client_id", "date", "record_type"], :name=>"index_shs_2003_date_client_id", :using=>:btree
+  add_index "service_history_services_2003", ["date"], :name=>"index_shs_2003_date_brin", :using=>:brin
+  add_index "service_history_services_2003", ["id"], :name=>"index_service_history_services_2003_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2003", ["project_type", "date", "record_type"], :name=>"index_shs_2003_date_project_type", :using=>:btree
+  add_index "service_history_services_2003", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2003_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2004", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2004", ["client_id", "date", "record_type"], :name=>"index_shs_2004_date_client_id", :using=>:btree
+  add_index "service_history_services_2004", ["date"], :name=>"index_shs_2004_date_brin", :using=>:brin
+  add_index "service_history_services_2004", ["id"], :name=>"index_service_history_services_2004_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2004", ["project_type", "date", "record_type"], :name=>"index_shs_2004_date_project_type", :using=>:btree
+  add_index "service_history_services_2004", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2004_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2005", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2005", ["client_id", "date", "record_type"], :name=>"index_shs_2005_date_client_id", :using=>:btree
+  add_index "service_history_services_2005", ["date"], :name=>"index_shs_2005_date_brin", :using=>:brin
+  add_index "service_history_services_2005", ["id"], :name=>"index_service_history_services_2005_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2005", ["project_type", "date", "record_type"], :name=>"index_shs_2005_date_project_type", :using=>:btree
+  add_index "service_history_services_2005", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2005_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2006", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2006", ["client_id", "date", "record_type"], :name=>"index_shs_2006_date_client_id", :using=>:btree
+  add_index "service_history_services_2006", ["date"], :name=>"index_shs_2006_date_brin", :using=>:brin
+  add_index "service_history_services_2006", ["id"], :name=>"index_service_history_services_2006_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2006", ["project_type", "date", "record_type"], :name=>"index_shs_2006_date_project_type", :using=>:btree
+  add_index "service_history_services_2006", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2006_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2007", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2007", ["client_id", "date", "record_type"], :name=>"index_shs_2007_date_client_id", :using=>:btree
+  add_index "service_history_services_2007", ["date"], :name=>"index_shs_2007_date_brin", :using=>:brin
+  add_index "service_history_services_2007", ["id"], :name=>"index_service_history_services_2007_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2007", ["project_type", "date", "record_type"], :name=>"index_shs_2007_date_project_type", :using=>:btree
+  add_index "service_history_services_2007", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2007_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2008", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2008", ["client_id", "date", "record_type"], :name=>"index_shs_2008_date_client_id", :using=>:btree
+  add_index "service_history_services_2008", ["date"], :name=>"index_shs_2008_date_brin", :using=>:brin
+  add_index "service_history_services_2008", ["id"], :name=>"index_service_history_services_2008_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2008", ["project_type", "date", "record_type"], :name=>"index_shs_2008_date_project_type", :using=>:btree
+  add_index "service_history_services_2008", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2008_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2009", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2009", ["client_id", "date", "record_type"], :name=>"index_shs_2009_date_client_id", :using=>:btree
+  add_index "service_history_services_2009", ["date"], :name=>"index_shs_2009_date_brin", :using=>:brin
+  add_index "service_history_services_2009", ["id"], :name=>"index_service_history_services_2009_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2009", ["project_type", "date", "record_type"], :name=>"index_shs_2009_date_project_type", :using=>:btree
+  add_index "service_history_services_2009", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2009_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2010", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2010", ["client_id", "date", "record_type"], :name=>"index_shs_2010_date_client_id", :using=>:btree
+  add_index "service_history_services_2010", ["date"], :name=>"index_shs_2010_date_brin", :using=>:brin
+  add_index "service_history_services_2010", ["id"], :name=>"index_service_history_services_2010_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2010", ["project_type", "date", "record_type"], :name=>"index_shs_2010_date_project_type", :using=>:btree
+  add_index "service_history_services_2010", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2010_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2011", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2011", ["client_id", "date", "record_type"], :name=>"index_shs_2011_date_client_id", :using=>:btree
+  add_index "service_history_services_2011", ["date"], :name=>"index_shs_2011_date_brin", :using=>:brin
+  add_index "service_history_services_2011", ["id"], :name=>"index_service_history_services_2011_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2011", ["project_type", "date", "record_type"], :name=>"index_shs_2011_date_project_type", :using=>:btree
+  add_index "service_history_services_2011", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2011_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2012", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2012", ["client_id", "date", "record_type"], :name=>"index_shs_2012_date_client_id", :using=>:btree
+  add_index "service_history_services_2012", ["date"], :name=>"index_shs_2012_date_brin", :using=>:brin
+  add_index "service_history_services_2012", ["id"], :name=>"index_service_history_services_2012_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2012", ["project_type", "date", "record_type"], :name=>"index_shs_2012_date_project_type", :using=>:btree
+  add_index "service_history_services_2012", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2012_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2013", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2013", ["client_id", "date", "record_type"], :name=>"index_shs_2013_date_client_id", :using=>:btree
+  add_index "service_history_services_2013", ["date"], :name=>"index_shs_2013_date_brin", :using=>:brin
+  add_index "service_history_services_2013", ["id"], :name=>"index_service_history_services_2013_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2013", ["project_type", "date", "record_type"], :name=>"index_shs_2013_date_project_type", :using=>:btree
+  add_index "service_history_services_2013", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2013_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2014", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2014", ["client_id", "date", "record_type"], :name=>"index_shs_2014_date_client_id", :using=>:btree
+  add_index "service_history_services_2014", ["date"], :name=>"index_shs_2014_date_brin", :using=>:brin
+  add_index "service_history_services_2014", ["id"], :name=>"index_service_history_services_2014_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2014", ["project_type", "date", "record_type"], :name=>"index_shs_2014_date_project_type", :using=>:btree
+  add_index "service_history_services_2014", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2014_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2015", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2015", ["client_id", "date", "record_type"], :name=>"index_shs_2015_date_client_id", :using=>:btree
+  add_index "service_history_services_2015", ["date"], :name=>"index_shs_2015_date_brin", :using=>:brin
+  add_index "service_history_services_2015", ["id"], :name=>"index_service_history_services_2015_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2015", ["project_type", "date", "record_type"], :name=>"index_shs_2015_date_project_type", :using=>:btree
+  add_index "service_history_services_2015", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2015_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2016", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2016", ["client_id", "date", "record_type"], :name=>"index_shs_2016_date_client_id", :using=>:btree
+  add_index "service_history_services_2016", ["date"], :name=>"index_shs_2016_date_brin", :using=>:brin
+  add_index "service_history_services_2016", ["id"], :name=>"index_service_history_services_2016_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2016", ["project_type", "date", "record_type"], :name=>"index_shs_2016_date_project_type", :using=>:btree
+  add_index "service_history_services_2016", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2016_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2017", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2017", ["client_id", "date", "record_type"], :name=>"index_shs_2017_date_client_id", :using=>:btree
+  add_index "service_history_services_2017", ["date"], :name=>"index_shs_2017_date_brin", :using=>:brin
+  add_index "service_history_services_2017", ["id"], :name=>"index_service_history_services_2017_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2017", ["project_type", "date", "record_type"], :name=>"index_shs_2017_date_project_type", :using=>:btree
+  add_index "service_history_services_2017", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2017_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2018", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2018", ["client_id", "date", "record_type"], :name=>"index_shs_2018_date_client_id", :using=>:btree
+  add_index "service_history_services_2018", ["date"], :name=>"index_shs_2018_date_brin", :using=>:brin
+  add_index "service_history_services_2018", ["id"], :name=>"index_service_history_services_2018_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2018", ["project_type", "date", "record_type"], :name=>"index_shs_2018_date_project_type", :using=>:btree
+  add_index "service_history_services_2018", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2018_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2019", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2019", ["client_id", "date", "record_type"], :name=>"index_shs_2019_date_client_id", :using=>:btree
+  add_index "service_history_services_2019", ["date"], :name=>"index_shs_2019_date_brin", :using=>:brin
+  add_index "service_history_services_2019", ["id"], :name=>"index_service_history_services_2019_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2019", ["project_type", "date", "record_type"], :name=>"index_shs_2019_date_project_type", :using=>:btree
+  add_index "service_history_services_2019", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2019_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2020", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2020", ["client_id", "date", "record_type"], :name=>"index_shs_2020_date_client_id", :using=>:btree
+  add_index "service_history_services_2020", ["date"], :name=>"index_shs_2020_date_brin", :using=>:brin
+  add_index "service_history_services_2020", ["id"], :name=>"index_service_history_services_2020_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2020", ["project_type", "date", "record_type"], :name=>"index_shs_2020_date_project_type", :using=>:btree
+  add_index "service_history_services_2020", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2020_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2021", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2021", ["client_id", "date", "record_type"], :name=>"index_shs_2021_date_client_id", :using=>:btree
+  add_index "service_history_services_2021", ["date"], :name=>"index_shs_2021_date_brin", :using=>:brin
+  add_index "service_history_services_2021", ["id"], :name=>"index_service_history_services_2021_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2021", ["project_type", "date", "record_type"], :name=>"index_shs_2021_date_project_type", :using=>:btree
+  add_index "service_history_services_2021", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2021_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2022", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2022", ["client_id", "date", "record_type"], :name=>"index_shs_2022_date_client_id", :using=>:btree
+  add_index "service_history_services_2022", ["date"], :name=>"index_shs_2022_date_brin", :using=>:brin
+  add_index "service_history_services_2022", ["id"], :name=>"index_service_history_services_2022_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2022", ["project_type", "date", "record_type"], :name=>"index_shs_2022_date_project_type", :using=>:btree
+  add_index "service_history_services_2022", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2022_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2023", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2023", ["client_id", "date", "record_type"], :name=>"index_shs_2023_date_client_id", :using=>:btree
+  add_index "service_history_services_2023", ["date"], :name=>"index_shs_2023_date_brin", :using=>:brin
+  add_index "service_history_services_2023", ["id"], :name=>"index_service_history_services_2023_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2023", ["project_type", "date", "record_type"], :name=>"index_shs_2023_date_project_type", :using=>:btree
+  add_index "service_history_services_2023", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2023_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2024", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2024", ["client_id", "date", "record_type"], :name=>"index_shs_2024_date_client_id", :using=>:btree
+  add_index "service_history_services_2024", ["date"], :name=>"index_shs_2024_date_brin", :using=>:brin
+  add_index "service_history_services_2024", ["id"], :name=>"index_service_history_services_2024_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2024", ["project_type", "date", "record_type"], :name=>"index_shs_2024_date_project_type", :using=>:btree
+  add_index "service_history_services_2024", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2024_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2025", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2025", ["client_id", "date", "record_type"], :name=>"index_shs_2025_date_client_id", :using=>:btree
+  add_index "service_history_services_2025", ["date"], :name=>"index_shs_2025_date_brin", :using=>:brin
+  add_index "service_history_services_2025", ["id"], :name=>"index_service_history_services_2025_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2025", ["project_type", "date", "record_type"], :name=>"index_shs_2025_date_project_type", :using=>:btree
+  add_index "service_history_services_2025", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2025_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2026", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2026", ["client_id", "date", "record_type"], :name=>"index_shs_2026_date_client_id", :using=>:btree
+  add_index "service_history_services_2026", ["date"], :name=>"index_shs_2026_date_brin", :using=>:brin
+  add_index "service_history_services_2026", ["id"], :name=>"index_service_history_services_2026_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2026", ["project_type", "date", "record_type"], :name=>"index_shs_2026_date_project_type", :using=>:btree
+  add_index "service_history_services_2026", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2026_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2027", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2027", ["client_id", "date", "record_type"], :name=>"index_shs_2027_date_client_id", :using=>:btree
+  add_index "service_history_services_2027", ["date"], :name=>"index_shs_2027_date_brin", :using=>:brin
+  add_index "service_history_services_2027", ["id"], :name=>"index_service_history_services_2027_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2027", ["project_type", "date", "record_type"], :name=>"index_shs_2027_date_project_type", :using=>:btree
+  add_index "service_history_services_2027", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2027_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2028", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2028", ["client_id", "date", "record_type"], :name=>"index_shs_2028_date_client_id", :using=>:btree
+  add_index "service_history_services_2028", ["date"], :name=>"index_shs_2028_date_brin", :using=>:brin
+  add_index "service_history_services_2028", ["id"], :name=>"index_service_history_services_2028_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2028", ["project_type", "date", "record_type"], :name=>"index_shs_2028_date_project_type", :using=>:btree
+  add_index "service_history_services_2028", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2028_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2029", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2029", ["client_id", "date", "record_type"], :name=>"index_shs_2029_date_client_id", :using=>:btree
+  add_index "service_history_services_2029", ["date"], :name=>"index_shs_2029_date_brin", :using=>:brin
+  add_index "service_history_services_2029", ["id"], :name=>"index_service_history_services_2029_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2029", ["project_type", "date", "record_type"], :name=>"index_shs_2029_date_project_type", :using=>:btree
+  add_index "service_history_services_2029", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2029_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2030", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2030", ["client_id", "date", "record_type"], :name=>"index_shs_2030_date_client_id", :using=>:btree
+  add_index "service_history_services_2030", ["date"], :name=>"index_shs_2030_date_brin", :using=>:brin
+  add_index "service_history_services_2030", ["id"], :name=>"index_service_history_services_2030_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2030", ["project_type", "date", "record_type"], :name=>"index_shs_2030_date_project_type", :using=>:btree
+  add_index "service_history_services_2030", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2030_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2031", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2031", ["client_id", "date", "record_type"], :name=>"index_shs_2031_date_client_id", :using=>:btree
+  add_index "service_history_services_2031", ["date"], :name=>"index_shs_2031_date_brin", :using=>:brin
+  add_index "service_history_services_2031", ["id"], :name=>"index_service_history_services_2031_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2031", ["project_type", "date", "record_type"], :name=>"index_shs_2031_date_project_type", :using=>:btree
+  add_index "service_history_services_2031", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2031_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2032", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2032", ["client_id", "date", "record_type"], :name=>"index_shs_2032_date_client_id", :using=>:btree
+  add_index "service_history_services_2032", ["date"], :name=>"index_shs_2032_date_brin", :using=>:brin
+  add_index "service_history_services_2032", ["id"], :name=>"index_service_history_services_2032_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2032", ["project_type", "date", "record_type"], :name=>"index_shs_2032_date_project_type", :using=>:btree
+  add_index "service_history_services_2032", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2032_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2033", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2033", ["client_id", "date", "record_type"], :name=>"index_shs_2033_date_client_id", :using=>:btree
+  add_index "service_history_services_2033", ["date"], :name=>"index_shs_2033_date_brin", :using=>:brin
+  add_index "service_history_services_2033", ["id"], :name=>"index_service_history_services_2033_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2033", ["project_type", "date", "record_type"], :name=>"index_shs_2033_date_project_type", :using=>:btree
+  add_index "service_history_services_2033", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2033_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2034", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2034", ["client_id", "date", "record_type"], :name=>"index_shs_2034_date_client_id", :using=>:btree
+  add_index "service_history_services_2034", ["date"], :name=>"index_shs_2034_date_brin", :using=>:brin
+  add_index "service_history_services_2034", ["id"], :name=>"index_service_history_services_2034_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2034", ["project_type", "date", "record_type"], :name=>"index_shs_2034_date_project_type", :using=>:btree
+  add_index "service_history_services_2034", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2034_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2035", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2035", ["client_id", "date", "record_type"], :name=>"index_shs_2035_date_client_id", :using=>:btree
+  add_index "service_history_services_2035", ["date"], :name=>"index_shs_2035_date_brin", :using=>:brin
+  add_index "service_history_services_2035", ["id"], :name=>"index_service_history_services_2035_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2035", ["project_type", "date", "record_type"], :name=>"index_shs_2035_date_project_type", :using=>:btree
+  add_index "service_history_services_2035", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2035_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2036", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2036", ["client_id", "date", "record_type"], :name=>"index_shs_2036_date_client_id", :using=>:btree
+  add_index "service_history_services_2036", ["date"], :name=>"index_shs_2036_date_brin", :using=>:brin
+  add_index "service_history_services_2036", ["id"], :name=>"index_service_history_services_2036_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2036", ["project_type", "date", "record_type"], :name=>"index_shs_2036_date_project_type", :using=>:btree
+  add_index "service_history_services_2036", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2036_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2037", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2037", ["client_id", "date", "record_type"], :name=>"index_shs_2037_date_client_id", :using=>:btree
+  add_index "service_history_services_2037", ["date"], :name=>"index_shs_2037_date_brin", :using=>:brin
+  add_index "service_history_services_2037", ["id"], :name=>"index_service_history_services_2037_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2037", ["project_type", "date", "record_type"], :name=>"index_shs_2037_date_project_type", :using=>:btree
+  add_index "service_history_services_2037", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2037_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2038", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2038", ["client_id", "date", "record_type"], :name=>"index_shs_2038_date_client_id", :using=>:btree
+  add_index "service_history_services_2038", ["date"], :name=>"index_shs_2038_date_brin", :using=>:brin
+  add_index "service_history_services_2038", ["id"], :name=>"index_service_history_services_2038_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2038", ["project_type", "date", "record_type"], :name=>"index_shs_2038_date_project_type", :using=>:btree
+  add_index "service_history_services_2038", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2038_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2039", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2039", ["client_id", "date", "record_type"], :name=>"index_shs_2039_date_client_id", :using=>:btree
+  add_index "service_history_services_2039", ["date"], :name=>"index_shs_2039_date_brin", :using=>:brin
+  add_index "service_history_services_2039", ["id"], :name=>"index_service_history_services_2039_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2039", ["project_type", "date", "record_type"], :name=>"index_shs_2039_date_project_type", :using=>:btree
+  add_index "service_history_services_2039", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2039_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2040", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2040", ["client_id", "date", "record_type"], :name=>"index_shs_2040_date_client_id", :using=>:btree
+  add_index "service_history_services_2040", ["date"], :name=>"index_shs_2040_date_brin", :using=>:brin
+  add_index "service_history_services_2040", ["id"], :name=>"index_service_history_services_2040_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2040", ["project_type", "date", "record_type"], :name=>"index_shs_2040_date_project_type", :using=>:btree
+  add_index "service_history_services_2040", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2040_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2041", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2041", ["client_id", "date", "record_type"], :name=>"index_shs_2041_date_client_id", :using=>:btree
+  add_index "service_history_services_2041", ["date"], :name=>"index_shs_2041_date_brin", :using=>:brin
+  add_index "service_history_services_2041", ["id"], :name=>"index_service_history_services_2041_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2041", ["project_type", "date", "record_type"], :name=>"index_shs_2041_date_project_type", :using=>:btree
+  add_index "service_history_services_2041", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2041_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2042", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2042", ["client_id", "date", "record_type"], :name=>"index_shs_2042_date_client_id", :using=>:btree
+  add_index "service_history_services_2042", ["date"], :name=>"index_shs_2042_date_brin", :using=>:brin
+  add_index "service_history_services_2042", ["id"], :name=>"index_service_history_services_2042_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2042", ["project_type", "date", "record_type"], :name=>"index_shs_2042_date_project_type", :using=>:btree
+  add_index "service_history_services_2042", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2042_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2043", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2043", ["client_id", "date", "record_type"], :name=>"index_shs_2043_date_client_id", :using=>:btree
+  add_index "service_history_services_2043", ["date"], :name=>"index_shs_2043_date_brin", :using=>:brin
+  add_index "service_history_services_2043", ["id"], :name=>"index_service_history_services_2043_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2043", ["project_type", "date", "record_type"], :name=>"index_shs_2043_date_project_type", :using=>:btree
+  add_index "service_history_services_2043", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2043_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2044", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2044", ["client_id", "date", "record_type"], :name=>"index_shs_2044_date_client_id", :using=>:btree
+  add_index "service_history_services_2044", ["date"], :name=>"index_shs_2044_date_brin", :using=>:brin
+  add_index "service_history_services_2044", ["id"], :name=>"index_service_history_services_2044_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2044", ["project_type", "date", "record_type"], :name=>"index_shs_2044_date_project_type", :using=>:btree
+  add_index "service_history_services_2044", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2044_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2045", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2045", ["client_id", "date", "record_type"], :name=>"index_shs_2045_date_client_id", :using=>:btree
+  add_index "service_history_services_2045", ["date"], :name=>"index_shs_2045_date_brin", :using=>:brin
+  add_index "service_history_services_2045", ["id"], :name=>"index_service_history_services_2045_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2045", ["project_type", "date", "record_type"], :name=>"index_shs_2045_date_project_type", :using=>:btree
+  add_index "service_history_services_2045", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2045_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2046", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2046", ["client_id", "date", "record_type"], :name=>"index_shs_2046_date_client_id", :using=>:btree
+  add_index "service_history_services_2046", ["date"], :name=>"index_shs_2046_date_brin", :using=>:brin
+  add_index "service_history_services_2046", ["id"], :name=>"index_service_history_services_2046_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2046", ["project_type", "date", "record_type"], :name=>"index_shs_2046_date_project_type", :using=>:btree
+  add_index "service_history_services_2046", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2046_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2047", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2047", ["client_id", "date", "record_type"], :name=>"index_shs_2047_date_client_id", :using=>:btree
+  add_index "service_history_services_2047", ["date"], :name=>"index_shs_2047_date_brin", :using=>:brin
+  add_index "service_history_services_2047", ["id"], :name=>"index_service_history_services_2047_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2047", ["project_type", "date", "record_type"], :name=>"index_shs_2047_date_project_type", :using=>:btree
+  add_index "service_history_services_2047", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2047_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2048", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2048", ["client_id", "date", "record_type"], :name=>"index_shs_2048_date_client_id", :using=>:btree
+  add_index "service_history_services_2048", ["date"], :name=>"index_shs_2048_date_brin", :using=>:brin
+  add_index "service_history_services_2048", ["id"], :name=>"index_service_history_services_2048_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2048", ["project_type", "date", "record_type"], :name=>"index_shs_2048_date_project_type", :using=>:btree
+  add_index "service_history_services_2048", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2048_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2049", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2049", ["client_id", "date", "record_type"], :name=>"index_shs_2049_date_client_id", :using=>:btree
+  add_index "service_history_services_2049", ["date"], :name=>"index_shs_2049_date_brin", :using=>:brin
+  add_index "service_history_services_2049", ["id"], :name=>"index_service_history_services_2049_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2049", ["project_type", "date", "record_type"], :name=>"index_shs_2049_date_project_type", :using=>:btree
+  add_index "service_history_services_2049", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2049_date_en_id", :using=>:btree
+
+  create_table "service_history_services_2050", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_2050", ["client_id", "date", "record_type"], :name=>"index_shs_2050_date_client_id", :using=>:btree
+  add_index "service_history_services_2050", ["date"], :name=>"index_shs_2050_date_brin", :using=>:brin
+  add_index "service_history_services_2050", ["id"], :name=>"index_service_history_services_2050_on_id", :unique=>true, :using=>:btree
+  add_index "service_history_services_2050", ["project_type", "date", "record_type"], :name=>"index_shs_2050_date_project_type", :using=>:btree
+  add_index "service_history_services_2050", ["service_history_enrollment_id", "date", "record_type"], :name=>"index_shs_2050_date_en_id", :using=>:btree
+
+  create_table "service_history_services_remainder", id: false, force: :cascade do |t|
+    t.integer "id",                            :default=>"nextval('service_history_services_id_seq'::regclass)", :null=>false
+    t.integer "service_history_enrollment_id", :null=>false
+    t.string  "record_type",                   :limit=>50, :null=>false
+    t.date    "date",                          :null=>false
+    t.integer "age",                           :limit=>2
+    t.integer "service_type",                  :limit=>2
+    t.integer "client_id"
+    t.integer "project_type",                  :limit=>2
+  end
+  add_index "service_history_services_remainder", ["date", "client_id"], :name=>"index_shs_1900_date_client_id", :using=>:btree
+  add_index "service_history_services_remainder", ["date", "project_type"], :name=>"index_shs_1900_date_project_type", :using=>:btree
+  add_index "service_history_services_remainder", ["date", "service_history_enrollment_id"], :name=>"index_shs_1900_date_en_id", :using=>:btree
+  add_index "service_history_services_remainder", ["date"], :name=>"index_shs_1900_date_brin", :using=>:brin
+  add_index "service_history_services_remainder", ["id"], :name=>"index_service_history_services_remainder_on_id", :unique=>true, :using=>:btree
+
   create_table "taggings", force: :cascade do |t|
     t.integer  "tag_id"
     t.integer  "taggable_id"
@@ -2207,6 +3195,59 @@ SELECT "Services"."ServicesID",
   add_foreign_key "Site", "data_sources"
   add_foreign_key "files", "vispdats"
   add_foreign_key "import_logs", "data_sources"
+  add_foreign_key "service_history_services", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2000", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2001", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2002", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2003", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2004", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2005", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2006", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2007", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2008", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2009", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2010", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2011", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2012", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2013", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2014", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2015", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2016", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2017", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2018", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2019", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2020", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2021", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2022", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2023", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2024", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2025", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2026", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2027", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2028", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2029", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2030", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2031", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2032", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2033", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2034", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2035", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2036", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2037", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2038", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2039", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2040", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2041", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2042", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2043", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2044", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2045", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2046", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2047", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2048", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2049", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2050", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_remainder", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "warehouse_clients", "\"Client\"", column: "destination_id"
   add_foreign_key "warehouse_clients", "\"Client\"", column: "source_id"
   add_foreign_key "warehouse_clients", "data_sources"

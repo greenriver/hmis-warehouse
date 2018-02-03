@@ -112,7 +112,12 @@ class ReportResultsController < ApplicationController
     end
 
     def report_result_scope
-      ReportResult.where(report_id: params[:report_id].to_i)
+      ReportResult.where(report_id: params[:report_id].to_i).
+        select(*report_result_summary_columns)
+    end
+
+    def report_result_summary_columns
+      ReportResult.column_names - ['original_results', 'results', 'support', 'validations']
     end
 
     # Use callbacks to share common setup or constraints between actions.

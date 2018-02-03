@@ -4,7 +4,7 @@ module GrdaWarehouse
     validates_presence_of :name
     serialize :column_state, Array
 
-    has_many :cohort_clients
+    has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
 
     attr_accessor :client_ids
@@ -26,6 +26,14 @@ module GrdaWarehouse
 
     def self.available_columns
       [
+        ::CohortColumns::LastName.new(),
+        ::CohortColumns::FirstName.new(),
+        ::CohortColumns::Rank.new(),
+        ::CohortColumns::Age.new(),
+        ::CohortColumns::CalculatedDaysHomeless.new(),
+        ::CohortColumns::AdjustedDaysHomeless.new(),
+        ::CohortColumns::FirstDateHomeless.new(),
+        ::CohortColumns::Chronic.new(),
         ::CohortColumns::Agency.new(),
         ::CohortColumns::CaseManager.new(),
         ::CohortColumns::HousingManager.new(),
@@ -39,14 +47,17 @@ module GrdaWarehouse
         ::CohortColumns::HousedDate.new(),
         ::CohortColumns::Destination.new(),
         ::CohortColumns::SubPopulation.new(),
-        ::CohortColumns::Rank.new(),
         ::CohortColumns::StFrancisHouse.new(),
         ::CohortColumns::LastGroupReviewDate.new(),
+        ::CohortColumns::LastDateApproached.new(),
         ::CohortColumns::PreContemplativeLastDateApproached.new(),
-        ::CohortColumns::HousingTrack.new(),
+        ::CohortColumns::HousingTrackSuggested.new(),
+        ::CohortColumns::HousingTrackEnrolled.new(),
         ::CohortColumns::VaEligible.new(),
         ::CohortColumns::VashEligible.new(),
         ::CohortColumns::Chapter115.new(),
+        ::CohortColumns::Veteran.new(),
+        ::CohortColumns::Notes.new()
       ]
     end
 

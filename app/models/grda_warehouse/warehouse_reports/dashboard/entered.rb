@@ -54,10 +54,10 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         [project_type.first, bucket_clients(entries)]
       end.to_h
 
-      @first_time_ever = service_history_source.homeless.first_date.
+      @first_time_ever = service_history_source.first_date.
         where(client_id: @first_time_client_ids.to_a, first_date_in_program: @range.range).
         distinct.
-        pluck(:client_id) 
+        pluck(:client_id)
 
       # ensure that the counts are in the same order as the labels
       @labels.each do |project_type_sym, _|
@@ -94,7 +94,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
 
       clients.each do |client_id, entry_dates|
-        if entry_dates.count == 1
+        if entry_dates.map{|date| @range.range.include?(date)}.all?
           buckets[:first_time] += 1
           @first_time_client_ids << client_id
         else

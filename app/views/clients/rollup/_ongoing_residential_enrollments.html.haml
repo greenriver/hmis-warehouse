@@ -1,2 +1,2 @@
-= cache(['clients', 'ongoing_residential_enrollments', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
+= cache(['clients', 'ongoing_residential_enrollments', @client, can_view_projects?, controller_path], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   = render 'enrollments', only_ongoing: true, scope: @client.scope_for_ongoing_residential_enrollments

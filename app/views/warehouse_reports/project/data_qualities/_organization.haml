@@ -28,7 +28,7 @@
   %th
     Last Sent On
 - projects.each do |project|
-  - last_report = project.data_quality_reports&.sort_by{|m| m[:id]}&.last
+  - last_report = @project_report_shells[project.id]
   %tr.jProject.hidden{data: {organization_id: id}}
     %td
     %td

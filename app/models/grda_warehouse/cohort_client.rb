@@ -9,5 +9,20 @@ module GrdaWarehouse
 
     validates_presence_of :cohort, :client
     
+    delegate :name, to: :client
+
+    attr_accessor :reason
+
+    def self.available_removal_reasons
+      [
+        'Housed',
+        'Missing',
+        'Deceased',
+        'Inactive',
+        'Unknown',
+        'Other',
+        'N/A',
+      ]
+    end
   end
 end

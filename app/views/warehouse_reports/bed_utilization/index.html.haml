@@ -3,7 +3,7 @@
 = link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
   Download Excel
 %h1= content_for :title
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = simple_form_for @mo, as: :mo, url: warehouse_reports_bed_utilization_index_path, html: { method: :get } do |f|
   = f.error_notification
   .row

@@ -116,10 +116,10 @@ module GrdaWarehouse::Hud
 
     alias_attribute :date, :EntryDate
 
-    belongs_to :data_source, inverse_of: :enrollments
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments
-    belongs_to :export, **hud_belongs(Export), inverse_of: :enrollments
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments
+    belongs_to :data_source, inverse_of: :enrollments, autosave: false
+    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments, autosave: false
+    belongs_to :export, **hud_belongs(Export), inverse_of: :enrollments, autosave: false
+    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments, autosave: false
     has_one :organization, through: :project, autosave: false
     
     # Destination client
@@ -141,7 +141,8 @@ module GrdaWarehouse::Hud
     has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
     # NOTE: you will want to limit this to a particular record_type
     has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
-    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID]
+    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)

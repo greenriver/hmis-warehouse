@@ -1,7 +1,7 @@
 - title = 'Missing Fields in Reports'
 - content_for :title, title
 %h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 = simple_form_for @query, as: :q, url: warehouse_reports_missing_values_path, html: { method: :get } do |f|
   = f.error_notification

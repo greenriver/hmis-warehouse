@@ -39,7 +39,7 @@ module Reports::Ahar::Fy2017
     end
 
     def title_for_options
-      'CoC Code'
+      'Options'
     end
 
     def self.available_options
@@ -57,7 +57,17 @@ module Reports::Ahar::Fy2017
     end
 
     def value_for_options options
-      options['coc_code']
+      {
+        'CoC Code: ' => options['coc_code'],
+        'Start: ' => options['report_start'],
+        'End: ' => options['report_end'],
+        'Nights: ' => [
+          options['oct_night'],
+          options['jan_night'],
+          options['apr_night'],
+          options['jul_night'],
+        ].join(', ')
+      }.map{|k,v| "<strong>#{k}</strong>#{v}"}.join('<br />').html_safe
     end
 
     def continuum_name
