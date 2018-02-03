@@ -100,7 +100,7 @@ module GrdaWarehouse::Tasks
     end
 
     def projects
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
     end
 
     def service_history_source

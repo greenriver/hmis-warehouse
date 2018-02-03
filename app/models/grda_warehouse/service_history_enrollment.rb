@@ -176,8 +176,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   }
 
   scope :started_between, -> (start_date: , end_date: ) do
-    at = arel_table
-    where(at[:first_date_in_program].gteq(start_date).and(at[:first_date_in_program].lteq(end_date)))
+    where(first_date_in_program: (start_date..end_date))
   end
 
   scope :ended_between, -> (start_date: , end_date: ) do

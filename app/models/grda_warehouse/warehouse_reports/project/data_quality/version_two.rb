@@ -375,11 +375,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         service_histories = service_scope.
           where(Project: {id: project.id}).
           order(shs_t[:date].asc).
-          pluck(*service_columns.values).
+          pluck(*service_columns.values, shs_t[:date].as('date').to_sql).
           map do |row|
-            Hash[service_columns.keys.zip(row)]
-          end
-        service_history_count = service_histories.count
+            Hash[(service_columns.keys + [:date]).zip(row)]
+          end.uniq
+        service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
@@ -387,7 +387,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         service_histories.each do |client_id, services|
           counts.each do |range, _|
             meta = services.first
-            meta[:service_count] = services.count
+            meta[:service_count] = services.select{|m| m[:date].present?}.count
             if range.include?(meta[:service_count])
               counts[range] << meta
               totals[:buckets][range] << meta

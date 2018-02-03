@@ -76,13 +76,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       homeless_service_history_source.
       with_service_between(start_date: @range.start, end_date: @range.end).
       open_between(start_date: @range.start, end_date: @range.end).
-      where(service_history_source.project_type_column => project_type)
+      in_project_type(project_type)
     end
 
     def enrollment_counts project_type
       service_scope(project_type).
       group(:client_id).
-      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id])]).to_sql).
+      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
       count
     end
 
@@ -90,19 +90,28 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       service_scope(project_type).
       started_between(start_date: @range.start, end_date: @range.end).
       group(:client_id).
-      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id])]).to_sql).
+      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
       count
     end
 
     def entry_dates_by_client project_type
       @entry_dates_by_client = {}
+      # limit to clients with an entry within the range and service within the range in the type
+      involved_client_ids = homeless_service_history_source.
+        entry.
+        started_between(start_date: @range.start, end_date: @range.end).
+        in_project_type(project_type).
+        with_service_between(start_date: @range.start, end_date: @range.end).
+        distinct.
+        select(:client_id)
+      # get all of their entry records regardless of date range
       homeless_service_history_source.
-      entry.
-      where(she_t[:first_date_in_program].lteq(@range.end)).
-      where(service_history_source.project_type_column => project_type).
-      with_service_between(start_date: @range.start, end_date: @range.end).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :first_date_in_program).
+        entry.
+        where(client_id: involved_client_ids).
+        where(she_t[:first_date_in_program].lteq(@range.end)).
+        in_project_type(project_type).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, :first_date_in_program).
       each do |client_id, first_date_in_program|
         @entry_dates_by_client[client_id] ||= []
         @entry_dates_by_client[client_id] << first_date_in_program

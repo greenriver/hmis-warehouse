@@ -20,7 +20,10 @@ module GrdaWarehouse::Tasks
             # Update any service records with this project
             service_history_source.
               where(project_id: project.ProjectID, data_source_id: project.data_source_id).
-              update_all(computed_project_type: project_type)
+              update_all(
+                computed_project_type: project_type,
+                project_type: project.ProjectType
+              )
             # Update the project after so that if it fails we trigger a re-update of both
             project.update(computed_project_type: project_type)
           end
@@ -34,7 +37,18 @@ module GrdaWarehouse::Tasks
     end
 
     def should_update? project
-      (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.act_as_project_type.blank? && project.ProjectType != project.computed_project_type)
+      project_override_changed = (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.act_as_project_type.blank? && project.ProjectType != project.computed_project_type)
+      
+      sh_project_types = service_history_source.
+        where(data_source_id: project.data_source_id, project_id: project.ProjectID).
+        distinct.
+        pluck(:project_type, :computed_project_type)
+      project_types_match_sh_types = true
+      if sh_project_types.count == 1
+        (project_type, computed_project_type) = sh_project_types.first
+        project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
+      end
+      project_type_changed_in_source = sh_project_types.count > 1 || ! project_types_match_sh_types
     end
 
     def project_source

@@ -235,7 +235,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         last_name: c_t[:LastName].as('last_name').to_sql,
         project_name: she_t[:project_name].as('project_name').to_sql,
         enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-        # date: sh_t[:date].as('date').to_sql,
+        # date: shs_t[:date].as('date').to_sql,
         first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
         last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
       }
@@ -319,7 +319,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def client_scope

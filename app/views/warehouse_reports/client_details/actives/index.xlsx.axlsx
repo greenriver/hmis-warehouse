@@ -10,6 +10,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Project',
     'Entry Date',
     'Exit Date',
+    'Enrollment ID'
   ], :style => title)
   @enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
@@ -21,6 +22,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
         enrollment[:project_name],
         enrollment[:first_date_in_program],
         enrollment[:last_date_in_program],
+        enrollment[:enrollment_group_id],
       ] 
       sheet.add_row(row)
     end

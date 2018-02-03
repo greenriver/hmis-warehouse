@@ -36,12 +36,21 @@ module WarehouseReports::ClientDetails
     end
 
     def enrollments_by_client project_type
-      homeless_service_history_source.
-        joins(:client, :organization).
+      # limit to clients with an entry within the range and service within the range in the type
+      involved_client_ids = homeless_service_history_source.
         entry.
-        where(she_t[:first_date_in_program].lteq(@range.end)).
+        started_between(start_date: @range.start, end_date: @range.end).
         in_project_type(project_type).
         with_service_between(start_date: @range.start, end_date: @range.end).
+        distinct.
+        select(:client_id)
+      # get all of their entry records regardless of date range
+      homeless_service_history_source.
+        entry.
+        joins(:client, :organization).
+        where(client_id: involved_client_ids).
+        where(she_t[:first_date_in_program].lteq(@range.end)).
+        in_project_type(project_type).
         order(first_date_in_program: :desc).
       pluck(*entered_columns.values).
       map do |row| 

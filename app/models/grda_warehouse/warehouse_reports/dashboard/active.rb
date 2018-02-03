@@ -53,6 +53,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         @clients += enrollment_counts_by_client.keys
         @enrollments[project_type] = enrollment_count
       end
+
       @clients.uniq!
       @client_count = @clients.size
       {
