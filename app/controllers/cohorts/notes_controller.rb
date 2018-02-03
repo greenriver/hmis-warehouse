@@ -1,7 +1,7 @@
 module Cohorts
   class NotesController < ApplicationController
     include PjaxModalController
-    before_action :require_can_view_cohorts!
+    before_action :require_can_edit_cohort_clients!
     before_action :set_note, only: [:destroy]
 
     def index

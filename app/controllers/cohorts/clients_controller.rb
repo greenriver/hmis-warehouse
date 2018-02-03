@@ -3,7 +3,7 @@ module Cohorts
     include PjaxModalController
     include ArelHelper
     include Chronic
-    before_action :require_can_create_cohorts!
+    before_action :require_can_edit_cohort_clients!
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]

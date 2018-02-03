@@ -1,6 +1,7 @@
 class CohortsController < ApplicationController
   include PjaxModalController
-  before_action :require_can_view_cohorts!
+  before_action :require_can_edit_cohort_clients!
+  before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :set_cohort, only: [:edit, :update, :destroy]
 
   def index

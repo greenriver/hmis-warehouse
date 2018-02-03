@@ -11,7 +11,7 @@
       = link_to window_clients_path, class: 'vsm-item-link' do
         .vsm-item-link--description 
           = _('Window into the Warehouse')
-    - if can_view_cohorts?
+    - if can_manage_cohorts? || can_edit_cohort_clients?
       = link_to cohorts_path, class: 'vsm-item-link' do
         .vsm-item-link--description 
           = _('Cohorts')

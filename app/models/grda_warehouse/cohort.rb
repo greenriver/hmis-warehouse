@@ -13,7 +13,7 @@ module GrdaWarehouse
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
-      elsif user.can_view_cohorts? || user.can_edit_cohorts?
+      elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       else
         none

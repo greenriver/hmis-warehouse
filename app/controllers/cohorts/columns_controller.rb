@@ -1,7 +1,7 @@
 module Cohorts
   class ColumnsController < ApplicationController
     include PjaxModalController
-    before_action :require_can_create_cohorts!
+    before_action :require_can_manage_cohorts!
     before_action :set_cohort
 
     def edit

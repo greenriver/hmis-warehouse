@@ -10,7 +10,7 @@
         %th{style: 'width: 12em;'} Effective Date
         %th Clients
     %tbody
-      - if current_user.can_create_cohorts?
+      - if current_user.can_manage_cohorts?
         %tr
           %td
             = f.input :name, label: false
