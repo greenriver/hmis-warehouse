@@ -1,6 +1,6 @@
 - client = @cohort_client.client
 - content_for :modal_title do
-  Editing #{@cohort_client.client.full_name}
+  Editing #{@cohort_client.name}
 = simple_form_for @cohort_client, url: cohort_cohort_client_path(@cohort, @cohort_client), method: :patch do |f|
   - @cohort.visible_columns.in_groups_of(1).each do |group|
     .row
@@ -46,7 +46,7 @@
   .right
     = f.submit 'Submit', class: 'btn btn-primary'
   .left
-    = link_to cohort_cohort_client_path(cohort_id: @cohort.id, id: @cohort_client.id), action: :destroy, method: :delete, class: 'btn btn-danger' do
+    = link_to pre_destroy_cohort_cohort_client_path(@cohort, @cohort_client), class: 'btn btn-danger', data: {loads_in_pjax_modal: true} do
       %span.icon-cross
       Remove from #{@cohort.name}
 

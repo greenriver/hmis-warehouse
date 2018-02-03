@@ -5,7 +5,7 @@ module Cohorts
     include Chronic
     before_action :require_can_create_cohorts!
     before_action :set_cohort
-    before_action :set_client, only: [:destroy, :update, :show]
+    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]
 
     # Return a json object of {cohort_client.id : updated_at}
@@ -97,12 +97,24 @@ module Cohorts
           ch[column.column] = column.default_value(client_id)
         end
       end
-      ch.save if ch.changed? || ch.new_record?
+      if ch.changed? || ch.new_record?
+        ch.save
+        log_create(cohort_id, ch.id)
+      end
+    end
+
+    def pre_destroy
+
     end
 
     def destroy
-      @client.destroy
-      respond_with(@cohort, location: cohort_path(@cohort))
+      log_removal(@client.cohort_id, @client.id, params[:grda_warehouse_cohort_client].try(:[], :reason))
+      if @client.destroy
+        flash[:notice] = "Removed #{@client.name}"
+        redirect_to cohort_path(@cohort)
+      else
+        render :pre_destroy
+      end
     end
 
     def cohort_params
@@ -113,6 +125,29 @@ module Cohorts
 
     def cohort_update_params
       params.require(:grda_warehouse_cohort_client).permit(*cohort_source.available_columns.map(&:column))
+    end
+
+    def log_create(cohort_id, cohort_client_id)
+      attributes = {
+        cohort_id: cohort_id,
+        cohort_client_id: cohort_client_id,
+        user_id: current_user.id,
+        change: 'create',
+        changed_at: Time.now,
+      }      
+      cohort_client_changes_source.create(attributes)
+    end
+
+    def log_removal(cohort_id, cohort_client_id, reason)
+      attributes = {
+        cohort_id: cohort_id,
+        cohort_client_id: cohort_client_id,
+        user_id: current_user.id,
+        change: 'destroy',
+        changed_at: Time.now,
+        reason: reason,
+      }      
+      cohort_client_changes_source.create(attributes)
     end
 
     def client_scope
@@ -129,6 +164,10 @@ module Cohorts
 
     def cohort_client_source
       GrdaWarehouse::CohortClient
+    end
+
+    def cohort_client_changes_source
+      GrdaWarehouse::CohortClientChange
     end
 
     def set_cohort
