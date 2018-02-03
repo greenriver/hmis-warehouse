@@ -10,13 +10,14 @@
         %th{style: 'width: 12em;'} Effective Date
         %th Clients
     %tbody
-      %tr
-        %td
-          = f.input :name, label: false
-        %td
-          = f.input :effective_date, as: :date_picker, label: false
-        %td
-          = f.submit value: 'Create Cohort', class: 'btn btn-primary'
+      - if current_user.can_create_cohorts?
+        %tr
+          %td
+            = f.input :name, label: false
+          %td
+            = f.input :effective_date, as: :date_picker, label: false
+          %td
+            = f.submit value: 'Create Cohort', class: 'btn btn-primary'
       - @cohorts.each do |cohort|
         %tr
           %td
