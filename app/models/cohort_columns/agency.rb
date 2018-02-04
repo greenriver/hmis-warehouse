@@ -4,16 +4,13 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Agency'
 
     def available_options
-      GrdaWarehouse::Hud::Project.distinct.order(ProjectName: :asc).pluck(:ProjectName)
+      Rails.cache.fetch("all_project_names", expires_at: 5.minutes) do
+        GrdaWarehouse::Hud::Project.distinct.order(ProjectName: :asc).pluck(:ProjectName)
+      end
     end
 
     def default_input_type
-      :select
-    end
-
-    def as_input default_value:, client_id:
-      options = options_for_select(available_options, default_value)
-      content_tag(:div, content_tag(:select, options, value: default_value, name: "#{column}[#{client_id}]"), class: "form-group string optional #{column}")
+      :select2
     end
 
   end

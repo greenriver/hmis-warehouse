@@ -1,5 +1,8 @@
 - title = "Add Clients to #{@cohort.name}"
 - content_for :modal_title, title
+= content_for :crumbs do
+  = link_to cohort_path(@cohort) do
+    &laquo; Cohort
 = render 'client_search_js'
 %p 
   You can add clients in a variety of ways, you can search by name, SSN, DOB, ID or PersonalID (also called ClientGUID).  You can also pick clients from a chronic list.
@@ -36,6 +39,20 @@
         #chronic.panel-collapse.collapse
           .panel-body
             = render 'chronic'
+      .panel.panel-default
+        .panel-heading
+          .row
+            .col-xs-8
+              %h4.panel-title
+                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#population'}
+                  Pick from an active population
+            .col-xs-4.text-right
+              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#population'}
+                %i.icon-arrow-circled-right
+                %i.icon-arrow-circled-down.hide
+        #population.panel-collapse.collapse
+          .panel-body
+            = render 'population'
     = render 'results'
     
   .col-sm-2

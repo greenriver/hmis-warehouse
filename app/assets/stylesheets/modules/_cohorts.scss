@@ -1,0 +1,42 @@
+.cohort-client__input {
+  input[type=radio] {
+    margin-right: 5px !important;
+  }
+}
+
+.modal-dialog {
+  width: 800px;
+  margin: 30px auto;
+}
+
+th.client_notes {
+  width: 150px;
+  display: table-cell;
+}
+
+td.client_notes {
+  width: 150px;
+  display: table;
+}
+
+ul.draggable-list 
+{ 
+  list-style-type: none; margin: 0; padding: 0; width: 60%; 
+}
+ul.draggable-list li 
+{
+  padding: 0.5em 1em;
+}
+
+li.draggable-list__item {
+  background-color: $gray-015;
+}
+
+#edit_column_state .draggable-list .icon-move
+{
+  padding-right: 0;
+}
+#edit_column_state .draggable-list input
+{
+  margin-right: 1em;
+}

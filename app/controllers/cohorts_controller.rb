@@ -1,8 +1,8 @@
 class CohortsController < ApplicationController
   include PjaxModalController
-  helper CohortColumnsHelper
-  before_action :require_can_view_cohorts!
-  before_action :set_cohort, only: [:show, :edit, :update, :destroy]
+  before_action :require_can_edit_cohort_clients!
+  before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
+  before_action :set_cohort, only: [:edit, :update, :destroy]
 
   def index
     @cohort = cohort_source.new
@@ -10,7 +10,7 @@ class CohortsController < ApplicationController
   end
 
   def show
-
+    @cohort = cohort_source.where(id: params[:id].to_i).preload(cohort_clients: [:cohort_client_notes, :client]).first
   end
 
   def edit
@@ -18,11 +18,11 @@ class CohortsController < ApplicationController
   end
 
   def destroy
-
+    @cohort.destroy
+    redirect_to cohorts_path()
   end
 
   def create
-
     begin
       @cohort = cohort_source.create!(cohort_params)
       respond_with(@cohort, location: cohort_path(@cohort))
