@@ -162,6 +162,7 @@ module GrdaWarehouse::Hud
     has_many :anomaly_notes, class_name: GrdaWarehouse::ClientNotes::AnomalyNote.name
 
     has_many :anomalies, class_name: GrdaWarehouse::Anomaly.name
+    has_many :cas_houseds, class_name: GrdaWarehouse::CasHoused.name
 
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
     has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
@@ -428,6 +429,10 @@ module GrdaWarehouse::Hud
       else
         raise NotImplementedError
       end
+    end
+
+    def inactivate_in_cas
+      update(sync_with_cas: false)
     end
 
     def scope_for_ongoing_residential_enrollments
