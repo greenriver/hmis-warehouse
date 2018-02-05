@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180127151221) do
+ActiveRecord::Schema.define(version: 20180205160021) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -139,6 +139,7 @@ ActiveRecord::Schema.define(version: 20180127151221) do
   add_index "Disabilities", ["DateUpdated"], :name=>"disabilities_date_updated", :using=>:btree
   add_index "Disabilities", ["ExportID"], :name=>"disabilities_export_id", :using=>:btree
   add_index "Disabilities", ["PersonalID"], :name=>"index_Disabilities_on_PersonalID", :using=>:btree
+  add_index "Disabilities", ["ProjectEntryID"], :name=>"index_Disabilities_on_ProjectEntryID", :using=>:btree
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], :name=>"unk_Disabilities", :unique=>true, :using=>:btree
   add_index "Disabilities", ["data_source_id", "PersonalID"], :name=>"index_Disabilities_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "Disabilities", ["data_source_id"], :name=>"index_Disabilities_on_data_source_id", :using=>:btree
@@ -165,6 +166,7 @@ ActiveRecord::Schema.define(version: 20180127151221) do
   add_index "EmploymentEducation", ["DateUpdated"], :name=>"employment_education_date_updated", :using=>:btree
   add_index "EmploymentEducation", ["ExportID"], :name=>"employment_education_export_id", :using=>:btree
   add_index "EmploymentEducation", ["PersonalID"], :name=>"index_EmploymentEducation_on_PersonalID", :using=>:btree
+  add_index "EmploymentEducation", ["ProjectEntryID"], :name=>"index_EmploymentEducation_on_ProjectEntryID", :using=>:btree
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], :name=>"unk_EmploymentEducation", :unique=>true, :using=>:btree
   add_index "EmploymentEducation", ["data_source_id", "PersonalID"], :name=>"index_EmploymentEducation_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "EmploymentEducation", ["data_source_id"], :name=>"index_EmploymentEducation_on_data_source_id", :using=>:btree
@@ -457,6 +459,7 @@ ActiveRecord::Schema.define(version: 20180127151221) do
   add_index "HealthAndDV", ["DateUpdated"], :name=>"health_and_dv_date_updated", :using=>:btree
   add_index "HealthAndDV", ["ExportID"], :name=>"health_and_dv_export_id", :using=>:btree
   add_index "HealthAndDV", ["PersonalID"], :name=>"index_HealthAndDV_on_PersonalID", :using=>:btree
+  add_index "HealthAndDV", ["ProjectEntryID"], :name=>"index_HealthAndDV_on_ProjectEntryID", :using=>:btree
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], :name=>"unk_HealthAndDV", :unique=>true, :using=>:btree
   add_index "HealthAndDV", ["data_source_id", "PersonalID"], :name=>"index_HealthAndDV_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "HealthAndDV", ["data_source_id"], :name=>"index_HealthAndDV_on_data_source_id", :using=>:btree
@@ -547,6 +550,7 @@ ActiveRecord::Schema.define(version: 20180127151221) do
   add_index "IncomeBenefits", ["DateUpdated"], :name=>"income_benefits_date_updated", :using=>:btree
   add_index "IncomeBenefits", ["ExportID"], :name=>"income_benefits_export_id", :using=>:btree
   add_index "IncomeBenefits", ["PersonalID"], :name=>"index_IncomeBenefits_on_PersonalID", :using=>:btree
+  add_index "IncomeBenefits", ["ProjectEntryID"], :name=>"index_IncomeBenefits_on_ProjectEntryID", :using=>:btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], :name=>"unk_IncomeBenefits", :unique=>true, :using=>:btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], :name=>"index_IncomeBenefits_on_data_source_id_and_PersonalID", :using=>:btree
   add_index "IncomeBenefits", ["data_source_id"], :name=>"index_IncomeBenefits_on_data_source_id", :using=>:btree
