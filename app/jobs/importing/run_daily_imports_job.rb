@@ -22,6 +22,9 @@ module Importing
       GrdaWarehouse::Hud::Client.revoke_expired_consent
       @notifier.ping('Revoked expired client consent if appropriate') if @send_notifications
 
+      # Disable CAS for anyone who's been housed in CAS
+      GrdaWarehouse::CasHoused.inactivate_clients
+      
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       @notifier.ping('Pushed Clients to CAS') if @send_notifications
 

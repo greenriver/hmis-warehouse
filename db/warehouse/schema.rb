@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180203202523) do
+ActiveRecord::Schema.define(version: 20180205134947) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -739,6 +739,15 @@ ActiveRecord::Schema.define(version: 20180203202523) do
   end
   add_index "cas_enrollments", ["client_id"], :name=>"index_cas_enrollments_on_client_id", :using=>:btree
   add_index "cas_enrollments", ["enrollment_id"], :name=>"index_cas_enrollments_on_enrollment_id", :using=>:btree
+
+  create_table "cas_houseds", force: :cascade do |t|
+    t.integer "client_id",     :null=>false
+    t.integer "cas_client_id", :null=>false
+    t.integer "match_id",      :null=>false
+    t.date    "housed_on",     :null=>false
+    t.boolean "inactivated",   :default=>false
+  end
+  add_index "cas_houseds", ["client_id"], :name=>"index_cas_houseds_on_client_id", :using=>:btree
 
   create_table "cas_reports", force: :cascade do |t|
     t.integer  "client_id",                          :null=>false

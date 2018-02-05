@@ -1,0 +1,8 @@
+- if ( decisions = @client.cas_reports.where( current_step: true ).order(:updated_at) ).any?
+  %h3 Housing Matches
+  %ul
+    - decisions.each do |decision|
+      %li
+        = decision.decision_status.sub('Dnd', 'DND')
+        on
+        = decision.updated_at.to_date
