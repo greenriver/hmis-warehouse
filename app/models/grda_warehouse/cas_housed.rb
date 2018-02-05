@@ -7,7 +7,7 @@ module GrdaWarehouse
 
     def self.inactivate_clients
       unprocessed.each do |cas_housed|
-        cas_housed.client.inactivate_in_cas()
+        cas_housed.client&.inactivate_in_cas()
       end
     end
   end
