@@ -16,7 +16,9 @@ module GrdaWarehouse
     def self.available_removal_reasons
       [
         'Housed',
+        'Mistake',
         'Missing',
+        'Disappeared',
         'Deceased',
         'Inactive',
         'Unknown',
