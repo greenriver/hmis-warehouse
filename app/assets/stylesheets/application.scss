@@ -39,6 +39,7 @@
 @import "modules/vispdats";
 @import "modules/health_charts";
 @import "modules/anomalies";
+@import "modules/cohorts";
 
 $light-body-text: lighten(#404040, 40%);
 
@@ -86,6 +87,10 @@ main {
 }
 .how-to-popover:focus {
   outline: none;
+}
+.popover{
+  max-width: 80%; /* Max Width of the popover (depending on the container!) */
+  white-space: pre-wrap;
 }
 .popover ol {
   padding-left: 0 !important;

@@ -1,7 +1,7 @@
 - title = "Currently enrolled clients with length of stay"
 - content_for :title, title
 %h1= content_for :title
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 .well
   Calculate the length of stay in days for clients in the respective programs whose enrollment
   periods overlap the interval in question. Days prior to the beginning of the interval are included but not
@@ -38,6 +38,7 @@
       var headers = #{@headers.to_json};
       var chartKeys = #{( @headers - %w(average) ).to_json};
       function makeChart(data) {
+        console.log(data);
         var anyNonZero = !!data.find(function(d){
           return chartKeys.find(function(k){ return d[1][k] > 0 });
         });

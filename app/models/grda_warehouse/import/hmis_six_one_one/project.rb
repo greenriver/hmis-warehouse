@@ -46,7 +46,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
       return if project_type_unchanged()
       return if existing_is_newer()
       log("Updating Service Histories for #{project_name}, project type has changed")
-      GrdaWarehouse::ServiceHistory.where(
+      GrdaWarehouse::ServiceHistoryEnrollment.where(
         data_source_id: data_source_id, 
         project_id: project_id,
         organization_id: organization_id

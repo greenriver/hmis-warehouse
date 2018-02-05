@@ -15,9 +15,7 @@
     .row
       .col-sm-4
         = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false
-      .col-sm-4
-        = f.input :name, label: 'Client Name'
       .col-sm-4.text-right
         %label.control-label &nbsp;
         %div
-          = f.button :submit, value: 'Update View'
+          = f.button :submit, value: 'Search'

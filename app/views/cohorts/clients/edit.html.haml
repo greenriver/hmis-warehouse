@@ -1,0 +1,58 @@
+- client = @cohort_client.client
+- content_for :modal_title do
+  Editing #{@cohort_client.name}
+= simple_form_for @cohort_client, url: cohort_cohort_client_path(@cohort, @cohort_client), method: :patch do |f|
+  - @cohort.visible_columns.in_groups_of(1).each do |group|
+    .row
+      - group.each_with_index do |column, index|
+        - if column.nil?
+          - next
+        .col-sm-6
+          - if column.input_type == 'read_only'
+            %label
+              = column.title
+            %br
+            = column.value(@cohort_client)
+            %br
+            %br
+          - elsif column.input_type == 'select2'
+            - options = {as: 'select', input_html: {class: 'select2'}}
+            - options[:collection] = column.available_options
+            = f.input column.column.to_sym, options
+          - elsif column.input_type == 'radio_buttons'
+            %label
+              = column.title
+            .cohort-client__input
+              = f.collection_radio_buttons(column.column, [[true, 'yes'], [false, 'no']], :first, :last, {item_wrapper_tag: :div})
+          - elsif column.input_type == 'date'
+            %label.control-lable.string 
+              = column.title
+            .input-group.date{data: {provide: :datepicker}}
+              = f.input column.column, as: :string, input_html: {class: 'form-control datepicker'}, label: false
+              %span.input-group-addon.icon-calendar
+          - elsif column.input_type == 'notes'
+            %label.control-lable.string 
+              = column.title
+            .cohort-client__new-note
+              = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
+                %span.icon-plus
+                Add A note
+            - @cohort_client.cohort_client_notes.each do |cohort_client_note|
+              = render partial: 'grda_warehouse/cohort_client_notes/cohort_client_note', locals: {cohort_client_note: cohort_client_note}
+          - else
+            - options = {as: column.input_type, label: column.title}
+            - options[:collection] = column.available_options if column.respond_to? :available_options
+            = f.input column.column.to_sym, options
+  .right
+    = f.submit 'Submit', class: 'btn btn-primary'
+  .left
+    = link_to pre_destroy_cohort_cohort_client_path(@cohort, @cohort_client), class: 'btn btn-danger', data: {loads_in_pjax_modal: true} do
+      %span.icon-cross
+      Remove from #{@cohort.name}
+
+:javascript
+  $('.select2').select2();
+  $.fn.datepicker.defaults.format = "M d, yyyy";
+  $('abbr').tooltip();
+  $('[data-toggle="tooltip"]').tooltip();
+  $('[data-toggle="popover"]').popover();

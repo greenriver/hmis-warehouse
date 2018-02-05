@@ -1,7 +1,7 @@
 module Cohorts
   class ColumnsController < ApplicationController
     include PjaxModalController
-    before_action :require_can_create_cohorts!
+    before_action :require_can_manage_cohorts!
     before_action :set_cohort
 
     def edit
@@ -10,8 +10,11 @@ module Cohorts
 
     def update
       columns = cohort_source.available_columns.deep_dup
+      if params.include? :order
+        columns = columns.sort_by{|x| params[:order].index x.column.to_s}
+      end
       columns.each do |column|
-        column.visible = if cohort_params[column.column.to_s] == '0' then false else true end
+        column.visible = if cohort_params[column.column].blank? || cohort_params[column.column].to_s == '0' then false else true end
       end
       @cohort.update(column_state: columns)
       respond_with(@cohort, location: cohort_path(@cohort))

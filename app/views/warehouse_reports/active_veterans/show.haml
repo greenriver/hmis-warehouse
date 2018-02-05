@@ -34,8 +34,12 @@
       - next unless enrollments.present? # Sometimes the service history is out of sync
       - span = enrollments.size+ 1
       %tr
-        %td{rowspan: span}= client['id']
-        %td{rowspan: span}= client['name']
+        %td{rowspan: span}
+          = link_to client_path(id: client['id']) do
+            = client['id']
+        %td{rowspan: span}
+          = link_to client_path(id: client['id']) do
+            = client['name']
         %td{rowspan: span}= client['first_service_history']
         %td{rowspan: span}= date_format client['DOB'].to_date
         %td.nobr{rowspan: span}= ssn client['SSN']

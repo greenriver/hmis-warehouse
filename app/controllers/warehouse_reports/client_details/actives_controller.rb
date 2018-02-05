@@ -1,7 +1,6 @@
 module WarehouseReports::ClientDetails
   class ActivesController < ApplicationController
     include ArelHelper
-    include ArelTable
     include WarehouseReportAuthorization
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
@@ -41,24 +40,25 @@ module WarehouseReports::ClientDetails
 
     def service_history_columns
       {
-        client_id: sh_t[:client_id].as('client_id').to_sql, 
-        project_id:  sh_t[:project_id].as('project_id').to_sql, 
-        first_date_in_program:  sh_t[:first_date_in_program].as('first_date_in_program').to_sql, 
-        last_date_in_program:  sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
-        project_name:  sh_t[:project_name].as('project_name').to_sql, 
-        project_type:  sh_t[service_history_source.project_type_column].as('project_type').to_sql, 
-        organization_id:  sh_t[:organization_id].as('organization_id').to_sql,
+        client_id: she_t[:client_id].as('client_id').to_sql, 
+        project_id:  she_t[:project_id].as('project_id').to_sql, 
+        first_date_in_program:  she_t[:first_date_in_program].as('first_date_in_program').to_sql, 
+        last_date_in_program:  she_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        project_name:  she_t[:project_name].as('project_name').to_sql, 
+        project_type:  she_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        organization_id:  she_t[:organization_id].as('organization_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
       }
     end
 
     def active_client_service_history range: 
       homeless_service_history_source.joins(:client).
-        service_within_date_range(start_date: range.start, end_date: range.end).
+        with_service_between(start_date: range.start, end_date: range.end).
         open_between(start_date: range.start, end_date: range.end).
         distinct.
+        order(first_date_in_program: :asc).
         pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
@@ -67,7 +67,7 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def homeless_service_history_source

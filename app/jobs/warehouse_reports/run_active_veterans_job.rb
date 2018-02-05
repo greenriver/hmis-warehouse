@@ -16,7 +16,7 @@ module WarehouseReports
         scope = scope.where( service_history_source.project_type_column => project_types.flat_map{ |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] } )
       end
 
-      served_client_ids = scope.service_within_date_range(start_date: range.start, end_date: range.end).select(:client_id).distinct
+      served_client_ids = scope.service_within_date_range(start_date: range.start, end_date: range.end).distinct.select(:client_id)
 
       clients = GrdaWarehouse::Hud::Client.destination.
         veteran.

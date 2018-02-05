@@ -1,0 +1,8 @@
+- content_for :modal_title do
+  Removing #{@client.name} from #{} 
+= simple_form_for @client, url: cohort_cohort_client_path(@cohort, @client), method: :delete do |f|
+  = f.input :reason, collection: @client.class.available_removal_reasons, include_blank: false
+  .text-right
+    = f.submit "Remove #{@client.name} from #{@cohort.name}", class: 'btn btn-danger'
+    
+

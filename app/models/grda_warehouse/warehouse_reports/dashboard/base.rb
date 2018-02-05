@@ -55,7 +55,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
     def homeless_service_history_source
@@ -74,15 +74,15 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     
     def service_scope project_type
       homeless_service_history_source.
-      service_within_date_range(start_date: @range.start, end_date: @range.end).
+      with_service_between(start_date: @range.start, end_date: @range.end).
       open_between(start_date: @range.start, end_date: @range.end).
-      where(service_history_source.project_type_column => project_type)
+      in_project_type(project_type)
     end
 
     def enrollment_counts project_type
       service_scope(project_type).
       group(:client_id).
-      select(nf('DISTINCT', [ct(sh_t[:enrollment_group_id], '_', sh_t[:data_source_id])]).to_sql).
+      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
       count
     end
 
@@ -90,19 +90,28 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       service_scope(project_type).
       started_between(start_date: @range.start, end_date: @range.end).
       group(:client_id).
-      select(nf('DISTINCT', [ct(sh_t[:enrollment_group_id], '_', sh_t[:data_source_id])]).to_sql).
+      select(nf('DISTINCT', [ct(she_t[:enrollment_group_id], '_', she_t[:data_source_id], '_', she_t[:project_id])]).to_sql).
       count
     end
 
     def entry_dates_by_client project_type
       @entry_dates_by_client = {}
+      # limit to clients with an entry within the range and service within the range in the type
+      involved_client_ids = homeless_service_history_source.
+        entry.
+        started_between(start_date: @range.start, end_date: @range.end).
+        in_project_type(project_type).
+        with_service_between(start_date: @range.start, end_date: @range.end).
+        distinct.
+        select(:client_id)
+      # get all of their entry records regardless of date range
       homeless_service_history_source.
-      entry.
-      where(sh_t[:first_date_in_program].lteq(@range.end)).
-      where(service_history_source.project_type_column => project_type).
-      where(client_id: service_scope(project_type).started_between(start_date: @range.start, end_date: @range.end).distinct.select(:client_id)).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :first_date_in_program).
+        entry.
+        where(client_id: involved_client_ids).
+        where(she_t[:first_date_in_program].lteq(@range.end)).
+        in_project_type(project_type).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, :first_date_in_program).
       each do |client_id, first_date_in_program|
         @entry_dates_by_client[client_id] ||= []
         @entry_dates_by_client[client_id] << first_date_in_program
@@ -119,13 +128,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def service_history_columns
       {
-        client_id: sh_t[:client_id].as('client_id').to_sql, 
-        project_id:  sh_t[:project_id].as('project_id').to_sql, 
-        first_date_in_program:  sh_t[:first_date_in_program].as('first_date_in_program').to_sql, 
-        last_date_in_program:  sh_t[:last_date_in_program].as('last_date_in_program').to_sql, 
-        project_name:  sh_t[:project_name].as('project_name').to_sql, 
-        project_type:  sh_t[service_history_source.project_type_column].as('project_type').to_sql, 
-        organization_id:  sh_t[:organization_id].as('organization_id').to_sql,
+        client_id: she_t[:client_id].as('client_id').to_sql, 
+        project_id:  she_t[:project_id].as('project_id').to_sql, 
+        first_date_in_program:  she_t[:first_date_in_program].as('first_date_in_program').to_sql, 
+        last_date_in_program:  she_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        project_name:  she_t[:project_name].as('project_name').to_sql, 
+        project_type:  she_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        organization_id:  she_t[:organization_id].as('organization_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
       }

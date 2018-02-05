@@ -9,10 +9,8 @@ module GrdaWarehouse::Hud
     has_many :projects, **hud_many(Project), inverse_of: :organization
     belongs_to :export, **hud_belongs(Export), inverse_of: :organizations
     belongs_to :data_source, inverse_of: :organizations
-    has_many :service_histories, 
-      class_name: GrdaWarehouse::ServiceHistory.name,
-      foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID],
-      inverse_of: :organization
+    has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
+    has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
     has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 

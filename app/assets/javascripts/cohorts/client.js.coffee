@@ -2,7 +2,7 @@
 
 class App.Cohorts.Client
   constructor: (@row_selector, @input_selector, @check_url) ->
-    @refresh_rate = 2500
+    @refresh_rate = 10000
     @init()
 
   init: =>

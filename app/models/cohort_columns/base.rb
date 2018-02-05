@@ -8,9 +8,13 @@ module CohortColumns
     def default_input_type
       :string
     end
-    
-    def as_input default_value:, client_id:
-      content_tag(:div, content_tag(:input, nil, value: default_value, name: "#{column}[#{client_id}]"), class: "form-group string optional #{column}")
+
+    def has_default_value?
+      false
     end
+
+    def default_value client_id
+      nil
+    end    
   end
 end
