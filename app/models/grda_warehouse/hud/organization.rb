@@ -191,5 +191,15 @@ module GrdaWarehouse::Hud
       )
     end
 
+    def self.options_for_select
+      @options ||= begin
+        options = {}
+        joins(:data_source).pluck(ds_t[:name].as('ds_name').to_sql, :OrganizationName, :id).each do |ds, org_name, id|
+          options[ds] ||= []
+          options[ds] << [org_name, id]
+        end
+        options
+      end
+    end
   end
 end

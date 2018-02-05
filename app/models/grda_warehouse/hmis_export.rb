@@ -1,11 +1,17 @@
 module GrdaWarehouse
-  class Export < GrdaWarehouseBase
+  class HmisExport < GrdaWarehouseBase
+    self.table_name = :exports
     attr_accessor :fake_data
 
     mount_uploader :file, HmisExportUploader
 
-    # TODO: There is currently no UI for exporting HMIS files, eventually it will
-    # need a controller, views and a delayed job
+    scope :ordered, -> do
+      order(created_at: :desc)
+    end
+
+    scope :for_list, -> do
+      select(column_names - ['content', 'file'])
+    end
 
     def save_zip_to(path)
       reconstitute_path = File.join(path, file.file.filename)
@@ -15,5 +21,6 @@ module GrdaWarehouse
       end
       reconstitute_path
     end
+
   end
 end

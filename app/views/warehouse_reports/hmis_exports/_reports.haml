@@ -1,0 +1,17 @@
+- @jobs.each do |job|
+  - parameters = YAML.load(job.handler).job_data['arguments'].first
+  - parameters['filter'].delete('_aj_hash_with_indifferent_access')
+  - report = GrdaWarehouse::HmisExport.new(parameters: parameters)
+  %tr{class: 'jIncompleteReport'}
+    %td= job.run_at
+    %td= render 'spinner'
+    %td= render 'parameters', report: report
+- @exports.each do |report|
+  %tr
+    %td
+      = report.started_at
+    %td
+      = report.user&.name
+    %td
+      Link goes here
+    %td= render 'parameters', report: report

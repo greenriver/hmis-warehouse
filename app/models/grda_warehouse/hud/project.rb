@@ -467,5 +467,16 @@ module GrdaWarehouse::Hud
         .or(org_matches)
       )
     end
+
+    def self.options_for_select
+      @options ||= begin
+        options = {}
+        joins(:organization).pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, :id).each do |org, project_name, id|
+          options[org] ||= []
+          options[org] << [project_name, id]
+        end
+        options
+      end
+    end
   end
 end

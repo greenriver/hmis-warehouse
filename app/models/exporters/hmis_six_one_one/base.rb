@@ -306,7 +306,7 @@ module Exporters::HmisSixOneOne
       }
       options[:export_id] = Digest::MD5.hexdigest(options.to_s)
 
-      @export = GrdaWarehouse::Export.where(export_id: options[:export_id]).first_or_create(options)
+      @export = GrdaWarehouse::HmisExport.where(export_id: options[:export_id]).first_or_create(options)
       @export.fake_data = GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
     end
 

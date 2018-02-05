@@ -1,0 +1,29 @@
+- title = "HUD HMIS CSV Exports"
+- content_for :title, title
+%h1
+  = title
+
+= render '/warehouse_reports/breadcrumbs'
+= render 'filter'
+
+.warehouse-reports__completed
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Run At
+        %th Run By
+        %th Download
+        %th Parameters
+    %tbody.report-listing
+      = render 'reports'
+= link_to 'Reports', running_warehouse_reports_hmis_exports_path, class: 'jReportBlock', remote: true 
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.jReportBlock').hide();
+      setInterval(function() {
+        $('.jReportBlock').click();
+      }, 30000);
+
+    })(jQuery);

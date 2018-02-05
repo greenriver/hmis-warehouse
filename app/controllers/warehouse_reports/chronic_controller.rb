@@ -11,7 +11,9 @@ module WarehouseReports
         WarehouseReports::RunChronicJob.perform_later(params.merge(current_user_id: current_user.id))
       end
       @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
-      @reports = report_source.ordered.select(report_source.column_names - ["data"]).limit(50)
+      @reports = report_source.ordered.
+        select(report_source.column_names - ["data"]).
+        limit(50)
     end
 
     def show
@@ -33,7 +35,9 @@ module WarehouseReports
 
     def running
       @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
-      @reports = report_source.ordered.limit(50)
+      @reports = report_source.ordered.
+        select(report_source.column_names - ["data"]).
+        limit(50)
     end
 
     # Present a chart of the counts from the previous three years

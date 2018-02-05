@@ -93,6 +93,11 @@ Rails.application.routes.draw do
     resources :really_old_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :expiring_consent, only: [:index]
+    resources :hmis_exports, except: [:edit, :update, :new] do
+      collection do
+        get :running
+      end
+    end
     resources :disabilities, only: [:index, :show] do
       collection do
         get :summary
@@ -276,7 +281,6 @@ Rails.application.routes.draw do
   resources :imports do
     get :download, on: :member
   end
-  resources :hmis_exports, except: [:edit, :update]
 
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
