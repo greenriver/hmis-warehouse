@@ -1,8 +1,13 @@
 module Cohorts
   class NotesController < ApplicationController
     include PjaxModalController
-    before_action :require_can_view_cohorts!
+    before_action :require_can_edit_cohort_clients!
     before_action :set_note, only: [:destroy]
+
+    def index
+      @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id].to_i)
+      @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id].to_i)
+    end
 
     def new
       @note = note_source.new(cohort_client_id: params[:cohort_client_id].to_i)

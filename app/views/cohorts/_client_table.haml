@@ -2,23 +2,26 @@
   %thead
     %tr
       %th
-        Last Name
-      %th
-        First Name
-      %th
-        Age
-        - if @cohort.effective_date
-          .nobr
-            = "(On #{@cohort.effective_date})"
-      %th
-        Add Note
-      %th
-        Notes
       - @cohort.visible_columns.each do |column|
         %th
           = column.title
-      %th
-        Remove
   %tbody
     - @cohort.cohort_clients.each do |cohort_client|
-      = render 'client_table_row', cohort_client: cohort_client
+      - client = cohort_client.client
+      = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length], expires_in: 8.hours) do
+        %tr.jCohortClient{data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
+          %td
+            = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
+              %span.icon-pencil
+
+          - @cohort.visible_columns.each do |column|
+            %td
+              - if column.input_type == 'read_only'
+                = column.value(cohort_client)
+              - elsif column.input_type == 'notes'
+                = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
+                  #{cohort_client.cohort_client_notes.length}
+              - elsif column.input_type == 'radio_buttons'
+                = checkmark cohort_client.public_send(column.column)
+              - else
+                = cohort_client.public_send(column.column)
