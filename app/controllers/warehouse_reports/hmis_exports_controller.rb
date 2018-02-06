@@ -6,7 +6,8 @@ module WarehouseReports
     before_action :set_exports, only: [:index, :running, :create]
 
     def index
-      @filter = ::Filters::HmisExport.new
+      @filter = ::Filters::HmisExport.new(user_id: current_user.id)
+      @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
 
     def running
@@ -14,7 +15,7 @@ module WarehouseReports
     end
 
     def set_jobs
-      @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
+      @jobs = Delayed::Job.where(queue: :hmis_six_one_one_export).order(run_at: :desc)
     end
 
     def set_exports
@@ -24,16 +25,21 @@ module WarehouseReports
     end
 
     def create
-      @filter = ::Filters::HmisExport.new(report_params)
+      @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
       if @filter.valid?
-        raise report_params.inspect
+        WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json)
+        redirect_to warehouse_reports_hmis_exports_path
       else
         render :index
-      end      
+      end
     end
 
     def destroy
       
+    end
+
+    def show
+
     end
 
     def set_export

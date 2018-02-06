@@ -29,10 +29,22 @@ module Export::HMISSixOneOne::Shared
         # Sometimes we're plucking directly, sometimes we're plucking from a unionized table
         # and we've already overridden the select columns, so we'll pluck the hud columns
         columns = columns_to_pluck
-        if includes_union?
+        if includes_union? && export.period_type == 4
           columns = hud_csv_headers
         end
-        export_scope.pluck_in_batches(*columns, batch_size: 10000) do |batch|
+
+        # Find all of the primary ids 
+        # It is much faster to do the complicated query with correlated sub-queries once
+        # and pluck the ids to conserve memory, and then go back and pull the correct records
+        # by id, than it is to loop over batches that each have to re-calculate the sub-queries
+        ids = export_scope.pluck(:id)
+        ids.in_groups_of(100_000, false) do |id_group|
+          simple_export_scope = self
+          if tables_to_join.any?
+            simple_export_scope = simple_export_scope.joins(tables_to_join)
+          end
+          batch = simple_export_scope.where(id: id_group).pluck(*columns)
+        # export_scope.pluck_in_batches(*columns, batch_size: 100_000) do |batch|
           cleaned_batch = batch.map do |row|
             row = Hash[hud_csv_headers.zip(row)]
             row[:ExportID] = export_id
@@ -74,9 +86,9 @@ module Export::HMISSixOneOne::Shared
 
     # All HUD Keys will need to be replaced with our IDs to make them unique across data sources.
     # In addition, all HUD ids in related tables will need to use the same values, so we'll
-    # need to join in other tables where approrpriate
+    # need to join in other tables where appropriate
     def columns_to_pluck
-      @columns_to_pluck ||= hud_csv_headers.map do |k|
+      @columns_to_pluck = hud_csv_headers.map do |k|
         case k
         # Special case, we should use the destination ID so our merged client records come out
         # as one
@@ -92,9 +104,30 @@ module Export::HMISSixOneOne::Shared
         when :OrganizationID
           cast(o_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:OrganizationID)).to_sql
         else
-          k
+          arel_table[k].as("#{k}_".to_s).to_sql
         end
       end
+    end
+
+    def tables_to_join
+      @tables_to_join = []
+      if hud_csv_headers.include?(:PersonalID)
+        if self < GrdaWarehouse::Hud::Client
+          @tables_to_join << :warehouse_client_source
+        else
+          @tables_to_join << {client: :warehouse_client_source} 
+        end
+      end
+      if hud_csv_headers.include?(:ProjectEntryID)
+        @tables_to_join << :enrollment unless self < GrdaWarehouse::Hud::Enrollment
+      end
+      if hud_csv_headers.include?(:ProjectID)
+        @tables_to_join << :project unless self < GrdaWarehouse::Hud::Project 
+      end
+      if hud_csv_headers.include?(:OrganizationID)
+        @tables_to_join << :organization unless self < GrdaWarehouse::Hud::Organization
+      end
+      return @tables_to_join
     end
 
     def export_enrollment_related! enrollment_scope:, project_scope:, path:, export:
@@ -108,15 +141,28 @@ module Export::HMISSixOneOne::Shared
       if export.include_deleted
         model_scope = joins(enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]).merge(enrollment_scope)
       else
-        model_scope = joins(enrollment: [{client: :warehouse_client_source}]).merge(enrollment_scope)
+        model_scope = joins(enrollment: [:project, {client: :warehouse_client_source}]).
+          where( 
+            enrollment_scope.where(
+              e_t[:ProjectEntryID].eq(arel_table[:ProjectEntryID]).
+              and(e_t[:PersonalID].eq(arel_table[:PersonalID])).
+              and(e_t[:data_source_id].eq(arel_table[:data_source_id]))
+            ).exists
+          )
       end
-
-      union_scope = from(
-        arel_table.create_table_alias(
-          model_scope.select(*columns_to_pluck, :id).union(changed_scope.select(*columns_to_pluck, :id)),
-          table_name
+      case export.period_type
+      when 4
+        union_scope = from(
+          arel_table.create_table_alias(
+            model_scope.select(*columns_to_pluck, :id).union(changed_scope.select(*columns_to_pluck, :id)),
+            table_name
+          )
         )
-      )
+      when 3
+        union_scope = model_scope.select(*columns_to_pluck, :id)
+      else
+        raise NotImplementedError
+      end
 
       if columns_to_pluck.include?(:ProjectID)
         if export.include_deleted
@@ -128,7 +174,7 @@ module Export::HMISSixOneOne::Shared
 
       export_to_path(
         export_scope: union_scope, 
-        path: path, 
+        path: path,
         export: export
       )
 

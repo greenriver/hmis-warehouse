@@ -118,15 +118,23 @@ module GrdaWarehouse::Export::HMISSixOneOne
       else
         enrollment_scope = enrollment_scope.joins(client: :warehouse_client_source)
       end
-      union_scope = from(
-        arel_table.create_table_alias(
-          enrollment_scope.select(*columns_to_pluck, :id, :data_source_id).
-            union(
-              changed_scope.select(*columns_to_pluck, :id, :data_source_id)
-            ),
-          table_name
+
+      case export.period_type
+      when 4
+        union_scope = from(
+          arel_table.create_table_alias(
+            enrollment_scope.select(*columns_to_pluck, :id, :data_source_id).
+              union(
+                changed_scope.select(*columns_to_pluck, :id, :data_source_id)
+              ),
+            table_name
+          )
         )
-      )
+      when 3
+        union_scope = enrollment_scope.select(*columns_to_pluck, :id, :data_source_id)
+      else
+        raise NotImplementedError
+      end
 
       export_to_path(
         export_scope: union_scope, 

@@ -27,7 +27,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
       else
         funder_scope = joins(:project).merge(project_scope)
       end
-      export_to_path(export_scope: funder_scope, path: path, export: export)
+      export_to_path(
+        export_scope: funder_scope, 
+        path: path, 
+        export: export
+      )
     end
   end
 end

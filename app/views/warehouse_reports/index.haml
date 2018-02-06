@@ -1,17 +1,10 @@
 - content_for :title, _("Warehouse Reports")
 %h1= content_for :title
 
-:ruby
-  all_report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.all.group_by(&:report_group)
-  if can_view_all_reports?
-    report_definitions = all_report_definitions
-  else
-    report_definitions = current_user.reports.group_by(&:report_group)
-  end
-  active_class = ''
+- active_class = ''
 
 %ul.nav.nav-tabs{role: :tablist}
-  - report_definitions.each_with_index do |(group_name, reports), index|
+  - @report_definitions.each_with_index do |(group_name, reports), index|
     %li{role: :presentation, class: (index == 0 ? 'active' : '')}
       %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
         #{group_name}
@@ -21,7 +14,7 @@
         Health
 
 .tab-content
-  - report_definitions.each_with_index do |(group_name, reports), index|
+  - @report_definitions.each_with_index do |(group_name, reports), index|
     - dashed_group_name = group_name.parameterize.dasherize
     %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: dashed_group_name}
       %div{class: "warehouse-reports__#{dashed_group_name}"}

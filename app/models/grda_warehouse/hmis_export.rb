@@ -5,6 +5,8 @@ module GrdaWarehouse
 
     mount_uploader :file, HmisExportUploader
 
+    belongs_to :user, class_name: User.name
+
     scope :ordered, -> do
       order(created_at: :desc)
     end

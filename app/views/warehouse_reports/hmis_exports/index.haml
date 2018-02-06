@@ -6,12 +6,12 @@
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
 
-.warehouse-reports__completed
+.warehouse-reports__completed.warehouse-reports__hmis_export
   %table.table.table-hover
     %thead
       %tr
-        %th Run At
-        %th Run By
+        %th{style: 'min-width: 8em;'} Run At
+        %th{style: 'min-width: 8em;'} Run By
         %th Download
         %th Parameters
     %tbody.report-listing

@@ -1,1 +1,50 @@
-= debug report
+%label.label.label-default.parameter-label
+  Start Date
+%label.label.label-primary.parameter-value
+  %strong
+    = report.start_date
+&nbsp;
+%label.label.label-default.parameter-label
+  End Date
+%label.label.label-primary.parameter-value
+  %strong
+    = report.end_date
+
+&nbsp;
+%label.label.label-default.parameter-label
+  Hash Status
+%label.label.label-primary.parameter-value
+  %strong
+    = HUD.hash_status report.hash_status
+
+&nbsp;
+%label.label.label-default.parameter-label
+  Period Type
+%label.label.label-primary.parameter-value
+  %strong
+    = HUD.export_period_type report.period_type
+
+&nbsp;
+%label.label.label-default.parameter-label
+  Export Directive
+%label.label.label-primary.parameter-value
+  %strong
+    = HUD.export_directive report.directive
+
+&nbsp;
+%label.label.label-default.parameter-label
+  Projects
+%label.label.label-primary.parameter-value
+  %strong
+    - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.project_ids).pluck(:ProjectName)
+    - if project_names.empty? || project_names == @all_project_names
+      All
+    - else 
+    = project_names.join(', ')
+
+&nbsp;
+%label.label.label-default.parameter-label
+  Include Deleted
+%label.label.label-primary.parameter-value
+  %strong
+    = yes_no report.include_deleted

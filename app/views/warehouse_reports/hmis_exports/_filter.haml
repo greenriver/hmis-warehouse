@@ -2,13 +2,6 @@
   = simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
     = f.error_notification
     .row
-      .col-sm-12
-        %p
-          Any enrollment open during the chosen date range at a one of the projects chosen below or any enrollment that was modified during the range, regardless of when it was open will be included in the export.  This export follows the 
-          %strong Other
-          designation and is a super-set of the 
-          %strong Reporting Period
-          designation.
       .col-sm-3
         = f.input :start_date, as: :date_picker
       .col-sm-3
@@ -16,10 +9,14 @@
       .col-sm-3
         = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false
       .col-sm-3
-        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false
+        %label.control-label Period type
+        .controls
+          Reporting period (3)
+        = f.input :period_type, as: :hidden, input_html: {value: 3}
+        =# f.input :period_type, collection: {'Reporting period' => 3, 'Other' => 4}, include_blank: false
+        %p.muted
+          
     .row
-      .col-sm-12
-        %p The following four options will limit your export to a set of projects.  The four options are additive; choosing a project and a data source will produce a single export that includes all projects from the data source plus the selected project.  Leaving all four options blank will result in a warehouse-wide export.
       .col-sm-6
         = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
       .col-sm-6
@@ -28,17 +25,25 @@
       .col-sm-6
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
       .col-sm-6
-        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
+        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
     .row
-      .col-sm-3
-        %label.control-label
-          Period Type
-        %p Other
       .col-sm-3
         %label.control-label
           Export Directive
         %p Full Refresh
-
+      .col-sm-3
+        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false
+    .row
+      .col-sm-12
+        %h4 Notes About Choices
+        %p 
+          The various project related options will limit your export to a set of projects.  The four options are additive; choosing a project and a data source will produce a single export that includes all projects from the data source plus the selected project.  Leaving all four options blank will result in a warehouse-wide export.
+        %p
+          Choosing 
+          %strong Other
+          for the period type is a superset of 
+          %strong Reporting period
+          and additionally includes any records associated with enrollments that changed during the selected time range.
       
       
     .text-right

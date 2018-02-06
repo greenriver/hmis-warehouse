@@ -11,5 +11,8 @@ module GrdaWarehouse::WarehouseReports
       end
     end
 
+    scope :ordered, -> do
+      order(weight: :asc, name: :asc)
+    end
   end
 end

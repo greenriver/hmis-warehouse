@@ -49,7 +49,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       disability_scope = joins(:enrollment).merge(enrollment_scope).
         where(arel_table[:InformationDate].lteq(export.end_date))
       export_to_path(
-        export_scope: enrollment_coc_scope, 
+        export_scope: disability_scope, 
         path: path, 
         export: export
       )

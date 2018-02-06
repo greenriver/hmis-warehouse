@@ -92,6 +92,12 @@ class NotifyUser < ApplicationMailer
     mail(to: @user.email, subject: "[Warehouse] Your HUD Chronic report has finished")
   end
 
+  def hmis_export_finished user_id, report_id
+    @user = User.find(user_id)
+    @report = GrdaWarehouse::HmisExport.find(report_id)
+    @report_url = warehouse_reports_hmis_exports_url()
+    mail(to: @user.email, subject: "[Warehouse] Your HMIS Export has finished")
+  end
 
   def enrolled_disabled_report_finished user_id, report_id
     @user = User.find(user_id)

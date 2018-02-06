@@ -24,7 +24,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
       else
         project_coc_scope = joins(:project).merge(project_scope)
       end
-      export_to_path(export_scope: project_coc_scope, path: path, export: export)
+      export_to_path(
+        export_scope: project_coc_scope,
+        path: path,
+        export: export
+      )
     end
 
   end

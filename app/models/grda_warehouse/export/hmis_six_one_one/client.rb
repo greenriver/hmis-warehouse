@@ -64,7 +64,9 @@ module GrdaWarehouse::Export::HMISSixOneOne
         model_scope = client_scope
       end
 
-      union_scope = from(
+      case export.period_type
+      when 4
+        union_scope = from(
         arel_table.create_table_alias(
           model_scope.select(*columns_to_pluck, :id).
             union(changed_scope.select(*columns_to_pluck, :id)
@@ -72,6 +74,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
           table_name
         )
       )
+      when 3
+        union_scope = model_scope.select(*columns_to_pluck, :id)
+      else
+        raise NotImplementedError
+      end
 
       export_to_path(
         export_scope: union_scope, 

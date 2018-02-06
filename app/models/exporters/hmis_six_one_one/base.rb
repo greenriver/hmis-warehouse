@@ -11,26 +11,28 @@ module Exporters::HmisSixOneOne
       file_path: 'var/hmis_export',
       logger: Rails.logger, 
       debug: true,
-      range:,
+      start_date:,
+      end_date:,
       projects:,
       period_type: 3,
       directive: 3,
       hash_status: 1,
       faked_pii: false,
       include_deleted: false,
+      user_id:nil,
       faked_environment: :development
     )
       setup_notifier('HMIS Exporter 6.11')
       @file_path = "#{file_path}/#{Time.now.to_i}"
       @logger = logger
       @debug = debug
-      @range = range
+      @range = ::Filters::DateRange.new(start: start_date, end: end_date)
       @projects = projects
       @period_type = period_type
       @directive = directive
       @hash_status = hash_status     
       @faked_pii = faked_pii
-      @user = current_user rescue nil
+      @user = current_user rescue User.find(user_id)
       @include_deleted = include_deleted
       @faked_environment = faked_environment
     end
@@ -68,6 +70,7 @@ module Exporters::HmisSixOneOne
         remove_export_files()
         reset_time_format()
       end
+      @export
     end
 
     def set_time_format
@@ -250,8 +253,9 @@ module Exporters::HmisSixOneOne
 
     def enrollment_scope
       @enrollment_scope ||= begin
-        # Choose all enrollments opened before the end of the report period in the involived projects for clients who had an open enrollmentduring the report period.
+        # Choose all enrollments open during the range at one of the associated projects.
         if @export.include_deleted
+          raise NotImplementedError
           enrollment_source.joins(:project_with_deleted, :client_with_deleted).
             where(Client: {id: client_scope.select(c_t[:id])}).
             merge(project_scope).
@@ -259,24 +263,39 @@ module Exporters::HmisSixOneOne
           
         else
           enrollment_source.joins(:project, :client).
-            where(Client: {id: client_scope.select(c_t[:id])}).
-            merge(project_scope).
-            where(e_t[:EntryDate].lteq(@range.start))
+            open_during_range(@range).
+            where(
+              project_scope.where(
+                p_t[:ProjectID].eq(e_t[:ProjectID]).
+                and(p_t[:data_source_id].eq(e_t[:data_source_id]))
+              ).exists
+            )
         end
       end
     end
+
+  #   scope :with_service_between, -> (start_date: ,end_date: ) do
+  #   where(
+  #     GrdaWarehouse::ServiceHistoryService.where( 
+  #       shs_t[:service_history_enrollment_id].eq(arel_table[:id])
+  #     ).
+  #     where(date: (start_date..end_date)).
+  #     exists
+  #   )
+  # end
 
     def client_scope
       # include any client with an open enrollment
       # during the report period in one of the involved projects
       @client_scope ||= begin
         if @export.include_deleted
-        enrollment_source.joins(:project_with_deleted, {client_with_deleted: :warehouse_client_source}).
-          merge(project_scope).
-          open_during_range(@range)
-        else
-          enrollment_source.joins(:project, {client: :warehouse_client_source}).
+          raise NotImplementedError
+          enrollment_source.joins(:project_with_deleted, {client_with_deleted: :warehouse_client_source}).
             merge(project_scope).
+            open_during_range(@range)
+        else
+          enrollment_source.joins(client: :warehouse_client_source).
+            where(project_scope.where(p_t[:ProjectID].eq(e_t[:ProjectID]).and(p_t[:data_source_id].eq(e_t[:data_source_id]))).exists).
             open_during_range(@range)
         end
       end
@@ -286,6 +305,7 @@ module Exporters::HmisSixOneOne
       @project_scope ||= begin
        project_scope = project_source.where(id: @projects)
         if @export.include_deleted
+          raise NotImplementedError
           project_scope = project_scope.with_deleted
         end
         project_scope
