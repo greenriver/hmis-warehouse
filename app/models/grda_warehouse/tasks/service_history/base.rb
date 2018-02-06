@@ -111,16 +111,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
         where(client_id: client_id, routine: :service_history).
         first_or_initialize
       processed.last_service_updated_at = Date.today
-      # The index gets in the way of calculating these quickly.  It is *much* faster
-      # to simply bring back all of the dates and use ruby to get the correct one
-      dates = service_history_enrollment_source.entry.
-        joins(:service_history_services).
+      # The table partitioning makes this query somewhat slow
+      dates = service_history_service_source.
         where(client_id: client_id).
-        order(date: :desc).
+        distinct.
+        order(date: :asc).
         pluck(:date)
-      processed.first_date_served = dates.last
-      processed.last_date_served = dates.first
-      processed.days_served = dates.uniq.count
+      processed.first_date_served = dates.first
+      processed.last_date_served = dates.last
+      processed.days_served = dates.count
       processed.save
       destination_client_scope.clear_view_cache(client_id)
     end
@@ -135,6 +134,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
+    end
+
+    def service_history_service_source
+      GrdaWarehouse::ServiceHistoryService
     end
 
     def service_history_source
