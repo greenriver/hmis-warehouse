@@ -679,7 +679,7 @@ ActiveRecord::Schema.define(version: 20180206211300) do
   add_index "Services", ["DateUpdated"], :name=>"services_date_updated", :using=>:btree
   add_index "Services", ["ExportID"], :name=>"services_export_id", :using=>:btree
   add_index "Services", ["PersonalID"], :name=>"index_Services_on_PersonalID", :using=>:btree
-  add_index "Services", ["ProjectEntryID", "PersonalID"], :name=>"index_Services_on_ProjectEntryID_and_PersonalID", :using=>:btree
+  add_index "Services", ["ProjectEntryID", "PersonalID", "data_source_id"], :name=>"index_serv_on_proj_entry_per_id_ds_id", :using=>:btree
   add_index "Services", ["data_source_id", "PersonalID", "RecordType", "ProjectEntryID", "DateProvided"], :name=>"index_services_ds_id_p_id_type_entry_id_date", :using=>:btree
   add_index "Services", ["data_source_id", "ServicesID"], :name=>"unk_Services", :unique=>true, :using=>:btree
   add_index "Services", ["data_source_id"], :name=>"index_Services_on_data_source_id", :using=>:btree
