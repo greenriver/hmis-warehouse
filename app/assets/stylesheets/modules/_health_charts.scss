@@ -423,5 +423,18 @@ h2.ho-sub__h2 {
 
 .d3-ss-matrix__chart {
   height: 800px;
-  border: 1px solid #333333;
 }
+
+.ss-matrix__container h4 {
+  display: inline-block;
+  margin-top: 0px;
+}
+
+.d3-ss__legend {
+  .ho-hint {
+    float: left;
+    padding-right: 10px;
+  }
+}
+
+
