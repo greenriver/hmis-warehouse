@@ -42,10 +42,6 @@ class ProjectsController < ApplicationController
     project_source.all
   end
 
-  private def client_source
-    GrdaWarehouse::Hud::Client
-  end
-
   private def project_source
     GrdaWarehouse::Hud::Project.viewable_by current_user
   end
