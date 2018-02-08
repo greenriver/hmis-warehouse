@@ -2,6 +2,8 @@
 class ProjectsController < ApplicationController
   before_action :require_can_view_projects!
   before_action :set_project, only: [:show]
+
+  include ArelHelper
   
   def index
     # search
@@ -14,7 +16,7 @@ class ProjectsController < ApplicationController
     at = project_scope.arel_table
     column = at[sort_column.to_sym]
     if sort_column == 'organization_id'
-      column = organization_source.arel_table[:OrganizationName]
+      column = o_t[:OrganizationName]
     end
     sort = column.send(sort_direction)
     # Filter
@@ -30,9 +32,9 @@ class ProjectsController < ApplicationController
   end
 
   def show
-    @clients = @project.service_history
-      .where(record_type: 'entry')
+    @clients = @project.service_history_enrollments.entry
       .preload(:client)
+      .order(she_t[:first_date_in_program].desc(), she_t[:last_date_in_program].desc())
       .page(params[:page]).per(25)
   end
 
@@ -48,20 +50,8 @@ class ProjectsController < ApplicationController
     GrdaWarehouse::Hud::Project.viewable_by current_user
   end
 
-  private def organization_source
-    GrdaWarehouse::Hud::Organization.viewable_by current_user
-  end
-
-  private def service_history_scope
-    GrdaWarehouse::ServiceHistory.service
-  end
-
   private def set_project
     @project = project_source.find(params[:id].to_i)
-  end
-
-  private def sort_columns
-    [:ProjectName, :ProjectType, :data_source_id]
   end
 
   # whitelist filter-able columns
