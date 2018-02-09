@@ -39,11 +39,11 @@ module Export::HMISSixOneOne::Shared
         # by id, than it is to loop over batches that each have to re-calculate the sub-queries
         ids = export_scope.pluck(:id)
         ids.in_groups_of(100_000, false) do |id_group|
-          simple_export_scope = self
-          if tables_to_join.any?
-            simple_export_scope = simple_export_scope.joins(tables_to_join)
-          end
-          batch = simple_export_scope.where(id: id_group).pluck(*columns)
+          # simple_export_scope = self
+          # if tables_to_join.any?
+          #   simple_export_scope = simple_export_scope.joins(tables_to_join)
+          # end
+          batch = self.where(id: id_group).pluck(*columns)
         # export_scope.pluck_in_batches(*columns, batch_size: 100_000) do |batch|
           cleaned_batch = batch.map do |row|
             row = Hash[hud_csv_headers.zip(row)]
@@ -61,6 +61,12 @@ module Export::HMISSixOneOne::Shared
 
     # Override as necessary
     def clean_row(row:, export:)
+      # Override source IDs with WarehouseIDs where they come from other tables
+      row[:PersonalID] = client_export_id(row[:PersonalID]) if row[:PersonalID].present?
+      row[:ProjectID] = project_export_id(row[:ProjectID]) if row[:ProjectID].present?
+      row[:OrganizationID] = organization_export_id(row[:OrganizationID]) if row[:OrganizationID].present?
+      row[:EnrollmentID] = enrollment_export_id(row[:EnrollmentID]) if row[:EnrollmentID].present?
+
       if export.faked_pii
         export.fake_data.fake_patterns.keys.each do |k|
           if row[k].present?
@@ -85,49 +91,15 @@ module Export::HMISSixOneOne::Shared
     end
 
     # All HUD Keys will need to be replaced with our IDs to make them unique across data sources.
-    # In addition, all HUD ids in related tables will need to use the same values, so we'll
-    # need to join in other tables where appropriate
     def columns_to_pluck
       @columns_to_pluck = hud_csv_headers.map do |k|
         case k
-        # Special case, we should use the destination ID so our merged client records come out
-        # as one
-        when :PersonalID
-          wc_t = GrdaWarehouse::WarehouseClient.arel_table
-          cast(wc_t[:destination_id], 'VARCHAR').as(self.connection.quote_column_name(:PersonalID)).to_sql
         when hud_key.to_sym
           arel_table[:id].as(self.connection.quote_column_name(hud_key)).to_sql
-        when :ProjectEntryID
-          cast(e_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:ProjectEntryID)).to_sql
-        when :ProjectID
-          cast(p_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:ProjectID)).to_sql
-        when :OrganizationID
-          cast(o_t[:id], 'VARCHAR').as(self.connection.quote_column_name(:OrganizationID)).to_sql
         else
           arel_table[k].as("#{k}_".to_s).to_sql
         end
       end
-    end
-
-    def tables_to_join
-      @tables_to_join = []
-      if hud_csv_headers.include?(:PersonalID)
-        if self < GrdaWarehouse::Hud::Client
-          @tables_to_join << :warehouse_client_source
-        else
-          @tables_to_join << {client: :warehouse_client_source} 
-        end
-      end
-      if hud_csv_headers.include?(:ProjectEntryID)
-        @tables_to_join << :enrollment unless self < GrdaWarehouse::Hud::Enrollment
-      end
-      if hud_csv_headers.include?(:ProjectID)
-        @tables_to_join << :project unless self < GrdaWarehouse::Hud::Project 
-      end
-      if hud_csv_headers.include?(:OrganizationID)
-        @tables_to_join << :organization unless self < GrdaWarehouse::Hud::Organization
-      end
-      return @tables_to_join
     end
 
     def export_enrollment_related! enrollment_scope:, project_scope:, path:, export:
@@ -172,6 +144,11 @@ module Export::HMISSixOneOne::Shared
         end
       end
 
+      if columns_to_pluck.include?(:DateProvided)
+        union_scope.where(arel_table[:DateProvided].lteq(export.end_date))
+      end
+
+
       export_to_path(
         export_scope: union_scope, 
         path: path,
@@ -182,6 +159,47 @@ module Export::HMISSixOneOne::Shared
 
     def includes_union?
       false
+    end
+
+    # Load some lookup tables so we don't have
+    # to join when exporting, that can be very slow
+    def enrollment_export_id project_entry_id
+      if self < GrdaWarehouse::Hud::Enrollment
+        return project_entry_id
+      end
+      @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:ProjectEntryID, :id).to_h
+      @enrollment_lookup[project_entry_id]
+    end
+
+    def project_export_id project_id
+      if self < GrdaWarehouse::Hud::Project
+        return project_id
+      end
+      @project_lookup ||= GrdaWarehouse::Hud::Project.pluck(:ProjectID, :id).to_h
+      @project_lookup[project_id]
+    end
+
+    def organization_export_id organization_id
+      if self < GrdaWarehouse::Hud::Organization
+        return organization_id
+      end
+      @organization_lookup ||= GrdaWarehouse::Hud::Organization.pluck(:OrganizationID, :id).to_h
+      @organization_lookup[organization_id]
+    end
+    
+    def client_export_id personal_id
+      if self < GrdaWarehouse::Hud::Client
+        return personal_id
+      end
+      @client_lookup ||= begin
+        GrdaWarehouse::Hud::Client.source.
+        joins(:warehouse_client_source).
+        pluck(
+          :PersonalID, 
+          wc_t[:destination_id].as('destination_id').to_sql
+        ).to_h        
+      end
+      @client_lookup[personal_id]
     end
   end
 end

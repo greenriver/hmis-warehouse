@@ -15,7 +15,13 @@ module WarehouseReports
     end
 
     def set_jobs
-      @jobs = Delayed::Job.where(queue: :hmis_six_one_one_export).order(run_at: :desc)
+      @job_reports = Delayed::Job.where(queue: :hmis_six_one_one_export).order(run_at: :desc).map do |job|
+        parameters = YAML.load(job.handler).job_data['arguments'].first
+        parameters.delete('_aj_symbol_keys')
+        parameters['project_ids'] = parameters.delete('projects')
+        report = GrdaWarehouse::HmisExport.new(parameters)
+        [job.run_at, report]
+      end
     end
 
     def set_exports
@@ -39,7 +45,9 @@ module WarehouseReports
     end
 
     def show
-
+      @export = export_source.find(params[:id].to_i)
+      # send_data GrdaWarehouse::Hud::Site.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
+      send_data @export.content, filename: "HMIS_export_#{Time.now.to_s}", type: @export.content_type, disposition: 'attachment'
     end
 
     def set_export

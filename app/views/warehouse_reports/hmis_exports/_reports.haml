@@ -1,10 +1,6 @@
-- @jobs.each do |job|
-  - parameters = YAML.load(job.handler).job_data['arguments'].first
-  - parameters.delete('_aj_symbol_keys')
-  - parameters['project_ids'] = parameters.delete('projects')
-  - report = GrdaWarehouse::HmisExport.new(parameters)
+- @job_reports.each do |run_at, report|
   %tr{class: 'jIncompleteReport'}
-    %td= job.run_at
+    %td= run_at
     %td= report.user&.name
     %td= render 'spinner'
     %td= render 'parameters', report: report

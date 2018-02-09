@@ -11,7 +11,12 @@ module GrdaWarehouse
       order(created_at: :desc)
     end
 
+    scope :has_content, -> do
+      where.not(content_type: nil)
+    end
+
     scope :for_list, -> do
+      has_content.
       select(column_names - ['content', 'file'])
     end
 
