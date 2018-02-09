@@ -125,7 +125,7 @@ module HealthCharts
         {
           collected_at: assessment.collected_at,
           collection_location: assessment.collection_location,
-          scores: scores,
+          scores: scores.reverse,
         }
       end.compact
     end
