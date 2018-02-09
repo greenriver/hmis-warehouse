@@ -13,7 +13,11 @@
               %label
                 = column.title
               %br
-              = column.value(@cohort_client)
+              - # treat booleans differently
+              - if !!column.value(@cohort_client) == column.value(@cohort_client)
+                = checkmark column.value(@cohort_client)
+              - else 
+                = column.value(@cohort_client)
               %br
               %br
             - elsif column.input_type == 'select2'
