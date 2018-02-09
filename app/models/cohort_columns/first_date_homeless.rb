@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      cohort_client.client.first_date_homeless
+      cohort_client.client.first_homeless_date
     end
 
   end

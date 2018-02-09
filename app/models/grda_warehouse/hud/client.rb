@@ -172,6 +172,8 @@ module GrdaWarehouse::Hud
     delegate :last_homeless_date, to: :processed_service_history
     delegate :first_chronic_date, to: :processed_service_history
     delegate :last_chronic_date, to: :processed_service_history
+    delegate :first_date_served, to: :processed_service_history
+    delegate :last_date_served, to: :processed_service_history
     
 
     scope :destination, -> do
