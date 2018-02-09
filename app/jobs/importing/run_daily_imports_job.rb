@@ -129,8 +129,8 @@ module Importing
       @notifier.ping('Sanity checked') if @send_notifications
       
       # pre-populate the cache for data source date spans
-      GrdaWarehouse::DataSource.data_spans_by_id()
-      @notifier.ping('Data source date spans set') if @send_notifications
+      # GrdaWarehouse::DataSource.data_spans_by_id()
+      # @notifier.ping('Data source date spans set') if @send_notifications
 
       Rails.cache.clear
 

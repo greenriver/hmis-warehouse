@@ -116,6 +116,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       GrdaWarehouse::ServiceHistoryEnrollment
     end
 
+    def service_history_service_source
+      GrdaWarehouse::ServiceHistoryService
+    end
+
     def service_history_source
       GrdaWarehouse::ServiceHistory
     end
