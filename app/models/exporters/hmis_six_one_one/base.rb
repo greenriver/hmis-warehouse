@@ -42,7 +42,7 @@ module Exporters::HmisSixOneOne
       begin
         set_time_format()
         setup_export()
-        
+
         # Project related items
         export_projects()
         export_project_cocs()
@@ -499,7 +499,7 @@ module Exporters::HmisSixOneOne
     end
     def geography_source
       self.class.geography_source
-    end
+    end 
 
     def log(message)
       @notifier.ping message if @notifier
