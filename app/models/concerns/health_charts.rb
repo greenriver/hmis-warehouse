@@ -121,11 +121,14 @@ module HealthCharts
             value = row[:answer].to_f.round
             [title, value]
           end
+          total = scores.select{|m| m.first == 'Total'}.first.last
+          scores.delete_if{|m|  m.first == 'Total'}
         end
         {
           collected_at: assessment.collected_at,
           collection_location: assessment.collection_location,
           scores: scores.reverse,
+          total: total,
         }
       end.compact
     end
