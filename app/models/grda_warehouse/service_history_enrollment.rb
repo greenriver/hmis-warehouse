@@ -103,13 +103,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(project_type_column => project_types)
   end
 
-  scope :hud_homeless, -> (chronic_types_only: false) do
-    if chronic_types_only
-      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    else
-      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    end
-
+  # this is always only chronic
+  scope :hud_homeless, -> (chronic_types_only: true) do
     hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 

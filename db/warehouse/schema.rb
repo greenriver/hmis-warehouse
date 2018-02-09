@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180205160021) do
+ActiveRecord::Schema.define(version: 20180209145558) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -679,6 +679,7 @@ ActiveRecord::Schema.define(version: 20180205160021) do
   add_index "Services", ["DateUpdated"], :name=>"services_date_updated", :using=>:btree
   add_index "Services", ["ExportID"], :name=>"services_export_id", :using=>:btree
   add_index "Services", ["PersonalID"], :name=>"index_Services_on_PersonalID", :using=>:btree
+  add_index "Services", ["ProjectEntryID", "PersonalID", "data_source_id"], :name=>"index_serv_on_proj_entry_per_id_ds_id", :using=>:btree
   add_index "Services", ["data_source_id", "PersonalID", "RecordType", "ProjectEntryID", "DateProvided"], :name=>"index_services_ds_id_p_id_type_entry_id_date", :using=>:btree
   add_index "Services", ["data_source_id", "ServicesID"], :name=>"unk_Services", :unique=>true, :using=>:btree
   add_index "Services", ["data_source_id"], :name=>"index_Services_on_data_source_id", :using=>:btree
@@ -1486,10 +1487,11 @@ SELECT "Client"."PersonalID",
   END_VIEW_REPORT_CLIENTS
 
   create_table "report_definitions", force: :cascade do |t|
-    t.string "report_group"
-    t.text   "url"
-    t.text   "name"
-    t.text   "description"
+    t.string  "report_group"
+    t.text    "url"
+    t.text    "name"
+    t.text    "description"
+    t.integer "weight",       :default=>0, :null=>false
   end
 
   create_table "warehouse_clients", force: :cascade do |t|
@@ -3168,6 +3170,12 @@ UNION
     t.integer  "days_served"
     t.date     "first_date_served"
     t.date     "last_date_served"
+    t.date     "first_homeless_date"
+    t.date     "last_homeless_date"
+    t.integer  "homeless_days"
+    t.date     "first_chronic_date"
+    t.date     "last_chronic_date"
+    t.integer  "chronic_days"
   end
   add_index "warehouse_clients_processed", ["routine"], :name=>"index_warehouse_clients_processed_on_routine", :using=>:btree
 

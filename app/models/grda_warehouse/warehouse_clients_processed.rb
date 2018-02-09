@@ -13,4 +13,29 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   # def chronic?
   #   chronically_homeless
   # end
+  
+  def self.update_homeless_counts client_ids: []
+    most_recent_dates = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      where(client_id: client_ids).
+      group(:client_id).
+      maximum(:date)
+    first_dates = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      where(client_id: client_ids).
+      group(:client_id).
+      minimum(:date)
+    counts = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      where(client_id: client_ids).
+      group(:client_id).
+      count(:date)
+  end
+
+  def self.update_chronic_counts client_ids: []
+
+  end
+
+  def self.update_total_counts client_ids: []
+
+  end
+
+  
 end

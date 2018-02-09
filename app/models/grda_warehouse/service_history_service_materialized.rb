@@ -1,6 +1,6 @@
-class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
+class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
+  self.table_name = :service_history_services_materialized
   include ArelHelper
-  belongs_to :service_history_enrollment, inverse_of: :service_history_services
 
   scope :service, -> { where record_type: service_types }
   scope :extrapolated, -> { where record_type: :extrapolated }
@@ -35,21 +35,16 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     end
   end
 
-  def self.sub_tables
-    @table_name ||= table_years.map do |year|
-      [year, "service_history_services_#{year}"]
-    end.reverse.to_h
+  def self.refresh
+    sql = "REFRESH MATERIALIZED VIEW service_history_services_materialized;"
+    self.connection.execute(sql)
   end
 
-  def self.remainder_table
-    :service_history_services_remainder
+  def self.view_sql
+    "CREATE MATERIALIZED VIEW IF NOT EXISTS service_history_services_materialized as select * from service_history_services;"
   end
 
-  def self.table_years
-    (2000..2050)
-  end
-
-  def self.parent_table
-    :service_history_services
+  def self.remove_view_sql
+    "DROP MATERIALIZED VIEW IF EXISTS service_history_services_materialized;"
   end
 end
