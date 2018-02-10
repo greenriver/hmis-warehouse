@@ -17,7 +17,11 @@
           - @cohort.visible_columns.each do |column|
             %td
               - if column.input_type == 'read_only'
-                = column.value(cohort_client)
+                - # treat booleans differently
+                - if !!column.value(cohort_client) == column.value(cohort_client)
+                  = checkmark column.value(cohort_client)
+                - else 
+                  = column.value(cohort_client)
               - elsif column.input_type == 'notes'
                 = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
                   #{cohort_client.cohort_client_notes.length}

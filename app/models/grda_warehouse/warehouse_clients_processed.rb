@@ -13,4 +13,84 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   # def chronic?
   #   chronically_homeless
   # end
+  
+  def self.update_cached_counts client_ids: []
+    client_ids.each do |client_id|
+      processed = self.where(client_id: client_id, routine: :service_history).
+        first_or_initialize
+      attrs = {
+        last_service_updated_at: Date.today,
+        first_homeless_date: first_homeless_dates(client_ids: client_ids).try(:[], client_id),
+        last_homeless_date: most_recent_homeless_dates(client_ids: client_ids).try(:[], client_id),
+        homeless_days: homeless_counts(client_ids: client_ids).try(:[], client_id),
+        first_chronic_date: first_chronic_dates(client_ids: client_ids).try(:[], client_id),
+        last_chronic_date: most_recent_chronic_dates(client_ids: client_ids).try(:[], client_id),
+        chronic_days: chronic_counts(client_ids: client_ids).try(:[], client_id),
+        first_date_served: first_total_dates(client_ids: client_ids).try(:[], client_id),
+        last_date_served: most_recent_total_dates(client_ids: client_ids).try(:[], client_id),
+        days_served: total_counts(client_ids: client_ids).try(:[], client_id), 
+      }
+
+      processed.update_attributes(attrs)
+      processed.save
+      GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
+    end
+  end
+
+  def self.most_recent_homeless_dates client_ids: []
+    @most_recent_homeless_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      where(client_id: client_ids).
+      group(:client_id).
+      maximum(:date)
+  end
+  def self.first_homeless_dates client_ids: []
+    @first_homeless_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      where(client_id: client_ids).
+      group(:client_id).
+      minimum(:date)
+  end
+  def self.homeless_counts client_ids: []
+    @homeless_counts ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+      where(client_id: client_ids).
+      group(:client_id).
+      count(:date)
+  end
+
+  def self.most_recent_chronic_dates client_ids: []
+    @most_recent_chronic_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless(chronic_types_only: true).
+      where(client_id: client_ids).
+      group(:client_id).
+      maximum(:date)
+  end
+  def self.first_chronic_dates client_ids: []
+    @first_chronic_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless(chronic_types_only: true).
+      where(client_id: client_ids).
+      group(:client_id).
+      minimum(:date)
+  end
+  def self.chronic_counts client_ids: []
+    @chronic_counts ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless(chronic_types_only: true).
+      where(client_id: client_ids).
+      group(:client_id).
+      count(:date)
+  end
+
+  def self.most_recent_total_dates client_ids: []
+    @most_recent_total_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.
+      where(client_id: client_ids).
+      group(:client_id).
+      maximum(:date)
+  end
+  def self.first_total_dates client_ids: []
+    @first_total_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.
+      where(client_id: client_ids).
+      group(:client_id).
+      minimum(:date)
+  end
+  def self.total_counts client_ids: []
+    @total_counts ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.
+      where(client_id: client_ids).
+      group(:client_id).
+      count(:date)
+  end  
 end

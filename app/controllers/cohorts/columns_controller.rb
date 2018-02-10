@@ -14,7 +14,17 @@ module Cohorts
         columns = columns.sort_by{|x| params[:order].index x.column.to_s}
       end
       columns.each do |column|
-        column.visible = if cohort_params[column.column].blank? || cohort_params[column.column].to_s == '0' then false else true end
+        visibility_state = cohort_params[:visible][column.column]
+        column.visible = false 
+        if visibility_state.present? || visibility_state.to_s == '1'
+          column.visible = true
+        end
+
+        editability_state = cohort_params[:editable][column.column]
+        column.editable = false 
+        if editability_state.present? || editability_state.to_s == '1'
+          column.editable = true
+        end
       end
       @cohort.update(column_state: columns)
       respond_with(@cohort, location: cohort_path(@cohort))
@@ -22,7 +32,8 @@ module Cohorts
 
     def cohort_params
       params.require(:column_state).permit(
-        *cohort_source.available_columns.map(&:column)
+        visible: cohort_source.available_columns.map(&:column),
+        editable: cohort_source.available_columns.map(&:column)
       )
     end
 
