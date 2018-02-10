@@ -65,7 +65,9 @@ module Importing
       @notifier.ping('Earliest residential services generated') if @send_notifications
       
       # Update the materialized view that we use to search by client_id and project_type
+      @notifier.ping('Refreshing Service History Materialized View') if @send_notifications
       GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+      @notifier.ping('Done Refreshing Service History Materialized View') if @send_notifications
 
       # Maintain some summary data to speed up searches and history display and other things
       # To keep this manageable, we'll just deal with clients we've seen in the past year
