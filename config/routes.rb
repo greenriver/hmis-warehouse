@@ -271,6 +271,7 @@ Rails.application.routes.draw do
       get :pre_destroy, on: :member
       resources :cohort_client_notes, controller: 'cohorts/notes'
     end
+    resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
   end
 
   resources :imports do

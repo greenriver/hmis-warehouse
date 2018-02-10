@@ -12,7 +12,7 @@ class DataSourcesController < ApplicationController
       data_source_scope
     end
     @data_sources = @data_sources.order(name: :asc).page(params[:page]).per(25)
-    @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
+    # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
   end
 
   def show

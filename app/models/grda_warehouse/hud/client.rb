@@ -167,6 +167,15 @@ module GrdaWarehouse::Hud
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
     has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
 
+    # Delegations
+    delegate :first_homeless_date, to: :processed_service_history
+    delegate :last_homeless_date, to: :processed_service_history
+    delegate :first_chronic_date, to: :processed_service_history
+    delegate :last_chronic_date, to: :processed_service_history
+    delegate :first_date_served, to: :processed_service_history
+    delegate :last_date_served, to: :processed_service_history
+    
+
     scope :destination, -> do
       where(data_source: GrdaWarehouse::DataSource.destination)
     end
