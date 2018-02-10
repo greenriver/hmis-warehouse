@@ -66,6 +66,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
     end
     it 'there should be three service history entry records' do
+      binding.pry
       expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(3)
     end
     it 'there should be two service history exit records' do
