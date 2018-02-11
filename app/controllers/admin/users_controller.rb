@@ -87,7 +87,8 @@ module Admin
         data_sources: [],
         organizations: [],
         projects: [],
-        reports: []
+        reports: [],
+        cohorts: []
       )
     end
 

@@ -126,10 +126,14 @@ class User < ActiveRecord::Base
     viewable GrdaWarehouse::WarehouseReports::ReportDefinition
   end
 
+  def cohorts
+    viewable GrdaWarehouse::Cohort
+  end
+
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::UserViewableEntity.transaction do
-      %i( data_sources organizations projects reports).each do |type|
+      %i( data_sources organizations projects reports cohorts).each do |type|
         ids = ( viewables[type] || [] ).map(&:to_i)
         scope = viewable_join self.send(type)
         scope.where.not( entity_id: ids ).destroy_all

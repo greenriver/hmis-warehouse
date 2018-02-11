@@ -24,6 +24,10 @@
     - collection = model.order(:report_group, :name).map{ |rd| ["#{rd.report_group}: #{rd.name}", rd.id] }
     - args = { selected: @user.reports.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[reports][]" } }
     = f.input :reports, **args, collection: collection, placeholder: 'Report', multiple: true
+  - if ( model = GrdaWarehouse::Cohort.viewable_by(current_user) ).exists
+    - args = { selected: @user.cohorts.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[cohorts][]" } }
+    - collection = model.order(:name).map{ |cohort| [cohort.id, cohort.name] }
+    = f.input :cohorts, **args, collection: model.order(:name), placeholder: 'Cohort', multiple: true
 
 - content_for :page_js do
   :coffeescript
