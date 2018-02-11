@@ -12,7 +12,8 @@ class CohortsController < ApplicationController
   end
 
   def show
-    cohort_with_preloads = cohort_scope.preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
+    cohort_with_preloads = cohort_scope.where(id: cohort_id).
+      preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
     missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
     @cohort = cohort_with_preloads.first
   end
