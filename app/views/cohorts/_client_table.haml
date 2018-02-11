@@ -8,7 +8,7 @@
   %tbody
     - @cohort.cohort_clients.each do |cohort_client|
       - client = cohort_client.client
-      = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length], expires_in: 8.hours) do
+      = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
         %tr.jCohortClient{data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
           %td
             = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
@@ -21,8 +21,7 @@
                 - if !!column.value(cohort_client) == column.value(cohort_client)
                   = checkmark column.value(cohort_client)
                 - elsif column.column.in?(['first_name', 'last_name'])
-                  = link_to client_path(cohort_client.client) do
-                    = column.value(cohort_client)
+                  = link_to_if current_user.can_view_clients?, column.value(cohort_client), client_path(cohort_client.client)
                 - else 
                   = column.value(cohort_client)
               - elsif column.input_type == 'notes'
