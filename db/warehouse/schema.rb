@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180209145558) do
+ActiveRecord::Schema.define(version: 20180211191923) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -961,6 +961,12 @@ ActiveRecord::Schema.define(version: 20180209145558) do
     t.string   "housing_track_suggested"
     t.string   "housing_track_enrolled"
     t.integer  "adjusted_days_homeless"
+    t.string   "housing_navigator"
+    t.string   "status"
+    t.string   "ssvf_eligible"
+    t.string   "location"
+    t.string   "location_type"
+    t.string   "vet_squares_confirmed"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -968,12 +974,13 @@ ActiveRecord::Schema.define(version: 20180209145558) do
   add_index "cohort_clients", ["deleted_at"], name: "index_cohort_clients_on_deleted_at", using: :btree
 
   create_table "cohorts", force: :cascade do |t|
-    t.string   "name",           null: false
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.string   "name",                                    null: false
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
     t.datetime "deleted_at"
     t.date     "effective_date"
     t.text     "column_state"
+    t.string   "default_sort_direction", default: "desc"
   end
 
   add_index "cohorts", ["deleted_at"], name: "index_cohorts_on_deleted_at", using: :btree

@@ -3,7 +3,8 @@ module Cohorts
     include PjaxModalController
     include ArelHelper
     include Chronic
-    before_action :require_can_edit_cohort_clients!
+    include CohortAuthorization
+    before_action :require_can_access_cohort!
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]
@@ -170,12 +171,8 @@ module Cohorts
       GrdaWarehouse::CohortClientChange
     end
 
-    def set_cohort
-      @cohort = cohort_source.find(params[:cohort_id].to_i)
-    end
-  
-    def cohort_source
-      GrdaWarehouse::Cohort
+    def cohort_id
+      params[:cohort_id].to_i
     end
 
     def flash_interpolation_options

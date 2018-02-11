@@ -20,7 +20,7 @@ module Cohorts
           column.visible = true
         end
 
-        editability_state = cohort_params[:editable][column.column]
+        editability_state = cohort_params[:editable][column.column] rescue nil
         column.editable = false 
         if editability_state.present? || editability_state.to_s == '1'
           column.editable = true

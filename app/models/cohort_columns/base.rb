@@ -29,5 +29,9 @@ module CohortColumns
     def default_value client_id
       nil
     end    
+
+    def value cohort_client
+      cohort_client.send(column)
+    end
   end
 end

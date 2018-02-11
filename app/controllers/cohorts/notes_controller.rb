@@ -1,7 +1,8 @@
 module Cohorts
   class NotesController < ApplicationController
     include PjaxModalController
-    before_action :require_can_edit_cohort_clients!
+    include CohortAuthorization
+    before_action :require_can_access_cohort!
     before_action :set_note, only: [:destroy]
 
     def index
@@ -38,6 +39,10 @@ module Cohorts
 
     def set_note
       @note = note_source.find(params[:id].to_i)
+    end
+
+    def cohort_id
+      params[:cohort_id].to_i
     end
 
     def flash_interpolation_options
