@@ -9,12 +9,12 @@
           - next
         .col-sm-6
           .form-group
-            - if column.display_for_user(current_user) == 'read_only'
+            - if column.display_for_user(current_user).to_s == 'read_only'
               %label
                 = column.title
               %br
               - # treat booleans differently
-              - if !!column.value(@cohort_client) == column.value(@cohort_client)
+              - if !!column.value(@cohort_client) == column&.value(@cohort_client)
                 = checkmark column.value(@cohort_client)
               - else 
                 = column.value(@cohort_client)
