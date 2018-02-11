@@ -77,6 +77,13 @@ module GrdaWarehouse
         ::CohortColumns::Veteran.new(),
         ::CohortColumns::Notes.new(),
         ::CohortColumns::VispdatScore.new(),
+        ::CohortColumns::HousingNavigator.new(),
+        ::CohortColumns::LocationType.new(),
+        ::CohortColumns::Location.new(),
+        ::CohortColumns::Status.new(),
+        ::CohortColumns::SsvfEligible.new(),
+        ::CohortColumns::VetSquaresConfirmed.new(),
+        ::CohortColumns::MissingDocuments.new(),
       ]
     end
 

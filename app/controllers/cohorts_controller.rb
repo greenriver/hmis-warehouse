@@ -4,7 +4,7 @@ class CohortsController < ApplicationController
   before_action :some_cohort_access!
   before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
-  before_action :set_cohort, only: [:edit, :update, :destroy]
+  before_action :set_cohort, only: [:edit, :update, :destroy, :show]
 
   def index
     @cohort = cohort_source.new
@@ -12,7 +12,9 @@ class CohortsController < ApplicationController
   end
 
   def show
-    @cohort = cohort_scope.preload(cohort_clients: [:cohort_client_notes, :client]).first
+    cohort_with_preloads = cohort_scope.preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
+    missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
+    @cohort = cohort_with_preloads.first
   end
 
   def edit

@@ -20,6 +20,9 @@
                 - # treat booleans differently
                 - if !!column.value(cohort_client) == column.value(cohort_client)
                   = checkmark column.value(cohort_client)
+                - elsif column.column.in?(['first_name', 'last_name'])
+                  = link_to client_path(cohort_client.client) do
+                    = column.value(cohort_client)
                 - else 
                   = column.value(cohort_client)
               - elsif column.input_type == 'notes'
