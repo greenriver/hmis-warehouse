@@ -1,5 +1,6 @@
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   include RandomScope
+  include ArelHelper
 
   self.table_name = :warehouse_clients_processed
 
@@ -53,6 +54,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     @homeless_counts ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
       where(client_id: client_ids).
       group(:client_id).
+      distinct.
       count(:date)
   end
 
@@ -72,6 +74,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     @chronic_counts ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless(chronic_types_only: true).
       where(client_id: client_ids).
       group(:client_id).
+      distinct.
       count(:date)
   end
 
@@ -91,6 +94,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     @total_counts ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.
       where(client_id: client_ids).
       group(:client_id).
+      distinct.
       count(:date)
   end  
 end
