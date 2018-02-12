@@ -4,15 +4,26 @@
     .col-xs-12
       = d3_base_chart('d3-housing-status__chart', 'd3-housing-status__dates', 'Housing Status')
   .row
-    .col-xs-12.col-md-6
-      = d3_base_chart('d3-ss-matrix__chart', 'd3-ss-matrix__dates', 'Self-Sufficiency Matrix Scores')
+    .col-xs-12
+      .ss-matrix__container
+        .clearfix
+          %h4 Self Sufficiency Scores
+          .d3-ss__legend.pull-right.clearfix
+        .d3-ss__labels
+          %p.text-right 0 = no response
+          .clearfix
+            .pull-left ← Less Sufficient
+            .pull-right More Sufficient →
+        .d3-ss-matrix__chart
+        .d3-ss__labels
+          .clearfix
+            .pull-left ← Less Sufficient
+            .pull-right More Sufficient →
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
       var data = #{@client.health_housing_stati.to_json}
-      var ssData = #{@client.health_self_sufficiency_scores.to_json}
-
       hsChart = {
         margin: {top: 25, right: 45, bottom: 70, left: 150},
         selector: '.d3-housing-status__chart',
@@ -20,13 +31,9 @@
         type: 'hs',
         viewBoxSizing: true
       }
-      ssChart = {
-        margin: {top: 10, right: 40, bottom: 70, left: 40},
-        selector: '.d3-ss-matrix__chart',
-        data: ssData,
-        type: 'ss',
-      }
-      var charts = [hsChart, ssChart]
-      var pc = new App.D3Chart.PatientCharts(charts)
-
+      var pc = new App.D3Chart.PatientCharts([hsChart])
+      
+      var ssData = #{@client.health_self_sufficiency_scores.to_json}
+      var chart = new App.D3Chart.SelfSufficiencyScores('.d3-ss-matrix__chart', '.d3-ss__legend', {top: 20, right: 10, bottom: 20, left: 150}, ssData);
+      chart.draw();
     })
