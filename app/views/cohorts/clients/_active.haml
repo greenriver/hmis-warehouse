@@ -6,7 +6,7 @@
     .col-sm-4
       = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
     .col-sm-4
-      = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :integer, value: 180, style: 'width: 5em;'}
+      = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: 180, style: 'width: 5em;'}
   .row
     .col-sm-8
       %p
