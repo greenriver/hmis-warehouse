@@ -1186,6 +1186,10 @@ module GrdaWarehouse::Hud
       where(id: client_ids)
     end
 
+    def gender
+      ::HUD.gender(self.Gender)
+    end
+
     def self.age date:, dob:
       return nil unless date.present? && dob.present?
       age = date.year - dob.year
