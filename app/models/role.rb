@@ -55,6 +55,7 @@ class Role < ActiveRecord::Base
       :can_see_own_window_client_notes,
       :can_manage_cohorts,
       :can_edit_cohort_clients,
+      :can_edit_assigned_cohorts,
       :can_assign_users_to_clients,
       :can_view_client_user_assignments,
       :can_export_hmis_data,

@@ -2,12 +2,9 @@
 - content_for :title, title
 = render 'datatables_js'
 = render 'breadcrumbs'
+%h1= content_for :title
 .row
-  .col-sm-6
-    %h1
-      = content_for :title
-
-  .col-sm-6.text-right.padding-top-04
+  .col-sm-12.text-right.padding-top-04
     - if current_user.can_manage_cohorts?
       = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
         %span.icon-pencil 
@@ -15,9 +12,13 @@
       = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
         %span.icon-cog
         Edit Visible Columns
+      = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'btn btn-secondary btn-sm' do
+        %span.icon-printer 
+        Changes Report
     = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
       %span.icon-users
       Add Clients
+      
 - if @cohort.effective_date
   %p
     %strong

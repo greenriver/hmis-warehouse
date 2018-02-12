@@ -10,7 +10,7 @@
 
 - if File.exist? 'app/assets/images/theme/icons/favicon.ico'
   = favicon_link_tag 'theme/icons/favicon.ico', rel: 'shortcut'
-  = favicon_link_tag 'favicon.ico', rel: 'icon'
+  = favicon_link_tag 'theme/icons/favicon.ico', rel: 'icon'
 - else 
   = favicon_link_tag 'favicon.ico', rel: 'shortcut'
   = favicon_link_tag 'favicon.ico', rel: 'icon'

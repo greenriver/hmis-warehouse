@@ -18,7 +18,8 @@ gem "sass-rails"
 gem 'autoprefixer-rails'
 gem 'kaminari'
 gem 'with_advisory_lock'
-gem 'schema_plus_views'
+# gem 'schema_plus_views'
+gem 'scenic'
 gem 'memoist', require: false
 
 # File processing

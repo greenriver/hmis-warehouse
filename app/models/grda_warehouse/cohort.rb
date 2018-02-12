@@ -6,18 +6,36 @@ module GrdaWarehouse
 
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
-    attr_accessor :client_ids
+    attr_accessor :client_ids, :user_ids
 
-    # FIXME  It is not currently known what will allow someone to see or edit a cohort
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
       elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
+      elsif user.can_edit_assigned_cohorts?
+        joins(:user_viewable_entities).
+          where(GrdaWarehouse::UserViewableEntity.table_name => {user_id: user.id})
       else
         none
       end
+    end
+
+    def self.has_some_cohort_access user
+      user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
+    end
+
+    def update_access user_ids
+      GrdaWarehouse::UserViewableEntity.transaction do
+        entity_type = self.class.name
+        GrdaWarehouse::UserViewableEntity.where(entity_type: entity_type, entity_id: id).where.not(user_id: user_ids).destroy_all
+        user_ids.each do |user_id|
+          GrdaWarehouse::UserViewableEntity.where(entity_type: entity_type, entity_id: id, user_id: user_id).first_or_create
+        end
+      end
+      
     end
 
     def visible_columns
@@ -57,7 +75,15 @@ module GrdaWarehouse
         ::CohortColumns::VashEligible.new(),
         ::CohortColumns::Chapter115.new(),
         ::CohortColumns::Veteran.new(),
-        ::CohortColumns::Notes.new()
+        ::CohortColumns::Notes.new(),
+        ::CohortColumns::VispdatScore.new(),
+        ::CohortColumns::HousingNavigator.new(),
+        ::CohortColumns::LocationType.new(),
+        ::CohortColumns::Location.new(),
+        ::CohortColumns::Status.new(),
+        ::CohortColumns::SsvfEligible.new(),
+        ::CohortColumns::VetSquaresConfirmed.new(),
+        ::CohortColumns::MissingDocuments.new(),
       ]
     end
 

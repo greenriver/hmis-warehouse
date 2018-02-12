@@ -47,7 +47,7 @@ module GrdaWarehouse::Report
 
     def self.update_recent_history_table
       sql = GrdaWarehouse::ServiceHistory.service.joins(project: :organization).
-      where(date: [8.months.ago.beginning_of_month.to_date..Date.today.end_of_month.to_date]).
+      where(date: [13.months.ago.beginning_of_month.to_date..Date.today.end_of_month.to_date]).
       select(*sh_columns).to_sql.gsub('FROM', 'INTO recent_service_history FROM')
       self.connection.execute <<-SQL
         DROP TABLE IF EXISTS recent_service_history;
@@ -84,7 +84,7 @@ module GrdaWarehouse::Report
     end
 
     def self.update_recent_report_enrollments_table
-      range = ::Filters::DateRange.new(start: 1.years.ago.to_date, end: Date.today)
+      range = ::Filters::DateRange.new(start: 13.months.ago.beginning_of_month.to_date, end: Date.today.end_of_month.to_date)
 
       d_1_start = range.start
       d_1_end = range.end
