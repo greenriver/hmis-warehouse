@@ -48,6 +48,7 @@ module GrdaWarehouse
         ::CohortColumns::FirstName.new(),
         ::CohortColumns::Rank.new(),
         ::CohortColumns::Age.new(),
+        ::CohortColumns::Gender.new(),
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::FirstDateHomeless.new(),
