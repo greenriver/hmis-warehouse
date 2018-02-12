@@ -9,7 +9,16 @@
         .clearfix
           %h4 Self Sufficiency Scores
           .d3-ss__legend.pull-right.clearfix
+        .d3-ss__labels
+          %p.text-right 0 = no response
+          .clearfix
+            .pull-left ← Less Sufficient
+            .pull-right More Sufficient →
         .d3-ss-matrix__chart
+        .d3-ss__labels
+          .clearfix
+            .pull-left ← Less Sufficient
+            .pull-right More Sufficient →
 
 - content_for :page_js do
   :javascript

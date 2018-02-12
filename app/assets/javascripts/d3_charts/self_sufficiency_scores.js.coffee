@@ -1,7 +1,7 @@
 class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
   constructor: (container_selector, legend_selector, margin, data) ->
     super(container_selector, margin)
-    @data = @_cleanData(data)
+    @data = @_loadData(data)
     @scores = [0..5]
     @range = @_loadRange()
     @domain = @_loadDomain()
@@ -12,17 +12,10 @@ class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
     )
     @legend = new App.D3Chart.StackedLegend(legend_selector, @_loadLegendLabels(), @range.fill.slice().reverse())
 
-  _cleanData: (data) ->
-    # remove total
-    # TODO: remove this server side
-    data.map((bars) ->
-      scores = bars.scores.reduce((a, b) ->
-        if b[0] != 'Total'
-          a.push(b)
-        return a
-      , [])
-      bars.scores = scores
-      return bars
+  _loadData: (data) ->
+    data.map((d, i) ->
+      d.id = i
+      return d
     )
 
   _formatDate: (date) ->
@@ -36,14 +29,14 @@ class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
   _loadLegendLabels: () ->
     legend_labels = @data.map((d) =>
       date = new Date(d.collected_at)
-      @_formatDate(date) + ' ' + d.collection_location
+      @_formatDate(date) + ' ' + d.collection_location + '</br>' + '(total score: '+d.total+')'
     ).slice().reverse()
 
   _loadDomain: () ->
     domain = {
       x: [0, 5],
       y: @data[0].scores.map((d) -> d[0]),
-      fill: @data.map((d) -> d.collected_at),
+      fill: @data.map((d) -> d.id),
       bg_fill: [0, 2, 4],
       bar_count: @data.length,
     }
@@ -133,12 +126,13 @@ class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
           .append('rect')
             .attr('x', (d, i, j) => @scale.x(0))
             .attr('y', (d, i, j) =>
-              pi = parents.indexOf(j[i].parentNode)
+              # pi = parents.indexOf(j[i].parentNode)
+              pi = j[i].parentNode.__data__.id
               @scale.y(d[0]) + (pi*@barHeight)
             )
             .attr('height', (d) => @barHeight)
             .attr('width', (d) => @scale.x(d[1])-@scale.x(0))
-            .attr('fill', (d, i, j) => @scale.fill(j[i].parentNode.__data__.collected_at))
+            .attr('fill', (d, i, j) => @scale.fill(j[i].parentNode.__data__.id))
             .attr('opacity', 0.7)
 
 
