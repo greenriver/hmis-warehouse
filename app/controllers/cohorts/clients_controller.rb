@@ -33,7 +33,7 @@ module Cohorts
     end
 
     def new
-      @clients = []
+      @clients = client_scope.none
       @filter = ::Filters::Chronic.new(params[:filter])
       @population = params[:population]
       @actives = actives_params()
