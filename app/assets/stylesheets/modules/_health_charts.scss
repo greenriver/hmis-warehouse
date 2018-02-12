@@ -417,7 +417,38 @@ h2.ho-sub__h2 {
   pointer-events: none;
 }
 
-.d3-monthly-income__chart,
-.d3-ss-matrix__chart {
+.d3-monthly-income__chart {
   height: 300px;
 }
+
+.d3-ss-matrix__chart {
+  height: 800px;
+}
+
+.ss-matrix__container h4 {
+  display: inline-block;
+  margin-top: 0px;
+}
+
+.d3-ss__legend {
+  .ho-hint {
+    float: left;
+    padding-right: 10px;
+  }
+}
+
+.d3-ss__labels {
+  margin-left: 150px;
+  margin-right: 10px;
+  font-size: 10px;
+}
+
+.d3-ss__legend .ho-hint__swatch-text {
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+
+
+
+
