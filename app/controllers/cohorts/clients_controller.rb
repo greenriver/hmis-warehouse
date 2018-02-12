@@ -36,6 +36,8 @@ module Cohorts
       @clients = []
       @filter = ::Filters::Chronic.new(params[:filter])
       @population = params[:population]
+      @actives = actives_params()
+
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
         load_filter()
@@ -44,13 +46,23 @@ module Cohorts
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
       elsif @population
-        @clients = client_source.joins(:service_history).
-          merge(GrdaWarehouse::ServiceHistory.entry.ongoing.send(@population)).
+        @clients = client_source.joins(:service_history_enrollments).
+          merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.send(@population)).
+          distinct
+      elsif @actives
+        client_ids = GrdaWarehouse::ServiceHistoryEnrollment.
+          open_between(start_date: @actives[:start], end_date: @actives[:end]).
+          distinct.
+          select(:client_id)
+        @clients = client_source.joins(:processed_service_history).
+          where(id: client_ids).
+          where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless])).
           distinct
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_scope.ransack(params[:q])
         @clients = @q.result(distinct: true)
       end
+      @clients.preload(:processed_service_history)
     end
 
     def create
@@ -121,6 +133,15 @@ module Cohorts
     def cohort_params
       params.require(:grda_warehouse_cohort).permit(
         :client_ids
+      )
+    end
+
+    def actives_params
+      return unless params[:actives].present?
+      params.require(:actives).permit(
+        :start,
+        :end,
+        :min_days_homeless,
       )
     end
 

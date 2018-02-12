@@ -104,6 +104,9 @@ module ArelHelper
   def wc_t
     GrdaWarehouse::WarehouseClient.arel_table
   end
+  def wcp_t
+    GrdaWarehouse::WarehouseClientsProcessed.arel_table
+  end    
   def ib_t
     GrdaWarehouse::Hud::IncomeBenefit.arel_table
   end
@@ -288,6 +291,9 @@ module ArelHelper
     end
     def wc_t
       GrdaWarehouse::WarehouseClient.arel_table
+    end
+    def wcp_t
+      GrdaWarehouse::WarehouseClientsProcessed.arel_table
     end
     def ib_t
       GrdaWarehouse::Hud::IncomeBenefit.arel_table
