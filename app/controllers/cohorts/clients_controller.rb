@@ -46,23 +46,34 @@ module Cohorts
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
       elsif @population
-        @clients = client_source.joins(:service_history_enrollments).
+        @clients = client_scope.joins(:service_history_enrollments).
           merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.send(@population)).
           distinct
       elsif @actives
-        client_ids = GrdaWarehouse::ServiceHistoryEnrollment.
-          open_between(start_date: @actives[:start], end_date: @actives[:end]).
-          distinct.
-          select(:client_id)
-        @clients = client_source.joins(:processed_service_history).
-          where(id: client_ids).
+        @clients = client_scope.joins(:processed_service_history).
+          where(
+            GrdaWarehouse::ServiceHistoryEnrollment.where(
+              she_t[:client_id].eq(wcp_t[:client_id])
+            ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end]).
+            exists
+          ).
           where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless])).
           distinct
+
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_scope.ransack(params[:q])
         @clients = @q.result(distinct: true)
       end
-      @clients.preload(:processed_service_history)
+      @days_homeless = GrdaWarehouse::WarehouseClientsProcessed.
+        where(client_id: @clients.select(:id)).
+        pluck(:client_id, :homeless_days).to_h
+      @clients = @clients.pluck(*client_columns).map do |row|
+        Hash[client_columns.zip(row)]
+      end
+    end
+
+    def client_columns
+      @client_columns ||= [:id, :FirstName, :LastName, :DOB, :SSN, :Gender, :VeteranStatus]
     end
 
     def create
@@ -173,7 +184,7 @@ module Cohorts
     end
 
     def client_scope
-      client_source
+      client_source.destination
     end
 
     def client_source

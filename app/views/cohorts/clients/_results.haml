@@ -28,24 +28,24 @@
       - @clients.each do |client|
         %tr
           %td
-            = check_box_tag("client_#{client.id}", client.id, false, {class: 'client jClient', 'data-client-id': client.id})
+            = check_box_tag("client_#{client[:id]}", client[:id], false, {class: 'client jClient', 'data-client-id': client[:id]})
           %td
-            = link_to client_path(client) do
-              = client.LastName
+            = link_to client_path(client[:id]) do
+              = client[:LastName]
           %td
-            = link_to client_path(client) do
-              = client.FirstName
+            = link_to client_path(client[:id]) do
+              = client[:FirstName]
           %td.nobr
-            - if client.DOB.present?
-              = client.DOB
+            - if client[:DOB].present?
+              = client[:DOB]
               %br
               Age:
-              = client.age
+              = GrdaWarehouse::Hud::Client.age date: Date.today, dob: client[:DOB]
           %td
-            = masked_ssn(client.SSN)
+            = masked_ssn(client[:SSN])
           %td
-            = HUD.gender(client.Gender)
+            = HUD.gender(client[:Gender])
           %td
-            = HUD.veteran_status(client.VeteranStatus)
+            = HUD.veteran_status(client[:VeteranStatus])
           %td
-            = client.processed_service_history.homeless_days
+            = @days_homeless[client[:id]]
