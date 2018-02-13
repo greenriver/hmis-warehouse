@@ -3,6 +3,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   self.primary_key = "id"
 
   include ArelHelper
+  include ServiceHistoryServiceConcern
 
   def readonly?
     true
@@ -28,35 +29,11 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :entry, -> { where record_type: 'entry' }
   scope :exit, -> { where record_type: 'exit' }
-  scope :service, -> { where record_type: service_types }
-  scope :extrapolated, -> { where record_type: 'extrapolated' }
+  
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service
-  scope :first_date, -> { where record_type: 'first' }
-
-  def self.service_types
-    service_types = ['service']
-    if GrdaWarehouse::Config.get(:so_day_as_month)
-      service_types << 'extrapolated'
-    end
-  end
-  scope :residential, -> {
-    where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
-  }
-
-  scope :hud_residential, -> do
-    hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
-  end
-
-  scope :residential_non_homeless, -> do
-    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    where(project_type_column => r_non_homeless)
-  end
-  scope :hud_residential_non_homeless, -> do
-    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    hud_project_type(r_non_homeless)
-    end
+  scope :first_date, -> { where record_type: 'first' } 
 
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table
@@ -93,26 +70,6 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     d_2_end = at[:last_date_in_program]
     # Currently does not count as an overlap if one starts on the end of the other
     where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
-  end
-
-  scope :homeless, -> (chronic_types_only: false) do
-    if chronic_types_only
-      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    else
-      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    end
-
-    where(project_type_column => project_types)
-  end
-
-  scope :hud_homeless, -> (chronic_types_only: false) do
-    if chronic_types_only
-      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    else
-      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    end
-
-    hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 
   scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do 
@@ -153,18 +110,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
       )
   end
 
-  scope :service_within_date_range, -> (start_date: , end_date: ) do
-    at = arel_table
-    service.where(at[:date].gteq(start_date).and(at[:date].lteq(end_date)))
-  end
-
   scope :entry_within_date_range, -> (start_date: , end_date: ) do
     entry.open_between(start_date: start_date, end_date: end_date)
   end
 
-  scope :service_in_last_three_years, -> {
-    service_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
-  }
   scope :entry_in_last_three_years, -> {
     entry_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
   }
@@ -224,10 +173,6 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     #   and(sht[:project_type].in(project_types)).
     #   or(pt[:act_as_project_type].in(project_types)))
     # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
-  end
-
-  scope :in_project_type, -> (project_types) do
-    where(project_type_column => project_types)
   end
 
   scope :visible_in_window, -> do

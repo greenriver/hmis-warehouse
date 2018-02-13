@@ -3,7 +3,8 @@ module Cohorts
     include PjaxModalController
     include ArelHelper
     include Chronic
-    before_action :require_can_edit_cohort_clients!
+    include CohortAuthorization
+    before_action :require_can_access_cohort!
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]
@@ -32,9 +33,11 @@ module Cohorts
     end
 
     def new
-      @clients = []
+      @clients = client_scope.none
       @filter = ::Filters::Chronic.new(params[:filter])
       @population = params[:population]
+      @actives = actives_params()
+
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
         load_filter()
@@ -43,13 +46,23 @@ module Cohorts
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
       elsif @population
-        @clients = client_source.joins(:service_history).
-          merge(GrdaWarehouse::ServiceHistory.entry.ongoing.send(@population)).
+        @clients = client_source.joins(:service_history_enrollments).
+          merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.send(@population)).
+          distinct
+      elsif @actives
+        client_ids = GrdaWarehouse::ServiceHistoryEnrollment.
+          open_between(start_date: @actives[:start], end_date: @actives[:end]).
+          distinct.
+          select(:client_id)
+        @clients = client_source.joins(:processed_service_history).
+          where(id: client_ids).
+          where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless])).
           distinct
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_scope.ransack(params[:q])
         @clients = @q.result(distinct: true)
       end
+      @clients.preload(:processed_service_history)
     end
 
     def create
@@ -123,6 +136,15 @@ module Cohorts
       )
     end
 
+    def actives_params
+      return unless params[:actives].present?
+      params.require(:actives).permit(
+        :start,
+        :end,
+        :min_days_homeless,
+      )
+    end
+
     def cohort_update_params
       params.require(:grda_warehouse_cohort_client).permit(*cohort_source.available_columns.map(&:column))
     end
@@ -170,12 +192,8 @@ module Cohorts
       GrdaWarehouse::CohortClientChange
     end
 
-    def set_cohort
-      @cohort = cohort_source.find(params[:cohort_id].to_i)
-    end
-  
-    def cohort_source
-      GrdaWarehouse::Cohort
+    def cohort_id
+      params[:cohort_id].to_i
     end
 
     def flash_interpolation_options

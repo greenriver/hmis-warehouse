@@ -1,0 +1,35 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Changes to #{@cohort.name}".slice(0,30)) do |sheet|
+  sheet.add_row(
+    [
+      "Changes between #{@range.range}",
+    ]
+  )
+  sheet.merge_cells("A1:C1")
+
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Client ID',
+      'Client',
+      'Change',
+      'Reason',
+      'Changed On',
+      'Changed By',
+    ],
+    style: title
+  )
+  @changes.each do |change|
+    client = change.cohort_client.client
+    sheet.add_row(
+      [
+        client.id,
+        client.full_name,
+        change.change,
+        change.reason,
+        change.changed_at.to_date,
+        change.user.name,
+      ]
+    )
+  end
+end

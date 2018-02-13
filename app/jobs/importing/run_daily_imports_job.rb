@@ -64,15 +64,19 @@ module Importing
       GrdaWarehouse::Tasks::EarliestResidentialService.new().run!
       @notifier.ping('Earliest residential services generated') if @send_notifications
       
+      # Update the materialized view that we use to search by client_id and project_type
+      @notifier.ping('Refreshing Service History Materialized View') if @send_notifications
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+      @notifier.ping('Done Refreshing Service History Materialized View') if @send_notifications
+
       # Maintain some summary data to speed up searches and history display and other things
       # To keep this manageable, we'll just deal with clients we've seen in the past year
       # When we sanity check and rebuild using the per-client method, this gets correctly maintained
       @notifier.ping('Updating service history summaries') if @send_notifications
       client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
         joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id').to_sql)
-      client_ids.each do |id|
-        GrdaWarehouse::Tasks::ServiceHistory::Base.new().mark_processed(id)
-      end
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
+
       @notifier.ping('Updated service history summaries') if @send_notifications
 
       Nickname.populate!
@@ -127,8 +131,8 @@ module Importing
       @notifier.ping('Sanity checked') if @send_notifications
       
       # pre-populate the cache for data source date spans
-      GrdaWarehouse::DataSource.data_spans_by_id()
-      @notifier.ping('Data source date spans set') if @send_notifications
+      # GrdaWarehouse::DataSource.data_spans_by_id()
+      # @notifier.ping('Data source date spans set') if @send_notifications
 
       Rails.cache.clear
 
@@ -158,7 +162,6 @@ module Importing
         end
       end
   
-
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"

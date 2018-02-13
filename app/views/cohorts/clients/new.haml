@@ -53,6 +53,20 @@
         #population.panel-collapse.collapse
           .panel-body
             = render 'population'
+      .panel.panel-default
+        .panel-heading
+          .row
+            .col-xs-8
+              %h4.panel-title
+                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
+                  Clients active within a date range
+            .col-xs-4.text-right
+              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
+                %i.icon-arrow-circled-right
+                %i.icon-arrow-circled-down.hide
+        #actives.panel-collapse.collapse
+          .panel-body
+            = render 'active'
     = render 'results'
     
   .col-sm-2

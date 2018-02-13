@@ -19,6 +19,11 @@
           Gender
         %th
           Veteran
+        %th
+          %span{data: {toggle: :tooltip, title: 'Homeless days shown does not take overlapping PH into account'}}
+            %i.icon-info
+            Days Homeless
+          
     %tbody
       - @clients.each do |client|
         %tr
@@ -42,3 +47,5 @@
             = HUD.gender(client.Gender)
           %td
             = HUD.veteran_status(client.VeteranStatus)
+          %td
+            = client.processed_service_history.homeless_days

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180206211300) do
+ActiveRecord::Schema.define(version: 20180213133619) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -931,18 +931,31 @@ ActiveRecord::Schema.define(version: 20180206211300) do
     t.string   "housing_track_suggested"
     t.string   "housing_track_enrolled"
     t.integer  "adjusted_days_homeless"
+    t.string   "housing_navigator"
+    t.string   "status"
+    t.string   "ssvf_eligible"
+    t.string   "location"
+    t.string   "location_type"
+    t.string   "vet_squares_confirmed"
+    t.boolean  "active",                                 :default=>true, :null=>false
+    t.string   "provider"
+    t.string   "next_step"
+    t.text     "housing_plan"
+    t.date     "document_ready_on"
   end
   add_index "cohort_clients", ["client_id"], :name=>"index_cohort_clients_on_client_id", :using=>:btree
   add_index "cohort_clients", ["cohort_id"], :name=>"index_cohort_clients_on_cohort_id", :using=>:btree
   add_index "cohort_clients", ["deleted_at"], :name=>"index_cohort_clients_on_deleted_at", :using=>:btree
 
   create_table "cohorts", force: :cascade do |t|
-    t.string   "name",           :null=>false
-    t.datetime "created_at",     :null=>false
-    t.datetime "updated_at",     :null=>false
+    t.string   "name",                   :null=>false
+    t.datetime "created_at",             :null=>false
+    t.datetime "updated_at",             :null=>false
     t.datetime "deleted_at"
     t.date     "effective_date"
     t.text     "column_state"
+    t.string   "default_sort_direction", :default=>"desc"
+    t.boolean  "only_window",            :default=>false, :null=>false
   end
   add_index "cohorts", ["deleted_at"], :name=>"index_cohorts_on_deleted_at", :using=>:btree
 
@@ -3170,7 +3183,16 @@ UNION
     t.integer  "days_served"
     t.date     "first_date_served"
     t.date     "last_date_served"
+    t.date     "first_homeless_date"
+    t.date     "last_homeless_date"
+    t.integer  "homeless_days"
+    t.date     "first_chronic_date"
+    t.date     "last_chronic_date"
+    t.integer  "chronic_days"
   end
+  add_index "warehouse_clients_processed", ["chronic_days"], :name=>"index_warehouse_clients_processed_on_chronic_days", :using=>:btree
+  add_index "warehouse_clients_processed", ["days_served"], :name=>"index_warehouse_clients_processed_on_days_served", :using=>:btree
+  add_index "warehouse_clients_processed", ["homeless_days"], :name=>"index_warehouse_clients_processed_on_homeless_days", :using=>:btree
   add_index "warehouse_clients_processed", ["routine"], :name=>"index_warehouse_clients_processed_on_routine", :using=>:btree
 
   create_table "warehouse_reports", force: :cascade do |t|

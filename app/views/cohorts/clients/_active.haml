@@ -1,0 +1,17 @@
+= simple_form_for :actives, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+  = f.error_notification
+  .row
+    .col-sm-4
+      = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
+    .col-sm-4
+      = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
+    .col-sm-4
+      = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :integer, value: 180, style: 'width: 5em;'}
+  .row
+    .col-sm-8
+      %p
+        The filter for homeless days is approximate and does not account for overlap with PH when finding clients. The days counted are the unique dates in ES, SO, SH, and TH. The actual count will be shown after the client is added to the cohort.
+    .col-sm-4.text-right
+      %label.control-label &nbsp;
+      %div
+        = f.button :submit, value: 'Search'

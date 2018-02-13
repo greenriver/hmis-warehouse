@@ -18,7 +18,6 @@ module GrdaWarehouse
         'Housed',
         'Mistake',
         'Missing',
-        'Disappeared',
         'Deceased',
         'Inactive',
         'Unknown',

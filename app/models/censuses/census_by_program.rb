@@ -4,12 +4,12 @@ module Censuses
       load_associated_records()
       service_days = fetch_service_days(start_date.to_date - 1.day, end_date, scope)
       project_ids = service_days.map{|m| m['project_id']}.uniq
-      project_id_scope = GrdaWarehouse::CensusByProject
+      project_id_scope = GrdaWarehouse::CensusByProject.where(ProjectID: project_ids)
       at = project_id_scope.arel_table
       project_id_scope = project_id_scope.
         where(ProjectType: @project_types.values.flatten.uniq).
         where( at[:date].between start_date.to_date .. end_date.to_date )
-      inventory = fetch_inventory(start_date, end_date, project_id_scope.pluck(:ProjectID))
+      inventory = fetch_inventory(start_date, end_date, project_id_scope.distinct.select(:ProjectID))
       @totals = {}
       @programs = {}
       services_by_program = service_days.group_by do |m|
