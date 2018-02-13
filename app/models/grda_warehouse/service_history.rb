@@ -85,7 +85,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
       homeless.
       where.not(
         client_id: entry.ongoing(on_date: date).
-          where(project_type_column => non_homeless).
+          in_project_type(non_homeless).
           select(:client_id).
           distinct
       )
@@ -173,6 +173,10 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     #   and(sht[:project_type].in(project_types)).
     #   or(pt[:act_as_project_type].in(project_types)))
     # '(Project.act_as_project_type is null and project_type in (?)) or Project.act_as_project_type in (?)'
+  end
+
+  scope :in_project_type, -> (project_types) do
+    where(project_type_column => project_types)
   end
 
   scope :visible_in_window, -> do

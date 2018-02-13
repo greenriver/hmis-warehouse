@@ -29,12 +29,6 @@
                 = column.title
               .cohort-client__input
                 = f.collection_radio_buttons(column.column, [[true, 'yes'], [false, 'no']], :first, :last, {item_wrapper_tag: :div})
-            - elsif column.input_type == 'date'
-              %label.control-lable.string 
-                = column.title
-              .input-group.date{data: {provide: :datepicker}}
-                = f.input column.column, as: :string, input_html: {class: 'form-control datepicker'}, label: false
-                %span.input-group-addon.icon-calendar
             - elsif column.input_type == 'notes'
               %label.control-lable.string 
                 = column.title
