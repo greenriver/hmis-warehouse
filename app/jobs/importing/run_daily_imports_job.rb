@@ -75,7 +75,7 @@ module Importing
       @notifier.ping('Updating service history summaries') if @send_notifications
       client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
         joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id').to_sql)
-      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
+      GrdaWarehouse::WarehouseClientsProcessed.new.update_cached_counts(client_ids: client_ids)
 
       @notifier.ping('Updated service history summaries') if @send_notifications
 

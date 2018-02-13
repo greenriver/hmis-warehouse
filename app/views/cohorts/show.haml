@@ -15,12 +15,18 @@
       = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'btn btn-secondary btn-sm' do
         %span.icon-printer 
         Changes Report
+    - if params[:inactive].present?
+      = link_to cohort_path(@cohort), class: 'btn btn-secondary btn-sm' do
+        Show Only Active Clients
+    - else 
+      = link_to cohort_path(@cohort, inactive: true), class: 'btn btn-secondary btn-sm' do
+        Show Inactive Clients
     = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
       %span.icon-users
       Add Clients
-      
+  
 - if @cohort.effective_date
-  %p
+  %p.margin-top-02
     %strong
       *
     Data pulled from the client record and shown here will be pulled using the effective date
@@ -29,12 +35,12 @@
     where appropriate.
 
 - if @cohort.clients.blank?
-  %p.text-center
+  %p.text-center.margin-top-02
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus
       Add Clients
 
-.row
+.row.margin-top-02
   .col-sm-12.overflow-scroll
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'

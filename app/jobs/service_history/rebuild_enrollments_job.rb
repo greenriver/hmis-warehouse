@@ -53,7 +53,7 @@ module ServiceHistory
         end
         processor = GrdaWarehouse::Tasks::ServiceHistory::Base.new
         processor.ensure_there_are_no_extra_enrollments_in_service_history(client_id)
-        GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client_id])
+        GrdaWarehouse::WarehouseClientsProcessed.new.update_cached_counts(client_ids: [client_id])
 
       end
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(to_sanity_check.size, to_sanity_check).run!

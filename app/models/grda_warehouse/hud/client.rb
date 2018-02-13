@@ -168,12 +168,12 @@ module GrdaWarehouse::Hud
     has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
 
     # Delegations
-    delegate :first_homeless_date, to: :processed_service_history
-    delegate :last_homeless_date, to: :processed_service_history
-    delegate :first_chronic_date, to: :processed_service_history
-    delegate :last_chronic_date, to: :processed_service_history
-    delegate :first_date_served, to: :processed_service_history
-    delegate :last_date_served, to: :processed_service_history
+    delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
+    delegate :last_homeless_date, to: :processed_service_history, allow_nil: true
+    delegate :first_chronic_date, to: :processed_service_history, allow_nil: true
+    delegate :last_chronic_date, to: :processed_service_history, allow_nil: true
+    delegate :first_date_served, to: :processed_service_history, allow_nil: true
+    delegate :last_date_served, to: :processed_service_history, allow_nil: true
     
 
     scope :destination, -> do

@@ -36,7 +36,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
   end
   scope :residential, -> {
-    where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
   }
 
   scope :hud_residential, -> do
@@ -49,11 +49,22 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :residential_non_homeless, -> do
     r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    where(project_type_column => r_non_homeless)
+    in_project_type(r_non_homeless)
   end
   scope :hud_residential_non_homeless, -> do
     r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     hud_project_type(r_non_homeless)
+  end
+  scope :permanent_housing, -> do
+    project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten
+    in_project_type(project_types)
+  end
+
+  scope :homeless_sheltered, -> do
+    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_SHELTERED_PROJECT_TYPES)
+  end
+  scope :homeless_unsheltered, -> do
+    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
   end
 
   scope :ongoing, -> (on_date: Date.today) do
@@ -99,8 +110,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     else
       project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
-
-    where(project_type_column => project_types)
+    in_project_type(project_types)
   end
 
   # this is always only chronic
@@ -121,7 +131,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       homeless.
       where.not(
         client_id: entry.ongoing(on_date: date).
-          where(project_type_column => non_homeless).
+          in_project_type(non_homeless).
           select(:client_id).
           distinct
       )
