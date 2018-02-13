@@ -61,8 +61,8 @@ module Cohorts
           distinct
 
       elsif params[:q].try(:[], :full_text_search).present?
-        @q = client_scope.ransack(params[:q])
-        @clients = @q.result(distinct: true)
+        @q = client_source.ransack(params[:q])
+        @clients = @q.result(distinct: true).merge(client_scope)
       end
       @days_homeless = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.select(:id)).
@@ -183,8 +183,16 @@ module Cohorts
       cohort_client_changes_source.create(attributes)
     end
 
+    # only clients who have at least one source client
+    # that is visible in the window
     def client_scope
-      client_source.destination
+      client_source.destination.
+        where(
+          GrdaWarehouse::WarehouseClient.joins(:data_source). 
+          where(ds_t[:visible_in_window].eq(true)).
+          where(wc_t[:destination_id].eq(c_t[:id])).
+          exists 
+        )
     end
 
     def client_source
