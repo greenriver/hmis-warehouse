@@ -1,4 +1,4 @@
-= simple_form_for @range, as: :range, remote: true, url: cohort_report_path(@cohort), html: { method: :get, class: 'jFilter' } do |f|
+= simple_form_for @range, as: :range, url: cohort_report_path(@cohort), html: { method: :get, class: 'jFilter' } do |f|
   = f.error_notification
   .row
     .col-sm-4

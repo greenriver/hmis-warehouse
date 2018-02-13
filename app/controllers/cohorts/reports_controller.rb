@@ -4,10 +4,11 @@ module Cohorts
     before_action :set_cohort
 
     def show
-      @range = ::Filters::DateRange.new(report_params[:range])
+      start = report_params[:range].try(:[], :start) || 1.month.ago
+      end_date = report_params[:range].try(:[], :end) || Date.tomorrow
+      @range = ::Filters::DateRange.new(start: start, end: end_date)
       @changes = cohort_client_change_scope.where(changed_at: @range.range).
         preload(:user, cohort_client: :client)
-
       respond_to do |format|
         format.html
         format.xlsx do
