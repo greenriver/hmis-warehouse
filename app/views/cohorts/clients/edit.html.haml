@@ -18,8 +18,6 @@
                 = checkmark column.value(@cohort_client)
               - else 
                 = column.value(@cohort_client)
-              %br
-              %br
             - elsif column.input_type == 'select2'
               - options = {as: 'select', input_html: {class: 'select2'}}
               - options[:collection] = column.available_options
