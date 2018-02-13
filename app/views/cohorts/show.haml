@@ -34,7 +34,7 @@
       %i.icon-plus
       Add Clients
 
-.row
+.row.margin-top-02
   .col-sm-12.overflow-scroll
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'

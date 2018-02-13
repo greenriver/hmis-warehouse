@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180212154518) do
+ActiveRecord::Schema.define(version: 20180213133619) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -953,6 +953,11 @@ ActiveRecord::Schema.define(version: 20180212154518) do
     t.string   "location"
     t.string   "location_type"
     t.string   "vet_squares_confirmed"
+    t.boolean  "active",                                 default: true,  null: false
+    t.string   "provider"
+    t.string   "next_step"
+    t.text     "housing_plan"
+    t.date     "document_ready_on"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -967,6 +972,7 @@ ActiveRecord::Schema.define(version: 20180212154518) do
     t.date     "effective_date"
     t.text     "column_state"
     t.string   "default_sort_direction", default: "desc"
+    t.boolean  "only_window",            default: false,  null: false
   end
 
   add_index "cohorts", ["deleted_at"], name: "index_cohorts_on_deleted_at", using: :btree

@@ -52,6 +52,7 @@ class CohortsController < ApplicationController
       :effective_date,
       :visible_state,
       :default_sort_direction,
+      :only_window,
       user_ids: []
     )
   end

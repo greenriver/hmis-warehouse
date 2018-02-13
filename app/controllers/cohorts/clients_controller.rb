@@ -186,13 +186,17 @@ module Cohorts
     # only clients who have at least one source client
     # that is visible in the window
     def client_scope
-      client_source.destination.
-        where(
-          GrdaWarehouse::WarehouseClient.joins(:data_source). 
-          where(ds_t[:visible_in_window].eq(true)).
-          where(wc_t[:destination_id].eq(c_t[:id])).
-          exists 
-        )
+      if @cohort.only_window
+        client_source.destination.
+          where(
+            GrdaWarehouse::WarehouseClient.joins(:data_source). 
+            where(ds_t[:visible_in_window].eq(true)).
+            where(wc_t[:destination_id].eq(c_t[:id])).
+            exists 
+          )
+      else
+        client_source.destination
+      end  
     end
 
     def client_source
