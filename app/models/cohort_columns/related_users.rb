@@ -9,8 +9,11 @@ module CohortColumns
 
     def value(cohort_client)
       Rails.cache.fetch([cohort_client.client.id, :related_users], expires_at: 8.hours) do
-        user_ids = cohort_client.client.user_clients.pluck(:user_id)
-        User.where(id: user_ids).map(&:name).join('; ')
+        users = cohort_client.client.user_clients.
+          non_confidential.
+          active.
+          pluck(:user_id, :relationship).to_h
+        User.where(id: users.keys).map{|u| "#{users[u.id]} (#{u.name})"}.join('; ')
       end
     end
   end
