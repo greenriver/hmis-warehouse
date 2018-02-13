@@ -2,11 +2,14 @@
   %thead
     %tr
       %th
+        -# We've had issues with the fixed columns, this seems to fix it
+        .div{style: 'width: 4em;'}
+          &nbsp;
       - @cohort.visible_columns.each do |column|
         %th
           = column.title
   %tbody
-    - @cohort.cohort_clients.each do |cohort_client|
+    - @cohort_clients.each do |cohort_client|
       - client = cohort_client.client
       = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
         %tr.jCohortClient{data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
@@ -27,7 +30,7 @@
               - elsif column.input_type == 'notes'
                 = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
                   #{cohort_client.cohort_client_notes.length}
-              - elsif column.input_type == 'radio_buttons'
+              - elsif ['radio_buttons', 'boolean'].include? column.input_type
                 = checkmark cohort_client.public_send(column.column)
               - else
                 = cohort_client.public_send(column.column)

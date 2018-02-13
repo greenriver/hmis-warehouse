@@ -5,7 +5,23 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   belongs_to :service_history_enrollment, inverse_of: :service_history_services
 
   scope :hud_project_type, -> (project_types) do
-    where(project_type: project_types)
+    in_project_type(project_types)
+  end
+
+  scope :permanent_housing, -> do
+    project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten
+    in_project_type(project_types)
+  end
+
+  scope :homeless_sheltered, -> do
+    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_SHELTERED_PROJECT_TYPES)
+  end
+  scope :homeless_unsheltered, -> do
+    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
+  end
+
+  scope :in_project_type, -> (project_types) do
+    where(project_type_column => project_types)
   end
 
   def self.project_type_column

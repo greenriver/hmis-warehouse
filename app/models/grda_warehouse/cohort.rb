@@ -85,6 +85,16 @@ module GrdaWarehouse
         ::CohortColumns::SsvfEligible.new(),
         ::CohortColumns::VetSquaresConfirmed.new(),
         ::CohortColumns::MissingDocuments.new(),
+        ::CohortColumns::Provider.new(),
+        ::CohortColumns::NextStep.new(),
+        ::CohortColumns::HousingPlan.new(),
+        ::CohortColumns::DateDocumentReady.new(),
+        ::CohortColumns::DaysHomelessLastThreeYears.new(),
+        ::CohortColumns::EnrolledHomelessShelter.new(),
+        ::CohortColumns::EnrolledHomelessUnsheltered.new(),
+        ::CohortColumns::EnrolledPermanentHousing.new(),
+        ::CohortColumns::RelatedUsers.new(),
+        ::CohortColumns::Active.new(),
       ]
     end
 

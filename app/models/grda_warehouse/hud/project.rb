@@ -50,6 +50,9 @@ module GrdaWarehouse::Hud
 
     CHRONIC_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh).flatten
     HOMELESS_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh, :th).flatten
+    HOMELESS_SHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :sh, :th).flatten
+    HOMELESS_UNSHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten
+
     PROJECT_TYPE_TITLES = {
         ph: 'Permanent Housing',
         es: 'Emergency Shelter',
@@ -118,16 +121,22 @@ module GrdaWarehouse::Hud
     end
 
     scope :chronic, -> do
-      where(ProjectType: CHRONIC_PROJECT_TYPES)
+      where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
     end
     scope :hud_chronic, -> do
       where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
     end
     scope :homeless, -> do
-      where(ProjectType: HOMELESS_PROJECT_TYPES)
+      where(self.project_type_override.in(HOMELESS_PROJECT_TYPES))
     end
     scope :hud_homeless, -> do
-      where(self.project_type_override.in(HOMELESS_PROJECT_TYPES))
+      where(self.project_type_override.in(CHRONIC_PROJECT_TYPES))
+    end
+    scope :homeless_sheltered, -> do
+      where(self.project_type_override.in(HOMELESS_SHELTERED_PROJECT_TYPES))
+    end
+    scope :homeless_unsheltered, -> do
+      where(self.project_type_override.in(HOMELESS_UNSHELTERED_PROJECT_TYPES))
     end
     scope :residential_non_homeless, -> do
       r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES

@@ -159,6 +159,12 @@ module GrdaWarehouse::Hud
     scope :homeless, -> do
       joins(:project).merge(Project.homeless)
     end
+    scope :homeless_sheltered, -> do
+      joins(:project).merge(Project.homeless_sheltered)
+    end
+    scope :homeless_unsheltered, -> do
+      joins(:project).merge(Project.homeless_unsheltered)
+    end
     scope :residential_non_homeless, -> do
       joins(:project).merge(Project.residential_non_homeless)
     end

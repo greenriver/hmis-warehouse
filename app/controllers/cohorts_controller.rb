@@ -16,6 +16,12 @@ class CohortsController < ApplicationController
       preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
     missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
     @cohort = cohort_with_preloads.first
+    
+    if params[:inactive].present?
+      @cohort_clients = @cohort.cohort_clients
+    else
+      @cohort_clients = @cohort.cohort_clients.where(active: true)
+    end
   end
 
   def edit
@@ -52,6 +58,7 @@ class CohortsController < ApplicationController
       :effective_date,
       :visible_state,
       :default_sort_direction,
+      :only_window,
       user_ids: []
     )
   end

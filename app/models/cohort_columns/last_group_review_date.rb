@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Last Group Review Date'
 
     def default_input_type
-      :date
+      :date_picker
     end
 
   end

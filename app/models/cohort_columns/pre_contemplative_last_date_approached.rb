@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Pre-contemplative Last Date Approached'
 
     def default_input_type
-      :date
+      :date_picker
     end
   end
 end
