@@ -44,20 +44,5 @@ module GrdaWarehouse::Export::HMISSixOneOne
         end
       end
     end
-
-    def self.export! enrollment_scope:, path:, export:
-      disability_scope = joins(:enrollment).merge(enrollment_scope).
-        where(arel_table[:InformationDate].lteq(export.end_date))
-      export_to_path(
-        export_scope: disability_scope, 
-        path: path, 
-        export: export
-      )
-    end
-
-    def self.includes_union?
-      true
-    end
-
   end
 end

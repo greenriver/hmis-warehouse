@@ -39,18 +39,5 @@ module GrdaWarehouse::Export::HMISSixOneOne
       end
     end
 
-    def self.export! project_scope:, path:, export:
-      if export.include_deleted
-        geography_scope = joins(:project_with_deleted).merge(project_scope)
-      else
-        geography_scope = joins(:project).merge(project_scope)
-      end
-      export_to_path(
-        export_scope: geography_scope, 
-        path: path, 
-        export: export
-      )
-    end
-
   end
 end

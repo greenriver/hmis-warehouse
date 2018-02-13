@@ -31,13 +31,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
     belongs_to :organization_with_delted, class_name: GrdaWarehouse::Hud::WithDeleted::Organization.name, primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id]
 
     def self.export! project_scope:, path:, export:
-      if export.include_deleted
-        project_scope = project_scope.joins(:organization_with_delted)
-      else
-        project_scope = project_scope.joins(:organization)
-      end
+      export_scope = project_scope
+      
       export_to_path(
-        export_scope: project_scope, 
+        export_scope: export_scope, 
         path: path, 
         export: export
       )

@@ -103,58 +103,54 @@ module Export::HMISSixOneOne::Shared
     end
 
     def export_enrollment_related! enrollment_scope:, project_scope:, path:, export:
-      changed_scope = modified_within_range(range: (export.start_date..export.end_date), include_deleted: export.include_deleted)
-      if export.include_deleted
-        changed_scope = changed_scope.joins(enrollment_with_deleted: [:project_with_deleted, {client_with_deleted: :warehouse_client_source}]).merge(project_scope)
-      else
-        changed_scope = changed_scope.joins(enrollment: [:project, {client: :warehouse_client_source}]).merge(project_scope)
+
+      case export.period_type
+      when 3
+        export_scope = where(enrollment_exists_for_model(enrollment_scope))
+        if columns_to_pluck.include?(:DateProvided)
+          export_scope = export_scope.where(arel_table[:DateProvided].lteq(export.end_date))
+        end
+        if columns_to_pluck.include?(:InformationDate)
+          export_scope = export_scope.where(arel_table[:InformationDate].lteq(export.end_date))
+        end
+      when 1
+        export_scope = where(enrollment_exists_for_model(enrollment_scope)).modified_within_range(range: (export.start_date..export.end_date))
       end
 
-      if export.include_deleted
-        model_scope = joins(enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]).merge(enrollment_scope)
+      if export.include_deleted || export.period_type == 1
+        join_tables = {enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]}
       else
-        model_scope = joins(enrollment: [:project, {client: :warehouse_client_source}]).
-          where( 
-            enrollment_scope.where(
-              e_t[:ProjectEntryID].eq(arel_table[:ProjectEntryID]).
-              and(e_t[:PersonalID].eq(arel_table[:PersonalID])).
-              and(e_t[:data_source_id].eq(arel_table[:data_source_id]))
-            ).exists
-          )
-      end
-      case export.period_type
-      when 4
-        union_scope = from(
-          arel_table.create_table_alias(
-            model_scope.select(*columns_to_pluck, :id).union(changed_scope.select(*columns_to_pluck, :id)),
-            table_name
-          )
-        )
-      when 3
-        union_scope = model_scope.select(*columns_to_pluck, :id)
-      else
-        raise NotImplementedError
+        join_tables = {enrollment: [:project, {client: :warehouse_client_source}]}
       end
 
       if columns_to_pluck.include?(:ProjectID)
-        if export.include_deleted
-          union_scope = union_scope.joins(enrollment_with_deleted: :project_with_deleted)
+        if export.include_deleted || export.period_type == 1
+          join_tables[:enrollment_with_deleted] << :project_with_deleted
         else
-          union_scope = union_scope.joins(enrollment: :project)
+          join_tables[:enrollment] << :project
         end
       end
-
-      if columns_to_pluck.include?(:DateProvided)
-        union_scope.where(arel_table[:DateProvided].lteq(export.end_date))
-      end
-
+      export_scope = export_scope.joins(join_tables)
 
       export_to_path(
-        export_scope: union_scope, 
-        path: path,
+        export_scope: export_scope, 
+        path: path, 
         export: export
       )
+    end
 
+    def export_project_related! project_scope:, path:, export:
+      case export.period_type
+      when 3
+        export_scope = where(project_exits_for_model(project_scope))
+      when 1
+        export_scope = where(project_exits_for_model(project_scope)).modified_within_range(range: (export.start_date..export.end_date))
+      end
+      export_to_path(
+        export_scope: export_scope, 
+        path: path, 
+        export: export
+      )
     end
 
     def includes_union?
@@ -200,6 +196,21 @@ module Export::HMISSixOneOne::Shared
         ).to_h        
       end
       @client_lookup[personal_id]
+    end
+
+    def project_exits_for_model project_scope
+      project_scope.where(
+        p_t[:ProjectID].eq(arel_table[:ProjectID]).
+        and(p_t[:data_source_id].eq(arel_table[:data_source_id]))
+      ).exists
+    end
+
+    def enrollment_exists_for_model enrollment_scope
+      enrollment_scope.where(
+        e_t[:PersonalID].eq(arel_table[:PersonalID]).
+        and(e_t[:ProjectEntryID].eq(arel_table[:ProjectEntryID])).
+        and(e_t[:data_source_id].eq(arel_table[:data_source_id]))
+      ).exists
     end
   end
 end

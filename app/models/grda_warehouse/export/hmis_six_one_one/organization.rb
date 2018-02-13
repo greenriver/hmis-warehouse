@@ -19,18 +19,24 @@ module GrdaWarehouse::Export::HMISSixOneOne
     has_many :projects_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :organization
 
     def self.export! project_scope:, path:, export:
-      
-      if export.include_deleted
-        organization_scope = joins(:projects_with_deleted).merge(project_scope)
-      else
-        organization_scope = joins(:projects).merge(project_scope)
+      case export.period_type
+      when 3
+        export_scope = where(project_exits_for_organization(project_scope))
+      when 1
+        export_scope = where(project_exits_for_organization(project_scope)).modified_within_range(range: (export.start_date..export.end_date))
       end
       export_to_path(
-        export_scope: organization_scope,
-        path: path,
+        export_scope: export_scope, 
+        path: path, 
         export: export
       )
     end
 
+    def self.project_exits_for_organization project_scope
+      project_scope.where(
+        p_t[:OrganizationID].eq(arel_table[:OrganizationID]).
+        and(p_t[:data_source_id].eq(arel_table[:data_source_id]))
+      ).exists
+    end
   end
 end

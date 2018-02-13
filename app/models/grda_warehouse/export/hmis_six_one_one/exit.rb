@@ -70,10 +70,5 @@ module GrdaWarehouse::Export::HMISSixOneOne
         end
       end
     end
-
-    def self.includes_union?
-      true
-    end
-
   end
 end

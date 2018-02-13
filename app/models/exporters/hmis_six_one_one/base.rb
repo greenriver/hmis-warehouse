@@ -122,7 +122,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_project_cocs
-      project_coc_source.export!(
+      project_coc_source.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -138,7 +138,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_inventories
-      inventory_source.export!(
+      inventory_source.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -146,7 +146,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_geographies
-      geography_source.export!(
+      geography_source.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -154,7 +154,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_funders
-      funder_source.export!(
+      funder_source.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -162,7 +162,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_affiliations
-      affiliation_source.export!(
+      affiliation_source.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -189,9 +189,7 @@ module Exporters::HmisSixOneOne
 
     def export_clients
       client_source.export!(
-        enrollment_scope: enrollment_scope,
         client_scope: client_scope,
-        project_scope: project_scope,
         path: @file_path, 
         export: @export
       )
@@ -255,61 +253,69 @@ module Exporters::HmisSixOneOne
       @enrollment_scope ||= begin
         # Choose all enrollments open during the range at one of the associated projects.
         if @export.include_deleted
-          raise NotImplementedError
-          enrollment_source.joins(:project_with_deleted, :client_with_deleted).
-            where(Client: {id: client_scope.select(c_t[:id])}).
-            merge(project_scope).
-            where(e_t[:EntryDate].lteq(@range.start))
-          
+          e_scope = enrollment_source.with_deleted
         else
-          enrollment_source.joins(:project, :client).
-            open_during_range(@range).
-            where(
-              project_scope.where(
-                p_t[:ProjectID].eq(e_t[:ProjectID]).
-                and(p_t[:data_source_id].eq(e_t[:data_source_id]))
-              ).exists
-            )
+          e_scope = enrollment_source
         end
+        e_scope = e_scope.where(project_exists_for_enrollment)
+        case @export.period_type
+        when 3
+          e_scope = e_scope.open_during_range(@range)
+        when 1
+        end
+        e_scope
       end
     end
-
-  #   scope :with_service_between, -> (start_date: ,end_date: ) do
-  #   where(
-  #     GrdaWarehouse::ServiceHistoryService.where( 
-  #       shs_t[:service_history_enrollment_id].eq(arel_table[:id])
-  #     ).
-  #     where(date: (start_date..end_date)).
-  #     exists
-  #   )
-  # end
 
     def client_scope
       # include any client with an open enrollment
       # during the report period in one of the involved projects
       @client_scope ||= begin
         if @export.include_deleted
-          raise NotImplementedError
-          enrollment_source.joins(:project_with_deleted, {client_with_deleted: :warehouse_client_source}).
-            merge(project_scope).
-            open_during_range(@range)
+          c_scope = client_source.with_deleted
         else
-          enrollment_source.joins(client: :warehouse_client_source).
-            where(project_scope.where(p_t[:ProjectID].eq(e_t[:ProjectID]).and(p_t[:data_source_id].eq(e_t[:data_source_id]))).exists).
-            open_during_range(@range)
+          c_scope = client_source
         end
+        c_scope.joins(:warehouse_client_source).
+          where(enrollment_exists_for_client)
       end
     end
 
     def project_scope
       @project_scope ||= begin
-       project_scope = project_source.where(id: @projects)
+       p_scope = project_source.where(id: @projects)
         if @export.include_deleted
-          raise NotImplementedError
-          project_scope = project_scope.with_deleted
+          p_scope = p_scope.with_deleted
         end
-        project_scope
+        p_scope
       end      
+    end
+
+    def enrollment_exists_for_client
+      if @export.include_deleted
+        e_scope = enrollment_source.with_deleted
+      else
+        e_scope = enrollment_source
+      end
+      case @export.period_type
+      when 3
+        e_scope = e_scope.open_during_range(@range)
+      when 1
+        
+      end
+      e_scope.where(
+        e_t[:PersonalID].eq(c_t[:PersonalID]).
+        and(e_t[:data_source_id].eq(c_t[:data_source_id]))
+      ).where(
+        project_exists_for_enrollment
+      ).exists
+    end
+
+    def project_exists_for_enrollment
+      project_scope.where(
+        p_t[:ProjectID].eq(e_t[:ProjectID]).
+        and(p_t[:data_source_id].eq(e_t[:data_source_id]))
+      ).exists
     end
 
     def setup_export
