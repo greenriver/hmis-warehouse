@@ -24,6 +24,18 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     where(project_type_column => project_types)
   end
 
+  scope :youth, -> do
+    where(age: (18..24))
+  end
+
+  scope :children, -> do
+    where(age: (0...18))
+  end
+
+  scope :adult, -> do
+    where(she_t[:age].gteq(18))
+  end
+
   def self.project_type_column
     :project_type
   end
