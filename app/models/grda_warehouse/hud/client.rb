@@ -1429,16 +1429,24 @@ module GrdaWarehouse::Hud
           prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
 
           # move any client notes
-          GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).
+            update_all(client_id: self.id)
 
           # move any client files
-          GrdaWarehouse::ClientFile.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          GrdaWarehouse::ClientFile.where(client_id: prev_destination_client.id).
+            update_all(client_id: self.id)
 
           # move any patients
-          Health::Patient.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          Health::Patient.where(client_id: prev_destination_client.id).
+            update_all(client_id: self.id)
 
           # move any vi-spdats
-          GrdaWarehouse::Vispdat::Base.where(client_id: prev_destination_client.id).update_all(client_id: self.id)
+          GrdaWarehouse::Vispdat::Base.where(client_id: prev_destination_client.id).
+            update_all(client_id: self.id)
+
+          # move any cohort_clients
+          GrdaWarehouse::CohortClient.where(client_id: prev_destination_client.id).
+            update_all(client_id: self.id)
         end
         # and invaldiate our own service history
         force_full_service_history_rebuild
