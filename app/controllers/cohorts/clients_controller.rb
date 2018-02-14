@@ -46,9 +46,28 @@ module Cohorts
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
       elsif @population
-        @clients = client_scope.joins(:service_history_enrollments).
-          merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.send(@population)).
-          distinct
+        # Force service to fall within the correct age ranges for some populations
+        service_scope = :current_scope
+        if ['youth', 'children'].include? @population 
+          service_scope = @population
+        elsif @population == 'parenting_children'
+          service_scope = :children
+        elsif @population == 'parenting_youth'
+          service_scope = :youth
+        end
+        # we have to hack this because Active Records gets confused with the binds
+        # using to_sql forces binding the options one at a time
+        # https://github.com/rails/rails/issues/20077
+        enrollment_exists = GrdaWarehouse::ServiceHistoryEnrollment.
+            homeless.
+            ongoing.
+            entry.
+            with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
+            where(she_t[:client_id].eq(c_t[:id])).
+            send(@population).
+            to_sql
+        @clients = client_scope.
+          where("EXISTS (#{enrollment_exists})").distinct
       elsif @actives
         @clients = client_scope.joins(:processed_service_history).
           where(

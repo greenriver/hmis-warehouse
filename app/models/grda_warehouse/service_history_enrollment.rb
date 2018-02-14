@@ -225,14 +225,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(project_type_column => project_types)
   end
 
-  scope :with_service_between, -> (start_date: ,end_date: ) do
-    where(
-      GrdaWarehouse::ServiceHistoryService.where( 
+  scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
+    where(GrdaWarehouse::ServiceHistoryService.where( 
         shs_t[:service_history_enrollment_id].eq(arel_table[:id])
       ).
       where(date: (start_date..end_date)).
-      exists
-    )
+      send(service_scope).
+      exists)
   end
 
   scope :visible_in_window, -> do
@@ -285,6 +284,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     scope :parenting_juvenile, -> do
       where(parenting_juvenile: true)
+    end
+    scope :parenting_children, -> do
+      parenting_juvenile
     end
 
     scope :individual_adult, -> do
