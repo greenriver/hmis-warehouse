@@ -1,4 +1,7 @@
 FactoryGirl.define do
+  factory :hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
+
+  end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     # ProjectEntryID
     # PersonalID

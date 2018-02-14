@@ -63,6 +63,7 @@ module WarehouseReports
         :start_date, 
         :end_date,
         :hash_status,
+        :period_type,
         :include_deleted,
         project_ids: [],
         project_group_ids: [],

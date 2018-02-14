@@ -51,7 +51,13 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
 
     def self.export! client_scope:, path:, export:
-      export_scope = client_scope
+      case export.period_type
+      when 3
+        export_scope = client_scope
+      when 1
+        export_scope = client_scope.
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
       
       export_to_path(
         export_scope: export_scope, 

@@ -9,11 +9,7 @@
       .col-sm-3
         = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false
       .col-sm-3
-        %label.control-label Period type
-        .controls
-          Reporting period (3)
-        = f.input :period_type, as: :hidden, input_html: {value: 3}
-        =# f.input :period_type, collection: {'Reporting period' => 3, 'Other' => 4}, include_blank: false
+        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false
         %p.muted
           
     .row

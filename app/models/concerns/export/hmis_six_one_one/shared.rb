@@ -18,6 +18,7 @@ module Export::HMISSixOneOne::Shared
   end
   class_methods do
     def export_to_path export_scope:, path:, export: 
+      reset_lookups()
       export_path = File.join(path, file_name)
       export_id = export.export_id
       CSV.open(export_path, 'wb', {force_quotes: true}) do |csv|
@@ -26,33 +27,34 @@ module Export::HMISSixOneOne::Shared
           export_scope = export_scope.with_deleted
         end
 
-        # Sometimes we're plucking directly, sometimes we're plucking from a unionized table
-        # and we've already overridden the select columns, so we'll pluck the hud columns
         columns = columns_to_pluck
-        if includes_union? && export.period_type == 4
-          columns = hud_csv_headers
-        end
-
+  
         # Find all of the primary ids 
         # It is much faster to do the complicated query with correlated sub-queries once
         # and pluck the ids to conserve memory, and then go back and pull the correct records
         # by id, than it is to loop over batches that each have to re-calculate the sub-queries
         ids = export_scope.pluck(:id)
         ids.in_groups_of(100_000, false) do |id_group|
-          # simple_export_scope = self
-          # if tables_to_join.any?
-          #   simple_export_scope = simple_export_scope.joins(tables_to_join)
-          # end
+
           batch = self.where(id: id_group).pluck(*columns)
-        # export_scope.pluck_in_batches(*columns, batch_size: 100_000) do |batch|
+          # export_scope.pluck_in_batches(*columns, batch_size: 100_000) do |batch|
           cleaned_batch = batch.map do |row|
+            data_source_id = row.last
             row = Hash[hud_csv_headers.zip(row)]
             row[:ExportID] = export_id
-            csv << clean_row(row: row, export: export).values
+            csv << clean_row(row: row, export: export, data_source_id: data_source_id).values
           end
         end
       end
     end
+
+    def reset_lookups
+      @enrollment_lookup = nil
+      @project_lookup = nil
+      @organization_lookup = nil
+      @client_lookup = nil
+    end
+
 
     # Override as necessary
     def clean_headers(headers)
@@ -60,13 +62,20 @@ module Export::HMISSixOneOne::Shared
     end
 
     # Override as necessary
-    def clean_row(row:, export:)
+    def clean_row(row:, export:, data_source_id:)
       # Override source IDs with WarehouseIDs where they come from other tables
-      row[:PersonalID] = client_export_id(row[:PersonalID]) if row[:PersonalID].present?
-      row[:ProjectID] = project_export_id(row[:ProjectID]) if row[:ProjectID].present?
-      row[:OrganizationID] = organization_export_id(row[:OrganizationID]) if row[:OrganizationID].present?
-      row[:EnrollmentID] = enrollment_export_id(row[:EnrollmentID]) if row[:EnrollmentID].present?
-
+      if row[:PersonalID].present?
+        row[:PersonalID] = client_export_id(row[:PersonalID])
+      end
+      if row[:ProjectID].present?
+        row[:ProjectID] = project_export_id(row[:ProjectID], data_source_id) 
+      end
+      if row[:OrganizationID].present?
+        row[:OrganizationID] = organization_export_id(row[:OrganizationID], data_source_id) 
+      end
+      if row[:EnrollmentID].present?
+        row[:EnrollmentID] = enrollment_export_id(row[:EnrollmentID], data_source_id)
+      end
       if export.faked_pii
         export.fake_data.fake_patterns.keys.each do |k|
           if row[k].present?
@@ -88,6 +97,7 @@ module Export::HMISSixOneOne::Shared
       else
         row
       end
+      row
     end
 
     # All HUD Keys will need to be replaced with our IDs to make them unique across data sources.
@@ -99,7 +109,9 @@ module Export::HMISSixOneOne::Shared
         else
           arel_table[k].as("#{k}_".to_s).to_sql
         end
-      end
+      end 
+      @columns_to_pluck << :data_source_id
+      return @columns_to_pluck
     end
 
     def export_enrollment_related! enrollment_scope:, project_scope:, path:, export:
@@ -153,34 +165,40 @@ module Export::HMISSixOneOne::Shared
       )
     end
 
-    def includes_union?
-      false
-    end
-
     # Load some lookup tables so we don't have
     # to join when exporting, that can be very slow
-    def enrollment_export_id project_entry_id
+    def enrollment_export_id project_entry_id, data_source_id
       if self < GrdaWarehouse::Hud::Enrollment
         return project_entry_id
       end
-      @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:ProjectEntryID, :id).to_h
-      @enrollment_lookup[project_entry_id]
+      @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:ProjectEntryID, :data_source_id, :id).
+        map do |e_id, ds_id, id|
+          [[e_id, ds_id], id]
+        end.to_h
+      @enrollment_lookup[[project_entry_id, data_source_id]]
     end
 
-    def project_export_id project_id
+    def project_export_id project_id, data_source_id
       if self < GrdaWarehouse::Hud::Project
         return project_id
       end
-      @project_lookup ||= GrdaWarehouse::Hud::Project.pluck(:ProjectID, :id).to_h
-      @project_lookup[project_id]
+      @project_lookup ||= GrdaWarehouse::Hud::Project.
+        pluck(:ProjectID, :data_source_id, :id).
+        map do |p_id, ds_id, id|
+          [[p_id, ds_id], id]
+        end.to_h
+      @project_lookup[[project_id, data_source_id]]
     end
 
-    def organization_export_id organization_id
+    def organization_export_id organization_id, data_source_id
       if self < GrdaWarehouse::Hud::Organization
         return organization_id
       end
-      @organization_lookup ||= GrdaWarehouse::Hud::Organization.pluck(:OrganizationID, :id).to_h
-      @organization_lookup[organization_id]
+      @organization_lookup ||= GrdaWarehouse::Hud::Organization.pluck(:OrganizationID, :data_source_id, :id).
+        map do |o_id, ds_id, id|
+          [[o_id, ds_id], id]
+        end.to_h
+      @organization_lookup[[organization_id, data_source_id]]
     end
     
     def client_export_id personal_id
@@ -212,5 +230,5 @@ module Export::HMISSixOneOne::Shared
         and(e_t[:data_source_id].eq(arel_table[:data_source_id]))
       ).exists
     end
-  end
+  end # end class methods
 end

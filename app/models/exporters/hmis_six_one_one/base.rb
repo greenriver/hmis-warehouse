@@ -5,7 +5,7 @@ module Exporters::HmisSixOneOne
     include NotifierConfig
     include ArelHelper
     
-    attr_accessor :logger, :notifier_config
+    attr_accessor :logger, :notifier_config, :file_path, :export
 
     def initialize(
       file_path: 'var/hmis_export',

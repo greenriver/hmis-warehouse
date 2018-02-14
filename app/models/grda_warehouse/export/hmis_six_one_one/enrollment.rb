@@ -105,8 +105,14 @@ module GrdaWarehouse::Export::HMISSixOneOne
     end
 
     def self.export! enrollment_scope:, project_scope:, path:, export:
-      export_scope = enrollment_scope
-
+      case export.period_type
+      when 3
+        export_scope = enrollment_scope
+      when 1
+        export_scope = enrollment_scope.
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      
       export_to_path(
         export_scope: export_scope, 
         path: path, 
