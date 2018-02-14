@@ -5,6 +5,7 @@ module Cohorts
     include Chronic
     include CohortAuthorization
     before_action :require_can_access_cohort!
+    before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]

@@ -15,15 +15,16 @@
       = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'btn btn-secondary btn-sm' do
         %span.icon-printer 
         Changes Report
-    - if params[:inactive].present?
-      = link_to cohort_path(@cohort), class: 'btn btn-secondary btn-sm' do
-        Show Only Active Clients
-    - else 
-      = link_to cohort_path(@cohort, inactive: true), class: 'btn btn-secondary btn-sm' do
-        Show Inactive Clients
-    = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
-      %span.icon-users
-      Add Clients
+    - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+      - if params[:inactive].present?
+        = link_to cohort_path(@cohort), class: 'btn btn-secondary btn-sm' do
+          Show Only Active Clients
+      - else 
+        = link_to cohort_path(@cohort, inactive: true), class: 'btn btn-secondary btn-sm' do
+          Show Inactive Clients
+      = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
+        %span.icon-users
+        Add Clients
   
 - if @cohort.effective_date
   %p.margin-top-02

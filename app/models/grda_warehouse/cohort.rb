@@ -95,6 +95,7 @@ module GrdaWarehouse
         ::CohortColumns::EnrolledPermanentHousing.new(),
         ::CohortColumns::RelatedUsers.new(),
         ::CohortColumns::Active.new(),
+        ::CohortColumns::LastHomelessVisit.new(),
       ]
     end
 

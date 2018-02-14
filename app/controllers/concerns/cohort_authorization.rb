@@ -12,6 +12,10 @@ module CohortAuthorization
       not_authorized!
     end
 
+    def require_can_edit_cohort!
+      current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+    end
+
     def cohort_scope
       cohort_source.viewable_by(current_user)
     end
