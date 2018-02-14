@@ -1027,6 +1027,19 @@ module GrdaWarehouse::Hud
       confidential_project_ids.include?([project_id, data_source_id])
     end
 
+    def last_homeless_visits include_confidential_names: false
+      service_history_enrollments.homeless.ongoing.
+        joins(:service_history_services, :project).
+        group(:project_name, p_t[:confidential]).
+        maximum("#{GrdaWarehouse::ServiceHistoryService.quoted_table_name}.date").
+        map do |(project_name, confidential), date|
+          unless include_confidential_names
+            project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
+          end
+          [project_name, date]
+        end
+    end
+
     def last_projects_served_by(include_confidential_names: false)
       sh = service_history.service.
         pluck(:date, :project_name, :data_source_id, :project_id).

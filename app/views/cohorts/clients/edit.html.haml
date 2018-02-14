@@ -42,10 +42,11 @@
               = f.input column.column.to_sym, options
   .right
     = f.submit 'Submit', class: 'btn btn-primary'
-  .left
-    = link_to pre_destroy_cohort_cohort_client_path(@cohort, @cohort_client), class: 'btn btn-danger', data: {loads_in_pjax_modal: true} do
-      %span.icon-cross
-      Remove from #{@cohort.name}
+  - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+    .left
+      = link_to pre_destroy_cohort_cohort_client_path(@cohort, @cohort_client), class: 'btn btn-danger', data: {loads_in_pjax_modal: true} do
+        %span.icon-cross
+        Remove from #{@cohort.name}
 
 :javascript
   $('.select2').select2();

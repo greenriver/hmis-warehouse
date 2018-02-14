@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def available_options
-      ['Visitor', 'Case Management']
+      ['Infrequent Visitor', 'Frequent Visitor', 'Case Management']
     end
 
   end
