@@ -4,11 +4,11 @@
       var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
       
       var datatable = $('.datatable').DataTable({
-        scrollY: false,
+        scrollY: '50vh',
         scrollX: true,
         scrollCollapse: false,
         fixedHeader: true,
-        pageLength: 100,
+        paging: false,
         fixedColumns: {
          leftColumns: 4
         },
