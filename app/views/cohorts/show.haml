@@ -25,7 +25,11 @@
       = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
         %span.icon-users
         Add Clients
-  
+
+.row
+  .col-sm-4.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.margin-top-02
+    Loading clients... please wait.
+
 - if @cohort.effective_date
   %p.margin-top-02
     %strong

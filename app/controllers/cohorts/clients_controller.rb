@@ -17,6 +17,15 @@ module Cohorts
         format.json do
           render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
         end
+        format.html do
+          if params[:inactive].present?
+            @cohort_clients = @cohort.cohort_clients
+          else
+            @cohort_clients = @cohort.cohort_clients.where(active: true)
+          end
+          @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
+          render layout: false
+        end
       end
     end
 
