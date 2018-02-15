@@ -17,7 +17,7 @@
       // Fetch the data in batches
       #{batch_size = 100}
       var batch_size = #{batch_size};
-      var pages = #{(@cohort_clients.count.to_f/batch_size).round};
+      var pages = #{(@cohort_clients.count.to_f/batch_size).round + 1};
       $('.jLoading').removeClass('hidden');
       $(document).ajaxStop(function() {
         $('.jLoading').addClass('hidden');
