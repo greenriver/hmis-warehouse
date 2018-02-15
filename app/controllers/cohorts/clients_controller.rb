@@ -5,6 +5,7 @@ module Cohorts
     include Chronic
     include CohortAuthorization
     before_action :require_can_access_cohort!
+    before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]
@@ -15,6 +16,15 @@ module Cohorts
       respond_to do |format|
         format.json do
           render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+        end
+        format.html do
+          if params[:inactive].present?
+            @cohort_clients = @cohort.cohort_clients
+          else
+            @cohort_clients = @cohort.cohort_clients.where(active: true)
+          end
+          @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
+          render layout: false
         end
       end
     end

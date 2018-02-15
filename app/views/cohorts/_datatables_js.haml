@@ -2,7 +2,7 @@
   :javascript
     (function($) {
       var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
-
+      
       var datatable = $('.datatable').DataTable({
         scrollY: false,
         scrollX: true,
@@ -14,4 +14,18 @@
         },
         order: [[1, '#{@cohort.default_sort_direction}']]
       });
+      // Fetch the data in batches
+      #{batch_size = 100}
+      var batch_size = #{batch_size};
+      var pages = #{(@cohort_clients.count.to_f/batch_size).round + 1};
+      $('.jLoading').removeClass('hidden');
+      $(document).ajaxStop(function() {
+        $('.jLoading').addClass('hidden');
+      });
+      for(i = 1; i <= pages; i++) {
+        url = '#{cohort_cohort_clients_path(@cohort)}?page=' + i + '&per=#{batch_size}#{"&inactive=true" if params[:inactive].present?}';
+        $.get(url, function(data) {
+          datatable.rows.add($(data).filter('tr')).draw();
+        }, 'html');
+      }
     })(jQuery);
