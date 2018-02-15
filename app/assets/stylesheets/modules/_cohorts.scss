@@ -62,3 +62,8 @@ table.dataTable thead .sorting_desc:after {
   content: "\ea36"
   /* sort-by-attributes-alt */
 }
+.datatable th,
+.datatable td
+{
+  white-space: nowrap;
+}
