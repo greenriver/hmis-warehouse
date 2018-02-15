@@ -29,6 +29,26 @@ RSpec.shared_context "single-enrollment tests", shared_context: :metadata do
         expect(csv.first['EnrollmentID']).to eq enrollments.first.id.to_s
       end
     end
+    describe 'when exporting clients' do
+      before(:each) do
+        exporter.export_clients()
+        @client_class = GrdaWarehouse::Export::HMISSixOneOne::Client
+      end
+      it 'client scope should find one client' do
+        expect( exporter.client_scope.count ).to eq 1
+      end
+      it 'creates one CSV file' do
+        expect(File.exists?(csv_file_path(@client_class))).to be true
+      end
+      it 'adds one row to the CSV file' do
+        csv = CSV.read(csv_file_path(@client_class), headers: true)
+        expect(csv.count).to eq 1
+      end
+      it 'PersonalID from CSV file match the id of first client' do
+        csv = CSV.read(csv_file_path(@client_class), headers: true)
+        expect(csv.first['PersonalID']).to eq clients.first.id.to_s
+      end
+    end
     EnrollmentRelatedTests::TESTS.each do |item|
       describe "when exporting #{item[:list]}" do
         before(:each) do

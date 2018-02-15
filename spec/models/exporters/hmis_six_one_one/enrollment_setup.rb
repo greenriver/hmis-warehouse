@@ -5,14 +5,13 @@ RSpec.shared_context "enrollment setup", shared_context: :metadata do
   let!(:destination_clients) do 
     clients.map do |client|
       client.data_source_id = destination_data_source.id
-      source_id = client.id
-      client.id = nil
       attributes = client.attributes
+      attributes['id'] = nil
       dest_client = GrdaWarehouse::Hud::Client.create(attributes)
       GrdaWarehouse::WarehouseClient.create(
         id_in_source: client.PersonalID,
         data_source_id: client.data_source_id,
-        source_id: source_id,
+        source_id: client.id,
         destination_id: dest_client.id
       )
     end
@@ -49,7 +48,7 @@ RSpec.shared_context "enrollment setup", shared_context: :metadata do
   # 'Project.csv' => project_source,
 
   class EnrollmentRelatedTests
-    TESTS = [
+    TESTS ||= [
       { 
         list: :disabilities,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Disability,

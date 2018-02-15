@@ -33,7 +33,7 @@ RSpec.shared_context "project setup", shared_context: :metadata do
   # 'Project.csv' => project_source,
 
   class ProjectRelatedTests
-    TESTS = [
+    TESTS ||= [
       { 
         list: :organizations,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Organization,
