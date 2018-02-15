@@ -214,7 +214,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_exits
-      exit_source.export_enrollment_related!(
+      exit_source.export!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 

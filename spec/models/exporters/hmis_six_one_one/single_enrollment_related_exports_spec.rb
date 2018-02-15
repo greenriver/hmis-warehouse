@@ -1,9 +1,11 @@
 require 'rails_helper'
 require "models/exporters/hmis_six_one_one/project_setup.rb"
-require "models/exporters/hmis_six_one_one/single_project_tests.rb"
+require "models/exporters/hmis_six_one_one/enrollment_setup.rb"
+require "models/exporters/hmis_six_one_one/single_enrollment_tests.rb"
 
 RSpec.describe Exporters::HmisSixOneOne::Base, type: :model do
   include_context "project setup"
+  include_context "enrollment setup"
 
   let(:exporter) {
     Exporters::HmisSixOneOne::Base.new(
@@ -16,7 +18,5 @@ RSpec.describe Exporters::HmisSixOneOne::Base, type: :model do
     )
   }
 
-  include_context "single-project tests"
-  
-  
+  include_context "single-enrollment tests"
 end

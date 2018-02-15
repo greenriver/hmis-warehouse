@@ -70,5 +70,37 @@ module GrdaWarehouse::Export::HMISSixOneOne
         end
       end
     end
+
+    def self.export! enrollment_scope:, project_scope:, path:, export:
+      case export.period_type
+      when 3
+        export_scope = where(id: enrollment_scope.select(ex_t[:id]))
+        export_scope = export_scope.where(arel_table[:ExitDate].lteq(export.end_date))
+      when 1
+        export_scope = where(id: enrollment_scope.select(ex_t[:id])).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+
+      if export.include_deleted || export.period_type == 1
+        join_tables = {enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]}
+      else
+        join_tables = {enrollment: [:project, {client: :warehouse_client_source}]}
+      end
+
+      if columns_to_pluck.include?(:ProjectID)
+        if export.include_deleted || export.period_type == 1
+          join_tables[:enrollment_with_deleted] << :project_with_deleted
+        else
+          join_tables[:enrollment] << :project
+        end
+      end
+      export_scope = export_scope.joins(join_tables)
+
+      export_to_path(
+        export_scope: export_scope, 
+        path: path, 
+        export: export
+      )
+    end
   end
 end
