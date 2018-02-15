@@ -64,6 +64,12 @@ module Export::HMISSixOneOne::Shared
     # Override as necessary
     def clean_row(row:, export:, data_source_id:)
       # Override source IDs with WarehouseIDs where they come from other tables
+      
+      # ProjectEntryID needs to go before PersonalID because it
+      # needs access to the source client
+      if row[:ProjectEntryID].present?
+        row[:ProjectEntryID] = enrollment_export_id(row[:ProjectEntryID], row[:PersonalID], data_source_id)
+      end
       if row[:PersonalID].present?
         row[:PersonalID] = client_export_id(row[:PersonalID])
       end
@@ -73,9 +79,7 @@ module Export::HMISSixOneOne::Shared
       if row[:OrganizationID].present?
         row[:OrganizationID] = organization_export_id(row[:OrganizationID], data_source_id) 
       end
-      if row[:EnrollmentID].present?
-        row[:EnrollmentID] = enrollment_export_id(row[:EnrollmentID], data_source_id)
-      end
+      
       if export.faked_pii
         export.fake_data.fake_patterns.keys.each do |k|
           if row[k].present?
@@ -167,15 +171,15 @@ module Export::HMISSixOneOne::Shared
 
     # Load some lookup tables so we don't have
     # to join when exporting, that can be very slow
-    def enrollment_export_id project_entry_id, data_source_id
+    def enrollment_export_id project_entry_id, personal_id, data_source_id
       if self < GrdaWarehouse::Hud::Enrollment
         return project_entry_id
       end
-      @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:ProjectEntryID, :data_source_id, :id).
-        map do |e_id, ds_id, id|
-          [[e_id, ds_id], id]
+      @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:ProjectEntryID, :PersonalID, :data_source_id, :id).
+        map do |e_id, pers_id, ds_id, id|
+          [[e_id, pers_id, ds_id], id]
         end.to_h
-      @enrollment_lookup[[project_entry_id, data_source_id]]
+      @enrollment_lookup[[project_entry_id, personal_id, data_source_id]]
     end
 
     def project_export_id project_id, data_source_id

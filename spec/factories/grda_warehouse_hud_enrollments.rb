@@ -1,6 +1,8 @@
 FactoryGirl.define do
   factory :hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
-
+    sequence(:ProjectID, 100)
+    sequence(:ProjectEntryID, 1)
+    sequence(:PersonalID, 10)
   end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     # ProjectEntryID
