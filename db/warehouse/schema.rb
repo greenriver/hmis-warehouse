@@ -973,6 +973,7 @@ ActiveRecord::Schema.define(version: 20180215212401) do
     t.text     "housing_plan"
     t.date     "document_ready_on"
     t.string   "new_lease_referral"
+    t.string   "vulnerability_rank"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
