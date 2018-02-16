@@ -61,7 +61,7 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
       it 'PersonalIDs from CSV file match the ids of first three clients' do
         csv = CSV.read(csv_file_path(@client_class), headers: true)
         csv_ids = csv.map{|m| m['PersonalID']}.sort
-        expect(csv_ids).to eq involved_clients.map(&:id).map(&:to_s).sort
+        expect(csv_ids).to eq involved_clients.map(&:destination_client).map(&:id).map(&:to_s).sort
       end
     end
     EnrollmentRelatedTests::TESTS.each do |item|
