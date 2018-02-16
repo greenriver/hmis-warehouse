@@ -46,7 +46,7 @@ RSpec.shared_context "single-enrollment tests", shared_context: :metadata do
       end
       it 'PersonalID from CSV file match the id of first client' do
         csv = CSV.read(csv_file_path(@client_class), headers: true)
-        expect(csv.first['PersonalID']).to eq clients.first.id.to_s
+        expect(csv.first['PersonalID']).to eq clients.first.destination_client.id.to_s
       end
     end
     EnrollmentRelatedTests::TESTS.each do |item|

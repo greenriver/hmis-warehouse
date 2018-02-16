@@ -206,16 +206,24 @@ module Export::HMISSixOneOne::Shared
     end
     
     def client_export_id personal_id
+      # lookup by warehouse client connection
       if self < GrdaWarehouse::Hud::Client
-        return personal_id
-      end
-      @client_lookup ||= begin
-        GrdaWarehouse::Hud::Client.source.
-        joins(:warehouse_client_source).
-        pluck(
-          :PersonalID, 
-          wc_t[:destination_id].as('destination_id').to_sql
-        ).to_h        
+        @dest_client_lookup = GrdaWarehouse::WarehouseClient.
+          pluck(:source_id, :destination_id).
+          map do |source_id, destination_id|
+            [source_id.to_s, destination_id.to_s]
+          end.to_h
+        return @dest_client_lookup[personal_id]
+      else
+        # lookup by personal id
+        @client_lookup ||= begin
+          GrdaWarehouse::Hud::Client.source.
+          joins(:warehouse_client_source).
+          pluck(
+            :PersonalID, 
+            wc_t[:destination_id].as('destination_id').to_sql
+          ).to_h        
+        end
       end
       @client_lookup[personal_id]
     end
