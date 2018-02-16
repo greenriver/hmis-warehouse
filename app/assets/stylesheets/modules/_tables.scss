@@ -41,6 +41,7 @@ ul.pagination
 .dataTables_wrapper
 {
   font-size: $font-size-small;
+  overflow: scroll;
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button
 {
@@ -70,11 +71,32 @@ table.dataTable thead .sorting:after,
 table.dataTable thead .sorting_asc:after,
 table.dataTable thead .sorting_desc:after {
   font-family: 'icomoon';
-  src:    font-url('icomoon.eot?mjkcjl');
-  src:    font-url('icomoon.eot?mjkcjl#iefix') format('embedded-opentype'),
+  src: font-url('icomoon.eot?mjkcjl');
+  src: font-url('icomoon.eot?mjkcjl#iefix') format('embedded-opentype'),
       font-url('icomoon.woff2?mjkcjl') format('woff2'),
       font-url('icomoon.ttf?mjkcjl') format('truetype'),
       font-url('icomoon.woff?mjkcjl') format('woff'),
       font-url('icomoon.svg?mjkcjl#icomoon') format('svg');
 }
 
+table.dataTable.table-condensed .sorting:after,
+table.dataTable.table-condensed .sorting_asc:after,
+table.dataTable.table-condensed .sorting_desc:after {
+  top: auto;
+  bottom: 6px;
+  right: 6px;
+}
+
+table.dataTable thead .sorting:after {
+  opacity: 0.2;
+  content: " ";
+  /* sort */
+}
+table.dataTable thead .sorting_asc:after {
+  content: "\ea32"
+  /* sort-by-attributes */
+}
+table.dataTable thead .sorting_desc:after {
+  content: "\ea36"
+  /* sort-by-attributes-alt */
+}

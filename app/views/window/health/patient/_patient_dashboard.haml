@@ -9,16 +9,19 @@
         .clearfix
           %h4 Self Sufficiency Scores
           .d3-ss__legend.pull-right.clearfix
-        .d3-ss__labels
-          %p.text-right 0 = no response
-          .clearfix
-            .pull-left ← Less Sufficient
-            .pull-right More Sufficient →
-        .d3-ss-matrix__chart
-        .d3-ss__labels
-          .clearfix
-            .pull-left ← Less Sufficient
-            .pull-right More Sufficient →
+        - if @client.health_self_sufficiency_scores.any?
+          .d3-ss__labels
+            %p.text-right 0 = no response
+            .clearfix
+              .pull-left ← Less Sufficient
+              .pull-right More Sufficient →
+          .d3-ss-matrix__chart
+          .d3-ss__labels
+            .clearfix
+              .pull-left ← Less Sufficient
+              .pull-right More Sufficient →
+        - else
+          %p None on file
 
 - content_for :page_js do
   :javascript
