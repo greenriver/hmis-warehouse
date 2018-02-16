@@ -2,6 +2,9 @@ module Health
   class Appointment < Base
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :appointments
+    scope :limited, -> do 
+      where.not(department: ignore_departments)
+    end
 
     self.source_key = :ENC_ID
 
@@ -18,6 +21,13 @@ module Health
         row_created: :created_at,
         row_updated: :updated_at,
       }
+    end
+
+    def self.ignore_departments
+      [
+        'BHC MCINNIS HOUSE',
+        'BHC KIRKPATRICK HOUSE',
+      ]
     end
   end
 end

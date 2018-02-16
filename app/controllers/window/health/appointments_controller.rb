@@ -7,7 +7,7 @@ module Window::Health
     include HealthPatient
     
     def index
-      @appointments = @patient.appointments.order(appointment_time: :desc)
+      @appointments = @patient.appointments.limited.order(appointment_time: :desc)
 
       render layout: !request.xhr?
     end
