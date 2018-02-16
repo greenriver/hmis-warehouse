@@ -16,12 +16,12 @@ RSpec.shared_context "enrollment setup", shared_context: :metadata do
       )
     end
   end
-  let!(:disabilities) { create_list :hud_disability, 5, data_source_id: data_source.id }
-  let!(:enrollment_cocs) { create_list :hud_enrollment_coc, 5, data_source_id: data_source.id }
-  let!(:employment_educations) { create_list :hud_employment_education, 5, data_source_id: data_source.id }
-  let!(:health_and_dvs) { create_list :hud_health_and_dv, 5, data_source_id: data_source.id }
-  let!(:income_benefits) { create_list :hud_income_benefit, 5, data_source_id: data_source.id }
-  let!(:services) { create_list :hud_service, 5, data_source_id: data_source.id }
+  let!(:disabilities) { create_list :hud_disability, 5, data_source_id: data_source.id, InformationDate: 1.week.ago }
+  let!(:enrollment_cocs) { create_list :hud_enrollment_coc, 5, data_source_id: data_source.id, InformationDate: 1.week.ago }
+  let!(:employment_educations) { create_list :hud_employment_education, 5, data_source_id: data_source.id, InformationDate: 1.week.ago }
+  let!(:health_and_dvs) { create_list :hud_health_and_dv, 5, data_source_id: data_source.id, InformationDate: 1.week.ago }
+  let!(:income_benefits) { create_list :hud_income_benefit, 5, data_source_id: data_source.id, InformationDate: 1.week.ago }
+  let!(:services) { create_list :hud_service, 5, data_source_id: data_source.id, DateProvided: 1.week.ago }
   let!(:exits) { create_list :hud_exit, 5, data_source_id: data_source.id, ExitDate: Date.yesterday }
   
   # Project Related

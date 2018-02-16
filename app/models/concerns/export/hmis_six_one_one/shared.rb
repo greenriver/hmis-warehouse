@@ -123,10 +123,10 @@ module Export::HMISSixOneOne::Shared
       case export.period_type
       when 3
         export_scope = where(enrollment_exists_for_model(enrollment_scope))
-        if columns_to_pluck.include?(:DateProvided)
+        if column_names.include?('DateProvided')
           export_scope = export_scope.where(arel_table[:DateProvided].lteq(export.end_date))
         end
-        if columns_to_pluck.include?(:InformationDate)
+        if column_names.include?('InformationDate')
           export_scope = export_scope.where(arel_table[:InformationDate].lteq(export.end_date))
         end
       when 1
@@ -139,7 +139,7 @@ module Export::HMISSixOneOne::Shared
         join_tables = {enrollment: [:project, {client: :warehouse_client_source}]}
       end
 
-      if columns_to_pluck.include?(:ProjectID)
+      if column_names.include?('ProjectID')
         if export.include_deleted || export.period_type == 1
           join_tables[:enrollment_with_deleted] << :project_with_deleted
         else
