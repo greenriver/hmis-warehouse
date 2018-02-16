@@ -132,7 +132,7 @@ class App.D3Chart.PatientChartBase extends App.D3Chart.Base
       @container
         .style('height', 'auto')
         .append('p')
-          .text('No Data')
+          .text('None on file')
 
 class App.D3Chart.SSMatrix extends App.D3Chart.PatientChartBase
   constructor: (container_selector, data, attrs) ->
