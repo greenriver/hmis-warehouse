@@ -15,12 +15,16 @@
       $('.jThumb').each(function(e) {
         var thumb = $(this);
         var file_id = $(this).data('file')
-        var url = window.location.pathname + '/' + file_id + '/has_thumb';
-        $.get(url).done(function(data) {
-          var url = window.location.pathname + '/' + file_id + '/thumb';
-          thumb.append('<img src="' + url + '" class="file-thumbnail" />');
-        }).fail(function() {
-
+        var url_base = window.location.pathname + '/' + file_id;
+        var url = url_base + '/has_thumb';
+        $.get(url, function(data, textStatus, jqXHR) {
+          var thumb_url = url_base + '/thumb';
+          var preview_url = url_base + '/preview';
+          if(textStatus == 'success') {
+            thumb.append('<a href="' + preview_url + '" target="_blank"><img src="' + thumb_url + '" class="file-thumbnail" /></a>');
+          } else {
+            thumb.append('<a href="' + preview_url + '" target="_blank"><i class="icon-eye btn btn-secondary btn-lg"/></a>');
+          }
         });
         
       });

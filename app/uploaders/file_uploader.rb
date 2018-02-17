@@ -50,7 +50,7 @@ class FileUploader < CarrierWave::Uploader::Base
   version :preview do
     process :create_preview
   end
-  version :thumb do
+  version :thumb, from_version: :preview do
     process :create_thumb
   end
 
@@ -59,6 +59,7 @@ class FileUploader < CarrierWave::Uploader::Base
   end
 
   def create_preview size: '1920x1080'
+    return unless MANIPULATEABLE.include?(content_type)
     # https://github.com/carrierwaveuploader/carrierwave/wiki/How-to:-Efficiently-converting-image-formats#changing-the-format
     manipulate! do |img|
       img.format('jpg') do |c|
@@ -83,6 +84,14 @@ class FileUploader < CarrierWave::Uploader::Base
     application/vnd.ms-excel
     application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
   ))
+
+  MANIPULATEABLE = IceNine.deep_freeze(
+    [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+    ]
+  )
 
   # normal content_type handling uses this
   # this is mostly to provide user feedback if they send

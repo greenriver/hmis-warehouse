@@ -57,6 +57,10 @@ button.close {
 .btn [class*=" icon-"] {
   font-size: rem(12);
 }
+.btn-lg [class^="icon-"], 
+.btn-lg [class*=" icon-"] {
+  font-size: rem(24);
+}
 .btn-icon-left [class^="icon-"],
 .btn-icon-left [class*=" icon-"] {
   margin-right: 8px;

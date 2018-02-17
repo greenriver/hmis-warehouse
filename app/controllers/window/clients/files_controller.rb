@@ -91,13 +91,13 @@ module Window::Clients
 
     def has_thumb
       @thumb = @file.file&.thumb
-      if @thumb.blank?
+      if @thumb.blank? && FileUploader::MANIPULATEABLE.include?(@file.content_type)
         @file.file.recreate_versions!
       end
-      if @thumb.present?
+      if @thumb.present? && @thumb.file.content_type == 'image/jpeg'
         head :ok and return
       else
-        head :not_found and return
+        head :no_content and return
       end
     end
     
