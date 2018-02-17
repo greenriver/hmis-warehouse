@@ -16,7 +16,7 @@ module Clients
           content: file&.read,
           visible_in_window: allowed_params[:visible_in_window],
           note: allowed_params[:note],
-          name: allowed_params[:name],
+          name: file.original_filename,
           consent_form_signed_on: allowed_params[:consent_form_signed_on],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
         )

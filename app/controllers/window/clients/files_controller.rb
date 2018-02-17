@@ -33,7 +33,7 @@ module Window::Clients
           content: file&.read,
           visible_in_window: true,
           note: allowed_params[:note],
-          name: allowed_params[:name],
+          name: file.filename,
           consent_form_signed_on: allowed_params[:consent_form_signed_on],
           consent_form_confirmed: allowed_params[:consent_form_confirmed]
         )
@@ -109,7 +109,6 @@ module Window::Clients
       params.require(:grda_warehouse_client_file).
         permit(
           :file,
-          :name,
           :note,
           :visible_in_window,
           :consent_form_signed_on,

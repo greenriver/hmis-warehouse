@@ -13,6 +13,5 @@
     = _("#{@client.name} does not have a consent form on file, you can only see files you upload.")
   - else
     = _("You can only see files you upload.")
+= render 'download_warning'
 = render 'file_list'
-
-= render 'file_list_js'

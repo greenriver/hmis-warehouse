@@ -1,12 +1,28 @@
-$(document).on 'change', '#grda_warehouse_client_file_tag_list', (e) ->
-  file_types = $('#grda_warehouse_client_file_tag_list option:selected')
-  fields = $('.consent-form-fields')
-
+$(document).on 'change', '.jFileTags', (e) ->
+  file_types = $('.jFileTags option:selected')
   tags = (type.value for type in file_types)
-
-  if 'Consent Form' in tags
-    fields.show()
+  if 'Consent Form' in tags or 'HAN Release' in tags
+    $('.consent-form-fields').removeClass('hidden')
   else
-    fields.hide()
+    $('.consent-form-fields').addClass('hidden')
+  if 'Verification of Disability' in tags or 'Disability Verification' in tags
+    $('.disability-warning').removeClass('hidden')
+  else
+    $('.disability-warning').addClass('hidden')
 
-$('#grda_warehouse_client_file_tag_list').trigger('change')
+$('.jFileTags').trigger('change')
+
+
+$('.jThumb').each (e) ->
+  thumb = this
+  file_id = $(this).data('file')
+  url_base = window.location.pathname + '/' + file_id
+  url = url_base + '/has_thumb'
+  $.get url, (data, textStatus, jqXHR) ->
+    thumb_url = url_base + '/thumb'
+    preview_url = url_base + '/preview'
+    if(textStatus == 'success')
+      link = '<a href="' + preview_url + '" target="_blank"><img src="' + thumb_url + '" class="file-thumbnail" /></a>'
+    else 
+      link = '<a href="' + preview_url + '" target="_blank"><i class="icon-eye btn btn-secondary btn-lg"/></a>'
+    $(thumb).html(link)
