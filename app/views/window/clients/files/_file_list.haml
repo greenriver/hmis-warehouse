@@ -8,6 +8,7 @@
               %th(colspan=5)
               %th.text-center(style='background-color:#eee') Consent Form
             %tr
+              %th
               %th File
               %th Contains
               %th Note
@@ -17,11 +18,12 @@
               %th Delete
             %tbody
               - @files.each do |file|
-                %tr
-                  %td
+                %tr{ class: "client-file-#{file.id}"}
+                  %td.text-center.jThumb{data: {file: file.id}}
+                  %td.text-center
                     - if file.content.present?
-                      = link_to polymorphic_path(file_path_generator, id: file.id) do
-                        = file.name
+                      = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-lg btn-secondary' do
+                        %i.icon-download2
                     - else
                       = file.name
                   %td= file.tag_list.join(', ')
