@@ -91,6 +91,9 @@ module Window::Clients
 
     def has_thumb
       @thumb = @file.file&.thumb
+      if @thumb.blank?
+        @file.file.recreate_versions!
+      end
       if @thumb.present?
         head :ok and return
       else
