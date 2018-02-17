@@ -12,13 +12,13 @@ module Clients
           file: file,
           client_id: @client.id,
           user_id: current_user.id,
-          content_type: file&.content_type,
+          # content_type: file&.content_type,
           content: file&.read,
           visible_in_window: allowed_params[:visible_in_window],
           note: allowed_params[:note],
           name: allowed_params[:name],
           consent_form_signed_on: allowed_params[:consent_form_signed_on],
-          consent_form_confirmed: allowed_params[:consent_form_confirmed]
+          consent_form_confirmed: allowed_params[:consent_form_confirmed],
         )
         tag_list = allowed_params[:tag_list].select(&:present?)
         @file.tag_list.add(tag_list)

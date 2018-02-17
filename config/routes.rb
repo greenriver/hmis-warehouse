@@ -204,7 +204,11 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
-    resources :files, controller: 'clients/files'
+    resources :files, controller: 'clients/files' do 
+      get :preview, on: :member
+      get :thumb, on: :member
+      get :has_thumb, on: :member
+    end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
@@ -234,7 +238,11 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
-      resources :files, controller: 'clients/files'
+      resources :files, controller: 'clients/files' do 
+        get :preview, on: :member
+        get :thumb, on: :member
+        get :has_thumb, on: :member
+      end
       resources :notes, only: [:index, :create, :destroy], controller: 'clients/notes'
       resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
       resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'

@@ -24,6 +24,8 @@ gem 'memoist', require: false
 
 # File processing
 gem 'carrierwave'
+gem 'ruby-filemagic'
+gem 'mini_magick'
 gem 'acts-as-taggable-on', '~> 4.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway

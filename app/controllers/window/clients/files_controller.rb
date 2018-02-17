@@ -3,9 +3,9 @@ module Window::Clients
     include WindowClientPathGenerator
     
     before_action :require_window_file_access!
-    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update]
+    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb]
     before_action :set_files, only: [:index]
-    before_action :set_file, only: [:show, :edit, :update]
+    before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
     
     def index
       @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
@@ -65,6 +65,37 @@ module Window::Clients
         flash[:error] = "File could not be deleted."
       end
       redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
+    end
+
+    def preview
+      if stale?(etag: @file, last_modified: @file.updated_at)
+        @preview = @file.file&.preview
+        head :ok and return unless @preview.present?
+        headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
+        send_data @preview.file.read, filename: @file.name, disposition: :inline, content_type: @preview.file.content_type
+      else
+        logger.debug 'used browser cache'
+      end
+    end
+
+    def thumb
+      if stale?(etag: @file, last_modified: @file.updated_at)
+        @thumb = @file.file&.thumb
+        head :ok and return unless @thumb.present?
+        headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
+        send_data @thumb.file.read, filename: @file.name, disposition: :inline, content_type: @thumb.file.content_type
+      else
+        logger.debug 'used browser cache'
+      end
+    end
+
+    def has_thumb
+      @thumb = @file.file&.thumb
+      if @thumb.present?
+        head :ok and return
+      else
+        head :not_found and return
+      end
     end
     
     def download 

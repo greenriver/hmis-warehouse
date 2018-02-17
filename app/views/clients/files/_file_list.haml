@@ -8,6 +8,7 @@
               %th(colspan=6)
               %th.text-center(colspan=2 style='background-color: #eee') Consent Form
             %tr
+              %th
               %th File
               %th Contains
               %th Note
@@ -20,6 +21,7 @@
             %tbody
               - @files.each do |file|
                 %tr{ class: "client-file-#{file.id}"}
+                  %td.jThumb{data: {file: file.id}}
                   %td
                     - if file.content.present?
                       = link_to polymorphic_path(file_path_generator, id: file.id) do

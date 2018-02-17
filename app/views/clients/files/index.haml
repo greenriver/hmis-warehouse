@@ -8,3 +8,20 @@
   
 = render 'window/clients/files/file_upload'
 = render 'file_list'
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.jThumb').each(function(e) {
+        var thumb = $(this);
+        var file_id = $(this).data('file')
+        var url = window.location.pathname + '/' + file_id + '/has_thumb';
+        $.get(url).done(function(data) {
+          var url = window.location.pathname + '/' + file_id + '/thumb';
+          thumb.append('<img src="' + url + '" class="file-thumbnail" />');
+        }).fail(function() {
+
+        });
+        
+      });
+    })(jQuery);
