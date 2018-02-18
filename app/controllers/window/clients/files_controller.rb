@@ -33,11 +33,11 @@ module Window::Clients
           content: file&.read,
           visible_in_window: true,
           note: allowed_params[:note],
-          name: file.filename,
+          name: file.original_filename,
           consent_form_signed_on: allowed_params[:consent_form_signed_on],
           consent_form_confirmed: allowed_params[:consent_form_confirmed]
         )
-        tag_list = allowed_params[:tag_list].select(&:present?)
+        tag_list = [allowed_params[:tag_list]].select(&:present?)
         @file.tag_list.add(tag_list)
         @file.save!
 
@@ -113,7 +113,7 @@ module Window::Clients
           :visible_in_window,
           :consent_form_signed_on,
           :consent_form_confirmed,
-          tag_list: [],
+          :tag_list,
         )
     end
     

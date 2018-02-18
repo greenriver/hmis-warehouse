@@ -20,7 +20,7 @@ module Clients
           consent_form_signed_on: allowed_params[:consent_form_signed_on],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
         )
-        tag_list = allowed_params[:tag_list].select(&:present?)
+        tag_list = [allowed_params[:tag_list]].select(&:present?)
         @file.tag_list.add(tag_list)
         @file.save!
 
