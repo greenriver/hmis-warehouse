@@ -6,7 +6,40 @@ module Window::Clients
     before_action :set_client, :check_release
     
     def show
-      
+      @dates = {}
+      @client.service_history_enrollments.
+        includes(:service_history_services, :organization).
+        each do |enrollment|
+          project_type = enrollment.project_type
+          project_name = GrdaWarehouse::Hud::Project.confidentialize(name: enrollment.project_name)
+          @dates[enrollment.date] ||= []
+          record = {
+            record_type: enrollment.record_type,
+            project_type: project_type,
+            project_name: project_name,
+            organization_name: nil,
+          }
+          unless project_name == GrdaWarehouse::Hud::Project.confidential_project_name
+            record[:organization_name] = enrollment.organization.OrganizationName
+          end
+          @dates[enrollment.date] << record
+          enrollment.service_history_services.each do |service|
+            @dates[service.date] ||= []
+            @dates[service.date] << {
+              record_type: service.record_type,
+              project_type: project_type,
+              project_name: project_name,
+              organization_name: nil,
+            }
+          end
+        end
+      @ordered_dates = @dates.keys.sort
+      @start = @ordered_dates.first
+      @end = @ordered_dates.last
+      @date_range = (@start.beginning_of_month..@end.end_of_month)
+      @months = @date_range.map do |date|
+        [date.year, date.month]
+      end.uniq
     end
     
     def set_client

@@ -4,9 +4,5 @@
 = render 'window/clients/tab_navigation', current: polymorphic_path(history_path_generator, client_id: @client)
 %h1= title
 = render 'history_key'
-.row
-  .col-sm-12.all-service-dates
-    #client-history
 
-= render 'month_loader'
-    
+= render 'service_calendar'
