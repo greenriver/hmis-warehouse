@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180216221704) do
+ActiveRecord::Schema.define(version: 20180219011911) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -752,6 +752,19 @@ ActiveRecord::Schema.define(version: 20180216221704) do
   add_index "api_client_data_source_ids", ["data_source_id"], name: "index_api_client_data_source_ids_on_data_source_id", using: :btree
   add_index "api_client_data_source_ids", ["warehouse_id"], name: "index_api_client_data_source_ids_on_warehouse_id", using: :btree
 
+  create_table "available_file_tags", force: :cascade do |t|
+    t.string   "name"
+    t.string   "group"
+    t.string   "included_info"
+    t.integer  "weight",               default: 0
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.boolean  "document_ready",       default: false
+    t.boolean  "notification_trigger", default: false
+    t.boolean  "consent_form",         default: false
+    t.string   "note"
+  end
+
   create_table "cas_enrollments", force: :cascade do |t|
     t.integer  "client_id"
     t.integer  "enrollment_id"
@@ -1107,6 +1120,7 @@ ActiveRecord::Schema.define(version: 20180216221704) do
     t.date     "consent_form_signed_on"
     t.boolean  "consent_form_confirmed"
     t.float    "size"
+    t.date     "effective_date"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree

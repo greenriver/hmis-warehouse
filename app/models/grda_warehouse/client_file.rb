@@ -35,13 +35,17 @@ module GrdaWarehouse
     end
 
     scope :consent_forms, -> do
-      tagged_with 'Consent Form'
+      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
     end
     scope :confirmed, -> do
       where(consent_form_confirmed: true)
     end
     scope :signed_on, -> (date) do
       where(consent_form_signed_on: date)
+    end
+
+    scope :notification_triggers, -> do
+      tagged_with(GrdaWarehouse::AvailableFileTag.notification_triggers.pluck(:name), any: true)
     end
 
     ####################
@@ -77,10 +81,9 @@ module GrdaWarehouse
           NotifyUser.file_uploaded( id ).deliver_later
         end
         # Send out administrative notifications as appropriate
-        tag_list = ActsAsTaggableOn::Tag.where(name: self.tag_list).pluck(:id)
-        notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
-        to_send = tag_list & notification_triggers
-        FileNotificationMailer.notify(to_send, client.id).deliver_later if to_send.any?
+        if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
+          FileNotificationMailer.notify(client.id).deliver_later
+        end
       end
     end
 
@@ -89,42 +92,9 @@ module GrdaWarehouse
       errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes
     end
 
-    # Any of these tags could represent a full release
-    def self.full_release_tags
-      [
-        'Consent Form',
-        'Full Network Release',
-      ]
-    end
-
     def self.available_tags
-      [
-        'Birth Certificate',
-        'Government ID',
-        'Social Security Card',
-        'Disability Verification',
-        'Homeless Verification',
-        'Veteran Verification',
-        'Proof of Income',
-        'Client Photo',
-        'DD-214',
-        'Consent Form',
-        'Full Network Release',
-        'Limited CAS Release',
-        'Chronic Homelessness Verification',
-        'BHA Eligibility',
-        'Housing Authority Eligibility',
-        'Other',
-      ].sort.freeze
+      GrdaWarehouse::AvailableFileTag.grouped
     end
 
-    def self.document_ready_tags
-      [
-        'Birth Certificate',
-        'Government ID',
-        'Social Security Card',
-        'Proof of Income',
-      ]
-    end
   end
 end  

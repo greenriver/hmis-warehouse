@@ -1,24 +1,60 @@
 = render 'instructions'
-.row
-  .col-sm-8
-    = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
-      = f.error_notification
-      .form-inputs
-        = f.input :tag_list, collection: @file.class.available_tags, label: 'Document Type', input_html: {value: f.object.tag_list, class: 'select2 jFileTags', style: 'width: 100%'}
-        .disability-warning.hidden.margin-bottom-02
-          = _('This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. ')
-        = f.input :consent_form_signed_on, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }
-        - if can_confirm_housing_release?
-          .consent-form-fields.hidden
-            = f.input :consent_form_confirmed, as: :boolean
-        = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
-        - if can_manage_client_files?
-          = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
-        = f.input :file, as: :file, :required => true            
-      .row
-        .col-sm-6
-          = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
-        .col-sm-6.text-right
-          = link_to polymorphic_path(files_path_generator, client_id: @client.id) do
-            &laquo; Return to File List
-        
+
+= simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
+  = f.error_notification
+  .form-inputs
+    - if false
+      %select.select2{name: 'grda_warehouse_client_file[tag_list]'}
+        = options_for_available_tags @file.class.available_tags, f.object.tag_list
+      
+      =# f.input :tag_list, collection: @file.class.available_tags, as: :grouped_select, group_method: :last, option_key_method: :name, option_value_method: :name, label: 'Document Type', input_html: {value: f.object.tag_list, class: 'select2 jFileTags', style: 'width: 100%'}
+      .well
+        - @file.class.available_tags.each do |group_name, group|
+          .form-group.padding-left-06
+            - if group.size > 1
+              %h3= group_name
+            - group.each do |item|
+              .radio
+                = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name)
+                = label_tag("tag_list_#{item.name}", item.name)
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Document
+          %th Note
+          %th File Type
+          %th Information included
+      %tbody
+        - @file.class.available_tags.each do |group_name, group|
+          - group.each_with_index do |item, index|
+            %tr
+              %td
+                .radio.padding-left-06
+                  = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name)
+                  = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
+              %td{style: 'max-width: 18em;'}
+                - if item.note.present?
+                  %em.file-note
+                    = item.note
+              %td= group_name if index == 0
+              %td= item.included_info
+
+    .disability-warning.hidden.margin-bottom-02
+      = _('This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. ')
+    .row
+      .col-sm-4
+        = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }
+    - if can_confirm_housing_release?
+      .consent-form-fields.hidden
+        = f.input :consent_form_confirmed, as: :boolean
+    = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
+    - if can_manage_client_files?
+      = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
+    = f.input :file, as: :file, :required => true            
+  .row
+    .col-sm-6
+      = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
+    .col-sm-6.text-right
+      = link_to polymorphic_path(files_path_generator, client_id: @client.id) do
+        &laquo; Return to File List
+    

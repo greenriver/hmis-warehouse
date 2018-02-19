@@ -5,17 +5,21 @@
         %table.table.table-condensed.table-hover
           %thead
             %tr
-              %th(colspan=5)
-              %th.text-center(style='background-color:#eee') Consent Form
-            %tr
               %th
-              %th File
-              %th Contains
-              %th Note
-              %th Uploaded By
-              %th Uploaded On
-              %th.text-center Signed On
-              %th Delete
+              %th.text-center File
+              %th.text-center Document
+              %th.text-center Note
+              - if can_manage_client_files?
+                %th.text-center Visible in Window
+              %th.text-center Uploaded By
+              %th.text-center Uploaded On
+              %th.text-center 
+                Effective Date /
+                %br
+                Signed On
+              - if can_manage_client_files? 
+                %th.text-center Consent Confirmed
+              %th.text-center Delete
             %tbody
               - @files.each do |file|
                 %tr{ class: "client-file-#{file.id}"}
@@ -26,11 +30,38 @@
                         %i.icon-download2
                     - else
                       = file.name
-                  %td= file.tag_list.join(', ')
+                  %td
+                    - file.tag_list.each do |tag|
+                      - included_info = @available_tags[tag]&.included_info
+                      = tag
+                      - if included_info
+                        .files-included-info
+                          %em Contains:
+                          = included_info
                   %td= file.note
+                  - if can_manage_client_files?
+                    %td.text-center= checkmark file.visible_in_window
                   %td= file.user&.name
                   %td= file.created_at
-                  %td.text-center= file.consent_form_signed_on
+
+                  - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list) && @consent_editable
+                    %td
+                      - if can_manage_client_files?
+                        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+                          = f.input :consent_form_signed_on, as: :date_picker, label: false, input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
+                      - else
+                        = file.consent_form_signed_on
+
+                    %td.text-center
+                      - if can_confirm_housing_release?
+                        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+                          = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
+                      - else
+                        = checkmark file.consent_form_confirmed
+                  - else
+                    %td= file.effective_date
+                    %td
+
                   %td
                     = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-secondary btn-small') do
                       %span.icon-cross

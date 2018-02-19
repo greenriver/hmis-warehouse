@@ -97,7 +97,8 @@ module Window::Clients
           note: file_params[:note],
           name: file_params[:name],
           vispdat_id: @vispdat.id,
-          consent_form_signed_on: file_params[:consent_form_signed_on]
+          consent_form_signed_on: file_params[:consent_form_signed_on],
+          effective_date: file_params[:consent_form_signed_on]
         )
         consent_form = 'Consent Form'
         # @file.tag_list.add(tag_list.select(&:present?))

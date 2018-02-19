@@ -1,6 +1,9 @@
 $(document).on 'change', '.jFileTags', (e) ->
   file_types = $('.jFileTags option:selected')
   tags = (type.value for type in file_types)
+  console.log 'test'
+  consent_forms = 'ttt'
+  console.log 'test'
   if 'Consent Form' in tags or 'HAN Release' in tags
     $('.consent-form-fields').removeClass('hidden')
   else

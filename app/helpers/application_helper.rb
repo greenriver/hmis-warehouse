@@ -138,4 +138,20 @@ module ApplicationHelper
     translations[locale.to_sym].presence || locale
   end
 
+  def options_for_available_tags grouped_tags, selected_name
+    opts = []
+    grouped_tags.each do |key, group|
+      if group.size == 1
+        item = group.first
+        opts << content_tag(:option, item.name, value: item.name)
+      else
+        opts << content_tag(:optgroup, key, label: key)
+        group.each do |item|
+          opts << content_tag(:option, item.name, value: item.name)
+        end
+      end
+    end
+    opts.join('').html_safe
+  end
+
 end

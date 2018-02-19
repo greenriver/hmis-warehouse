@@ -381,6 +381,7 @@ Rails.application.routes.draw do
     namespace :eto_api do
       resources :assessments, only: [:index, :update]
     end
+    resources :available_file_tags, only: [:index, :new, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
 

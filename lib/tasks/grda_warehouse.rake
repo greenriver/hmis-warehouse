@@ -29,6 +29,13 @@ namespace :grda_warehouse do
     GrdaWarehouse::Utility.clear!
   end
 
+  desc "Seed file types"
+  task seed_file_types: [:environment] do
+    GrdaWarehouse::AvailableFileTag.default_document_types.each do |doc|
+      GrdaWarehouse::AvailableFileTag.where(doc).first_or_create
+    end
+  end
+
   desc "Seed Data Sources"
   task seed_data_sources: [:environment] do
     if Rails.env.production?

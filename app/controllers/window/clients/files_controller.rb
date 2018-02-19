@@ -8,8 +8,10 @@ module Window::Clients
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
     
     def index
+      @consent_editable = consent_editable?
       @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
+      @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
     end
     
     def show
@@ -22,36 +24,40 @@ module Window::Clients
     
     def create
       @file = file_source.new
-      begin
+      # begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
         file = allowed_params[:file]
-        @file.assign_attributes(
+        tag_list = [allowed_params[:tag_list]].select(&:present?)
+        attrs = {
           file: file,
           client_id: @client.id,
           user_id: current_user.id,
-          content_type: file&.content_type,
+          # content_type: file&.content_type,
           content: file&.read,
-          visible_in_window: true,
           note: allowed_params[:note],
           name: file.original_filename,
-          consent_form_signed_on: allowed_params[:consent_form_signed_on],
-          consent_form_confirmed: allowed_params[:consent_form_confirmed]
-        )
-        tag_list = [allowed_params[:tag_list]].select(&:present?)
+          visible_in_window: window_visible?(allowed_params[:visible_in_window]),
+          effective_date: allowed_params[:effective_date],
+          consent_form_confirmed: allowed_params[:consent_form_confirmed],
+        }
+        if GrdaWarehouse::AvailableFileTag.contains_consent_form?(tag_list)
+          attrs[:consent_form_signed_on] = allowed_params[:effective_date]
+        end
+        @file.assign_attributes(attrs)
+        
         @file.tag_list.add(tag_list)
         @file.save!
 
         # Keep various client fields in sync with files if appropriate
-        @file.client.sync_cas_attributes_with_files
-
-      rescue Exception => e
-        flash[:error] = e.message
-        render action: :new
-        return
-      end
+        @client.sync_cas_attributes_with_files
+      # rescue Exception => e
+      #   flash[:error] = e.message
+      #   render action: :new
+      #   return
+      # end
       redirect_to action: :index 
     end
-    
+
     def destroy
       @file = file_source.find(params[:id].to_i)
       @client = @file.client
@@ -113,8 +119,17 @@ module Window::Clients
           :visible_in_window,
           :consent_form_signed_on,
           :consent_form_confirmed,
+          :effective_date,
           :tag_list,
         )
+    end
+
+    def consent_editable?
+      false
+    end
+
+    def window_visible? visibility
+      true
     end
     
     def set_client
