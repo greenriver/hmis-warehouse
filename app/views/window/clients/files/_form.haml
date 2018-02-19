@@ -1,5 +1,4 @@
 = render 'instructions'
-
 = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
   = f.error_notification
   .form-inputs
@@ -14,8 +13,9 @@
             - if group.size > 1
               %h3= group_name
             - group.each do |item|
+              - selected = params['tag_list'] == item.name
               .radio
-                = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name)
+                = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected: selected)
                 = label_tag("tag_list_#{item.name}", item.name)
     %table.table.table-striped
       %thead
@@ -30,7 +30,8 @@
             %tr
               %td
                 .radio.padding-left-06
-                  = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name)
+                  - selected = f.object.tag_list.to_s == item.name
+                  = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected)
                   = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
               %td{style: 'max-width: 18em;'}
                 - if item.note.present?
@@ -43,11 +44,11 @@
       = _('This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. ')
     .row
       .col-sm-4
-        = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }
+        = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }, label: 'Effective date or date signed'
     - if can_confirm_housing_release?
       .consent-form-fields.hidden
         = f.input :consent_form_confirmed, as: :boolean
-    = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
+    = f.input :note, as: :string, hint: '(Optional except if other is chosen above) Give a reason for including this file.'
     - if can_manage_client_files?
       = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
     = f.input :file, as: :file, :required => true            

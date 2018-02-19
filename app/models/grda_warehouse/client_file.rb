@@ -9,6 +9,7 @@ module GrdaWarehouse
     validates_presence_of :name
     validates_inclusion_of :visible_in_window, in: [true, false]
     validate :file_exists_and_not_too_large
+    validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
 
     scope :window, -> do
@@ -90,6 +91,12 @@ module GrdaWarehouse
     def file_exists_and_not_too_large
       errors.add :file, "No uploaded file found" if (content&.size || 0) < 100
       errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes
+    end
+
+    def note_if_other
+      if tag_list.include?('Other') && note.blank?
+        errors.add :note, "Note is required if Other is chosen above"
+      end
     end
 
     def self.available_tags

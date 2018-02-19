@@ -24,7 +24,7 @@ module Window::Clients
     
     def create
       @file = file_source.new
-      # begin
+      begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
         file = allowed_params[:file]
         tag_list = [allowed_params[:tag_list]].select(&:present?)
@@ -50,11 +50,11 @@ module Window::Clients
 
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
-      # rescue Exception => e
-      #   flash[:error] = e.message
-      #   render action: :new
-      #   return
-      # end
+      rescue Exception => e
+        flash[:error] = e.message
+        render action: :new
+        return
+      end
       redirect_to action: :index 
     end
 

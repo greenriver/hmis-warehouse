@@ -139,6 +139,11 @@ module DefaultFileTypes
           group: 'BHA Application',
           included_info: 'BHA Application',
         },
+        {
+          name: 'Other',
+          group: 'Other',
+          note: 'Please specify contents under note',
+        },
       ]
     end
   end
