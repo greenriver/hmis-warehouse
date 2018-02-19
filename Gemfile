@@ -79,8 +79,8 @@ gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
 gem 'roo', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
-# gem 'wicked_pdf'
-# gem 'wkhtmltopdf-binary'
+gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary'
 
 gem 'whenever', require: false
 gem 'ruby-progressbar', require: false

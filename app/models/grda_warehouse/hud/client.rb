@@ -1090,51 +1090,6 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown'
     end
 
-    def service_dates_for_display service_scope:, start_date:
-      @service_dates_for_display ||= begin
-        st = service_history.arel_table
-        query = self.service_history.merge(service_scope).joins(:project).
-          select( :date, :record_type, :project_id, :enrollment_group_id, :first_date_in_program, :last_date_in_program, :data_source_id, st[GrdaWarehouse::ServiceHistory.project_type_column].as('project_type').to_sql).
-          where( st[:date].gt start_date.beginning_of_week ).
-          where( st[:date].lteq start_date.end_of_month.end_of_week ).
-          order( date: :asc ).
-          distinct
-        ungrouped_services = query.each_with_index.map do |m,i|
-          day = {
-            id: i,
-            service_type: m.service_type_brief,
-            program_id: m.project_id,
-            class: "service-type__#{m.record_type} program-group_#{m.enrollment_group_id} client__service_type_#{m.project_type}",
-            record_type: m.record_type,
-            database_id: m.data_source_id,
-          }
-          if m.enrollment_group_id.present?
-            day[:group] = "#{m.enrollment_group_id}"
-          end
-          if service_types.include?(m.record_type)
-            day[:start] = m.date.to_date
-          elsif m.record_type == 'exit'
-            day[:start] = if m.last_date_in_program.present?
-              then
-              m.last_date_in_program.to_date
-            else
-              date_of_last_service
-            end
-          else
-            day[:start] = m.first_date_in_program.to_date
-            day[:end] = if m.last_date_in_program.present?
-              then
-              m.last_date_in_program.to_date
-            else
-              date_of_last_service
-            end
-          end
-          day
-        end
-        ungrouped_services.group_by{ |m| m[:start] }
-      end
-    end
-
     def self.ransackable_scopes(auth_object = nil)
       [:full_text_search]
     end

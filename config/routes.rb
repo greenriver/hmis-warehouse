@@ -180,9 +180,7 @@ Rails.application.routes.draw do
   end
   resources :clients do
     member do
-      # get :month_of_service
       get :service_range
-      # get :history
       get :vispdat
       get :rollup
       get :assessment
@@ -193,7 +191,6 @@ Rails.application.routes.draw do
       resource :cas_active, only: :update
     end
     resource :history, only: [:show], controller: 'clients/history'
-    resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
@@ -230,7 +227,6 @@ Rails.application.routes.draw do
       get :assessment
       get :image
       resource :history, only: [:show], controller: 'clients/history'
-      resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
       resources :vispdats, controller: 'clients/vispdats' do
         member do
           put :add_child
