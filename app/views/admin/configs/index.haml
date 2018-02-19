@@ -31,7 +31,5 @@
       = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS'
       = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?'
       = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)'
-      = f.input :tag_list, collection: GrdaWarehouse::ClientFile.available_tags, label: 'Files required to be document ready', input_html: {value: f.object.tag_list_on(:document_ready), multiple: :multiple, class: 'select2'}
-      = f.input :file_notification_list, collection: GrdaWarehouse::ClientFile.available_tags, label: 'Files that should trigger notifications', input_html: {value: f.object.tag_list_on(:file_notifications), multiple: :multiple, class: 'select2'}
-
+  
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'

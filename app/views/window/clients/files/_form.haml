@@ -2,44 +2,27 @@
 = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
   = f.error_notification
   .form-inputs
-    - if false
-      %select.select2{name: 'grda_warehouse_client_file[tag_list]'}
-        = options_for_available_tags @file.class.available_tags, f.object.tag_list
-      
-      =# f.input :tag_list, collection: @file.class.available_tags, as: :grouped_select, group_method: :last, option_key_method: :name, option_value_method: :name, label: 'Document Type', input_html: {value: f.object.tag_list, class: 'select2 jFileTags', style: 'width: 100%'}
-      .well
-        - @file.class.available_tags.each do |group_name, group|
-          .form-group.padding-left-06
-            - if group.size > 1
-              %h3= group_name
-            - group.each do |item|
-              - selected = params['tag_list'] == item.name
-              .radio
-                = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected: selected)
-                = label_tag("tag_list_#{item.name}", item.name)
-    %table.table.table-striped
-      %thead
-        %tr
-          %th Document
-          %th File Type
-          %th Information included
-      %tbody
-        - @file.class.available_tags.each do |group_name, group|
-          - group.each_with_index do |item, index|
-            %tr
-              %td
-                .radio.padding-left-06
+    %h3 What Does This File Contain?
+    .well.row.client-file
+      - @file.class.available_tags.keys.in_groups(2, false) do |batch|
+        .col-sm-6
+          - batch.each do |group_name|
+            - group = @file.class.available_tags[group_name]
+            .form-group
+
+              %h4= group_name
+              - group.each do |item|
+                - selected = params['tag_list'] == item.name
+                .radio
                   - selected = f.object.tag_list.to_s == item.name
                   - options = {class: 'jFileTag'}
                   - if item.note.present?
                     - options = options.merge({data: {toggle: :popover, trigger: :manual, title: item.name, content: item.note}})
                   = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
                   = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
-              %td= group_name if index == 0
-              %td= item.included_info
-
-    .disability-warning.hidden.margin-bottom-02
-      = _('This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. ')
+                  - if item.included_info.present?
+                    %p.margin-left-04
+                      %em= "(includes: #{item.included_info})"
     .row
       .col-sm-4
         = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }, label: 'Effective date or date signed'

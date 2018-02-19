@@ -6,7 +6,7 @@ module Admin
     respond_to :html
 
     def index
-      @available_file_tags = GrdaWarehouse::AvailableFileTag.all
+      @available_file_tags = GrdaWarehouse::AvailableFileTag.ordered
       respond_with(@available_file_tags)
     end
 
@@ -16,7 +16,6 @@ module Admin
     end
 
     def create
-
       @available_file_tag = GrdaWarehouse::AvailableFileTag.create!(available_file_tag_params)
       respond_with(@available_file_tag, location: admin_available_file_tags_path)
     end
@@ -36,7 +35,16 @@ module Admin
       end
 
       def available_file_tag_params
-        params.require(:available_file_tag).permit(:name, :group, :included_info, :weight)
+        params.require(:available_file_tag).permit(
+          :name, 
+          :group, 
+          :included_info, 
+          :weight,
+          :note,
+          :consent_form,
+          :notification_trigger,
+          :document_ready,
+        )
       end
   end
 end

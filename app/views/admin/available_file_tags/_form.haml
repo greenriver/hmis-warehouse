@@ -10,5 +10,9 @@
   = f.input :group
   = f.input :included_info, label: 'Includes'
   = f.input :weight
+  = f.input :note
+  = f.input :document_ready, label: 'Required for document ready?'
+  = f.input :notification_trigger, label: 'Should this generate a notification?'
+  = f.input :consent_form, label: 'Does this constitute a consent form?'
   .actions
     = f.submit 'Save', class: 'btn btn-primary'

@@ -16,7 +16,9 @@
       %th Group
       %th Includes
       %th Weight
-      %th
+      %th Triggers Notifications?
+      %th Required for Document Ready?
+      %th Constitutes a Consent Form?
 
   %tbody
     - @available_file_tags.each do |available_file_tag|
@@ -25,6 +27,9 @@
         %td= available_file_tag.group
         %td= available_file_tag.included_info
         %td= available_file_tag.weight
+        %td= checkmark available_file_tag.notification_trigger
+        %td= checkmark available_file_tag.document_ready
+        %td= checkmark available_file_tag.consent_form
         %td
           = link_to admin_available_file_tag_path(available_file_tag), class: 'btn btn-sm btn-danger', method: :delete, data: { confirm: "Really delete #{available_file_tag.name}?" } do
             %i.icon-cross

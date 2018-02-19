@@ -3,7 +3,7 @@ module GrdaWarehouse
     include DefaultFileTypes
 
     scope :ordered, -> do 
-      order(group: :asc, weight: :desc, name: :asc)
+      order(weight: :asc, group: :asc, name: :asc)
     end
 
     scope :consent_forms, -> do
