@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      required_documents = GrdaWarehouse::Config.get(:document_ready)
+      required_documents = GrdaWarehouse::AvailableFileTag.document_ready
       cohort_client.client.document_readiness(required_documents).select{|m| m.available == false}.map(&:name).join('; ')
     end
   end

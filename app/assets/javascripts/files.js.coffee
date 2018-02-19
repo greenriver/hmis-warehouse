@@ -1,21 +1,3 @@
-$(document).on 'change', '.jFileTags', (e) ->
-  file_types = $('.jFileTags option:selected')
-  tags = (type.value for type in file_types)
-  console.log 'test'
-  consent_forms = 'ttt'
-  console.log 'test'
-  if 'Consent Form' in tags or 'HAN Release' in tags
-    $('.consent-form-fields').removeClass('hidden')
-  else
-    $('.consent-form-fields').addClass('hidden')
-  if 'Verification of Disability' in tags or 'Disability Verification' in tags
-    $('.disability-warning').removeClass('hidden')
-  else
-    $('.disability-warning').addClass('hidden')
-
-$('.jFileTags').trigger('change')
-
-
 $('.jThumb').each (e) ->
   thumb = this
   file_id = $(this).data('file')
@@ -37,3 +19,14 @@ $(document).on 'change', '.jFileTag', (e) ->
   else
     $('.jFileTag').popover('hide')
   
+$(document).on 'change', '.jDownload', (e) ->
+  ids = $('.jDownload:checked').map ->
+    $(this).val()
+  $('tr.active').removeClass('active')
+  $('.jDownload:checked').each ->
+    $(this).closest('tr').addClass('active')
+  $('.jDownloadIDs').attr('value', ids.get())
+  if $('.jDownload:checked').val()?
+    $('.jDownloadButton').removeAttr('disabled')
+  else
+    $('.jDownloadButton').attr('disabled', 'disabled')

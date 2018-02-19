@@ -3,7 +3,7 @@ module Window::Clients
     include WindowClientPathGenerator
     
     before_action :require_window_file_access!
-    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb]
+    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download]
     before_action :set_files, only: [:index]
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
     
@@ -110,6 +110,31 @@ module Window::Clients
     def download 
       send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
     end
+
+    def batch_download
+      require 'rubygems'
+      require 'zip'
+      @files = file_scope.where(id: batch_params[:file_ids].split(',').map(&:to_i))
+
+      # temp_file = Tempfile.new('tmp-zip-' + request.remote_ip)
+      zip_stream = Zip::OutputStream.write_buffer do |zip_out|
+        @files.each do |file|
+          zip_out.put_next_entry(File.join(@client.id.to_s, "#{file.tag_list.join('-')}#{extension_for(file.content_type)}"))
+          zip_out.print file.content
+        end
+      end
+      zip_stream.rewind
+      send_data zip_stream.read, type: "application/zip", filename: "#{@client.id}_files.zip"
+
+      # temp_file.close
+      # redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
+    end
+
+    def extension_for mime_type
+      require 'rack/mime'
+      @lookup ||= Rack::Mime::MIME_TYPES.invert
+      @lookup[mime_type]
+    end
     
     def file_params
       params.require(:grda_warehouse_client_file).
@@ -122,6 +147,10 @@ module Window::Clients
           :effective_date,
           :tag_list,
         )
+    end
+
+    def batch_params
+      params.require(:batch_download).permit(:file_ids)
     end
 
     def consent_editable?

@@ -208,6 +208,7 @@ Rails.application.routes.draw do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
+      post :batch_download, on: :collection
     end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
@@ -242,6 +243,7 @@ Rails.application.routes.draw do
         get :preview, on: :member
         get :thumb, on: :member
         get :has_thumb, on: :member
+        post :batch_download, on: :collection
       end
       resources :notes, only: [:index, :create, :destroy], controller: 'clients/notes'
       resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
