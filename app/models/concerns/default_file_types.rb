@@ -181,16 +181,19 @@ module DefaultFileTypes
           name: 'Birth Certificate',
           group: 'Document Type',
           weight: 0,
+          document_ready: true,
         },
         {
           name: 'Government ID',
           group: 'Document Type',
           weight: 1,
+          document_ready: true,
         },
         {
           name: 'Social Security Card',
           group: 'Document Type',
           weight: 2,
+          document_ready: true,
         },
         {
           name: 'Disability Verification',
@@ -221,11 +224,13 @@ module DefaultFileTypes
           name: 'DD-214',
           group: 'Document Type',
           weight: 8,
+          document_ready: true,
         },
         {
           name: 'Consent Form',
           group: 'Document Type',
           weight: 9,
+          notification_trigger: true,
         },
         {
           name: 'Full Network Release',
@@ -241,6 +246,7 @@ module DefaultFileTypes
           name: 'Chronic Homelessness Verification',
           group: 'Document Type',
           weight: 12,
+          document_ready: true,
         },
         {
           name: 'BHA Eligibility',
