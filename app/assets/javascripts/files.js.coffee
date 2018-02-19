@@ -29,3 +29,11 @@ $('.jThumb').each (e) ->
     else 
       link = '<a href="' + preview_url + '" target="_blank"><i class="icon-eye btn btn-secondary btn-lg"/></a>'
     $(thumb).html(link)
+
+$(document).on 'change', '.jFileTag', (e) ->
+  if $(this).data('toggle') == 'popover'
+    $('.jFileTag').not(this).popover('hide')
+    $(this).popover('show')
+  else
+    $('.jFileTag').popover('hide')
+  

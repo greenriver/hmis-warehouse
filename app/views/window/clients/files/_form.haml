@@ -21,7 +21,6 @@
       %thead
         %tr
           %th Document
-          %th Note
           %th File Type
           %th Information included
       %tbody
@@ -31,12 +30,11 @@
               %td
                 .radio.padding-left-06
                   - selected = f.object.tag_list.to_s == item.name
-                  = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected)
+                  - options = {class: 'jFileTag'}
+                  - if item.note.present?
+                    - options = options.merge({data: {toggle: :popover, trigger: :manual, title: item.name, content: item.note}})
+                  = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
                   = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
-              %td{style: 'max-width: 18em;'}
-                - if item.note.present?
-                  %em.file-note
-                    = item.note
               %td= group_name if index == 0
               %td= item.included_info
 
@@ -58,4 +56,3 @@
     .col-sm-6.text-right
       = link_to polymorphic_path(files_path_generator, client_id: @client.id) do
         &laquo; Return to File List
-    
