@@ -359,6 +359,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    scope :needs_history_pdf, -> do
+      destination.where(generate_history_pdf: true)
+    end
+
     ####################
     # Callbacks
     ####################
@@ -470,6 +474,7 @@ module GrdaWarehouse::Hud
     alias_attribute :first_name, :FirstName
 
     def window_link_for? user
+      return false if user.blank?
       if show_window_demographic_to?(user)
         window_client_path(self)
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)

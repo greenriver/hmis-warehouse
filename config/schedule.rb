@@ -30,4 +30,9 @@ if environment == 'production'
   every 1.day, at: '9:30 am' do
     rake "health:daily"
   end
+
+  every 4.hours do
+    rake "grda_warehouse:save_service_history_snapshots"
+  end
+
 end

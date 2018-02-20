@@ -23,7 +23,7 @@ module Window::Clients
       show
       file_name = "service_history.pdf"
       # or from your controller, using views & templates and all wicked_pdf options as normal
-      pdf = render_to_string pdf: file_name, template: "window/clients/history/show", encoding: "UTF-8"
+      pdf = render_to_string pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
       @file = GrdaWarehouse::ClientFile.new
       begin
         tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
