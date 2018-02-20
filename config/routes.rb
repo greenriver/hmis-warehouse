@@ -226,7 +226,9 @@ Rails.application.routes.draw do
       get :rollup
       get :assessment
       get :image
-      resource :history, only: [:show], controller: 'clients/history'
+      resource :history, only: [:show], controller: 'clients/history' do
+        get :pdf, on: :collection
+      end
       resources :vispdats, controller: 'clients/vispdats' do
         member do
           put :add_child

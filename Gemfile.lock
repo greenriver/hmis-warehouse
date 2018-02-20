@@ -88,6 +88,8 @@ GEM
     babel-transpiler (0.7.0)
       babel-source (>= 4.0, < 6)
       execjs (~> 2.0)
+    backport_new_renderer (1.0.0)
+      rails
     bcrypt (3.1.11)
     bindata (2.4.0)
     bootstrap-sass (3.3.7)
@@ -543,6 +545,7 @@ DEPENDENCIES
   aws-sdk-rails
   axlsx!
   axlsx_rails
+  backport_new_renderer
   bcrypt
   bootstrap-sass
   brakeman

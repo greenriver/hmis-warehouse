@@ -4,7 +4,10 @@ module Window::Clients
     
     before_action :require_can_see_this_client_demographics!
     before_action :set_client, :check_release
-    before_action :set_dates, only: [:show]
+    before_action :set_dates, only: [:show, :pdf]
+    skip_before_action :require_can_see_this_client_demographics!, only: [:pdf]
+    skip_before_action :authenticate_user!, only: [:pdf]
+    before_action :require_client_needing_processing!, only: [:pdf]
     
     def show
       @ordered_dates = @dates.keys.sort
@@ -14,6 +17,33 @@ module Window::Clients
       @months = @date_range.map do |date|
         [date.year, date.month]
       end.uniq
+    end
+
+    def pdf
+      show
+      file_name = "service_history.pdf"
+      # or from your controller, using views & templates and all wicked_pdf options as normal
+      pdf = render_to_string pdf: file_name, template: "window/clients/history/show", encoding: "UTF-8"
+      @file = GrdaWarehouse::ClientFile.new
+      begin
+        tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
+        file = File.open(tmp_path, 'wb') 
+        file.write(pdf)
+        @file.file = file
+        @file.content = @file.file.read
+      ensure
+        tmp_path.unlink()
+      end
+      
+      @file.client_id = @client.id
+      @file.user_id = User.first.id
+      @file.note = 'Auto Generated'
+      @file.name = file_name
+      @file.visible_in_window = true
+      @file.effective_date = Date.today      
+      @file.tag_list.add(['Homeless Verification'])
+      @file.save!
+      head :ok
     end
 
     def set_dates
@@ -59,6 +89,13 @@ module Window::Clients
     end
     alias_method :set_client_from_client_id, :set_client
     
+    def require_client_needing_processing!
+      if @client.generate_history_pdf
+        return true 
+      end
+      not_authorized!
+    end
+
     def client_source
       GrdaWarehouse::Hud::Client
     end
