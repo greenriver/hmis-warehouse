@@ -33,6 +33,7 @@ namespace :grda_warehouse do
   task seed_file_types: [:environment] do
     GrdaWarehouse::AvailableFileTag.default_document_types.each do |doc|
       GrdaWarehouse::AvailableFileTag.where(doc).first_or_create
+      ActsAsTaggableOn::Tag.where(name: doc[:name]).first_or_create
     end
   end
 
