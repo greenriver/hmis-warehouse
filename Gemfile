@@ -24,6 +24,7 @@ gem 'memoist', require: false
 
 # File processing
 gem 'carrierwave'
+gem 'carrierwave-i18n'
 gem 'ruby-filemagic'
 gem 'mini_magick'
 gem 'acts-as-taggable-on', '~> 4.0'

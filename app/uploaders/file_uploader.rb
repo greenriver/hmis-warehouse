@@ -102,7 +102,7 @@ class FileUploader < CarrierWave::Uploader::Base
 
   # MagicMimeWhitelist content_type handling uses
   # this list (Regexp actually is what they want)
-  # this is checked againts the actual uploaded data bytes
+  # this is checked against the actual uploaded data bytes
   # so a client cannot lie about the bytes sent
   # this should be very restrictive and is what we use to
   # decided what processing we are willing to try running

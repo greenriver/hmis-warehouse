@@ -131,6 +131,7 @@ GEM
       activemodel (>= 4.0.0)
       activesupport (>= 4.0.0)
       mime-types (>= 1.16)
+    carrierwave-i18n (0.2.0)
     charlock_holmes (0.7.5)
     choice (0.2.0)
     chronic (0.10.2)
@@ -556,6 +557,7 @@ DEPENDENCIES
   capistrano3-delayed-job (~> 1.0)
   capybara
   carrierwave
+  carrierwave-i18n
   charlock_holmes
   coffee-rails
   composite_primary_keys (~> 8.0)
