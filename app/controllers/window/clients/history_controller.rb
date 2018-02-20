@@ -11,8 +11,8 @@ module Window::Clients
     
     def show
       @ordered_dates = @dates.keys.sort
-      @start = @ordered_dates.first
-      @end = @ordered_dates.last
+      @start = @ordered_dates.first || Date.today
+      @end = @ordered_dates.last || Date.today
       @date_range = (@start.beginning_of_month..@end.end_of_month)
       @months = @date_range.map do |date|
         [date.year, date.month]
@@ -21,6 +21,7 @@ module Window::Clients
 
     def pdf
       show
+      setup_system_user()
       file_name = "service_history.pdf"
       # or from your controller, using views & templates and all wicked_pdf options as normal
       pdf = render_to_string pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
@@ -36,7 +37,7 @@ module Window::Clients
       end
       
       @file.client_id = @client.id
-      @file.user_id = User.first.id
+      @file.user_id = User.find_by(email: 'noreply@greenriver.com').id
       @file.note = 'Auto Generated'
       @file.name = file_name
       @file.visible_in_window = true
@@ -45,6 +46,18 @@ module Window::Clients
       @file.save!
       @client.update(generate_history_pdf: false)
       head :ok
+    end
+
+    def setup_system_user
+      @user = User.find_by(email: 'noreply@greenriver.com')
+      return if @user.present?
+      @user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
+      if @user.present?
+        @user.restore
+      end
+      @user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User') do |u|
+        u.skip_invitation = true
+      end
     end
 
     def set_dates

@@ -13,11 +13,18 @@ $('.jThumb').each (e) ->
     $(thumb).html(link)
 
 $(document).on 'change', '.jFileTag', (e) ->
+  # Show notes
   if $(this).data('toggle') == 'popover'
     $('.jFileTag').not(this).popover('hide')
     $(this).popover('show')
   else
     $('.jFileTag').popover('hide')
+
+  # Show consent form confirmed
+  if $(this).data('consent')
+    $('.consent-form-fields').removeClass('hidden')
+  else
+    $('.consent-form-fields').addClass('hidden')
   
 $(document).on 'change', '.jDownload', (e) ->
   ids = $('.jDownload:checked').map ->

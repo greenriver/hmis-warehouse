@@ -18,6 +18,8 @@
                   - options = {class: 'jFileTag'}
                   - if item.note.present?
                     - options = options.merge({data: {toggle: :popover, trigger: :manual, title: item.name, content: item.note}})
+                  - if item.consent_form
+                    - options = options.merge({data: {consent: true}})
                   = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
                   = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
                   - if item.included_info.present?
@@ -29,7 +31,7 @@
     - if can_confirm_housing_release?
       .consent-form-fields.hidden
         = f.input :consent_form_confirmed, as: :boolean
-    = f.input :note, as: :string, hint: '(Optional except if other is chosen above) Give a reason for including this file.'
+    = f.input :note, as: :string, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
     - if can_manage_client_files?
       = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
     = f.input :file, as: :file, :required => true            
