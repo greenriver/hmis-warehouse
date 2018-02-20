@@ -43,6 +43,7 @@ module Window::Clients
       @file.effective_date = Date.today      
       @file.tag_list.add(['Homeless Verification'])
       @file.save!
+      @client.update(generate_history_pdf: false)
       head :ok
     end
 
