@@ -5,7 +5,7 @@ module GrdaWarehouse
     has_many :notes, through: :client, source: :anomaly_notes
     
     scope :resolved, -> { where(status: :resolved) }
-    scope :unresolved, -> { where.not.where(status: :resolved) }
+    scope :unresolved, -> { where.not(status: :resolved) }
     scope :newly_minted, -> { where(status: :new) }
 
     has_paper_trail
