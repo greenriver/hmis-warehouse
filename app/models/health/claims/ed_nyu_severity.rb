@@ -6,8 +6,10 @@ module Health::Claims
       {
         medicaid_id: "ID_Medicaid",
         category: "Category",
-        indiv_pct: "Implementation pct",
-        sdh_pct: "Baseline pct",
+        sdh_pct: "baseline_pct",
+        indiv_pct: "implementation_pct",
+        baseline_visits: 'Baseline visits',
+        implementation_visits: 'Implement visits',
       }
     end
 

@@ -1,6 +1,3 @@
-- upcoming = @appointments.select{|m| m.appointment_time > Time.now}.sort{|a,b| a.appointment_time <=> b.appointment_time }
-- past = @appointments.select{|m| m.appointment_time <= Time.now}
-
 - title = 'Appointments'
 = content_for(:title, title)
 - if request.xhr?.nil?
@@ -12,14 +9,16 @@
   .row
     .col-sm-6
       %h3 Upcoming Appointments
-      - if upcoming.any?
-        = render 'appointments_table', appointments: upcoming
+      - if @upcoming.any?
+        %p.note.small
+          Upcoming Appointments at #{Health::Appointment.ignore_departments.to_sentence} are not shown.
+        = render 'appointments_table', appointments: @upcoming
       - else
         %p No upcoming appointments scheduled.
     .col-sm-6
       %h3 Past Appointments
-      - if past.any?
-        = render 'appointments_table', appointments: past
+      - if @past.any?
+        = render 'appointments_table', appointments: @past
       - else
         %p No past appointments.
 

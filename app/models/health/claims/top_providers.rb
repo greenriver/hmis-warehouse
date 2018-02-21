@@ -7,8 +7,10 @@ module Health::Claims
         medicaid_id: "ID_Medicaid",
         rank: "Rank",
         provider_name: "serv_name_dsp",
-        indiv_pct: "Implementation pct",
         sdh_pct: "Baseline pct",
+        indiv_pct: "implement pct",
+        baseline_paid: 'Baseline paid',
+        implementation_paid: 'implement paid',
       }
     end
 
