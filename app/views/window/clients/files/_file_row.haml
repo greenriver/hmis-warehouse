@@ -1,6 +1,6 @@
 %tr{ class: "client-file-#{file.id}"}
   %td.text-center
-    %input.jDownload{type: :checkbox, value: file.id}
+    %input.jDownload{type: :checkbox, value: file.id, checked: @pre_checked&.include?(file.id)}
   %td.text-center.jThumb{data: {file: file.id}}
   %td.text-center
     - if file.content.present?

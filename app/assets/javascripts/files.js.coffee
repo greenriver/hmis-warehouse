@@ -37,3 +37,4 @@ $(document).on 'change', '.jDownload', (e) ->
     $('.jDownloadButton').removeAttr('disabled')
   else
     $('.jDownloadButton').attr('disabled', 'disabled')
+$('.jDownload').trigger('change')

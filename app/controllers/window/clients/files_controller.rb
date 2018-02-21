@@ -12,6 +12,9 @@ module Window::Clients
       @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
+      if params[:file_ids].present?
+        @pre_checked = params[:file_ids].split(',').map(&:to_i)
+      end
     end
     
     def show

@@ -2,7 +2,6 @@
 - content_for :title, title
 = render 'clients/breadcrumbs'
 
-= t('errors.messages.mime_type_pattern_white_list_error', :content_type => 'thing') 
 .row
   .col-sm-12
     = render 'clients/tab_navigation', current: client_files_path(@client)
