@@ -104,16 +104,20 @@ module Health::Claims
     end
 
     def load_cost_values
+      implementation_sum = @patient.amount_paids.implementation.map(&:total).sum&.round() rescue 0
+      implementation_count = @patient.amount_paids.implementation.map(&:total).count&.round()
       patient = [
-        @patient.amount_paids.implementation.map(&:total).sum&.round(), 
-        @patient.amount_paids.implementation.map(&:total).count&.round(), 
+        implementation_sum, 
+        implementation_count, 
       ]
+      baseline_sum = @patient.amount_paids.baseline.map(&:total).sum&.round() rescue 0
+      baseline_count = @patient.amount_paids.baseline.map(&:total).count&.round() rescue 0
       sdh = [
-        @patient.amount_paids.baseline.map(&:total).sum&.round(),
-        @patient.amount_paids.baseline.map(&:total).count&.round(),
+        baseline_sum,
+        baseline_count,
       ]
       [patient, sdh].each do |arry|
-        arry.push((arry[0]/arry[1].to_f).round())
+        arry.push((arry[0]/arry[1].to_f).round()) rescue 0
       end
       [patient, sdh]
     end
