@@ -10,13 +10,15 @@
     %td
       = anomaly.updated_at
     %td
-      = anomaly.user.name
+      = User.find(anomaly.versions.last.whodunnit).name
+
     %td
-      = f.submit class: 'btn btn-submit', value: 'Update' unless readonly
+      = f.submit class: 'btn btn-secondary', value: 'Update' unless readonly
   - if anomaly.versions
     - anomaly.versions.reverse.each do |version|
-      - next unless version.event != 'create'
-      - object = version.reify
+      - user = User.find(version.whodunnit)
+      - object = version.next&.reify
+      - next if object.blank?
       %tr.anomaly-history
         %td
           = object.description
@@ -25,5 +27,5 @@
         %td
           = object.updated_at
         %td
-          = User.find(version.whodunnit.to_i).name
+          = user.name
         %td

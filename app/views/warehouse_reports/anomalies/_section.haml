@@ -1,0 +1,26 @@
+- if group.blank?
+  %p None at this time.
+- else
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Client
+        %th Description
+        %th Reported
+        %th Last Changed
+        %th Reported By
+    %tbody
+      - group.each do |anomaly|
+        - object = anomaly.versions.where(event: :update).first.reify
+        %tr
+          %td
+            = link_to anomaly.client.name, client_path(anomaly.client)
+          %td
+            = object.description
+          %td
+            = anomaly.created_at
+          %td
+            = anomaly.updated_at
+          %td
+            = User.find(anomaly.versions.first.whodunnit).name
+
