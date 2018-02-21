@@ -121,8 +121,11 @@ class FileUploader < CarrierWave::Uploader::Base
   end
 
   private def content_type_from_bytes(file_to_test = file)
-    extract_content_type(file_to_test) rescue nil
+    @filemagic ||= FileMagic.new(FileMagic::MAGIC_MIME_TYPE)
+    @filemagic.buffer(file.read) rescue nil
   end
+
+  alias_method :extract_content_type, :content_type_from_bytes
 
   # Add a white list of extensions which are allowed to be uploaded.
   # For images you might use something like this:

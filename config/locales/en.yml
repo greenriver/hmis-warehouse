@@ -74,6 +74,9 @@ en:
       index:
         title: 'Clients'
         search_prompt: 'Search clients...'
+  errors:
+    messages:
+      mime_type_pattern_white_list_error: "You are not allowed to upload %{content_type} files"
   forms:
     f_75:
       AbuseandNeglectFamilymember_1489: Abuse and Neglect Family member
