@@ -11,7 +11,7 @@
         %th Reported By
     %tbody
       - group.each do |anomaly|
-        - object = anomaly.versions.where(event: :update).first.reify
+        - object = anomaly.versions.where(event: :update).first&.reify || anomaly
         %tr
           %td
             = link_to anomaly.client.name, client_path(anomaly.client)
