@@ -72,7 +72,7 @@ module DefaultFileTypes
         {
           name: 'Letter of Service',
           group: 'Veteran Status Verification',
-          included_info: 'Vets Status, DoB, SSN',
+          included_info: 'Vets Status',
           weight: 11,
         },
         {
