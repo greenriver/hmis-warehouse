@@ -1,0 +1,35 @@
+- title = "#{@parameters.initiative_name} Initiative Report"
+- content_for :title, title
+%h1= content_for :title
+
+- if @data.gender_breakdowns_by_project_type.present?
+  %h4 Gender Breakdowns by Project Type for Reporting Period
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        - @data.involved_genders.each do |gender|
+          %th= gender
+    %tbody
+      - @data.involved_project_types.each do |p_type|
+        %tr
+          %th= p_type
+          - @data.involved_genders.each do |gender|
+            %td
+              = @data.gender_breakdowns_by_project_type["#{p_type}__#{gender}"]
+
+- if @data.comparison_gender_breakdowns_by_project_type.present?
+  %h4 Gender Breakdowns by Project Type for Comparison Period
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        - @data.involved_genders.each do |gender|
+          %th= gender
+    %tbody
+      - @data.involved_project_types.each do |p_type|
+        %tr
+          %th= p_type
+          - @data.involved_genders.each do |gender|
+            %td
+              = @data.comparison_gender_breakdowns_by_project_type["#{p_type}__#{gender}"]

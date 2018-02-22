@@ -1,0 +1,33 @@
+.well
+  = simple_form_for @filter, as: :filter, url: warehouse_reports_initiatives_path, html: { method: :post, class: 'jFilter' } do |f|
+    = f.error_notification
+    .row
+      .col-sm-4
+        = f.input :initiative_name
+    .row
+      .col-sm-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+      .col-sm-4
+        = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Project Groups'
+      .col-sm-4
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: 'Population', include_blank: false, input_html: {class: 'select2'}
+    .row
+      .col-sm-6
+        %h4 Date Range
+        .row.well
+          .col-xs-6
+            = f.input :start, as: :date_picker
+          .col-xs-6
+            = f.input :end, as: :date_picker
+      .col-sm-6
+        %h4 Comparison Date Range
+        .row.well
+          .col-xs-6
+            = f.input :comparison_start, as: :date_picker, label: 'Start'
+          .col-xs-6
+            = f.input :comparison_end, as: :date_picker, label: 'End'
+
+      
+      
+    .text-right
+      = f.button :submit, value: 'Queue Report', data: { disable_with: 'running...' }

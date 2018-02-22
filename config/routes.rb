@@ -99,6 +99,11 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    resources :initiatives, except: [:edit, :update, :new] do
+      collection do
+        get :running
+      end
+    end
     resources :disabilities, only: [:index, :show] do
       collection do
         get :summary
