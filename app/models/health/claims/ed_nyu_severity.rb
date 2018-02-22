@@ -4,12 +4,12 @@ module Health::Claims
 
     def column_headers 
       {
-        medicaid_id: "ID_Medicaid",
+        medicaid_id: "ID_MEDICAID",
         category: "Category",
-        sdh_pct: "baseline_pct",
-        indiv_pct: "implementation_pct",
-        baseline_visits: 'Baseline visits',
-        implementation_visits: 'Implement visits',
+        sdh_pct: "Baseline_pct",
+        indiv_pct: "Implement_pct",
+        baseline_visits: 'Baseline_visits',
+        implementation_visits: 'Implement_visits',
       }
     end
 

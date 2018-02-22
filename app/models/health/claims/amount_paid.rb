@@ -12,7 +12,7 @@ module Health::Claims
 
     def column_headers 
       {
-        medicaid_id: "ID_Medicaid",
+        medicaid_id: "ID_MEDICAID",
         year: "Year",
         month: "Month",
         year_month: 'YYYYMM',
