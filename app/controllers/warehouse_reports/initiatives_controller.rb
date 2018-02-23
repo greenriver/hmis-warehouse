@@ -1,5 +1,6 @@
 module WarehouseReports
   class InitiativesController < ApplicationController
+    include PjaxModalController
     include WarehouseReportAuthorization
     before_action :set_report, only: [:show, :destroy]
     before_action :set_jobs, only: [:index, :running, :create]
@@ -46,8 +47,6 @@ module WarehouseReports
     def show
       @parameters = OpenStruct.new(@report.parameters.with_indifferent_access)
       @data = OpenStruct.new(@report.data.with_indifferent_access)
-      @support = @data.support
-      console
     end
 
     def set_report

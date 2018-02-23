@@ -1,0 +1,17 @@
+- if data.present?
+  %h4= title
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project
+        - @data.involved_genders.each do |gender|
+          %th= gender
+    %tbody
+      - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+        %tr
+          %th= p_name
+          - @data.involved_genders.each do |gender|
+            %td
+              - key = "#{p_id}__#{gender}"
+              - count = data[key] || 0
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_name}—#{gender}"), data: { loads_in_pjax_modal: true })

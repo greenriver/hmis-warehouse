@@ -1,0 +1,17 @@
+- if data.present?
+  %h4= title
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        - @data.involved_genders.each do |gender|
+          %th= gender
+    %tbody
+      - @data.involved_project_types.each do |p_type|
+        %tr
+          %th= p_type
+          - @data.involved_genders.each do |gender|
+            %td
+              - key = "#{p_type}__#{gender}"
+              - count = data[key] || 0
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section), data: { loads_in_pjax_modal: true })

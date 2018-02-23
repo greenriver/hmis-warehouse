@@ -43,15 +43,19 @@ module HUD
   end
 
   def race(field, reverse=false)
-    map = {
-        'AmIndAKNative' => 'American Indian or Alaska Native',
-        'Asian' => 'Asian',
-        'BlackAfAmerican' => 'Black or African American',
-        'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
-        'White' => 'White',
-        'RaceNone' => 'none',
-    }
+    map = races
     _translate map, field, reverse
+  end
+
+  def races
+    {
+      'AmIndAKNative' => 'American Indian or Alaska Native',
+      'Asian' => 'Asian',
+      'BlackAfAmerican' => 'Black or African American',
+      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
+      'White' => 'White',
+      'RaceNone' => 'none',
+    }
   end
 
   # for translating straight from a controlled vocabulary list identifier and integer
@@ -495,15 +499,19 @@ module HUD
 
   # 3.5.1
   def ethnicity(id, reverse=false)
-    map = {
+    map = ethnicities
+
+    _translate map, id, reverse
+  end
+
+  def ethnicities
+    {
       0 => 'Non-Hispanic/Non-Latino',
       1 => 'Hispanic/Latino',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.6.1
