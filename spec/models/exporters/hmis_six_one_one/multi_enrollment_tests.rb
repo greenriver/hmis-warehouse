@@ -22,6 +22,11 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
     end
     describe 'when exporting enrollments' do
       before(:each) do
+        # puts 3.weeks.ago.to_date
+        # puts 1.weeks.ago.to_date
+        # puts projects.map(&:ProjectID).inspect
+        # puts enrollments.map{|m| [m.ProjectID, m.ProjectEntryID, m.EntryDate]}.inspect
+        # puts exits.map{|m| [ m.ProjectEntryID, m.ExitDate]}.inspect
         exporter.export_enrollments()
         @enrollment_class = GrdaWarehouse::Export::HMISSixOneOne::Enrollment
       end
@@ -38,8 +43,7 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
       it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
         csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
         csv_ids = csv.map{|m| m['EnrollmentID']}.sort
-
-        source_ids = involved_enrollments.map(&:id).map(&:to_s).sort
+        source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)
         expect(csv_ids).to eq source_ids
       end
     end
@@ -61,7 +65,8 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
       it 'PersonalIDs from CSV file match the ids of first three clients' do
         csv = CSV.read(csv_file_path(@client_class), headers: true)
         csv_ids = csv.map{|m| m['PersonalID']}.sort
-        expect(csv_ids).to eq involved_clients.map(&:destination_client).map(&:id).map(&:to_s).sort
+        source_ids = involved_clients.map(&:destination_client).map(&:id).map(&:to_s).sort.first(3)
+        expect(csv_ids).to eq source_ids
       end
     end
     EnrollmentRelatedTests::TESTS.each do |item|
@@ -85,14 +90,14 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
           involved_enrollment_project_entry_ids = involved_enrollments.pluck(:ProjectEntryID)
           source_ids = send(item[:list]).select do |m| 
             involved_enrollment_project_entry_ids.include? m.ProjectEntryID
-          end.map(&:id).map(&:to_s).sort
+          end.map(&:id).map(&:to_s).sort.first(3)
           expect(csv_ids).to eq source_ids
         end
         if item[:klass].column_names.include?('ProjectEntryID')
           it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             csv_ids = csv.map{|m| m['EnrollmentID']}.sort
-            source_ids = involved_enrollments.map(&:id).map(&:to_s).sort
+            source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)
             expect(csv_ids).to eq source_ids
           end
         end

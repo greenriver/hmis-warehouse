@@ -3,6 +3,16 @@ FactoryGirl.define do
     sequence(:ProjectID, 100)
     sequence(:ProjectEntryID, 1)
     sequence(:PersonalID, 10)
+    sequence(:EntryDate) do |n|
+      dates = [
+        Date.today,
+        8.weeks.ago,
+        6.weeks.ago,
+        4.weeks.ago,
+        2.weeks.ago,
+      ]
+      dates[n%5].to_date
+    end
   end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     # ProjectEntryID
