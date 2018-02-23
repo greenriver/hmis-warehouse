@@ -17,6 +17,8 @@ module GrdaWarehouse::WarehouseReports
       involved_genders()
       involved_project_types()
       involved_projects()
+      client_counts_by_project_type()
+      client_counts_by_project()
       gender_breakdowns_by_project_type()
       gender_breakdowns_by_project()
       veteran_breakdowns_by_project_type()
@@ -29,6 +31,14 @@ module GrdaWarehouse::WarehouseReports
       age_breakdowns_by_project()
       length_of_stay_breakdowns_by_project_type()
       length_of_stay_breakdowns_by_project()
+      living_situation_breakdowns_by_project_type()
+      living_situation_breakdowns_by_project()
+      income_at_entry_breakdowns_by_project_type()
+      income_at_entry_breakdowns_by_project()
+      income_most_recent_breakdowns_by_project_type()
+      income_most_recent_breakdowns_by_project()
+      date_counts_by_project_type()
+      date_counts_by_project()
 
       complete()
     end
@@ -48,6 +58,268 @@ module GrdaWarehouse::WarehouseReports
       genders = report_scope.distinct.pluck(c_t[:Gender].to_sql)
       genders += comparison_scope.distinct.pluck(c_t[:Gender].to_sql)
       @data.merge!(involved_genders: genders.uniq.map{|m| ::HUD.gender(m)})
+    end
+
+    def date_counts_by_project_type
+      columns = {
+        project_type: :project_type,
+        date: shs_t[:date].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        date_counts_by_project_type: :report_scope,
+        comparison_date_counts_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = {}
+        send(r_scope).joins(:service_history_services).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          [row[:project_type], row[:date]]
+        end.each do |(project_type, date), days|
+          data_key = "#{::HUD.project_type_brief(project_type)}__#{date}"
+          data[data_key] = days
+        end
+        add_data_and_support(key: key, data: data)  
+      end
+    end
+
+    def date_counts_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        date: shs_t[:date].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        date_counts_by_project: :report_scope,
+        comparison_date_counts_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = {}
+        send(r_scope).joins(:service_history_services).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          [row[:project_id], row[:date]]
+        end.each do |(project_id, date), days|
+          data_key = "#{project_id}__#{date}"
+          data[data_key] = days
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def client_counts_by_project_type
+      columns = {
+        project_type: :project_type,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        client_counts_by_project_type: :report_scope,
+        comparison_client_counts_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{::HUD.project_type_brief(row[:project_type])}__count"
+        end
+        add_data_and_support(key: key, data: data)  
+      end
+    end
+
+    def client_counts_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        client_counts_by_project: :report_scope,
+        comparison_client_counts_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{row[:project_id]}__count"
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def income_most_recent_breakdowns_by_project_type
+      columns = {
+        project_type: :project_type,
+        income: ib_t[:TotalMonthlyIncome].to_sql,
+        information_date: ib_t[:InformationDate].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        income_most_recent_breakdowns_by_project_type: :report_scope,
+        comparison_income_most_recent_breakdowns_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = {}
+        send(r_scope).joins(enrollment: :income_benefits).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          [row[:project_type], row[:client_id]]
+        end.each do |(project_type, client_id), incomes|
+          row = incomes.sort_by{|row| row[:information_date]}.last
+          GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
+            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{income_key}"
+            data[data_key] ||= []
+            data[data_key] << row if income_bucket[:range].include?(row[:income])
+          end
+        end
+        add_data_and_support(key: key, data: data)  
+      end
+    end
+
+    def income_most_recent_breakdowns_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        income: ib_t[:TotalMonthlyIncome].to_sql,
+        information_date: ib_t[:InformationDate].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        income_most_recent_breakdowns_by_project: :report_scope,
+        comparison_income_most_recent_breakdowns_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = {}
+        send(r_scope).joins(enrollment: :income_benefits).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          [row[:project_id], row[:client_id]]
+        end.each do |(project_id, client_id), incomes|
+          row = incomes.sort_by{|row| row[:information_date]}.last
+          GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
+            data_key = "#{row[:project_id]}__#{income_key}"
+            data[data_key] ||= []
+            data[data_key] << row if income_bucket[:range].include?(row[:income])
+          end
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def income_at_entry_breakdowns_by_project_type
+      columns = {
+        project_type: :project_type,
+        income: ib_t[:TotalMonthlyIncome].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        income_at_entry_breakdowns_by_project_type: :report_scope,
+        comparison_income_at_entry_breakdowns_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = {}
+        send(r_scope).joins(enrollment: :income_benefits_at_entry).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.each do |row|
+          GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
+            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{income_key}"
+            data[data_key] ||= []
+            data[data_key] << row if income_bucket[:range].include?(row[:income])
+          end
+        end
+        add_data_and_support(key: key, data: data)  
+      end
+    end
+
+    def income_at_entry_breakdowns_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        income: ib_t[:TotalMonthlyIncome].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        income_at_entry_breakdowns_by_project: :report_scope,
+        comparison_income_at_entry_breakdowns_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = {}
+        send(r_scope).joins(enrollment: :income_benefits_at_entry).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.each do |row|
+          GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
+            data_key = "#{row[:project_id]}__#{income_key}"
+            data[data_key] ||= []
+            data[data_key] << row if income_bucket[:range].include?(row[:income])
+          end
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def living_situation_breakdowns_by_project_type
+      columns = {
+        project_type: :project_type,
+        living_situation: e_t[:ResidencePrior].to_sql, 
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        living_situation_breakdowns_by_project_type: :report_scope,
+        comparison_living_situation_breakdowns_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).joins(:enrollment).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.living_situation(row[:living_situation])}"
+        end
+        add_data_and_support(key: key, data: data)  
+      end
+    end
+
+    def living_situation_breakdowns_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        living_situation: e_t[:ResidencePrior].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        living_situation_breakdowns_by_project: :report_scope,
+        comparison_living_situation_breakdowns_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).joins(:enrollment).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{row[:project_id]}__#{::HUD.living_situation(row[:living_situation])}"
+        end
+        add_data_and_support(key: key, data: data)
+      end
     end
 
     def length_of_stay_breakdowns_by_project_type

@@ -5,14 +5,14 @@
     %thead
       %tr
         %th Project Type
-        - ::HUD.no_yes_reasons_for_missing_data_options.each do |id, reason|
-          %th= reason
+        - range.to_a.each do |date|
+          %th= date
     %tbody
       - @data.involved_project_types.each do |p_type|
         %tr
           %th= p_type
-          - ::HUD.no_yes_reasons_for_missing_data_options.each do |id, reason|
+          - range.to_a.each do |date|
             %td
-              - key = "#{p_type}__#{reason}"
+              - key = "#{p_type}__#{date}"
               - count = data[key] || 0
               = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section), data: { loads_in_pjax_modal: true })

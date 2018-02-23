@@ -535,7 +535,12 @@ module HUD
 
   # 3.917.1
   def living_situation(id, reverse=false)
-    map = {
+    map = living_situations
+    _translate map, id, reverse
+  end
+
+  def living_situations
+    {
       1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher',
       2 => 'Transitional housing for homeless persons',
       3 => 'Permanent housing for formerly homeless persons',
@@ -563,8 +568,6 @@ module HUD
       27 => 'Interim housing',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.917.2
