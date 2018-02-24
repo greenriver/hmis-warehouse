@@ -4,13 +4,13 @@ module Health::Claims
 
     def column_headers 
       {
-        medicaid_id: "ID_Medicaid",
+        medicaid_id: "Top_Providers",
         rank: "Rank",
-        provider_name: "serv_name_dsp",
-        sdh_pct: "Baseline pct",
-        indiv_pct: "implement pct",
-        baseline_paid: 'Baseline paid',
-        implementation_paid: 'implement paid',
+        provider_name: "SERV_NAME_DSP",
+        sdh_pct: "Baseline_pct",
+        indiv_pct: "Implement_pct",
+        baseline_paid: 'Baseline_paid',
+        implementation_paid: 'Implement_paid',
       }
     end
 
