@@ -95,6 +95,7 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
         end
         if item[:klass].column_names.include?('ProjectEntryID')
           it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
+            # binding.pry if item[:list] == :exits
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             csv_ids = csv.map{|m| m['EnrollmentID']}.sort
             source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)

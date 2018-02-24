@@ -6,9 +6,9 @@ FactoryGirl.define do
     sequence(:ExitDate) do |n|
       dates = [
         Date.today,
-        1.days.ago,
-        3.days.ago,
-        2.weeks.ago,
+        15.days.ago,
+        16.days.ago,
+        17.days.ago,
         4.weeks.ago,
       ]
       dates[n%5].to_date
