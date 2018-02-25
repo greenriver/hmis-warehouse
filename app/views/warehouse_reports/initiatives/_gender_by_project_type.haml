@@ -1,7 +1,7 @@
 - data = @data.send(section)
 - if data.present?
   %h4= title
-  %div.chart{id: section}
+  %div.chart{id: section, style: "width: 900px; height: 400px;"}
   %table.table.table-striped{id: "#{section}_table"}
     %thead
       %tr
