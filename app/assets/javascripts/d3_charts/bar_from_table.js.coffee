@@ -21,7 +21,7 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
       @data.columns.slice(1).map (key)=>
         d[key] = +d[key]
     x: @data.columns.slice(1),
-    y: [0, d3.max(counts)],
+    y: [d3.max(counts), 0],
     possible_x_values: Object.keys(@data[0]),
     series: $.map @data, (d) =>
       d[@data.columns[0]]
@@ -30,13 +30,14 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
   _loadScale: ()=>
     x: d3.scaleBand().domain(@domain.x).rangeRound(@range.x).paddingInner(0.1),
     y: d3.scaleLinear().domain(@domain.y).rangeRound(@range.y),
-    color: d3.scaleOrdinal().range(@range.color),
-    padding: 5
+    color: d3.scaleLinear(d3.interpolateSpectral()).domain([0,@domain.series.length]),
+    padding: 2,
+    bandwidth: @dimensions.width / (@data.length * @data.columns.length)
 
   _loadRange: ->
     x: [0, @dimensions.width],
     y: [@dimensions.height, 0],
-    color: ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]
+    color: [0,1]
 
   _tableToCsv: (table) ->
     rows = table.find('tr')
@@ -49,7 +50,6 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
   draw: () ->
     console.log(@domain)
     # console.log @data.keys()
-    bandwidth = @scale.x.bandwidth() / (@data.length * @data.columns.slice(1).length)
     
     @chart.append('g')
       .selectAll('g')
@@ -57,24 +57,20 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
       .enter().append('g')
         .attr 'transform', (d)=> # move right bandwidth * series location
           series = d[@domain.possible_x_values[0]]
-          offset = @domain.series.indexOf(series) * (bandwidth + @scale.padding)
+          offset = @domain.series.indexOf(series) * (@scale.bandwidth + @scale.padding)
           'translate(' + offset + ',0)'
         .selectAll('rect')
         .data (d)=>
+          series = d[@domain.possible_x_values[0]]
           @data.columns.slice(1).map (key)=>
-            key: key, value: d[key]
+            key: key, value: d[key], series: series
         .enter().append('rect')
         .attr 'x', (d)=>
-          console.log d.key
-          console.log @data.columns.slice(1)
           @scale.x(d.key)
         .attr 'y', (d)=>
-          # console.log d.value
-          @scale.y(d.value)
-          10
-        .attr('width', bandwidth)
+          @dimensions.height - @scale.y(d.value)
+        .attr('width', @scale.bandwidth)
         .attr 'height', (d)=>
-          @scale.y(d.value)
-          10
+          @dimensions.height - (@dimensions.height - @scale.y(d.value))
         .attr 'fill', (d)=>
-          @scale.color(d.key)
+          d3.interpolateSpectral(@scale.color(@domain.series.indexOf(d.series)))
