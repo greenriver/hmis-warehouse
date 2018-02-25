@@ -30,7 +30,7 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
   _loadScale: ()=>
     x: d3.scaleBand().domain(@domain.x).rangeRound(@range.x).paddingInner(0.1),
     y: d3.scaleLinear().domain(@domain.y).rangeRound(@range.y),
-    color: d3.scaleLinear(d3.interpolateSpectral()).domain([0,@domain.series.length]),
+    color: d3.scaleLinear().domain([0,@domain.series.length]),
     padding: 2,
     bandwidth: @dimensions.width / (@data.length * @data.columns.length)
 
@@ -73,4 +73,4 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
         .attr 'height', (d)=>
           @dimensions.height - (@dimensions.height - @scale.y(d.value))
         .attr 'fill', (d)=>
-          d3.interpolateSpectral(@scale.color(@domain.series.indexOf(d.series)))
+          d3.interpolateRainbow(@scale.color(@domain.series.indexOf(d.series)))
