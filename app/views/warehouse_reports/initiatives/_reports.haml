@@ -13,4 +13,6 @@
     %td
       = link_to warehouse_reports_initiative_path(warehouse_report) do
         = report.initiative_name
+    %td
+      = warehouse_report.completed_in
     %td= render 'parameters', report: report
