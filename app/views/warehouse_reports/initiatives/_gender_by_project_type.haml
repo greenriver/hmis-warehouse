@@ -1,7 +1,8 @@
 - data = @data.send(section)
 - if data.present?
   %h4= title
-  %table.table.table-striped
+  %div.chart{id: section}
+  %table.table.table-striped{id: "#{section}_table"}
     %thead
       %tr
         %th Project Type
@@ -16,3 +17,10 @@
               - key = "#{p_type}__#{gender}"
               - count = data[key] || 0
               = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section), data: { loads_in_pjax_modal: true })
+
+  - content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        var bar = new App.D3Chart.BarFromTable('##{section}', '##{section}_table')
+        bar.draw()
+      })
