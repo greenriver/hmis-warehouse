@@ -13,7 +13,7 @@
       end
     end
     ignore_columns = ignore_columns.select{ |k, v| v.all?{ |m| m == 0 } }.keys
-  %table.table.table-striped{id: "#{section}_table"}
+  %table.table.table-striped.jToggle{id: "#{section}_table"}
     %thead
       %tr
         %th Project

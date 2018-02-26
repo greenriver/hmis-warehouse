@@ -2,6 +2,9 @@ module WarehouseReports
   class InitiativesController < ApplicationController
     include PjaxModalController
     include WarehouseReportAuthorization
+    # Authorize by either access to report OR access by token
+    skip_before_action :authenticate_user!
+    skip_before_action :require_can_view_any_reports!
     before_action :set_report, only: [:show, :destroy]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_reports, only: [:index, :running, :create]
@@ -69,6 +72,26 @@ module WarehouseReports
         project_group_ids: [],
       )
     end
+
+    # Override default to allow token access
+    def report_visible?
+      return true if access_by_token? || related_report.viewable_by(current_user).exists? 
+      not_authorized!
+    end
+
+    def access_by_token?
+      return false if current_user
+      if params[:token].blank?
+        raise ActionController::RoutingError.new('Not Found') and return
+      end
+      set_report
+      if @report.updated_at > 3.months.ago && @report.token.present? && @report.token == params[:token]
+        return true
+      else
+        raise ActionController::RoutingError.new('Not Found')
+      end
+    end
+
 
   end
 end

@@ -1,33 +1,32 @@
 - data = @data.send(section)
 - if data.present?
   %h4= title
-  = render 'bar_from_table', section: section
   :ruby
     ignore_columns = {}
     @data.involved_project_types.each do |p_type|
-      ::HUD.living_situations.each do |id, value|
-        key = "#{p_type}__#{value}"
+      ::HUD.valid_destinations.each do |id, value|
+        key = "#{p_type}__#{id}"
         ignore_columns[value] ||= []
         count = data[key] || 0
         ignore_columns[value] << count
       end
     end
     ignore_columns = ignore_columns.select{ |k, v| v.all?{ |m| m == 0 } }.keys
-      
+  = render 'bar_from_table', section: section
   %table.table.table-striped.jToggle{id: "#{section}_table"}
     %thead
       %tr
         %th Project Type
-        - ::HUD.living_situations.each do |id, value|
+        - ::HUD.valid_destinations.each do |_, value|
           - next if ignore_columns.include? value
           %th= value
     %tbody
       - @data.involved_project_types.each do |p_type|
         %tr
           %th= p_type
-          - ::HUD.living_situations.each do |id, value|
+          - ::HUD.valid_destinations.each do |id, value|
             - next if ignore_columns.include? value
             %td
-              - key = "#{p_type}__#{value}"
+              - key = "#{p_type}__#{id}"
               - count = data[key] || 0
               = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section), data: { loads_in_pjax_modal: true })

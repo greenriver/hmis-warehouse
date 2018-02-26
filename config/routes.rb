@@ -102,6 +102,7 @@ Rails.application.routes.draw do
       end
     end
     resources :initiatives, except: [:edit, :update, :new] do
+      get '(/:token)', controller: 'initiatives', action: :show, on: :member
       collection do
         get :running
       end

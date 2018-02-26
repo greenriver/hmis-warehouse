@@ -2,7 +2,7 @@
 - if data.present?
   %h4= title
   = render 'bar_from_table', section: section
-  %table.table.table-striped{id: "#{section}_table"}
+  %table.table.table-striped.jToggle{id: "#{section}_table"}
     %thead
       %tr
         %th Project Type

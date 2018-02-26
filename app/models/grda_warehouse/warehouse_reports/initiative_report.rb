@@ -12,11 +12,16 @@ module GrdaWarehouse::WarehouseReports
        "sub_population"=>"family"}
     end
 
+    def token_expired
+      updated_at < 3.months.ago
+    end
+
     def run!
       setup()
       involved_genders()
       involved_project_types()
       involved_projects()
+      involved_zipcodes()
       client_counts_by_project_type()
       client_counts_by_project()
       gender_breakdowns_by_project_type()
@@ -39,7 +44,12 @@ module GrdaWarehouse::WarehouseReports
       income_most_recent_breakdowns_by_project()
       date_counts_by_project_type()
       date_counts_by_project()
+      destination_breakdowns_by_project_type()
+      destination_breakdowns_by_project()
+      zip_breakdowns_by_project_type()
+      zip_breakdowns_by_project()
 
+      set_token()
       complete()
     end
 
@@ -58,6 +68,12 @@ module GrdaWarehouse::WarehouseReports
       genders = report_scope.distinct.pluck(c_t[:Gender].to_sql)
       genders += comparison_scope.distinct.pluck(c_t[:Gender].to_sql)
       @data.merge!(involved_genders: genders.uniq.map{|m| ::HUD.gender(m)})
+    end
+
+    def involved_zipcodes
+      zips = report_scope.joins(:enrollment).distinct.pluck(e_t[:LastPermanentZIP].to_sql)
+      zips += comparison_scope.joins(:enrollment).distinct.pluck(e_t[:LastPermanentZIP].to_sql)
+      @data.merge!(involved_zipcodes: zips.uniq)
     end
 
     def date_counts_by_project_type
@@ -151,6 +167,100 @@ module GrdaWarehouse::WarehouseReports
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
           "#{row[:project_id]}__count"
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def destination_breakdowns_by_project_type
+      columns = {
+        project_type: :project_type,
+        destination: :destination,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        destination_breakdowns_by_project_type: :report_scope,
+        comparison_destination_breakdowns_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).where.not(destination: nil).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{::HUD.project_type_brief(row[:project_type])}__#{row[:destination]}"
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def destination_breakdowns_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        destination: :destination,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        destination_breakdowns_by_project: :report_scope,
+        comparison_destination_breakdowns_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).where.not(destination: nil).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{row[:project_id]}__#{row[:destination]}"
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def zip_breakdowns_by_project_type
+      columns = {
+        project_type: :project_type,
+        zipcode: e_t[:LastPermanentZIP].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        zip_breakdowns_by_project_type: :report_scope,
+        comparison_zip_breakdowns_by_project_type: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).joins(:enrollment).
+          where.not(Enrollment: {LastPermanentZIP: nil}).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{::HUD.project_type_brief(row[:project_type])}__#{row[:zipcode].first(5)}"
+        end
+        add_data_and_support(key: key, data: data)
+      end
+    end
+
+    def zip_breakdowns_by_project
+      columns = {
+        project_id: p_t[:id].to_sql,
+        zipcode: e_t[:LastPermanentZIP].to_sql,
+        client_id: :client_id, 
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      groups = {
+        zip_breakdowns_by_project: :report_scope,
+        comparison_zip_breakdowns_by_project: :comparison_scope,
+      }
+      groups.each do |key, r_scope|
+        data = send(r_scope).joins(:enrollment).
+          where.not(Enrollment: {LastPermanentZIP: nil}).
+          distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end.group_by do |row|
+          "#{row[:project_id]}__#{row[:zipcode].first(5)}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -719,6 +829,10 @@ module GrdaWarehouse::WarehouseReports
       self.data = @data
       self.finished_at = Time.now
       save!
+    end
+
+    def set_token
+      self.token = SecureRandom.urlsafe_base64
     end
 
     def client_scope

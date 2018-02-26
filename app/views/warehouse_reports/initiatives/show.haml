@@ -1,11 +1,12 @@
 - title = "#{@parameters.initiative_name} Initiative Report"
 - content_for :title, title
-%h1= content_for :title
 
+%h1= content_for :title
+= render 'token_access'
 = render 'parameters', report: @parameters
 
-.warehouse-reports__initiatives
 
+.warehouse-reports__initiatives
   -# Client counts
   = render 'clients_by_project_type', title: 'Client Counts by Project Type for Reporting Period', section: :client_counts_by_project_type
 
@@ -104,3 +105,37 @@
   = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Reporting Period', section: :income_most_recent_breakdowns_by_project
 
   = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project
+
+  -# Destination
+  = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Reporting Period', section: :destination_breakdowns_by_project_type
+
+  = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Comparison Period', section: :comparison_destination_breakdowns_by_project_type
+
+  = render 'destination_by_project', title: 'Destination Breakdowns by Project for Reporting Period', section: :destination_breakdowns_by_project
+
+  = render 'destination_by_project', title: 'Destination Breakdowns by Project for Comparison Period', section: :comparison_destination_breakdowns_by_project
+
+  -# last permanent zip
+  = render 'zip_by_project_type', title: 'Last Permanent Zipcode Breakdowns by Project Type for Reporting Period', section: :zip_breakdowns_by_project_type
+
+  = render 'zip_by_project_type', title: 'Last Permanent Zipcode Breakdowns by Project Type for Comparison Period', section: :comparison_zip_breakdowns_by_project_type
+
+  = render 'zip_by_project', title: 'Last Permanent Zipcode Breakdowns by Project for Reporting Period', section: :zip_by_project
+
+  = render 'zip_by_project', title: 'Last Permanent Zipcode Breakdowns by Project for Comparison Period', section: :comparison_zip_by_project
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jToggle').wrap('<div />').before('<button class="btn btn-secondary btn-sm jShowSupport">Show Details</button>');
+      $('.jToggle').hide();
+      $('.warehouse-reports__initiatives').on('click', '.jShowSupport', function(){
+        $(this).next().toggle();
+        if($(this).next().is(':visible')) {
+          $(this).text('Hide Details');
+        }
+        else {
+          $(this).text('Show Details');
+        }
+      });
+    })
