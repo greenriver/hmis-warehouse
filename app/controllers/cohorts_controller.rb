@@ -22,6 +22,13 @@ class CohortsController < ApplicationController
     else
       @cohort_clients = @cohort.cohort_clients.where(active: true)
     end
+    respond_to do |format|
+      format.html do
+      end
+      format.xlsx do
+        headers['Content-Disposition'] = "attachment; filename=#{@cohort.name}.xlsx"
+      end
+    end
   end
 
   def edit
