@@ -4,7 +4,7 @@
 # data should be in the form 
 class App.D3Chart.BarFromTable extends App.D3Chart.Base
   constructor: (container_selector, data_table_selector, attrs) ->
-    margin = top: 20, right: 20, bottom: 0, left: 40
+    margin = top: 20, right: 20, bottom: 40, left: 40
     super(container_selector, margin)
     @data = @_loadData(data_table_selector)
     @domain = @_loadDomain()
@@ -46,11 +46,8 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
         $.trim $(cell).text()
       .join(',')
     .join('\r\n')
-
-  draw: () ->
-    console.log(@domain)
-    # console.log @data.keys()
-    
+  
+  _drawBarChart: () =>
     @chart.append('g')
       .selectAll('g')
       .data(@data)
@@ -74,3 +71,48 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
           @dimensions.height - (@dimensions.height - @scale.y(d.value))
         .attr 'fill', (d)=>
           d3.interpolateRainbow(@scale.color(@domain.series.indexOf(d.series)))
+
+  _drawAxes: =>
+    xAxis = d3.axisBottom().scale(@scale.x)
+    yAxis = d3.axisLeft().scale(@scale.y)
+    
+    @chart.append('g')
+      # .attr('transform', 'translate(0, ' + @dimensions.height +')')
+      .attr('transform', 'translate(0, 10)')
+      .attr('class', 'x-axis')
+      .call(xAxis)
+ 
+    @chart.append('g')
+      .attr('class', 'y-axis')
+      .call(yAxis)
+    
+    # @_customizeYaxis()
+    # @_customizeXaxis()
+
+  _drawLegend: ()=>
+    legend = @chart.append('g')
+      .attr('font-family', "'Open Sans Condensed', sans-serif")
+      .attr('font-size', '10px')
+      .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(@domain.series.slice().reverse())
+    .enter().append("g")
+      .attr "transform", (d, i) ->
+        "translate(0," + i * 20 + ")"
+    legend.append('rect')
+      .attr "x", @dimensions.width - 19
+      .attr "width", 19
+      .attr "height", 19
+      .attr "fill", (d)=>
+        d3.interpolateRainbow(@scale.color(@domain.series.indexOf(d)))
+
+    legend.append("text")
+      .attr "x", @dimensions.width - 24
+      .attr "y", 9.5
+      .attr "dy", "0.32em"
+      .text (d)->
+        d
+
+  draw: () ->
+    @_drawBarChart()
+    @_drawLegend()
