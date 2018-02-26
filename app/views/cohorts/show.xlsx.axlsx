@@ -1,0 +1,16 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @cohort.name.slice(0,30)) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(@cohort.visible_columns.map(&:title), :style => title)
+  @cohort_clients.each do |cohort_client|
+    row = @cohort.visible_columns.map do |column|
+      if column.input_type == 'read_only'
+        column.value(cohort_client)
+      elsif column.input_type == 'notes'
+      else
+        cohort_client.public_send(column.column)
+      end
+    end
+    sheet.add_row(row)
+  end
+end

@@ -16,6 +16,11 @@ module CohortAuthorization
       current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
     end
 
+    def require_more_than_read_only_access_to_cohort!
+      return true if cohort_source.has_some_cohort_access(current_user) && (require_can_edit_cohort! || current_user.can_edit_assigned_cohorts?)
+      not_authorized!
+    end
+
     def cohort_scope
       cohort_source.viewable_by(current_user)
     end
