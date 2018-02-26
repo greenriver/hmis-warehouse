@@ -21,7 +21,7 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
       @data.columns.slice(1).map (key)=>
         d[key] = +d[key]
     x: @data.columns.slice(1),
-    y: [d3.max(counts), 0],
+    y: [0, d3.max(counts)],
     possible_x_values: Object.keys(@data[0]),
     series: $.map @data, (d) =>
       d[@data.columns[0]]
@@ -47,6 +47,30 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
       .join(',')
     .join('\r\n')
   
+  _addBarValues: () =>
+    @chart.append('g')
+      .selectAll('.text')
+      .data(@data)
+      .enter().append('g')
+        .attr 'transform', (d)=> # move right bandwidth * series location
+          series = d[@domain.possible_x_values[0]]
+          offset = @domain.series.indexOf(series) * (@scale.bandwidth + @scale.padding)
+          'translate(' + offset + ',0)'
+        .selectAll('.text')
+        .data (d)=>
+          series = d[@domain.possible_x_values[0]]
+          @data.columns.slice(1).map (key)=>
+            key: key, value: d[key], series: series
+        .enter().append('text')
+        .attr 'class', 'bar-label'
+        .attr 'x', (d)=>
+          @scale.x(d.key)
+        .attr 'y', (d)=>
+          @scale.y(d.value)
+        .attr 'dy', '0.75em'
+        .text (d)->
+          d.value
+
   _drawBarChart: () =>
     @chart.append('g')
       .selectAll('g')
@@ -65,21 +89,22 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
         .attr 'x', (d)=>
           @scale.x(d.key)
         .attr 'y', (d)=>
-          @dimensions.height - @scale.y(d.value)
+          @scale.y(d.value)
         .attr('width', @scale.bandwidth)
         .attr 'height', (d)=>
-          @dimensions.height - (@dimensions.height - @scale.y(d.value))
+          @dimensions.height - @scale.y(d.value)
         .attr 'fill', (d)=>
-          d3.interpolateRainbow(@scale.color(@domain.series.indexOf(d.series)))
+          d3.interpolateRainbow(@scale.color(@domain.series.indexOf(d.series)))    
 
-  _drawAxes: =>
+  _drawAxes: ->
     xAxis = d3.axisBottom().scale(@scale.x)
     yAxis = d3.axisLeft().scale(@scale.y)
     
     @chart.append('g')
-      # .attr('transform', 'translate(0, ' + @dimensions.height +')')
-      .attr('transform', 'translate(0, 10)')
+      .attr('transform', "translate(0,#{@dimensions.height})")
       .attr('class', 'x-axis')
+      .style('font-family', "'Open Sans Condensed', sans-serif")
+      .style('font-size', '11px')
       .call(xAxis)
  
     @chart.append('g')
@@ -91,6 +116,7 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
 
   _drawLegend: ()=>
     legend = @chart.append('g')
+      .attr('class', 'legend')
       .attr('font-family', "'Open Sans Condensed', sans-serif")
       .attr('font-size', '10px')
       .attr("text-anchor", "end")
@@ -115,4 +141,6 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
 
   draw: () ->
     @_drawBarChart()
+    @_drawAxes()
     @_drawLegend()
+    @_addBarValues()

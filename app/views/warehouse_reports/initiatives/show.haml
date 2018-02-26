@@ -2,102 +2,103 @@
 - content_for :title, title
 %h1= content_for :title
 
-- if false
-  -# Client counts
-  = render 'clients_by_project_type', title: 'Client Counts by Project Type for Reporting Period', section: :client_counts_by_project_type
+.warehouse-reports__initiatives
+  - if false
+    -# Client counts
+    = render 'clients_by_project_type', title: 'Client Counts by Project Type for Reporting Period', section: :client_counts_by_project_type
 
-  = render 'clients_by_project_type', title: 'Client Counts by Project Type for Comparison Period', section: :comparison_client_counts_by_project_type
+    = render 'clients_by_project_type', title: 'Client Counts by Project Type for Comparison Period', section: :comparison_client_counts_by_project_type
 
-  = render 'clients_by_project', title: 'Client Counts by Project for Reporting Period', section: :client_counts_by_project
+    = render 'clients_by_project', title: 'Client Counts by Project for Reporting Period', section: :client_counts_by_project
 
-  = render 'clients_by_project', title: 'Client Counts by Project for Comparison Period', section: :comparison_client_counts_by_project
+    = render 'clients_by_project', title: 'Client Counts by Project for Comparison Period', section: :comparison_client_counts_by_project
 
-  -# Nightly Census
-  = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Reporting Period', section: :date_counts_by_project_type, range: (@parameters.start.to_date..@parameters.end.to_date)
+    -# Nightly Census
+    = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Reporting Period', section: :date_counts_by_project_type, range: (@parameters.start.to_date..@parameters.end.to_date)
 
-  = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Comparison Period', section: :comparison_date_counts_by_project_type, range: (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date)
+    = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Comparison Period', section: :comparison_date_counts_by_project_type, range: (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date)
 
-  = render 'date_counts_by_project', title: 'Nightly Census by Project for Reporting Period', section: :date_counts_by_project, range: (@parameters.start.to_date..@parameters.end.to_date)
+    = render 'date_counts_by_project', title: 'Nightly Census by Project for Reporting Period', section: :date_counts_by_project, range: (@parameters.start.to_date..@parameters.end.to_date)
 
-  = render 'date_counts_by_project', title: 'Nightly Census by Project for Comparison Period', section: :comparison_date_counts_by_project, range: (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date)
+    = render 'date_counts_by_project', title: 'Nightly Census by Project for Comparison Period', section: :comparison_date_counts_by_project, range: (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date)
 
--# Gender
-= render 'gender_by_project_type', title: 'Gender Breakdowns by Project Type for Reporting Period', section: :gender_breakdowns_by_project_type
+  -# Gender
+  = render 'gender_by_project_type', title: 'Gender Breakdowns by Project Type for Reporting Period', section: :gender_breakdowns_by_project_type
 
-= render 'gender_by_project_type', title: 'Gender Breakdowns by Project Type for Comparison Period', section: :comparison_gender_breakdowns_by_project_type
-- if false
-  = render 'gender_by_project', title: 'Gender Breakdowns by Project for Reporting Period', section: :gender_breakdowns_by_project
+  = render 'gender_by_project_type', title: 'Gender Breakdowns by Project Type for Comparison Period', section: :comparison_gender_breakdowns_by_project_type
+  - if false
+    = render 'gender_by_project', title: 'Gender Breakdowns by Project for Reporting Period', section: :gender_breakdowns_by_project
 
-  = render 'gender_by_project', title: 'Gender Breakdowns by Project for Comparison Period', section: :comparison_gender_breakdowns_by_project
+    = render 'gender_by_project', title: 'Gender Breakdowns by Project for Comparison Period', section: :comparison_gender_breakdowns_by_project
 
-  -# Veteran Status
-  = render 'veteran_by_project_type', title: 'Veteran Status Breakdowns by Project Type for Reporting Period', section: :veteran_breakdowns_by_project_type
+    -# Veteran Status
+    = render 'veteran_by_project_type', title: 'Veteran Status Breakdowns by Project Type for Reporting Period', section: :veteran_breakdowns_by_project_type
 
-  = render 'veteran_by_project_type', title: 'Veteran Status Breakdowns by Project Type for Comparison Period', section: :comparison_veteran_breakdowns_by_project_type
+    = render 'veteran_by_project_type', title: 'Veteran Status Breakdowns by Project Type for Comparison Period', section: :comparison_veteran_breakdowns_by_project_type
 
-  = render 'veteran_by_project', title: 'Veteran Status Breakdowns by Project for Reporting Period', section: :veteran_breakdowns_by_project
+    = render 'veteran_by_project', title: 'Veteran Status Breakdowns by Project for Reporting Period', section: :veteran_breakdowns_by_project
 
-  = render 'veteran_by_project', title: 'Veteran Status Breakdowns by Project for Comparison Period', section: :comparison_veteran_breakdowns_by_project
+    = render 'veteran_by_project', title: 'Veteran Status Breakdowns by Project for Comparison Period', section: :comparison_veteran_breakdowns_by_project
 
-  -# Ethnicity
-  = render 'ethnicity_by_project_type', title: 'Ethnicity Breakdowns by Project Type for Reporting Period', section: :ethnicity_breakdowns_by_project_type
+    -# Ethnicity
+    = render 'ethnicity_by_project_type', title: 'Ethnicity Breakdowns by Project Type for Reporting Period', section: :ethnicity_breakdowns_by_project_type
 
-  = render 'ethnicity_by_project_type', title: 'Ethnicity Breakdowns by Project Type for Comparison Period', section: :comparison_ethnicity_breakdowns_by_project_type
+    = render 'ethnicity_by_project_type', title: 'Ethnicity Breakdowns by Project Type for Comparison Period', section: :comparison_ethnicity_breakdowns_by_project_type
 
-  = render 'ethnicity_by_project', title: 'Ethnicity Breakdowns by Project for Reporting Period', section: :ethnicity_breakdowns_by_project
+    = render 'ethnicity_by_project', title: 'Ethnicity Breakdowns by Project for Reporting Period', section: :ethnicity_breakdowns_by_project
 
-  = render 'ethnicity_by_project', title: 'Ethnicity Breakdowns by Project for Comparison Period', section: :comparison_ethnicity_breakdowns_by_project
+    = render 'ethnicity_by_project', title: 'Ethnicity Breakdowns by Project for Comparison Period', section: :comparison_ethnicity_breakdowns_by_project
 
-  -# Race
-  = render 'race_by_project_type', title: 'Race Breakdowns by Project Type for Reporting Period', section: :race_breakdowns_by_project_type
+    -# Race
+    = render 'race_by_project_type', title: 'Race Breakdowns by Project Type for Reporting Period', section: :race_breakdowns_by_project_type
 
-  = render 'race_by_project_type', title: 'Race Breakdowns by Project Type for Comparison Period', section: :comparison_race_breakdowns_by_project_type
+    = render 'race_by_project_type', title: 'Race Breakdowns by Project Type for Comparison Period', section: :comparison_race_breakdowns_by_project_type
 
-  = render 'race_by_project', title: 'Race Breakdowns by Project for Reporting Period', section: :race_breakdowns_by_project
+    = render 'race_by_project', title: 'Race Breakdowns by Project for Reporting Period', section: :race_breakdowns_by_project
 
-  = render 'race_by_project', title: 'Race Breakdowns by Project for Comparison Period', section: :comparison_race_breakdowns_by_project
+    = render 'race_by_project', title: 'Race Breakdowns by Project for Comparison Period', section: :comparison_race_breakdowns_by_project
 
-  -# Age
-  = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Reporting Period', section: :age_breakdowns_by_project_type
+    -# Age
+    = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Reporting Period', section: :age_breakdowns_by_project_type
 
-  = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Comparison Period', section: :comparison_age_breakdowns_by_project_type
+    = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Comparison Period', section: :comparison_age_breakdowns_by_project_type
 
-  = render 'age_by_project', title: 'Age Breakdowns by Project for Reporting Period', section: :age_breakdowns_by_project
+    = render 'age_by_project', title: 'Age Breakdowns by Project for Reporting Period', section: :age_breakdowns_by_project
 
-  = render 'age_by_project', title: 'Age Breakdowns by Project for Comparison Period', section: :comparison_age_breakdowns_by_project
+    = render 'age_by_project', title: 'Age Breakdowns by Project for Comparison Period', section: :comparison_age_breakdowns_by_project
 
-  -# Length of stay
-  = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Reporting Period', section: :length_of_stay_breakdowns_by_project_type
+    -# Length of stay
+    = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Reporting Period', section: :length_of_stay_breakdowns_by_project_type
 
-  = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project_type
+    = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project_type
 
-  = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Reporting Period', section: :length_of_stay_breakdowns_by_project
+    = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Reporting Period', section: :length_of_stay_breakdowns_by_project
 
-  = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project
+    = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project
 
-  -# living situations
-  = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Reporting Period', section: :living_situation_breakdowns_by_project_type
+    -# living situations
+    = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Reporting Period', section: :living_situation_breakdowns_by_project_type
 
-  = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Comparison Period', section: :comparison_living_situation_breakdowns_by_project_type
+    = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Comparison Period', section: :comparison_living_situation_breakdowns_by_project_type
 
-  = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Reporting Period', section: :living_situation_breakdowns_by_project
+    = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Reporting Period', section: :living_situation_breakdowns_by_project
 
-  = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Comparison Period', section: :comparison_living_situation_breakdowns_by_project
+    = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Comparison Period', section: :comparison_living_situation_breakdowns_by_project
 
-  -# Income at entry
-  = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Reporting Period', section: :income_at_entry_breakdowns_by_project_type
+    -# Income at entry
+    = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Reporting Period', section: :income_at_entry_breakdowns_by_project_type
 
-  = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project_type
+    = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project_type
 
-  = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Reporting Period', section: :income_at_entry_breakdowns_by_project
+    = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Reporting Period', section: :income_at_entry_breakdowns_by_project
 
-  = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project
+    = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project
 
-  -# Income - most recent
-  = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Reporting Period', section: :income_most_recent_breakdowns_by_project_type
+    -# Income - most recent
+    = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Reporting Period', section: :income_most_recent_breakdowns_by_project_type
 
-  = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project_type
+    = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project_type
 
-  = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Reporting Period', section: :income_most_recent_breakdowns_by_project
+    = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Reporting Period', section: :income_most_recent_breakdowns_by_project
 
-  = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project
+    = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project
