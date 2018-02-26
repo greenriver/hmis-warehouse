@@ -1,17 +1,31 @@
 - data = @data.send(section)
 - if data.present?
   %h4= title
-  %table.table.table-striped
+  = render 'bar_from_table', section: section
+  :ruby
+    ignore_columns = {}
+    @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+      ::HUD.living_situations.each do |id, value|
+        key = "#{p_id}__#{value}"
+        ignore_columns[value] ||= []
+        count = data[key] || 0
+        ignore_columns[value] << count
+      end
+    end
+    ignore_columns = ignore_columns.select{ |k, v| v.all?{ |m| m == 0 } }.keys
+  %table.table.table-striped{id: "#{section}_table"}
     %thead
       %tr
         %th Project
         - ::HUD.living_situations.each do |id, value|
+          - next if ignore_columns.include? value
           %th= value
     %tbody
       - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
         %tr
           %th= p_name
           - ::HUD.living_situations.each do |id, value|
+            - next if ignore_columns.include? value
             %td
               - key = "#{p_id}__#{value}"
               - count = data[key] || 0

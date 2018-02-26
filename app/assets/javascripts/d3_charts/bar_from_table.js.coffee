@@ -1,20 +1,14 @@
 #= require ./namespace
-#= require ./base
+#= require ./from_table
 
 # data should be in the form 
-class App.D3Chart.BarFromTable extends App.D3Chart.Base
+class App.D3Chart.BarFromTable extends App.D3Chart.FromTable
+
   constructor: (container_selector, data_table_selector, attrs) ->
-    margin = top: 20, right: 20, bottom: 40, left: 40
-    super(container_selector, margin)
-    @data = @_loadData(data_table_selector)
+    super(container_selector, data_table_selector, attrs)
     @domain = @_loadDomain()
     @range = @_loadRange()
     @scale = @_loadScale()
-    
-  _loadData: (data_table_selector)->
-    table = $(data_table_selector)
-    csv = @_tableToCsv(table)
-    d3.csvParse csv
 
   _loadDomain: ()=>
     counts = $.map @data, (d) =>
@@ -25,7 +19,6 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
     possible_x_values: Object.keys(@data[0]),
     series: $.map @data, (d) =>
       d[@data.columns[0]]
-
 
   _loadScale: ()=>
     x: d3.scaleBand().domain(@domain.x).rangeRound(@range.x).paddingInner(0.1),
@@ -38,14 +31,6 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
     x: [0, @dimensions.width],
     y: [@dimensions.height, 0],
     color: [0,1]
-
-  _tableToCsv: (table) ->
-    rows = table.find('tr')
-    data = $.map rows, (row) ->
-      $.map $(row).find('td,th'), (cell) ->
-        $.trim $(cell).text()
-      .join(',')
-    .join('\r\n')
   
   _addBarValues: () =>
     @chart.append('g')
@@ -64,12 +49,17 @@ class App.D3Chart.BarFromTable extends App.D3Chart.Base
         .enter().append('text')
         .attr 'class', 'bar-label'
         .attr 'x', (d)=>
-          @scale.x(d.key)
+          @scale.x(d.key) + (@scale.bandwidth / 2) 
         .attr 'y', (d)=>
-          @scale.y(d.value)
+          @scale.y(d.value) - 20
         .attr 'dy', '0.75em'
+        .attr 'text-anchor', 'middle'
+        .attr 'fill', '#404040'
+        .attr 'font-family', "'Open Sans Condensed', sans-serif"
+        .attr 'font-size', '10px'
         .text (d)->
           d.value
+
 
   _drawBarChart: () =>
     @chart.append('g')

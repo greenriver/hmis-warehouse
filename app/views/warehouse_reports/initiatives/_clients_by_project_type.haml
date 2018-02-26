@@ -1,6 +1,7 @@
 - data = @data.send(section)
 - if data.present?
   %h4= title
+  = render 'bar_from_table', section: section
   %div.chart{id: section}
   %table.table.table-striped{id: "#{section}_table"}
     %thead

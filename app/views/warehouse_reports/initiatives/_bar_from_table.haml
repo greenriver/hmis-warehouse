@@ -1,0 +1,7 @@
+%div.chart{id: section, style: "width: 100%; height: 300px;"}
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var bar = new App.D3Chart.BarFromTable('##{section}', '##{section}_table')
+      bar.draw()
+    })
