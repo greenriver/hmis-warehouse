@@ -6,7 +6,7 @@
   = f.input :effective_date, as: :date_picker
   = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
   = f.input :default_sort_direction, collection: {'Descending' => 'desc', 'Ascending' => 'asc'}, include_blank: false, selected: @cohort.default_sort_direction, hint: 'The cohort will be sorted by the first column'
-  = f.input :user_ids, collection: User.all, selected: @cohort.user_viewable_entities.pluck(:user_id), input_html: {multiple: :multiple, class: 'select2', style: 'width: 100%;'}, label: 'Grant access to specific users', hint: 'Users specified below who also have "can edit assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
+  = f.input :user_ids, collection: User.all, selected: @cohort.user_viewable_entities.pluck(:user_id), input_html: {multiple: :multiple, class: 'select2', style: 'width: 100%;'}, label: 'Grant access to specific users', hint: 'Users specified below who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
   .row
     .col-sm-6
       = link_to cohort_path(@cohort), method: :delete, class: 'btn btn-danger' do
