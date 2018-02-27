@@ -18,7 +18,7 @@ module HealthOverviewHelper
   }
 
   CHART_COLORS = {
-    all: ['#008DA8'],
+    all: ['#008DA8', '#00549E', '#777777'],
     patient: ['#00549E', '#777777']
   }
 
@@ -29,12 +29,19 @@ module HealthOverviewHelper
 
   def d3_container_header(data_type, other_text, just_patient: false)
     colors = CHART_COLORS[data_type.to_sym]
-    if just_patient
+    if just_patient || other_text.is_a?(String)
       colors = [colors[0]]
     end
+    
     content_tag :div, class: 'ho-container__header' do
       colors.each_with_index do |color, index|
-        concat d3_container_header_key(color, index, data_type, other_text)
+        if other_text.is_a?(Array)
+          header_text = other_text[index]
+        else
+          header_text = other_text
+          colors = [colors[0]]
+        end
+        concat d3_container_header_key(color, index, data_type, header_text)
       end
     end
   end
