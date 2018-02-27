@@ -42,3 +42,29 @@
 {
   overflow: scroll;
 }
+
+.warehouse-reports__initiatives .y-axis,
+.warehouse-reports__initiatives .x-axis,
+.warehouse-reports__initiatives .legend,
+.warehouse-reports__initiatives .bar-label
+{
+  path,
+  line {
+    stroke: #828282;
+  }
+  text
+  {
+    fill: #404040;
+  }
+}
+
+.warehouse-reports__initiatives .y-axis__label {
+  alignment-baseline: middle;
+  @include open-sans-condensed-bold;
+}
+
+.warehouse-reports__initiatives .x-axis{
+  text {
+    @include open-sans-normal;
+  }
+}

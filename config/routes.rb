@@ -82,7 +82,9 @@ Rails.application.routes.draw do
     end
   end
   resources :report_results_summary, only: [:show]
-  resources :warehouse_reports, only: [:index]
+  resources :warehouse_reports, only: [:index] do
+    resources :support, only: [:index], controller: 'warehouse_reports/support'
+  end
   namespace :warehouse_reports do
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -95,6 +97,12 @@ Rails.application.routes.draw do
     resources :expiring_consent, only: [:index]
     resources :anomalies, only: [:index]
     resources :hmis_exports, except: [:edit, :update, :new] do
+      collection do
+        get :running
+      end
+    end
+    resources :initiatives, except: [:edit, :update, :new] do
+      get '(/:token)', controller: 'initiatives', action: :show, on: :member
       collection do
         get :running
       end

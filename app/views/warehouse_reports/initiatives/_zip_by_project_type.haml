@@ -1,0 +1,19 @@
+- data = @data.send(section)
+- if data.present?
+  %h4= title
+  = render 'bar_from_table', section: section
+  %table.table.table-striped.jToggle{id: "#{section}_table"}
+    %thead
+      %tr
+        %th Project Type
+        - @data.involved_zipcodes.each do |zipcode|
+          %th= zipcode
+    %tbody
+      - @data.involved_project_types.each do |p_type|
+        %tr
+          %th= p_type
+          - @data.involved_zipcodes.each do |zipcode|
+            %td
+              - key = "#{p_type}__#{zipcode}"
+              - count = data[key] || 0
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section), data: { loads_in_pjax_modal: true })

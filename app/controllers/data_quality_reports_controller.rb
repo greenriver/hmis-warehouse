@@ -1,6 +1,6 @@
 class DataQualityReportsController < ApplicationController
   include PjaxModalController
-  # Autorize by either access to projects OR access by token
+  # Authorize by either access to projects OR access by token
   skip_before_action :authenticate_user!
   before_action :require_valid_token_or_project_access!
   before_action :set_report, only: [:show, :support]

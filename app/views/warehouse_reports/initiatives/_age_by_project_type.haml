@@ -1,0 +1,32 @@
+- data = @data.send(section)
+- if data.present?
+  %h4= title
+  :ruby
+    ignore_columns = {}
+    @data.involved_project_types.each do |p_type|
+      GrdaWarehouse::Hud::Client.extended_age_groups.each do |age_key, age_bucket|
+        key = "#{p_type}__#{age_bucket[:name].parameterize.underscore}"
+        ignore_columns[age_key] ||= []
+        count = data[key] || 0
+        ignore_columns[age_key] << count
+      end
+    end
+    ignore_columns = ignore_columns.select{ |k, v| v.all?{ |m| m == 0 } }.keys
+  = render 'bar_from_table', section: section
+  %table.table.table-striped.jToggle{id: "#{section}_table"}
+    %thead
+      %tr
+        %th Project Type
+        - GrdaWarehouse::Hud::Client.extended_age_groups.each do |age_key, age_bucket|
+          - next if ignore_columns.include? age_key
+          %th= age_bucket[:name]
+    %tbody
+      - @data.involved_project_types.each do |p_type|
+        %tr
+          %th= p_type
+          - GrdaWarehouse::Hud::Client.extended_age_groups.each do |age_key, age_bucket|
+            - next if ignore_columns.include? age_key
+            %td
+              - key = "#{p_type}__#{age_bucket[:name].parameterize.underscore}"
+              - count = data[key] || 0
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—#{age_bucket[:name]}"), data: { loads_in_pjax_modal: true })

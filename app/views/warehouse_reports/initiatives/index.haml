@@ -1,23 +1,24 @@
-- title = "HUD HMIS CSV Exports"
+- title = "Initiative Reports"
 - content_for :title, title
-%h1
-  = title
+%h1= content_for :title
 
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
+
+.alert.alert-danger
+  Please consider this report in BETA.  It is incomplete.
 
 .warehouse-reports__completed.warehouse-reports__hmis_export
   %table.table.table-hover
     %thead
       %tr
         %th{style: 'min-width: 8em;'} Run At
-        %th{style: 'min-width: 8em;'} Run By
-        %th Download
+        %th Name
+        %th Completed in
         %th Parameters
-        %th Delete
     %tbody.report-listing
       = render 'reports'
-= link_to 'Reports', running_warehouse_reports_hmis_exports_path, class: 'jReportBlock', remote: true 
+= link_to 'Reports', running_warehouse_reports_initiatives_path, class: 'jReportBlock', remote: true 
 
 = content_for :page_js do
   :javascript

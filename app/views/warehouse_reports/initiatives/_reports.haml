@@ -1,0 +1,18 @@
+- @job_reports.each do |run_at, job|
+  - report = OpenStruct.new(job.arguments.first)
+  %tr{class: 'jIncompleteReport'}
+    %td= run_at
+    %td= report.initiative_name
+    %td= render 'spinner'
+    %td= render 'parameters', report: report
+- @reports.each do |warehouse_report|
+  - report = OpenStruct.new(warehouse_report.parameters)
+  %tr
+    %td
+      = warehouse_report.created_at
+    %td
+      = link_to warehouse_reports_initiative_path(warehouse_report) do
+        = report.initiative_name
+    %td
+      = warehouse_report.completed_in
+    %td= render 'parameters', report: report

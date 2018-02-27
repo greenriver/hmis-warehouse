@@ -16,5 +16,6 @@ module WarehouseReportAuthorization
       url = url_for(action: :index, only_path: true).sub(/^\//, '')
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
+    helper_method :related_report
   end
 end

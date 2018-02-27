@@ -1,0 +1,8 @@
+-# Only show the link if you didn't arrive from a token
+- if @report.token && ! params[:token] && !@report.token_expired
+  .well.text-small
+    This report can be accessed until
+    = (@report.updated_at + 3.months).to_date
+    without a login using the following link:
+    %br
+    = "#{warehouse_reports_initiative_url(id: @report.id)}/#{@report.token}"

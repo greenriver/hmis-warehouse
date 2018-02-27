@@ -241,6 +241,20 @@ module GrdaWarehouse::Hud
       }.freeze
     end
 
+    def self.lengths_of_stay
+      {
+        one_week_or_less: (0..7),
+        one_week_to_one_month: (8..31),
+        one_to_three_months: (32..90),
+        three_to_six_months: (91..180),
+        six_months_to_one_year: (181..365),
+        one_year_to_eighteen_months: (366..548),
+        eighteen_months_to_two_years: (548..730),
+        two_to_three_years: (731..1095),
+        more_than_three_years: (1096..Float::INFINITY),
+      }
+    end
+
     # attempt to collect something like an address out of the LastX fields
     def address
       @address ||= begin

@@ -1,0 +1,19 @@
+- data = @data.send(section)
+- if data.present?
+  %h4= title
+  = render 'bar_from_table', section: section
+  %table.table.table-striped.jToggle{id: "#{section}_table"}
+    %thead
+      %tr
+        %th Project
+        - GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |i_key, income_bucket|
+          %th= income_bucket[:name]
+    %tbody
+      - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+        %tr
+          %th= p_name
+          - GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |i_key, income_bucket|
+            %td
+              - key = "#{p_id}__#{i_key}"
+              - count = data[key] || 0
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_name}—#{income_bucket[:name]}"), data: { loads_in_pjax_modal: true })

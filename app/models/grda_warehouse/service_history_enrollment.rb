@@ -240,6 +240,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   #################################
     # Standard Cohort Scopes
+    scope :all_clients, -> do
+      all
+    end
+    
     scope :veteran, -> do
       joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
     end
