@@ -193,7 +193,7 @@ module GrdaWarehouse::Hud
         and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
         and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
         join_sources).
-      where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
     scope :open_on_date, -> (date=Date.today) do
