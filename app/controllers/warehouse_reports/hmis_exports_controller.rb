@@ -41,17 +41,17 @@ module WarehouseReports
     end
 
     def destroy
-      
+      @export.destroy
+      respond_with @export, location: warehouse_reports_hmis_exports_path
     end
 
     def show
-      @export = export_source.find(params[:id].to_i)
       # send_data GrdaWarehouse::Hud::Site.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
       send_data @export.content, filename: "HMIS_export_#{Time.now.to_s}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
     def set_export
-      export_source.find(params[:id].to_i)
+      @export = export_source.find(params[:id].to_i)
     end
 
     def export_source
@@ -70,6 +70,10 @@ module WarehouseReports
         organization_ids: [],
         data_source_ids: []
       )
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Export' }
     end
 
   end
