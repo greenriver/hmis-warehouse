@@ -18,7 +18,7 @@ module GrdaWarehouse::HMIS
     end
 
     scope :fetch_for_data_source, -> (ds_id) do
-      where(fetch: true)
+      where(data_source_id: ds_id).where(fetch: true)
     end
     
     def self.update_touch_points
