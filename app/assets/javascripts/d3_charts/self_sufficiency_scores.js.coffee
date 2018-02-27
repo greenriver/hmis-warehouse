@@ -10,7 +10,7 @@ class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
     @background_data = @domain.y.map((y) ->
       {y: y, low: 2, med: 2, high: 1}
     )
-    @legend = new App.D3Chart.StackedLegend(legend_selector, @_loadLegendLabels(), @range.fill.slice().reverse())
+    @legend = new App.D3Chart.StackedLegend(legend_selector, @_loadLegendLabels(), @range.fill.slice(0, @data.length).reverse())
 
   _loadData: (data) ->
     data.map((d, i) ->
