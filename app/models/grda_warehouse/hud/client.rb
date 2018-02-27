@@ -167,6 +167,9 @@ module GrdaWarehouse::Hud
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
     has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
 
+    has_many :cohort_clients, dependent: :destroy
+    has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
+
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
     delegate :last_homeless_date, to: :processed_service_history, allow_nil: true

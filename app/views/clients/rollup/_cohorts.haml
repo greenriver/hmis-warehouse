@@ -1,0 +1,6 @@
+= cache(['clients', 'cohorts', @client, can_view_projects?, controller_path], expires_in: 1.minutes) do
+  - if @client.cohorts.any?
+    %h3 Cohorts
+    %ul.client-cohorts
+      - @client.cohorts.each do |cohort|
+        %li= link_to_if cohort.class.has_some_cohort_access(current_user), cohort.name, cohort_path(cohort)

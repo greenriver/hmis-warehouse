@@ -10,6 +10,13 @@ module GrdaWarehouse
 
     attr_accessor :client_ids, :user_ids
 
+    scope :active, -> do
+      where(active_cohort: true)
+    end
+    scope :inactive, -> do
+      where(active_cohort: false)
+    end
+
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
@@ -40,6 +47,10 @@ module GrdaWarehouse
         end
       end
       
+    end
+
+    def inactive?
+      !active_cohort?
     end
 
     def visible_columns

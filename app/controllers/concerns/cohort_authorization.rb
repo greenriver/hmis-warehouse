@@ -25,6 +25,14 @@ module CohortAuthorization
       cohort_source.viewable_by(current_user)
     end
 
+    def active_cohort_scope
+      cohort_scope.active
+    end
+
+    def inactive_cohort_scope
+      cohort_scope.inactive
+    end
+
     def set_cohort
       @cohort = cohort_scope.find(cohort_id)
     end
