@@ -5,6 +5,18 @@ module ArelHelper
 
   # give these methods to instances
   included do
+    # Call this like qualified_column(c_t[:Gender])
+    # to get back '"Client"."Gender"'
+    # that you can pass to Active Record count, etc.
+    # See config/initializers/arel_attributes_attribute.rb
+    # This has been re-implemented as to_sql
+    def qualified_column arel_attribute
+      table = arel_attribute.relation
+      connection = table.engine.connection
+      table_name = connection.quote_table_name table.table_name
+      column_name = connection.quote_column_name arel_attribute.name
+      "#{table_name}.#{column_name}"
+    end
 
     def qt(value)
       self.class.qt value

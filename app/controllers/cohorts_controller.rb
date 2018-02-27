@@ -8,7 +8,8 @@ class CohortsController < ApplicationController
 
   def index
     @cohort = cohort_source.new
-    @cohorts = cohort_scope
+    @cohorts = active_cohort_scope
+    @inactive_cohorts = inactive_cohort_scope
   end
 
   def show
@@ -21,6 +22,13 @@ class CohortsController < ApplicationController
       @cohort_clients = @cohort.cohort_clients
     else
       @cohort_clients = @cohort.cohort_clients.where(active: true)
+    end
+    respond_to do |format|
+      format.html do
+      end
+      format.xlsx do
+        headers['Content-Disposition'] = "attachment; filename=#{@cohort.name}.xlsx"
+      end
     end
   end
 
@@ -48,7 +56,6 @@ class CohortsController < ApplicationController
     user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
     @cohort.update(cohort_options)
     @cohort.update_access(user_ids)
-    
     respond_with(@cohort, location: cohort_path(@cohort))
   end
 
@@ -59,6 +66,7 @@ class CohortsController < ApplicationController
       :visible_state,
       :default_sort_direction,
       :only_window,
+      :active_cohort,
       user_ids: []
     )
   end
@@ -71,4 +79,5 @@ class CohortsController < ApplicationController
   def flash_interpolation_options
     { resource_name: @cohort&.name }
   end
+
 end

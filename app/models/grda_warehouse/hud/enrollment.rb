@@ -193,7 +193,7 @@ module GrdaWarehouse::Hud
         and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
         and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
         join_sources).
-      where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
     scope :open_on_date, -> (date=Date.today) do
@@ -239,6 +239,20 @@ module GrdaWarehouse::Hud
         data_source_id: :data_source_id, 
         client_id: c_t[:id].as('client_id').to_sql,
       }.freeze
+    end
+
+    def self.lengths_of_stay
+      {
+        one_week_or_less: (0..7),
+        one_week_to_one_month: (8..31),
+        one_to_three_months: (32..90),
+        three_to_six_months: (91..180),
+        six_months_to_one_year: (181..365),
+        one_year_to_eighteen_months: (366..548),
+        eighteen_months_to_two_years: (548..730),
+        two_to_three_years: (731..1095),
+        more_than_three_years: (1096..Float::INFINITY),
+      }
     end
 
     # attempt to collect something like an address out of the LastX fields

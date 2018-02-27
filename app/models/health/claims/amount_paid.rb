@@ -3,7 +3,7 @@ module Health::Claims
     self.table_name = :claims_amount_paid_location_month
 
     scope :implementation, -> do
-      where(arel_table[:study_period].matches('%Implementation%'))
+      where(arel_table[:study_period].matches('%Implement%'))
     end
 
     scope :baseline, -> do
@@ -12,7 +12,7 @@ module Health::Claims
 
     def column_headers 
       {
-        medicaid_id: "ID_Medicaid",
+        medicaid_id: "ID_MEDICAID",
         year: "Year",
         month: "Month",
         year_month: 'YYYYMM',

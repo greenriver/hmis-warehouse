@@ -3,8 +3,6 @@
 %h1
   = title
 
-.alert.alert-danger
-  Please consider this report in BETA.  It is currently undergoing testing and may return incorrect results.
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
 
@@ -16,6 +14,7 @@
         %th{style: 'min-width: 8em;'} Run By
         %th Download
         %th Parameters
+        %th Delete
     %tbody.report-listing
       = render 'reports'
 = link_to 'Reports', running_warehouse_reports_hmis_exports_path, class: 'jReportBlock', remote: true 

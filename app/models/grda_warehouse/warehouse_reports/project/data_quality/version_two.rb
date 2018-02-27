@@ -1289,86 +1289,86 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           title: 'Bed coverage',
           callback: :percent,
         },
-        missing_name_percent: {
-          title: 'Missing names',
-          callback: :percent,
-        },
-        missing_ssn_percent: {
-          title: 'Missing SSN',
-          callback: :percent,
-        },
-        missing_dob_percent: {
-          title: 'Missing DOB',
-          callback: :percent,
-        },
-        missing_veteran_percent: {
-          title: 'Missing veteran status',
-          callback: :percent,
-        },
-        missing_ethnicity_percent: {
-          title: 'Missing ethnicity',
-          callback: :percent,
-        },
-        missing_race_percent: {
-          title: 'Missing race',
-          callback: :percent,
-        },
-        missing_gender_percent: {
-          title: 'Missing gender',
-          callback: :percent,
-        },
-        missing_disabling_condition_percentage: {
-          title: 'Missing disabling condition',
-          callback: :percent
-        },
-        missing_prior_living_percentage: {
-          title: 'Missing prior living',
-          callback: :percent
-        },
-        missing_destination_percentage: {
-          title: 'Missing destination',
-          callback: :percent
-        },
-        refused_name_percent: {
-          title: 'Refused name',
-          callback: :percent,
-        },
-        refused_ssn_percent: {
-          title: 'Refused SSN',
-          callback: :percent,
-        },
-        refused_dob_percent: {
-          title: 'Refused DOB',
-          callback: :percent,
-        },
-        refused_veteran_percent: {
-          title: 'Refused veteran status',
-          callback: :percent,
-        },
-        refused_ethnicity_percent: {
-          title: 'Refused ethnicity',
-          callback: :percent,
-        },
-        refused_race_percent: {
-          title: 'Refused race',
-          callback: :percent,
-        },
-        refused_gender_percent: {
-          title: 'Refused gender',
-          callback: :percent,
-        },
-        refused_disabling_condition_percentage: {
-          title: 'Refused disabling condition',
-          callback: :percent
-        },
-        refused_prior_living_percentage: {
-          title: 'Refused prior living',
-          callback: :percent
-        },
-        refused_destination_percentage: {
-          title: 'Refused destination',
-          callback: :percent
-        },
+        # missing_name_percent: {
+        #   title: 'Missing names',
+        #   callback: :percent,
+        # },
+        # missing_ssn_percent: {
+        #   title: 'Missing SSN',
+        #   callback: :percent,
+        # },
+        # missing_dob_percent: {
+        #   title: 'Missing DOB',
+        #   callback: :percent,
+        # },
+        # missing_veteran_percent: {
+        #   title: 'Missing veteran status',
+        #   callback: :percent,
+        # },
+        # missing_ethnicity_percent: {
+        #   title: 'Missing ethnicity',
+        #   callback: :percent,
+        # },
+        # missing_race_percent: {
+        #   title: 'Missing race',
+        #   callback: :percent,
+        # },
+        # missing_gender_percent: {
+        #   title: 'Missing gender',
+        #   callback: :percent,
+        # },
+        # missing_disabling_condition_percentage: {
+        #   title: 'Missing disabling condition',
+        #   callback: :percent
+        # },
+        # missing_prior_living_percentage: {
+        #   title: 'Missing prior living',
+        #   callback: :percent
+        # },
+        # missing_destination_percentage: {
+        #   title: 'Missing destination',
+        #   callback: :percent
+        # },
+        # refused_name_percent: {
+        #   title: 'Refused name',
+        #   callback: :percent,
+        # },
+        # refused_ssn_percent: {
+        #   title: 'Refused SSN',
+        #   callback: :percent,
+        # },
+        # refused_dob_percent: {
+        #   title: 'Refused DOB',
+        #   callback: :percent,
+        # },
+        # refused_veteran_percent: {
+        #   title: 'Refused veteran status',
+        #   callback: :percent,
+        # },
+        # refused_ethnicity_percent: {
+        #   title: 'Refused ethnicity',
+        #   callback: :percent,
+        # },
+        # refused_race_percent: {
+        #   title: 'Refused race',
+        #   callback: :percent,
+        # },
+        # refused_gender_percent: {
+        #   title: 'Refused gender',
+        #   callback: :percent,
+        # },
+        # refused_disabling_condition_percentage: {
+        #   title: 'Refused disabling condition',
+        #   callback: :percent
+        # },
+        # refused_prior_living_percentage: {
+        #   title: 'Refused prior living',
+        #   callback: :percent
+        # },
+        # refused_destination_percentage: {
+        #   title: 'Refused destination',
+        #   callback: :percent
+        # },
         meets_dq_benchmark: {
           title:"Meets DQ Benchmark (all missing/refused < #{MISSING_THRESHOLD}%)",
           callback: :boolean,

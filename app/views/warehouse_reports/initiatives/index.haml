@@ -1,0 +1,31 @@
+- title = "Initiative Reports"
+- content_for :title, title
+%h1= content_for :title
+
+= render '/warehouse_reports/breadcrumbs'
+= render 'filter'
+
+.alert.alert-danger
+  Please consider this report in BETA.  It is incomplete.
+
+.warehouse-reports__completed.warehouse-reports__hmis_export
+  %table.table.table-hover
+    %thead
+      %tr
+        %th{style: 'min-width: 8em;'} Run At
+        %th Name
+        %th Completed in
+        %th Parameters
+    %tbody.report-listing
+      = render 'reports'
+= link_to 'Reports', running_warehouse_reports_initiatives_path, class: 'jReportBlock', remote: true 
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.jReportBlock').hide();
+      setInterval(function() {
+        $('.jReportBlock').click();
+      }, 30000);
+
+    })(jQuery);

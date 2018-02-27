@@ -133,5 +133,19 @@ module GrdaWarehouse::Hud
     def amounts
       sources_and_amounts.values
     end
+
+    def self.income_ranges
+      {
+        no_income: { name: 'No income (less than $150)', range: (0..150) },
+        one_fifty: { name: '$151 to $250', range: (151..250) },
+        two_fifty: { name: '$251 to $500', range: (251..500) },
+        five_hundred: { name: '$501 to $750', range: (501..750) },
+        seven_fifty: { name: '$751 to $1000', range: (751..1000) },
+        one_thousand: { name: '$1001 to $1500', range: (1001..1500) },
+        fifteen_hundred: { name: '$1501 to $2000', range: (1501..2000) },
+        two_thousand: { name: 'Over $2001', range: (2001..Float::INFINITY) },
+        missing: { name: 'Missing', range: [nil] },
+      }
+    end
   end
 end

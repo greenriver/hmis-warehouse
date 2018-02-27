@@ -3,6 +3,10 @@
 = render 'datatables_js'
 = render 'breadcrumbs'
 %h1= content_for :title
+- if @cohort.inactive?
+  %p.alert.alert-warning.text-center
+    %i.icon-warning
+    This cohort is inactive.  Changes will not be reflected on client dashboards.
 .row
   .col-sm-12.text-right.padding-top-04
     - if current_user.can_manage_cohorts?
@@ -25,6 +29,9 @@
       = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
         %span.icon-users
         Add Clients
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary btn-sm'}) do
+      %i.icon-download2
+      Download
 
 .row
   .col-sm-4.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.margin-top-02

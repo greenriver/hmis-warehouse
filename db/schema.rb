@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180211172808) do
+ActiveRecord::Schema.define(version: 20180226145540) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -239,6 +239,7 @@ ActiveRecord::Schema.define(version: 20180211172808) do
     t.boolean  "can_manage_cohorts",               default: false
     t.boolean  "can_edit_cohort_clients",          default: false
     t.boolean  "can_edit_assigned_cohorts",        default: false
+    t.boolean  "can_view_assigned_cohorts",        default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
