@@ -10,7 +10,7 @@
         fixedHeader: true,
         paging: false,
         fixedColumns: {
-         leftColumns: 4
+         leftColumns: #{@cohort.static_column_count + 1}
         },
         order: [[1, '#{@cohort.default_sort_direction}']]
       });
