@@ -113,20 +113,24 @@ verticalBehavior = ->
     doubleMaxBarWidth = 2*maxBarWidth
     $vsmContainer.toggleClass('short', pageHeight < shortPageHeight)
 
-    if pageWidth >= (maxContentWidth + (2*inboardBarWidth))
-      $vsmContainer.addClass('outboard')
-      $vsmContainer.removeClass('inboard')
-      $headerNavHack.css(right: 0)
-      if pageWidth >= (maxContentWidth + (2*maxBarWidth))
-        $vsmContainer.addClass('pinned')
-      else
-        $vsmContainer.removeClass('pinned')
-    else
-      $vsmContainer.removeClass('outboard')
-      $vsmContainer.addClass('inboard')
-      $vsmContainer.removeClass('pinned')
-      $headerNavHack.css(right: inboardBarWidth)
-
+    # always use inboard
+    # if pageWidth >= (maxContentWidth + (2*inboardBarWidth))
+    #   $vsmContainer.addClass('outboard')
+    #   $vsmContainer.removeClass('inboard')
+    #   $headerNavHack.css(right: 0)
+    #   if pageWidth >= (maxContentWidth + (2*maxBarWidth))
+    #     $vsmContainer.addClass('pinned')
+    #   else
+    #     $vsmContainer.removeClass('pinned')
+    # else
+    #   $vsmContainer.removeClass('outboard')
+    #   $vsmContainer.addClass('inboard')
+    #   $vsmContainer.removeClass('pinned')
+    #   $headerNavHack.css(right: inboardBarWidth)
+    $vsmContainer.removeClass('outboard')
+    $vsmContainer.addClass('inboard')
+    $vsmContainer.removeClass('pinned')
+    
     $vsmContainer.addClass('transitions')
 
   updateNav()
