@@ -21,7 +21,7 @@
 
   %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
     %header
-      .container{class: container_classes}
+      .container-fluid{class: container_classes}
         .row
           .col-xs-10
             .site-name
@@ -42,7 +42,7 @@
                   %span.icon-enter
 
     %main
-      .container{class: container_classes}
+      .container-fluid{class: container_classes}
         .row
           .col-xs-12
             .utility
@@ -55,7 +55,7 @@
           .row
             = yield :modal_footer
     %footer
-      .container{class: container_classes}
+      .container-fluid{class: container_classes}
         .row
           .col-sm-8.col-sm-offset-2
             %p.text-center
