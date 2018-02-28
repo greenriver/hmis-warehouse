@@ -12,7 +12,7 @@ module Health::Claims
     def cost_table
       result = {patient: {}, sdh: {}, variance: {}}
       if @patient_roster.present?
-        values = load_patient_sdh_variance(load_cost_values)
+        values = load_implementation_baseline_variance(load_cost_values)
         values.each_with_index do |v, index|
           key = result.keys[index]
           result[key] = {
@@ -28,14 +28,13 @@ module Health::Claims
     def key_metrics_table
       result = {patient: {}, sdh: {}, variance: {}}
       if @patient_roster.present?
-        values = load_patient_sdh_variance(load_key_metric_values)
+        values = load_implementation_baseline_variance(load_key_metric_values)
         values.each_with_index do |v, index|
           key = result.keys[index]
           result[key] = {
-            Normalized_Risk: display_value(key, v[0], v[0]), 
-            ED_Visits: display_value(key, v[1], v[1]), 
-            IP_Admits: display_value(key, v[2], v[2]), 
-            Average_Days_to_Readmit: display_value(key, v[3], v[3])
+            ED_Visits: display_value(key, v[0], v[0]), 
+            IP_Admits: display_value(key, v[1], v[1]), 
+            Average_Days_to_Readmit: display_value(key, v[2], v[2])
           }
         end
       end
@@ -79,28 +78,30 @@ module Health::Claims
       Struct::Table.new(result[:patient].keys, result[:patient], result[:sdh], result[:variance])
     end
 
-    def load_patient_sdh_variance(values)
-      patient, sdh = values
-      variance = patient.each_with_index.map do |p, i|
-        sdh_variance(p, sdh[i])
+    def load_implementation_baseline_variance(values)
+      implementation, baseline = values
+      variance = implementation.each_with_index.map do |p, i|
+        baseline_variance(p, baseline[i])
       end
-      [patient, sdh, variance]
+      [implementation, baseline, variance]
     end
 
     def load_key_metric_values
-      patient = [
-        @patient_roster.norm_risk_score&.round(1), 
-        @patient_roster.average_ed_visits_implementation&.round(), 
+      implementation_months = @patient_roster.member_months_implementation
+      baseline_months = @patient_roster.member_months_baseline
+      implementation_ave_ed_visits = @patient.ed_nyu_severities.sum(:implementation_visits) / implementation_months rescue 0
+      baseline_ave_ed_visits = @patient.ed_nyu_severities.sum(:baseline_visits) / baseline_months rescue 0
+      implementation = [
+        implementation_ave_ed_visits&.round(), 
         @patient_roster.average_ip_admits_implementation&.round(),
         @patient_roster.average_days_to_implementation&.round(),
       ]
-      sdh = [
-        @patient_roster.norm_risk_score&.round(1),
-        @patient_roster.average_ed_visits_baseline&.round(),
+      baseline = [
+        baseline_ave_ed_visits&.round(),
         @patient_roster.average_ip_admits_baseline&.round(),
         @patient_roster.average_days_to_readmit_baseline&.round(),
       ]
-      [patient, sdh]
+      [implementation, baseline]
     end
 
     def load_cost_values
@@ -135,9 +136,9 @@ module Health::Claims
       (values.inject(0){|sum, v| sum+v})/values.size.to_f
     end
 
-    def sdh_variance(patient, sdh)
-      if patient && sdh && sdh != 0
-        (((patient - sdh)/sdh.to_f)*100).round()
+    def baseline_variance(implementation, baseline)
+      if implementation && baseline && baseline != 0
+        (((implementation - baseline)/baseline.to_f)*100).round()
       else
         'N/A'
       end

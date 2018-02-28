@@ -10,6 +10,6 @@
   .col-sm-12
     - warehouse_report_path = warehouse_reports_health_overview_index_path
     = render "#{warehouse_report_path}/trends_over_time", data_type: 'patient'
-    = render 'patient_cost_metrics'
+    = render 'window/health/patient/patient_cost_metrics'
     = render "#{warehouse_report_path}/top_providers_and_conditions", data_type: 'patient'
 
