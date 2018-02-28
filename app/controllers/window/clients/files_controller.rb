@@ -3,7 +3,7 @@ module Window::Clients
     include WindowClientPathGenerator
     
     before_action :require_window_file_access!
-    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download]
+    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :destroy]
     before_action :set_files, only: [:index]
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
     
@@ -62,7 +62,7 @@ module Window::Clients
     end
 
     def destroy
-      @file = file_source.find(params[:id].to_i)
+      @file = editable_scope.find(params[:id].to_i)
       @client = @file.client
       
       begin
@@ -191,6 +191,11 @@ module Window::Clients
     def file_scope
       file_source.window.where(client_id: @client.id).
         visible_by?(current_user)
+    end
+
+    def editable_scope
+      file_source.window.where(client_id: @client.id).
+        editable_by?(current_user)
     end
     
   end

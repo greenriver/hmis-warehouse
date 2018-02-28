@@ -35,6 +35,19 @@ module GrdaWarehouse
       end
     end
 
+    scope :editable_by?, -> (user) do
+      # If you can see all client files, show everything
+      if user.can_manage_client_files? 
+        all
+      # If all you can see are window files or your own files
+      #   show only those you uploaded
+      elsif user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+        where(user_id: user.id)
+      else
+        none
+      end
+    end
+
     scope :consent_forms, -> do
       tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
     end
@@ -60,6 +73,12 @@ module GrdaWarehouse
     ####################
     def self.any_visible_by?(user)
       user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
+    def editable_by?(user)
+      return true if user.can_manage_client_files?
+      return true if (user.can_manage_window_client_files? || user.can_see_own_file_uploads?) && user_id == user.id
+      false
     end
 
     def set_client_consent
