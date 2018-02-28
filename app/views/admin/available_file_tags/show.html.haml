@@ -1,0 +1,15 @@
+%p#notice= notice
+
+%p
+  %b Name:
+  = @grda_warehouse_available_file_tag.name
+%p
+  %b Group:
+  = @grda_warehouse_available_file_tag.group
+%p
+  %b Weight:
+  = @grda_warehouse_available_file_tag.weight
+
+= link_to 'Edit', edit_grda_warehouse_available_file_tag_path(@grda_warehouse_available_file_tag)
+\|
+= link_to 'Back', grda_warehouse_available_file_tags_path

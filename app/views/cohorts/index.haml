@@ -2,27 +2,50 @@
 - content_for :title, title
 %h1= content_for :title
 
-= simple_form_for @cohort, url: cohorts_path do |f|
-  %table.table.table-condensed
-    %thead
-      %tr
-        %th{style: 'min-width: 20em;'} Name
-        %th{style: 'width: 12em;'} Effective Date
-        %th Clients
-    %tbody
-      - if current_user.can_manage_cohorts?
+%ul.nav.nav-tabs{role: :tablist}
+  %li.active{role: :presentation}
+    %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: {toggle: :tab}, role: :tab} Cohorts
+  %li{role: :presentation}
+    %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab} Inactive Cohorts
+.tab-content
+  #active-cohorts.tab-pane.active{role: :tabpanel}
+    = simple_form_for @cohort, url: cohorts_path do |f|
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th{style: 'min-width: 20em;'} Name
+            %th{style: 'width: 12em;'} Effective Date
+            %th Clients
+        %tbody
+          - if current_user.can_manage_cohorts?
+            %tr
+              %td
+                = f.input :name, label: false
+              %td
+                = f.input :effective_date, as: :date_picker, label: false
+              %td
+                = f.submit value: 'Create Cohort', class: 'btn btn-primary'
+          - @cohorts.each do |cohort|
+            %tr
+              %td
+                = link_to cohort.name, cohort_path(cohort)
+              %td
+                = cohort.effective_date
+              %td.text-center
+                = cohort.cohort_clients.count
+  #inactive-cohorts.tab-pane{role: :tabpanel}
+    %table.table.table-condensed
+      %thead
         %tr
-          %td
-            = f.input :name, label: false
-          %td
-            = f.input :effective_date, as: :date_picker, label: false
-          %td
-            = f.submit value: 'Create Cohort', class: 'btn btn-primary'
-      - @cohorts.each do |cohort|
-        %tr
-          %td
-            = link_to cohort.name, cohort_path(cohort)
-          %td
-            = cohort.effective_date
-          %td.text-center
-            = cohort.cohort_clients.count
+          %th{style: 'min-width: 20em;'} Name
+          %th{style: 'width: 12em;'} Effective Date
+          %th Clients
+      %tbody
+        - @inactive_cohorts.each do |cohort|
+          %tr
+            %td
+              = link_to cohort.name, cohort_path(cohort)
+            %td
+              = cohort.effective_date
+            %td.text-center
+              = cohort.cohort_clients.count

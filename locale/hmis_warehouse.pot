@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-21 09:18-0500\n"
-"PO-Revision-Date: 2017-12-21 09:18-0500\n"
+"POT-Creation-Date: 2018-02-17 16:55-0500\n"
+"PO-Revision-Date: 2018-02-17 16:55-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -70,6 +70,9 @@ msgid "Disability Verification on File"
 msgstr ""
 
 msgid "Ending Veteran & Chronic Homelessness in Boston"
+msgstr ""
+
+msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
 msgstr ""
 
 msgid "Front Door Triage"
@@ -153,6 +156,9 @@ msgstr ""
 msgid "Part of a family"
 msgstr ""
 
+msgid "Please attach each file as a separate document. Please do not upload a \"packet\" in which a number of documents are in one file."
+msgstr ""
+
 msgid "Process Duplicates"
 msgstr ""
 
@@ -190,6 +196,9 @@ msgid "This is a Youth VI-SPDAT"
 msgstr ""
 
 msgid "This is an Individual VI-SPDAT"
+msgstr ""
+
+msgid "This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. "
 msgstr ""
 
 msgid "U.S Citizen or Permanent Resident"

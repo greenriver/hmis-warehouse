@@ -20,7 +20,9 @@
         - else
           %p None
       = render 'chronic_flags', client: @client
-      = render 'cas_housed'    
+      = render 'cas_housed'
+      = render 'clients/rollup/cohorts'
+      
     .col-sm-4
       = render 'window/clients/consent_form_flags'
       

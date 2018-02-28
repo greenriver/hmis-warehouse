@@ -3,6 +3,10 @@
 = render 'datatables_js'
 = render 'breadcrumbs'
 %h1= content_for :title
+- if @cohort.inactive?
+  %p.alert.alert-warning.text-center
+    %i.icon-warning
+    This cohort is inactive.  Changes will not be reflected on client dashboards.
 .row
   .col-sm-12.text-right.padding-top-04
     - if current_user.can_manage_cohorts?

@@ -260,6 +260,7 @@ module ClientController
         "/clients/rollup/zip_map",
         "/clients/rollup/client_notes",
         "/clients/rollup/chronic_notes",
+        "/clients/rollup/cohorts",
       ]
       rollup = allowed_rollups.find do |m|
         m == "/clients/rollup/" + params.require(:partial).underscore

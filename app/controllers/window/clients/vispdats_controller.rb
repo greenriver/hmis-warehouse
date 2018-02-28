@@ -85,7 +85,7 @@ module Window::Clients
     def upload_file
       set_vispdat
       @file = GrdaWarehouse::ClientFile.new
-      begin
+      # begin
         file = file_params[:file]
         @file.assign_attributes(
           file: file,
@@ -95,9 +95,10 @@ module Window::Clients
           content: file&.read,
           visible_in_window: true,
           note: file_params[:note],
-          name: file_params[:name],
+          name: file.original_filename,
           vispdat_id: @vispdat.id,
-          consent_form_signed_on: file_params[:consent_form_signed_on]
+          consent_form_signed_on: file_params[:effective_date],
+          effective_date: file_params[:effective_date]
         )
         consent_form = 'Consent Form'
         # @file.tag_list.add(tag_list.select(&:present?))
@@ -105,16 +106,10 @@ module Window::Clients
         @file.tag_list.add [consent_form]
         @file.save!
 
-        # Send notifications if appropriate
-        tag_list = ActsAsTaggableOn::Tag.where(name: consent_form).pluck(:id)
-        notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
-        to_send = tag_list & notification_triggers
-        FileNotificationMailer.notify(to_send, @client.id).deliver_later if to_send.any?
-
         flash[:notice] = "File #{file_params[:name]} saved."
-      rescue Exception => e
-        flash[:error] = e.message
-      end
+      # rescue Exception => e
+      #   flash[:error] = e.message
+      # end
       redirect_to action: :edit
     end
 
@@ -160,7 +155,7 @@ module Window::Clients
             :name,
             :note,
             :visible_in_window,
-            :consent_form_signed_on,
+            :effective_date,
             tag_list: []
           )
       end

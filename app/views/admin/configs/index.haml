@@ -7,7 +7,12 @@
 
 = simple_form_for @config, url: admin_configs_path do |f|
   .row
-    .col-sm-6
+    .col-sm-3
+      %ul.nav.nav-pills.nav-stacked
+        %li{role: :presentation}
+          = link_to admin_available_file_tags_path do
+            Available File Tags
+    .col-sm-4
       = f.input :eto_api_available, label: 'Is the ETO API available?'
       = f.input :healthcare_available, label: 'Enable Healthcare section?'
       = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
@@ -19,14 +24,12 @@
       = f.input :so_day_as_month, label: 'Extrapolate all street outreach contacts to cover the entire month?'
       = f.input :cas_url, label: 'CAS Site URL'
       = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
-    .col-sm-6
+    .col-sm-4
       = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
       = f.input :continuum_name, as: :string, label: 'Continuum Name'
       -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zipcodes', hint: 'comma separated.  eg. 02108, 02109'
       = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS'
       = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?'
       = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)'
-      = f.input :tag_list, collection: GrdaWarehouse::ClientFile.available_tags, label: 'Files required to be document ready', input_html: {value: f.object.tag_list_on(:document_ready), multiple: :multiple, class: 'select2'}
-      = f.input :file_notification_list, collection: GrdaWarehouse::ClientFile.available_tags, label: 'Files that should trigger notifications', input_html: {value: f.object.tag_list_on(:file_notifications), multiple: :multiple, class: 'select2'}
-
+  
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'

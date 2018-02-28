@@ -1,12 +1,40 @@
-$(document).on 'change', '#grda_warehouse_client_file_tag_list', (e) ->
-  file_types = $('#grda_warehouse_client_file_tag_list option:selected')
-  fields = $('.consent-form-fields')
+$('.jThumb').each (e) ->
+  thumb = this
+  file_id = $(this).data('file')
+  url_base = window.location.pathname + '/' + file_id
+  url = url_base + '/has_thumb'
+  $.get url, (data, textStatus, jqXHR) ->
+    thumb_url = url_base + '/thumb'
+    preview_url = url_base + '/preview'
+    if(textStatus == 'success')
+      link = '<a href="' + preview_url + '" target="_blank"><img src="' + thumb_url + '" class="file-thumbnail" /></a>'
+    else 
+      link = '<a href="' + preview_url + '" target="_blank"><i class="icon-eye btn btn-secondary btn-lg"/></a>'
+    $(thumb).html(link)
 
-  tags = (type.value for type in file_types)
-
-  if 'Consent Form' in tags
-    fields.show()
+$(document).on 'change', '.jFileTag', (e) ->
+  # Show notes
+  if $(this).data('toggle') == 'popover'
+    $('.jFileTag').not(this).popover('hide')
+    $(this).popover('show')
   else
-    fields.hide()
+    $('.jFileTag').popover('hide')
 
-$('#grda_warehouse_client_file_tag_list').trigger('change')
+  # Show consent form confirmed
+  if $(this).data('consent')
+    $('.consent-form-fields').removeClass('hidden')
+  else
+    $('.consent-form-fields').addClass('hidden')
+  
+$(document).on 'change', '.jDownload', (e) ->
+  ids = $('.jDownload:checked').map ->
+    $(this).val()
+  $('tr.active').removeClass('active')
+  $('.jDownload:checked').each ->
+    $(this).closest('tr').addClass('active')
+  $('.jDownloadIDs').attr('value', ids.get())
+  if $('.jDownload:checked').val()?
+    $('.jDownloadButton').removeAttr('disabled')
+  else
+    $('.jDownloadButton').attr('disabled', 'disabled')
+$('.jDownload').trigger('change')

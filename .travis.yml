@@ -22,3 +22,5 @@ script:
 
 addons:
   postgresql: "9.5"
+  apt_packages:
+    libmagic-dev

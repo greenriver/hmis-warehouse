@@ -3,14 +3,18 @@ module Api::Health::Claims::Patients
     
     def load_data      
       @data = begin
-        individual = {group: @patient.client.name}
-        sdh = {group: 'SDH Pilot'}
-        scope.map do |row|
-          individual[row.category] = row.indiv_pct
+        implementation = {group: @patient.client.name}
+        implementation_visits = 0
+        baseline = {group: 'Baseline'}
+        baseline_visits = 0
+        scope.each do |row|
+          implementation[row.category] = row.indiv_pct
+          implementation_visits += row.implementation_visits
           # sdh[row.category] = row.indiv_pct
-          sdh[row.category] = row.sdh_pct
+          baseline[row.category] = row.sdh_pct
+          baseline_visits += row.baseline_visits
         end
-        [sdh, individual]
+        [baseline, implementation, baseline_visits.round, implementation_visits.round]
       end
     end
 

@@ -9,6 +9,7 @@ module GrdaWarehouse
     validates_presence_of :name
     validates_inclusion_of :visible_in_window, in: [true, false]
     validate :file_exists_and_not_too_large
+    validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
 
     scope :window, -> do
@@ -34,14 +35,31 @@ module GrdaWarehouse
       end
     end
 
+    scope :editable_by?, -> (user) do
+      # If you can see all client files, show everything
+      if user.can_manage_client_files? 
+        all
+      # If all you can see are window files or your own files
+      #   show only those you uploaded
+      elsif user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+        where(user_id: user.id)
+      else
+        none
+      end
+    end
+
     scope :consent_forms, -> do
-      tagged_with 'Consent Form'
+      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
     end
     scope :confirmed, -> do
       where(consent_form_confirmed: true)
     end
     scope :signed_on, -> (date) do
       where(consent_form_signed_on: date)
+    end
+
+    scope :notification_triggers, -> do
+      tagged_with(GrdaWarehouse::AvailableFileTag.notification_triggers.pluck(:name), any: true)
     end
 
     ####################
@@ -55,6 +73,12 @@ module GrdaWarehouse
     ####################
     def self.any_visible_by?(user)
       user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+    end
+
+    def editable_by?(user)
+      return true if user.can_manage_client_files?
+      return true if (user.can_manage_window_client_files? || user.can_see_own_file_uploads?) && user_id == user.id
+      false
     end
 
     def set_client_consent
@@ -77,10 +101,9 @@ module GrdaWarehouse
           NotifyUser.file_uploaded( id ).deliver_later
         end
         # Send out administrative notifications as appropriate
-        tag_list = ActsAsTaggableOn::Tag.where(name: self.tag_list).pluck(:id)
-        notification_triggers = GrdaWarehouse::Config.get(:file_notifications).pluck(:id)
-        to_send = tag_list & notification_triggers
-        FileNotificationMailer.notify(to_send, client.id).deliver_later if to_send.any?
+        if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
+          FileNotificationMailer.notify(client.id).deliver_later
+        end
       end
     end
 
@@ -89,42 +112,15 @@ module GrdaWarehouse
       errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes
     end
 
-    # Any of these tags could represent a full release
-    def self.full_release_tags
-      [
-        'Consent Form',
-        'Full Network Release',
-      ]
+    def note_if_other
+      if tag_list.include?('Other') && note.blank?
+        errors.add :note, "Note is required if Other is chosen above"
+      end
     end
 
     def self.available_tags
-      [
-        'Birth Certificate',
-        'Government ID',
-        'Social Security Card',
-        'Disability Verification',
-        'Homeless Verification',
-        'Veteran Verification',
-        'Proof of Income',
-        'Client Photo',
-        'DD-214',
-        'Consent Form',
-        'Full Network Release',
-        'Limited CAS Release',
-        'Chronic Homelessness Verification',
-        'BHA Eligibility',
-        'Housing Authority Eligibility',
-        'Other',
-      ].sort.freeze
+      GrdaWarehouse::AvailableFileTag.grouped
     end
 
-    def self.document_ready_tags
-      [
-        'Birth Certificate',
-        'Government ID',
-        'Social Security Card',
-        'Proof of Income',
-      ]
-    end
   end
 end  

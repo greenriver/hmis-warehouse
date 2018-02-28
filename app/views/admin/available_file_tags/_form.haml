@@ -1,0 +1,18 @@
+= simple_form_for @available_file_tag, as: :available_file_tag, url: admin_available_file_tags_path do |f|
+  - if @available_file_tag.errors.any?
+    #error_explanation
+      %h2= "#{pluralize(@available_file_tag.errors.count, "error")} prohibited this available_file_tag from being saved:"
+      %ul
+        - @available_file_tag.errors.full_messages.each do |msg|
+          %li= msg
+
+  = f.input :name
+  = f.input :group
+  = f.input :included_info, label: 'Includes'
+  = f.input :weight
+  = f.input :note
+  = f.input :document_ready, label: 'Required for document ready?'
+  = f.input :notification_trigger, label: 'Should this generate a notification?'
+  = f.input :consent_form, label: 'Does this constitute a consent form?'
+  .actions
+    = f.submit 'Save', class: 'btn btn-primary'

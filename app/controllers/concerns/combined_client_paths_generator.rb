@@ -41,6 +41,11 @@ module CombinedClientPathsGenerator
     end
     helper_method :files_path_generator    
 
+    def files_batch_download_path_generator
+      [:batch_download] + files_path_generator
+    end
+    helper_method :files_batch_download_path_generator
+
     def vispdat_path_generator
       client_path_generator + [:vispdat]
     end

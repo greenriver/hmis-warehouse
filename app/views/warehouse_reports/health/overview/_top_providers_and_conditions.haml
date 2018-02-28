@@ -1,5 +1,7 @@
+- just_patient = data_type == 'patient'
+- text = data_type == 'all' ? ['All Participants', 'Implementation', 'Baseline'] : ['Implementation', 'Baseline']
 .ho-container
-  = d3_container_header(data_type, ['All Participants', 'Implementation', 'Baseline'])
+  = d3_container_header(data_type, text)
   .row
     .col-xs-12.col-md-4
       = d3_top_chart('top_providers', data_type)

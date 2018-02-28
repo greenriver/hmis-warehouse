@@ -1,0 +1,28 @@
+- @months.reverse.each do |(year, month)|
+  - start_of_month = Date.new(year, month, 1)
+  - date_range = (start_of_month.beginning_of_week..start_of_month.end_of_month.end_of_week)
+  %h3= start_of_month.strftime '%B %Y'
+  %table.client__month_of_service-table
+    %colgroup
+      - 7.times do
+        %col(style="width: 14.23%")
+    = date_range.each_slice(7) do |week|
+      %tr
+        - week_days = week.map{|d| [d, []]}.to_h
+        - week.each do |day|
+          - if @dates[day].present?
+            - week_days[day] = @dates[day]
+
+        - week_days.each do |date, services|
+          %td
+            - if start_of_month == date.beginning_of_month
+              .client__calendar-date
+                = date.day
+              - services.each do |service|
+                %div
+                  %div{class: "service-type__#{service[:record_type]} client__service_type_#{service[:project_type]}"}
+                    %em.service-type__program-type
+                      = HUD.project_type_brief service[:project_type]
+                    - if service[:organization_name].present?
+                      = "#{service[:organization_name]}:"
+                    = service[:project_name]

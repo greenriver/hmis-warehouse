@@ -1,6 +1,6 @@
 :ruby
-  show_health = @client.show_health_for?(current_user)
-  show_demographic = @client.show_window_demographic_to?(current_user)
+  show_health = @client.show_health_for?(current_user) rescue false
+  show_demographic = @client.show_window_demographic_to?(current_user) rescue false
   tabs = {
     polymorphic_path(client_path_generator, id: @client.id) => {
       title: 'Basic Info & Programs',
@@ -46,7 +46,7 @@
     - can_see_tabs = true
 
 - if can_see_tabs
-  %ul.nav.nav-tabs.margin-bottom-01
+  %ul.nav.nav-tabs.margin-bottom-02
     - tabs.each do |action, details|
       - if action == current
         - if details[:permission]

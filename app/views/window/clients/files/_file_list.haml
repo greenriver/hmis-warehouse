@@ -1,37 +1,30 @@
 - if @client.client_files.any?
   .row.table-utilities
     .col-sm-12
+      = render 'batch_download'
       .table-responsive
         %table.table.table-condensed.table-hover
           %thead
             %tr
-              %th(colspan=5)
-              %th.text-center(style='background-color:#eee') Consent Form
-            %tr
-              %th File
-              %th Contains
-              %th Note
-              %th Uploaded By
-              %th Uploaded On
-              %th.text-center Signed On
-              %th Delete
+              %th.text-center Select
+              %th.text-center Preview
+              %th.text-center File
+              %th.text-center Document
+              %th.text-center Note
+              - if can_manage_client_files?
+                %th.text-center Visible in Window
+              %th.text-center Uploaded By
+              %th.text-center Uploaded On
+              %th.text-center 
+                Effective Date /
+                %br
+                Signed On
+              - if can_manage_client_files? 
+                %th.text-center Consent Confirmed
+              %th.text-center Delete
             %tbody
               - @files.each do |file|
-                %tr
-                  %td
-                    - if file.content.present?
-                      = link_to polymorphic_path(file_path_generator, id: file.id) do
-                        = file.name
-                    - else
-                      = file.name
-                  %td= file.tag_list.join(', ')
-                  %td= file.note
-                  %td= file.user&.name
-                  %td= file.created_at
-                  %td.text-center= file.consent_form_signed_on
-                  %td
-                    = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-secondary btn-small') do
-                      %span.icon-cross
+                = render 'file_row', file: file
   %p= paginate @files
   
 - else

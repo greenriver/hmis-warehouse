@@ -49,7 +49,7 @@ module HealthOverviewHelper
   def d3_container_header_key(color, index, data_type, other_text)
     style = index == 0 ? "color: #{color}; font-weight: bold;" : "color: #{color};"
     icon = d3_container_header_icon(data_type, index)
-    text = (index == 0 && data_type == 'patient') ? @patient.client.name : other_text
+    text = other_text
     content_tag :div, class: 'ho-compare__key', style: style do
       concat content_tag :i, '', class: icon
       concat " #{text}"
@@ -57,7 +57,7 @@ module HealthOverviewHelper
   end
 
   def d3_container_header_icon(data_type, index)
-    if data_type == 'all' || index != 0
+    if data_type == 'all'
       'icon-users'
     else
       'icon-user' 
@@ -121,8 +121,10 @@ module HealthOverviewHelper
         concat content_tag :div, '', class: "ho-compare__th-marker #{marker[key]}"
       end
       concat key.gsub('_', ' ')
-      if key == 'ED_Visits' || key == 'IP_Admits'
-        concat content_tag :small, '(past 6 months)'
+      if key == 'ED_Visits'
+        concat content_tag :small, '(Avg ED visits/month)'
+      elsif key == 'IP_Admits'
+        concat content_tag :small, '(Avg IP admits/month)'
       end
     end
   end
@@ -155,7 +157,7 @@ module HealthOverviewHelper
     text = {
       'ED_Visits'=> 'ED Visits that did not result in IP Admissions', 
       'IP_Admits'=>'Acute IP Admissions only (i.e. no SNF/Rehab/Respite/Psych)',
-      'Average_Days_to_Readmit'=>'For readmits, average only for those who had at least two admissions'
+      'Average_Days_to_Readmit'=>'For readmits, average only for those who had at least two acute admissions and had at least one readmit within 30 days'
     }
     if marker[key]
       css_class = "ho-compare__marker #{marker[key]}"
