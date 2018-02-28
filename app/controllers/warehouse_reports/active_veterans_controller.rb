@@ -52,7 +52,7 @@ module WarehouseReports
 
     def sort_clients
       @column, @direction = params.slice(:column, :direction).values
-      @column, @direction = %w(chronic.homeless_since desc) if @column.nil? || @direction.nil?
+      @column, @direction = %w(LastName asc) if @column.nil? || @direction.nil?
       option = sort_options.detect do |row, _|
         row[:column] == @column && row[:direction].to_s == @direction
       end.last
