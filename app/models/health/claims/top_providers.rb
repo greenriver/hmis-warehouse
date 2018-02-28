@@ -4,7 +4,7 @@ module Health::Claims
 
     def column_headers 
       {
-        medicaid_id: "Top_Providers",
+        medicaid_id: "ID_MEDICAID",
         rank: "Rank",
         provider_name: "SERV_NAME_DSP",
         sdh_pct: "Baseline_pct",
