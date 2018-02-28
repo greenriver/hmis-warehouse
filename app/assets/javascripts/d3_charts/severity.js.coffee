@@ -7,6 +7,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @keyLabels = attrs.keys.slice()
     @keyLabels[3] = "Emerg, not prev/ avoid (ED Visits that did not result in IP Admissions"
     @legend = new App.D3Chart.StackedLegend(attrs.legend, @keyLabels, attrs.colors)
+
     @claims = @_loadClaims(claims)
     @colors = attrs.colors
     @range = @_loadRange()
@@ -31,8 +32,10 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
 
   _loadClaims: (claims)->
     result = []
-    claims.forEach((claim) =>
-      group = if claim.group == 'SDH Pilot' then 'Baseline' else 'Implementation Period'
+    baseline_count = claims[2]
+    implementation_count = claims[3]
+    claims.slice(0,2).forEach((claim) =>
+      group = if claim.group == 'Baseline' then "Baseline (#{baseline_count})" else "Implementation (#{implementation_count})"
       r = {group: group}
       @keys.forEach((key) =>
         r[key] = claim[key]*100
@@ -47,11 +50,11 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
       y: [@dimensions.height, 0],
       color: @colors,
       xColor: ['#777777', '#00549E'],
-      icon: ['icon-users', 'icon-user']
+      icon: ['icon-user', 'icon-user']
     }
 
   _loadDomain: ->
-    labels = ['Baseline', 'Implementation Period']
+    labels = ['Baseline', 'Implementation']
     {
       x: @claims.map((claim) -> claim.group),
       y: [0, 100],
@@ -80,7 +83,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     step = @scale.x.step()
     width = @scale.x.bandwidth()
     x1 = @scale.x('Baseline') - (step-width) + 5
-    x22 = @scale.x('Implementation Period') + (width+(step-width)) - 5 
+    x22 = @scale.x('Implementation') + (width+(step-width)) - 5 
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
@@ -108,6 +111,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
         .style('position', 'absolute')
         .style('bottom', '-12px')
         .style('font-size', '30px')
+        .style('height', '40px')
         .style('text-align', 'center')
         .style('left', (tick) =>
           translate = +d3.select(tick).attr('transform').split(',')[0].match(/[\d\.]+/g)
