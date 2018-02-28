@@ -37,14 +37,26 @@
   .col-sm-4.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.margin-top-02
     Loading clients... please wait.
 
-- if @cohort.effective_date
-  %p.margin-top-02
-    %strong
-      *
-    Data pulled from the client record and shown here will be pulled using the effective date
-    %strong
-      = @cohort.effective_date
-    where appropriate.
+.row.margin-top-02
+  .col-sm-6
+    - if @cohort.effective_date
+      %p.margin-top-02
+        %strong
+          *
+        Data pulled from the client record and shown here will be pulled using the effective date
+        %strong
+          = @cohort.effective_date
+        where appropriate.
+  .col-sm-6.text-right
+    Text size:
+    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :sm}}
+      Small
+    %button.btn.btn-sm.btn-primary.jToggleFontSize{data: {size: ''}}
+      Medium
+    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :lg}}
+      Large
+    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :xl}}
+      XL
 
 - if @cohort.clients.blank?
   %p.text-center.margin-top-02
@@ -57,3 +69,13 @@
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'
             
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.cohorts').on('click', '.jToggleFontSize', function(){
+        var size = $(this).data('size');
+        $('.datatable').removeClass('sm lg xl').addClass(size);
+        $(this).siblings().removeClass('btn-primary').addClass('btn-secondary');
+        $(this).removeClass('btn-secondary').addClass('btn-primary');
+      });
+    })(jQuery);
