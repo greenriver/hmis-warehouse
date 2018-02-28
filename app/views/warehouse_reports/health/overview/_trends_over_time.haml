@@ -1,5 +1,5 @@
 - just_patient = data_type == 'patient'
-- text = data_type == 'all' ? 'All Participants' : ''
+- text = data_type == 'all' ? 'All Participants' : @patient.name
 .ho-container#d3-claims
   = d3_container_header(data_type, text, just_patient: just_patient)
   .row
