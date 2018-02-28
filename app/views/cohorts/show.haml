@@ -53,7 +53,7 @@
       Add Clients
 
 .row.margin-top-02
-  .col-sm-12.overflow-scroll
+  .col-sm-12
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'
             
