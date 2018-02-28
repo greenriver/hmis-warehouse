@@ -91,7 +91,7 @@ module DefaultFileTypes
         {
           name: 'Homeless Verification',
           group: 'Homeless Verification',
-          included_info: 'Non-HMIS Verification for Boston',
+          included_info: '',
           weight: 14,
         },
         {

@@ -6,6 +6,8 @@ module Health
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
+    has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
+
     has_one :team
     has_many :team_members, class_name: Health::Team::Member.name, through: :team
 
