@@ -96,6 +96,7 @@ Rails.application.routes.draw do
     resources :entry_exit_service, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :anomalies, only: [:index]
+    resources :touch_point_exports, only: [:index] 
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
