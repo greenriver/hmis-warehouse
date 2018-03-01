@@ -89,16 +89,18 @@ module Health::Claims
     def load_key_metric_values
       implementation_months = @patient_roster.member_months_implementation
       baseline_months = @patient_roster.member_months_baseline
-      implementation_ave_ed_visits = @patient.ed_nyu_severities.sum(:implementation_visits) / implementation_months rescue 0
-      baseline_ave_ed_visits = @patient.ed_nyu_severities.sum(:baseline_visits) / baseline_months rescue 0
+      implementation_ave_ed_visits = @patient.ed_nyu_severities.sum(:implementation_visits).to_f / implementation_months rescue 0
+      baseline_ave_ed_visits = @patient.ed_nyu_severities.sum(:baseline_visits).to_f / baseline_months rescue 0
+      implementation_ip_admit_ave = @patient_roster.implementation_admits.to_f / implementation_months rescue 0
+      baseline_ip_admit_ave = @patient_roster.baseline_admits.to_f / baseline_months rescue 0
       implementation = [
-        implementation_ave_ed_visits&.round(), 
-        @patient_roster.average_ip_admits_implementation&.round(),
+        implementation_ave_ed_visits&.round(1), 
+        implementation_ip_admit_ave&.round(1),
         @patient_roster.average_days_to_implementation&.round(),
       ]
       baseline = [
-        baseline_ave_ed_visits&.round(),
-        @patient_roster.average_ip_admits_baseline&.round(),
+        baseline_ave_ed_visits&.round(1),
+        baseline_ip_admit_ave&.round(1),
         @patient_roster.average_days_to_readmit_baseline&.round(),
       ]
       [implementation, baseline]

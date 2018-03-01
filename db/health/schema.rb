@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180220193729) do
+ActiveRecord::Schema.define(version: 20180301200541) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -119,6 +119,8 @@ ActiveRecord::Schema.define(version: 20180220193729) do
     t.float   "average_days_to_implementation"
     t.string  "case_manager"
     t.string  "housing_status"
+    t.integer "baseline_admits"
+    t.integer "implementation_admits"
   end
 
   add_index "claims_roster", ["medicaid_id"], name: "index_claims_roster_on_medicaid_id", using: :btree
