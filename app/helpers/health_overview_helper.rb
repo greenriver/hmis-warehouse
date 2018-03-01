@@ -57,7 +57,7 @@ module HealthOverviewHelper
   end
 
   def d3_container_header_icon(data_type, index)
-    if data_type == 'all' || index != 0
+    if data_type == 'all'
       'icon-users'
     else
       'icon-user' 
@@ -157,7 +157,7 @@ module HealthOverviewHelper
     text = {
       'ED_Visits'=> 'ED Visits that did not result in IP Admissions', 
       'IP_Admits'=>'Acute IP Admissions only (i.e. no SNF/Rehab/Respite/Psych)',
-      'Average_Days_to_Readmit'=>'For readmits, average only for those who had at least two admissions and had at least one readmit within 30 days'
+      'Average_Days_to_Readmit'=>'For readmits, average only for those who had at least two acute admissions and had at least one readmit within 30 days'
     }
     if marker[key]
       css_class = "ho-compare__marker #{marker[key]}"

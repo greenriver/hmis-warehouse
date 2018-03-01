@@ -1,0 +1,46 @@
+%tr{ class: "client-file-#{file.id}"}
+  %td.text-center
+    %input.jDownload{type: :checkbox, value: file.id, checked: @pre_checked&.include?(file.id)}
+  %td.text-center.jThumb{data: {file: file.id}}
+  %td.text-center
+    - if file.content.present?
+      = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-lg btn-secondary' do
+        %i.icon-download2
+    - else
+      = file.name
+  %td
+    - file.tag_list.each do |tag|
+      - included_info = @available_tags[tag]&.included_info
+      = tag
+      - if included_info
+        .files-included-info
+          %em Contains:
+          = included_info
+  %td= file.note
+  - if can_manage_client_files?
+    %td.text-center= checkmark file.visible_in_window
+  %td= file.user&.name
+  %td= file.created_at
+
+  - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list) && @consent_editable
+    %td
+      - if can_manage_client_files?
+        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+          = f.input :consent_form_signed_on, as: :date_picker, label: false, input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
+      - else
+        = file.consent_form_signed_on
+
+    %td.text-center
+      - if can_confirm_housing_release?
+        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+          = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
+      - else
+        = checkmark file.consent_form_confirmed
+  - else
+    %td= file.effective_date
+    %td
+
+  %td
+    - if file.editable_by?(current_user)
+      = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-secondary btn-small') do
+        %span.icon-cross

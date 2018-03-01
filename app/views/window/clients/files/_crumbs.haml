@@ -1,0 +1,4 @@
+= content_for :crumbs do
+  = link_to polymorphic_path(files_path_generator, client_id: @client.id) do
+    &laquo; 
+    File List

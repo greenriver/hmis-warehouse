@@ -18,10 +18,10 @@ module WarehouseReports
       @clients = @report.data
       @sort_options = sort_options
 
-      sort_clients if @clients&.any?
-
       respond_to do |format|
-        format.html
+        format.html do
+          sort_clients if @clients&.any?
+        end
         format.xlsx do
           range = @report.parameters['range'] || {}
           start_date, end_date = range['start'], range['end']
@@ -51,11 +51,14 @@ module WarehouseReports
     end
 
     def sort_clients
-      @column, @direction = params.slice(:column, :direction).values 
-      @column, @direction = %w(chronic.homeless_since desc) if @column.nil? || @direction.nil?
+      @column, @direction = params.slice(:column, :direction).values
+      @column, @direction = %w(LastName asc) if @column.nil? || @direction.nil?
+      option = sort_options.detect do |row, _|
+        row[:column] == @column && row[:direction].to_s == @direction
+      end.last
       veteran_sort = @column.split('.')
       @clients = @clients.sort_by do |client|
-        client[@column]
+        client[@column] || option[:default]
       end
       @clients.reverse! if @direction=='desc'
     end
@@ -70,21 +73,25 @@ module WarehouseReports
             title: 'Last name A-Z', 
             column: ct[:LastName].asc, 
             param: 'LastName',
+            default: 'Z',
           },
           {column: 'LastName', direction: :desc} => {
             title: 'Last name Z-A', 
             column: ct[:LastName].desc,
             param: 'LastName',
+            default: 'A',
           },
           {column: 'days_served', direction: :desc} => {
             title: 'Most served', 
             column: wcpt[:days_served].desc, 
             param: 'days_served',
+            default: 0,
           },
           {column: 'first_date_served', direction: :asc} => {
             title: 'Longest standing', 
             column: wcpt[:first_date_served].asc, 
             param: 'first_date_served',
+            default: Date.today.to_s,
           },
         }
         

@@ -44,5 +44,24 @@ li.draggable-list__item {
 .cohorts .datatable th,
 .cohorts .datatable td
 {
-  white-space: nowrap;
+  // white-space: nowrap;
+}
+
+.cohorts .dataTables_wrapper {
+  overflow: hidden;
+}
+
+.cohorts .datatable.sm
+{
+  font-size: 0.8em;
+}
+
+.cohorts .datatable.lg
+{
+  font-size: 1.2em;
+}
+
+.cohorts .datatable.xl
+{
+  font-size: 1.4em;
 }

@@ -67,6 +67,7 @@ class CohortsController < ApplicationController
       :default_sort_direction,
       :only_window,
       :active_cohort,
+      :static_column_count,
       user_ids: []
     )
   end

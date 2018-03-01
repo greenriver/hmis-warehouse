@@ -195,9 +195,7 @@ Rails.application.routes.draw do
   end
   resources :clients do
     member do
-      # get :month_of_service
       get :service_range
-      # get :history
       get :vispdat
       get :rollup
       get :assessment
@@ -208,7 +206,6 @@ Rails.application.routes.draw do
       resource :cas_active, only: :update
     end
     resource :history, only: [:show], controller: 'clients/history'
-    resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
@@ -219,7 +216,12 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
-    resources :files, controller: 'clients/files'
+    resources :files, controller: 'clients/files' do 
+      get :preview, on: :member
+      get :thumb, on: :member
+      get :has_thumb, on: :member
+      post :batch_download, on: :collection
+    end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
@@ -239,8 +241,9 @@ Rails.application.routes.draw do
       get :rollup
       get :assessment
       get :image
-      resource :history, only: [:show], controller: 'clients/history'
-      resource :month_of_service, only: [:show], controller: 'clients/month_of_service'
+      resource :history, only: [:show], controller: 'clients/history' do
+        get :pdf, on: :collection
+      end
       resources :vispdats, controller: 'clients/vispdats' do
         member do
           put :add_child
@@ -249,7 +252,12 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
-      resources :files, controller: 'clients/files'
+      resources :files, controller: 'clients/files' do 
+        get :preview, on: :member
+        get :thumb, on: :member
+        get :has_thumb, on: :member
+        post :batch_download, on: :collection
+      end
       resources :notes, only: [:index, :create, :destroy], controller: 'clients/notes'
       resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
       resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
@@ -388,6 +396,7 @@ Rails.application.routes.draw do
     namespace :eto_api do
       resources :assessments, only: [:index, :update]
     end
+    resources :available_file_tags, only: [:index, :new, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
 

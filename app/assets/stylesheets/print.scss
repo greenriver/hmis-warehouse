@@ -30,6 +30,17 @@ footer {
   border: 2px solid rgb(212, 208, 208);
   border-radius: 2px;
 }
+.service-type__bed_night,
+.service-type__service,
+.service-type__entry,
+.service-type__exit,
+.service-type__extrapolated,
+.service-type__first,
+{
+  margin: 0.2em 0;
+  font-size: 0.7em;
+  display: inline-block;
+}
 .service-type__entry 
 {
   border: 2px solid rgb(73, 95, 121);
@@ -37,4 +48,24 @@ footer {
 .service-type__exit
 {
   border: 2px solid rgb(119, 55, 71);
+}
+.service-type__extrapolated
+{
+  border: 2px solid rgb(196, 193, 199);
+}
+.service-type__service
+{
+  border: 2px solid rgb(45, 118, 124);
+}
+.service-type__first 
+{
+  border: 2px solid rgb(86, 114, 170);
+}
+.service-type__program-type {
+  font-weight: bold;
+  font-size: 0.7em;
+  background-color: black;
+  color: white;
+  display: inline-block;
+  padding: 0.2em 0.4em;
 }

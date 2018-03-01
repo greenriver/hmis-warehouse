@@ -29,6 +29,14 @@ namespace :grda_warehouse do
     GrdaWarehouse::Utility.clear!
   end
 
+  desc "Seed file types"
+  task seed_file_types: [:environment] do
+    GrdaWarehouse::AvailableFileTag.default_document_types.each do |doc|
+      GrdaWarehouse::AvailableFileTag.where(doc).first_or_create
+      ActsAsTaggableOn::Tag.where(name: doc[:name]).first_or_create
+    end
+  end
+
   desc "Seed Data Sources"
   task seed_data_sources: [:environment] do
     if Rails.env.production?
@@ -251,5 +259,14 @@ namespace :grda_warehouse do
   task :clean_clients, [:max_allowed] => [:environment, "log:info_to_stdout"] do |task, args|
     max_allowed = args.max_allowed
     GrdaWarehouse::Tasks::ClientCleanup.new(( max_allowed || 50 ).to_i).run!
+  end
+
+  desc "Save Service History Snapshots"
+  task :save_service_history_snapshots, [:environment, "log:info_to_stdout"] do |task, args|
+    app = ActionDispatch::Integration::Session.new(Rails.application)
+    include Rails.application.routes.url_helpers
+    GrdaWarehouse::Hud::Client.needs_history_pdf.each do |client|
+      app.get(pdf_window_client_history_path(client_id: client.id))
+    end
   end
 end

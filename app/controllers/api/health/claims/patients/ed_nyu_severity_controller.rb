@@ -14,7 +14,7 @@ module Api::Health::Claims::Patients
           baseline[row.category] = row.sdh_pct
           baseline_visits += row.baseline_visits
         end
-        [baseline, implementation, implementation_visits, baseline_visits]
+        [baseline, implementation, baseline_visits.round, implementation_visits.round]
       end
     end
 

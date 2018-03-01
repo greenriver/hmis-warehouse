@@ -1,0 +1,7 @@
+= wicked_pdf_stylesheet_link_tag 'print', media: 'print'
+- title = "Service History for #{@client.name} as of #{Date.today}"
+- content_for :title, title
+%h1= title
+= render 'history_key'
+
+= render 'service_calendar'
