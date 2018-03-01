@@ -14,20 +14,18 @@ module WarehouseReports
         redirect_to warehouse_reports_touch_point_exports_path, notice: 'Please select a name, start and end date' and return
       end
 
-      @responses = datasource.select(:client_id, :answers, :created_at)
-        .preload(client: :destination_client)
-        .where(name: @name)
-        .where(arel[:created_at].gteq(@start_date))
-        .where(arel[:created_at].lteq(@end_date))
-        .order(:client_id, :created_at)
-
+      @responses = report_source.select(:client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id).
+        joins(:hmis_assessment, client: :destination_client).
+        where(name: @name).
+        where(collected_at: (@start_date..@end_date)).
+        order(:client_id, :collected_at)
       @data = { sections: {} }
       @sections = {}
       @responses.each do |response|
         answers = response.answers
         client_name = response.client.name
         client_id = response.client.destination_client.id
-        date = response.created_at
+        date = response.collected_at
         answers[:sections].each do |section|
           title = section[:section_title]
           @sections[title] ||= []
@@ -53,12 +51,8 @@ module WarehouseReports
       params.permit( filter: [:name, :start, :end] )[:filter]
     end
 
-    def datasource
-      GrdaWarehouse::HmisForm
-    end
-
-    def arel
-      datasource.arel_table
+    def report_source
+      GrdaWarehouse::HmisForm.non_confidential
     end
 
   end
