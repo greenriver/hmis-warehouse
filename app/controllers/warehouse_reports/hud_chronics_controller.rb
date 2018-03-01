@@ -3,6 +3,7 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
     include WarehouseReportAuthorization
+    
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
 

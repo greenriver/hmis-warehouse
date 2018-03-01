@@ -4,6 +4,7 @@ module Cohorts
     include ArelHelper
     include Chronic
     include CohortAuthorization
+
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]

@@ -24,6 +24,7 @@ class ApplicationController < ActionController::Base
 
   # Don't start in development if you have pending migrations
   prepend_before_action :check_all_db_migrations
+  prepend_before_action :skip_timeout
 
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
@@ -48,6 +49,11 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  # don't extend the user's session if its an ajax request.
+  def skip_timeout
+    request.env['devise.skip_trackable'] = true if request.xhr?
+  end
 
   def set_gettext_locale
     session[:locale] = I18n.locale = FastGettext.set_locale(locale)
