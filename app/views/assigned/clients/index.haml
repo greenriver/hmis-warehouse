@@ -6,3 +6,9 @@
 %h1= content_for :title
 
 = render 'assigned/clients/client_table', clients: @user_clients
+
+- current_user.subordinates.each do |subordinate|
+  %h2
+    Clients for
+    = subordinate.name
+  = render 'assigned/clients/client_table', clients: subordinate.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)

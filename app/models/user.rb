@@ -19,6 +19,7 @@ class User < ActiveRecord::Base
 
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
+  has_many :entities, class_name: GrdaWarehouse::UserViewableEntity.name
 
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
@@ -158,6 +159,23 @@ class User < ActiveRecord::Base
     return admin_translation_keys_path if can_edit_translations?
     return admin_dashboard_imports_path if can_view_imports?
     return admin_health_admin_index_path if can_administer_health?
+  end
+
+  def subordinates
+    return [] unless can_manage_organization_users?
+    source = GrdaWarehouse::UserViewableEntity
+    at = source.arel_table
+
+    data_source_members = at[:entity_id].in(data_sources.pluck(:id))
+      .and(at[:entity_type].eq('GrdaWarehouse::DataSource'))
+    organization_members = at[:entity_id].in(organizations.pluck(:id))
+      .and(at[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
+    project_members = at[:entity_id].in(projects.pluck(:id))
+      .and(at[:entity_type].eq('GrdaWarehouse::Hud::Project'))
+
+    sub_ids = source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
+
+    User.where(id: sub_ids - [id])
   end
 
   private
