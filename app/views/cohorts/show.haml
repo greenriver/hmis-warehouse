@@ -72,10 +72,5 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      $('.cohorts').on('click', '.jToggleFontSize', function(){
-        var size = $(this).data('size');
-        $('.datatable').removeClass('sm lg xl').addClass(size);
-        $(this).siblings().removeClass('btn-primary').addClass('btn-secondary');
-        $(this).removeClass('btn-secondary').addClass('btn-primary');
-      });
+      
     })(jQuery);
