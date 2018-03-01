@@ -1,0 +1,13 @@
+= simple_form_for @filter, as: :filter, url: download_warehouse_reports_touch_point_exports_path(format: :xlsx), html: { method: :get, class: 'jFilter' } do |f|
+  = f.error_notification
+  .row
+    .col-sm-4
+      = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, as: :date_picker, label: false
+    .col-sm-4
+      = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker, label: false
+    .col-sm-4
+      = f.input :name, collection: @filter.names, input_html: { class: 'select2', data: { placeholder: 'Name' } }, label: false
+  .row
+    .col-sm-12
+      %div.pull-right
+        = f.button :submit, value: 'Download'

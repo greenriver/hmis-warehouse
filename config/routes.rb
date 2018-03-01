@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -96,6 +97,11 @@ Rails.application.routes.draw do
     resources :entry_exit_service, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :anomalies, only: [:index]
+    resources :touch_point_exports, only: [:index] do
+      collection do
+        get :download
+      end
+    end 
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
