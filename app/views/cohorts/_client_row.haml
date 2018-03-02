@@ -7,6 +7,8 @@
           %span.icon-pencil
 
     - @cohort.visible_columns.each do |column|
+      - column.cohort = @cohort
+      - column.cohort_names = @cohort_names
       %td
         - if column.input_type == 'read_only'
           - # treat booleans differently

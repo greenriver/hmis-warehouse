@@ -25,6 +25,11 @@ module Cohorts
           else
             @cohort_clients = @cohort.cohort_clients.where(active: true)
           end
+          # @cohort_clients = @cohort_clients.includes(client: :active_cohorts)
+          @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+            map do |id, name, short_name|
+              [id, short_name.presence || name]
+            end.to_h
           @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
           render layout: false
         end

@@ -62,6 +62,7 @@ class CohortsController < ApplicationController
   def cohort_params
     params.require(:grda_warehouse_cohort).permit(
       :name,
+      :short_name,
       :effective_date,
       :visible_state,
       :default_sort_direction,
