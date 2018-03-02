@@ -41,10 +41,10 @@ li.draggable-list__item {
   margin-right: 1em;
 }
 
-.cohorts .datatable th,
-.cohorts .datatable td
+
+.table-right-border td
 {
-  // white-space: nowrap;
+  border-right: 1px solid $gray-025;
 }
 
 .cohorts .dataTables_wrapper {
