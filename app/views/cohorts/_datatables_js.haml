@@ -25,6 +25,13 @@
 
       });
 
+      // Highlight a row
+      $('.cohorts').on('click', '.jCohortClient', function(e) {
+        $(this).siblings().removeClass('info');
+        $(this).toggleClass('info');
+        datatable.draw();
+      });
+
       // Fetch the data in batches
       #{batch_size = 50}
       var batch_size = #{batch_size};
