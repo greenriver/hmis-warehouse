@@ -5,6 +5,8 @@ module CohortColumns
     attribute :visible, Boolean, lazy: false, default: true
     attribute :editable, Boolean, lazy: false, default: true 
     attribute :input_type, String, lazy: true, default: -> (r,_) { r.default_input_type }
+    attribute :cohort
+    attribute :cohort_names
 
     def display_for_user user
       if user.can_manage_cohorts?

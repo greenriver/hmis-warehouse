@@ -83,6 +83,7 @@ module GrdaWarehouse::Hud
 
     has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
     has_many :service_history_enrollments
+    has_many :service_history_services
     has_many :service_history_entries, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
     has_many :service_history_entry_in_last_three_years, -> {
       entry_in_last_three_years
@@ -169,6 +170,9 @@ module GrdaWarehouse::Hud
 
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
+    has_many :active_cohorts, -> do
+      where(active_cohort: true)
+    end, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
 
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true

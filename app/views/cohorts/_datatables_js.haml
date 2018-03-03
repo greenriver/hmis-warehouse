@@ -14,6 +14,24 @@
         },
         order: [[1, '#{@cohort.default_sort_direction}']]
       });
+
+      // font resizing
+      $('.cohorts').on('click', '.jToggleFontSize', function(){
+        var size = $(this).data('size');
+        $('.datatable').removeClass('sm lg xl').addClass(size);
+        $(this).siblings().removeClass('btn-primary').addClass('btn-secondary');
+        $(this).removeClass('btn-secondary').addClass('btn-primary');
+        datatable.draw();
+
+      });
+
+      // Highlight a row
+      $('.cohorts').on('click', '.jCohortClient', function(e) {
+        $(this).siblings().removeClass('info');
+        $(this).toggleClass('info');
+        datatable.draw();
+      });
+
       // Fetch the data in batches
       #{batch_size = 50}
       var batch_size = #{batch_size};
@@ -27,6 +45,7 @@
       function add_rows(data) {
         datatable.rows.add($(data).filter('tr')).draw();
         $('.select2').select2();
+        $('[data-toggle="tooltip"]').tooltip();
       }
 
       function loadPages() {

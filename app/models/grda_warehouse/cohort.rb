@@ -2,6 +2,8 @@ module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     acts_as_paranoid
     validates_presence_of :name
+    validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
+    validates :static_column_count, numericality: { only_integer: true}
     serialize :column_state, Array
 
     has_many :cohort_clients, dependent: :destroy
@@ -113,6 +115,7 @@ module GrdaWarehouse
         ::CohortColumns::LastHomelessVisit.new(),
         ::CohortColumns::NewLeaseReferral.new(),
         ::CohortColumns::VulnerabilityRank.new(),
+        ::CohortColumns::ActiveCohorts.new(),
       ]
     end
 
