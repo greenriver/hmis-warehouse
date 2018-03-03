@@ -116,6 +116,8 @@ module GrdaWarehouse
         ::CohortColumns::NewLeaseReferral.new(),
         ::CohortColumns::VulnerabilityRank.new(),
         ::CohortColumns::ActiveCohorts.new(),
+        ::CohortColumns::DestinationFromHomelessness.new(),
+        ::CohortColumns::OpenEnrollments.new(),
       ]
     end
 

@@ -1,6 +1,6 @@
 - client = cohort_client.client
 - last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
-- inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end
+- inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
 = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
   %tr.jCohortClient{class: inactivity_class, data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
     - if @cohort.user_can_edit_cohort_clients current_user
@@ -28,6 +28,11 @@
             - tooltip = truncate(most_recent.note, length: 50, separator: ' ')
           = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true, toggle: :tooltip, title: tooltip, placement: :right} do
             #{cohort_client.cohort_client_notes.length}
+        - elsif column.input_type == 'enrollment_tag'
+          - column.value(cohort_client).each do |project_type, text|
+            .enrollment__project_type{class: "client__service_type_#{project_type}"}
+              %em.service-type__program-type
+                = text
         - elsif ['radio_buttons', 'boolean'].include? column.input_type
           = checkmark cohort_client.public_send(column.column)
         - else

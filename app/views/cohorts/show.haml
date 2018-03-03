@@ -7,56 +7,12 @@
   %p.alert.alert-warning.text-center
     %i.icon-warning
     This cohort is inactive.  Changes will not be reflected on client dashboards.
-.row
-  .col-sm-12.text-right.padding-top-04
-    - if current_user.can_manage_cohorts?
-      = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
-        %span.icon-pencil 
-        Edit
-      = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
-        %span.icon-cog
-        Edit Visible Columns
-      = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'btn btn-secondary btn-sm' do
-        %span.icon-printer 
-        Changes Report
-    - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
-      - if params[:inactive].present?
-        = link_to cohort_path(@cohort), class: 'btn btn-secondary btn-sm' do
-          Show Only Active Clients
-      - else 
-        = link_to cohort_path(@cohort, inactive: true), class: 'btn btn-secondary btn-sm' do
-          Show Inactive Clients
-      = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
-        %span.icon-users
-        Add Clients
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary btn-sm'}) do
-      %i.icon-download2
-      Download
+= render 'buttons'
 
 .row
   .col-sm-4.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.margin-top-02
     Loading clients... please wait.
 
-.row.margin-top-02
-  .col-sm-6
-    - if @cohort.effective_date
-      %p.margin-top-02
-        %strong
-          *
-        Data pulled from the client record and shown here will be pulled using the effective date
-        %strong
-          = @cohort.effective_date
-        where appropriate.
-  .col-sm-6.text-right
-    Text size:
-    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :sm}}
-      Small
-    %button.btn.btn-sm.btn-primary.jToggleFontSize{data: {size: ''}}
-      Medium
-    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :lg}}
-      Large
-    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :xl}}
-      XL
 
 - if @cohort.clients.blank?
   %p.text-center.margin-top-02
