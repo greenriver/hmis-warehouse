@@ -83,6 +83,7 @@ module GrdaWarehouse::Hud
 
     has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
     has_many :service_history_enrollments
+    has_many :service_history_services
     has_many :service_history_entries, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
     has_many :service_history_entry_in_last_three_years, -> {
       entry_in_last_three_years

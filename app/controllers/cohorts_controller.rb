@@ -65,6 +65,7 @@ class CohortsController < ApplicationController
       :short_name,
       :effective_date,
       :visible_state,
+      :days_of_inactivity,
       :default_sort_direction,
       :only_window,
       :active_cohort,

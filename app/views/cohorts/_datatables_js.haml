@@ -45,6 +45,7 @@
       function add_rows(data) {
         datatable.rows.add($(data).filter('tr')).draw();
         $('.select2').select2();
+        $('[data-toggle="tooltip"]').tooltip();
       }
 
       function loadPages() {

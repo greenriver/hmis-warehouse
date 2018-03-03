@@ -65,3 +65,13 @@ li.draggable-list__item {
 {
   font-size: 1.4em;
 }
+
+.cohorts td[data-input-type=notes]
+{
+  vertical-align: middle;
+}
+
+.cohorts .homeless_inactive
+{
+  background-color: $brand-danger;
+}
