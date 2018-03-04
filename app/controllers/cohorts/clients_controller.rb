@@ -8,6 +8,7 @@ module Cohorts
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
+    before_action :require_can_manage_cohorts!, only: [:re_rank]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
     skip_after_action :log_activity, only: [:index, :show]
@@ -175,6 +176,15 @@ module Cohorts
 
     end
 
+    def re_rank
+      new_order = params.require(:rank_order)&.split(',')&.map(&:to_i)
+      new_order.each_with_index do |cohort_client_id, index|
+        rank = index + 1
+        @cohort.cohort_clients.find(cohort_client_id).update(rank: rank)
+      end
+      redirect_to cohort_path(@cohort)
+    end
+
     def destroy
       log_removal(@client.cohort_id, @client.id, params[:grda_warehouse_cohort_client].try(:[], :reason))
       if @client.destroy
@@ -270,7 +280,7 @@ module Cohorts
     end
 
     def set_client
-      @client = cohort_client_source.find(params[:id].to_i)
+      @client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     def cohort_client_source

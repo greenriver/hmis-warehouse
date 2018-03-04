@@ -130,5 +130,12 @@ module GrdaWarehouse
     # Attr Accessors
     setup_column_accessors(available_columns)
 
+    def self.sort_directions
+      {
+        'desc' => 'Descending', 
+        'asc' => 'Ascending',
+      }
+    end
+
   end
 end

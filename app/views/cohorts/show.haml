@@ -1,6 +1,6 @@
 - title = @cohort.name
 - content_for :title, title
-= render 'datatables_js'
+= render 'cohorts_js'
 = render 'breadcrumbs'
 %h1= content_for :title
 - if @cohort.inactive?
@@ -25,8 +25,3 @@
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'
             
-= content_for :page_js do
-  :javascript
-    (function($) {
-      
-    })(jQuery);

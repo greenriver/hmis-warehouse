@@ -1,15 +1,20 @@
 .row
   .col-sm-12.text-right
     - if current_user.can_manage_cohorts?
-      = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-primary btn-sm' do
-        %span.icon-pencil 
+      = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-secondary btn-sm' do
+        %i.icon-pencil 
         Edit
       = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
-        %span.icon-cog
+        %i.icon-cog
         Edit Visible Columns
       = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'btn btn-secondary btn-sm' do
-        %span.icon-printer 
+        %i.icon-printer 
         Changes Report
+      = form_for :cohort_clients, url: re_rank_cohort_cohort_clients_path(@cohort), method: :patch, html: {class: 'inline-form'} do |f|
+        = f.button class: 'btn btn-secondary btn-sm jReRank disabled', data: { confirm: "Are you sure you want to re-rank all clients in this cohort by #{@cohort.column_state.first.title} #{@cohort.class.sort_directions[@cohort.default_sort_direction]}"} do
+          %i.icon-arrow-down
+          Re-Rank
+        %input#rank_order{type: :hidden, name: :rank_order}
     - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
       - if params[:inactive].present?
         = link_to cohort_path(@cohort), class: 'btn btn-secondary btn-sm' do
@@ -18,7 +23,7 @@
         = link_to cohort_path(@cohort, inactive: true), class: 'btn btn-secondary btn-sm' do
           Show Inactive Clients
       = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
-        %span.icon-users
+        %i.icon-users
         Add Clients
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary btn-sm'}) do
       %i.icon-download2
