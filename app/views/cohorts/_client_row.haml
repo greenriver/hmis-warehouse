@@ -9,8 +9,8 @@
         - if current_user.can_manage_cohorts? || ! cohort_client.ineligible?
           = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
             %span.icon-pencil
-        - if inactivity_class.present?
-          = "No homeless service in over #{@cohort.days_of_inactivity} days"
+      - if inactivity_class == 'homeless_inactive'
+        = "No homeless service in over #{@cohort.days_of_inactivity} days"
 
     - @cohort.visible_columns.each do |column|
       - column.cohort = @cohort
