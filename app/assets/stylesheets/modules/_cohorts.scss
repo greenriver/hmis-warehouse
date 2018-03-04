@@ -75,3 +75,13 @@ li.draggable-list__item {
 {
   background-color: $brand-danger;
 }
+
+.cohorts tr.cohort_client_ineligible
+{
+  background-color: $gray-060;
+  color: white;
+}
+.cohorts tr.cohort_client_ineligible a
+{
+  color: white;
+}

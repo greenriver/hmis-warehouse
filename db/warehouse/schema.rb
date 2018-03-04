@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180303012057) do
+ActiveRecord::Schema.define(version: 20180304020707) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -988,6 +988,7 @@ ActiveRecord::Schema.define(version: 20180303012057) do
     t.date     "document_ready_on"
     t.string   "new_lease_referral"
     t.string   "vulnerability_rank"
+    t.boolean  "ineligible",                             default: false, null: false
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree

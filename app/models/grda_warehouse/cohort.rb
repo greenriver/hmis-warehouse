@@ -118,6 +118,7 @@ module GrdaWarehouse
         ::CohortColumns::ActiveCohorts.new(),
         ::CohortColumns::DestinationFromHomelessness.new(),
         ::CohortColumns::OpenEnrollments.new(),
+        ::CohortColumns::Ineligible.new(),
       ]
     end
 

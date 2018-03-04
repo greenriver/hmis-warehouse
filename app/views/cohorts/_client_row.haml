@@ -1,12 +1,14 @@
 - client = cohort_client.client
 - last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
 - inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
+- ineligible_class = if cohort_client.ineligible? then 'cohort_client_ineligible' else '' end rescue ''
 = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
-  %tr.jCohortClient{class: inactivity_class, data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
-    - if @cohort.user_can_edit_cohort_clients current_user
-      %td
-        = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
-          %span.icon-pencil
+  %tr.jCohortClient{class: [inactivity_class, ineligible_class], data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
+    %td
+      - if @cohort.user_can_edit_cohort_clients current_user
+        - if current_user.can_manage_cohorts? || ! cohort_client.ineligible?
+          = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
+            %span.icon-pencil
         - if inactivity_class.present?
           = "No homeless service in over #{@cohort.days_of_inactivity} days"
 

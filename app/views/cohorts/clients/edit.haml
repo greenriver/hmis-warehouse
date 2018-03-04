@@ -5,13 +5,13 @@
   - @cohort.visible_columns.in_groups_of(1).each do |group|
     .row
       - group.each_with_index do |column, index|
-        - if column.nil?
-          - next
+        - next if column.nil?
         .col-sm-6
           .form-group
+            - column.cohort = @cohort
+            - column.cohort_names = @cohort_names
             - if column.display_for_user(current_user).to_s == 'read_only'
-              %label
-                = column.title
+              %label= column.title
               %br
               - # treat booleans differently
               - if !!column.value(@cohort_client) == column&.value(@cohort_client)
@@ -23,19 +23,24 @@
               - options[:collection] = column.available_options
               = f.input column.column.to_sym, options
             - elsif column.input_type == 'radio_buttons'
-              %label
-                = column.title
+              %label= column.title
               .cohort-client__input
                 = f.collection_radio_buttons(column.column, [[true, 'yes'], [false, 'no']], :first, :last, {item_wrapper_tag: :div})
             - elsif column.input_type == 'notes'
-              %label.control-lable.string 
-                = column.title
+              %label.control-label.string= column.title
               .cohort-client__new-note
                 = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
                   %span.icon-plus
                   Add A note
               - @cohort_client.cohort_client_notes.each do |cohort_client_note|
                 = render partial: 'grda_warehouse/cohort_client_notes/cohort_client_note', locals: {cohort_client_note: cohort_client_note}
+            - elsif column.input_type == 'enrollment_tag'
+              - column.value(@cohort_client).each do |project_type, text|
+                %label.control-label= column.title
+                .project_types
+                  .enrollment__project_type{class: "client__service_type_#{project_type}"}
+                    %em.service-type__program-type
+                      = text
             - else
               - options = {as: column.input_type, label: column.title}
               - options[:collection] = column.available_options if column.respond_to? :available_options

@@ -11,6 +11,7 @@ module Cohorts
     before_action :require_can_manage_cohorts!, only: [:re_rank]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
+    before_action :load_cohort_names, only: [:index, :edit]
     skip_after_action :log_activity, only: [:index, :show]
 
     # Return a json object of {cohort_client.id : updated_at}
@@ -26,11 +27,7 @@ module Cohorts
           else
             @cohort_clients = @cohort.cohort_clients.where(active: true)
           end
-          # @cohort_clients = @cohort_clients.includes(client: :active_cohorts)
-          @cohort_names = cohort_source.pluck(:id, :name, :short_name).
-            map do |id, name, short_name|
-              [id, short_name.presence || name]
-            end.to_h
+                    
           @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
           render layout: false
         end
@@ -107,6 +104,13 @@ module Cohorts
       @clients = @clients.pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
+    end
+
+    def load_cohort_names
+      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      map do |id, name, short_name|
+        [id, short_name.presence || name]
+      end.to_h
     end
 
     def client_columns
