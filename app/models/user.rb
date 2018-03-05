@@ -175,7 +175,12 @@ class User < ActiveRecord::Base
 
     sub_ids = source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
 
-    User.where(id: sub_ids - [id])
+    manager_ids = User.includes(:roles)
+      .references(:roles)
+      .where( roles: { can_manage_organization_users: true } )
+      .pluck(:id)
+
+    User.where(id: sub_ids - manager_ids)
   end
 
   private
