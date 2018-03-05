@@ -3,6 +3,11 @@
     (function($) {
       var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
 
+      var initialize = function() {
+        $('.select2').select2();
+        $('[data-toggle="tooltip"]').tooltip();
+      };
+
       var datatable = $('.datatable').DataTable({
         scrollY: '70vh',
         scrollX: true,
@@ -22,8 +27,49 @@
         $(this).siblings().removeClass('btn-primary').addClass('btn-secondary');
         $(this).removeClass('btn-secondary').addClass('btn-primary');
         datatable.draw();
-
       });
+
+      // Editable field
+      // $('.cohorts').on('click', 'td[data-editable=true]', function(e){
+      //   var $cell = $(this);
+      //   // Prevent re-editing until saved
+      //   $cell.removeAttr('data-editable');
+      //   var cohort_client_id = $(this).closest('tr').data('cohort-client-id');
+      //   var field = $(this).data('column');
+      //   var url = '#{field_cohort_cohort_client_path(cohort_id: @cohort.id, id: "-cohort_client_id-", field: "-field-")}';
+      //   url = url.replace('-cohort_client_id-', cohort_client_id);
+      //   url = url.replace('-field-', field);
+      //   $.get(url, function(data) {
+      //     $cell.html(data);
+      //     initialize();
+      //   }, 'html');
+      // });
+
+      // $('.cohorts').on('change', '.jSubmitOnChange', function(e){
+      //   $(this).closest('form').submit(function(e){
+      //     e.preventDefault();
+      //     var cohort_client_id = $(this).data('cohort-client-id');
+      //     var url = $(this).attr("action");
+      //     var method = $(this).attr("method");
+      //     var data = $(this).serialize();
+      //     console.log(url);
+      //     $.ajax({
+      //       url : url,
+      //       type: method,
+      //       data: data,
+      //       dataType: 'html' 
+      //     }).done(function(response){
+      //       var $cohort_client_row = $(response);
+      //       console.log($cohort_client_row);
+      //       var cohort_client_id = $cohort_client_row.data('cohort-client-id');
+      //       console.log('data[cohort-client-id=' + cohort_client_id +']');
+      //       console.log(datatable.rows().nodes().to$());
+      //       // $("#server-results").html(response);
+      //       // console.log(response);
+      //     });
+      //   });
+      //   $(this).closest('form').trigger('submit');
+      // });
 
       // Highlight a row
       $('.cohorts').on('click', '.jCohortClient', function(e) {
@@ -42,14 +88,13 @@
         $('.jLoading').addClass('hidden');
       });
 
-      function add_rows(data) {
+      var add_rows = function(data) {
         datatable.rows.add($(data).filter('tr')).draw();
-        $('.select2').select2();
-        $('[data-toggle="tooltip"]').tooltip();
-      }
+        
+      };
 
       // load pages sequentially
-      function loadPages() {
+      var loadPages = function() {
         current_page += 1
         var url =  '#{cohort_cohort_clients_path(@cohort)}?page=' + current_page + '&per=#{batch_size}#{"&inactive=true" if params[:inactive].present?}'
         if(current_page > pages) {
@@ -58,24 +103,24 @@
         return $.get({url: url, dataType: 'html'})
           .done(add_rows)
           .then(loadPages)
-      }
+      };
 
       // When loadPages complete
       loadPages().then(function() {
         $('.jLoading').addClass('hidden');
+        initialize();
         setRankOrder();
       });
 
       
 
       // Re-rank cohort clients
-      function setRankOrder() {
+      var setRankOrder = function() {
         var ids = $(datatable.rows().nodes()).filter('.jCohortClient').map(function(){
           return $(this).data('cohort-client-id');
         });
         $('#rank_order').val(ids.get().join(','));
         $('.jReRank').removeClass('disabled');
-      }
-    
+      };    
       
     })(jQuery);

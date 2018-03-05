@@ -2,6 +2,7 @@ module CohortColumns
   class Age < Base
     attribute :column, String, lazy: true, default: :age
     attribute :title, String, lazy: true, default: 'Age*'
+    attribute :editable, Boolean, lazy: false, default: false
 
     def default_input_type
       :read_only

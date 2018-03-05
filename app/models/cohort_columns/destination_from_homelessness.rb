@@ -3,6 +3,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :destination_from_homelessness
     attribute :title, String, lazy: true, default: 'Recent Exits from Homelessness'
+    attribute :editable, Boolean, lazy: false, default: false
 
     def default_input_type
       :read_only

@@ -2,6 +2,7 @@ module CohortColumns
   class CalculatedDaysHomeless < Base
     attribute :column, String, lazy: true, default: :calculated_days_homeless
     attribute :title, String, lazy: true, default: 'Calculated Days Homeless*'
+    attribute :editable, Boolean, lazy: false, default: false 
 
     def default_input_type
       :read_only

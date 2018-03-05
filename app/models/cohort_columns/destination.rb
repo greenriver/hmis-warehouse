@@ -5,7 +5,7 @@ module CohortColumns
     attribute :hint, String, lazy: true, default: 'Do not complete until housed.'
 
     def default_input_type
-      :select
+      :select2
     end
 
     def available_options

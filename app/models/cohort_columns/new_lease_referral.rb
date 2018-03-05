@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'New Lease Referral'
 
     def default_input_type
-      :select
+      :select2
     end
 
     def available_options

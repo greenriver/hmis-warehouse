@@ -25,3 +25,4 @@
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'
             
+= render 'cohort_client_form'

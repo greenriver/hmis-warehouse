@@ -10,8 +10,8 @@ module Cohorts
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
     before_action :require_can_manage_cohorts!, only: [:re_rank]
     before_action :set_cohort
-    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
-    before_action :load_cohort_names, only: [:index, :edit]
+    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
+    before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
 
     # Return a json object of {cohort_client.id : updated_at}
@@ -187,6 +187,19 @@ module Cohorts
         @cohort.cohort_clients.find(cohort_client_id).update(rank: rank)
       end
       redirect_to cohort_path(@cohort)
+    end
+
+    def field
+      column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select{|m| m == params.require(:field)}&.first
+      if column.present?
+        @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
+        @column = column.constantize.new()
+        @column.cohort = @cohort
+        @column.cohort_names = @cohort_names
+        render layout: false
+      else
+        head :ok
+      end
     end
 
     def destroy

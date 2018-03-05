@@ -2,6 +2,7 @@ module CohortColumns
   class FirstName < Base
     attribute :column, String, lazy: true, default: :first_name
     attribute :title, String, lazy: true, default: 'First Name'
+    attribute :editable, Boolean, lazy: false, default: false
 
     def default_input_type
       :read_only

@@ -297,6 +297,7 @@ Rails.application.routes.draw do
     resource :columns, only: [:edit, :update], controller: 'cohorts/columns'
     resources :cohort_clients, controller: 'cohorts/clients' do
       get :pre_destroy, on: :member
+      get :field, on: :member
       patch :re_rank, on: :collection
       resources :cohort_client_notes, controller: 'cohorts/notes'
     end

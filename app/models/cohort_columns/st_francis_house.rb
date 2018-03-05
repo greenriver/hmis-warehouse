@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'St. Francis House '
 
     def default_input_type
-      :select
+      :select2
     end
 
     def available_options

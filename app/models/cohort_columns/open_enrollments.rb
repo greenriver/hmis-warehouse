@@ -3,6 +3,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :open_enrollments
     attribute :title, String, lazy: true, default: 'Open Residential Enrollments'
+    attribute :editable, Boolean, lazy: false, default: false
 
     def default_input_type
       :enrollment_tag
