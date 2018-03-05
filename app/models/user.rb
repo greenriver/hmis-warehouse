@@ -166,11 +166,17 @@ class User < ActiveRecord::Base
     source = GrdaWarehouse::UserViewableEntity
     at = source.arel_table
 
-    data_source_members = at[:entity_id].in(data_sources.pluck(:id))
+    data_source_ids = data_sources.pluck(:id)
+
+    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_ids )
+
+    project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.where(OrganizationID: organization_ids).pluck(:id) + GrdaWarehouse::Hud::Project.where(data_source_id: data_source_ids).pluck(:id)
+
+    data_source_members = at[:entity_id].in(data_source_ids)
       .and(at[:entity_type].eq('GrdaWarehouse::DataSource'))
-    organization_members = at[:entity_id].in(organizations.pluck(:id))
+    organization_members = at[:entity_id].in(organization_ids)
       .and(at[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
-    project_members = at[:entity_id].in(projects.pluck(:id))
+    project_members = at[:entity_id].in(project_ids)
       .and(at[:entity_type].eq('GrdaWarehouse::Hud::Project'))
 
     sub_ids = source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
