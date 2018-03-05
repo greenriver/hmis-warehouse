@@ -15,28 +15,7 @@
     - @cohort.visible_columns.each do |column|
       - column.cohort = @cohort
       - column.cohort_names = @cohort_names
+      - column.cohort_client = cohort_client
 
       %td{data: {column: column.class.name, editable: column.editable?.to_s}}
-        - if column.input_type == 'read_only'
-          - # treat booleans differently
-          - if !!column.value(cohort_client) == column.value(cohort_client)
-            = checkmark column.value(cohort_client)
-          - elsif column.column.in?(['first_name', 'last_name'])
-            = link_to_if current_user.can_view_clients?, column.value(cohort_client), client_path(cohort_client.client)
-          - else 
-            = column.value(cohort_client)
-        - elsif column.input_type == 'notes'
-          - most_recent = cohort_client.cohort_client_notes.ordered.first
-          - if most_recent
-            - tooltip = truncate(most_recent.note, length: 50, separator: ' ')
-          = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true, toggle: :tooltip, title: tooltip, placement: :right} do
-            #{cohort_client.cohort_client_notes.length}
-        - elsif column.input_type == 'enrollment_tag'
-          - column.value(cohort_client).each do |project_type, text|
-            .enrollment__project_type{class: "client__service_type_#{project_type}"}
-              %em.service-type__program-type
-                = text
-        - elsif ['radio_buttons', 'boolean'].include? column.input_type
-          = checkmark cohort_client.public_send(column.column)
-        - else
-          = cohort_client.public_send(column.column)
+        = column.display_read_only

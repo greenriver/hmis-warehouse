@@ -1,49 +1,24 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
+      // var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
+      var cohort_options = {
+        wrapper_selector: '.cohorts',
+        table_selector: '.datatable',
+        batch_size: 50,
+        static_column_count: #{@cohort.static_column_count + 1},
+        client_count: #{@cohort_clients.count},
+        sort_direction: '#{@cohort.default_sort_direction}',
+        size_toggle_class: '.jToggleFontSize',
+        include_inactive: #{params[:inactive].present?},
+        client_path: "#{cohort_cohort_clients_path(@cohort)}",
+        client_row_class: '.jCohortClient',
+        loading_selector: '.jLoading',
+        cohort_client_form_selector: '.edit_cohort_client'
+      }
+      var cohort = new App.Cohorts.Cohort(cohort_options)
 
-      var initialize = function() {
-        $('.select2').select2();
-        $('[data-toggle="tooltip"]').tooltip();
-      };
-
-      var datatable = $('.datatable').DataTable({
-        scrollY: '70vh',
-        scrollX: true,
-        scrollCollapse: false,
-        fixedHeader: true,
-        paging: false,
-        fixedColumns: {
-         leftColumns: #{@cohort.static_column_count + 1}
-        },
-        order: [[1, '#{@cohort.default_sort_direction}']]
-      });
-
-      // font resizing
-      $('.cohorts').on('click', '.jToggleFontSize', function(){
-        var size = $(this).data('size');
-        $('.datatable').removeClass('sm lg xl').addClass(size);
-        $(this).siblings().removeClass('btn-primary').addClass('btn-secondary');
-        $(this).removeClass('btn-secondary').addClass('btn-primary');
-        datatable.draw();
-      });
-
-      // Editable field
-      // $('.cohorts').on('click', 'td[data-editable=true]', function(e){
-      //   var $cell = $(this);
-      //   // Prevent re-editing until saved
-      //   $cell.removeAttr('data-editable');
-      //   var cohort_client_id = $(this).closest('tr').data('cohort-client-id');
-      //   var field = $(this).data('column');
-      //   var url = '#{field_cohort_cohort_client_path(cohort_id: @cohort.id, id: "-cohort_client_id-", field: "-field-")}';
-      //   url = url.replace('-cohort_client_id-', cohort_client_id);
-      //   url = url.replace('-field-', field);
-      //   $.get(url, function(data) {
-      //     $cell.html(data);
-      //     initialize();
-      //   }, 'html');
-      // });
+         
 
       // $('.cohorts').on('change', '.jSubmitOnChange', function(e){
       //   $(this).closest('form').submit(function(e){
@@ -70,57 +45,5 @@
       //   });
       //   $(this).closest('form').trigger('submit');
       // });
-
-      // Highlight a row
-      $('.cohorts').on('click', '.jCohortClient', function(e) {
-        $(this).siblings().removeClass('info');
-        $(this).toggleClass('info');
-        datatable.draw();
-      });
-
-      // Fetch the data in batches
-      #{batch_size = 50}
-      var batch_size = #{batch_size};
-      var pages = #{(@cohort_clients.count.to_f/batch_size).round + 1};
-      var current_page = 0;
-      $('.jLoading').removeClass('hidden');
-      $(document).ajaxStop(function() {
-        $('.jLoading').addClass('hidden');
-      });
-
-      var add_rows = function(data) {
-        datatable.rows.add($(data).filter('tr')).draw();
-        
-      };
-
-      // load pages sequentially
-      var loadPages = function() {
-        current_page += 1
-        var url =  '#{cohort_cohort_clients_path(@cohort)}?page=' + current_page + '&per=#{batch_size}#{"&inactive=true" if params[:inactive].present?}'
-        if(current_page > pages) {
-          return $.Deferred().resolve().promise();
-        }
-        return $.get({url: url, dataType: 'html'})
-          .done(add_rows)
-          .then(loadPages)
-      };
-
-      // When loadPages complete
-      loadPages().then(function() {
-        $('.jLoading').addClass('hidden');
-        initialize();
-        setRankOrder();
-      });
-
-      
-
-      // Re-rank cohort clients
-      var setRankOrder = function() {
-        var ids = $(datatable.rows().nodes()).filter('.jCohortClient').map(function(){
-          return $(this).data('cohort-client-id');
-        });
-        $('#rank_order').val(ids.get().join(','));
-        $('.jReRank').removeClass('disabled');
-      };    
       
     })(jQuery);

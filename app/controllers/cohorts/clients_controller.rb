@@ -228,7 +228,7 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:grda_warehouse_cohort_client).permit(*cohort_source.available_columns.map(&:column))
+      params.require(:cohort_client).permit(*cohort_source.available_columns.map(&:column))
     end
 
     def log_create(cohort_id, cohort_client_id)

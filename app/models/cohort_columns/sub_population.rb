@@ -1,11 +1,8 @@
 module CohortColumns
-  class SubPopulation < Base
+  class SubPopulation < Select
     attribute :column, String, lazy: true, default: :sub_population
     attribute :title, String, lazy: true, default: 'Subpopulation'
 
-    def default_input_type
-      :select2
-    end
 
     def available_options
       [

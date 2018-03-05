@@ -1,5 +1,5 @@
 module CohortColumns
-  class Location < Base
+  class Location < Select
     attribute :column, String, lazy: true, default: :location
     attribute :title, String, lazy: true, default: 'Location'
 
@@ -9,8 +9,5 @@ module CohortColumns
       end
     end
 
-    def default_input_type
-      :select2
-    end
   end
 end

@@ -1,11 +1,8 @@
 module CohortColumns
-  class Ineligible < Base
+  class Ineligible < CohortBoolean
     attribute :column, Boolean, lazy: true, default: :ineligible
     attribute :title, String, lazy: true, default: 'Ineligible'
 
-    def default_input_type
-      :boolean
-    end
 
     def has_default_value?
       true

@@ -16,7 +16,7 @@ class CohortsController < ApplicationController
     load_cohort_names
     cohort_with_preloads = cohort_scope.where(id: cohort_id).
       preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
-    missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
+    # missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
     @cohort = cohort_with_preloads.first
     
     if params[:inactive].present?

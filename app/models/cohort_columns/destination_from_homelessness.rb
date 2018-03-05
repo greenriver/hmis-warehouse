@@ -1,13 +1,8 @@
 module CohortColumns
-  class DestinationFromHomelessness < Base
+  class DestinationFromHomelessness < ReadOnly
     include ArelHelper
     attribute :column, String, lazy: true, default: :destination_from_homelessness
     attribute :title, String, lazy: true, default: 'Recent Exits from Homelessness'
-    attribute :editable, Boolean, lazy: false, default: false
-
-    def default_input_type
-      :read_only
-    end
 
     def value(cohort_client)
       effective_date = cohort.effective_date || Date.today

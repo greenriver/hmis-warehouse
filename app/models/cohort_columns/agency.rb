@@ -1,5 +1,5 @@
 module CohortColumns
-  class Agency < Base
+  class Agency < Select
     attribute :column, String, lazy: true, default: :agency
     attribute :title, String, lazy: true, default: 'Agency'
 
@@ -7,10 +7,6 @@ module CohortColumns
       Rails.cache.fetch("all_project_names", expires_at: 5.minutes) do
         GrdaWarehouse::Hud::Project.distinct.order(ProjectName: :asc).pluck(:ProjectName)
       end
-    end
-
-    def default_input_type
-      :select2
     end
 
   end

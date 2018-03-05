@@ -1,12 +1,7 @@
 module CohortColumns
-  class CalculatedDaysHomeless < Base
+  class CalculatedDaysHomeless < ReadOnly
     attribute :column, String, lazy: true, default: :calculated_days_homeless
     attribute :title, String, lazy: true, default: 'Calculated Days Homeless*'
-    attribute :editable, Boolean, lazy: false, default: false 
-
-    def default_input_type
-      :read_only
-    end
 
     def value(cohort_client)
       Rails.cache.fetch([cohort_client.client.id, 'calculated_days_homeless'], expires_at: 8.hours) do

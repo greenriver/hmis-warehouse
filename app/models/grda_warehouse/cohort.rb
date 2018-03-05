@@ -56,6 +56,7 @@ module GrdaWarehouse
     end
 
     def visible_columns
+      return self.class.available_columns unless column_state.present?
       column_state&.select(&:visible)&.presence || self.class.available_columns
     end
 
@@ -122,8 +123,8 @@ module GrdaWarehouse
       ]
     end
 
-    def self.setup_column_accessors(columns)
-      columns.each do |column|
+    def self.setup_column_accessors(cohort_columns)
+      cohort_columns.each do |column|
         attr_accessor column.column
       end
     end

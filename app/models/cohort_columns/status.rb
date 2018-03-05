@@ -1,5 +1,5 @@
 module CohortColumns
-  class Status < Base
+  class Status < Select
     attribute :column, String, lazy: true, default: :status
     attribute :title, String, lazy: true, default: 'Status'
 
@@ -12,8 +12,5 @@ module CohortColumns
       ]
     end
 
-    def default_input_type
-      :select2
-    end
   end
 end

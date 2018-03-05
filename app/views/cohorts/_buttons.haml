@@ -11,7 +11,12 @@
         %i.icon-printer 
         Changes Report
       = form_for :cohort_clients, url: re_rank_cohort_cohort_clients_path(@cohort), method: :patch, html: {class: 'inline-form'} do |f|
-        = f.button class: 'btn btn-secondary btn-sm jReRank disabled', data: { confirm: "Are you sure you want to re-rank all clients in this cohort by #{@cohort.column_state&.first&.title} #{@cohort.class.sort_directions[@cohort.default_sort_direction]}"} do
+        - confirmation = 'Are you sure you want to re-rank all clients in this cohort'
+        - if @cohort.column_state&.first.present?
+          - confirmation += "by #{@cohort.column_state&.first&.title} #{@cohort.class.sort_directions[@cohort.default_sort_direction]}"
+        - confirmation += "?"
+
+        = f.button class: 'btn btn-secondary btn-sm jReRank disabled', data: { confirm: confirmation} do
           %i.icon-arrow-down
           Re-Rank
         %input#rank_order{type: :hidden, name: :rank_order}

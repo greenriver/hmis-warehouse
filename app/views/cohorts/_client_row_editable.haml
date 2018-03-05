@@ -4,52 +4,14 @@
 - ineligible_class = if cohort_client.ineligible? then 'cohort_client_ineligible' else '' end rescue ''
 = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
   %tr.jCohortClient{class: [inactivity_class, ineligible_class], data: {cohort_client_id: cohort_client.id, client_id: cohort_client.client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
-    - if @cohort.user_can_edit_cohort_clients current_user
-      %td
-        = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
-          %span.icon-pencil
+    %td
+      - if inactivity_class == 'homeless_inactive'
+        = "No homeless service in over #{@cohort.days_of_inactivity} days"
 
-    - @cohort.visible_columns.each do |column|
-      - column.cohort = @cohort
-      - column.cohort_names = @cohort_names
-      - form_group = "cohort_client[#{cohort_client.id}]"
-      %td{data: {column: column.class.name, editable: column.editable?.to_s}}
-        - if column.display_for_user(current_user).to_s == 'read_only'
-          - # treat booleans differently
-          - if !!column.value(cohort_client) == column.value(cohort_client)
-            = checkmark column.value(cohort_client)
-          - elsif column.column.in?(['first_name', 'last_name'])
-            = link_to_if current_user.can_view_clients?, column.value(cohort_client), client_path(cohort_client.client)
-          - else 
-            = column.value(cohort_client)
-        - elsif column.input_type == 'select2'
-          = select(form_group, column.column, column.available_options, {}, {class: 'select2'})
-
-        - elsif column.input_type == 'radio_buttons'
-          .cohort-client__input.radio_buttons.form-group
-            %div
-              = label_tag("#{form_group}_#{column.column}_true", class: :radio) do
-                - selected = !!cohort_client.public_send(column.column)
-                = radio_button(form_group, column.column, true, checked: selected)
-                yes
-            %div
-              = label_tag("#{form_group}_#{column.column}_false", class: :radio) do
-                - selected = !cohort_client.public_send(column.column)
-                = radio_button(form_group, column.column, false, checked: selected)
-                no
-        - elsif column.input_type == 'boolean'
-          - selected = !!cohort_client.public_send(column.column)
-          = check_box(form_group, column.column, checked: selected)
-        - elsif column.input_type == 'integer'
-          = text_field(form_group, column.column, value: cohort_client.public_send(column.column), size: 4, type: :number, style: 'max-width: 6em;')
-        - elsif column.input_type == 'notes'
-          = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
-            #{cohort_client.cohort_client_notes.length}
-        - elsif column.input_type == 'string'
-          = text_field(form_group, column.column, value: cohort_client.public_send(column.column), type: :text)
-        - elsif column.input_type == 'date_picker'
-          .input-group.date.datepicker{data: {provide: :datepicker}}
-            = text_field(form_group, column.column, value: cohort_client.public_send(column.column), size: 10, style: 'width: 8em;', type: :text, class: 'date_picker datepicker form-control')
-            %span.input-group-addon.icon-calendar
-        - elsif column.input_type == 'text'
-          = text_area(form_group, column.column, size: '20x3', value: cohort_client.public_send(column.column))
+    - @cohort.visible_columns.each do |cohort_column|
+      - cohort_column.cohort = @cohort
+      - cohort_column.cohort_names = @cohort_names
+      - cohort_column.cohort_client = cohort_client
+      - editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.editable?
+      %td{data: {column: cohort_column.class.name, editable: editable.to_s}}
+        = cohort_column.display_for(current_user)

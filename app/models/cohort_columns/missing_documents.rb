@@ -1,11 +1,9 @@
 module CohortColumns
-  class MissingDocuments < Base
+  class MissingDocuments < ReadOnly
     attribute :column, String, lazy: true, default: :missing_documents
     attribute :title, String, lazy: true, default: 'Missing Documents'
 
-    def default_input_type
-      :read_only
-    end
+
 
     def value(cohort_client)
       required_documents = GrdaWarehouse::AvailableFileTag.document_ready
