@@ -168,7 +168,7 @@ class User < ActiveRecord::Base
 
     data_source_ids = data_sources.pluck(:id)
 
-    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_ids )
+    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_ids ).pluck(:id)
 
     project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.where(OrganizationID: organization_ids).pluck(:id) + GrdaWarehouse::Hud::Project.where(data_source_id: data_source_ids).pluck(:id)
 
