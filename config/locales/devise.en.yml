@@ -44,7 +44,7 @@ en:
       updated: "Your account has been updated successfully."
     sessions:
       signed_in: "You have successfully signed in."
-      signed_out: "You have successfully signed out."
+      signed_out: ""
       already_signed_out: "Signed out successfully."
     unlocks:
       send_instructions: "You will receive an email with account unlocking instructions within a few minutes."

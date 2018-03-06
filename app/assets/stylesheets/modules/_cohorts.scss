@@ -71,7 +71,32 @@ li.draggable-list__item {
   vertical-align: middle;
 }
 
-.cohorts .homeless_inactive
+.cohorts tr.homeless_inactive,
+.table-striped > tbody > tr.homeless_inactive:nth-of-type(odd)
 {
   background-color: $brand-danger;
+}
+
+.cohorts tr.cohort_client_ineligible,
+.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd)
+{
+  background-color: $gray-060;
+  color: white;
+}
+.cohorts tr.cohort_client_ineligible textarea,
+.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd) textarea
+{
+  color: black;
+}
+.cohorts tr.cohort_client_ineligible a
+{
+  color: white;
+}
+.cohorts .DTFC_LeftBodyWrapper
+{
+  z-index: 4;
+}
+.jSelectRow
+{
+  padding: 0.5em;
 }

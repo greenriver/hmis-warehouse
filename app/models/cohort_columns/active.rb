@@ -1,11 +1,7 @@
 module CohortColumns
-  class Active < Base
+  class Active < CohortBoolean
     attribute :column, Boolean, lazy: true, default: :active
     attribute :title, String, lazy: true, default: 'Active'
-
-    def default_input_type
-      :boolean
-    end
 
     def has_default_value?
       true

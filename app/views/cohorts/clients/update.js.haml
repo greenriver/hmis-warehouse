@@ -1,10 +1,20 @@
 var alert_class = "#{@response.alert}";
 var alert_text = "#{@response.message}";
-var cohort_client_id = "#{@client.id}";
-var cohort_client_updated_at = "#{@client.updated_at.to_i}";
-$("[data-cohort-client-id='" + cohort_client_id + "']").data('cohort-client-updated-at', cohort_client_updated_at);
+-# var cohort_client_id = "#{@client.id}";
+-# var cohort_client_updated_at = "#{@client.updated_at.to_i}";
+-# $("[data-cohort-client-id='" + cohort_client_id + "']").data('cohort-client-updated-at', cohort_client_updated_at);
 
 var alert = '<div class="alert alert-' + alert_class + '">' + alert_text + '</div>';
 $('.utility .alert').remove();
 $('.utility').append(alert);
 $('.utility .alert').delay(2000).fadeOut(250);
+
+-# var html = "#{j render partial: 'cohorts/client_row', locals: {cohort_client: @client}}";
+
+-# $('.jCohortClient[data-cohort-client-id=#{@client.id}]').replaceWith(html);
+-# console.log('hi');
+-# $('.datatable').DataTable().draw();
+-# console.log('2');
+-# console.log($('.datatable').DataTable());
+-# console.log('3');
+-# console.log($('.jCohortClient[data-cohort-client-id=#{@client.id}]'));

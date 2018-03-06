@@ -8,8 +8,10 @@ module Cohorts
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
+    before_action :require_can_manage_cohorts!, only: [:re_rank]
     before_action :set_cohort
-    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy]
+    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
+    before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
 
     # Return a json object of {cohort_client.id : updated_at}
@@ -25,11 +27,7 @@ module Cohorts
           else
             @cohort_clients = @cohort.cohort_clients.where(active: true)
           end
-          # @cohort_clients = @cohort_clients.includes(client: :active_cohorts)
-          @cohort_names = cohort_source.pluck(:id, :name, :short_name).
-            map do |id, name, short_name|
-              [id, short_name.presence || name]
-            end.to_h
+                    
           @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
           render layout: false
         end
@@ -108,6 +106,13 @@ module Cohorts
       end
     end
 
+    def load_cohort_names
+      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      map do |id, name, short_name|
+        [id, short_name.presence || name]
+      end.to_h
+    end
+
     def client_columns
       @client_columns ||= [:id, :FirstName, :LastName, :DOB, :SSN, :Gender, :VeteranStatus]
     end
@@ -126,10 +131,10 @@ module Cohorts
 
     def update
       update_params = cohort_update_params
-      update_params['chronic'] = _debool(update_params['chronic'])
-      update_params['vash_eligible'] = _debool(update_params['vash_eligible'])
-      update_params['sif_eligible'] = _debool(update_params['sif_eligible'])
-      update_params['veteran'] = _debool(update_params['veteran'])
+      # Process the yes/no 1/0 submissions
+      [:chronic, :vash_eligible, :sif_eligible, :veteran].each do |key|
+        update_params[key] = _debool(update_params[key]) if update_params[key].present?
+      end
       @client.assign_attributes(update_params)
       if @client.active_changed?
         if @client.active
@@ -138,6 +143,7 @@ module Cohorts
           log_deactivate(@cohort.id, @client.id)
         end
       end
+
       if @client.save
         respond_to do |format|
           format.html do
@@ -145,10 +151,22 @@ module Cohorts
             respond_with(@cohort, location: cohort_path(@cohort))
           end
           format.js do
-            @response = OpenStruct.new({alert: :success, message: 'Saved'})
+            @response = {
+              alert: :success, 
+              message: 'Saved', 
+              updated_at: @client.updated_at.to_i, 
+              cohort_client_id: @client.id,
+            }
+            render json: @response and return
           end
           format.json do
-            @response = OpenStruct.new({alert: :success, message: 'Saved'})
+            @response = {
+              alert: :success, 
+              message: 'Saved', 
+              updated_at: @client.updated_at.to_i, 
+              cohort_client_id: @client.id,
+            }
+            render json: @response and return
           end
         end        
       else
@@ -173,6 +191,28 @@ module Cohorts
 
     def pre_destroy
 
+    end
+
+    def re_rank
+      new_order = params.require(:rank_order)&.split(',')&.map(&:to_i)
+      new_order.each_with_index do |cohort_client_id, index|
+        rank = index + 1
+        @cohort.cohort_clients.find(cohort_client_id).update(rank: rank)
+      end
+      redirect_to cohort_path(@cohort)
+    end
+
+    def field
+      column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select{|m| m == params.require(:field)}&.first
+      if column.present?
+        @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
+        @column = column.constantize.new()
+        @column.cohort = @cohort
+        @column.cohort_names = @cohort_names
+        render layout: false
+      else
+        head :ok
+      end
     end
 
     def destroy
@@ -201,7 +241,7 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:grda_warehouse_cohort_client).permit(*cohort_source.available_columns.map(&:column))
+      params.require(:cohort_client).permit(*cohort_source.available_columns.map(&:column))
     end
 
     def log_create(cohort_id, cohort_client_id)
@@ -270,7 +310,7 @@ module Cohorts
     end
 
     def set_client
-      @client = cohort_client_source.find(params[:id].to_i)
+      @client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     def cohort_client_source

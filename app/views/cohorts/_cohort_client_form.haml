@@ -1,0 +1,3 @@
+- if @cohort.user_can_edit_cohort_clients current_user
+  = form_tag(cohort_cohort_client_path(cohort_id: @cohort.id, id: 'cohort_client_id'), method: :patch, class: 'edit_cohort_client') do
+    = hidden_field_tag(:field, '', class: 'proxy_field')

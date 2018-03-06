@@ -1,5 +1,5 @@
 module CohortColumns
-  class HousingSearchAgency < Base
+  class HousingSearchAgency < Select
     attribute :column, String, lazy: true, default: :housing_search_agency
     attribute :title, String, lazy: true, default: 'Housing Search Agency'
 
@@ -9,8 +9,5 @@ module CohortColumns
       end
     end
 
-    def default_input_type
-      :select2
-    end
   end
 end

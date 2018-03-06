@@ -1,11 +1,8 @@
 module CohortColumns
-  class LastDateApproached < Base
+  class LastDateApproached < CohortDate
     attribute :column, String, lazy: true, default: :last_date_approached
     attribute :title, String, lazy: true, default: 'Last Date Approached'
 
-    def default_input_type
-      :date_picker
-    end
 
   end
 end

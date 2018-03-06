@@ -17,7 +17,7 @@
         %th Visible
         %th Editable
     %tbody.draggable-list
-      - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}}
+      - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}} rescue GrdaWarehouse::Cohort.available_columns
       - ordered_columns.each_with_index do |column, i|
         - visible = @column_state.find{|m| m.class == column.class}&.visible
         - editable = @column_state.find{|m| m.class == column.class}&.editable

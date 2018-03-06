@@ -52,4 +52,19 @@ FactoryGirl.define do
     can_view_vspdat true
     can_edit_vspdat true
   end
+
+  factory :cohort_manager, class: 'Role' do
+    name "cohort manager"
+    can_manage_cohorts true
+  end
+
+  factory :cohort_client_editor, class: 'Role' do
+    name 'cohort client editor'
+    can_edit_assigned_cohorts true
+  end
+
+  factory :cohort_client_viewer, class: 'Role' do
+    name 'cohort client viewer'
+    can_view_assigned_cohorts true
+  end
 end
