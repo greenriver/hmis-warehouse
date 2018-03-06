@@ -38,7 +38,7 @@ module CohortColumns
     end
 
     def display_read_only
-      value(cohort_client)
+      available_options[value(cohort_client)]
     end
     
   end
