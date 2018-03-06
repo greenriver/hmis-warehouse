@@ -16,8 +16,8 @@ class App.Cohorts.Cohort
     @cohort_client_form_selector = options['cohort_client_form_selector']
 
     # Testing
-    # @client_count = 15
-    # @batch_size = 5
+    @client_count = 15
+    @batch_size = 5
 
     @pages = Math.round(@client_count/@batch_size)
 
@@ -28,7 +28,7 @@ class App.Cohorts.Cohort
 
     @resizeable_fonts()
     @load_pages()
-    # @enable_highlight()
+    @enable_highlight()
     @enable_editing()
 
   initialize_data_table: () =>
@@ -95,8 +95,9 @@ class App.Cohorts.Cohort
       @datatable.draw()
     
   enable_highlight: () =>
-    $('.cohorts').on 'click', @client_row_class, (e) =>
-      row = $(e.target).closest('tr').get()
+    $('.cohorts').on 'click', '.jSelectRow', (e) =>
+      cohort_client_id = $(e.target).closest('tr').data('cohort-client-id')
+      row = @datatable.row("[data-cohort-client-id=#{cohort_client_id}]").node()
       $(row).siblings().removeClass('info')
       $(row).toggleClass('info')
       @datatable.draw()
@@ -130,7 +131,7 @@ class App.Cohorts.Cohort
         response = JSON.parse(jqXHR.responseText)
         alert_class = response.alert
         alert_text = response.message
-        alert = "<div class='alert alert-#{alert_class}'>#{alert_text}</div>"
+        alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
         $('.utility .alert').remove()
         $('.utility').append(alert)
         $('.utility .alert').delay(2000).fadeOut(250)

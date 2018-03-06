@@ -37,7 +37,7 @@ module GrdaWarehouse
     end
 
     def user_can_edit_cohort_clients user
-      user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
+      user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
     end
 
     def update_access user_ids
