@@ -74,7 +74,7 @@ class App.Cohorts.Cohort
   add_rows: (data) =>
     @datatable.rows.add($(data).filter('tr')).draw();
     percent_complete = Math.round(@current_page/@pages*100)
-    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}% (#{@current_page} of #{@pages})")
+    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
   load_page: () =>
     @current_page += 1
