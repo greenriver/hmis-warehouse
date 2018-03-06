@@ -297,6 +297,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       individual.adult
     end
 
+    scope :individual_adults, -> do
+      individual.adult
+    end
+
 
     # End Standard Cohort Scopes
     #################################
