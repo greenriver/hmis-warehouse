@@ -8,7 +8,7 @@ module CohortColumns
 
     def display_for user
       if display_as_editable?(user, cohort_client)
-        text_field(form_group, column, value: value(cohort_client), class: 'form-control')
+        text_field(form_group, column, value: value(cohort_client), class: ['form-control', input_class])
       else
         display_read_only
       end

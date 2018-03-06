@@ -37,5 +37,9 @@ module CohortColumns
     def value cohort_client
       cohort_client.send(column)
     end
+
+    def input_class
+      'jCohortClientInput'
+    end
   end
 end

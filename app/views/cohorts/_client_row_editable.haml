@@ -17,3 +17,5 @@
       - editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.editable?
       %td{data: {column: cohort_column.class.name, editable: editable.to_s}}
         = cohort_column.display_for(current_user)
+        .jCohortColumnValue.hidden
+          = cohort_column.display_read_only

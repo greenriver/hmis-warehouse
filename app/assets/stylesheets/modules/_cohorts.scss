@@ -83,6 +83,11 @@ li.draggable-list__item {
   background-color: $gray-060;
   color: white;
 }
+.cohorts tr.cohort_client_ineligible textarea,
+.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd) textarea
+{
+  color: black;
+}
 .cohorts tr.cohort_client_ineligible a
 {
   color: white;

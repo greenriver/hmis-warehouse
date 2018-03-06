@@ -14,6 +14,10 @@ class App.Cohorts.Cohort
     @client_row_class = options['client_row_class']
     @loading_selector = options['loading_selector']
     @cohort_client_form_selector = options['cohort_client_form_selector']
+    @cohort_value_hidden_selector = options['cohort_value_hidden_selector']
+    @check_url = options['check_url']
+    @input_selector = options['input_selector']
+    @updated_ats = options['updated_ats']
 
     # Testing
     # @client_count = 15
@@ -31,6 +35,9 @@ class App.Cohorts.Cohort
     @enable_highlight()
     @enable_editing()
 
+    @refresh_rate = 10000
+    setInterval @check_for_new_data, @refresh_rate
+
   initialize_data_table: () =>
     @datatable = $(@table_selector).DataTable
       # scrollY: '70vh',
@@ -44,6 +51,7 @@ class App.Cohorts.Cohort
        leftColumns: @static_column_count
       },
       order: [[1, @sort_direction]]
+
     @datatable.on 'draw', () =>
       @reinitialize_js()
 
@@ -109,16 +117,17 @@ class App.Cohorts.Cohort
     $('.jReRank').removeClass('disabled');
 
   enable_editing: () =>
-    $(@wrapper_selector).on 'change', 'input,select,textarea*', (e) =>
+    $(@wrapper_selector).on 'change', @input_selector, (e) =>
       $field = $(e.target)
       cohort_client_id = $field.closest('tr').data('cohort-client-id')
       field_name = $field.attr('name').replace("[#{cohort_client_id}]", '')
       $form = $(@cohort_client_form_selector)
       url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
-      $form.attr('action', url)
       proxy_field = $form.find('.proxy_field')
       $(proxy_field).attr('name', field_name).attr('value', $field.val())
-
+      # update the hidden bit for searching
+      @update_search_text($field.closest('td'), $field.val())
+      
       method = $form.attr("method");
       data = $form.serialize();
       options = {
@@ -127,14 +136,40 @@ class App.Cohorts.Cohort
         data: data,
         dataType: 'json' 
       }
-      $.ajax(options).complete (jqXHR) ->
+
+      $.ajax(options).complete (jqXHR) =>
         response = JSON.parse(jqXHR.responseText)
         alert_class = response.alert
         alert_text = response.message
+        updated_at = response.updated_at
+        cohort_client_id = response.cohort_client_id
+
+        # Make note of successful update
+        @updated_ats[cohort_client_id] = updated_at
+
         alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
         $('.utility .alert').remove()
         $('.utility').append(alert)
         $('.utility .alert').delay(2000).fadeOut(250)
-      
-      
-        
+
+  update_search_text: ($td, value) =>
+    $td.find(@cohort_value_hidden_selector).text(value)
+    @datatable.cell($td).invalidate()
+
+  check_for_new_data: =>    
+    $.get @check_url, (data) =>
+      if data != @updated_ats
+        @update_outdated(data)
+
+  update_outdated: (current) =>
+    for cohort_client_id, updated_at of @updated_ats
+      current_timestamp = current[cohort_client_id]
+      if current_timestamp != updated_at
+        selector = "#{@client_row_class}[data-cohort-client-id='#{cohort_client_id}']"
+        # $row = $(selector)
+        $rows = @datatable.rows(selector).nodes().to$()
+        $rows.find(@input_selector).attr('disabled', 'disabled')
+        @updated_ats[cohort_client_id] = current_timestamp
+        $rows.find('td:first').html('<div class="icon-warning"></div><strong>Data has changed, please refresh.</strong>')
+        $rows.addClass('warning')
+        @datatable.draw()

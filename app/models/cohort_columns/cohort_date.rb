@@ -10,7 +10,7 @@ module CohortColumns
       if display_as_editable?(user, cohort_client)
         content_tag(:div, class: 'input-group date', data: {provide: :datepicker}) do
           content_tag(:div, class: 'form-group') do
-            text_field(form_group, column, value: value(cohort_client), size: 10, style: 'width: 8em;', type: :text, class: 'form-control')  
+            text_field(form_group, column, value: value(cohort_client), size: 10, style: 'width: 8em;', type: :text, class: ['form-control', input_class])  
           end +
           content_tag(:span, '', class: 'input-group-addon icon-calendar')
         end

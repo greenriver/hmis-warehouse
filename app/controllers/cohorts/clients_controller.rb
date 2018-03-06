@@ -151,11 +151,21 @@ module Cohorts
             respond_with(@cohort, location: cohort_path(@cohort))
           end
           format.js do
-            @response = {alert: :success, message: 'Saved'}
+            @response = {
+              alert: :success, 
+              message: 'Saved', 
+              updated_at: @client.updated_at.to_i, 
+              cohort_client_id: @client.id,
+            }
             render json: @response and return
           end
           format.json do
-            @response = {alert: :success, message: 'Saved'}
+            @response = {
+              alert: :success, 
+              message: 'Saved', 
+              updated_at: @client.updated_at.to_i, 
+              cohort_client_id: @client.id,
+            }
             render json: @response and return
           end
         end        

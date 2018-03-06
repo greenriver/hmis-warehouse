@@ -26,7 +26,7 @@ module CohortColumns
 
             concat(content_tag(:div) do
               label_tag("#{form_group}_#{column}_#{k}", class: :radio) do
-                concat(radio_button(form_group, column, k, checked: selected))
+                concat(radio_button(form_group, column, k, checked: selected, class: input_class))
                 concat(v)
               end
             end)
