@@ -81,7 +81,7 @@ class App.Cohorts.Cohort
     url =  "#{@client_path}?page=#{@current_page}&per=#{@batch_size}"
     if @include_inactive
       url += "&inactive=true"
-    if @current_page > @pages
+    if @current_page > @pages + 1
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
     # $.get({url: url, dataType: 'html'}).done(@save_batch).then(@load_page)
