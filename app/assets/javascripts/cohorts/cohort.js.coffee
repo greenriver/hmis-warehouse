@@ -16,8 +16,8 @@ class App.Cohorts.Cohort
     @cohort_client_form_selector = options['cohort_client_form_selector']
 
     # Testing
-    @client_count = 15
-    @batch_size = 5
+    # @client_count = 15
+    # @batch_size = 5
 
     @pages = Math.round(@client_count/@batch_size)
 
