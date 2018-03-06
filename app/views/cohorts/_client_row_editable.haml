@@ -14,7 +14,7 @@
       - cohort_column.cohort = @cohort
       - cohort_column.cohort_names = @cohort_names
       - cohort_column.cohort_client = cohort_client
-      - editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.editable?
+      - editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
       %td{data: {column: cohort_column.class.name, editable: editable.to_s}}
         = cohort_column.display_for(current_user)
         .jCohortColumnValue.hidden

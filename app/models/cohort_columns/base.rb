@@ -9,12 +9,13 @@ module CohortColumns
     attribute :cohort
     attribute :cohort_names
     attribute :cohort_client
+    attribute :editable, Boolean, lazy: false, default: true
 
     def display_as_editable? user, cohort_client
-      cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || ! cohort_client.ineligible?)
+      cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || ! cohort_client.ineligible?) && editable
     end
 
-    def editable?
+    def column_editable?
       true
     end
 

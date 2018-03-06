@@ -17,5 +17,5 @@
       - column.cohort_names = @cohort_names
       - column.cohort_client = cohort_client
 
-      %td{data: {column: column.class.name, editable: column.editable?.to_s}}
+      %td{data: {column: column.class.name, editable: column.column_editable?.to_s}}
         = column.display_read_only

@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Notes'
     
 
-    def editable?
+    def column_editable?
       false
     end
 

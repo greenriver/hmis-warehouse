@@ -2,7 +2,7 @@ module CohortColumns
   class ReadOnly < Base
 
 
-    def editable?
+    def column_editable?
       false
     end
 

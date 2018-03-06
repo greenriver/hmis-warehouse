@@ -4,7 +4,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :open_enrollments
     attribute :title, String, lazy: true, default: 'Open Residential Enrollments'
     
-    def editable?
+    def column_editable?
       false
     end
 
