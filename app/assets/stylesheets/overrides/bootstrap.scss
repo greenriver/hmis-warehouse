@@ -1,0 +1,36 @@
+th .fa {
+  padding-left: 4px;
+  color: $cas-blue;
+}
+
+.info a {
+  color: white;
+}
+
+.info {
+  color: black;
+}
+
+.popover {
+  max-width: 80%; /* Max Width of the popover (depending on the container!) */
+  white-space: pre-wrap;
+}
+
+.popover ol {
+  padding-left: 0 !important;
+  -webkit-padding-start: 10px !important;
+}
+
+.alert {
+  z-index: $zIndex-3--notice;
+  @include open-sans-medium;
+}
+
+.alert a {
+  color: #fff;
+}
+
+.alert a:hover,
+.alert a:focus {
+  text-decoration: none;
+}

@@ -1,28 +1,25 @@
-html { //for use in rem declarations
-  font-size: 14px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 h3.history {
   text-transform: uppercase;
   font-size: $font-size-h3;
   margin-top: 0;
 }
-dd {
-  margin-bottom: 0.5em;
-}
+
 .font-size-large {
   font-size: 2em;
 }
+
 .description {
   font-size: 0.8em;
 }
+
 .text-small {
   font-size: $font-size-small;
 }
+
 .text-bold {
   font-weight: 700;
 }
+
 .section-expander-block h1,
 .section-expander-block h2,
 .section-expander-block h3,
