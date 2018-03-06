@@ -131,10 +131,10 @@ module Cohorts
 
     def update
       update_params = cohort_update_params
-      update_params['chronic'] = _debool(update_params['chronic'])
-      update_params['vash_eligible'] = _debool(update_params['vash_eligible'])
-      update_params['sif_eligible'] = _debool(update_params['sif_eligible'])
-      update_params['veteran'] = _debool(update_params['veteran'])
+      # Process the yes/no 1/0 submissions
+      [:chronic, :vash_eligible, :sif_eligible, :veteran].each do |key|
+        update_params[key] = _debool(update_params[key]) if update_params[key].present?
+      end
       @client.assign_attributes(update_params)
       if @client.active_changed?
         if @client.active
@@ -143,6 +143,7 @@ module Cohorts
           log_deactivate(@cohort.id, @client.id)
         end
       end
+
       if @client.save
         respond_to do |format|
           format.html do
@@ -150,10 +151,12 @@ module Cohorts
             respond_with(@cohort, location: cohort_path(@cohort))
           end
           format.js do
-            @response = OpenStruct.new({alert: :success, message: 'Saved'})
+            @response = {alert: :success, message: 'Saved'}
+            render json: @response and return
           end
           format.json do
-            @response = OpenStruct.new({alert: :success, message: 'Saved'})
+            @response = {alert: :success, message: 'Saved'}
+            render json: @response and return
           end
         end        
       else

@@ -17,33 +17,5 @@
         cohort_client_form_selector: '.edit_cohort_client'
       }
       var cohort = new App.Cohorts.Cohort(cohort_options)
-
-         
-
-      // $('.cohorts').on('change', '.jSubmitOnChange', function(e){
-      //   $(this).closest('form').submit(function(e){
-      //     e.preventDefault();
-      //     var cohort_client_id = $(this).data('cohort-client-id');
-      //     var url = $(this).attr("action");
-      //     var method = $(this).attr("method");
-      //     var data = $(this).serialize();
-      //     console.log(url);
-      //     $.ajax({
-      //       url : url,
-      //       type: method,
-      //       data: data,
-      //       dataType: 'html' 
-      //     }).done(function(response){
-      //       var $cohort_client_row = $(response);
-      //       console.log($cohort_client_row);
-      //       var cohort_client_id = $cohort_client_row.data('cohort-client-id');
-      //       console.log('data[cohort-client-id=' + cohort_client_id +']');
-      //       console.log(datatable.rows().nodes().to$());
-      //       // $("#server-results").html(response);
-      //       // console.log(response);
-      //     });
-      //   });
-      //   $(this).closest('form').trigger('submit');
-      // });
       
     })(jQuery);

@@ -16,15 +16,15 @@ class App.Cohorts.Cohort
     @cohort_client_form_selector = options['cohort_client_form_selector']
 
     # Testing
-    @client_count = 15
-    @batch_size = 5
+    # @client_count = 15
+    # @batch_size = 5
 
     @pages = Math.round(@client_count/@batch_size)
 
     @current_page = 0
     @row_data = ''
 
-    @datatable = @initialize_data_table()
+    @initialize_data_table()
 
     @resizeable_fonts()
     @load_pages()
@@ -32,16 +32,21 @@ class App.Cohorts.Cohort
     @enable_editing()
 
   initialize_data_table: () =>
-    $(@table_selector).DataTable
-      scrollY: '70vh',
+    @datatable = $(@table_selector).DataTable
+      # scrollY: '70vh',
+      scrollY: false,
       scrollX: true,
       scrollCollapse: false,
-      fixedHeader: true,
-      paging: false,
+      # fixedHeader: true,
+      lengthMenu: [ 5, 10, 25, 50]
+      paging: true,
       fixedColumns: {
        leftColumns: @static_column_count
       },
       order: [[1, @sort_direction]]
+    @datatable.on 'draw', () =>
+      @reinitialize_js()
+
 
   save_batch: (data) =>
     @row_data += data
@@ -55,9 +60,13 @@ class App.Cohorts.Cohort
       $(@loading_selector).addClass('hidden')
       @datatable.rows.add($(@row_data).filter('tr')).draw();
 
-      @reinitialize_js()
       @set_rank_order()
     )
+
+  add_rows: (data) =>
+    @datatable.rows.add($(data).filter('tr')).draw();
+    percent_complete = Math.round(@current_page/@pages*100)
+    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}% (#{@current_page} of #{@pages})")
 
   load_page: () =>
     @current_page += 1
@@ -66,7 +75,11 @@ class App.Cohorts.Cohort
       url += "&inactive=true"
     if @current_page > @pages
       return $.Deferred().resolve().promise()
-    $.get({url: url, dataType: 'html'}).done(@save_batch).then(@load_page)
+    # Gather all the data first and then display it
+    # $.get({url: url, dataType: 'html'}).done(@save_batch).then(@load_page)
+    
+    # Or, add data to the table as soon as it's available
+    $.get({url: url, dataType: 'html'}).done(@add_rows).then(@load_page)
 
   reinitialize_js: () ->
     $('.select2').select2();
@@ -97,16 +110,30 @@ class App.Cohorts.Cohort
   enable_editing: () =>
     $(@wrapper_selector).on 'change', 'input,select,textarea*', (e) =>
       $field = $(e.target)
-      field_name = $field.attr('name')
       cohort_client_id = $field.closest('tr').data('cohort-client-id')
+      field_name = $field.attr('name').replace("[#{cohort_client_id}]", '')
       $form = $(@cohort_client_form_selector)
       url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
       $form.attr('action', url)
       proxy_field = $form.find('.proxy_field')
       $(proxy_field).attr('name', field_name).attr('value', $field.val())
-      $form.submit()
 
-
-
+      method = $form.attr("method");
+      data = $form.serialize();
+      options = {
+        url : "#{url}.js",
+        type: method,
+        data: data,
+        dataType: 'json' 
+      }
+      $.ajax(options).complete (jqXHR) ->
+        response = JSON.parse(jqXHR.responseText)
+        alert_class = response.alert
+        alert_text = response.message
+        alert = "<div class='alert alert-#{alert_class}'>#{alert_text}</div>"
+        $('.utility .alert').remove()
+        $('.utility').append(alert)
+        $('.utility .alert').delay(2000).fadeOut(250)
+      
       
         
