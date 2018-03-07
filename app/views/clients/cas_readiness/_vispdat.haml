@@ -4,11 +4,11 @@
   %dl.o-list--featured.row
     .col-sm-6
       %dt Days homeless in past 3 years, HMIS Based
-      %dd.h4= @client.days_homeless_in_last_three_years
+      %dd= @client.days_homeless_in_last_three_years
 
     .col-sm-6
       %dt Days reported on VI-SPDAT
-      %dd.h4= @client.most_recent_vispdat_length_homeless_in_days
+      %dd= @client.most_recent_vispdat_length_homeless_in_days
 
   .row
     .col-sm-4
