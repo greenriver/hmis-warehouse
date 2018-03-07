@@ -1,62 +1,61 @@
 - window_link = client.window_link_for?(current_user)
 - show_window_link = window_link.present?
-.col-sm-12.col-xs-12
-  .clients__client-card
-    .row
-      .col-sm-5
-        - if ( akas = client_aliases(client)).empty?
-          - main_client_name = client.source_clients.visible_in_window.first.data_source.short_name
+.c-card
+  .row
+    .col-sm-5
+      - if ( akas = client_aliases(client)).empty?
+        - main_client_name = client.source_clients.visible_in_window.first.data_source.short_name
+      - else
+        - main_client_name = akas.shift
+      .clients__client-name
+        = link_to_if show_window_link, main_client_name, window_link
+      .clients__client-additional-names
+        - akas.each_with_index do | aka, i |
+          - if i > 0
+            %br
+          = aka
+      = render 'relationships', client: client
+    .col-sm-7
+      .client__view_client
+        - if show_window_link
+          = link_to 'View', window_link, class: 'btn btn-secondary'
+      = render 'clients/chronic_flags', client: client
+      - if @show_ssn
+        .client__ssns
+          - client.source_clients.visible_in_window.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
+            .client__ssn
+              %strong SSN:
+              = ssn
+      .client__dobs
+        - client.source_clients.visible_in_window.map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
+          .client__dob
+            %strong Year of Birth:
+            = "#{dob&.year},"
+            %strong Age:
+            = age
+      .client__genders
+        - client.source_clients.visible_in_window.map(&:Gender).uniq.compact.each do |g|
+          .client__gender
+            %strong Gender:
+            = ::HUD.gender(g)
+      .client__races
+        - client.source_clients.visible_in_window.map(&:race_description).uniq.compact.each do |r|
+          .client__gender
+            %strong Race(s):
+            = r
+      .client__ethnicities
+        - client.source_clients.visible_in_window.map(&:Ethnicity).uniq.compact.each do |e|
+          .client__ethnicity
+            %strong Ethnicity:
+            = ::HUD.ethnicity(e)
+      .client__veteran-status
+        %strong Veteran:
+        - veteran = client.source_clients.visible_in_window.map(&:veteran?).uniq.compact.include? true
+        - if veteran
+          Yes
         - else
-          - main_client_name = akas.shift
-        .clients__client-name
-          = link_to_if show_window_link, main_client_name, window_link
-        .clients__client-additional-names
-          - akas.each_with_index do | aka, i |
-            - if i > 0
-              %br
-            = aka
-        = render 'relationships', client: client          
-      .col-sm-7
-        .client__view_client
-          - if show_window_link
-            = link_to 'View', window_link, class: 'btn btn-secondary'
-        = render 'clients/chronic_flags', client: client
-        - if @show_ssn
-          .client__ssns
-            - client.source_clients.visible_in_window.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
-              .client__ssn
-                %strong SSN:
-                = ssn
-        .client__dobs
-          - client.source_clients.visible_in_window.map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
-            .client__dob
-              %strong Year of Birth:
-              = "#{dob&.year},"
-              %strong Age:
-              = age
-        .client__genders
-          - client.source_clients.visible_in_window.map(&:Gender).uniq.compact.each do |g|
-            .client__gender
-              %strong Gender:
-              = ::HUD.gender(g)
-        .client__races
-          - client.source_clients.visible_in_window.map(&:race_description).uniq.compact.each do |r|
-            .client__gender
-              %strong Race(s):
-              = r
-        .client__ethnicities
-          - client.source_clients.visible_in_window.map(&:Ethnicity).uniq.compact.each do |e|
-            .client__ethnicity
-              %strong Ethnicity:
-              = ::HUD.ethnicity(e)
-        .client__veteran-status
-          %strong Veteran:
-          - veteran = client.source_clients.visible_in_window.map(&:veteran?).uniq.compact.include? true
-          - if veteran
-            Yes
-          - else
-            No
-        - if client.consent_form_status.present?
-          .client__data-sharing-agreement
-            %strong Data sharing agreement:
-            = client.consent_form_status.presence
+          No
+      - if client.consent_form_status.present?
+        .client__data-sharing-agreement
+          %strong Data sharing agreement:
+          = client.consent_form_status.presence

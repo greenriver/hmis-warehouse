@@ -5,9 +5,9 @@
     %h1= content_for :title
     - @prompt = t '.search_prompt'
 .row
-  .col-sm-6
+  .col-sm-4
     = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results'
-  .col-sm-3.sort-filter      
+  .col-sm-5.sort-filter
     = render 'filter'
     = render 'sort', sort_options: sort_options
   .col-sm-3.text-right
@@ -16,92 +16,96 @@
         = link_to client_matches_path, class: 'btn btn-secondary' do
           %span.icon-shrink2
           = _('Process Duplicates')
-.row.table-utilities
-  .col-sm-4
-    %p= page_entries_info @clients, entry_name: _('client')
-  .col-sm-4
-    %p.client__current-sort-filter
-      Currently sorted by:
-      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
-  %p= paginate @clients, params: {sort: @column, direction: @direction}
+.table-utilities
+  %p.mr-5= page_entries_info @clients, entry_name: _('client')
+  .client__current-sort-filter
+    Currently sorted by:
+    %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
+
+= paginate @clients, params: {sort: @column, direction: @direction}
+
 .clients__list
   = render 'window/clients/new_client'
   - @clients.preload(:source_clients).each do |client|
     - if ( akas = client_aliases client ).empty?
       - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
-    - else 
+    - else
       - main_client_name = akas.shift
-    .clients__client-card.clients__client 
-      .row
-        .col-sm-4
-          .clients__client-name
-            = link_to main_client_name, client_path(client)
-          .clients__client-additional-names
-            .client__client-name
-              - akas.each_with_index do | aka, i |
-                - if i > 0
-                  %br
-                = aka
-        .col-sm-3
-          .client__ssns
-            - client.source_clients.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
-              .client__ssn
-                %strong SSN:
-                = ssn
-          .client__dobs
-            - client.source_clients.map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
-              .client__dob
-                %strong DOB:
-                = "#{dob},"
-                %strong Age:
-                = age
-          .client__genders
-            - client.source_clients.map(&:Gender).uniq.compact.each do |g|
-              .client__gender
-                %strong Gender:
-                = ::HUD.gender(g)
-          .client__races
-            - client.source_clients.map(&:race_description).uniq.compact.each do |r|
-              .client__gender
-                %strong Race(s):
-                = r
-          .client__ethnicities
-            - client.source_clients.map(&:Ethnicity).uniq.compact.each do |e|
-              .client__ethnicity
-                %strong Ethnicity:
-                = ::HUD.ethnicity(e)
-          .client__veteran-status
-            %strong Veteran:
-            - veteran = client.source_clients.map(&:veteran?).uniq.compact.include? true
-            - if veteran
-              Yes
-            - else
-              No
-          - if client.consent_form_status.present?
-            .client__data-sharing-agreement
-              %strong Data sharing agreement:
-              = client.consent_form_status.presence
-        .col-sm-5
-          .client__view_client
-            = link_to 'View', client_path(client), class: 'btn btn-secondary'
-          - total_homeless = client.days_homeless
-          %p 
-            %strong Days Homeless:
-            = pluralize(total_homeless, 'day')
-            %br
-            %strong Between:
-            = client.date_of_first_service
-            and
-            =client.date_of_last_service
+    .clients__client-card.clients__client.c-card.c-card--linked.js-client{data: {id: client.id}}
+      .client__details.client__details--identity
+        .clients__client-name.h4= main_client_name
+        .clients__client-additional-names
+          .client__client-name
+            - akas.each_with_index do | aka, i |
+              %div= aka
+      .client__details.client__details--demographics
+        .client__ssns
+          - client.source_clients.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|
+            .client__ssn
+              %strong SSN:
+              = ssn
+        .client__dobs
+          - client.source_clients.map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
+            .client__dob
+              %strong DOB:
+              = "#{dob},"
+              %strong Age:
+              = age
+        .client__genders
+          - client.source_clients.map(&:Gender).uniq.compact.each do |g|
+            .client__gender
+              %strong Gender:
+              = ::HUD.gender(g)
+        .client__races
+          - client.source_clients.map(&:race_description).uniq.compact.each do |r|
+            .client__gender
+              %strong Race(s):
+              = r
+        .client__ethnicities
+          - client.source_clients.map(&:Ethnicity).uniq.compact.each do |e|
+            .client__ethnicity
+              %strong Ethnicity:
+              = ::HUD.ethnicity(e)
+        .client__veteran-status
+          %strong Veteran:
+          - veteran = client.source_clients.map(&:veteran?).uniq.compact.include? true
+          - if veteran
+            Yes
+          - else
+            No
+        - if client.consent_form_status.present?
+          .client__data-sharing-agreement
+            %strong Data sharing agreement:
+            = client.consent_form_status.presence
+      .client__details.client__details--status
+        -# .client__view_client
+          -# = link_to 'View', client_path(client), class: 'btn btn-secondary'
+        - total_homeless = client.days_homeless
+        %p
+          %strong Days Homeless:
+          = pluralize(total_homeless, 'day')
+          %br
+          %strong Between:
+          = client.date_of_first_service
+          and
+          =client.date_of_last_service
 
-            - if can_view_vspdat?
-              - vispdat = client.vispdats.completed.scores.first
-              %br
-              %strong VI-SPDAT:
-              %span.label{ class: "label-#{vispdat&.score_class}" }= vispdat&.score
-              %br
-              %strong Priority Score:
-              = vispdat&.priority_score
-          = render 'chronic_flags', client: client
-        
+          - if can_view_vspdat?
+            - vispdat = client.vispdats.completed.scores.first
+            %br
+            %strong VI-SPDAT:
+            %span.label{ class: "label-#{vispdat&.score_class}" }= vispdat&.score
+            %br
+            %strong Priority Score:
+            = vispdat&.priority_score
+        = render 'chronic_flags', client: client
+
 %p= paginate @clients, params: {sort: @column, direction: @direction}
+
+= content_for :page_js do
+  :javascript
+    $('.js-client').on('click', function(event){
+      if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
+        window.location = 'clients/' + $(this).data('id')
+      }
+    })

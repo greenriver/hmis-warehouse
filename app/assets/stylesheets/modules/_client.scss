@@ -202,24 +202,44 @@ $client-match-action-row-height: 22px;
   max-width: 250px;
   max-height: 250px;
 }
-.clients__client
-{
+
+.clients__client {
   padding-bottom: 0.5em;
   padding-top: 0.5em;
-}
-
-.clients__client:nth-child(even)
-{
   background-color: $white;
 }
+
+.client__details{
+  flex: 0 0 33%;
+}
+
+@media (max-width: $screen-sm-max) {
+  .client__details{
+    flex: 0 0 100%;
+    margin-bottom: space(4);
+  }
+}
+
+.client__details--status,
+.client__details--demographics {
+  align-self: center;
+}
+
 .clients__client-name
 {
   font-size: 1.2rem;
   margin-bottom: 0.15rem;
+  margin-bottom: 0;
+  font-size: 1.35rem;
 }
 .client__client-name
 {
   margin-bottom: 0.15rem;
+}
+.clients__client-name,
+.client__client-name {
+  display: flex;
+  align-items: center;
 }
 .clients__users
 {
@@ -346,6 +366,7 @@ $client-match-action-row-height: 22px;
   text-align: center;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
+  padding: .25em 0.75em;
   display: inline-block;
   padding: 0.25em 0.5em;
   color: $text-color;

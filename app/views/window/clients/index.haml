@@ -4,15 +4,15 @@
   .col-sm-8
     %h1= content_for :title
     - @prompt = t '.search_prompt'
-    %p 
-      Search by name, DOB (mm/dd/yyyy), SSN (xxx-yyy-zzzz).  It is often most efficient to search using the first few characters of the first name and last name, eg. to find 
+    %p
+      Search by name, DOB (mm/dd/yyyy), SSN (xxx-yyy-zzzz).  It is often most efficient to search using the first few characters of the first name and last name, eg. to find
       %em Jane Smith
-      you might search for 
+      you might search for
       %em ja sm.
 .row
-  .col-sm-6 
+  .col-sm-6
     = render 'search_form'
-  .col-sm-6.sort-filter      
+  .col-sm-6.sort-filter
     = render 'filter'
     = render 'sort', sort_options: sort_options
 - if params[:q].present?
@@ -25,8 +25,7 @@
         Currently sorted by:
         %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
   .clients__list
-    .row
-      - @clients.preload(:window_source_clients).each do |client|
-        = render 'client_card', client: client
-          
+    - @clients.preload(:window_source_clients).each do |client|
+      = render 'client_card', client: client
+
   %p= paginate @clients, params: {sort: @column, direction: @direction}
