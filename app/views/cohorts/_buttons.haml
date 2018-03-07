@@ -1,0 +1,54 @@
+.row
+  .col-sm-12.text-right
+    - if current_user.can_manage_cohorts?
+      = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-secondary btn-sm' do
+        %i.icon-pencil 
+        Edit
+      = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
+        %i.icon-cog
+        Edit Visible Columns
+      = link_to cohort_report_path(@cohort), title: 'Changes Report for Cohort', class: 'btn btn-secondary btn-sm' do
+        %i.icon-printer 
+        Changes Report
+      = form_for :cohort_clients, url: re_rank_cohort_cohort_clients_path(@cohort), method: :patch, html: {class: 'inline-form'} do |f|
+        - confirmation = 'Are you sure you want to re-rank all clients in this cohort'
+        - if @cohort.column_state&.first.present?
+          - confirmation += "by #{@cohort.column_state&.first&.title} #{@cohort.class.sort_directions[@cohort.default_sort_direction]}"
+        - confirmation += "?"
+
+        = f.button class: 'btn btn-secondary btn-sm jReRank disabled', data: { confirm: confirmation} do
+          %i.icon-arrow-down
+          Re-Rank
+        %input#rank_order{type: :hidden, name: :rank_order}
+    - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+      - if params[:inactive].present?
+        = link_to cohort_path(@cohort), class: 'btn btn-secondary btn-sm' do
+          Show Only Active Clients
+      - else 
+        = link_to cohort_path(@cohort, inactive: true), class: 'btn btn-secondary btn-sm' do
+          Show Inactive Clients
+      = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
+        %i.icon-users
+        Add Clients
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary btn-sm'}) do
+      %i.icon-download2
+      Download
+
+.row.margin-top-02
+  .col-sm-6
+    - if @cohort.effective_date
+      %p.margin-top-02
+        %strong
+          *
+        Data pulled from the client record and shown here will be pulled using the effective date
+        %strong
+          = @cohort.effective_date
+        where appropriate.
+  .col-sm-6.text-right
+    Text size:
+    %button.btn.btn-sm.btn-primary.jToggleFontSize{data: {size: ''}}
+      Default
+    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :lg}}
+      Large
+    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :xl}}
+      XL

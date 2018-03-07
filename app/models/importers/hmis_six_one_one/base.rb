@@ -95,6 +95,7 @@ module Importers::HMISSixOneOne
     end
 
     def complete_import
+      @data_source.update(last_imported_at: Time.now)
       @import.completed_at = Time.now
       @import.upload_id = @upload.id if @upload.present?
       @import.save

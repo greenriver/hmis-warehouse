@@ -1,11 +1,8 @@
 module CohortColumns
-  class HousedDate < Base
+  class HousedDate < CohortDate
     attribute :column, String, lazy: true, default: :housed_date
     attribute :title, String, lazy: true, default: 'Housed Date'
 
-    def default_input_type
-      :date_picker
-    end
 
   end
 end

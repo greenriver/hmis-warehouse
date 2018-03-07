@@ -13,9 +13,10 @@ class CohortsController < ApplicationController
   end
 
   def show
+    load_cohort_names
     cohort_with_preloads = cohort_scope.where(id: cohort_id).
       preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
-    missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
+    # missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
     @cohort = cohort_with_preloads.first
     
     if params[:inactive].present?
@@ -65,6 +66,7 @@ class CohortsController < ApplicationController
       :short_name,
       :effective_date,
       :visible_state,
+      :days_of_inactivity,
       :default_sort_direction,
       :only_window,
       :active_cohort,
@@ -76,6 +78,13 @@ class CohortsController < ApplicationController
   def cohort_id
     params[:id].to_i
   end
+
+  def load_cohort_names
+      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      map do |id, name, short_name|
+        [id, short_name.presence || name]
+      end.to_h
+    end
 
   
   def flash_interpolation_options

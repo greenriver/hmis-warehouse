@@ -4,9 +4,13 @@ wb.add_worksheet(name: @cohort.name.slice(0,30)) do |sheet|
   sheet.add_row(@cohort.visible_columns.map(&:title), :style => title)
   @cohort_clients.each do |cohort_client|
     row = @cohort.visible_columns.map do |column|
+      column.cohort = @cohort
+      column.cohort_names = @cohort_names
       if column.input_type == 'read_only'
         column.value(cohort_client)
       elsif column.input_type == 'notes'
+      elsif column.input_type == 'enrollment_tag'
+        column.value(cohort_client).map(&:last).join('; ')
       else
         cohort_client.public_send(column.column)
       end

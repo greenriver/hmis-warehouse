@@ -1,0 +1,25 @@
+= content_for :page_js do
+  :javascript
+    (function($) {
+      // var clients = new App.Cohorts.Client('.jCohortClient', '.jCohortClientInput', '#{cohort_cohort_clients_path(@cohort)}');
+      var cohort_options = {
+        wrapper_selector: '.cohorts',
+        table_selector: '.datatable',
+        batch_size: 25,
+        static_column_count: #{@cohort.static_column_count + 1},
+        client_count: #{@cohort_clients.count},
+        sort_direction: '#{@cohort.default_sort_direction}',
+        size_toggle_class: '.jToggleFontSize',
+        include_inactive: #{params[:inactive].present?},
+        client_path: "#{cohort_cohort_clients_path(@cohort)}",
+        client_row_class: '.jCohortClient',
+        loading_selector: '.jLoading',
+        cohort_client_form_selector: '.edit_cohort_client',
+        cohort_value_hidden_selector: '.jCohortColumnValue',
+        check_url: '#{cohort_cohort_clients_path(@cohort)}',
+        input_selector: '.jCohortClientInput',
+        updated_ats: #{@cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h.to_json}
+      }
+      var cohort = new App.Cohorts.Cohort(cohort_options)
+      
+    })(jQuery);

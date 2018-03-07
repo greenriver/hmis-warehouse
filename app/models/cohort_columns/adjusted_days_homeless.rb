@@ -1,11 +1,7 @@
 module CohortColumns
-  class AdjustedDaysHomeless < Base
+  class AdjustedDaysHomeless < ::CohortColumns::Integer
     attribute :column, String, lazy: true, default: :adjusted_days_homeless
     attribute :title, String, lazy: true, default: 'Static Days Homeless'
-
-    def default_input_type
-      :integer
-    end
 
     def has_default_value?
       true

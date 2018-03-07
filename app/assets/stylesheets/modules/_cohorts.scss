@@ -41,10 +41,10 @@ li.draggable-list__item {
   margin-right: 1em;
 }
 
-.cohorts .datatable th,
-.cohorts .datatable td
+
+.table-right-border td
 {
-  // white-space: nowrap;
+  border-right: 1px solid $gray-025;
 }
 
 .cohorts .dataTables_wrapper {
@@ -64,4 +64,39 @@ li.draggable-list__item {
 .cohorts .datatable.xl
 {
   font-size: 1.4em;
+}
+
+.cohorts td[data-input-type=notes]
+{
+  vertical-align: middle;
+}
+
+.cohorts tr.homeless_inactive,
+.table-striped > tbody > tr.homeless_inactive:nth-of-type(odd)
+{
+  background-color: $brand-danger;
+}
+
+.cohorts tr.cohort_client_ineligible,
+.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd)
+{
+  background-color: $gray-060;
+  color: white;
+}
+.cohorts tr.cohort_client_ineligible textarea,
+.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd) textarea
+{
+  color: black;
+}
+.cohorts tr.cohort_client_ineligible a
+{
+  color: white;
+}
+.cohorts .DTFC_LeftBodyWrapper
+{
+  z-index: 4;
+}
+.jSelectRow
+{
+  padding: 0.5em;
 }

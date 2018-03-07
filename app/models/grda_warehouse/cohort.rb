@@ -2,6 +2,8 @@ module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     acts_as_paranoid
     validates_presence_of :name
+    validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
+    validates :static_column_count, numericality: { only_integer: true}
     serialize :column_state, Array
 
     has_many :cohort_clients, dependent: :destroy
@@ -35,7 +37,7 @@ module GrdaWarehouse
     end
 
     def user_can_edit_cohort_clients user
-      user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
+      user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
     end
 
     def update_access user_ids
@@ -54,6 +56,7 @@ module GrdaWarehouse
     end
 
     def visible_columns
+      return self.class.available_columns unless column_state.present?
       column_state&.select(&:visible)&.presence || self.class.available_columns
     end
 
@@ -114,17 +117,27 @@ module GrdaWarehouse
         ::CohortColumns::NewLeaseReferral.new(),
         ::CohortColumns::VulnerabilityRank.new(),
         ::CohortColumns::ActiveCohorts.new(),
+        ::CohortColumns::DestinationFromHomelessness.new(),
+        ::CohortColumns::OpenEnrollments.new(),
+        ::CohortColumns::Ineligible.new(),
       ]
     end
 
-    def self.setup_column_accessors(columns)
-      columns.each do |column|
+    def self.setup_column_accessors(cohort_columns)
+      cohort_columns.each do |column|
         attr_accessor column.column
       end
     end
 
     # Attr Accessors
     setup_column_accessors(available_columns)
+
+    def self.sort_directions
+      {
+        'desc' => 'Descending', 
+        'asc' => 'Ascending',
+      }
+    end
 
   end
 end

@@ -1,27 +1,21 @@
 - client = cohort_client.client
+- last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
+- inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
+- ineligible_class = if cohort_client.ineligible? then 'cohort_client_ineligible' else '' end rescue ''
 = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
-  %tr.jCohortClient{data: {cohort_client_id: cohort_client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
-    - if @cohort.user_can_edit_cohort_clients current_user
-      %td
-        = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
-          %span.icon-pencil
+  %tr.jCohortClient{class: [inactivity_class, ineligible_class], data: {cohort_client_id: cohort_client.id, client_id: cohort_client.client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
+    %td
+      - if @cohort.user_can_edit_cohort_clients current_user
+        - if current_user.can_manage_cohorts? || ! cohort_client.ineligible?
+          = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
+            %span.icon-pencil
+      - if inactivity_class == 'homeless_inactive'
+        = "No homeless service in over #{@cohort.days_of_inactivity} days"
 
     - @cohort.visible_columns.each do |column|
       - column.cohort = @cohort
       - column.cohort_names = @cohort_names
-      %td
-        - if column.input_type == 'read_only'
-          - # treat booleans differently
-          - if !!column.value(cohort_client) == column.value(cohort_client)
-            = checkmark column.value(cohort_client)
-          - elsif column.column.in?(['first_name', 'last_name'])
-            = link_to_if current_user.can_view_clients?, column.value(cohort_client), client_path(cohort_client.client)
-          - else 
-            = column.value(cohort_client)
-        - elsif column.input_type == 'notes'
-          = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
-            #{cohort_client.cohort_client_notes.length}
-        - elsif ['radio_buttons', 'boolean'].include? column.input_type
-          = checkmark cohort_client.public_send(column.column)
-        - else
-          = cohort_client.public_send(column.column)
+      - column.cohort_client = cohort_client
+
+      %td{data: {column: column.class.name, editable: column.column_editable?.to_s}}
+        = column.display_read_only

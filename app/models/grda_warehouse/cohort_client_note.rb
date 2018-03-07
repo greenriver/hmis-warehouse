@@ -6,6 +6,10 @@ module GrdaWarehouse
     belongs_to :user
 
     validates_presence_of :cohort_client, :note
+
+    scope :ordered, -> do
+      order(updated_at: :desc)
+    end
     
   end
 end
