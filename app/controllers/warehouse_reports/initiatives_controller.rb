@@ -92,6 +92,13 @@ module WarehouseReports
       end
     end
 
+    def median array
+      mid = array.size / 2
+      sorted = array.sort
+      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2 
+    end
+    helper_method :median
+
 
   end
 end

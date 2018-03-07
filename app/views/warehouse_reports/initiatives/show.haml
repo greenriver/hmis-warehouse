@@ -7,6 +7,9 @@
 
 
 .warehouse-reports__initiatives
+  -# Outcomes
+  = render 'outcomes_by_project_type'
+
   -# Client counts
   = render 'clients_by_project_type', title: 'Client Counts by Project Type for Reporting Period', section: :client_counts_by_project_type
 
