@@ -1,0 +1,62 @@
+@each $direction, $directionName in $directions {
+  @each $num, $space in $spacers {
+    .m#{$direction}-#{$num} {
+      margin-#{$directionName}: $space;
+    }
+  }
+}
+
+.margin-left-01 {
+  margin-left: .5rem;
+}
+.margin-left-02 {
+  margin-left: 1rem;
+}
+.margin-left-04 {
+  margin-left: 2rem;
+}
+.margin-left-06 {
+  margin-left: 3rem;
+}
+.margin-bottom-00 {
+  margin-bottom: 0;
+}
+.margin-bottom-01 {
+  margin-bottom: 6px;
+}
+.margin-bottom-02 {
+  margin-bottom: 12px;
+}
+.margin-bottom-03 {
+  margin-bottom: 18px;
+}
+.margin-bottom-04 {
+  margin-bottom: 24px;
+}
+.margin-top-01 {
+  margin-top: 6px;
+}
+.margin-top-02 {
+  margin-top: 12px;
+}
+.margin-top-03 {
+  margin-top: 18px;
+}
+.margin-top-04 {
+  margin-top: 24px;
+}
+.padding-left-01 {
+  padding-left: 6px;
+}
+.padding-left-02 {
+  padding-left: 12px;
+}
+.padding-left-06 {
+  padding-left: 36px;
+}
+.padding-top-02 {
+  padding-top: 12px;
+}
+.padding-top-04 {
+  padding-top: 24px;
+}

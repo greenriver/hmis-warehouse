@@ -1,0 +1,43 @@
+// Remove the unit of a length
+// Source: https://css-tricks.com/snippets/sass/strip-unit-function/
+// @param {Number} $number - Number to remove unit from
+// @return {Number} - Unitless number
+@function strip-unit($number) {
+  @if type-of($number) == 'number' and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+  @return $number;
+}
+
+// @param {Number} $pixel-size - Pixel Value to convert
+// @return {Number} - Rem value
+@function rem($pixel-size) {
+  $rems: strip-unit($pixel-size) / strip-unit($font-size-default);
+  @return #{$rems}rem;
+}
+
+// @param {Number} $pixel-size - Pixel Value to convert
+// @return {Number} - Em value
+@function em($pixel-size) {
+  $ems: strip-unit($pixel-size) / strip-unit($font-size-default);
+  @return #{$ems}em;
+}
+
+// @param {Number} $value - Index of spacing unit
+// @return {Number} - Spacing unit from bootstrap map
+@function space($value) {
+  @return map-get($spacers, $value);
+}
+
+// Font tracking to letter-spacing
+// @param {Number} $target - value of leading
+// @return {Number} - computed leading value
+@function tracking( $target ) {
+  @return ($target / 1000) * 1rem;
+}
+
+// @param {Number} $hieght - Value of non-relative line-height
+// @return {Number} - relative line-height
+@function line-height($height, $font-size) {
+  @return strip-unit($height) / strip-unit($font-size);
+}

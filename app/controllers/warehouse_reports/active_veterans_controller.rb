@@ -39,7 +39,7 @@ module WarehouseReports
       GrdaWarehouse::WarehouseReports::ActiveVeteransReport
     end
 
-    private 
+    private
 
     def set_jobs
       @jobs = Delayed::Job.where(queue: 'active_veterans_report').order(run_at: :desc)
@@ -65,37 +65,37 @@ module WarehouseReports
     end
 
     def sort_options
-      @sort_options ||= begin 
+      @sort_options ||= begin
         ct = GrdaWarehouse::Hud::Client.arel_table
         wcpt = GrdaWarehouse::WarehouseClientsProcessed.arel_table
-        
+
         {
           {column: 'LastName', direction: :asc} => {
-            title: 'Last name A-Z', 
-            column: ct[:LastName].asc, 
+            title: 'Last name A-Z',
+            column: ct[:LastName].asc,
             param: 'LastName',
             default: 'Z',
           },
           {column: 'LastName', direction: :desc} => {
-            title: 'Last name Z-A', 
+            title: 'Last name Z-A',
             column: ct[:LastName].desc,
             param: 'LastName',
             default: 'A',
           },
           {column: 'days_served', direction: :desc} => {
-            title: 'Most served', 
-            column: wcpt[:days_served].desc, 
+            title: 'Most served',
+            column: wcpt[:days_served].desc,
             param: 'days_served',
             default: 0,
           },
           {column: 'first_date_served', direction: :asc} => {
-            title: 'Longest standing', 
-            column: wcpt[:first_date_served].asc, 
+            title: 'Longest standing',
+            column: wcpt[:first_date_served].asc,
             param: 'first_date_served',
             default: Date.today.to_s,
           },
         }
-        
+
       end
     end
   end

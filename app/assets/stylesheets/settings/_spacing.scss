@@ -1,0 +1,18 @@
+$spacer: 1rem;
+
+@function calculate-space($amount) {
+  @return #{$amount / $font-size-default}rem;
+}
+
+$spacers: (
+  0: 0
+);
+
+//        1   2   3    4    5    6    7    8    9    10   11   12   13
+$spaces: 4px 8px 12px 16px 20px 30px 40px 50px 60px 60px 80px 90px 100px;
+
+@for $i from 1 through length($spaces) {
+  $item: nth($spaces, $i);
+  $current-space: ( $i: calculate-space($item) );
+  $spacers: map-merge($current-space, $spacers);
+}

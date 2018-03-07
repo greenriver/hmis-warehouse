@@ -1,118 +1,96 @@
-/*
-*= require select2
-*= require select2-bootstrap
-*= require bootstrap-datepicker3
-*= require jquery-ui/sortable
-*= require jquery-ui/slider
-*= require leaflet
-*= require jquery.minicolors
-*= require datatables.min
-*/
+@charset 'UTF-8';
 
-@import 'bootstrap-custom';
-@import "font-awesome-sprockets";
-@import "font-awesome";
-@import "vis";
-@import "helpers/mixins";
-// @import "base/grid_framework";
-@import "base/typography";
-@import "base/buttons";
-@import "base/forms";
-@import "base/modals";
-@import "base/navs";
-@import "modules/header";
-@import "modules/footer";
-@import "modules/tables";
-@import "modules/site_menu";
-@import "vendor/icomoon.css";
-@import "helpers/helper_classes";
-@import "modules/report_results";
-@import "modules/warehouse_reports";
-@import "modules/client";
-@import "modules/window";
-@import "modules/census";
-@import "modules/data_sources";
-@import "modules/reports";
-@import "modules/sections_slabs_cards";
-@import "modules/lists";
-@import "modules/vispdats";
-@import "modules/health_charts";
-@import "modules/anomalies";
-@import "modules/cohorts";
+// Settings
+// (Colors, Variables, Fonts)
+// (Ordered by inclusion)
+@import
+  'settings/colors',
+  'settings/variables',
+  'settings/spacing',
+  'settings/stack_order';
 
-$light-body-text: lighten(#404040, 40%);
+// Tools
+// (Mixins, Functions)
+@import
+  'tools/functions',
+  'tools/mixins';
 
-body {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
-}
-body.show {
-  display: flex !important;
-  min-height: 100vh !important;
-  flex-direction: column !important;
-}
-main {
-  flex: 1 0 auto;
-}
-.utility {
-  min-height: 60px;
-  padding: 8px 0;
-  @media (max-width: $screen-sm-min) {
-    margin-top: 40px;
-  }
-}
-.crumbs a {
-  margin-right: 12px;
-}
-.alert {
-  z-index: $zIndex-3--notice;
-  @include open-sans-medium;
-}
-.alert a {
-  color: #fff;
-}
-.alert a:hover,
-.alert a:focus {
-  text-decoration: none;
-}
-.action-row {
-  padding-bottom: 12px;
-}
-.add-another {
-  margin-top: 24px;
-  margin-bottom: 36px;
-  text-align: right;
-}
-.how-to-popover:focus {
-  outline: none;
-}
-.popover{
-  max-width: 80%; /* Max Width of the popover (depending on the container!) */
-  white-space: pre-wrap;
-}
-.popover ol {
-  padding-left: 0 !important;
-  -webkit-padding-start: 10px !important;
-}
-.home-intro {
-  @include poppins-normal;
-  font-size: 1.2em;
-  margin-bottom: 40px;
-  @media (min-width: $screen-sm-min) {
-    width: 80%;
-    margin: 60px auto 0;
-  }
-}
-.explain { /* to mark elements whose function was not clear from the mock */
-  color: red;
-}
-.date-cell {
-  text-align: center;
-}
-.num-cell {
-  text-align: right;
-}
-.light {
-  color: $light-body-text;
-}
+// Vendor
+@import
+  'select2',
+  'select2-bootstrap',
+  'bootstrap-datepicker3',
+  'jquery-ui/sortable',
+  'jquery-ui/slider',
+  'leaflet',
+  'jquery.minicolors',
+  'datatables.min',
+  'font-awesome-sprockets',
+  'font-awesome',
+  'vis',
+  'vendor/bootstrap/index',
+  'vendor/icomoon';
+
+// Elements
+// (DOM elements)
+@import
+  'elements/body',
+  'elements/dl',
+  'elements/html',
+  'elements/main';
+
+// Layouts
+// (Super high-level structural layout)
+@import
+  'layouts/main';
+
+// Objects
+// (High-level items with minimal styling)
+@import
+  'objects/card_grid',
+  'objects/container',
+  'objects/dashboard',
+  'objects/list',
+  'objects/text';
+
+// Components
+// ()
+@import
+  'components/card';
+
+// @import 'base/grid_framework';
+@import
+  'base/typography',
+  'base/buttons',
+  'base/forms',
+  'base/modals',
+  'base/navs';
+
+@import
+  'modules/header',
+  'modules/footer',
+  'modules/tables',
+  'modules/site_menu',
+  'modules/report_results',
+  'modules/warehouse_reports',
+  'modules/client',
+  'modules/window',
+  'modules/census',
+  'modules/data_sources',
+  'modules/reports',
+  'modules/sections_slabs_cards',
+  'modules/lists',
+  'modules/vispdats',
+  'modules/health_charts',
+  'modules/anomalies',
+  'modules/cohorts';
+
+@import
+  'overrides/bootstrap';
+
+@import
+  'utilities/general',
+  'utilities/helper_classes',
+  'utilities/tables',
+  'utilities/spacing',
+  'utilities/text';
