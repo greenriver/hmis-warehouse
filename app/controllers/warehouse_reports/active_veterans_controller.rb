@@ -1,6 +1,6 @@
 module WarehouseReports
   class ActiveVeteransController < ApplicationController
-    # include WarehouseReportAuthorization
+    include WarehouseReportAuthorization
 
     before_action :set_jobs, only: [:index, :running]
     before_action :sort_options, only: :index
