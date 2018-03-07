@@ -1,0 +1,168 @@
+
+- if data = @data[:destination_breakdowns_by_project_type]
+  :ruby
+    permanent_destinations = HUD::permanent_destinations
+    temporary_destinations = HUD::temporary_destinations
+    institutional_destinations = HUD::institutional_destinations
+    other_destinations = HUD::other_destinations
+    buckets = {permanent: {}, temporary: {}, institutional: {}, other: {}}
+    data.each do |k, count|
+      (project_type, destination) = k.split('__')
+      buckets.each do |k, _|
+        buckets[k][project_type] ||= 0
+      end
+      case destination.to_i
+      when *permanent_destinations
+        buckets[:permanent][project_type] += count
+      when *temporary_destinations
+        buckets[:temporary][project_type] += count
+      when *institutional_destinations
+        buckets[:institutional][project_type] += count
+      when *other_destinations
+        buckets[:other][project_type] += count
+      end
+    end
+  %h4 Destination Counts by Type by Project Type for Reporting Period
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        %th Permanent
+        %th Temporary
+        %th Institutional
+        %th Other
+    %tbody
+      - buckets[:permanent].each do |project_type, count|
+        %tr
+          %th= project_type
+          %td= count
+          %td= buckets[:temporary][project_type]
+          %td= buckets[:institutional][project_type]
+          %td= buckets[:other][project_type]
+
+- if data = @data[:comparison_destination_breakdowns_by_project_type]
+  :ruby
+    permanent_destinations = HUD::permanent_destinations
+    temporary_destinations = HUD::temporary_destinations
+    institutional_destinations = HUD::institutional_destinations
+    other_destinations = HUD::other_destinations
+    buckets = {permanent: {}, temporary: {}, institutional: {}, other: {}}
+    data.each do |k, count|
+      (project_type, destination) = k.split('__')
+      buckets.each do |k, _|
+        buckets[k][project_type] ||= 0
+      end
+      case destination.to_i
+      when *permanent_destinations
+        buckets[:permanent][project_type] += count
+      when *temporary_destinations
+        buckets[:temporary][project_type] += count
+      when *institutional_destinations
+        buckets[:institutional][project_type] += count
+      when *other_destinations
+        buckets[:other][project_type] += count
+      end
+    end
+  %h4 Destination Counts by Type by Project Type for Comparison Period
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        %th Permanent
+        %th Temporary
+        %th Institutional
+        %th Other
+    %tbody
+      - buckets[:permanent].each do |project_type, count|
+        %tr
+          %th= project_type
+          %td= count
+          %td= buckets[:temporary][project_type]
+          %td= buckets[:institutional][project_type]
+          %td= buckets[:other][project_type]
+
+- if data = @data[:destination_breakdowns_by_project]
+  :ruby
+    permanent_destinations = HUD::permanent_destinations
+    temporary_destinations = HUD::temporary_destinations
+    institutional_destinations = HUD::institutional_destinations
+    other_destinations = HUD::other_destinations
+    buckets = {permanent: {}, temporary: {}, institutional: {}, other: {}}
+    @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+      buckets.each do |k, _|
+        buckets[k][p_id] ||= 0
+      end
+    end
+    data.each do |k, count|
+      (project_id, destination) = k.split('__')
+      case destination.to_i
+      when *permanent_destinations
+        buckets[:permanent][project_id] += count
+      when *temporary_destinations
+        buckets[:temporary][project_id] += count
+      when *institutional_destinations
+        buckets[:institutional][project_id] += count
+      when *other_destinations
+        buckets[:other][project_id] += count
+      end
+    end
+  %h4 Destination Counts by Type by Project for Reporting Period
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        %th Permanent
+        %th Temporary
+        %th Institutional
+        %th Other
+    %tbody
+      - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+        %tr
+          %th= p_name
+          %td= buckets[:permanent][p_id]
+          %td= buckets[:temporary][p_id]
+          %td= buckets[:institutional][p_id]
+          %td= buckets[:other][p_id]
+
+- if data = @data[:comparison_destination_breakdowns_by_project]
+  :ruby
+    permanent_destinations = HUD::permanent_destinations
+    temporary_destinations = HUD::temporary_destinations
+    institutional_destinations = HUD::institutional_destinations
+    other_destinations = HUD::other_destinations
+    buckets = {permanent: {}, temporary: {}, institutional: {}, other: {}}
+    @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+      buckets.each do |k, _|
+        buckets[k][p_id] ||= 0
+      end
+    end
+    data.each do |k, count|
+      (project_id, destination) = k.split('__')
+      case destination.to_i
+      when *permanent_destinations
+        buckets[:permanent][project_id] += count
+      when *temporary_destinations
+        buckets[:temporary][project_id] += count
+      when *institutional_destinations
+        buckets[:institutional][project_id] += count
+      when *other_destinations
+        buckets[:other][project_id] += count
+      end
+    end
+  %h4 Destination Counts by Type by Project for Comparison Period
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Type
+        %th Permanent
+        %th Temporary
+        %th Institutional
+        %th Other
+    %tbody
+      - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+        %tr
+          %th= p_name
+          %td= buckets[:permanent][p_id]
+          %td= buckets[:temporary][p_id]
+          %td= buckets[:institutional][p_id]
+          %td= buckets[:other][p_id]
