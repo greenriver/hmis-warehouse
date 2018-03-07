@@ -4,7 +4,7 @@
     .col-md-6.col-lg-4
       .form-group
         - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible].sort.each do |column|
-          = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: {class: 'form-group--tight'}
+          = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
 
       .form-group
         - if can_view_hiv_status?
