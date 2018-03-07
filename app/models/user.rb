@@ -163,23 +163,28 @@ class User < ActiveRecord::Base
 
   def subordinates
     return [] unless can_manage_organization_users?
-    source = GrdaWarehouse::UserViewableEntity
-    at = source.arel_table
+    uve_source = GrdaWarehouse::UserViewableEntity
+    uve_t = uve_source.arel_table
 
     data_source_ids = data_sources.pluck(:id)
 
-    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_ids ).pluck(:id)
+    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.
+      where(data_source_id: data_source_ids ).pluck(:id)
 
-    project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.where(OrganizationID: organization_ids).pluck(:id) + GrdaWarehouse::Hud::Project.where(data_source_id: data_source_ids).pluck(:id)
+    project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.
+      where(OrganizationID: organization_ids).
+      pluck(:id) + GrdaWarehouse::Hud::Project.
+        where(data_source_id: data_source_ids).
+        pluck(:id)
 
-    data_source_members = at[:entity_id].in(data_source_ids)
-      .and(at[:entity_type].eq('GrdaWarehouse::DataSource'))
-    organization_members = at[:entity_id].in(organization_ids)
-      .and(at[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
-    project_members = at[:entity_id].in(project_ids)
-      .and(at[:entity_type].eq('GrdaWarehouse::Hud::Project'))
+    data_source_members = uve_t[:entity_id].in(data_source_ids)
+      .and(uve_t[:entity_type].eq('GrdaWarehouse::DataSource'))
+    organization_members = uve_t[:entity_id].in(organization_ids)
+      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
+    project_members = uve_t[:entity_id].in(project_ids)
+      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Project'))
 
-    sub_ids = source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
+    sub_ids = uve_source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
 
     manager_ids = User.includes(:roles)
       .references(:roles)
