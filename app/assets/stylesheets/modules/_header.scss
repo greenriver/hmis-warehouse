@@ -1,7 +1,7 @@
 // From medium and below: Sign In disappears
-// From 
+// From
 
-header {
+body > header {
   // @include linear-gradient(#859CB7, #485F7A);
   // @include linear-gradient($cob-sg-blue-004, $cob-sg-charles-blue);
   background-color: $cob-sg-blue-003;

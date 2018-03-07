@@ -6,6 +6,7 @@
 @import
   'settings/colors',
   'settings/variables',
+  'settings/spacing',
   'settings/stack_order';
 
 // Tools
@@ -27,7 +28,7 @@
   'font-awesome-sprockets',
   'font-awesome',
   'vis',
-  'vendor/bootstrap-custom',
+  'vendor/bootstrap/index',
   'vendor/icomoon';
 
 @import
@@ -40,7 +41,9 @@
   'layouts/main';
 
 @import
-  'objects/container';
+  'objects/container',
+  'objects/list',
+  'objects/text';
 
 // @import 'base/grid_framework';
 @import
@@ -76,4 +79,5 @@
   'utilities/general',
   'utilities/helper_classes',
   'utilities/tables',
+  'utilities/spacing',
   'utilities/text';

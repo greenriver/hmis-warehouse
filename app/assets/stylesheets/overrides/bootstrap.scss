@@ -1,3 +1,8 @@
+.container-fluid {
+  padding-right: 30px;
+  padding-left: 30px;
+}
+
 th .fa {
   padding-left: 4px;
   color: $cas-blue;
@@ -33,4 +38,8 @@ th .fa {
 .alert a:hover,
 .alert a:focus {
   text-decoration: none;
+}
+
+.active-tab a {
+  font-weight: 800;
 }

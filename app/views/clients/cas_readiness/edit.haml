@@ -2,8 +2,8 @@
 - content_for :title, title
 = render 'clients/tab_navigation', current: edit_client_cas_readiness_path(@client)
 
-.o-container--centered
-  .mb-3
+%section.o-tabs__content
+  %header
     %h1= content_for :title
     = render 'clients/breadcrumbs'
 

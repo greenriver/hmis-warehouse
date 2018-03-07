@@ -28,7 +28,7 @@
 {
   background-color: $gray-040;
 }
-.service-type__first 
+.service-type__first
 {
   background-color: $cob-sg-optimistic-blue;
   color: white;
@@ -210,7 +210,7 @@ $client-match-action-row-height: 22px;
 
 .clients__client:nth-child(even)
 {
-  background-color: $gray-015;
+  background-color: $white;
 }
 .clients__client-name
 {
@@ -342,14 +342,21 @@ $client-match-action-row-height: 22px;
   margin-bottom: 0.25em;
 }
 
-.client-flag
-{
+.client-flag {
   text-align: center;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
   padding: 1em 0.5em;
   display: inline-block;
   padding: 0.5em 0.5em;
+  color: $text-color;
+}
+
+.client-flag.alert a {
+  color: $text-color;
+  &:hover {
+    color: $black;
+  }
 }
 
 .client-flag__longterm-stayer
