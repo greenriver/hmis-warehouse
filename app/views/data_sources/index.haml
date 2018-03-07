@@ -26,7 +26,7 @@
               %td
                 = data_source.short_name
               %td
-                = data_source.last_imported_at
+                = data_source.import_logs.maximum(:completed_at)
               %td
                 = checkmark(data_source.visible_in_window)
               %td
