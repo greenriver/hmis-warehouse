@@ -1,20 +1,17 @@
-.big-block
-{
+.big-block {
   font-size: $font-size-h2;
 }
-.big-block > *
-{
+
+.big-block > * {
   padding: 0.25em;
 }
-.big-block .body 
-{
+
+.big-block .body {
   background-color: $cob-sg-charles-blue;
   color: white;
 }
 
-.big-arrow-up
-{
-  position: relative;
+.big-arrow-up { position: relative;
   display: inline-block;
   background-clip: content-box;
   width: 100%;
@@ -23,8 +20,8 @@
   margin: 0;
   overflow:hidden;
 }
-.big-arrow-up:before
-{
+
+.big-arrow-up:before {
   content: '';
   padding: 0;
   position: absolute;
@@ -37,8 +34,15 @@
   -webkit-transform-origin:0 0;
   -ms-transform-origin:0 0;
   transform-origin:0 0;
-  
+
   -webkit-transform: rotate(-30deg) skewX(30deg);;
   -ms-transform: rotate(-30deg) skewX(30deg);
   transform: rotate(-30deg) skewX(30deg);
+}
+
+.table-reports {
+  thead:not(:first-of-type) tr.report-base th {
+    padding-top: space(7);
+    border-top: 0;
+  }
 }
