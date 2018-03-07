@@ -1,42 +1,61 @@
+- check_wrapper_class = {class: 'form-group--tight'}
 = simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
-  .row
-    .col-sm-6
-      - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible].each do |column|
-        = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column]
-    .col-sm-6
-      %p The following attributes are determined based exclusively on the existance of an uploaded file.
-      %table.table.table-condensed
-        %thead
-          %tr
-            %th On File?
-            %th CAS Attribute
-        %tbody
-          %tr
-            %td= checkmark(@client.ha_eligible)
-            %td= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
-          %tr
-            %td= checkmark(@client.disability_verified_on.present?)
-            %td= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
-      
-      = f.input :housing_release_status, collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed'
-      .row
-        .col-sm-6
-          %label Consent Form Signed On
-          %div
-            %i.icon-calendar
-            = @client.consent_form_signed_on
-        .col-sm-6
-          %label Consent Form Confirmed
-          %div
-            = checkmark @client.client_files.where(consent_form_signed_on: @client.consent_form_signed_on).first&.consent_form_confirmed
-      %hr
-      - if can_view_hiv_status?
-        = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible]
-        = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive]
-      - if can_view_dmh_status?
-        = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible]
-      = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas]
+  .row.mb-4
+    .col-md-6.col-lg-4
+      .form-group
+        - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible].sort.each do |column|
+          = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: {class: 'form-group--tight'}
 
-  = render 'vispdat', f: f
+      .form-group
+        - if can_view_hiv_status?
+          = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
+          = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
+
+        - if can_view_dmh_status?
+          = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
+
+      = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
+
+    .col-md-6
+      .row.mb-5.mt-3
+        .col-md-6
+          = f.label :housing_release_status, class: 'o-text--semibold'
+          = f.input :housing_release_status, collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed', label: false
+
+      .mb-8
+        %p.o-text--semibold The following attributes are determined based exclusively on the existance of an uploaded file.
+        %p
+          = checkmark_or_x(@client.ha_eligible)
+          %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
+        %p
+          = checkmark_or_x(@client.disability_verified_on.present?)
+          %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
+
+      %dl.row
+        .col-sm-6.mb-4
+          %dt Consent Form Signed On
+          %dd
+            - signed_date = @client.consent_form_signed_on
+            - if signed_date
+              %i.icon-calendar
+              = signed_date
+            - else
+              %i.fa.fa-times-circle.o-color--warning.inline-icon
+              Form Not Signed
+        .col-sm-6.mb-4
+          %dt Consent Form Confirmed
+          %dd
+            - confirmed = @client.client_files.where(consent_form_signed_on: @client.consent_form_signed_on).first&.consent_form_confirmed
+            = checkmark_or_x confirmed
+            - unless confirmed
+              Form Not Confirmed
+
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'vispdat', f: f
+
   = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
-  = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'
+
+  .row.mt-8
+    .col-sm-6
+      = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'

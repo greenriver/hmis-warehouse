@@ -1,10 +1,13 @@
 - title = "CAS Readiness Form for #{@client.full_name}"
 - content_for :title, title
 = render 'clients/tab_navigation', current: edit_client_cas_readiness_path(@client)
-%h1= content_for :title
-= render 'clients/breadcrumbs'
-  
-%p
-  The following information is used exclusively for matching clients to vacancies in CAS.  It is not used for federal reporting.
 
-= render GrdaWarehouse::Config.get(:cas_flag_method).to_s
+%section.o-tabs__content
+  %header
+    %h1= content_for :title
+    = render 'clients/breadcrumbs'
+
+    %p
+      The following information is used exclusively for matching clients to vacancies in CAS.  It is not used for federal reporting.
+
+  = render GrdaWarehouse::Config.get(:cas_flag_method).to_s

@@ -38,6 +38,18 @@ module ApplicationHelper
     boolean ? '✓': ''
   end
 
+  def checkmark_or_x(boolean)
+    html_class =
+      if boolean
+        'check-circle o-color--positive'
+      else
+        'times-circle o-color--warning'
+      end
+    capture do
+      concat content_tag :span, nil, class: "fa fa-#{html_class} inline-icon"
+    end
+  end
+
   def ssn(number)
     # pad with leading 0s if we don't have enough characters
     number = number.to_s.rjust(9, '0') if number.present?
@@ -59,7 +71,7 @@ module ApplicationHelper
     # Excellent discussion of why this works:
     # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
     d_1_start < d_2_end && d_1_end > d_2_start rescue true # this catches empty
-  end 
+  end
 
   # returns the class associated with the current sort order of a column
   def current_sort_order(columns)
