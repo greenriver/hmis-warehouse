@@ -41,12 +41,12 @@ module ApplicationHelper
   def checkmark_or_x(boolean)
     html_class =
       if boolean
-        'check-circle o-color--positive'
+        'checkmark o-color--positive'
       else
-        'times-circle o-color--warning'
+        'cross o-color--warning'
       end
     capture do
-      concat content_tag :span, nil, class: "fa fa-#{html_class} inline-icon"
+      concat content_tag :span, nil, class: "icon-#{html_class} inline-icon"
     end
   end
 
