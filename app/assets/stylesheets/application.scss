@@ -31,16 +31,23 @@
   'vendor/bootstrap/index',
   'vendor/icomoon';
 
+// Elements
+// (DOM elements)
 @import
   'elements/body',
   'elements/dl',
   'elements/html',
   'elements/main';
 
+// Layouts
+// (Super high-level structural layout)
 @import
   'layouts/main';
 
+// Objects
+// (High-level items with minimal styling)
 @import
+  'objects/dashboard',
   'objects/container',
   'objects/list',
   'objects/text';
