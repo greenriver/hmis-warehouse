@@ -1,16 +1,25 @@
 - content_for :title, _("Reports")
-%h1= content_for :title
+%header.mb-3
+  %h1= content_for :title
 .row.table-utilities
   .col-sm-12
     .table-responsive
-      %table.table.table-condensed.table-hover
-        - @reports.each do |base,reports|
+      %table.table.table-condensed.table-hover.table-reports
+        - @reports.each_with_index do |base,i|
+          - show_header = i == 0
+          - base, reports = base
           %thead
             %tr{class: 'report-base'}
               %th= link_to "#{base}::Base".constantize.report_name, report_results_summary_path(reports.first[:report_results_summary_id])
-              %th Last Run
-              %th Status
-              %th Completed In
+              %th
+                - if show_header
+                  = 'Last Run'
+              %th
+                - if show_header
+                  = 'Status'
+              %th
+                - if show_header
+                  = 'Completed In'
           %tbody
             - reports.each do |report|
               %tr
@@ -18,4 +27,3 @@
                 %td= report.last_result.try(:last_run)
                 %td= report.last_result.try(:last_run_status)
                 %td= report.last_result.try(:completed_in)
-
