@@ -1,0 +1,15 @@
+var note = #{@note.to_json.html_safe}
+if(note.error != undefined) {
+alert(note.error);
+}else {
+var cohort_client_id = note.cohort_client_id;
+var $row = $('.jCohortClient[data-cohort-client-id=' + cohort_client_id + ']');
+var $cell = $row.find('[data-column="CohortColumns::Notes"]');
+var $badge = $cell.find('.badge');
+
+$badge.each(function(){
+var count = +$(this).text() + 1;
+$(this).text(count);
+});
+$(".modal").modal('hide');
+}
