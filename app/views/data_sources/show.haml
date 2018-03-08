@@ -3,8 +3,8 @@
 %h1= @data_source.name
 = simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
   .row
-    .col-sm-8
-      %table.table.table-condensed
+    .col-sm-6
+      %table.table.table-condensed.table-simple
         %tr
           %th Last Import Run
           %td= @data_source.last_imported_at
@@ -25,7 +25,7 @@
               Visible in the Window into the Warehouse?
             %td
               = f.input :visible_in_window, label: false
-    .col-sm-4
+    .col-sm-6.text-right
       - if ! @data_source.authoritative? && can_upload_hud_zips?
         = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
           %span.icon-plus
@@ -40,7 +40,7 @@
         .table-responsive
           = f.simple_fields_for :organizations, @organizations do |o|
             - org = o.object
-            .c-card--flush
+            .c-card--flush.mb-5
               %header.row.c-card__header
                 .col-sm-8
                   %h3= org.name
@@ -88,13 +88,12 @@
                         =# select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
                       %td
                         - unless @readonly
-                          = proj.input :hud_coc_code, label: false, input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}
-                          %br
-                        = project.project_cocs.map(&:CoCCode).join(', ')
+                          = proj.input :hud_coc_code, label: false, input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}, wrapper_html: {class: 'mb-2'}
+                        %span.o-text--italic
+                          = project.project_cocs.map(&:CoCCode).join(', ')
                       %td
-                        = proj.input :hud_continuum_funded, label: false
+                        = proj.input :hud_continuum_funded, label: false, wrapper_html: {class: 'mb-2'}
                         - unless @readonly
-                          %br
                           = checkmark(project.ContinuumProject)
                       %td
                         = proj.input :confidential, label: false

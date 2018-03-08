@@ -7,6 +7,13 @@
     @include margin(12px null 24px);
   }
 }
+
+.table-simple thead tr th,
+.table-simple tbody tr th,
+.table-simple tbody tr td {
+  border: 0;
+}
+
 // .table > thead > tr > th,
 // .table > thead > tr > td,
 // .table > tbody > tr > th,
