@@ -317,16 +317,17 @@ $client-match-action-row-height: 22px;
 }
 .destination-data-source-tag
 {
-  display: inline-block;
+  /* display: inline-block;
   min-height: 10px;
   min-width: 10px;
-  margin: auto;
+  margin: auto; */
 }
 
 .destination-sqr
 {
   background-color: $cob-sg-blue-002;
   padding: 2px 5px;
+  display: inline-block;
 }
 .confidential_project
 {

@@ -1,3 +1,7 @@
+.table thead th {
+  font-weight: 600;
+}
+
 .table-utilities {
   @media (max-width: $screen-sm-max) {
     @include margin(12px null 24px);

@@ -29,3 +29,11 @@
       = render 'client_card', client: client
 
   %p= paginate @clients, params: {sort: @column, direction: @direction}
+
+= content_for :page_js do
+  :javascript
+    $('.js-client').on('click', function(event){
+      if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
+        window.location = 'clients/' + $(this).data('id')
+      }
+    })

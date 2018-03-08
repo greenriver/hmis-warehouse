@@ -24,4 +24,5 @@
             %td= benefit.amounts.map(&:to_f).map{ |v| format( '$%.2f', v.round(2)) }.join ', '
             %td.num-cell= format '$%.2f', benefit.amounts.compact.sum.round(2)
   - else
-    No income or benefits on file
+    .no-data
+      No income or benefits on file
