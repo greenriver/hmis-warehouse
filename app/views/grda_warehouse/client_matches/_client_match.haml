@@ -3,112 +3,113 @@
   client_a = match.destination_client
   client_b = match.source_client
 
-.client-match{data: {id: match.id}}
-  %h6
-    - if !match.candidate?
-      .pull-right
-        Created:
-        = match.created_at
-    = "Match Score: #{match.score.round(2).abs}"
-  %table.client-match--factors
-    %tr
-      %th
-      %th
-        Existing
-        %br
-        = client_a.data_source.short_name
-        - unless match.accepted?
-          = link_to edit_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
+.c-card--flush
+  .client-match{data: {id: match.id}}
+    %h6
+      - if !match.candidate?
+        .pull-right
+          Created:
+          = match.created_at
+      = "Match Score: #{match.score.round(2).abs}"
+    %table.client-match--factors
+      %tr
+        %th
+        %th
+          Existing
+          %br
+          = client_a.data_source.short_name
+          - unless match.accepted?
+            = link_to edit_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
+              = client_a.PersonalID.slice(0,4)
+            source for:
+            = client_a.destination_client.id
+          - else
             = client_a.PersonalID.slice(0,4)
-          source for: 
-          = client_a.destination_client.id
-        - else
-          = client_a.PersonalID.slice(0,4)
-      %th
-      %th
+        %th
+        %th
 
-      %th
-        Proposed
-        %br
-        = client_b.data_source.short_name
-        - unless match.accepted?
-          = link_to edit_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
+        %th
+          Proposed
+          %br
+          = client_b.data_source.short_name
+          - unless match.accepted?
+            = link_to edit_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
+              = client_b.PersonalID.slice(0,4)
+            source for:
+            = client_b.destination_client.id
+          - else
             = client_b.PersonalID.slice(0,4)
-          source for: 
-          = client_b.destination_client.id
-        - else
-          = client_b.PersonalID.slice(0,4)
-      %th
-    %tr
-      %th
-      %td
-        - if client_a.image_for_source_client.present?
-          = image_tag(polymorphic_path(source_client_image_path_generator, id: client_a.id), style: 'width: 125px;')
-      %td
-      %td
-      %td
-        - if client_b.image_for_source_client.present?
-          = image_tag(polymorphic_path(source_client_image_path_generator, id: client_b.id), style: 'width: 125px;')
-      %td
-    %tr
-      %th Name
-      %td= client_a.full_name
-      %td= data_qaulity_warning :name, client_a.NameDataQuality
-      %td= match_contribution_flags(match, [:FirstName, :MiddleName, :LastName])
-      %td= client_b.full_name
-      %td= data_qaulity_warning :name, client_b.NameDataQuality
-    %tr
-      %th SSN
-      %td= ssn client_a.SSN
-      %td= data_qaulity_warning :ssn, client_a.SSNDataQuality
-      %td= match_contribution_flags(match, :SSN)
-      %td= ssn client_b.SSN
-      %td= data_qaulity_warning :ssn, client_b.SSNDataQuality
-    %tr
-      %th DOB
-      %td= "#{client_a.DOB} (#{client_a.age})"
-      %td= data_qaulity_warning :dob, client_a.DOBDataQuality
-      %td= match_contribution_flags(match, :DOB)
-      %td= "#{client_b.DOB} (#{client_b.age})"
-      %td= data_qaulity_warning :dob, client_b.DOBDataQuality
-    %tr
-      %th Race
-      %td= client_a.race_description
-      %td
-      %td= match_contribution_flags(match, GrdaWarehouse::Hud::Client.race_fields)
-      %td= client_b.race_description
-      %td
-    %tr
-      %th Ethnicity
-      %td= HUD.ethnicity client_a.Ethnicity
-      %td
-      %td= match_contribution_flags(match, :Ethnicity)
-      %td= HUD.ethnicity client_b.Ethnicity
-      %td
-    %tr
-      %th Veteran
-      %td= HUD.veteran_status client_a.VeteranStatus
-      %td
-      %td= match_contribution_flags(match, :VeteranStatus)
-      %td= HUD.veteran_status client_b.VeteranStatus
-      %td
-    %tr
-      %th Active enrollments
-      %td= client_a.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
-      %td
-      %td
-      %td= client_b.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
-.client-match--actions
-  - if match.candidate?
-    = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success pull-left'})
-    = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger pull-right'
-    .text-center
-      = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default'
-    
-  - elsif match.accepted?
-    = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"
-    = link_to edit_client_path(client_a.destination_client) do
-      View Result
-  - elsif match.rejected?
-    = "Rejected: #{match.updated_at} by #{match.updated_by.try(:name)}"
-    = link_to '(undo)', client_match_path(match, format: :json, client_match: {status: 'candidate'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch
+        %th
+      %tr
+        %th
+        %td
+          - if client_a.image_for_source_client.present?
+            = image_tag(polymorphic_path(source_client_image_path_generator, id: client_a.id), style: 'width: 125px;')
+        %td
+        %td
+        %td
+          - if client_b.image_for_source_client.present?
+            = image_tag(polymorphic_path(source_client_image_path_generator, id: client_b.id), style: 'width: 125px;')
+        %td
+      %tr
+        %th Name
+        %td= client_a.full_name
+        %td= data_qaulity_warning :name, client_a.NameDataQuality
+        %td= match_contribution_flags(match, [:FirstName, :MiddleName, :LastName])
+        %td= client_b.full_name
+        %td= data_qaulity_warning :name, client_b.NameDataQuality
+      %tr
+        %th SSN
+        %td= ssn client_a.SSN
+        %td= data_qaulity_warning :ssn, client_a.SSNDataQuality
+        %td= match_contribution_flags(match, :SSN)
+        %td= ssn client_b.SSN
+        %td= data_qaulity_warning :ssn, client_b.SSNDataQuality
+      %tr
+        %th DOB
+        %td= "#{client_a.DOB} (#{client_a.age})"
+        %td= data_qaulity_warning :dob, client_a.DOBDataQuality
+        %td= match_contribution_flags(match, :DOB)
+        %td= "#{client_b.DOB} (#{client_b.age})"
+        %td= data_qaulity_warning :dob, client_b.DOBDataQuality
+      %tr
+        %th Race
+        %td= client_a.race_description
+        %td
+        %td= match_contribution_flags(match, GrdaWarehouse::Hud::Client.race_fields)
+        %td= client_b.race_description
+        %td
+      %tr
+        %th Ethnicity
+        %td= HUD.ethnicity client_a.Ethnicity
+        %td
+        %td= match_contribution_flags(match, :Ethnicity)
+        %td= HUD.ethnicity client_b.Ethnicity
+        %td
+      %tr
+        %th Veteran
+        %td= HUD.veteran_status client_a.VeteranStatus
+        %td
+        %td= match_contribution_flags(match, :VeteranStatus)
+        %td= HUD.veteran_status client_b.VeteranStatus
+        %td
+      %tr
+        %th Active enrollments
+        %td= client_a.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
+        %td
+        %td
+        %td= client_b.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
+  .client-match--actions
+    - if match.candidate?
+      = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success pull-left'})
+      = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger pull-right'
+      .text-center
+        = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default'
+
+    - elsif match.accepted?
+      = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"
+      = link_to edit_client_path(client_a.destination_client) do
+        View Result
+    - elsif match.rejected?
+      = "Rejected: #{match.updated_at} by #{match.updated_by.try(:name)}"
+      = link_to '(undo)', client_match_path(match, format: :json, client_match: {status: 'candidate'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch

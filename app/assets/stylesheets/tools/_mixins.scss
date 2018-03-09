@@ -1,3 +1,12 @@
+@mixin card {
+  background: $white;
+  padding: space(4);
+  color: $text-color;
+  border-radius:  $border-radius-default;
+  border: 1px solid $gray-020;
+}
+
+
 @mixin poppins {
   font-family: 'Poppins', sans-serif;
 }
