@@ -1,4 +1,26 @@
 module ClientMatchHelper
+
+  def enrolled client
+    enrolls = client.service_history_enrollments
+      .ongoing
+      .distinct
+      .residential
+      .pluck(:project_type).map do |project_type|
+        if project_type == 13
+          [project_type, 'RRH']
+        else
+          [project_type, HUD.project_type_brief(project_type)]
+        end
+      end
+    enrolls.map do |project_type, text|
+      content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
+        content_tag(:em, class: 'service-type__program-type') do
+          text
+        end
+      end
+    end.join(' ').html_safe
+  end
+
   def data_qaulity_warning(type, value)
     return '' if value.blank? || [1,99].include?(value.to_i)
     label = HUD.send("#{type.downcase}_data_quality", value)
