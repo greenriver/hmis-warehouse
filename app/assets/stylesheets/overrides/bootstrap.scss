@@ -34,6 +34,10 @@ th .fa {
 .alert a {
   color: #fff;
 }
+.alert a:link
+{
+  text-decoration: underline;
+}
 
 .alert a:hover,
 .alert a:focus {
@@ -43,3 +47,4 @@ th .fa {
 .active-tab a {
   font-weight: 800;
 }
+

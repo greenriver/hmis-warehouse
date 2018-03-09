@@ -250,7 +250,7 @@ $client-match-action-row-height: 22px;
   padding-left: 0.25em;
 }
 .client__filter-active .btn-default {
-  background-color: $brand-info;
+  background-color: $cob-sg-blue-004;
   color: white;
 }
 .client__assessment-question,
@@ -346,10 +346,14 @@ $client-match-action-row-height: 22px;
   text-align: center;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
-  padding: 1em 0.5em;
   display: inline-block;
-  padding: 0.5em 0.5em;
+  padding: 0.25em 0.5em;
   color: $text-color;
+}
+
+.client-flag.alert-success
+{
+  color: white;
 }
 
 .client-flag.alert a {
@@ -363,6 +367,7 @@ $client-match-action-row-height: 22px;
 {
   background-color: $brand-warning;
   border-color: $brand-warning;
+  color: white;
 }
 
 .client-flag__cas
