@@ -4,7 +4,7 @@
 = simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
   .row
     .col-sm-6
-      %table.table.table-condensed.table-simple
+      %table.table.table-condensed
         %tr
           %th Last Import Run
           %td= @data_source.last_imported_at

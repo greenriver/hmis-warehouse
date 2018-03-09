@@ -210,6 +210,7 @@ $client-match-action-row-height: 22px;
 }
 
 .client__details{
+  padding-right: space(4);
   flex: 0 0 33%;
 }
 
@@ -238,7 +239,6 @@ $client-match-action-row-height: 22px;
 }
 .clients__client-name,
 .client__client-name {
-  display: flex;
   align-items: center;
 }
 .clients__users

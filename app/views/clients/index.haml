@@ -37,7 +37,8 @@
         .clients__client-additional-names
           .client__client-name
             - akas.each_with_index do | aka, i |
-              %div= aka
+              .client-aka
+                = aka
       .client__details.client__details--demographics
         .client__ssns
           - client.source_clients.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|

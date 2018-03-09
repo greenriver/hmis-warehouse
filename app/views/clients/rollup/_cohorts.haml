@@ -2,5 +2,5 @@
   - if @client.active_cohorts.any?
     %h3 Cohorts
     %ul.client-cohorts
-      - @client.active_cohorts.each do |cohort|
+      - @client.active_cohorts.distinct.each do |cohort|
         %li= link_to_if cohort.class.has_some_cohort_access(current_user), cohort.name, cohort_path(cohort)
