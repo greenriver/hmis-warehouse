@@ -448,6 +448,61 @@ h2.ho-sub__h2 {
   margin-bottom: 20px;
 }
 
+//d3-loso = length of stay outcomes
+.loso__container .ho-container__header h4 {
+  margin-top: 0px;
+  display:inline-block;
+}
+
+.loso-footer {
+  padding-top: 20px;
+}
+
+.loso__legend {
+  .ho-hint {
+    float: left;
+    margin-left: 10px;
+  }
+}
+
+.loso-collapse {
+  margin-top: 20px;
+  overflow-x: scroll;
+}
+
+table.table.loso-table tr:last-of-type {
+  th, td {
+    border-bottom: 1px solid #dddddd;
+  }
+}
+
+table.table.loso-table tr.loso__median th:first-child {
+  border-bottom: 1px solid #dddddd;
+}
+
+table.table.loso-table th.loso-table__label {
+  vertical-align: middle;
+  text-align: center;
+  background-color: #F9F9F9;
+}
+
+.loso-table__report-period span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: rgba(0,84,158,1);
+}
+
+.loso-table__comparison-period span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: rgba(0,84,158,0.5);
+}
+
+
+// d3-losobt = length of stay outcomes by type
+
 
 
 

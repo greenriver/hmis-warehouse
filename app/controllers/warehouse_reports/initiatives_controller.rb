@@ -50,7 +50,80 @@ module WarehouseReports
     def show
       @parameters = OpenStruct.new(@report.parameters.with_indifferent_access)
       @data = OpenStruct.new(@report.data.with_indifferent_access)
+      # @chart_data_template = {mean: {report:[], comparison:[]}, median: {report:[], comparison: []}, types: [], values: []}
     end
+
+    def los_charts
+      [
+        {
+          title: 'Changes in Length of Stay in Days by Project Type',
+          legend_id: 'd3-losobt__legend',
+          mean_chart_id: 'd3-losobt__mean',
+          median_chart_id: 'd3-losobt__median',
+          collapse_id: 'losobt__collapse',
+          chart_data: los_by_project_type_chart_data
+        },
+        {
+          title: 'Changes in Length of Stay in Days by Project',
+          legend_id: 'd3-losobp__legend',
+          mean_chart_id: 'd3-losobp__mean',
+          median_chart_id: 'd3-losobp__median',
+          collapse_id: 'losobp__collapse',
+          chart_data: los_by_project_chart_data
+        }
+      ]
+    end
+    helper_method :los_charts
+
+    def los_chart_data_template
+      {mean: {report:[], comparison:[]}, median: {report:[], comparison: []}, types: [], values: []}
+    end
+
+    # los = length of stay
+    def los_by_project_type_chart_data()
+      report_data = (@data[:all_length_of_stay_breakdowns_by_project_type] || {})
+      comparison_data = (@data[:all_comparison_length_of_stay_breakdowns_by_project_type]||{})
+      chart_data = los_chart_data_template
+      all_keys = ((report_data.keys + comparison_data.keys) || []).uniq
+      all_keys.each do |k|
+        type = ::HUD.project_type_brief(k.to_i)
+        [report_data, comparison_data].each_with_index do |data, index|
+          values = data[k] || [0]
+          mean = (values.sum.to_f/values.length).round rescue 0
+          median = median(values)
+          key = index == 0 ? :report : :comparison
+          chart_data[:values].push(mean)
+          chart_data[:values].push(median)
+          chart_data[:mean][key].push([type, mean])
+          chart_data[:median][key].push([type, median])
+        end
+      end
+      chart_data[:types] = all_keys.map{|k| ::HUD.project_type_brief(k.to_i)}
+      chart_data
+    end
+    helper_method :los_by_project_type_chart_data
+
+    def los_by_project_chart_data
+      report_data = (@data[:all_length_of_stay_breakdowns_by_project] || {})
+      comparison_data = (@data[:all_comparison_length_of_stay_breakdowns_by_project] || {})
+      chart_data = los_chart_data_template
+      all_keys = @data.involved_projects.sort_by(&:last)
+      all_keys.each do |p_id, p_name|
+        [report_data, comparison_data].each_with_index do |data, index|
+          values = data[p_id] || [0]
+          mean = (values.sum.to_f/values.length).round rescue 0
+          median = median(values)
+          key = index == 0 ? :report : :comparison
+          chart_data[:values].push(mean)
+          chart_data[:values].push(median)
+          chart_data[:mean][key].push([p_name, mean])
+          chart_data[:median][key].push([p_name, median])
+        end
+      end
+      chart_data[:types] = all_keys.map{|p_id, p_name| p_name}
+      chart_data
+    end
+    helper_method :los_by_project_chart_data
 
     def set_report
       @report = report_source.find(params[:id].to_i)
