@@ -34,6 +34,12 @@
   :javascript
     $('.js-client').on('click', function(event){
       if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
-        window.location = 'clients/' + $(this).data('id')
+        var href = 'clients/' + $(this).data('id');
+        if(event.metaKey) {
+          open(href, '_blank');
+        }
+        else{
+          window.location = href;
+        }
       }
     })
