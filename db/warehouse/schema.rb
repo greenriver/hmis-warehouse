@@ -11,13 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180309161833) do
+ActiveRecord::Schema.define(version: 20180309200416) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
   enable_extension "pgcrypto"
-  enable_extension "pg_stat_statements"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -101,6 +100,8 @@ ActiveRecord::Schema.define(version: 20180309161833) do
     t.date     "consent_form_signed_on"
     t.integer  "vispdat_prioritization_days_homeless"
     t.boolean  "generate_history_pdf",                               default: false
+    t.boolean  "congregate_housing",                                 default: false
+    t.boolean  "sober_housing",                                      default: false
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
