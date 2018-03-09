@@ -20,6 +20,10 @@ module CohortColumns
       display_read_only
     end
 
+    def renderer
+      'html'
+    end
+
     def display_read_only
       note_count = cohort_client.cohort_client_notes.length
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)

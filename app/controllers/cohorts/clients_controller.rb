@@ -19,7 +19,21 @@ module Cohorts
     def index
       respond_to do |format|
         format.json do
-          render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+          if params[:content].present?
+            if params[:inactive].present?
+              @cohort_clients = @cohort.cohort_clients
+            else
+              @cohort_clients = @cohort.cohort_clients.where(active: true)
+            end
+                      
+            @cohort_clients = @cohort_clients.
+              preload(:cohort_client_notes, client: :processed_service_history).
+              page(params[:page].to_i).per(params[:per].to_i)
+
+            render json: data_for_table() and return
+          else
+            render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+          end
         end
         format.html do
           if params[:inactive].present?
@@ -32,6 +46,35 @@ module Cohorts
           render layout: false
         end
       end
+    end
+
+    def data_for_table
+      data = []
+      expires = if Rails.env.development? 
+        1.minute 
+      else 
+        8.hours 
+      end
+
+      @cohort_clients.each do |cohort_client|
+        client = cohort_client.client
+        cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?, params], expires_in: expires) do
+          last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
+          inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
+          cohort_client_data = {}
+          cohort_client_data[:meta] = {activity: inactivity_class, ineligible: cohort_client.ineligible?, cohort_client_id: cohort_client.id, client_id: cohort_client.client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}
+          @cohort.visible_columns.each do |cohort_column|
+            cohort_column.cohort = @cohort
+            cohort_column.cohort_names = @cohort_names
+            cohort_column.cohort_client = cohort_client
+            editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
+            cohort_client_data[cohort_column.column] = {editable: editable, value: cohort_column.display_read_only, renderer: cohort_column.renderer}
+          end
+          cohort_client_data
+        end
+        data << cohort_client_data
+      end
+      return data
     end
 
     def edit

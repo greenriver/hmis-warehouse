@@ -9,6 +9,7 @@
         static_column_count: #{@cohort.static_column_count + 1},
         client_count: #{@cohort_clients.count},
         sort_direction: '#{@cohort.default_sort_direction}',
+        column_order: #{@cohort.column_state.map(&:column).to_json},
         size_toggle_class: '.jToggleFontSize',
         include_inactive: #{params[:inactive].present?},
         client_path: "#{cohort_cohort_clients_path(@cohort)}",

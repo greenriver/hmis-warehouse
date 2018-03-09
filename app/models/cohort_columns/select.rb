@@ -14,6 +14,10 @@ module CohortColumns
       end
     end
 
+    def renderer
+      'dropdown'
+    end
+
     def display_read_only
       value(cohort_client)
     end

@@ -19,6 +19,10 @@ module CohortColumns
       end
     end
 
+    def renderer
+      'date'
+    end
+
     def display_read_only
       value(cohort_client)
     end

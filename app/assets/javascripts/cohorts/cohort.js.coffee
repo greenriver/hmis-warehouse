@@ -8,6 +8,7 @@ class App.Cohorts.Cohort
     @static_column_count = options['static_column_count']
     @client_count = options['client_count']
     @sort_direction = options['sort_direction']
+    @column_order = options['column_order']
     @size_toggle_class = options['size_toggle_class']
     @include_inactive = options['include_inactive']
     @client_path = options['client_path']
@@ -26,17 +27,49 @@ class App.Cohorts.Cohort
     @pages = Math.round(@client_count/@batch_size)
 
     @current_page = 0
-    @row_data = ''
+    @raw_data = []
 
-    @initialize_data_table()
-
-    @resizeable_fonts()
+    @initialize_handsontable()
     @load_pages()
-    @enable_highlight()
-    @enable_editing()
+    
+    @resizeable_fonts()
+    # @load_pages()
+    # @enable_highlight()
+    # @enable_editing()
 
-    @refresh_rate = 10000
-    setInterval @check_for_new_data, @refresh_rate
+    # @refresh_rate = 10000
+    # setInterval @check_for_new_data, @refresh_rate
+
+  initialize_handsontable: () =>
+    @table = new Handsontable $(@table_selector)[0], 
+      rowHeaders: true
+      colHeaders: true
+
+  load_pages: () =>
+    $(@loading_selector).removeClass('hidden')
+    @load_page().then(() =>
+      # When we're all done fetching...
+      $(@loading_selector).addClass('hidden')
+      @format_data_for_table()
+      @table
+      # @set_rank_order()
+    )
+
+  format_data_for_table: () =>
+    @table_data = $.map @raw_data, (row) =>
+      client = $.map @column_order, (column) =>
+        row[column]['value']
+      [client]
+    
+  load_page: () =>
+    @current_page += 1
+    url =  "#{@client_path}.json?page=#{@current_page}&per=#{@batch_size}&content=true"
+    if @include_inactive
+      url += "&inactive=true"
+    if @current_page > @pages + 1 
+      return $.Deferred().resolve().promise()
+    # Gather all the data first and then display it
+    $.get({url: url}).done(@save_batch).then(@load_page)
 
   initialize_data_table: () =>
     @datatable = $(@table_selector).DataTable
@@ -56,38 +89,16 @@ class App.Cohorts.Cohort
       @reinitialize_js()
 
 
-  save_batch: (data) =>
-    @row_data += data
+  save_batch: (data, status) =>
+    $.merge @raw_data, data
+ 
     percent_complete = Math.round(@current_page/@pages*100)
-    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}% (#{@current_page} of #{@pages})")
-
-  load_pages: () =>
-    $(@loading_selector).removeClass('hidden')
-    @load_page().then(() =>
-      # When we're all done fetching...
-      $(@loading_selector).addClass('hidden')
-      @datatable.rows.add($(@row_data).filter('tr')).draw();
-
-      @set_rank_order()
-    )
+    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
   add_rows: (data) =>
     @datatable.rows.add($(data).filter('tr')).draw();
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
-
-  load_page: () =>
-    @current_page += 1
-    url =  "#{@client_path}?page=#{@current_page}&per=#{@batch_size}"
-    if @include_inactive
-      url += "&inactive=true"
-    if @current_page > @pages + 1
-      return $.Deferred().resolve().promise()
-    # Gather all the data first and then display it
-    # $.get({url: url, dataType: 'html'}).done(@save_batch).then(@load_page)
-    
-    # Or, add data to the table as soon as it's available
-    $.get({url: url, dataType: 'html'}).done(@add_rows).then(@load_page)
 
   reinitialize_js: () ->
     $('.select2').select2();

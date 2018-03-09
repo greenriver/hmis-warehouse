@@ -1,13 +1,3 @@
-%table.table.table-condensed.table-striped.table-right-border.datatable.cohort-client__table
-  %thead
-    %tr
-      %th
-        - if @cohort.user_can_edit_cohort_clients current_user
-          -# We've had issues with the fixed columns, this seems to fix it
-          .div{style: 'width: 4em;'}
-            &nbsp;
-      - @cohort.visible_columns.each do |column|
-        %th
-          = column.title
-  %tbody
+%table.datatable.cohort-client__table
+
     

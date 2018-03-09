@@ -15,6 +15,10 @@ module CohortColumns
       end
     end
 
+    def renderer
+      'checkbox'
+    end
+
     def display_read_only
       ApplicationController.helpers.checkmark value(cohort_client)
     end

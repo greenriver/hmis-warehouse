@@ -13,6 +13,10 @@ module CohortColumns
       end
     end
 
+    def renderer
+      'numeric'
+    end
+
     def display_read_only
       value(cohort_client)
     end

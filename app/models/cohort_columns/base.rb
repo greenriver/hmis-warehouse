@@ -29,7 +29,11 @@ module CohortColumns
 
     def default_value client_id
       nil
-    end  
+    end
+
+    def renderer
+      'text'
+    end
 
     def form_group
       "cohort_client[#{cohort_client.id}]"
