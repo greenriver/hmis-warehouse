@@ -166,7 +166,7 @@ module GrdaWarehouse::Hud
     has_many :cas_houseds, class_name: GrdaWarehouse::CasHoused.name
 
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
-    has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
+    has_many :users, through: :user_clients, inverse_of: :clients
 
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
