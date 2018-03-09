@@ -1,16 +1,13 @@
 - title = "Client Dashboard for #{@client.full_name}"
 - content_for :title, title
 :css
-  .rollup {
-    margin: 1em 0 0 0;
-  }
   .rollup-container:empty:after {
     content: 'loading...';
   }
 
 = render 'breadcrumbs'
 = render 'tab_navigation', current: client_path(@client)
-.row
+%section.row
   .col-sm-8
     %h1= title
   .col-sm-4
@@ -18,46 +15,48 @@
       = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
         Track Issues
 
-= render 'client_summary'
+%section.row.o-dashboard__block--primary
+  = render 'client_summary'
 
 %hr
-.row
+%section.row.o-dashboard__block--primary
   .col-sm-12
-    .rollup{data: {partial: :demographics}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: :demographics}}
       %h3 Demographics
-    .rollup{data: {partial: 'special-populations'}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: 'special-populations'}}
       %h3 Special Populations
-    .rollup{data: {partial: :residential_enrollments}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: :residential_enrollments}}
       %h3 Residential Enrollments
-    .rollup{data: {partial: :other_enrollments}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
       %h3 Other Enrollments
     - if GrdaWarehouse::Config.get(:eto_api_available)
-      .rollup{data: {partial: :assessments}}
+      %article.rollup.o-dashboard__block--secondary{data: {partial: :assessments}}
         %h3 Assessments
-.row
+
+%section.row.o-dashboard__block--primary
   .col-sm-6
     - if GrdaWarehouse::Config.get(:eto_api_available)
-      .rollup{data: {partial: :contact_information}}
+      %article.rollup.o-dashboard__block--secondary{data: {partial: :contact_information}}
         %h3 Contact Information
-    .rollup{data: {partial: :services}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: :services}}
       %h3 Services &mdash; Aggregated Bed Register
-    .rollup{data: {partial: 'services-full'}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: 'services-full'}}
       %h3 Services &mdash; Full Bed Register
   .col-sm-6
     - if GrdaWarehouse::Config.get(:eto_api_available)
-      .rollup{data: {partial: 'case_manager'}}
+      %article.rollup.o-dashboard__block--secondary{data: {partial: 'case_manager'}}
         %h3 Case Manager
-    .rollup{data: {partial: 'zip-map'}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: 'zip-map'}}
       %h3 Zip Code of Last Permanent Address
-    .rollup{data: {partial: 'zip-details'}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: 'zip-details'}}
       %h3 Zip Details
-    .rollup{data: {partial: 'income-benefits'}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
       %h3 Income and Benefits
-    
 
-.row
+
+%section.row.o-dashboard__block--primary
   .col-sm-12
-    .rollup{data: {partial: 'disability-types'}}
+    %article.rollup.o-dashboard__block--secondary{data: {partial: 'disability-types'}}
       %h3 Disability Types
 #scratchpad
 

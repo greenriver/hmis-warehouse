@@ -28,7 +28,7 @@
 {
   background-color: $gray-040;
 }
-.service-type__first 
+.service-type__first
 {
   background-color: $cob-sg-optimistic-blue;
   color: white;
@@ -149,19 +149,24 @@
 #client__previous-addresses { height: 250px; }
 
 .merge-row {
-  border-left: 2px solid #d2d2d2;
-  padding-left: 10px;
-  margin: 10px 0;
+  margin-bottom: space(4);
   overflow: hidden;
 }
-.merge-card {
-  border: 1px solid #d2d2d2;
-  margin: 0.2em;
-  float: left;
+
+.merge-cards {
+  display: flex;
 }
+
+.merge-card {
+  margin-right: space(4);
+  position: relative;
+  min-width: 35%;
+}
+
 .merge-card.slab {
   padding: 0;
 }
+
 $client-match-action-row-height: 22px;
 .client-match {
   position: relative;
@@ -173,26 +178,21 @@ $client-match-action-row-height: 22px;
     width: 100%;
     margin-bottom: 10px;
     tr {
-      border-bottom: 1px solid #eee;
+      /* border-bottom: 1px solid #eee; */
     }
     td,th {
       vertical-align: top;
-      padding: 2px;
-    }
-  }
-  .client-match--actions {
-    padding: 0;
-    bottom: 0;
-    left: 0;
-    font-size: $client-match-action-row-height/2;
-    line-height: $client-match-action-row-height/2;
-    height: $client-match-action-row-height;
-    width: 100%;
-    .btn {
-      border-radius: 0;
+      padding: rem(5px) rem(2px);
     }
   }
 }
+
+.client-match--actions {
+  padding: rem(15px);
+  font-size: $client-match-action-row-height/2;
+  width: 100%;
+}
+
 .client__image
 {
   padding: 1em;
@@ -202,24 +202,44 @@ $client-match-action-row-height: 22px;
   max-width: 250px;
   max-height: 250px;
 }
-.clients__client
-{
+
+.clients__client {
   padding-bottom: 0.5em;
   padding-top: 0.5em;
+  background-color: $white;
 }
 
-.clients__client:nth-child(even)
-{
-  background-color: $gray-015;
+.client__details{
+  padding-right: space(4);
+  flex: 0 0 33%;
 }
+
+@media (max-width: $screen-sm-max) {
+  .client__details{
+    flex: 0 0 100%;
+    margin-bottom: space(4);
+  }
+}
+
+.client__details--status,
+.client__details--demographics {
+  align-self: center;
+}
+
 .clients__client-name
 {
   font-size: 1.2rem;
   margin-bottom: 0.15rem;
+  margin-bottom: 0;
+  font-size: 1.35rem;
 }
 .client__client-name
 {
   margin-bottom: 0.15rem;
+}
+.clients__client-name,
+.client__client-name {
+  align-items: center;
 }
 .clients__users
 {
@@ -250,7 +270,7 @@ $client-match-action-row-height: 22px;
   padding-left: 0.25em;
 }
 .client__filter-active .btn-default {
-  background-color: $brand-info;
+  background-color: $cob-sg-blue-004;
   color: white;
 }
 .client__assessment-question,
@@ -297,16 +317,17 @@ $client-match-action-row-height: 22px;
 }
 .destination-data-source-tag
 {
-  display: inline-block;
+  /* display: inline-block;
   min-height: 10px;
   min-width: 10px;
-  margin: auto;
+  margin: auto; */
 }
 
 .destination-sqr
 {
   background-color: $cob-sg-blue-002;
   padding: 2px 5px;
+  display: inline-block;
 }
 .confidential_project
 {
@@ -342,20 +363,33 @@ $client-match-action-row-height: 22px;
   margin-bottom: 0.25em;
 }
 
-.client-flag
-{
+.client-flag {
   text-align: center;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
-  padding: 1em 0.5em;
+  padding: .25em 0.75em;
   display: inline-block;
-  padding: 0.5em 0.5em;
+  padding: 0.25em 0.5em;
+  color: $text-color;
+}
+
+.client-flag.alert-success
+{
+  color: white;
+}
+
+.client-flag.alert a {
+  color: $text-color;
+  &:hover {
+    color: $black;
+  }
 }
 
 .client-flag__longterm-stayer
 {
   background-color: $brand-warning;
   border-color: $brand-warning;
+  color: white;
 }
 
 .client-flag__cas

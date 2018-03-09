@@ -19,6 +19,7 @@ class User < ActiveRecord::Base
 
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
+  has_many :entities, class_name: GrdaWarehouse::UserViewableEntity.name
 
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
@@ -158,6 +159,39 @@ class User < ActiveRecord::Base
     return admin_translation_keys_path if can_edit_translations?
     return admin_dashboard_imports_path if can_view_imports?
     return admin_health_admin_index_path if can_administer_health?
+  end
+
+  def subordinates
+    return [] unless can_manage_organization_users?
+    uve_source = GrdaWarehouse::UserViewableEntity
+    uve_t = uve_source.arel_table
+
+    data_source_ids = data_sources.pluck(:id)
+
+    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.
+      where(data_source_id: data_source_ids ).pluck(:id)
+
+    project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.
+      where(OrganizationID: organization_ids).
+      pluck(:id) + GrdaWarehouse::Hud::Project.
+        where(data_source_id: data_source_ids).
+        pluck(:id)
+
+    data_source_members = uve_t[:entity_id].in(data_source_ids)
+      .and(uve_t[:entity_type].eq('GrdaWarehouse::DataSource'))
+    organization_members = uve_t[:entity_id].in(organization_ids)
+      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
+    project_members = uve_t[:entity_id].in(project_ids)
+      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Project'))
+
+    sub_ids = uve_source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
+
+    manager_ids = User.includes(:roles)
+      .references(:roles)
+      .where( roles: { can_manage_organization_users: true } )
+      .pluck(:id)
+
+    User.where(id: sub_ids - manager_ids)
   end
 
   private

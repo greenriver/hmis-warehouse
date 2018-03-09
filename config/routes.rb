@@ -409,6 +409,7 @@ Rails.application.routes.draw do
       get :icon_font
       get :add_goal
       get :add_team_member
+      get :alerts
     end
   end
 

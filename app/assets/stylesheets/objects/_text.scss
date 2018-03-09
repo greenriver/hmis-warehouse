@@ -1,0 +1,52 @@
+.o-color--primary {
+  color: $brand-primary;
+}
+
+/* .o-color--secondary {
+  color: $brand-secondary;
+} */
+
+.o-color--white {
+  color: $white;
+}
+
+.o-color--gray-l {
+  color: $gray-020;
+}
+
+.o-color--gray-m {
+  color: $gray-034;
+}
+
+.o-color--gray-d {
+  color: $gray-065;
+}
+
+.o-color--positive,
+.o-color--success {
+  color: $brand-success;
+}
+
+.o-color--danger {
+  color: $brand-danger;
+}
+
+.o-color--warning {
+  color: $brand-warning;
+}
+
+.o-text--normal {
+  font-weight: normal;
+}
+
+.o-text--semibold {
+  font-weight: 600;
+}
+
+.o-text--bold {
+  font-weight: bold;
+}
+
+.o-text--italic {
+  font-style: italic;
+}

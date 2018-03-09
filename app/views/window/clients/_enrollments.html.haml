@@ -54,7 +54,7 @@
         %td
           - if include_links
             = link_to e[:project_name], project_path(id: e[:project_id])
-          - else 
+          - else
             = e[:project_name]
         %td
           - living_situation = HUD.living_situation(e[:living_situation])
@@ -87,4 +87,5 @@
               = c['age']
               %br
 - else
-  No enrollments on file
+  %p.ml-3.mt-3
+    No enrollments on file

@@ -14,17 +14,17 @@ module ApplicationHelper
       "Not Specified"
     when true, "Yes"
       capture do
-        concat content_tag :span, nil, class: 'icon-checkmark', style: 'color:green'
+        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive'
         concat " Yes"
       end
     when false, "No"
       capture do
-        concat content_tag :span, nil, class: 'icon-cross', style: 'color:red'
+        concat content_tag :span, nil, class: 'icon-cross o-color--danger'
         concat " No"
       end
     when "Refused"
       capture do
-        concat content_tag :span, nil, class: 'icon-warning', style: 'color:#8a6d3b'
+        concat content_tag :span, nil, class: 'icon-warning o-color--warning'
         concat " Refused/Unsure"
       end
     end
@@ -35,7 +35,23 @@ module ApplicationHelper
   end
 
   def checkmark(boolean)
-    boolean ? '✓': ''
+    if boolean
+      capture do
+        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive'
+      end
+    end
+  end
+
+  def checkmark_or_x(boolean)
+    html_class =
+      if boolean
+        'checkmark o-color--positive'
+      else
+        'cross o-color--warning'
+      end
+    capture do
+      concat content_tag :span, nil, class: "icon-#{html_class} inline-icon"
+    end
   end
 
   def ssn(number)
@@ -59,7 +75,7 @@ module ApplicationHelper
     # Excellent discussion of why this works:
     # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
     d_1_start < d_2_end && d_1_end > d_2_start rescue true # this catches empty
-  end 
+  end
 
   # returns the class associated with the current sort order of a column
   def current_sort_order(columns)

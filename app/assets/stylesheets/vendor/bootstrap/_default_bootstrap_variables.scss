@@ -1,85 +1,9 @@
-// colors
-$gray-015: rgb(242, 242, 242); // #f2f2f2 COB-sg lightest gray (bg)
-$gray-020: rgb(233, 231, 237); // #E9E7ED
-$gray-025: rgb(228, 228, 228); // #e4e4e4 COB-sg 2nd-to-lightest gray
-$gray-030: rgb(216, 213, 219); // #D8D5DB
-$gray-034: rgb(210, 210, 210); // #d2d2d2 COB-sg 2nd darkest gray
-$gray-040: rgb(196, 193, 199); // #C4C1C7
-$gray-050: rgb(158, 156, 161); // #9E9CA1
-$gray-060: rgb(130, 130, 130); // #828282 COB-sg darkest gray (body)
-$gray-065: rgb(102, 102, 102); // #666
-$gray-070: rgb(64, 64, 64); // #404040
-$gray-080: rgb(51, 51, 51); // #333
 
-// COB-sg colors
-$cob-sg-freedom-trail-red: rgb(251, 77, 66); // #FB4D42
-$cob-sg-charles-blue: rgb(9, 31, 47); // #091F2F
-$cob-sg-optimistic-blue: rgb(40, 139, 238); // #288BE4
-// supporting blues
-$cob-sg-blue-002: #061622;
-$cob-sg-blue-003: #0C2639;
-$cob-sg-blue-004: #45789C; // desaturated
-$cob-sg-blue-005: #51ACFF; // brightest for blue on dark bg
-$cob-sg-blue-006: #495F79; // action button
-
-// initial cas colors from GR
-// $cas-blue: rgb(73, 95, 121); // #495F79
-$cas-blue: $cob-sg-charles-blue;
-$cas-red: rgb(119, 55, 71); // #773747
-$cas-green: rgb(50, 88, 71); // #495F79
-$cas-red-green: rgb(231, 223, 221); // #E7DFDD
-
-// additional cas colors
-$cas-blue-007: #90A4BC;
-
-// Data Source Colors
-$dnd: rgb(86, 114, 170); // #5672AA
-$bphc: rgb(45, 118, 124); // #2D767C
-$nechv: rgb(112, 76, 112); // #704C70
-$ma-state: rgb(120, 115, 39); // #787327
-$vi-spdat: rgb(147, 12, 0);
-// next rgb(143, 78, 69); // #8F4E45
-
-// Z-index scale
-$zIndex-1:   100;
-$zIndex-2:   200;
-$zIndex-3:   300;
-$zIndex-4:   400;
-$zIndex-5:   500;
-$zIndex-6:   600;
-$zIndex-7:   700;
-$zIndex-8:   800;
-$zIndex-9:   900;
-$zIndex-10: 1000;
-
-// Z-index applications Assigning specific and listing here as handy reference
-$zIndex-2--site-name: $zIndex-2;
-$zIndex-3--notice: $zIndex-3;
-
-
-// bootstrap overrides -- copy of bs3 variables 
+// bootstrap overrides -- copy of bs3 variables
 $bootstrap-sass-asset-helper: false !default;
 //
 // Variables
 // --------------------------------------------------
-
-
-//== Colors
-//
-//## Gray and brand colors for use across Bootstrap.
-
-$gray-base:              #000 !default;
-$gray-darker:            lighten($gray-base, 13.5%) !default; // #222
-$gray-dark:              lighten($gray-base, 20%) !default;   // #333
-$gray:                   lighten($gray-base, 33.5%) !default; // #555
-$gray-light:             lighten($gray-base, 46.7%) !default; // #777
-$gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
-
-$brand-primary:         #88A6C9 !default;
-$brand-success:         #BEDACD !default;
-$brand-info:            #88A6C9 !default;
-$brand-warning:         #deb878 !default;
-$brand-danger:          #CA8C9B !default;
 
 
 //== Scaffolding
@@ -89,7 +13,7 @@ $brand-danger:          #CA8C9B !default;
 //** Background color for `<body>`.
 $body-bg:               #fff !default;
 //** Global text color on `<body>`.
-$text-color:            $gray-070;
+$text-color:            $gray-070 !default;
 
 //** Global textual link color.
 $link-color:            #288be4 !default;
@@ -121,7 +45,7 @@ $font-size-h5:            $font-size-base !default;
 $font-size-h6:            ceil(($font-size-base * 0.833)) !default; // ~12px
 
 //** Unit-less `line-height` for use in components like buttons.
-$line-height-base:        1.45 !default; 
+$line-height-base:        1.45 !default;
 //** Computed "line-height" (`font-size` * `line-height`) for use with `margin`, `padding`, etc.
 $line-height-computed:    floor(($font-size-base * $line-height-base)) !default; // ~20px
 
@@ -561,7 +485,7 @@ $jumbotron-heading-font-size:    ceil(($font-size-base * 4.5)) !default;
 //
 //## Define colors for form feedback states and, by default, alerts.
 
-$state-success-text:             $cas-green !default;
+$state-success-text:             #fff !default;
 $state-success-bg:               $brand-success !default;
 $state-success-border:           $brand-success !default;
 

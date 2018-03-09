@@ -1,9 +1,42 @@
-.nav-tabs > li.active > a, 
-.nav-tabs > li.active > a:hover, 
-.nav-tabs > li.active > a:focus,
 .nav-tabs {
-  border-width: 2px;
+  background: $white;
+  margin-left: -30px;
+  margin-right: -30px;
+  padding-left: 30px;
+  padding-right: 30px;
+  border-bottom: 1px solid $gray-015;
+  margin-top: space(4);
+  margin-bottom: space(4);
 }
+
+.nav-tabs > li {
+  margin-bottom: 0;
+}
+
+.nav-tabs > li > a,
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  border: 0;
+  border-radius: 0;
+}
+
+.nav-tabs > li > a:hover,
+.nav-tabs > li > a:focus {
+  background: $body-bg;
+  box-shadow: inset 0px 2px 0px 0px darken($brand-primary, 10%);
+  color: $black;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  background: lighten($brand-primary, 30%);
+  color: darken($brand-primary, 40%);
+  font-weight: 800;
+  box-shadow: inset 0px 2px 0px 0px darken($brand-primary, 10%);
+}
+
 .nav-tabs > li {
   margin-bottom: -2px;
 }

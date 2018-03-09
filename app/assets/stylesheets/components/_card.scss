@@ -1,0 +1,54 @@
+.c-card {
+  padding: space(3);
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.c-card__header {
+  padding: space(3) space(3) 0 space(3);
+}
+
+.c-card > .c-card__content {
+  @include card;
+  width: 100%;
+}
+
+.c-card--flush {
+  @include card;
+  padding: 0;
+  .table {
+    margin-bottom: 0;
+  }
+  .table thead tr th,
+  .table tbody tr td {
+    &:first-of-type {
+      padding-left: rem(15px);
+    }
+    &:last-of-type {
+      padding-right: rem(15px);
+    }
+  }
+}
+
+.c-card--linked,
+.c-card > .c-card__content {
+  cursor: pointer;
+  &:focus,
+  &:hover {
+    color: $text-color;
+    box-shadow: 0 2px 8px rgba($black, .1);
+  }
+  &:active {
+    background-color: $body-bg;
+  }
+}
+
+.c-card__title {
+  margin-bottom: space(3);
+  font-size: 110%;
+  font-weight: 800;
+}
+
+.c-card__description {
+}

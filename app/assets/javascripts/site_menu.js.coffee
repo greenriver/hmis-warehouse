@@ -74,6 +74,7 @@ verticalBehavior = ->
     return if $vsmContainer.is('.open, .pinned')
     $vsmContainer.removeClass('closed')
     $vsmContainer.addClass('open')
+    $('body main').addClass('nav-open')
     $document.on('click', closeOnClickOff)
 
   closeNav = ->
@@ -81,6 +82,7 @@ verticalBehavior = ->
     return if !$vsmContainer.is('.open')
     return if $vsmContainer.is('.pinned')
     $vsmContainer.removeClass('open')
+    $('body main').removeClass('nav-open')
     $document.off('click', closeOnClickOff)
 
   $toggle.click ->
@@ -90,7 +92,7 @@ verticalBehavior = ->
       openNav()
 
   $headerNavHack = $('#cas-action-button-header-container')
-  
+
   debounce = (func, threshold, execAsap) ->
     timeout = null
     (args...) ->
@@ -103,7 +105,7 @@ verticalBehavior = ->
       else if (execAsap)
         func.apply(obj, args)
       timeout = setTimeout delayed, threshold || 100
-  
+
   updateNav = ->
     $vsmContainer.removeClass('transitions')
     closeNav()
@@ -130,7 +132,7 @@ verticalBehavior = ->
     $vsmContainer.removeClass('outboard')
     $vsmContainer.addClass('inboard')
     $vsmContainer.removeClass('pinned')
-    
+
     $vsmContainer.addClass('transitions')
 
   updateNav()

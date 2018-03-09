@@ -33,4 +33,5 @@
               %td= lighten_no aggregated[:chronic]
               %td= lighten_no yes_no disabilities.detect(&:indefinite_and_impairs?)&.indefinite_and_impairs?# lighten_no aggregated[:indefinite_and_impairs]
   - else
-    No disability records found
+    .no-data
+      No disability records found
