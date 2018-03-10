@@ -51,14 +51,25 @@ class App.Cohorts.Cohort
       # When we're all done fetching...
       $(@loading_selector).addClass('hidden')
       @format_data_for_table()
-      @table
+      console.log @cell_metadata
+      @table.loadData(@table_data)
+      @table.updateSettings
+        cells: @format_cells
       # @set_rank_order()
     )
+
+  format_cells: (row, col, prop) =>
+    console.log(row, col, prop)
+    
 
   format_data_for_table: () =>
     @table_data = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
         row[column]['value']
+      [client]
+    @cell_metadata  = $.map @raw_data, (row) =>
+      client = $.map @column_order, (column) =>
+        row
       [client]
     
   load_page: () =>
@@ -91,7 +102,6 @@ class App.Cohorts.Cohort
 
   save_batch: (data, status) =>
     $.merge @raw_data, data
- 
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
