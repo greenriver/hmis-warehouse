@@ -117,8 +117,8 @@ class App.Cohorts.Cohort
     $('.cohorts').on 'click', '.jSelectRow', (e) =>
       cohort_client_id = $(e.target).closest('tr').data('cohort-client-id')
       row = @datatable.row("[data-cohort-client-id=#{cohort_client_id}]").node()
-      $(row).siblings().removeClass('info')
-      $(row).toggleClass('info')
+      $(row).siblings().removeClass('cohort-client-selected')
+      $(row).toggleClass('cohort-client-selected')
       @datatable.draw()
 
   set_rank_order: () =>

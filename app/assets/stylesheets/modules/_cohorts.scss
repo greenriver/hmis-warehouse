@@ -74,7 +74,7 @@ li.draggable-list__item {
 .cohorts tr.homeless_inactive,
 .table-striped > tbody > tr.homeless_inactive:nth-of-type(odd)
 {
-  background-color: $brand-danger;
+  background-color: $brand-danger-l;
 }
 
 .cohorts tr.cohort_client_ineligible,
@@ -99,4 +99,10 @@ li.draggable-list__item {
 .jSelectRow
 {
   padding: 0.5em;
+}
+.cohorts tr.cohort-client-selected,
+.table-striped > tbody > tr.cohort-client-selected:nth-of-type(odd)
+{
+  background-color: $cob-sg-blue-004;
+  color: white;
 }

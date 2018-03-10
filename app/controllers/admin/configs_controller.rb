@@ -37,6 +37,7 @@ module Admin
         :show_partial_ssn_in_window_search_results,
         :so_day_as_month,
         :ahar_psh_includes_rrh,
+        client_details: []
       )
     end
 

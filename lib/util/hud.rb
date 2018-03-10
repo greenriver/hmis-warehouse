@@ -675,7 +675,6 @@ module HUD
       3 => 'Permanent housing for formerly homeless persons (such as: CoC project; or HUD legacy programs; or HOPWA PH)',
       10 => 'Rental by client, no ongoing housing subsidy',
       11 => 'Owned by client, no ongoing housing subsidy',
-      18 => 'Safe Haven',
       19 => 'Rental by client, with VASH housing subsidy',
       20 => 'Rental by client, with other ongoing housing subsidy',
       21 => 'Owned by client, with ongoing housing subsidy',
@@ -696,6 +695,7 @@ module HUD
       13 => 'Staying or living with friends, temporary tenure (e.g., room apartment or house)',
       14 => 'Hotel or motel paid for without emergency shelter voucher',
       16 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
+      18 => 'Safe Haven',
       27 => 'Moved from one HOPWA funded project to HOPWA TH',
     }.keys
   end

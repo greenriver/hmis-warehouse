@@ -1,5 +1,7 @@
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
+    serialize :client_details, Array
+
     after_save :invalidate_cache
 
     def self.available_cas_methods

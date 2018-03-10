@@ -14,17 +14,17 @@ module ApplicationHelper
       "Not Specified"
     when true, "Yes"
       capture do
-        concat content_tag :span, nil, class: 'icon-checkmark', style: 'color:green'
+        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive'
         concat " Yes"
       end
     when false, "No"
       capture do
-        concat content_tag :span, nil, class: 'icon-cross', style: 'color:red'
+        concat content_tag :span, nil, class: 'icon-cross o-color--danger'
         concat " No"
       end
     when "Refused"
       capture do
-        concat content_tag :span, nil, class: 'icon-warning', style: 'color:#8a6d3b'
+        concat content_tag :span, nil, class: 'icon-warning o-color--warning'
         concat " Refused/Unsure"
       end
     end
@@ -35,7 +35,11 @@ module ApplicationHelper
   end
 
   def checkmark(boolean)
-    boolean ? '✓': ''
+    if boolean
+      capture do
+        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive'
+      end
+    end
   end
 
   def checkmark_or_x(boolean)

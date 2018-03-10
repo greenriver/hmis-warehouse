@@ -7,10 +7,10 @@
     %tbody
       %tr
         - if emails.any?
-          %td 
+          %td
             Email:
             %strong
-              = emails.join(', ') 
+              = emails.join(', ')
         - if cell_phones.any?
           %td
             Cell Phone:
@@ -25,6 +25,7 @@
           %td
             Work Phone:
             %strong
-              = work_phones.join(', ')  
+              = work_phones.join(', ')
 - else
-  No contact information on file
+  .no-data
+    No contact information on file
