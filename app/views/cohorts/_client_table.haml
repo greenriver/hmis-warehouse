@@ -9,5 +9,7 @@
       - @cohort.visible_columns.each do |column|
         %th
           = column.title
+      - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+        %th
   %tbody
     
