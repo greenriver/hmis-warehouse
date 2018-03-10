@@ -470,6 +470,12 @@ h2.ho-sub__h2 {
   overflow-x: scroll;
 }
 
+table.table.loso-table {
+  table-layout:fixed;
+  min-width: 100%;
+  margin-bottom: 0px;
+}
+
 table.table.loso-table tr:last-of-type {
   th, td {
     border-bottom: 1px solid #dddddd;

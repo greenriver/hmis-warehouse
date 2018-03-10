@@ -1,19 +1,54 @@
-- data = @data.send(section)
-- if data.present?
-  %h4= title
-  = render 'bar_from_table', section: section
-  %div.chart{id: section}
-  %table.table.table-striped.jToggle{id: "#{section}_table"}
-    %thead
-      %tr
-        %th Project Type
-        %th Count
-    %tbody
-      - @data.involved_project_types.each do |p_type|
+- chart_data = cc_by_project_type
+%p= chart_data
+- chart_1_data = {data: chart_data[:counts][:report], types: chart_data[:types], values: chart_data[:values]}
+- chart_2_data = {data: chart_data[:counts][:comparison], types: chart_data[:types], values: chart_data[:values]}
+.ho-container.loso__container
+  .ho-container__header
+    %h4= title
+    .loso__legend.clearfix.pull-right#d3-ccbt-by-project-type__legend
+  .row
+    .col-xs-12.col-md-6
+      %h5{style: 'margin-left: 20px;'} Report Period 
+      #d3-ccbt-report-by-project
+    .col-xs-12.col-md-6
+      %h5{style: 'margin-left: 20px;'} Comparison Period 
+      #d3-ccbt-comparison-by-project
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+
+      var chart1Data = #{chart_1_data.to_json}
+      var chart1Id = '#d3-ccbt-report-by-project'
+      var legendId = '#d3-ccbt-by-project-type__legend'
+
+      var chart1 = new App.D3Chart.InitiativeBar(chart1Id, legendId, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data);
+      chart1.draw();
+
+      var chart2Data = #{chart_2_data.to_json}
+      var chart2Id = '#d3-ccbt-comparison-by-project'
+      
+      var chart2 = new App.D3Chart.InitiativeBar(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data);
+      chart2.draw();
+    })
+
+-#
+  - data = @data.send(section)
+  %p= data.inspect
+  - if data.present?
+    %h4= title
+    = render 'bar_from_table', section: section
+    %div.chart{id: section}
+    %table.table.table-striped.jToggle{id: "#{section}_table"}
+      %thead
         %tr
-          %th= p_type
-          %td
-            - key = "#{p_type}__count"
-            - count = data[key] || 0 
-            = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—Client Count"), data: { loads_in_pjax_modal: true })
+          %th Project Type
+          %th Count
+      %tbody
+        - @data.involved_project_types.each do |p_type|
+          %tr
+            %th= p_type
+            %td
+              - key = "#{p_type}__count"
+              - count = data[key] || 0 
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—Client Count"), data: { loads_in_pjax_modal: true })
 

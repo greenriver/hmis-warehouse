@@ -8,10 +8,10 @@
       .loso__legend.clearfix.pull-right{id: chart[:legend_id]}
     .row
       .col-xs-12.col-md-6
-        %h5{style: 'margin-left: 75px;'} Report Period Mean vs. Comparison Period Mean
+        %h5{style: 'margin-left: 20px;'} Report Period Mean vs. Comparison Period Mean
         %div{id: chart[:mean_chart_id]}
       .col-xs-12.col-md-6
-        %h5{style: 'margin-left: 75px;'} Report Period Median vs. Comparison Period Median
+        %h5{style: 'margin-left: 20px;'} Report Period Median vs. Comparison Period Median
         %div{id: chart[:median_chart_id]}
     .loso-footer.clearfix
       %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{chart[:collapse_id]}"}}
@@ -20,9 +20,9 @@
       %table.table.loso-table
         %tr
           %th{width: '80px'}
-          %th
+          %th{width: '180px'}
           - chart_data[:types].each do |type|
-            %th.text-center= type
+            %th.text-center{width: '150px'}= type
         - [:mean, :median].each do |label|
           %tr{class: "loso__#{label.to_s}"}
             %th.loso-table__label{rowspan: 2}
@@ -48,74 +48,15 @@
         var chart1Data = #{chart_1_data.to_json}
         var chart1Id = '#'+'#{chart[:mean_chart_id]}'
         var legendId = '#'+'#{chart[:legend_id]}'
-        var chart1 = new App.D3Chart.MeanMedianBars(chart1Id, legendId, {top: 0, right: 20, bottom: 20, left: 75}, chart1Data);
+        var chart1 = new App.D3Chart.MeanMedianBars(chart1Id, legendId, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data);
         chart1.draw();
 
         var chart2Data = #{chart_2_data.to_json}
         var chart2Id = '#'+'#{chart[:median_chart_id]}'
-        var chart2 = new App.D3Chart.MeanMedianBars(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 75}, chart2Data);
+        var chart2 = new App.D3Chart.MeanMedianBars(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data);
         chart2.draw();
       })
 
--#
-  - chart_data = los_by_project_type_chart_data
-  - chart_1_data = {data: chart_data[:mean], types: chart_data[:types], values: chart_data[:values]}
-  - chart_2_data = {data: chart_data[:median], types: chart_data[:types], values: chart_data[:values]}
-
-  -# d3-loso = length of stay outcomes
-  -# d3-losobt = length of stay outcomes by type
-  .ho-container.loso__container
-    .ho-container__header
-      %h4 Changes in Length of Stay in Days by Project Type
-      #d3-losobt__legend.loso__legend.clearfix.pull-right
-    .row
-      .col-xs-12.col-md-6
-        %h5{style: 'margin-left: 75px;'} Report Period Mean vs. Comparison Period Mean
-        #d3-losobt__mean
-      .col-xs-12.col-md-6
-        %h5{style: 'margin-left: 75px;'} Report Period Median vs. Comparison Period Median
-        #d3-losobt__median
-    .loso-footer.clearfix
-      %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: '#losobt__collapse'}}
-        Show Details
-    .collapse.loso-collapse#losobt__collapse
-      %table.table.loso-table
-        %tr
-          %th{width: '80px'}
-          %th
-          - chart_data[:types].each do |type|
-            %th.text-center= type
-        - [:mean, :median].each do |label|
-          %tr{class: "loso__#{label.to_s}"}
-            %th.loso-table__label{rowspan: 2}
-              = label.to_s.titleize
-            %th.loso-table__report-period
-              %span
-              Report Period
-            - report_data = chart_data[label][:report].to_h
-            - chart_data[:types].each do |type|
-              %th.text-center
-                = report_data[type] || 0
-          %tr
-            %th.loso-table__comparison-period
-              %span
-              Comparison Period
-            - comparison_data = chart_data[label][:comparison].to_h
-            - chart_data[:types].each do |type|
-              %th.text-center
-                = comparison_data[type] || 0
-
-  - content_for :page_js do
-    :javascript
-      $(document).ready(function() {
-        var chart1Data = #{chart_1_data.to_json}
-        var chart1 = new App.D3Chart.MeanMedianBars('#d3-losobt__mean', '#d3-losobt__legend', {top: 0, right: 20, bottom: 20, left: 75}, chart1Data);
-        chart1.draw();
-
-        var chart2Data = #{chart_2_data.to_json}
-        var chart2 = new App.D3Chart.MeanMedianBars('#d3-losobt__median', false, {top: 0, right: 20, bottom: 20, left: 75}, chart2Data);
-        chart2.draw();
-      })
 -# 
   - if data = @data[:all_length_of_stay_breakdowns_by_project_type]
     %h4 Changes in Length of Stay in Days by Project Type
@@ -153,41 +94,39 @@
             - median = median(values)
             %td= median
 
-%p= @data[:all_length_of_stay_breakdowns_by_project].inspect
-%p= @data.involved_projects.sort_by(&:last)
-%p= los_by_project_chart_data
-- if data = @data[:all_length_of_stay_breakdowns_by_project]
-  %h4 Changes in Length of Stay in Days by Project
-  - keys = data.keys
-  %table.table.table-striped
-    %thead
-      %tr
-        %th
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          %th= p_name
-    %tbody
-      %tr
-        %th Report Period Mean
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - mean = (values.sum.to_f/values.length).round rescue 0
-          %td= mean
-      %tr
-        %th Report Period Median
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - median = median(values)
-          %td= median
-      - data = @data[:all_comparison_length_of_stay_breakdowns_by_project]
-      %tr
-        %th Comparison Period Mean
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - mean = (values.sum.to_f/values.length).round rescue 0
-          %td= mean
-      %tr
-        %th Comparison Period Median
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - median = median(values)
-          %td= median
+-#
+  - if data = @data[:all_length_of_stay_breakdowns_by_project]
+    %h4 Changes in Length of Stay in Days by Project
+    - keys = data.keys
+    %table.table.table-striped
+      %thead
+        %tr
+          %th
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            %th= p_name
+      %tbody
+        %tr
+          %th Report Period Mean
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - mean = (values.sum.to_f/values.length).round rescue 0
+            %td= mean
+        %tr
+          %th Report Period Median
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - median = median(values)
+            %td= median
+        - data = @data[:all_comparison_length_of_stay_breakdowns_by_project]
+        %tr
+          %th Comparison Period Mean
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - mean = (values.sum.to_f/values.length).round rescue 0
+            %td= mean
+        %tr
+          %th Comparison Period Median
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - median = median(values)
+            %td= median

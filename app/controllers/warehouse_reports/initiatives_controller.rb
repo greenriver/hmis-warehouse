@@ -125,6 +125,38 @@ module WarehouseReports
     end
     helper_method :los_by_project_chart_data
 
+    def cc_chart_data_template
+      {counts: {report:[], comparison:[]}, types: [], values: []}
+    end
+
+    def cc_by_project_type
+      report_data = @data.client_counts_by_project_type || {}
+      comparison_data = @data.comparison_client_counts_by_project_type || {}
+      chart_data = cc_chart_data_template
+      all_keys = (report_data.keys + comparison_data.keys).uniq
+      chart_data[:counts][:report] = report_data.to_a.map{|key, value| [key.split('_')[0], value]}
+      chart_data[:counts][:comparison] = comparison_data.to_a.map{|key, value| [key.split('_')[0], value]}
+      chart_data[:values] = report_data.values + comparison_data.values
+      chart_data[:types] = (report_data.keys + comparison_data.keys).uniq.map{|key| key.split('_')[0]}
+      chart_data
+    end
+    helper_method :cc_by_project_type
+
+    def cc_by_project
+      report_data = @data.client_counts_by_project || {}
+      comparison_data = @data.comparison_client_counts_by_project || {}
+      chart_data = cc_chart_data_template
+      @data.involved_projects.sort_by(&:last).each do |p_id, p_name|
+        key = "#{p_id}__count"
+        chart_data[:counts][:report].push([p_name, (report_data[key]||0)])
+        chart_data[:counts][:comparison].push([p_name, (comparison_data[key]||0)])
+      end
+      chart_data[:values] = report_data.values + comparison_data.values
+      chart_data[:types] = @data.involved_projects.sort_by(&:last).map{|p_id, p_name| p_name}
+      chart_data
+    end
+    helper_method :cc_by_project
+
     def set_report
       @report = report_source.find(params[:id].to_i)
     end

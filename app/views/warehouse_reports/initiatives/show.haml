@@ -11,13 +11,17 @@
   = render 'outcomes'
 
   -# Client counts
-  = render 'clients_by_project_type', title: 'Client Counts by Project Type for Reporting Period', section: :client_counts_by_project_type
+  -#= render 'clients_by_project_type', title: 'Client Counts by Project Type for Reporting Period', section: :client_counts_by_project_type
 
-  = render 'clients_by_project_type', title: 'Client Counts by Project Type for Comparison Period', section: :comparison_client_counts_by_project_type
+  -#= render 'clients_by_project_type', title: 'Client Counts by Project Type for Comparison Period', section: :comparison_client_counts_by_project_type
 
-  = render 'clients_by_project', title: 'Client Counts by Project for Reporting Period', section: :client_counts_by_project
+  = render 'clients_by_project_type', title: 'Client Counts by Project Type'
 
-  = render 'clients_by_project', title: 'Client Counts by Project for Comparison Period', section: :comparison_client_counts_by_project
+  -#= render 'clients_by_project', title: 'Client Counts by Project for Reporting Period', section: :client_counts_by_project
+
+  -#= render 'clients_by_project', title: 'Client Counts by Project for Comparison Period', section: :comparison_client_counts_by_project
+
+  = render 'clients_by_project', title: 'Client Counts by Project'
 
   -# Nightly Census
   = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Reporting Period', section: :date_counts_by_project_type, range: (@parameters.start.to_date..@parameters.end.to_date)
