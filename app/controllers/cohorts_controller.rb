@@ -26,6 +26,19 @@ class CohortsController < ApplicationController
     end
     respond_to do |format|
       format.html do
+        @column_headers = [''] + @cohort.visible_columns.map(&:title) + ['']
+        @column_options = [{}] + @cohort.visible_columns.map do |m|
+          options = {}
+          case m.renderer
+          when 'dropdown'
+            options.merge!({type: m.renderer, source: m.available_options})
+          when 'date'
+            options.merge!({type: m.renderer})
+          else 
+            options.merge!({renderer: m.renderer})
+            options.merge!({readOnly: true}) unless m.editable 
+          end
+        end + [{}]
       end
       format.xlsx do
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.name}.xlsx"

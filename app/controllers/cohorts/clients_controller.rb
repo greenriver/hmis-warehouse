@@ -5,6 +5,7 @@ module Cohorts
     include Chronic
     include CohortAuthorization
 
+
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
@@ -84,6 +85,11 @@ module Cohorts
           end
           cohort_client_data
         end
+        # delete_button = {renderer: :html}
+        # delete_button[:value] = content_tag(:a, class: "btn btn-danger") do
+        #   content_tag(:i, '', class: 'icon-cross')
+        # end
+        # cohort_client_data[:delete] = delete_button
         data << cohort_client_data
       end
       return data

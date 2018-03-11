@@ -31,6 +31,10 @@ module CohortColumns
       nil
     end
 
+    def available_options
+      nil
+    end
+
     def renderer
       'text'
     end

@@ -10,6 +10,7 @@ class App.Cohorts.Cohort
     @sort_direction = options['sort_direction']
     @column_order = options['column_order']
     @column_headers = options['column_headers']
+    @column_options = options['column_options']
     @size_toggle_class = options['size_toggle_class']
     @include_inactive = options['include_inactive']
     @client_path = options['client_path']
@@ -42,14 +43,13 @@ class App.Cohorts.Cohort
     # setInterval @check_for_new_data, @refresh_rate
 
   initialize_handsontable: () =>
+    console.log @column_options
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
       colHeaders: @column_headers
       correctFormat: true
       dateFormat: 'll'
-      # columns: (column) ->
-      #   console.log(column)
-      #   {data: 'value'}
+      columns: @column_options
       
 
   load_pages: () =>
@@ -69,17 +69,10 @@ class App.Cohorts.Cohort
     )
 
   format_cells: (row, col, prop, metadata) ->
-    console.log metadata[row][col].renderer
-    # console.log(row, col, prop, metadata[row][col])
     cellProperties ={}
-    renderer = metadata[row][col].renderer
-    cellProperties.renderer = renderer
-    cellProperties.type = renderer if renderer == 'date'
-    if metadata[row][col].editable == false
+    if metadata[row][col]?.editable == false
       cellProperties.readOnly = 'true'
     return cellProperties
-    # console.log(@cell_metadata[row][col])
-    # {type: @cell_metadata[row][col].renderer}
 
 
   format_data_for_table: () =>
@@ -108,24 +101,6 @@ class App.Cohorts.Cohort
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
     $.get({url: url}).done(@save_batch).then(@load_page)
-
-  initialize_data_table: () =>
-    @datatable = $(@table_selector).DataTable
-      # scrollY: '70vh',
-      scrollY: false,
-      scrollX: true,
-      scrollCollapse: false,
-      # fixedHeader: true,
-      lengthMenu: [ 5, 10, 25, 50]
-      paging: true,
-      fixedColumns: {
-       leftColumns: @static_column_count
-      },
-      order: [[1, @sort_direction]]
-
-    @datatable.on 'draw', () =>
-      @reinitialize_js()
-
 
   save_batch: (data, status) =>
     $.merge @raw_data, data
