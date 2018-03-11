@@ -76,7 +76,11 @@ module Cohorts
             cohort_client_updated_at: cohort_client.updated_at.to_i, 
             value: inactivity_warning,
           }
-          @cohort.visible_columns.each do |cohort_column|
+          @visible_columns = @cohort.visible_columns
+          if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+            @visible_columns << CohortColumns::Delete.new
+          end
+          @visible_columns.each do |cohort_column|
             cohort_column.cohort = @cohort
             cohort_column.cohort_names = @cohort_names
             cohort_column.cohort_client = cohort_client
@@ -85,11 +89,7 @@ module Cohorts
           end
           cohort_client_data
         end
-        # delete_button = {renderer: :html}
-        # delete_button[:value] = content_tag(:a, class: "btn btn-danger") do
-        #   content_tag(:i, '', class: 'icon-cross')
-        # end
-        # cohort_client_data[:delete] = delete_button
+      
         data << cohort_client_data
       end
       return data

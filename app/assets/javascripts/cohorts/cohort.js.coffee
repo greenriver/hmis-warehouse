@@ -11,6 +11,7 @@ class App.Cohorts.Cohort
     @column_order = options['column_order']
     @column_headers = options['column_headers']
     @column_options = options['column_options']
+    @column_widths = options['column_widths']
     @size_toggle_class = options['size_toggle_class']
     @include_inactive = options['include_inactive']
     @client_path = options['client_path']
@@ -43,14 +44,22 @@ class App.Cohorts.Cohort
     # setInterval @check_for_new_data, @refresh_rate
 
   initialize_handsontable: () =>
-    console.log @column_options
+    direction = true
+    if @sort_direction == 'desc'
+      direction = false
+    console.log @sort_direction
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
       colHeaders: @column_headers
       correctFormat: true
       dateFormat: 'll'
       columns: @column_options
-      
+      fixedColumnsLeft: @static_column_count
+      manualColumnResize: @column_widths
+      columnSorting: 
+          column: 1
+          sortOrder: direction
+      sortIndicator: true
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -60,7 +69,7 @@ class App.Cohorts.Cohort
       @format_data_for_table()
 
       @table.loadData(@table_data)
-      console.log @table_data, @cell_metadata
+      # console.log @table_data, @cell_metadata
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata)
@@ -76,12 +85,8 @@ class App.Cohorts.Cohort
 
 
   format_data_for_table: () =>
-    # console.log @column_order
     @table_data = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
-        # console.log column
-        # console.log row
-        # console.log row[column]
         if row[column]['value'] == null
           ''
         else

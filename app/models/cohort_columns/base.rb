@@ -39,6 +39,10 @@ module CohortColumns
       'text'
     end
 
+    def width
+      0
+    end
+
     def form_group
       "cohort_client[#{cohort_client.id}]"
     end  

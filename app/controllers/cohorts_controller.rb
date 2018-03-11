@@ -26,8 +26,12 @@ class CohortsController < ApplicationController
     end
     respond_to do |format|
       format.html do
-        @column_headers = [''] + @cohort.visible_columns.map(&:title) + ['']
-        @column_options = [{}] + @cohort.visible_columns.map do |m|
+        @visible_columns = @cohort.visible_columns
+        if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+          @visible_columns << CohortColumns::Delete.new
+        end
+        @column_headers = [''] + @visible_columns.map(&:title)
+        @column_options = [{}] + @visible_columns.map do |m|
           options = {}
           case m.renderer
           when 'dropdown'
@@ -38,7 +42,8 @@ class CohortsController < ApplicationController
             options.merge!({renderer: m.renderer})
             options.merge!({readOnly: true}) unless m.editable 
           end
-        end + [{}]
+          options
+        end
       end
       format.xlsx do
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.name}.xlsx"
