@@ -20,7 +20,8 @@ module CohortColumns
     end
 
     def display_read_only
-      ApplicationController.helpers.checkmark value(cohort_client)
+      # ApplicationController.helpers.checkmark value(cohort_client)
+      value(cohort_client)
     end
     
   end

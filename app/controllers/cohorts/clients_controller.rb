@@ -61,8 +61,20 @@ module Cohorts
         cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?, params], expires_in: expires) do
           last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
           inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
+          inactivity_warning = ''
+          if inactivity_class.present?
+            inactivity_warning = "No homeless service in over #{@cohort.days_of_inactivity} days"
+          end
           cohort_client_data = {}
-          cohort_client_data[:meta] = {activity: inactivity_class, ineligible: cohort_client.ineligible?, cohort_client_id: cohort_client.id, client_id: cohort_client.client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}
+          cohort_client_data[:meta] = {
+            editable: false,
+            activity: inactivity_class, 
+            ineligible: cohort_client.ineligible?, 
+            cohort_client_id: cohort_client.id, 
+            client_id: cohort_client.client.id, 
+            cohort_client_updated_at: cohort_client.updated_at.to_i, 
+            value: inactivity_warning,
+          }
           @cohort.visible_columns.each do |cohort_column|
             cohort_column.cohort = @cohort
             cohort_column.cohort_names = @cohort_names

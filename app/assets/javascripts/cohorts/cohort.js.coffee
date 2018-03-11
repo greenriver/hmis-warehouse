@@ -9,6 +9,7 @@ class App.Cohorts.Cohort
     @client_count = options['client_count']
     @sort_direction = options['sort_direction']
     @column_order = options['column_order']
+    @column_headers = options['column_headers']
     @size_toggle_class = options['size_toggle_class']
     @include_inactive = options['include_inactive']
     @client_path = options['client_path']
@@ -43,7 +44,13 @@ class App.Cohorts.Cohort
   initialize_handsontable: () =>
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
-      colHeaders: true
+      colHeaders: @column_headers
+      correctFormat: true
+      dateFormat: 'll'
+      # columns: (column) ->
+      #   console.log(column)
+      #   {data: 'value'}
+      
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -51,25 +58,45 @@ class App.Cohorts.Cohort
       # When we're all done fetching...
       $(@loading_selector).addClass('hidden')
       @format_data_for_table()
-      console.log @cell_metadata
+
       @table.loadData(@table_data)
+      console.log @table_data, @cell_metadata
       @table.updateSettings
-        cells: @format_cells
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, @cell_metadata)
+
       # @set_rank_order()
     )
 
-  format_cells: (row, col, prop) =>
-    console.log(row, col, prop)
-    
+  format_cells: (row, col, prop, metadata) ->
+    console.log metadata[row][col].renderer
+    # console.log(row, col, prop, metadata[row][col])
+    cellProperties ={}
+    renderer = metadata[row][col].renderer
+    cellProperties.renderer = renderer
+    cellProperties.type = renderer if renderer == 'date'
+    if metadata[row][col].editable == false
+      cellProperties.readOnly = 'true'
+    return cellProperties
+    # console.log(@cell_metadata[row][col])
+    # {type: @cell_metadata[row][col].renderer}
+
 
   format_data_for_table: () =>
+    # console.log @column_order
     @table_data = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
-        row[column]['value']
+        # console.log column
+        # console.log row
+        # console.log row[column]
+        if row[column]['value'] == null
+          ''
+        else
+          row[column]['value']
       [client]
     @cell_metadata  = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
-        row
+        row[column]
       [client]
     
   load_page: () =>

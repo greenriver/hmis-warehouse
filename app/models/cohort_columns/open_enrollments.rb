@@ -12,6 +12,10 @@ module CohortColumns
       :enrollment_tag
     end
 
+    def renderer
+      'html'
+    end
+
     def value(cohort_client)
       cohort_client.client.
         service_history_enrollments.ongoing.

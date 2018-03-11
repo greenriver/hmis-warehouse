@@ -1,3 +1,6 @@
+- column_headers = ['']
+- column_headers += @cohort.visible_columns.map(&:title)
+- column_headers += ['']
 = content_for :page_js do
   :javascript
     (function($) {
@@ -9,7 +12,8 @@
         static_column_count: #{@cohort.static_column_count + 1},
         client_count: #{@cohort_clients.count},
         sort_direction: '#{@cohort.default_sort_direction}',
-        column_order: #{@cohort.visible_columns.map(&:column).to_json},
+        column_order: #{(['meta'] + @cohort.visible_columns.map(&:column)).to_json},
+        column_headers: #{column_headers.to_json},
         size_toggle_class: '.jToggleFontSize',
         include_inactive: #{params[:inactive].present?},
         client_path: "#{cohort_cohort_clients_path(@cohort)}",
