@@ -17,7 +17,7 @@ module CohortColumns
     end
 
     def width
-      75
+      0
     end
 
     def value(cohort_client)

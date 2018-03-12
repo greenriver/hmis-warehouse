@@ -22,6 +22,7 @@ class App.Cohorts.Cohort
     @check_url = options['check_url']
     @input_selector = options['input_selector']
     @updated_ats = options['updated_ats']
+    @search_selector = options['search_selector']
 
     # Testing
     # @client_count = 15
@@ -61,6 +62,30 @@ class App.Cohorts.Cohort
           sortOrder: direction
       sortIndicator: true
       afterChange: @save_column
+      search: true
+    searchField = $(@search_selector)[0]
+    Handsontable.dom.addEvent searchField, 'keyup', (e) =>
+      search_string = $(e.target).val()
+      queryResult = @table.search.query(search_string)
+      @filter_rows('' + search_string)
+      @table.render()
+
+  filter_rows: (search) =>
+    console.log "searching for: #{search}"
+    data = @table_data
+    if search == ''
+      @table.loadData(data)
+      return
+    limited_data = []
+    for row in [0...data.length] by 1
+      for col in [0...data.length] by 1
+        # 
+        if ('' + data[row][col]).toLowerCase().indexOf(search.toLowerCase()) > -1
+          console.log "Found in: #{data[row][col]}"
+          limited_data.push(data[row])
+          break
+    @table.loadData(limited_data);
+
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -74,7 +99,7 @@ class App.Cohorts.Cohort
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
 
-      # @set_rank_order()
+      @set_rank_order()
     )
 
   format_cells: (row, col, prop, metadata, table) ->
@@ -149,9 +174,11 @@ class App.Cohorts.Cohort
       @table.render()
 
   set_rank_order: () =>
-    ids = $(@datatable.rows().nodes()).filter(@client_row_class).map ()->
-      $(this).data('cohort-client-id');
-    $('#rank_order').val(ids.get().join(','));
+    ids = for i in [0...@table.countRows()] by 1
+      physical_index = @table.sortIndex[i][0]
+      meta = @raw_data[physical_index].meta
+      cohort_client_id = meta.cohort_client_id
+    $('#rank_order').val(ids.join(','));
     $('.jReRank').removeClass('disabled');
 
   save_column: (change, source) =>

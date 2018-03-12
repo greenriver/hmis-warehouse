@@ -73,14 +73,15 @@ li.draggable-list__item {
 
 .cohorts .homeless_inactive
 {
-  background-color: $brand-danger-l;
+  background-color: lighten($brand-warning, 40);
 }
 
 .cohorts .cohort_client_ineligible,
-.cohorts .cohort_client_ineligible.htDimmed
+.cohorts .cohort_client_ineligible.htDimmed,
+.cohorts .cohort_client_ineligible a:link,
+.cohorts .cohort_client_ineligible.htDimmed a:link
 {
-  background-color: $gray-060;
-  color: white;
+  background-color: lighten($gray-060, 40);
 }
 
 .cohorts tr.cohort_client_ineligible textarea,
