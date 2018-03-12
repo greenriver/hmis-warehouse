@@ -115,9 +115,6 @@ class App.D3Chart.InitiativeBar extends App.D3Chart.InitiativeBarBase
         .attr('class', 'bar-value')
         .attr('x', (d) => @scale.x(d[1])+5)
         .attr('y', (d, i, j) => 
-          console.log('d', d)
-          console.log('i', i)
-          console.log('j', d3.select(j[i]).node().getBoundingClientRect())
           @scale.y(d[0])+@labelHeight+@barHeight
         )
         .attr('fill', (d) =>
@@ -146,5 +143,48 @@ class App.D3Chart.InitiativeBar extends App.D3Chart.InitiativeBarBase
           # @scale.rainbowFill(index)
           '#00549E'
         )
+
+class App.D3Chart.InitiativeStackedBar extends App.D3Chart.InitiativeBarBase
+
+  constructor: (container_selector, legend_selector, margin, data) ->
+    super(container_selector, legend_selector, margin, data)
+    @labelHeight = 26
+    @barHeight = (@scale.y.bandwidth()-@labelHeight)
+    @containerHeight = @barHeight
+    @stackKeys = @data.keys||[]
+    @range.color = @data.colors||['red', 'blue', 'green', 'purple', 'yellow', 'pink']
+    @domain.color = @stackKeys
+    @scale.color = d3.scaleOrdinal().domain(@domain.color).range(@range.color)
+
+  _drawBars: () ->
+    stackGenerator = d3.stack()
+      .keys(@stackKeys)
+      .order(d3.stackOrderNone)
+      .offset(d3.stackOffsetNone)
+    console.log('data')
+    console.log(@data)
+    # console.log(@data.data)
+    console.log('stack data')
+    console.log(stackGenerator(@data.data))
+    @chart.selectAll('g.gb-bar')
+      .data(stackGenerator(@data.data))
+      .enter()
+      .append('g')
+        .attr('class', 'gb-bar')
+        # .attr('fill', (d, i) => if i == 0 then '#F6C9CA' else '#96ADD4')
+        .attr('fill', (d) => @scale.color(d.key))
+        .selectAll('rect')
+          .data((d) => d)
+          .enter()
+          .append('rect')
+            .attr('x', (d) => @scale.x(d[0]))
+            .attr('y', (d) => @scale.y(d.data.type) + @labelHeight)
+            .attr('width', (d) => @scale.x(d[1])-@scale.x(d[0]))
+            .attr('height', (d) => @barHeight)
+
+  draw: () ->
+    super
+    @_drawBars()
+
 
 

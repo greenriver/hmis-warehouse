@@ -1,0 +1,29 @@
+- charts = vm.charts(data_type, by)
+- chart_1_data = charts[:report]
+- chart_1_id = vm.chart_id(data_type, :report, by)
+- chart_2_data = charts[:comparison]
+- chart_2_id = vm.chart_id(data_type, :comparison, by)
+.ho-container.loso__container
+  .ho-container__header
+    %h4= title
+    .loso__legend.clearfix.pull-right
+    %div{id: vm.legend_id(data_type, by)}
+  .row
+    - vm.periods.each do |period|
+      .col-xs-12.col-md-6
+        %h5{style: 'margin-left: 20px;'}= "#{period.to_s.titleize} Period"
+        %div{id: vm.chart_id(data_type, period, by)}
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var chart1Data = #{chart_1_data.to_json}
+      var chart1Id = '#'+#{chart_1_id.to_json}
+      var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data);
+      chart1.draw()
+
+      var chart2Data = #{chart_2_data.to_json}
+      var chart2Id = '#'+#{chart_2_id.to_json}
+      var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data);
+      chart2.draw()
+    })

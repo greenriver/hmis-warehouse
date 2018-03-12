@@ -96,6 +96,8 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
       .keys(@keys)
       .order(d3.stackOrderNone)
       .offset(d3.stackOffsetNone)
+    console.log(@stackData)
+    console.log(stackGenerator(@stackData))
     if @scale && @stackData
       @chart.selectAll('g.bar')
         .data(stackGenerator(@stackData))

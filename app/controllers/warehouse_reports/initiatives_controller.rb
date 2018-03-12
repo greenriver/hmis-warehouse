@@ -157,6 +157,51 @@ module WarehouseReports
     end
     helper_method :cc_by_project
 
+    def gb_chart_data_template
+      {counts: {report:[], comparison:[]}, types: [], values: []}
+    end
+
+    def gb_by_project_type
+      report_data = @data.gender_breakdowns_by_project_type || {}
+      comparison_data = @data.comparison_gender_breakdowns_by_project_type || {}
+      chart_data = gb_chart_data_template
+      all_keys = (report_data.keys + comparison_data.keys).uniq
+      all_types = all_keys.map{|k| k.split('__')[0]}.uniq
+      all_types.each do |k|
+        r_data = {type: k, female: (report_data["#{k}__Female"]||0), male: (report_data["#{k}__Male"]||0)}
+        chart_data[:counts][:report].push(r_data)
+        c_data = {type: k, female: (comparison_data["#{k}__Female"]||0), male: (comparison_data["#{k}__Male"]||0)}
+        chart_data[:counts][:comparison].push(c_data)
+        chart_data[:values].push(r_data[:female] + r_data[:male])
+        chart_data[:values].push(c_data[:female] + c_data[:male])
+      end
+      # chart_data[:values] = report_data.values + comparison_data.values
+      chart_data[:types] = all_types
+      chart_data
+    end
+    helper_method :gb_by_project_type
+
+    def gb_by_project
+      report_data = @data.gender_breakdowns_by_project
+      comparison_data = @data.comparison_gender_breakdowns_by_project
+      chart_data = gb_chart_data_template
+      @data.involved_projects.sort_by(&:last).each do |p_id, p_name|
+        chart_data[:types].push(p_name)
+        key_female = "#{p_id}__Female"
+        key_male = "#{p_id}__Male"
+        r_data = {type: p_name, female: (report_data[key_female]||0), male: (report_data[key_male]||0)}
+        c_data = {type: p_name, female: (comparison_data[key_female]||0), male: (comparison_data[key_male]||0)}
+        chart_data[:counts][:report].push(r_data)
+        chart_data[:counts][:comparison].push(c_data)
+        chart_data[:values].push(r_data[:female] + r_data[:male])
+        chart_data[:values].push(c_data[:female] + c_data[:male])
+        chart_data[:values].push(r_data[:female] + r_data[:male])
+        chart_data[:values].push(c_data[:female] + c_data[:male])
+      end
+      chart_data
+    end
+    helper_method :gb_by_project
+
     def set_report
       @report = report_source.find(params[:id].to_i)
     end
