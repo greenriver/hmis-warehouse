@@ -1,6 +1,9 @@
+- size = :md
+- if params[:size] && [:md, :lg, :xl].include?(params[:size].to_sym)
+  - size = params[:size].to_sym
 .table-wrapper
   .row
     .col-sm-8.cohort--table-info
     .col-sm-4.cohort-search
       %input#cohort-search{placeholder: 'Search', type: :search, class: 'form-control'}
-  .cohort-client__table.datatable
+  .cohort-client__table.datatable{class: size}

@@ -76,6 +76,7 @@ module Cohorts
               value: cohort_column.display_read_only(current_user), 
               renderer: cohort_column.renderer,
               cohort_client_id: cohort_client.id,
+              comments: cohort_column.comments,
             }
 
             if cohort_column.column == 'meta'

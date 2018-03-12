@@ -2,6 +2,7 @@ module CohortColumns
   class Base < ::ModelForm
     include ActionView::Helpers
     include ActionView::Context
+    include ApplicationHelper
     include Rails.application.routes.url_helpers
     attr_accessor :column, :title, :hint, :visible
     attribute :visible, Boolean, lazy: false, default: true
@@ -12,7 +13,7 @@ module CohortColumns
     attribute :editable, Boolean, lazy: false, default: true
 
     def display_as_editable? user, cohort_client
-      cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || ! cohort_client.ineligible?) && editable
+      cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || ! cohort_client.ineligible? && editable)
     end
 
     def column_editable?
@@ -28,6 +29,10 @@ module CohortColumns
     end
 
     def default_value client_id
+      nil
+    end
+
+    def comments
       nil
     end
 

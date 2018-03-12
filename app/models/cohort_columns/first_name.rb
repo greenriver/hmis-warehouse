@@ -1,5 +1,5 @@
 module CohortColumns
-  class FirstName < Base
+  class FirstName < ReadOnly
     attribute :column, String, lazy: true, default: :first_name
     attribute :title, String, lazy: true, default: 'First Name'
 

@@ -37,7 +37,6 @@ class App.Cohorts.Cohort
     @load_pages()
     @listen_for_page_resize()
     
-    @resizeable_fonts()
     # @load_pages()
     # @enable_highlight()
     # @enable_editing()
@@ -56,13 +55,18 @@ class App.Cohorts.Cohort
       dateFormat: 'll'
       columns: @column_options
       fixedColumnsLeft: @static_column_count
-      manualColumnResize: @column_widths
+      # manualColumnResize: @column_widths
       columnSorting: 
           column: 1
           sortOrder: direction
       sortIndicator: true
       afterChange: @save_column
       search: true
+      comments: true
+
+      @enable_searching()
+
+  enable_searching: () =>
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       search_string = $(e.target).val()
@@ -71,7 +75,7 @@ class App.Cohorts.Cohort
       @table.render()
 
   filter_rows: (search) =>
-    console.log "searching for: #{search}"
+    # console.log "searching for: #{search}"
     data = @table_data
     if search == ''
       @table.loadData(data)
@@ -79,9 +83,8 @@ class App.Cohorts.Cohort
     limited_data = []
     for row in [0...data.length] by 1
       for col in [0...data.length] by 1
-        # 
         if ('' + data[row][col]).toLowerCase().indexOf(search.toLowerCase()) > -1
-          console.log "Found in: #{data[row][col]}"
+          # console.log "Found in: #{data[row][col]}"
           limited_data.push(data[row])
           break
     @table.loadData(limited_data);
@@ -100,6 +103,7 @@ class App.Cohorts.Cohort
           @format_cells(row, col, prop, @cell_metadata, @table)
 
       @set_rank_order()
+      @table.render()
     )
 
   format_cells: (row, col, prop, metadata, table) ->
@@ -113,6 +117,13 @@ class App.Cohorts.Cohort
     # mark read-only cells as such
     if meta?.editable == false
       cellProperties.readOnly = 'true'
+
+    if meta.comments != null
+      cellProperties.comment = {value: meta.comments}
+
+    if meta.renderer == 'checkbox'
+      classes.push('htCenter')
+      classes.push('htMiddle')
 
     # mark inactive clients
     if row_meta.activity == 'homeless_inactive'
@@ -157,17 +168,7 @@ class App.Cohorts.Cohort
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
   reinitialize_js: () ->
-    $('.select2').select2();
     $('[data-toggle="tooltip"]').tooltip();
-
-  resizeable_fonts: () =>
-    $(@wrapper_selector).on 'click', @size_toggle_class, (e) =>
-      clicked =  e.target
-      size = $(clicked).data('size')
-      $(@table_selector).removeClass('sm lg xl').addClass(size)
-      $(clicked).siblings().removeClass('btn-primary').addClass('btn-secondary')
-      $(clicked).removeClass('btn-secondary').addClass('btn-primary')
-      @datatable.draw()
   
   listen_for_page_resize: () =>
     $(window).resize () =>
@@ -192,7 +193,7 @@ class App.Cohorts.Cohort
     column = @cell_metadata[row][column]
     field_name = "cohort_client[#{column.column}]"
     cohort_client_id = meta.cohort_client_id
-    console.log row, column, meta, cohort_client_id
+    # console.log row, column, meta, cohort_client_id
     $form = $(@cohort_client_form_selector)
     proxy_field = $form.find('.proxy_field')
     $(proxy_field).attr('name', field_name).attr('value', current)

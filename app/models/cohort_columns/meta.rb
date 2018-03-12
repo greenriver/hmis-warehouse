@@ -20,12 +20,14 @@ module CohortColumns
       0
     end
 
+    def comments
+      if inactive
+        inactivity_warning = "No homeless service in #{@cohort.days_of_inactivity} days"
+      end
+    end
+
     def value(cohort_client)
       inactivity_warning = ''
-      if inactive
-        inactivity_warning = "No homeless service in over #{@cohort.days_of_inactivity} days #{cohort_client.id}"
-      end
-      inactivity_warning 
     end
 
     def last_activity

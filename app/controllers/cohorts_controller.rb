@@ -37,7 +37,7 @@ class CohortsController < ApplicationController
           case m.renderer
           when 'dropdown'
             options.merge!({type: m.renderer, source: m.available_options})
-          when 'date'
+          when 'date', 'checkbox', 'text'
             options.merge!({type: m.renderer})
           else 
             options.merge!({renderer: m.renderer})
