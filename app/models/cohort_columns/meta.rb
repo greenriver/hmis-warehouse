@@ -65,7 +65,7 @@ module CohortColumns
       display_read_only
     end
 
-    def display_read_only
+    def display_read_only user
       value(cohort_client)
     end
   end

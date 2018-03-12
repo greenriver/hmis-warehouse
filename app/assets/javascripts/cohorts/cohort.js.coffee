@@ -34,6 +34,7 @@ class App.Cohorts.Cohort
 
     @initialize_handsontable()
     @load_pages()
+    @listen_for_page_resize()
     
     @resizeable_fonts()
     # @load_pages()
@@ -72,22 +73,31 @@ class App.Cohorts.Cohort
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
-      # direction = true
-      # if @sort_direction == 'desc'
-      #   direction = false
-      # @table.updateSettings
-      #   columnSorting: 
-      #     column: 1
-      #     sortOrder: direction
+
       # @set_rank_order()
     )
 
   format_cells: (row, col, prop, metadata, table) ->
     cellProperties ={}
-    # console.log row, col, metadata[row][col].cohort_client_id
-    # table.setCellMeta(row, col, 'cohort_client_id', metadata[row][col].cohort_client_id)
-    if metadata[row][col]?.editable == false
+
+    meta = metadata[row][col]
+    row_meta = @raw_data[row].meta
+
+    classes = []
+
+    # mark read-only cells as such
+    if meta?.editable == false
       cellProperties.readOnly = 'true'
+
+    # mark inactive clients
+    if row_meta.activity == 'homeless_inactive'
+      classes.push(row_meta.activity)
+
+    # mark ineligible clients
+    if row_meta.ineligible == true
+      classes.push('cohort_client_ineligible')
+        
+    cellProperties.className = classes.join(' ')
     return cellProperties
 
 
@@ -133,7 +143,11 @@ class App.Cohorts.Cohort
       $(clicked).siblings().removeClass('btn-primary').addClass('btn-secondary')
       $(clicked).removeClass('btn-secondary').addClass('btn-primary')
       @datatable.draw()
-    
+  
+  listen_for_page_resize: () =>
+    $(window).resize () =>
+      @table.render()
+
   set_rank_order: () =>
     ids = $(@datatable.rows().nodes()).filter(@client_row_class).map ()->
       $(this).data('cohort-client-id');

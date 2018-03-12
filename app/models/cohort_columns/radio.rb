@@ -33,11 +33,11 @@ module CohortColumns
           end
         end
       else
-        display_read_only
+        display_read_only(user)
       end
     end
 
-    def display_read_only
+    def display_read_only user
       available_options[value(cohort_client)]
     end
     

@@ -15,7 +15,7 @@ module CohortColumns
           content_tag(:span, '', class: 'input-group-addon icon-calendar')
         end
       else
-        display_read_only
+        display_read_only(user)
       end
     end
 
@@ -23,7 +23,7 @@ module CohortColumns
       'date'
     end
 
-    def display_read_only
+    def display_read_only user
       value(cohort_client)
     end
     

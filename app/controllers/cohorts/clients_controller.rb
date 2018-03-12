@@ -73,7 +73,7 @@ module Cohorts
             editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
             cohort_client_data[cohort_column.column] = {
               editable: editable, 
-              value: cohort_column.display_read_only, 
+              value: cohort_column.display_read_only(current_user), 
               renderer: cohort_column.renderer,
               cohort_client_id: cohort_client.id,
             }

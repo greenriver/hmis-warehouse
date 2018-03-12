@@ -1,5 +1,5 @@
 module CohortColumns
-  class VashEligible < Radio
+  class VashEligible < CohortBoolean
     attribute :column, Boolean, lazy: true, default: :vash_eligible
     attribute :title, String, lazy: true, default: 'VASH Eligible'
 

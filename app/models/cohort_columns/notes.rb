@@ -17,14 +17,14 @@ module CohortColumns
     end
 
     def display_for user
-      display_read_only
+      display_read_only(user)
     end
 
     def renderer
       'html'
     end
 
-    def display_read_only
+    def display_read_only user
       note_count = cohort_client.cohort_client_notes.length
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
       most_recent = cohort_client.cohort_client_notes.ordered.first
