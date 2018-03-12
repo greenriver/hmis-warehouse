@@ -34,6 +34,7 @@ class App.Cohorts.Cohort
     @raw_data = []
 
     @initialize_handsontable()
+    @enable_searching()
     @load_pages()
     @listen_for_page_resize()
     
@@ -55,7 +56,7 @@ class App.Cohorts.Cohort
       dateFormat: 'll'
       columns: @column_options
       fixedColumnsLeft: @static_column_count
-      # manualColumnResize: @column_widths
+      manualColumnResize: @column_widths
       columnSorting: 
           column: 1
           sortOrder: direction
@@ -63,8 +64,11 @@ class App.Cohorts.Cohort
       afterChange: @save_column
       search: true
       comments: true
-
-      @enable_searching()
+      contextMenu: true
+      # fixedColumnsLeft: 2,
+      # contextMenu: true,
+      # manualColumnFreeze: true
+      
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]
@@ -185,42 +189,44 @@ class App.Cohorts.Cohort
   save_column: (change, source) =>
     return if source == 'loadData'
     [row, column, original, current] = change[0]
+    
+    @table.validateRows [row], (valid) =>
+      if valid
+        # translate the logical index (based on current sort order) to
+        # the physical index (the row it was originally)
+        physical_index = @table.sortIndex[row][0]
+        meta = @raw_data[physical_index].meta
+        column = @cell_metadata[row][column]
+        field_name = "cohort_client[#{column.column}]"
+        cohort_client_id = meta.cohort_client_id
+        # console.log row, column, meta, cohort_client_id
+        $form = $(@cohort_client_form_selector)
+        proxy_field = $form.find('.proxy_field')
+        $(proxy_field).attr('name', field_name).attr('value', current)
+        url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
+        method = $form.attr("method");
+        data = $form.serialize();
+        options = {
+          url : "#{url}.js",
+          type: method,
+          data: data,
+          dataType: 'json' 
+        }
 
-    # translate the logical index (based on current sort order) to
-    # the physical index (the row it was originally)
-    physical_index = @table.sortIndex[row][0]
-    meta = @raw_data[physical_index].meta
-    column = @cell_metadata[row][column]
-    field_name = "cohort_client[#{column.column}]"
-    cohort_client_id = meta.cohort_client_id
-    # console.log row, column, meta, cohort_client_id
-    $form = $(@cohort_client_form_selector)
-    proxy_field = $form.find('.proxy_field')
-    $(proxy_field).attr('name', field_name).attr('value', current)
-    url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
-    method = $form.attr("method");
-    data = $form.serialize();
-    options = {
-      url : "#{url}.js",
-      type: method,
-      data: data,
-      dataType: 'json' 
-    }
+        $.ajax(options).complete (jqXHR) =>
+          response = JSON.parse(jqXHR.responseText)
+          alert_class = response.alert
+          alert_text = response.message
+          updated_at = response.updated_at
+          cohort_client_id = response.cohort_client_id
 
-    $.ajax(options).complete (jqXHR) =>
-      response = JSON.parse(jqXHR.responseText)
-      alert_class = response.alert
-      alert_text = response.message
-      updated_at = response.updated_at
-      cohort_client_id = response.cohort_client_id
+          # Make note of successful update
+          @updated_ats[cohort_client_id] = updated_at
 
-      # Make note of successful update
-      @updated_ats[cohort_client_id] = updated_at
-
-      alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
-      $('.utility .alert').remove()
-      $('.utility').append(alert)
-      $('.utility .alert').delay(2000).fadeOut(250)
+          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
+          $('.utility .alert').remove()
+          $('.utility').append(alert)
+          $('.utility .alert').delay(2000).fadeOut(250)
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>

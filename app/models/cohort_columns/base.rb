@@ -45,7 +45,7 @@ module CohortColumns
     end
 
     def width
-      0
+      100
     end
 
     def form_group
