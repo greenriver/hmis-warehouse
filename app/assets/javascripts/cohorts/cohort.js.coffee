@@ -47,7 +47,6 @@ class App.Cohorts.Cohort
     direction = true
     if @sort_direction == 'desc'
       direction = false
-    console.log @sort_direction
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
       colHeaders: @column_headers
@@ -60,6 +59,7 @@ class App.Cohorts.Cohort
           column: 1
           sortOrder: direction
       sortIndicator: true
+      afterChange: @save_column
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -67,18 +67,25 @@ class App.Cohorts.Cohort
       # When we're all done fetching...
       $(@loading_selector).addClass('hidden')
       @format_data_for_table()
-
+      # add the data to the table
       @table.loadData(@table_data)
-      # console.log @table_data, @cell_metadata
       @table.updateSettings
         cells: (row, col, prop) =>
-          @format_cells(row, col, prop, @cell_metadata)
-
+          @format_cells(row, col, prop, @cell_metadata, @table)
+      # direction = true
+      # if @sort_direction == 'desc'
+      #   direction = false
+      # @table.updateSettings
+      #   columnSorting: 
+      #     column: 1
+      #     sortOrder: direction
       # @set_rank_order()
     )
 
-  format_cells: (row, col, prop, metadata) ->
+  format_cells: (row, col, prop, metadata, table) ->
     cellProperties ={}
+    # console.log row, col, metadata[row][col].cohort_client_id
+    # table.setCellMeta(row, col, 'cohort_client_id', metadata[row][col].cohort_client_id)
     if metadata[row][col]?.editable == false
       cellProperties.readOnly = 'true'
     return cellProperties
@@ -94,7 +101,9 @@ class App.Cohorts.Cohort
       [client]
     @cell_metadata  = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
-        row[column]
+        m = row[column]
+        m['column'] = column
+        m
       [client]
     
   load_page: () =>
@@ -112,11 +121,6 @@ class App.Cohorts.Cohort
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
-  add_rows: (data) =>
-    @datatable.rows.add($(data).filter('tr')).draw();
-    percent_complete = Math.round(@current_page/@pages*100)
-    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
-
   reinitialize_js: () ->
     $('.select2').select2();
     $('[data-toggle="tooltip"]').tooltip();
@@ -130,59 +134,51 @@ class App.Cohorts.Cohort
       $(clicked).removeClass('btn-secondary').addClass('btn-primary')
       @datatable.draw()
     
-  enable_highlight: () =>
-    $('.cohorts').on 'click', '.jSelectRow', (e) =>
-      cohort_client_id = $(e.target).closest('tr').data('cohort-client-id')
-      row = @datatable.row("[data-cohort-client-id=#{cohort_client_id}]").node()
-      $(row).siblings().removeClass('cohort-client-selected')
-      $(row).toggleClass('cohort-client-selected')
-      @datatable.draw()
-
   set_rank_order: () =>
     ids = $(@datatable.rows().nodes()).filter(@client_row_class).map ()->
       $(this).data('cohort-client-id');
     $('#rank_order').val(ids.get().join(','));
     $('.jReRank').removeClass('disabled');
 
-  enable_editing: () =>
-    $(@wrapper_selector).on 'change', @input_selector, (e) =>
-      $field = $(e.target)
-      cohort_client_id = $field.closest('tr').data('cohort-client-id')
-      field_name = $field.attr('name').replace("[#{cohort_client_id}]", '')
-      $form = $(@cohort_client_form_selector)
-      url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
-      proxy_field = $form.find('.proxy_field')
-      $(proxy_field).attr('name', field_name).attr('value', $field.val())
-      # update the hidden bit for searching
-      @update_search_text($field.closest('td'), $field.val())
-      
-      method = $form.attr("method");
-      data = $form.serialize();
-      options = {
-        url : "#{url}.js",
-        type: method,
-        data: data,
-        dataType: 'json' 
-      }
+  save_column: (change, source) =>
+    return if source == 'loadData'
+    [row, column, original, current] = change[0]
 
-      $.ajax(options).complete (jqXHR) =>
-        response = JSON.parse(jqXHR.responseText)
-        alert_class = response.alert
-        alert_text = response.message
-        updated_at = response.updated_at
-        cohort_client_id = response.cohort_client_id
+    # translate the logical index (based on current sort order) to
+    # the physical index (the row it was originally)
+    physical_index = @table.sortIndex[row][0]
+    meta = @raw_data[physical_index].meta
+    column = @cell_metadata[row][column]
+    field_name = "cohort_client[#{column.column}]"
+    cohort_client_id = meta.cohort_client_id
+    console.log row, column, meta, cohort_client_id
+    $form = $(@cohort_client_form_selector)
+    proxy_field = $form.find('.proxy_field')
+    $(proxy_field).attr('name', field_name).attr('value', current)
+    url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
+    method = $form.attr("method");
+    data = $form.serialize();
+    options = {
+      url : "#{url}.js",
+      type: method,
+      data: data,
+      dataType: 'json' 
+    }
 
-        # Make note of successful update
-        @updated_ats[cohort_client_id] = updated_at
+    $.ajax(options).complete (jqXHR) =>
+      response = JSON.parse(jqXHR.responseText)
+      alert_class = response.alert
+      alert_text = response.message
+      updated_at = response.updated_at
+      cohort_client_id = response.cohort_client_id
 
-        alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
-        $('.utility .alert').remove()
-        $('.utility').append(alert)
-        $('.utility .alert').delay(2000).fadeOut(250)
+      # Make note of successful update
+      @updated_ats[cohort_client_id] = updated_at
 
-  update_search_text: ($td, value) =>
-    $td.find(@cohort_value_hidden_selector).text(value)
-    @datatable.cell($td).invalidate()
+      alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
+      $('.utility .alert').remove()
+      $('.utility').append(alert)
+      $('.utility .alert').delay(2000).fadeOut(250)
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>

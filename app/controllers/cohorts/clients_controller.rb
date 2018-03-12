@@ -60,23 +60,9 @@ module Cohorts
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?, params], expires_in: expires) do
-          last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
-          inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
-          inactivity_warning = ''
-          if inactivity_class.present?
-            inactivity_warning = "No homeless service in over #{@cohort.days_of_inactivity} days"
-          end
+          @visible_columns = [CohortColumns::Meta.new]
           cohort_client_data = {}
-          cohort_client_data[:meta] = {
-            editable: false,
-            activity: inactivity_class, 
-            ineligible: cohort_client.ineligible?, 
-            cohort_client_id: cohort_client.id, 
-            client_id: cohort_client.client.id, 
-            cohort_client_updated_at: cohort_client.updated_at.to_i, 
-            value: inactivity_warning,
-          }
-          @visible_columns = @cohort.visible_columns
+          @visible_columns += @cohort.visible_columns
           if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
             @visible_columns << CohortColumns::Delete.new
           end
@@ -85,7 +71,16 @@ module Cohorts
             cohort_column.cohort_names = @cohort_names
             cohort_column.cohort_client = cohort_client
             editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
-            cohort_client_data[cohort_column.column] = {editable: editable, value: cohort_column.display_read_only, renderer: cohort_column.renderer}
+            cohort_client_data[cohort_column.column] = {
+              editable: editable, 
+              value: cohort_column.display_read_only, 
+              renderer: cohort_column.renderer,
+              cohort_client_id: cohort_client.id,
+            }
+
+            if cohort_column.column == 'meta'
+              cohort_client_data[cohort_column.column].merge!(cohort_column.metadata)
+            end
           end
           cohort_client_data
         end
