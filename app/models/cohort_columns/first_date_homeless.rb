@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'First Date Homeless'
 
     def value(cohort_client)
-      cohort_client.client.first_homeless_date
+      cohort_client.client.first_homeless_date.to_date
     end
 
   end

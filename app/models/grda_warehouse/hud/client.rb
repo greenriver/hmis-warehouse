@@ -1491,6 +1491,22 @@ module GrdaWarehouse::Hud
       vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
     end
 
+    def calculate_vispdat_priority_score
+      vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization
+      vispdat_score = most_recent_vispdat_score
+      vispdat_length_homeless_in_days ||= 0
+      vispdat_score ||= 0
+      if vispdat_length_homeless_in_days > 730 && vispdat_score >= 8
+        730 + vispdat_score
+      elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
+        365 + vispdat_score
+      elsif vispdat_score >= 0 
+        vispdat_score
+      else 
+        0
+      end
+    end
+
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
       dates_homeless_in_last_three_years_scope(client_id: client_id, on_date: on_date).count
     end

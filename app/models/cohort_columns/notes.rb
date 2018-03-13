@@ -33,7 +33,11 @@ module CohortColumns
     def display_read_only user
       note_count = cohort_client.cohort_client_notes.length
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
-      link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
+      html = content_tag(:span, class: "hidden") do 
+        note_count
+      end
+      html += link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
+      html
     end
   end
 end

@@ -33,7 +33,9 @@ class CohortsController < ApplicationController
         end
         @column_headers = @visible_columns.map(&:title)
         @column_options =  @visible_columns.map do |m|
-          options = {}
+          options = {
+            data: "#{m.column}.value"
+          }
           case m.renderer
           when 'dropdown'
             options.merge!({type: m.renderer, source: m.available_options})

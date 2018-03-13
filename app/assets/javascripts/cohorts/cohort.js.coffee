@@ -52,7 +52,9 @@ class App.Cohorts.Cohort
       dateFormat: 'll'
       columns: @column_options
       fixedColumnsLeft: @static_column_count
-      manualColumnResize: @column_widths
+      # manualColumnResize: @column_widths
+      manualColumnResize: true
+      rowHeights: 40
       columnSorting: 
           column: 1
           sortOrder: @direction
@@ -66,28 +68,44 @@ class App.Cohorts.Cohort
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       search_string = $(e.target).val()
+      # console.log search_string
       queryResult = @table.search.query(search_string)
       @filter_rows('' + search_string)
       @table.render()
 
   filter_rows: (search) =>
     # console.log "searching for: #{search}"
-    data = @table_data
+    data = @raw_data
+    metadata_copy = @cell_metadata
+
     if search == ''
       @table.loadData(data)
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, @cell_metadata, @table)
       return
     limited_data = []
     limited_metadata = []
     for row in [0...data.length] by 1
-      for col in [0...data.length] by 1
-        if ('' + data[row][col]).toLowerCase().indexOf(search.toLowerCase()) > -1
-          # console.log "Found in: #{data[row][col]}"
+      strings = $.map data[row], (obj) ->
+        if obj.renderer == 'html'
+          $(obj.value).text()
+        else
+          obj.value
+      for col in [0...strings.length] by 1
+        if ('' + strings[col]).toLowerCase().indexOf(search.toLowerCase()) > -1
+          # console.log "Found in:", data[row]
           limited_data.push(data[row])
-          # limited_metadata.push(metadata_copy[row])
+          # console.log(@cell_metadata[row])
+          limited_metadata.push(metadata_copy[row])
           break
-    @table.loadData(limited_data);
-    # TODO: notes/comments are not correctly limited by filtering
-
+    @table.loadData(limited_data)
+    # console.log "limited_metadata", limited_metadata
+    if limited_metadata.length > 0
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, limited_metadata, @table)
+    
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
     @load_page().then(() =>
@@ -95,7 +113,7 @@ class App.Cohorts.Cohort
       $(@loading_selector).addClass('hidden')
       @format_data_for_table()
       # add the data to the table
-      @table.loadData(@table_data)
+      @table.loadData(@raw_data)
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
@@ -109,7 +127,8 @@ class App.Cohorts.Cohort
 
   format_cells: (row, col, prop, metadata, table) ->
     cellProperties ={}
-
+    # console.log row, col, prop,  metadata[row][col]
+    return unless metadata[row]?
     meta = metadata[row][col]
     row_meta = @raw_data[row].meta
 
@@ -122,7 +141,7 @@ class App.Cohorts.Cohort
     if meta.comments != null
       cellProperties.comment = {value: meta.comments}
 
-    if meta.renderer == 'checkbox' || meta.column == 'notes'
+    if meta.renderer == 'checkbox' || meta.column == 'notes' || meta.column == 'meta'
       classes.push('htCenter')
       classes.push('htMiddle')
 
@@ -137,6 +156,16 @@ class App.Cohorts.Cohort
     cellProperties.className = classes.join(' ')
     return cellProperties
 
+  deep_find: (obj, path) ->
+    paths = path.split('.')
+    current = obj
+    for i in [0...paths.length] by 1
+      # console.log current[paths[i]], paths[i]
+      if current[paths[i]] == undefined
+        undefined
+      else
+        current = current[paths[i]]
+    return current
 
   format_data_for_table: () =>
     @table_data = $.map @raw_data, (row) =>
@@ -184,14 +213,16 @@ class App.Cohorts.Cohort
     $('.jReRank').removeClass('disabled');
 
   save_column: (change, source) =>
-    return if source == 'loadData'
+    return unless source == 'edit'
     [row, col, original, current] = change[0]
     return if original == current
     # translate the logical index (based on current sort order) to
     # the physical index (the row it was originally)
     physical_index = @table.sortIndex[row][0]
     meta = @raw_data[physical_index].meta
-    column = @cell_metadata[row][col]
+    # We need the containing metadata for the column and our pattern always uses value
+    cohort_column_column = col.replace('.value', '')
+    column = @deep_find(@raw_data[physical_index], cohort_column_column)
     return unless column.editable
     @table.validateRows [row], (valid) =>
       if valid
@@ -242,13 +273,15 @@ class App.Cohorts.Cohort
     url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
     $.get url, (data) =>
       client = data[0]
+      # console.log client
       $.each @cell_metadata, (i, row) =>
         $.each row, (j, col) =>
           if col.cohort_client_id == +cohort_client_id
             if col.value != client[col.column].value
-              # console.log i,j, client[col.column].value, @table_data[i][1], @table_data[i][j]
+              # console.log i,j, client[col.column].value, @table_data[i][1], @raw_data[i][@column_order[j]]
               @cell_metadata[i][j].comments = client[col.column].comments
               @table_data[i][j] = client[col.column].value
+              @raw_data[i][@column_order[j]].value = client[col.column].value
 
       @table.updateSettings
         cells: (row, col, prop) =>

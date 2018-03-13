@@ -13,7 +13,7 @@ module CohortColumns
     end
 
     def renderer
-      'text'
+      'html'
     end
 
     def width
@@ -27,7 +27,9 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      inactivity_warning = ''
+      if inactive
+        content_tag(:i, ' ', class: "icon-warning warning")
+      end
     end
 
     def last_activity
@@ -45,6 +47,7 @@ module CohortColumns
     def inactivity_class
       if inactive
         'homeless_inactive'
+        ''
       else
         ''
       end
