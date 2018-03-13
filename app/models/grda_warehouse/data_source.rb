@@ -40,6 +40,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     importable.where(source_type: "sftp")
   end
 
+  scope :importable_via_s3, -> do
+    importable.where(source_type: "s3")
+  end
+
   scope :viewable_by, -> (user) do
     if user.can_edit_anything_super_user?
       current_scope
