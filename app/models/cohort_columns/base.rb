@@ -48,6 +48,10 @@ module CohortColumns
       100
     end
 
+    def description
+      ''
+    end
+
     def form_group
       "cohort_client[#{cohort_client.id}]"
     end  

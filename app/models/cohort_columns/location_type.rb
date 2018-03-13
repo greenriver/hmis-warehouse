@@ -5,6 +5,7 @@ module CohortColumns
 
     def available_options
       [
+        '', 
         'Sheltered',
         'Unsheltered',
         'Institution less than 90 days',

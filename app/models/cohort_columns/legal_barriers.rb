@@ -5,7 +5,13 @@ module CohortColumns
 
 
     def available_options
-      ['CORI', 'SORI', 'Wage Garnishments', 'State Only']
+      [
+        '', 
+        'CORI', 
+        'SORI', 
+        'Wage Garnishments', 
+        'State Only'
+      ]
     end
   end
 end

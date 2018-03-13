@@ -25,6 +25,6 @@
         updated_ats: #{@cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h.to_json},
         search_selector: '#cohort-search' 
       }
-      var cohort = new App.Cohorts.Cohort(cohort_options)
+      $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
       
     })(jQuery);

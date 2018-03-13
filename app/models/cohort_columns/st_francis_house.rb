@@ -5,7 +5,12 @@ module CohortColumns
 
 
     def available_options
-      ['Infrequent Visitor', 'Frequent Visitor', 'Case Management']
+      [
+        '', 
+        'Infrequent Visitor', 
+        'Frequent Visitor', 
+        'Case Management'
+      ]
     end
 
   end

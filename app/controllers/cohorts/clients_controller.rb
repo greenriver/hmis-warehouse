@@ -26,7 +26,10 @@ module Cohorts
             else
               @cohort_clients = @cohort.cohort_clients.where(active: true)
             end
-                      
+            # Allow for individual refresh
+            if params[:cohort_client_id].present?
+              @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
+            end
             @cohort_clients = @cohort_clients.
               preload(:cohort_client_notes, client: :processed_service_history).
               page(params[:page].to_i).per(params[:per].to_i)
@@ -59,7 +62,7 @@ module Cohorts
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
-        cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?, params], expires_in: expires) do
+        cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes, current_user.can_view_clients?, params], expires_in: expires) do
           @visible_columns = [CohortColumns::Meta.new]
           cohort_client_data = {}
           @visible_columns += @cohort.visible_columns
@@ -298,7 +301,7 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:cohort_client).permit(*cohort_source.available_columns.map(&:column))
+      params.require(:cohort_client).permit(*cohort_source.available_columns.select{|m| m.column_editable?}.map(&:column))
     end
 
     def log_create(cohort_id, cohort_client_id)

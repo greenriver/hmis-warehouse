@@ -56,8 +56,15 @@ module GrdaWarehouse
     end
 
     def visible_columns
-      return self.class.available_columns unless column_state.present?
+      return self.class.default_visible_columns unless column_state.present?
       column_state&.select(&:visible)&.presence || self.class.available_columns
+    end
+
+    def self.default_visible_columns
+      [
+        ::CohortColumns::LastName.new(),
+        ::CohortColumns::FirstName.new(),
+      ]
     end
 
     def self.available_columns

@@ -1,5 +1,5 @@
 module CohortColumns
-  class OpenEnrollments < Base
+  class OpenEnrollments < ReadOnly
     include ArelHelper
     attribute :column, String, lazy: true, default: :open_enrollments
     attribute :title, String, lazy: true, default: 'Open Residential Enrollments'

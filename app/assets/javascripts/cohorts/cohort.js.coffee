@@ -38,17 +38,13 @@ class App.Cohorts.Cohort
     @load_pages()
     @listen_for_page_resize()
     
-    # @load_pages()
-    # @enable_highlight()
-    # @enable_editing()
-
-    # @refresh_rate = 10000
-    # setInterval @check_for_new_data, @refresh_rate
+    @refresh_rate = 10000
+    setInterval @check_for_new_data, @refresh_rate
 
   initialize_handsontable: () =>
-    direction = true
+    @direction = true
     if @sort_direction == 'desc'
-      direction = false
+      @direction = false
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
       colHeaders: @column_headers
@@ -59,16 +55,12 @@ class App.Cohorts.Cohort
       manualColumnResize: @column_widths
       columnSorting: 
           column: 1
-          sortOrder: direction
+          sortOrder: @direction
       sortIndicator: true
       afterChange: @save_column
       search: true
       comments: true
-      contextMenu: true
-      # fixedColumnsLeft: 2,
-      # contextMenu: true,
-      # manualColumnFreeze: true
-      
+
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]
@@ -85,14 +77,16 @@ class App.Cohorts.Cohort
       @table.loadData(data)
       return
     limited_data = []
+    limited_metadata = []
     for row in [0...data.length] by 1
       for col in [0...data.length] by 1
         if ('' + data[row][col]).toLowerCase().indexOf(search.toLowerCase()) > -1
           # console.log "Found in: #{data[row][col]}"
           limited_data.push(data[row])
+          # limited_metadata.push(metadata_copy[row])
           break
     @table.loadData(limited_data);
-
+    # TODO: notes/comments are not correctly limited by filtering
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -105,7 +99,10 @@ class App.Cohorts.Cohort
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
-
+        columnSorting: 
+          column: 1
+          sortOrder: @direction
+      # console.log @raw_data
       @set_rank_order()
       @table.render()
     )
@@ -125,7 +122,7 @@ class App.Cohorts.Cohort
     if meta.comments != null
       cellProperties.comment = {value: meta.comments}
 
-    if meta.renderer == 'checkbox'
+    if meta.renderer == 'checkbox' || meta.column == 'notes'
       classes.push('htCenter')
       classes.push('htMiddle')
 
@@ -136,7 +133,7 @@ class App.Cohorts.Cohort
     # mark ineligible clients
     if row_meta.ineligible == true
       classes.push('cohort_client_ineligible')
-        
+
     cellProperties.className = classes.join(' ')
     return cellProperties
 
@@ -188,15 +185,16 @@ class App.Cohorts.Cohort
 
   save_column: (change, source) =>
     return if source == 'loadData'
-    [row, column, original, current] = change[0]
-    
+    [row, col, original, current] = change[0]
+    return if original == current
+    # translate the logical index (based on current sort order) to
+    # the physical index (the row it was originally)
+    physical_index = @table.sortIndex[row][0]
+    meta = @raw_data[physical_index].meta
+    column = @cell_metadata[row][col]
+    return unless column.editable
     @table.validateRows [row], (valid) =>
       if valid
-        # translate the logical index (based on current sort order) to
-        # the physical index (the row it was originally)
-        physical_index = @table.sortIndex[row][0]
-        meta = @raw_data[physical_index].meta
-        column = @cell_metadata[row][column]
         field_name = "cohort_client[#{column.column}]"
         cohort_client_id = meta.cohort_client_id
         # console.log row, column, meta, cohort_client_id
@@ -222,6 +220,9 @@ class App.Cohorts.Cohort
 
           # Make note of successful update
           @updated_ats[cohort_client_id] = updated_at
+          physical_index = @table.sortIndex[row][0]
+          @table_data[physical_index][col] = current
+          # console.log "saved", row, col, original, current, physical_index
 
           alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
           $('.utility .alert').remove()
@@ -230,18 +231,26 @@ class App.Cohorts.Cohort
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      if data != @updated_ats
-        @update_outdated(data)
+      # console.log 'checking'
+      $.each data, (id, timestamp) =>
+        if timestamp != @updated_ats[id]
+          # console.log(id, timestamp, @updated_ats[id])
+          @reload_client(id)
+      @updated_ats = data
+          
+  reload_client: (cohort_client_id) =>
+    url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
+    $.get url, (data) =>
+      client = data[0]
+      $.each @cell_metadata, (i, row) =>
+        $.each row, (j, col) =>
+          if col.cohort_client_id == +cohort_client_id
+            if col.value != client[col.column].value
+              # console.log i,j, client[col.column].value, @table_data[i][1], @table_data[i][j]
+              @cell_metadata[i][j].comments = client[col.column].comments
+              @table_data[i][j] = client[col.column].value
 
-  update_outdated: (current) =>
-    for cohort_client_id, updated_at of @updated_ats
-      current_timestamp = current[cohort_client_id]
-      if current_timestamp != updated_at
-        selector = "#{@client_row_class}[data-cohort-client-id='#{cohort_client_id}']"
-        # $row = $(selector)
-        $rows = @datatable.rows(selector).nodes().to$()
-        $rows.find(@input_selector).attr('disabled', 'disabled')
-        @updated_ats[cohort_client_id] = current_timestamp
-        $rows.find('td:first').html('<div class="icon-warning"></div><strong>Data has changed, please refresh.</strong>')
-        $rows.addClass('warning')
-        @datatable.draw()
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, @cell_metadata, @table)
+      @table.render()
