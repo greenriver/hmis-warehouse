@@ -96,6 +96,9 @@ Rails.application.routes.draw do
     resources :really_old_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :expiring_consent, only: [:index]
+    resources :consent, only: [:index] do
+      post :update_clients, on: :collection
+    end
     resources :anomalies, only: [:index]
     resources :touch_point_exports, only: [:index] do
       collection do

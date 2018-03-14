@@ -1,0 +1,13 @@
+= content_for :page_js do
+  :javascript
+    $('.js-client').on('click', function(event){
+      if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
+        var href = '#{base_path}' + $(this).data('id');
+        if(event.metaKey) {
+          open(href, '_blank');
+        }
+        else{
+          window.location = href;
+        }
+      }
+    })

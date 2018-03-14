@@ -50,7 +50,7 @@
         .col-sm-6.mb-4
           %dt Consent Form Confirmed
           %dd
-            - confirmed = @client.client_files.where(consent_form_signed_on: @client.consent_form_signed_on).first&.consent_form_confirmed
+            - confirmed = @client.consent_confirmed?
             = checkmark_or_x confirmed
             - unless confirmed
               Form Not Confirmed
