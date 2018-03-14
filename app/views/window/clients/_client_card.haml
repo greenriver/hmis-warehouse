@@ -52,3 +52,6 @@
       .client__data-sharing-agreement
         %strong Data sharing agreement:
         = client.consent_form_status.presence
+  .client__details
+    .client__view_client
+      = link_to 'View', window_client_path(client), class: 'btn btn-secondary'

@@ -79,8 +79,8 @@
             %strong Data sharing agreement:
             = client.consent_form_status.presence
       .client__details.client__details--status
-        -# .client__view_client
-          -# = link_to 'View', client_path(client), class: 'btn btn-secondary'
+        .client__view_client
+          = link_to 'View', client_path(client), class: 'btn btn-secondary'
         - total_homeless = client.days_homeless
         %p
           %strong Days Homeless:
