@@ -4,7 +4,14 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Criminal Record Status'
 
     def available_options
-      ['Open-Gather additional documentation', 'Outstanding Warrant', 'Clear', 'Needs Mitigation', 'Mitigated']
+      [
+        '', 
+        'Open-Gather additional documentation', 
+        'Outstanding Warrant', 
+        'Clear', 
+        'Needs Mitigation', 
+        'Mitigated'
+      ]
     end
   end
 end

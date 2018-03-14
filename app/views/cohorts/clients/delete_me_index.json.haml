@@ -1,0 +1,18 @@
+- data = []
+- @cohort_clients.each do |cohort_client|
+  - client = cohort_client.client
+  - expires = if Rails.env.development? then 1.minute else 8.hours end
+  - cohort_client_data = cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?, params], expires_in: expires) do
+    - last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
+    - inactivity_class = if Date.today - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
+    - cohort_client_data = {}
+    - cohort_client_data[:meta] = {activity: inactivity_class, ineligible: cohort_client.ineligible?, cohort_client_id: cohort_client.id, client_id: cohort_client.client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}
+    - @cohort.visible_columns.each do |cohort_column|
+      - cohort_column.cohort = @cohort
+      - cohort_column.cohort_names = @cohort_names
+      - cohort_column.cohort_client = cohort_client
+      - editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
+      - cohort_client_data[cohort_column.column] = {editable: editable, value: cohort_column.display_read_only, renderer: cohort_column.renderer}
+      = cohort_client_data
+  - data << cohort_client_data
+= #{data.as_json}.html_safe

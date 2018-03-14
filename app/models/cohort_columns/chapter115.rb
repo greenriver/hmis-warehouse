@@ -4,7 +4,12 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Chapter 115'
 
     def available_options
-      ['Receiving', 'Eligible', 'Ineligible']
+      [
+        '', 
+        'Receiving', 
+        'Eligible', 
+        'Ineligible'
+      ]
     end
   end
 end

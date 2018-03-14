@@ -17,16 +17,25 @@ module CohortColumns
     end
 
     def display_for user
-      display_read_only
+      display_read_only(user)
     end
 
-    def display_read_only
-      note_count = cohort_client.cohort_client_notes.length
+    def renderer
+      'html'
+    end
+
+    def comments
+      cohort_client.cohort_client_notes.reverse.map do |note|
+        "#{note.note} -- #{note.user.name} on #{note.updated_at.to_date}"
+      end.join("\r\n").html_safe
+    end
+
+    def display_read_only user
+      note_count = cohort_client.cohort_client_notes.length || 0
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
-      most_recent = cohort_client.cohort_client_notes.ordered.first
-      tooltip = ''
-      tooltip = truncate(most_recent.note, length: 50, separator: ' ') if most_recent
-      link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, toggle: :tooltip, title: tooltip, placement: :right}
+      html = content_tag(:span, note_count, class: "hidden")
+      html += link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
+      html
     end
   end
 end

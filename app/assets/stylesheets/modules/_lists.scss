@@ -23,7 +23,7 @@
 .draggable-list__item:active,
 .draggable-list__item:focus {
   cursor: pointer;
-  font-weight: 700;
+  color: black;
   .goal-list__number {
     background-color: darken($cas-blue-007, 15);
   }

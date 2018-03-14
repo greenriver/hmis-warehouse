@@ -5,7 +5,18 @@ module CohortColumns
 
 
     def available_options
-      ['CoC', 'ESG RRH', 'Inactive', 'Other - in notes', 'RRHHI', 'SSVF - NECHV', 'SSVF - VOA', 'VASH', 'VWH']
+      [
+        '', 
+        'CoC', 
+        'ESG RRH', 
+        'Inactive', 
+        'Other - in notes', 
+        'RRHHI', 
+        'SSVF - NECHV', 
+        'SSVF - VOA', 
+        'VASH', 
+        'VWH'
+      ]
     end
   end
 end

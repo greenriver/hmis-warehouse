@@ -10,11 +10,11 @@ module CohortColumns
       if display_as_editable?(user, cohort_client)
         text_field(form_group, column, value: value(cohort_client), class: ['form-control', input_class])
       else
-        display_read_only
+        display_read_only(user)
       end
     end
 
-    def display_read_only
+    def display_read_only user
       value(cohort_client)
     end
     

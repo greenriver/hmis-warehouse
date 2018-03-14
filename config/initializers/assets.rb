@@ -12,3 +12,5 @@ Rails.application.config.assets.version = '1.0'
 Rails.application.config.assets.precompile += %w( print.css )
 Rails.application.config.assets.precompile += %w( chart.js )
 Rails.application.config.assets.precompile += ['theme/styles/*.css']
+Rails.application.config.assets.precompile += %w( vendor/handsontable.full.min.css )
+Rails.application.config.assets.precompile += %w( vendor/handsontable.full.min.js )

@@ -15,12 +15,16 @@ module CohortColumns
           content_tag(:span, '', class: 'input-group-addon icon-calendar')
         end
       else
-        display_read_only
+        display_read_only(user)
       end
     end
 
-    def display_read_only
-      value(cohort_client)
+    def renderer
+      'date'
+    end
+
+    def display_read_only user
+      value(cohort_client)&.to_date&.to_s
     end
     
   end

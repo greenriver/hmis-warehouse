@@ -5,7 +5,11 @@ module CohortColumns
 
 
     def available_options
-      ['Cas', 'Non-CAS']
+      [
+        '', 
+        'CAS', 
+        'Non-CAS',
+      ]
     end
 
   end

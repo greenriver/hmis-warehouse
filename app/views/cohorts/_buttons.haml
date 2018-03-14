@@ -46,9 +46,18 @@
         where appropriate.
   .col-sm-6.text-right
     Text size:
-    %button.btn.btn-sm.btn-primary.jToggleFontSize{data: {size: ''}}
+    - button_class = 'btn-secondary'
+    - if params[:size].blank? || params[:size].to_sym == :md
+      - button_class = 'btn-primary' 
+    = link_to(params.merge({size: :md}),{class: ['btn', 'btn-sm', button_class]}) do
       Default
-    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :lg}}
+    - button_class = 'btn-secondary'
+    - if params[:size].present? && params[:size].to_sym == :lg
+      - button_class = 'btn-primary' 
+    = link_to(params.merge({size: :lg}),{class: ['btn', 'btn-sm', button_class]}) do
       Large
-    %button.btn.btn-sm.btn-secondary.jToggleFontSize{data: {size: :xl}}
+    - button_class = 'btn-secondary'
+    - if params[:size].present? && params[:size].to_sym == :xl
+      - button_class = 'btn-primary' 
+    = link_to(params.merge({size: :xl}),{class: ['btn', 'btn-sm', button_class]}) do
       XL

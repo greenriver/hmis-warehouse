@@ -13,9 +13,10 @@
     %thead
       %tr
         %th Order
-        %th Column Name
         %th Visible
         %th Editable
+        %th Column Name
+        %th Description
     %tbody.draggable-list
       - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}} rescue GrdaWarehouse::Cohort.available_columns
       - ordered_columns.each_with_index do |column, i|
@@ -25,14 +26,14 @@
           %td
             %span.icon-move
           %td
-            %label{for: "column_state_#{column.column}"}
-              = column.title
-          %td
             %input{type: 'checkbox', value: '1', checked: visible, name: "column_state[visible][#{column.column}]", id: "column_state_visible_#{column.column}"}
           %td
             - unless column.input_type == 'read_only'
               %input{type: 'checkbox', value: '1', checked: editable, name: "column_state[editable][#{column.column}]", id: "column_state_editable_#{column.column}"}
-
+          %td
+            = column.title
+          %td
+            = column.description
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 - content_for :page_js do

@@ -71,18 +71,19 @@ li.draggable-list__item {
   vertical-align: middle;
 }
 
-.cohorts tr.homeless_inactive,
-.table-striped > tbody > tr.homeless_inactive:nth-of-type(odd)
+.cohorts .homeless_inactive
 {
-  background-color: $brand-danger-l;
+  background-color: lighten($brand-warning, 40);
 }
 
-.cohorts tr.cohort_client_ineligible,
-.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd)
+.cohorts .cohort_client_ineligible,
+.cohorts .cohort_client_ineligible.htDimmed,
+.cohorts .cohort_client_ineligible a:link,
+.cohorts .cohort_client_ineligible.htDimmed a:link
 {
-  background-color: $gray-060;
-  color: white;
+  background-color: lighten($gray-060, 40);
 }
+
 .cohorts tr.cohort_client_ineligible textarea,
 .table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd) textarea
 {
@@ -105,4 +106,16 @@ li.draggable-list__item {
 {
   background-color: $cob-sg-blue-004;
   color: white;
+}
+
+.cohort-client__table
+{
+  overflow: hidden;
+  height: 70vh;
+  width: 100%;
+}
+
+.cohorts .warning
+{
+  color: $brand-warning;
 }

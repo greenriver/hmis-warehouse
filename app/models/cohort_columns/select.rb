@@ -10,11 +10,15 @@ module CohortColumns
       if display_as_editable?(user, cohort_client)
         select(form_group, column, available_options, {include_blank: true, selected: value(cohort_client)}, {class: ['select2', input_class]})
       else
-        display_read_only
+        display_read_only(user)
       end
     end
 
-    def display_read_only
+    def renderer
+      'dropdown'
+    end
+
+    def display_read_only user
       value(cohort_client)
     end
   end

@@ -5,7 +5,13 @@ module CohortColumns
 
 
     def available_options
-      ['Precontemplative', 'HAN Obtained', 'Limited CAS Signed', 'Disability Verification Obtained']
+      [
+        '', 
+        'Precontemplative', 
+        'HAN Obtained', 
+        'Limited CAS Signed', 
+        'Disability Verification Obtained'
+      ]
     end
   end
 end
