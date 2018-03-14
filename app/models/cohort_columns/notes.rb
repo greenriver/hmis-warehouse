@@ -27,7 +27,7 @@ module CohortColumns
     def comments
       cohort_client.cohort_client_notes.reverse.map do |note|
         "#{note.note} -- #{note.user.name} on #{note.updated_at.to_date}"
-      end.join("\r\n").html_safe
+      end.join("\r\n\r\n").html_safe
     end
 
     def display_read_only user
