@@ -3,27 +3,68 @@
 - chart_1_id = vm.chart_id(data_type, :report, by)
 - chart_2_data = charts[:comparison]
 - chart_2_id = vm.chart_id(data_type, :comparison, by)
+- legend_id = vm.legend_id(data_type, by)
+- collapse_id = vm.collapse_id(data_type, by)
+
 .ho-container.loso__container
   .ho-container__header
-    %h4= title
-    .loso__legend.clearfix.pull-right
-    %div{id: vm.legend_id(data_type, by)}
+    %h4= title 
   .row
+    .col-xs-12
+      .loso__legend
+        %div{id: legend_id}
+  .row
+    - empty = false
     - vm.periods.each do |period|
       .col-xs-12.col-md-6
         %h5{style: 'margin-left: 20px;'}= "#{period.to_s.titleize} Period"
-        %div{id: vm.chart_id(data_type, period, by)}
+        - if vm.empty?(data_type, by, period)
+          - empty = true
+          %p{style: 'margin-left: 20px;'} No Data
+        - else
+          %div{id: vm.chart_id(data_type, period, by)}
+  .loso-footer.clearfix
+    %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+      Show Details
+  .collapse.loso-collapse{id: collapse_id}
+    - stackKeys = vm.stack_keys(data_type, by)
+    %table.table.loso-table
+      %tr
+        %th
+        %th{width: '180px'}
+        - stackKeys.each do |key|
+          %th.text-center= key
+      - chart_1_data[:types].each do |type|
+        %tr
+          %th.loso-table__label{rowspan: 2}= type
+          %th.loso-table__report-period
+            %span
+            Report Period
+          - r_data = chart_1_data[:data].select{|d| d[:type] == type}[0] || {}
+          - stackKeys.each do |key|
+            %th.text-center= r_data[key.parameterize]
 
-- content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var chart1Data = #{chart_1_data.to_json}
-      var chart1Id = '#'+#{chart_1_id.to_json}
-      var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data);
-      chart1.draw()
+        %tr
+          %th.loso-table__report-period
+            %span
+            Comparison Period
+          - c_data = chart_2_data[:data].select{|d| d[:type] == type}[0] || {}
+          - stackKeys.each do |key|
+            %th.text-center= c_data[key.parameterize]
 
-      var chart2Data = #{chart_2_data.to_json}
-      var chart2Id = '#'+#{chart_2_id.to_json}
-      var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data);
-      chart2.draw()
-    })
+- if !empty
+  - content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        var chart1Data = #{chart_1_data.to_json}
+        var chart1Id = '#'+#{chart_1_id.to_json}
+        var legendId = '#'+#{legend_id.to_json}
+        var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, legendId, {top: 20, right: 20, bottom: 20, left: 20}, chart1Data);
+        chart1.draw()
+
+        var chart2Data = #{chart_2_data.to_json}
+        var chart2Id = '#'+#{chart_2_id.to_json}
+        var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 20, right: 20, bottom: 20, left: 20}, chart2Data);
+        chart2.draw()
+      })
+

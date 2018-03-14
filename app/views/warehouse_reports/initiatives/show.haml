@@ -100,69 +100,92 @@
     = render 'race_by_project', title: 'Race Breakdowns by Project for Comparison Period', section: :comparison_race_breakdowns_by_project
 
   -# Age
-  %p= GrdaWarehouse::Hud::Client.extended_age_groups.map{|key, bucket| bucket[:name]}
-  %p= @data.age_breakdowns_by_project_type
+  - [:project_type, :project].each do |by|
+    -#%p= vm.chart_data(:age_breakdowns, by)
+    = render 'breakdown', title: "Age Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :age_breakdowns, by: by
   = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Reporting Period', section: :age_breakdowns_by_project_type
-
-  = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Comparison Period', section: :comparison_age_breakdowns_by_project_type
-
   = render 'age_by_project', title: 'Age Breakdowns by Project for Reporting Period', section: :age_breakdowns_by_project
+  -#
+    = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Reporting Period', section: :age_breakdowns_by_project_type
 
-  = render 'age_by_project', title: 'Age Breakdowns by Project for Comparison Period', section: :comparison_age_breakdowns_by_project
+    = render 'age_by_project_type', title: 'Age Breakdowns by Project Type for Comparison Period', section: :comparison_age_breakdowns_by_project_type
+
+    = render 'age_by_project', title: 'Age Breakdowns by Project for Reporting Period', section: :age_breakdowns_by_project
+
+    = render 'age_by_project', title: 'Age Breakdowns by Project for Comparison Period', section: :comparison_age_breakdowns_by_project
 
   -# Length of stay
-  = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Reporting Period', section: :length_of_stay_breakdowns_by_project_type
+  - [:project_type, :project].each do |by|
+    = render 'breakdown', title: "Length of Stay Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :length_of_stay_breakdowns, by: by
+  -#
+    = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Reporting Period', section: :length_of_stay_breakdowns_by_project_type
 
-  = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project_type
+    = render 'length_of_stay_by_project_type', title: 'Length of Stay Breakdowns by Project Type for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project_type
 
-  = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Reporting Period', section: :length_of_stay_breakdowns_by_project
+    = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Reporting Period', section: :length_of_stay_breakdowns_by_project
 
-  = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project
+    = render 'length_of_stay_by_project', title: 'Length of Stay Breakdowns by Project for Comparison Period', section: :comparison_length_of_stay_breakdowns_by_project
 
   -# living situations
-  = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Reporting Period', section: :living_situation_breakdowns_by_project_type
+  - [:project_type, :project].each do |by|
+    = render 'breakdown', title: "Prior Living Situation Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :living_situation_breakdowns, by: by
+  -#
+    = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Reporting Period', section: :living_situation_breakdowns_by_project_type
 
-  = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Comparison Period', section: :comparison_living_situation_breakdowns_by_project_type
+    = render 'living_situation_by_project_type', title: 'Prior Living Situation Breakdowns by Project Type for Comparison Period', section: :comparison_living_situation_breakdowns_by_project_type
 
-  = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Reporting Period', section: :living_situation_breakdowns_by_project
+    = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Reporting Period', section: :living_situation_breakdowns_by_project
 
-  = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Comparison Period', section: :comparison_living_situation_breakdowns_by_project
+    = render 'living_situation_by_project', title: 'Prior Living Situation Breakdowns by Project for Comparison Period', section: :comparison_living_situation_breakdowns_by_project
 
   -# Income at entry
-  = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Reporting Period', section: :income_at_entry_breakdowns_by_project_type
+  - [:project_type, :project].each do |by|
+    = render 'breakdown', title: "Prior Living Income at Entry Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :income_at_entry_breakdowns, by: by
+  -#
+    = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Reporting Period', section: :income_at_entry_breakdowns_by_project_type
 
-  = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project_type
+    = render 'income_by_project_type', title: 'Income at Entry Breakdowns by Project Type for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project_type
 
-  = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Reporting Period', section: :income_at_entry_breakdowns_by_project
+    = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Reporting Period', section: :income_at_entry_breakdowns_by_project
 
-  = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project
+    = render 'income_by_project', title: 'Income at Entry Breakdowns by Project for Comparison Period', section: :comparison_income_at_entry_breakdowns_by_project
 
   -# Income - most recent
-  = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Reporting Period', section: :income_most_recent_breakdowns_by_project_type
+  - [:project_type, :project].each do |by|
+    = render 'breakdown', title: "Prior Living Income Most Recent Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :income_most_recent_breakdowns, by: by
+  -#
+    = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Reporting Period', section: :income_most_recent_breakdowns_by_project_type
 
-  = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project_type
+    = render 'income_by_project_type', title: 'Income Most Recent Breakdowns by Project Type for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project_type
 
-  = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Reporting Period', section: :income_most_recent_breakdowns_by_project
+    = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Reporting Period', section: :income_most_recent_breakdowns_by_project
 
-  = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project
+    = render 'income_by_project', title: 'Income Most Recent Breakdowns by Project for Comparison Period', section: :comparison_income_most_recent_breakdowns_by_project
 
   -# Destination
-  = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Reporting Period', section: :destination_breakdowns_by_project_type
+  -#TODO
+  - [:project_type, :project].each do |by|
+    = render 'breakdown', title: "Prior Living Destination Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :destination_breakdowns, by: by
+  -#
+    = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Reporting Period', section: :destination_breakdowns_by_project_type
 
-  = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Comparison Period', section: :comparison_destination_breakdowns_by_project_type
+    = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Comparison Period', section: :comparison_destination_breakdowns_by_project_type
 
-  = render 'destination_by_project', title: 'Destination Breakdowns by Project for Reporting Period', section: :destination_breakdowns_by_project
+    = render 'destination_by_project', title: 'Destination Breakdowns by Project for Reporting Period', section: :destination_breakdowns_by_project
 
-  = render 'destination_by_project', title: 'Destination Breakdowns by Project for Comparison Period', section: :comparison_destination_breakdowns_by_project
+    = render 'destination_by_project', title: 'Destination Breakdowns by Project for Comparison Period', section: :comparison_destination_breakdowns_by_project
 
   -# last permanent zip
-  = render 'zip_by_project_type', title: 'Last Permanent Zipcode Breakdowns by Project Type for Reporting Period', section: :zip_breakdowns_by_project_type
+  - [:project_type, :project].each do |by|
+    = render 'breakdown', title: "Prior Living Permanent Zipcode Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :zip_breakdowns, by: by
+  -#
+    = render 'zip_by_project_type', title: 'Last Permanent Zipcode Breakdowns by Project Type for Reporting Period', section: :zip_breakdowns_by_project_type
 
-  = render 'zip_by_project_type', title: 'Last Permanent Zipcode Breakdowns by Project Type for Comparison Period', section: :comparison_zip_breakdowns_by_project_type
+    = render 'zip_by_project_type', title: 'Last Permanent Zipcode Breakdowns by Project Type for Comparison Period', section: :comparison_zip_breakdowns_by_project_type
 
-  = render 'zip_by_project', title: 'Last Permanent Zipcode Breakdowns by Project for Reporting Period', section: :zip_by_project
+    = render 'zip_by_project', title: 'Last Permanent Zipcode Breakdowns by Project for Reporting Period', section: :zip_by_project
 
-  = render 'zip_by_project', title: 'Last Permanent Zipcode Breakdowns by Project for Comparison Period', section: :comparison_zip_by_project
+    = render 'zip_by_project', title: 'Last Permanent Zipcode Breakdowns by Project for Comparison Period', section: :comparison_zip_by_project
 
 = content_for :page_js do
   :javascript

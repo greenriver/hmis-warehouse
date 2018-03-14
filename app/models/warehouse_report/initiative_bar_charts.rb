@@ -4,7 +4,14 @@ class WarehouseReport::InitiativeBarCharts
     :gender_breakdowns,
     :veteran_breakdowns,
     :ethnicity_breakdowns,
-    :race_breakdowns
+    :race_breakdowns,
+    :age_breakdowns,
+    :length_of_stay_breakdowns,
+    :living_situation_breakdowns,
+    :income_at_entry_breakdowns,
+    :income_most_recent_breakdowns,
+    :destination_breakdowns,
+    :zip_breakdowns
   ]
 
   PERIODS = [
@@ -13,10 +20,11 @@ class WarehouseReport::InitiativeBarCharts
   ]
 
   COLORS = {
-    gender_breakdowns: ['#F6C9CA', '#96ADD4'],
-    veteran_breakdowns: ['#D2D7D9', '#F2AE2E', '#BF8049', '#734B43', '#8C3D2B'],
+    gender_breakdowns: ['#EFD9CE', '#97AED4', '#1C4179', '#4E7C8A', '#A675A1', '#6D5B72', '#DDDDDD', '#998B8A'],
+    veteran_breakdowns: ['#F2AE2E', '#50514F', '#97AED4', '#95818D', '#F26419'],
     ethnicity_breakdowns: ['red', 'purple', 'yellow', 'pink', 'green', 'orange'],
-    race_breakdowns: ['orange', 'green', 'purple', 'pink', 'blue', 'green']
+    race_breakdowns: ['orange', 'green', 'purple', 'pink', 'blue', 'green'],
+    age_breakdowns: ['#B27263', '#E5FFC0', '#FFB8A7', '#8E9ECC', '#6277B2']
   }
 
   def initialize(data)
@@ -58,6 +66,31 @@ class WarehouseReport::InitiativeBarCharts
     "d3-#{data_type.to_s}-#{period.to_s}-by-#{by.to_s}__chart"
   end
 
+  def collapse_id(data_type, by)
+    "d3-#{data_type.to_s}-by-#{by.to_s}__collapse"
+  end
+
+  def empty?(data_type, by, period)
+    select_data(data_type, by, period).empty?
+  end
+
+  def stack_keys(data_type, by)
+    keys = {
+      gender_breakdowns: @data.involved_genders,
+      veteran_breakdowns: ::HUD.no_yes_reasons_for_missing_data_options.map{|id, reason| reason},
+      ethnicity_breakdowns: ::HUD.ethnicities.map{|id, value| value},
+      race_breakdowns: ::HUD.races.map{|id, value| value.downcase.gsub(' ', '_')},
+      age_breakdowns: age_breakdowns_stack_keys(by),
+      length_of_stay_breakdowns: GrdaWarehouse::Hud::Enrollment.lengths_of_stay.map{|l_key, _| l_key.to_s},
+      living_situation_breakdowns: living_situation_stack_keys(by),
+      income_at_entry_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
+      income_most_recent_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
+      destination_breakdowns: [],
+      zip_breakdowns: @data.involved_zipcodes.map{|z| z.split('-')[0]}
+    }
+    keys[data_type] || []
+  end
+
   private
 
   def select_data(data_type, by, period)
@@ -68,14 +101,26 @@ class WarehouseReport::InitiativeBarCharts
     @data.send(m) || {}
   end
 
-  def stack_keys(data_type)
-    keys = {
-      gender_breakdowns: @data.involved_genders,
-      veteran_breakdowns: ::HUD.no_yes_reasons_for_missing_data_options.map{|id, reason| reason},
-      ethnicity_breakdowns: ::HUD.ethnicities.map{|id, value| value},
-      race_breakdowns: ::HUD.races.map{|id, value| value.downcase.gsub(' ', '_')}
-    }
-    keys[data_type] || []
+  def living_situation_stack_keys(by)
+    (select_data(:living_situation_breakdowns, by, :report).select{|k, v| v > 0}.keys + select_data(:living_situation_breakdowns, by, :comparison).select{|k, v| v > 0}.keys).
+      map do |key|
+        key.split('__')[1]
+      end.
+      uniq.
+      select do |key|
+        key.present?
+      end
+  end
+
+  def age_breakdowns_stack_keys(by)
+    (select_data(:age_breakdowns, by, :report).select{|k, v| v > 0}.keys + select_data(:age_breakdowns, by, :comparison).select{|k, v| v > 0}.keys).
+      map do |key|
+        key.split('__')[1]
+      end.
+      uniq.
+      sort_by do |key|
+        key.split('_')[0].to_i
+      end
   end
 
   def chart_data_template
@@ -85,18 +130,16 @@ class WarehouseReport::InitiativeBarCharts
   def build_data_by_project_type(data_type)
     period_data = PERIODS.map{|p| select_data(data_type, :project_type, p)}
     chart_data = chart_data_template
-    stack_keys = stack_keys(data_type)
+    stack_keys = stack_keys(data_type, :project_type)
     @project_types.each do |k|
       period_data.each_with_index do |data, index|
         period = PERIODS[index]
         d = {type: k}
-        values = []
         stack_keys.each do |sk|
           d[sk.parameterize] = (data["#{k}__#{sk}"]||0)
-          values.push(d[sk.parameterize])
+          chart_data[:values].push(d[sk.parameterize])
         end
         chart_data[:counts][period].push(d)
-        chart_data[:values].push(values.inject(0, :+))
       end
     end
     chart_data[:types] = @project_types
@@ -108,18 +151,16 @@ class WarehouseReport::InitiativeBarCharts
   def build_data_by_project(data_type)
     period_data = PERIODS.map{|p| select_data(data_type, :project, p)}
     chart_data = chart_data_template
-    stack_keys = stack_keys(data_type)
+    stack_keys = stack_keys(data_type, :project)
     @projects.each do |p_id, p_name|
       period_data.each_with_index do |data, index|
         period = PERIODS[index]
         d = {type: p_name}
-        values = []
         stack_keys.each do |sk|
           d[sk.parameterize] = (data["#{p_id}__#{sk}"]||0)
-          values.push(d[sk.parameterize])
+          chart_data[:values].push(d[sk.parameterize])
         end
         chart_data[:counts][period].push(d)
-        chart_data[:values].push(values.inject(0, :+))
       end
     end
     chart_data[:types] = @projects.map{|p_id, p_name| p_name}
