@@ -261,6 +261,25 @@ module GrdaWarehouse::Hud
 
     # End Standard Cohorts
     #################################
+    scope :individual, -> (on_date: Date.today) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          ongoing(on_date: on_date).
+          distinct.
+          individual.select(:client_id)
+      )
+    end
+
+    scope :homeless_individual, -> (on_date: Date.today, chronic_types_only: false) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.
+          currently_homeless(chronic_types_only: chronic_types_only).
+          distinct.
+          individual.select(:client_id)
+      )
+
+    end
+
     scope :currently_homeless, -> (chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable
