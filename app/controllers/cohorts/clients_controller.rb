@@ -240,6 +240,7 @@ module Cohorts
       ch.deleted_at = nil
       cohort_source.available_columns.each do |column|
         if column.has_default_value?
+          column.cohort = @cohort
           ch[column.column] = column.default_value(client_id)
         end
       end

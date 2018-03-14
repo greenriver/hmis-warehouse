@@ -146,12 +146,12 @@ class App.Cohorts.Cohort
       classes.push('htMiddle')
 
     # mark inactive clients
-    if row_meta.activity == 'homeless_inactive'
-      classes.push(row_meta.activity)
+    # if row_meta.activity == 'homeless_inactive'
+    #   classes.push(row_meta.activity)
 
     # mark ineligible clients
-    if row_meta.ineligible == true
-      classes.push('cohort_client_ineligible')
+    # if row_meta.ineligible == true
+    #   classes.push('cohort_client_ineligible')
 
     cellProperties.className = classes.join(' ')
     return cellProperties

@@ -27,15 +27,13 @@ module CohortColumns
     def comments
       cohort_client.cohort_client_notes.reverse.map do |note|
         "#{note.note} -- #{note.user.name} on #{note.updated_at.to_date}"
-      end.join('; ').html_safe
+      end.join("\r\n").html_safe
     end
 
     def display_read_only user
-      note_count = cohort_client.cohort_client_notes.length
+      note_count = cohort_client.cohort_client_notes.length || 0
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
-      html = content_tag(:span, class: "hidden") do 
-        note_count
-      end
+      html = content_tag(:span, note_count, class: "hidden")
       html += link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
       html
     end

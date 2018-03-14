@@ -21,15 +21,25 @@ module CohortColumns
     end
 
     def comments
+      comments = ''
       if inactive
-        inactivity_warning = "No homeless service in #{@cohort.days_of_inactivity} days"
+        comments += "No homeless service in #{@cohort.days_of_inactivity} days\r\n"
       end
+      if cohort_client.ineligible?
+        comments += "Client ineligible\r\n"
+      end
+      return comments
     end
 
     def value(cohort_client)
+      html = ''
       if inactive
-        content_tag(:i, ' ', class: "icon-warning warning")
+        html += content_tag(:i, ' ', class: "icon-warning warning")
       end
+      if cohort_client.ineligible?
+        html += content_tag(:i, ' ', class: "icon-notification warning")
+      end
+      return html
     end
 
     def last_activity
