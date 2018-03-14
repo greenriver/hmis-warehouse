@@ -103,16 +103,4 @@
 
 %p= paginate @clients, params: {sort: @column, direction: @direction}
 
-= content_for :page_js do
-  :javascript
-    $('.js-client').on('click', function(event){
-      if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
-        var href = 'clients/' + $(this).data('id');
-        if(event.metaKey) {
-          open(href, '_blank');
-        }
-        else{
-          window.location = href;
-        }
-      }
-    })
+= render 'application/js_link', base_path: 'clients/'

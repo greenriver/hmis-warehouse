@@ -54,8 +54,15 @@ module GrdaWarehouse
     scope :confirmed, -> do
       where(consent_form_confirmed: true)
     end
+    scope :unconfirmed, -> do
+      where(consent_form_confirmed: [false, nil])
+    end
     scope :signed_on, -> (date) do
       where(consent_form_signed_on: date)
+    end
+
+    scope :signed, -> do
+      where.not(consent_form_signed_on: nil)
     end
 
     scope :notification_triggers, -> do
@@ -79,6 +86,10 @@ module GrdaWarehouse
       return true if user.can_manage_client_files?
       return true if (user.can_manage_window_client_files? || user.can_see_own_file_uploads?) && user_id == user.id
       false
+    end
+
+    def confirm_consent!
+      update(consent_form_confirmed: true)
     end
 
     def set_client_consent

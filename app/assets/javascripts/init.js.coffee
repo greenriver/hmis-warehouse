@@ -8,6 +8,10 @@ App.init = ->
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()
   $('.colorpicker').minicolors(theme: 'bootstrap')
+  $(document).on 'click', '.jCheckAll', (e) ->
+    id = $(this).attr('id')
+    checked = $(this).prop('checked')
+    $('input.' + id).prop('checked', checked)
   return true
 
 # TODO may also need to do on pjax_modal change

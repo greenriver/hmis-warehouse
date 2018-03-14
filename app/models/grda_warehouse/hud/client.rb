@@ -370,6 +370,20 @@ module GrdaWarehouse::Hud
       destination.where(generate_history_pdf: true)
     end
 
+    scope :with_unconfirmed_consent, -> do
+      # The acts as taggable gem doesn't quite get the scope correct
+      # we'll need to pluck
+      joins(:client_files).
+      where(id: GrdaWarehouse::ClientFile.consent_forms.unconfirmed.pluck(:client_id))
+    end
+
+    scope :with_confirmed_consent, -> do
+      # The acts as taggable gem doesn't quite get the scope correct
+      # we'll need to pluck
+      joins(:client_files).
+      where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.pluck(:client_id))
+    end
+
     ####################
     # Callbacks
     ####################
@@ -416,7 +430,13 @@ module GrdaWarehouse::Hud
     end
 
     def self.consent_validity_period
-      1.years
+      if release_duration == 'One Year'
+        1.years
+      elsif release_duration == 'Indefinite'
+        100.years
+      else
+        raise 'Unknown Release Duration'
+      end
     end
 
     def self.revoke_expired_consent
@@ -630,6 +650,21 @@ module GrdaWarehouse::Hud
       else
         release_valid?
       end
+    end
+
+    def consent_confirmed?
+      client_files.consent_forms.where(
+        consent_form_signed_on: consent_form_signed_on
+      ).first&.consent_form_confirmed
+    end
+
+    def active_consent_form
+      client_files.consent_forms.confirmed.order(effective_date: :desc)&.first
+    end
+
+    def newest_consent_form
+      # Regardless of confirmation status
+      client_files.consent_forms.order(updated_at: :desc)&.first 
     end
 
 
