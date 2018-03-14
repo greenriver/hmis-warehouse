@@ -101,6 +101,8 @@ ActiveRecord::Schema.define(version: 20180313170616) do
     t.date     "consent_form_signed_on"
     t.integer  "vispdat_prioritization_days_homeless"
     t.boolean  "generate_history_pdf",                               default: false
+    t.boolean  "congregate_housing",                                 default: false
+    t.boolean  "sober_housing",                                      default: false
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree

@@ -969,6 +969,8 @@ module GrdaWarehouse::Hud
         child_in_household: _('Children under age 18 in household'),
         ha_eligible: _('Housing Authority Eligible'),
         cspech_eligible: _('CSPECH Eligible'),
+        congregate_housing: _('Willing to live in congregate housing'),
+        sober_housing: _('Appropriate for sober supportive housing')
       }
     end
 
