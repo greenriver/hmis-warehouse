@@ -1,0 +1,30 @@
+- legend_id = 'd3-nc-by-project-type__legend'
+- chart_1_data = [] 
+- @data.date_counts_by_project_type.each do |key, value|
+  - keys = key.split('__')
+  - chart_1_data.push([keys[0], keys[1], value])
+  
+- chart_1_id = 'd3-nc-by-project-type__chart-1'
+.ho-container.loso__container
+  .ho-container__header
+    %h4= title 
+  .row
+    .col-xs-12
+      .loso__legend
+        .clearfix{id: legend_id}
+  .row
+    .col-xs-12
+      %h5 Report Period
+      %div{id: chart_1_id, style: 'height: 400px;'}
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var chart1Data = #{chart_1_data.to_json}
+      var chart1Id = '#'+#{chart_1_id.to_json}
+      var legendId = '#'+#{legend_id.to_json}
+      
+      var chart1 = new App.D3Chart.InitiativeLine(chart1Id, legendId, {top: 20, right: 20, bottom: 20, left: 40}, chart1Data);
+      chart1.draw()
+
+    })

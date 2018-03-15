@@ -1,10 +1,11 @@
 - charts = vm.charts(data_type, by)
-- chart_1_data = charts[:report]
-- chart_1_id = vm.chart_id(data_type, :report, by)
-- chart_2_data = charts[:comparison]
-- chart_2_id = vm.chart_id(data_type, :comparison, by)
+- chart_1_data = charts[chart_1]
+- chart_1_id = vm.chart_id(data_type, chart_1, by)
+- chart_2_data = charts[chart_2]
+- chart_2_id = vm.chart_id(data_type, chart_2, by)
 - legend_id = vm.legend_id(data_type, by)
 - collapse_id = vm.collapse_id(data_type, by)
+- table_id = vm.table_id(data_type, by)
 
 .ho-container.loso__container
   .ho-container__header
@@ -12,12 +13,12 @@
   .row
     .col-xs-12
       .loso__legend
-        %div{id: legend_id}
+        .clearfix{id: legend_id}
   .row
     - empty = false
-    - vm.periods.each do |period|
+    - [chart_1, chart_2].each do |period|
       .col-xs-12.col-md-6
-        %h5{style: 'margin-left: 20px;'}= "#{period.to_s.titleize} Period"
+        %h5{style: 'margin-left: 20px;'}= vm.chart_title(period)
         - if vm.empty?(data_type, by, period)
           - empty = true
           %p{style: 'margin-left: 20px;'} No Data
@@ -28,29 +29,25 @@
       Show Details
   .collapse.loso-collapse{id: collapse_id}
     - stackKeys = vm.stack_keys(data_type, by)
-    %table.table.loso-table
+    - table_rows = vm.table_rows(by)
+    %table.table.loso-table{id: table_id}
       %tr
-        %th
+        %th{width: '100px'}
         %th{width: '180px'}
-        - stackKeys.each do |key|
-          %th.text-center= key
-      - chart_1_data[:types].each do |type|
-        %tr
-          %th.loso-table__label{rowspan: 2}= type
-          %th.loso-table__report-period
-            %span
-            Report Period
-          - r_data = chart_1_data[:data].select{|d| d[:type] == type}[0] || {}
-          - stackKeys.each do |key|
-            %th.text-center= r_data[key.parameterize]
-
-        %tr
-          %th.loso-table__report-period
-            %span
-            Comparison Period
-          - c_data = chart_2_data[:data].select{|d| d[:type] == type}[0] || {}
-          - stackKeys.each do |key|
-            %th.text-center= c_data[key.parameterize]
+        - chart_1_data[:keys].each do |key|
+          %th.text-center{width: '150px'}
+            = chart_1_data[:labels][key]
+      - [chart_1, chart_2].each_with_index do |chart, i|
+        - table_rows.each_with_index do |row, index|
+          %tr
+            - if index == 0
+              %th.loso-table__label{rowspan: table_rows.size}= (chart == :report || chart == :comparison) ? vm.chart_title(chart) : chart.to_s.titleize
+            %th{data: {d3_key: row}}
+              = (row == :report || row == :comparison) ? "#{row.to_s} Period".titleize : row.to_s.titleize
+            - data = i == 0 ? chart_1_data : chart_2_data
+            - data[:keys].each do |key|
+              %td.text-center
+                = (data[:data].select{|d| d[:type] == row.to_s}[0] || {})[key]
 
 - if !empty
   - content_for :page_js do
@@ -59,12 +56,13 @@
         var chart1Data = #{chart_1_data.to_json}
         var chart1Id = '#'+#{chart_1_id.to_json}
         var legendId = '#'+#{legend_id.to_json}
-        var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, legendId, {top: 20, right: 20, bottom: 20, left: 20}, chart1Data);
+        var tableId = '#'+#{table_id.to_json}
+        var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, tableId, legendId, {top: 20, right: 50, bottom: 20, left: 20}, chart1Data);
         chart1.draw()
 
         var chart2Data = #{chart_2_data.to_json}
         var chart2Id = '#'+#{chart_2_id.to_json}
-        var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 20, right: 20, bottom: 20, left: 20}, chart2Data);
+        var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, false, {top: 20, right: 50, bottom: 20, left: 20}, chart2Data);
         chart2.draw()
       })
 

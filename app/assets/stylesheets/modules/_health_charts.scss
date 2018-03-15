@@ -458,12 +458,12 @@ h2.ho-sub__h2 {
   padding-top: 20px;
 }
 
-.loso__legend {
-  .ho-hint {
-    float: right;
-    margin-left: 10px;
-  }
-}
+// .loso__legend {
+//   .ho-hint {
+//     float: right;
+//     margin-left: 10px;
+//   }
+// }
 
 .loso-collapse {
   margin-top: 20px;
@@ -492,22 +492,37 @@ table.table.loso-table th.loso-table__label {
   background-color: #F9F9F9;
 }
 
-.loso-table__report-period span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  background-color: rgba(0,84,158,1);
+th[data-d3-key] {
+  position: relative;
+  span {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    width: 4px;
+  }
 }
 
-.loso-table__comparison-period span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  background-color: rgba(0,84,158,0.5);
+.loso__legend {
+  padding: 20px;
+}
+
+.loso__legend-item {
+  font-size: 12px;
+  line-height: 12px;
+  margin-bottom: 10px;
+  float: left;
+  margin-right: 20px;
+}
+
+.loso__legend-item-color {
+  float: left;
+  margin-right: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 
-// d3-losobt = length of stay outcomes by type
 
 
 

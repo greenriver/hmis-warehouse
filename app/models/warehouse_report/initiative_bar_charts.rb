@@ -11,7 +11,8 @@ class WarehouseReport::InitiativeBarCharts
     :income_at_entry_breakdowns,
     :income_most_recent_breakdowns,
     :destination_breakdowns,
-    :zip_breakdowns
+    :zip_breakdowns,
+    :client_counts
   ]
 
   PERIODS = [
@@ -19,18 +20,18 @@ class WarehouseReport::InitiativeBarCharts
     :comparison
   ]
 
-  COLORS = {
-    gender_breakdowns: ['#EFD9CE', '#97AED4', '#1C4179', '#4E7C8A', '#A675A1', '#6D5B72', '#DDDDDD', '#998B8A'],
-    veteran_breakdowns: ['#F2AE2E', '#50514F', '#97AED4', '#95818D', '#F26419'],
-    ethnicity_breakdowns: ['red', 'purple', 'yellow', 'pink', 'green', 'orange'],
-    race_breakdowns: ['orange', 'green', 'purple', 'pink', 'blue', 'green'],
-    age_breakdowns: ['#B27263', '#E5FFC0', '#FFB8A7', '#8E9ECC', '#6277B2']
-  }
-
   def initialize(data)
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
+  end
+
+  def chart_title(period)
+    "#{period.to_s.titleize} Period"
+  end
+
+  def table_rows(by)
+    by == :project_type ? @project_types : @projects.map{|p_id, p_name| p_name}
   end
 
   def periods
@@ -51,7 +52,7 @@ class WarehouseReport::InitiativeBarCharts
         types: chart_data[:types], 
         values: chart_data[:values],
         keys: chart_data[:keys],
-        colors: chart_data[:colors]
+        labels: chart_data[:labels]
       }
       charts[period]=data
     end
@@ -70,6 +71,10 @@ class WarehouseReport::InitiativeBarCharts
     "d3-#{data_type.to_s}-by-#{by.to_s}__collapse"
   end
 
+  def table_id(data_type, by)
+    "d3-#{data_type.to_s}-by-#{by.to_s}__table"
+  end
+
   def empty?(data_type, by, period)
     select_data(data_type, by, period).empty?
   end
@@ -86,7 +91,9 @@ class WarehouseReport::InitiativeBarCharts
       income_at_entry_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
       income_most_recent_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
       destination_breakdowns: [],
-      zip_breakdowns: @data.involved_zipcodes.map{|z| z.split('-')[0]}
+      zip_breakdowns: @data.involved_zipcodes.map{|z| z.split('-')[0]},
+      client_counts: ['count']
+      # client_counts: by == :project_type ? @project_types : @projects
     }
     keys[data_type] || []
   end
@@ -123,6 +130,26 @@ class WarehouseReport::InitiativeBarCharts
       end
   end
 
+  def label(data_type, key)
+    if data_type == :race_breakdowns
+      key.gsub('_', ' ').titleize
+    elsif data_type == :age_breakdowns
+      GrdaWarehouse::Hud::Client.extended_age_groups.
+        select{|age_key, age_bucket| age_bucket[:name].parameterize.underscore == key}.
+        map{|age_key, age_bucket| age_bucket[:name]}.
+        first
+    elsif data_type == :length_of_stay_breakdowns
+      key.humanize.titleize
+    elsif data_type == :income_at_entry_breakdowns || data_type == :income_most_recent_breakdowns
+      GrdaWarehouse::Hud::IncomeBenefit.income_ranges.
+        select{|i_key, i_bucket| i_key.to_s == key}.
+        map{|i_key, i_bucket| i_bucket[:name]}.
+        first  
+    else
+      key
+    end
+  end
+
   def chart_data_template
     {counts: {report:[], comparison:[]}, types: [], values: [], keys: []}
   end
@@ -144,7 +171,10 @@ class WarehouseReport::InitiativeBarCharts
     end
     chart_data[:types] = @project_types
     chart_data[:keys] = stack_keys.map(&:parameterize)
-    chart_data[:colors] = COLORS[data_type]
+    chart_data[:labels] = {}
+    stack_keys.each do |k|
+      chart_data[:labels][k.parameterize] = label(data_type, k)
+    end
     chart_data
   end
 
@@ -165,7 +195,10 @@ class WarehouseReport::InitiativeBarCharts
     end
     chart_data[:types] = @projects.map{|p_id, p_name| p_name}
     chart_data[:keys] = stack_keys.map(&:parameterize)
-    chart_data[:colors] = COLORS[data_type]
+    chart_data[:labels] = {}
+    stack_keys.each do |k|
+      chart_data[:labels][k.parameterize] = label(data_type, k)
+    end
     chart_data
   end
 
