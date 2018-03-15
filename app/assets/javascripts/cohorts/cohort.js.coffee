@@ -35,6 +35,7 @@ class App.Cohorts.Cohort
 
     @initialize_handsontable()
     @enable_searching()
+
     @load_pages()
     @listen_for_page_resize()
     
@@ -42,9 +43,11 @@ class App.Cohorts.Cohort
     setInterval @check_for_new_data, @refresh_rate
 
   initialize_handsontable: () =>
-    @direction = true
+    direction = true
     if @sort_direction == 'desc'
-      @direction = false
+      direction = false
+    @initial_sort = {column: 1, sortOrder: direction}
+    @current_sort = Object.assign({}, @initial_sort)
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
       colHeaders: @column_headers
@@ -55,29 +58,49 @@ class App.Cohorts.Cohort
       # manualColumnResize: @column_widths
       manualColumnResize: true
       rowHeights: 40
-      columnSorting: 
-          column: 1
-          sortOrder: @direction
       sortIndicator: true
-      afterChange: @save_column
       search: true
       comments: true
+      afterChange: @after_change
+  
+  after_change: (changes, source) =>
+    if source == 'edit'
+      @after_edit(changes)
 
+  after_load_data: (changes) =>
+    @load_sort_order()
+
+  save_sort_order: () =>
+    { sortColumn, sortOrder } = @table
+    if typeof sortOrder == 'undefined'
+      @current_sort.column = @initial_sort.column
+      @current_sort.sortOrder = @initial_sort.sortOrder
+    else
+      @current_sort.column = sortColumn
+      @current_sort.sortOrder = sortOrder
+
+  load_sort_order: () =>
+    console.log(@current_sort)
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
+      @save_sort_order()
+      
       search_string = $(e.target).val()
       # console.log search_string
       queryResult = @table.search.query(search_string)
       @filter_rows('' + search_string)
+
+      # restore sort order
+      @table.updateSettings
+        columnSorting: @current_sort
       @table.render()
 
   filter_rows: (search) =>
     # console.log "searching for: #{search}"
     data = @raw_data
     metadata_copy = @cell_metadata
-
     if search == ''
       @table.loadData(data)
       @table.updateSettings
@@ -100,12 +123,11 @@ class App.Cohorts.Cohort
           limited_metadata.push(metadata_copy[row])
           break
     @table.loadData(limited_data)
-    # console.log "limited_metadata", limited_metadata
     if limited_metadata.length > 0
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, limited_metadata, @table)
-    
+
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
     @load_page().then(() =>
@@ -117,9 +139,7 @@ class App.Cohorts.Cohort
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
-        columnSorting: 
-          column: 1
-          sortOrder: @direction
+        columnSorting: @initial_sort
       # console.log @raw_data
       @set_rank_order()
       @table.render()
@@ -212,8 +232,7 @@ class App.Cohorts.Cohort
     $('#rank_order').val(ids.join(','));
     $('.jReRank').removeClass('disabled');
 
-  save_column: (change, source) =>
-    return unless source == 'edit'
+  after_edit: (change) =>
     [row, col, original, current] = change[0]
     return if original == current
     # translate the logical index (based on current sort order) to
