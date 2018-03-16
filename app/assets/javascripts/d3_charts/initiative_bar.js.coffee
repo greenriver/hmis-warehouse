@@ -1,9 +1,42 @@
+class App.D3Chart.ColorCodedTable
+  constructor: (table_selector, keys, scale) ->
+    @table = d3.select(table_selector)
+    @keys = keys
+    @scale = scale
+
+  drawTableColors: () ->
+    that = @
+    @table.selectAll('th[data-d3-key]').each(() ->
+      ele = d3.select(this)
+      d = ele.node().getAttribute('data-d3-key')
+      ele.append('span')
+        .attr('style', 'background-color: '+that.scale.rainbowFill(that.keys.indexOf(d)))
+    )
+
 class App.D3Chart.InitiativeLine extends App.D3Chart.Base
-  constructor: (container_selector, legend_selector, margin, data) ->
-    super(container_selector, margin)
+  constructor: (container_selector, legend_selector, table_selector, margin, data) ->
+    @container_selector = container_selector
+    @legend = d3.select(legend_selector)
     @data = []
     @dates = []
     @values = []
+    @_loadData(data)
+    @_drawLegend()
+    @_resizeContainer()
+    super(container_selector, margin)
+    @range = @_loadRange()
+    @domain = @_loadDomain()
+    @scale = @_loadScale()
+    @table = new App.D3Chart.ColorCodedTable(table_selector, @keys, @scale)
+
+  _resizeContainer: () ->
+    container = d3.select(@container_selector)
+    l_height = @legend.node().getBoundingClientRect().height
+    c_height = container.node().getBoundingClientRect().height
+    if l_height > c_height
+      container.node().style.height = l_height+'px'
+
+  _loadData: (data) ->
     data.forEach((d) =>
       @values.push(d[2])
       date = new Date(d[1])
@@ -11,9 +44,11 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
       d.push(date)
       @data.push(d)
     )
-    @range = @_loadRange()
-    @domain = @_loadDomain()
-    @scale = @_loadScale()
+    @grouped = d3.nest().key((d) => d[0])
+      .entries(@data)
+    @rainbowFillScale = d3.scaleSequential().domain([0, @grouped.length]).interpolator(d3.interpolateRainbow)
+    @keys = @grouped.map((d) => d.key)
+
 
   _loadRange: () ->
     {
@@ -24,24 +59,73 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
   _loadDomain: () ->
     {
       x: d3.extent(@dates),
-      y: d3.extent(@values)
+      y: [0, d3.extent(@values)[1]],
+      rainbowFill: [0, @grouped.length]
     }
 
   _loadScale: () ->
     {
       x: d3.scaleTime().domain(@domain.x).range(@range.x),
-      y: d3.scaleLinear().domain(@domain.y).range(@range.y)
+      y: d3.scaleLinear().domain(@domain.y).range(@range.y),
+      rainbowFill: @rainbowFillScale
     }
 
-    
-  draw: () ->
-    console.log(@data)
-    grouped = d3.nest().key((d) => d[0])
-      .entries(@data)
-    console.log(grouped)
+  _drawLegend: () ->
+    @legend.selectAll('div.nc-legend__item')
+      .data(@grouped)
+      .enter()
+      .append('div')
+        .attr('class', 'nc-legend__item')
+        .text((d) => d.key)
+        .append('div')
+        .attr('class', 'nc-legend__item-color')
+        .attr('style', (d) => 'background-color:'+@rainbowFillScale(@keys.indexOf(d.key)))
+
+  _initLegendHover: () ->
+    that = this
+    @legend.selectAll('div.nc-legend__item')
+      .on('mouseover', (d) ->
+        lineGenerator = d3.line()
+        item = d3.select(this)
+        d = item.node().__data__
+        that.chart.append('rect')
+          .attr('class', 'overlay')
+          .attr('x', that.scale.x(that.domain.x[0]))
+          .attr('y', that.scale.y(that.domain.y[1])-1)
+          .attr('width', that.scale.x(that.domain.x[1]) - that.scale.x(that.domain.x[0]))
+          .attr('height', that.scale.y(that.domain.y[0]) - that.scale.y(that.domain.y[1])+2)
+          .attr('fill', '#ffffff')
+          .attr('opacity', '0')
+          .transition().duration(500)
+            .attr('opacity', '0.9')
+        that.chart.selectAll('path.focus-line')
+          .data([d])
+          .enter()
+          .append('path')
+            .attr('class', 'focus-line')
+            .attr('d', (d) =>
+              line = d.values.sort((x, y) => d3.ascending(x[3], y[3]))
+              line = line.map((x) => [that.scale.x(x[3]), that.scale.y(x[2])])
+              lineGenerator(line)
+            )
+            .attr('stroke', (d) => that.scale.rainbowFill(that.keys.indexOf(d.key)))
+            .attr('stroke-width', '0px')
+            .attr('fill', 'transparent')
+            .transition().duration(500)
+              .attr('stroke-width', '2px')
+      )
+      .on('mouseout', (d) ->
+        that.chart.selectAll('rect.overlay').remove()
+        that.chart.selectAll('path.focus-line').remove()
+      )
+
+  _drawAxis: () ->
+    ticks = if @domain.y[1] > 20 then 10 else @domain.y[1]
     xAxis = d3.axisBottom()
       .scale(@scale.x)
     yAxis = d3.axisLeft()
+      .ticks(ticks)
+      .tickFormat(d3.format(",d"))
       .scale(@scale.y)
     @chart.append('g')
       .attr('class', 'xAxis')
@@ -50,33 +134,32 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
     @chart.append('g')
       .attr('class', 'yAxis')
       .call(yAxis)
+
+  _drawLines: () ->
     lineGenerator = d3.line()
     @chart.selectAll('g.line')
-      .data(grouped)
+      .data(@grouped)
       .enter()
       .append('g')
         .attr('class', 'line')
         .selectAll('path')
-          .data((d) => 
-            console.log(d)
-            [d]
-          )
+          .data((d) => [d])
           .enter()
           .append('path')
             .attr('d', (d) =>
-              console.log(d.values)
-              line = d.values.sort((x, y) =>
-                d3.ascending(x[3], y[3])
-              )
-              line = line.map((x) =>
-                [@scale.x(x[3]), @scale.y(x[2])]
-              )
-              console.log(line)
+              line = d.values.sort((x, y) => d3.ascending(x[3], y[3]))
+              line = line.map((x) => [@scale.x(x[3]), @scale.y(x[2])])
               lineGenerator(line)
             )
-            .attr('stroke', 'red')
-            .attr('stroke-width', '1px')
+            .attr('stroke', (d) => @scale.rainbowFill(@keys.indexOf(d.key)))
+            .attr('stroke-width', '2px')
             .attr('fill', 'transparent')
+ 
+  draw: () ->
+    @_drawAxis()
+    @_drawLines()
+    @_initLegendHover()
+    @table.drawTableColors()
       
 
 

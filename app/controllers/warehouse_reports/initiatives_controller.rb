@@ -99,6 +99,24 @@ module WarehouseReports
     end
     helper_method :median
 
+    def show_view_partials
+      [
+        {partial: 'breakdown', data: :client_counts},
+        {partial: 'nightly_census'},
+        {partial: 'breakdown', data: :gender_breakdowns},
+        {partial: 'breakdown', data: :veteran_breakdowns, title: "Veteran Status Breakdowns"},
+        {partial: 'breakdown', data: :ethnicity_breakdowns},
+        {partial: 'breakdown', data: :race_breakdowns},
+        {partial: 'breakdown', data: :age_breakdowns},
+        {partial: 'breakdown', data: :length_of_stay_breakdowns},
+        {partial: 'breakdown', data: :living_situation_breakdowns, title: "Prior Living Situation Breakdowns"},
+        {partial: 'breakdown', data: :income_at_entry_breakdowns, title: "Prior Living Income at Entry Breakdowns"},
+        {partial: 'breakdown', data: :income_most_recent_breakdowns, title: "Prior Living Income Most Recent Breakdowns"},
+        {partial: 'breakdown', data: :destination_breakdowns, title: "Prior Living Destination Breakdowns"},
+        {partial: 'breakdown', data: :zip_breakdowns, title: "Prior Living Permanent Zipcode Breakdowns"}
+      ]
+    end
+    helper_method :show_view_partials
 
   end
 end

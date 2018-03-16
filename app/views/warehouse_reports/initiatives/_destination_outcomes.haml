@@ -1,5 +1,6 @@
-
-- if data = @data[:destination_breakdowns_by_project_type]
+- dbbpt = JSON.parse('{"Services Only__30":1,"PH__22":2,"Services Only__1":4,"PH__10":3,"Services Only__10":3,"PH__31":1,"PH__20":2,"PH__30":2,"Services Only__11":1,"Services Only__31":1,"PH__17":1}')
+-# if data = @data[:destination_breakdowns_by_project_type]
+- if data = dbbpt  
   :ruby
     permanent_destinations = HUD::permanent_destinations
     temporary_destinations = HUD::temporary_destinations
@@ -22,6 +23,7 @@
         buckets[:other][project_type] += count
       end
     end
+  %p= buckets
   %h4 Destination Counts by Type by Project Type for Reporting Period
   %table.table.table-striped
     %thead

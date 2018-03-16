@@ -9,20 +9,21 @@
 .warehouse-reports__initiatives
   -# Outcomes
   = render 'outcomes'
+  - show_view_partials.each do |p|
+    - if p[:partial] == 'breakdown'
+      - [:project_type, :project].each do |by|
+        - title = p[:title].present? ? "#{p[:title]} by #{by.to_s.titleize}" : "#{p[:data].to_s.titleize} by #{by.to_s.titleize}"
+        = render p[:partial], title: title, vm: vm, data_type: p[:data], by: by, chart_1: :report, chart_2: :comparison
+    - else
+      = render p[:partial]
 
+-#
   -# Client counts
   - [:project_type, :project].each do |by|
     = render 'breakdown', title: "Client Counts by #{by.to_s.titleize}", vm: vm, data_type: :client_counts, by: by, chart_1: :report, chart_2: :comparison
 
   -# Nightly Census
-  = render 'nightly_census', title: 'Nightly Census by Project Type'
-  = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Reporting Period', section: :date_counts_by_project_type, range: (@parameters.start.to_date..@parameters.end.to_date)
-
-  = render 'date_counts_by_project_type', title: 'Nightly Census by Project Type for Comparison Period', section: :comparison_date_counts_by_project_type, range: (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date)
-
-  = render 'date_counts_by_project', title: 'Nightly Census by Project for Reporting Period', section: :date_counts_by_project, range: (@parameters.start.to_date..@parameters.end.to_date)
-
-  = render 'date_counts_by_project', title: 'Nightly Census by Project for Comparison Period', section: :comparison_date_counts_by_project, range: (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date)
+  = render 'nightly_census'
 
   -# Gender
   - [:project_type, :project].each do |by|

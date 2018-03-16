@@ -1,30 +1,52 @@
-- legend_id = 'd3-nc-by-project-type__legend'
-- chart_1_data = [] 
-- @data.date_counts_by_project_type.each do |key, value|
-  - keys = key.split('__')
-  - chart_1_data.push([keys[0], keys[1], value])
-  
-- chart_1_id = 'd3-nc-by-project-type__chart-1'
-.ho-container.loso__container
-  .ho-container__header
-    %h4= title 
-  .row
-    .col-xs-12
-      .loso__legend
-        .clearfix{id: legend_id}
-  .row
-    .col-xs-12
-      %h5 Report Period
-      %div{id: chart_1_id, style: 'height: 400px;'}
+- report_range = (@parameters.start.to_date..@parameters.end.to_date).to_a
+- comparison_range = (@parameters.comparison_start.to_date..@parameters.comparison_end.to_date).to_a
+- vm = WarehouseReport::InitiativeNcLineCharts.new(@data, report_range, comparison_range)
+- [:project_type, :project].each do |by|
+  - charts = vm.charts(:date_counts, by)
+  - [:report, :comparison].each do |period|
+    - chart_data = charts[period]
+    - chart_id = vm.chart_id(by, period)
+    - legend_id = vm.legend_id(by, period)
+    - collapse_id = vm.collapse_id(by, period)
+    - table_id = vm.table_id(by, period)
+    .ho-container.loso__container
+      .ho-container__header
+        %h4= "Nightly Census by #{by.to_s.titleize} for #{period.to_s.titleize} Period" 
+      .row
+        .col-xs-10
+          %div{id: chart_id, style: 'height: 400px;'}
+        .col-xs-2
+          %div{id: legend_id}
+            %p
+              %small= "* Hover over #{by.to_s.humanize}s to see individual lines"
+      .loso-footer.clearfix
+        %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+          Show Details
+      .collapse.loso-collapse{id: collapse_id}
+        %div{id: table_id}
+          %table.table.loso-table
+            %tr
+              %th{width: '100px'}
+              %th{width: '180px'}
+              - chart_data.map{|d| d[1]}.each do |date|
+                %th.text-center{width: '150px'}= date
+            - vm.table_rows(by).each_with_index do |row, index|
+              %tr
+                - if index == 0
+                  %th.loso-table__label{rowspan: vm.table_rows(by).size}= "#{period.to_s.titleize} Period"
+                %th{data: {d3_key: row}}
+                  = row
+                - chart_data.select{|d| d[0] == row}.sort_by{|d| d[1]}.each do |d|
+                  %td.text-center= d[2]
 
-- content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var chart1Data = #{chart_1_data.to_json}
-      var chart1Id = '#'+#{chart_1_id.to_json}
-      var legendId = '#'+#{legend_id.to_json}
-      
-      var chart1 = new App.D3Chart.InitiativeLine(chart1Id, legendId, {top: 20, right: 20, bottom: 20, left: 40}, chart1Data);
-      chart1.draw()
-
-    })
+    - content_for :page_js do
+      :javascript
+        $(document).ready(function() {
+          var chartData = #{chart_data.to_json}
+          var chartId = '#'+#{chart_id.to_json}
+          var legendId = '#'+#{legend_id.to_json}
+          var tableId = '#'+#{table_id.to_json}
+          
+          var chart = new App.D3Chart.InitiativeLine(chartId, legendId, tableId, {top: 20, right: 20, bottom: 20, left: 40}, chartData);
+          chart.draw()
+        })

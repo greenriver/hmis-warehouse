@@ -507,7 +507,8 @@ th[data-d3-key] {
   padding: 20px;
 }
 
-.loso__legend-item {
+.loso__legend-item,
+.nc-legend__item {
   font-size: 12px;
   line-height: 12px;
   margin-bottom: 10px;
@@ -515,11 +516,27 @@ th[data-d3-key] {
   margin-right: 20px;
 }
 
-.loso__legend-item-color {
+.nc-legend__item {
+  float: none;
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 12px;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.loso__legend-item-color,
+.nc-legend__item-color {
   float: left;
   margin-right: 8px;
   width: 12px;
   height: 12px;
+}
+
+.nc-legend__item-color {
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
 
