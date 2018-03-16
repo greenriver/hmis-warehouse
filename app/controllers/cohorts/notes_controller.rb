@@ -29,8 +29,13 @@ module Cohorts
     end
 
     def destroy
-      @note.destroy
-      respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      if @note.destroyable_by current_user
+        @note.destroy
+        respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      else
+        flash[:error] = "Unable to destroy note"
+        respond_with(@cohort, location: cohort_path(@cohort))
+      end
     end
 
     def note_params
