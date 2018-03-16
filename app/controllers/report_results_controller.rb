@@ -45,7 +45,6 @@ class ReportResultsController < ApplicationController
 
   # POST /report_results
   def create
-
     run_report_engine = false
     @result = report_result_source.new(report: @report, percent_complete: 0.0, user_id: current_user.id)
     if @report.has_options?
@@ -78,6 +77,10 @@ class ReportResultsController < ApplicationController
       report_start = @result.options['report_start'].to_date
       report_end = @result.options['report_end'].to_date
       options.merge!({report_start: report_start, report_end: report_end})
+    end
+    if @report.has_coc_codes_option?
+      coc_codes = @result.options['coc_codes'].select(&:present?)
+      options.merge!({coc_codes: coc_codes})
     end
     if run_report_engine
       job = Delayed::Job.enqueue Reporting::RunReportJob.new(
@@ -143,6 +146,7 @@ class ReportResultsController < ApplicationController
           :data_source_id,
           :coc_code,
           :sub_population,
+          coc_codes: [],
           project_id: [],
           project_type:[],
           project_group_ids: []
