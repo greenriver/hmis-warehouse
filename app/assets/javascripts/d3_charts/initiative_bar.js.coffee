@@ -1,3 +1,85 @@
+class App.D3Chart.Pie extends App.D3Chart.Base
+  constructor: (container_selector, data) ->
+    super(container_selector, {top: 20, right: 20, left: 20, bottom: 20})
+    @chart.attr("transform", "translate(" + @dimensions.width / 2 + "," + @dimensions.height / 2 + ")")
+    @radius = d3.min([@dimensions.width, @dimensions.height])/2
+    @_loadHelpers()
+    @_loadData(data)
+    
+    @scale = {
+      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow)
+      outerFill: d3.scaleSequential().domain([0, @outerKeys.length]).interpolator(d3.interpolateBrBG)
+    }
+
+  _loadData: (data) ->
+    @data = data
+    @total_count = 0
+    @all_totals = []
+    @bucket_totals = Object.keys(@data).map((k) =>
+      @total_count += @data[k].total
+      d = [k, @data[k].total]
+      Object.keys(@data[k])
+        .filter((k2) =>
+          k2 != 'total'
+        )
+        .forEach((k2) =>
+          @all_totals.push([k2, @data[k][k2], k])
+        )
+      d
+    )
+    @keys = d3.nest().key((d) => d[0])
+      .entries(@all_totals)
+      .map((d) => d.key)
+    @outerKeys = d3.nest().key((d) => d[0])
+      .entries(@bucket_totals)
+      .map((d) => d.key)
+    console.log(@keys)
+    console.log(@outerKeys)
+
+
+  _loadHelpers: () ->
+    @path = d3.arc()
+      .outerRadius(@radius - 10)
+      .innerRadius(0);
+    @innerPath = d3.arc()
+      .outerRadius(@radius - 30)
+      .innerRadius(0)
+    @pie = d3.pie()
+      .sort(null)
+      .value((d) => d[1])
+
+
+  draw: () ->
+    arc = @chart.selectAll(".arc")
+      .data(@pie(@bucket_totals))
+      .enter().append("g")
+        .attr("class", "arc");
+
+    arc.append("path")
+      .attr("d", @path)
+      .attr('fill', (d, i) =>
+        key = d.data[0]
+        @scale.outerFill(@outerKeys.indexOf(key))
+      )
+      .attr('stroke', 'white')
+      .attr('stroke-width', '4px')
+
+    innerArc = @chart.selectAll('.arc2')
+      .data(@pie(@all_totals))
+      .enter().append('g')
+        .attr('class', 'ard2')
+
+    innerArc.append('path')
+      .attr('d', @innerPath)
+      .attr('fill', (d) =>
+        key = d.data[0]
+        @scale.rainbowFill(@keys.indexOf(key))
+      )
+      .attr('stroke', 'white')
+      .attr('stroke-width', '2px')
+
+
+
 class App.D3Chart.ColorCodedTable
   constructor: (table_selector, keys, scale) ->
     @table = d3.select(table_selector)
