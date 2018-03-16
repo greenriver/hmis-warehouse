@@ -34,7 +34,7 @@ module Reports::Pit::Fy2018
 
     def value_for_options options
       value = "PIT: #{options['pit_date']}, Chronic: #{options['chronic_date']}" if options.present?
-      value += ", CoC Code(s): #{options['coc_codes'].join(' ')}" if options['coc_codes'].present?
+      value += ", CoC Code(s): #{options['coc_codes'].join(' ')}" if options['coc_codes'].present? && options['coc_codes'].select(&:present?).any?
       value
     end
   end

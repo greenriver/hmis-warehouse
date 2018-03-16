@@ -8,7 +8,7 @@
       .col-sm-4
         = f.input :chronic_date, collection: GrdaWarehouse::HudChronic.distinct.order(date: :desc).pluck(:date), input_html: {name: 'report_result[options][chronic_date]', value: default_chronic_date, class: 'select2'}
       .col-sm-4
-        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.all.pluck(:CoCCode).uniq, input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple, class: 'select2'}
+        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.all.pluck(:CoCCode).uniq, include_blank: 'All', input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple, class: 'select2'}
     .row
       .col-sm-12.margin-bottom-02
         = f.button :button, class: 'btn btn-primary pull-right' do
