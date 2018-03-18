@@ -110,8 +110,9 @@ module WarehouseReports
         {partial: 'breakdown', data: :age_breakdowns},
         {partial: 'breakdown', data: :length_of_stay_breakdowns},
         {partial: 'breakdown', data: :living_situation_breakdowns, title: "Prior Living Situation Breakdowns"},
-        {partial: 'breakdown', data: :income_at_entry_breakdowns, title: "Prior Living Income at Entry Breakdowns"},
-        {partial: 'breakdown', data: :income_most_recent_breakdowns, title: "Prior Living Income Most Recent Breakdowns"},
+        {partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: "Prior Living Income at Entry Breakdowns"},
+        # {partial: 'breakdown', data: :income_at_entry_breakdowns, title: "Prior Living Income at Entry Breakdowns"},
+        {partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: "Prior Living Income Most Recent Breakdowns"},
         {partial: 'breakdown', data: :destination_breakdowns, title: "Prior Living Destination Breakdowns"},
         {partial: 'breakdown', data: :zip_breakdowns, title: "Prior Living Permanent Zipcode Breakdowns"}
       ]

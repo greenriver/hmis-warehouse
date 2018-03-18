@@ -1,18 +1,39 @@
+class App.D3Chart.ColorCodedTable
+  constructor: (table_selector, keys, scale, selector='[data-d3-key]') ->
+    @table = d3.select(table_selector)
+    @selector = selector
+    @keys = keys
+    @scale = scale
+
+  drawTableColors: () ->
+    that = @
+    @table.selectAll(@selector).each(() ->
+      ele = d3.select(this)
+      d = ele.node().getAttribute('data-d3-key')
+      ele.append('span')
+        .attr('style', 'background-color: '+that.scale(that.keys.indexOf(d)))
+    )
+
+
 class App.D3Chart.Pie extends App.D3Chart.Base
-  constructor: (container_selector, data) ->
-    super(container_selector, {top: 20, right: 20, left: 20, bottom: 20})
+  constructor: (container_selector, table_selector, legend_selector, data) ->
+    super(container_selector, {top: 20, right: 0, left: 20, bottom: 20})
+    @legend = d3.select(legend_selector)
     @chart.attr("transform", "translate(" + @dimensions.width / 2 + "," + @dimensions.height / 2 + ")")
     @radius = d3.min([@dimensions.width, @dimensions.height])/2
     @_loadHelpers()
     @_loadData(data)
     
     @scale = {
-      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow)
+      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow),
       outerFill: d3.scaleSequential().domain([0, @outerKeys.length]).interpolator(d3.interpolateBrBG)
     }
+    @table = new App.D3Chart.ColorCodedTable(table_selector, @outerKeys, @scale.outerFill)
+    @table2 = new App.D3Chart.ColorCodedTable(table_selector+'-more-details', @keys, @scale.rainbowFill)
 
   _loadData: (data) ->
-    @data = data
+    @keys = data.keys
+    @data = data.data
     @total_count = 0
     @all_totals = []
     @bucket_totals = Object.keys(@data).map((k) =>
@@ -27,15 +48,9 @@ class App.D3Chart.Pie extends App.D3Chart.Base
         )
       d
     )
-    @keys = d3.nest().key((d) => d[0])
-      .entries(@all_totals)
-      .map((d) => d.key)
     @outerKeys = d3.nest().key((d) => d[0])
       .entries(@bucket_totals)
       .map((d) => d.key)
-    console.log(@keys)
-    console.log(@outerKeys)
-
 
   _loadHelpers: () ->
     @path = d3.arc()
@@ -48,6 +63,25 @@ class App.D3Chart.Pie extends App.D3Chart.Base
       .sort(null)
       .value((d) => d[1])
 
+  _drawLegend: () ->
+    @legend.selectAll('div.loso__legend-item')
+      .data(@keys)
+      .enter()
+      .append('div')
+        .attr('class', 'loso__legend-item clearfix')
+        .text((d) => 
+          if d == 'report'
+            "Report Period"
+          else if d == 'comparison'
+            "Comparison Period"
+          else 
+            d
+        )
+        .append('div')
+          .attr('class', 'loso__legend-item-color')
+          .attr('style', (d) =>
+            'background-color:'+@scale.rainbowFill(@keys.indexOf(d))
+          )
 
   draw: () ->
     arc = @chart.selectAll(".arc")
@@ -61,13 +95,13 @@ class App.D3Chart.Pie extends App.D3Chart.Base
         key = d.data[0]
         @scale.outerFill(@outerKeys.indexOf(key))
       )
-      .attr('stroke', 'white')
-      .attr('stroke-width', '4px')
+      .attr('stroke', (d) => 'white')
+      .attr('stroke-width', '2px')
 
     innerArc = @chart.selectAll('.arc2')
       .data(@pie(@all_totals))
       .enter().append('g')
-        .attr('class', 'ard2')
+        .attr('class', 'arc2')
 
     innerArc.append('path')
       .attr('d', @innerPath)
@@ -75,25 +109,13 @@ class App.D3Chart.Pie extends App.D3Chart.Base
         key = d.data[0]
         @scale.rainbowFill(@keys.indexOf(key))
       )
-      .attr('stroke', 'white')
+      .attr('stroke', (d) => 'white')
       .attr('stroke-width', '2px')
 
+    @table.drawTableColors()
+    @table2.drawTableColors()
+    @_drawLegend()
 
-
-class App.D3Chart.ColorCodedTable
-  constructor: (table_selector, keys, scale) ->
-    @table = d3.select(table_selector)
-    @keys = keys
-    @scale = scale
-
-  drawTableColors: () ->
-    that = @
-    @table.selectAll('th[data-d3-key]').each(() ->
-      ele = d3.select(this)
-      d = ele.node().getAttribute('data-d3-key')
-      ele.append('span')
-        .attr('style', 'background-color: '+that.scale.rainbowFill(that.keys.indexOf(d)))
-    )
 
 class App.D3Chart.InitiativeLine extends App.D3Chart.Base
   constructor: (container_selector, legend_selector, table_selector, margin, data) ->
@@ -109,7 +131,7 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
     @range = @_loadRange()
     @domain = @_loadDomain()
     @scale = @_loadScale()
-    @table = new App.D3Chart.ColorCodedTable(table_selector, @keys, @scale)
+    @table = new App.D3Chart.ColorCodedTable(table_selector, @keys, @scale.rainbowFill)
 
   _resizeContainer: () ->
     container = d3.select(@container_selector)

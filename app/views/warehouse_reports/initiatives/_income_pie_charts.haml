@@ -1,0 +1,11 @@
+- vm = WarehouseReport::InitiativeIncomePieCharts.new(@data)
+- [:project_type, :project].each do |by|
+  - [:report, :comparison].each do |period|
+    -# data_type = data
+    - buckets = vm.chart_data(data_type, by, period) || {}
+    - chart_id = vm.chart_id(data_type, by, period)
+    - table_id = vm.table_id(data_type, by, period)
+    - legend_id = vm.legend_id(data_type, by, period)
+    - collapse_id = vm.collapse_id(data_type, by, period)
+    = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "#{data_type.to_s.humanize.titleize} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period"
+

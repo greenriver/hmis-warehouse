@@ -14,6 +14,8 @@
       - [:project_type, :project].each do |by|
         - title = p[:title].present? ? "#{p[:title]} by #{by.to_s.titleize}" : "#{p[:data].to_s.titleize} by #{by.to_s.titleize}"
         = render p[:partial], title: title, vm: vm, data_type: p[:data], by: by, chart_1: :report, chart_2: :comparison
+    - elsif p[:partial] == 'income_pie_charts'
+      = render p[:partial], data_type: p[:data]
     - else
       = render p[:partial]
 

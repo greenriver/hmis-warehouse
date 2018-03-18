@@ -1,28 +1,12 @@
 - vm = WarehouseReport::InitiativeDestinationPieCharts.new(@data)
 - [:project_type, :project].each do |by|
-  .ho-container.loso__container
-    .ho-container__header
-      %h4= "Destination Counts by #{by.to_s.gsub('_', ' ').titleize}"
-    .row
-      - [:report, :comparison].each do |period|
-        - buckets = vm.chart_data(by, period) || {}
-        - chart_id = vm.chart_id(by, period)
-        .col-xs-12.col-md-6
-          %h5= "#{period.to_s.titleize} Period"
-          - if buckets.empty?
-            %p No Data
-          - else
-            %div{id: vm.chart_id(by, period), style: 'height: 400px'}
-            - content_for :page_js do
-              :javascript
-                $(document).ready(function() {
-                  var data = #{buckets.to_json}
-                  var chartId = '#'+#{chart_id.to_json}
-                  var chart = new App.D3Chart.Pie(chartId, data)
-                  chart.draw()
-                })
-
-
+  - [:report, :comparison].each do |period|
+    - buckets = vm.chart_data(by, period) || {}
+    - chart_id = vm.chart_id(by, period)
+    - table_id = vm.table_id(by, period)
+    - legend_id = vm.legend_id(by, period)
+    - collapse_id = vm.collapse_id(by, period)
+    = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "Destination Counts by #{by.to_s.gsub('_', ' ').titleize} for #{period.to_s.titleize} Period"
 
 -#
   - if data = @data[:destination_breakdowns_by_project_type] 

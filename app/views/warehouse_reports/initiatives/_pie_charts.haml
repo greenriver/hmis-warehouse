@@ -1,0 +1,55 @@
+.ho-container.loso__container
+  .ho-container__header
+    %h4= title
+  - empty = buckets[:data].keys.map{|k| buckets[:data][k].values}.flatten.map{|d| d.nil? ? 0 : d}.inject(0, :+) == 0
+  .row{style: 'margin-top: 40px;'}
+    .col-xs-12.col-md-7
+      - if empty
+        %p No Data
+      - else
+        %div{id: chart_id, style: 'height: 450px'}
+        - content_for :page_js do
+          :javascript
+            $(document).ready(function() {
+              var data = #{buckets.to_json}
+              var chartId = '#'+#{chart_id.to_json}
+              var tableId = '#'+#{table_id.to_json}
+              var legendId = '#'+#{legend_id.to_json}
+              var chart = new App.D3Chart.Pie(chartId, tableId, legendId, data)
+              chart.draw()
+            })
+    .col-xs-12.col-md-5
+      - unless empty
+        - total = buckets[:data].keys.map{|bk| buckets[:data][bk][:total] || 0}.inject(0, :+)
+        %table.table.loso-table{id: table_id}
+          - buckets[:data].keys.each_with_index do |bk, index|
+            %tr
+              %td{data: {d3_key: bk}}
+                - t = buckets[:data][bk][:total] || 0
+                = bk
+              %td
+                - if total > 0
+                  %b= "#{(100.0 * (t/total.to_f)).round}%"
+        .loso__legend-pie
+          .clearfix{id: legend_id}
+  .loso-footer.clearfix
+    %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+      Show Details
+  .collapse.loso-collapse{id: collapse_id}
+    %table.table.loso-table{id: "#{table_id}-more-details"}
+      %tr
+        %th
+        - buckets[:data].keys.each do |k|
+          %th.text-center= k
+      - buckets[:keys].each do |k|
+        %tr
+          %th{data: {d3_key: k}}= k
+          - buckets[:data].each do |key, values|
+            %td.text-center= values[k] || 0
+
+
+
+
+                
+
+

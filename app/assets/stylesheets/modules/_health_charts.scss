@@ -492,7 +492,7 @@ table.table.loso-table th.loso-table__label {
   background-color: #F9F9F9;
 }
 
-th[data-d3-key] {
+[data-d3-key] {
   position: relative;
   span {
     position: absolute;
@@ -509,17 +509,17 @@ th[data-d3-key] {
 
 .loso__legend-item,
 .nc-legend__item {
+  position: relative;
   font-size: 12px;
   line-height: 12px;
   margin-bottom: 10px;
   float: left;
   margin-right: 20px;
+  padding-left: 16px;
 }
 
 .nc-legend__item {
   float: none;
-  position: relative;
-  padding-left: 16px;
   margin-bottom: 12px;
   line-height: 1.1;
   cursor: pointer;
@@ -527,16 +527,22 @@ th[data-d3-key] {
 
 .loso__legend-item-color,
 .nc-legend__item-color {
-  float: left;
   margin-right: 8px;
   width: 12px;
   height: 12px;
-}
-
-.nc-legend__item-color {
   position: absolute;
   top: 0px;
   left: 0px;
+}
+
+.loso__legend-pie {
+  margin-top: 20px;
+}
+
+.loso__legend-pie .loso__legend-item {
+  width: 50%;
+  padding-right: 10px;
+  margin-right: 0px;
 }
 
 
