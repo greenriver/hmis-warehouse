@@ -17,6 +17,18 @@ module GrdaWarehouse::HMIS
       where(active: true)
     end
 
+    scope :for_user, -> (user) do
+      if user.can_administer_health?
+        user_scope = confidential
+      else
+        user_scope = non_confidential
+      end
+      if ! user.can_edit_clients?
+        user_scope = user_scope.window
+      end
+      user_scope
+    end
+
     scope :fetch_for_data_source, -> (ds_id) do
       where(data_source_id: ds_id).where(fetch: true)
     end
