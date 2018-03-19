@@ -871,7 +871,7 @@ module GrdaWarehouse::Hud
         image_data = nil
         if Rails.env.production?
           source_api_ids.detect do |api_id|
-            api ||= EtoApi::Base.new.tap{|api| api.connect}
+            api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
             image_data = api.client_image(
               client_id: api_id.id_in_data_source, 
               site_id: api_id.site_id_in_data_source
