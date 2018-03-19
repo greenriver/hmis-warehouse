@@ -84,10 +84,12 @@ class WarehouseReport::InitiativeMmBarCharts
   end
 
   def mean(values)
+    values = values.map(&:to_f)
     (values.sum.to_f/values.length).round rescue 0
   end
 
   def median(values)
+    values = values.map(&:to_f)
     mid = values.size / 2
     sorted = values.sort
     values.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2

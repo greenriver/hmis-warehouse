@@ -1,71 +1,76 @@
-- if data = @data[:all_income_most_recent_breakdowns_by_project_type]
-  %h4 Changes in Income by Project Type
-  - keys = data.keys
-  %table.table.table-striped
-    %thead
-      %tr
-        %th
-        - keys.each do |k|
-          %th= ::HUD.project_type_brief(k.to_i)
-    %tbody
-      %tr
-        %th Report Period Mean
-        - keys.each do |k|
-          - values = data[k] || [0]
-          - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
-          %td= mean
-      %tr
-        %th Report Period Median
-        - keys.each do |k|
-          - values = data[k] || [0]
-          - median = median(values.map(&:to_f))
-          %td= median
-      - data = @data[:all_comparison_income_most_recent_breakdowns_by_project_type]
-      %tr
-        %th Comparison Period Mean
-        - keys.each do |k|
-          - values = data[k] || [0]
-          - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
-          %td= mean
-      %tr
-        %th Comparison Period Median
-        - keys.each do |k|
-          - values = data[k] || [0]
-          - median = median(values.map(&:to_f))
-          %td= median
+- vm = WarehouseReport::InitiativeMmBarCharts.new(@data)
+- [:project_type, :project].each do |by|
+  = render 'breakdown', title: "Changes in Income by #{by.to_s.titleize}", vm: vm, data_type: :income_most_recent_breakdowns, by: by, chart_1: :mean, chart_2: :median
 
-- if data = @data[:all_income_most_recent_breakdowns_by_project]
-  %h4 Changes in Income by Project
-  - keys = data.keys
-  %table.table.table-striped
-    %thead
-      %tr
-        %th
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          %th= p_name
-    %tbody
-      %tr
-        %th Report Period Mean
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
-          %td= mean
-      %tr
-        %th Report Period Median
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - median = median(values.map(&:to_f))
-          %td= median
-      - data = @data[:all_comparison_income_most_recent_breakdowns_by_project]
-      %tr
-        %th Comparison Period Mean
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
-          %td= mean
-      %tr
-        %th Comparison Period Median
-        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-          - values = data[p_id] || [0]
-          - median = median(values.map(&:to_f))
-          %td= median
+-#
+  - if data = @data[:all_income_most_recent_breakdowns_by_project_type]
+    %h4 Changes in Income by Project Type
+    - keys = data.keys
+    %table.table.table-striped
+      %thead
+        %tr
+          %th
+          - keys.each do |k|
+            %th= ::HUD.project_type_brief(k.to_i)
+      %tbody
+        %tr
+          %th Report Period Mean
+          - keys.each do |k|
+            - values = data[k] || [0]
+            - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
+            %td= mean
+        %tr
+          %th Report Period Median
+          - keys.each do |k|
+            - values = data[k] || [0]
+            - median = median(values.map(&:to_f))
+            %td= median
+        - data = @data[:all_comparison_income_most_recent_breakdowns_by_project_type]
+        %tr
+          %th Comparison Period Mean
+          - keys.each do |k|
+            - values = data[k] || [0]
+            - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
+            %td= mean
+        %tr
+          %th Comparison Period Median
+          - keys.each do |k|
+            - values = data[k] || [0]
+            - median = median(values.map(&:to_f))
+            %td= median
+
+  - if data = @data[:all_income_most_recent_breakdowns_by_project]
+    %h4 Changes in Income by Project
+    - keys = data.keys
+    %table.table.table-striped
+      %thead
+        %tr
+          %th
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            %th= p_name
+      %tbody
+        %tr
+          %th Report Period Mean
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
+            %td= mean
+        %tr
+          %th Report Period Median
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - median = median(values.map(&:to_f))
+            %td= median
+        - data = @data[:all_comparison_income_most_recent_breakdowns_by_project]
+        %tr
+          %th Comparison Period Mean
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - mean = (values.map(&:to_f).sum.to_f/values.length).round rescue 0
+            %td= mean
+        %tr
+          %th Comparison Period Median
+          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+            - values = data[p_id] || [0]
+            - median = median(values.map(&:to_f))
+            %td= median

@@ -448,7 +448,21 @@ h2.ho-sub__h2 {
   margin-bottom: 20px;
 }
 
-//d3-loso = length of stay outcomes
+//initiative reports
+
+.warehouse-reports__initiatives > h2 {
+  margin-top: 60px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #000000;
+  position: relative;
+  span {
+    padding: 0px 10px;
+    position: absolute;
+    top: -14px;
+    left: 20px;
+    background-color: #f9f9f9;
+  }
+}
 .loso__container .ho-container__header h4 {
   margin-top: 0px;
   display:inline-block;
@@ -457,13 +471,6 @@ h2.ho-sub__h2 {
 .loso-footer {
   padding-top: 20px;
 }
-
-// .loso__legend {
-//   .ho-hint {
-//     float: right;
-//     margin-left: 10px;
-//   }
-// }
 
 .loso-collapse {
   margin-top: 20px;

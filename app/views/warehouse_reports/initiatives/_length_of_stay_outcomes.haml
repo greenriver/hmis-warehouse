@@ -1,7 +1,6 @@
 - vm = WarehouseReport::InitiativeMmBarCharts.new(@data)
 - [:project_type, :project].each do |by|
-  = render 'breakdown', title: "Mean Median Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :length_of_stay_breakdowns, by: by, chart_1: :mean, chart_2: :median
-
+  = render 'breakdown', title: "Changes in Length of Stay in Days by #{by.to_s.titleize}", vm: vm, data_type: :length_of_stay_breakdowns, by: by, chart_1: :mean, chart_2: :median
 -# 
   - if data = @data[:all_length_of_stay_breakdowns_by_project_type]
     %h4 Changes in Length of Stay in Days by Project Type

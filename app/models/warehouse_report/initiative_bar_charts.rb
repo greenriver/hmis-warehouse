@@ -90,10 +90,9 @@ class WarehouseReport::InitiativeBarCharts
       living_situation_breakdowns: living_situation_stack_keys(by),
       income_at_entry_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
       income_most_recent_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
-      destination_breakdowns: [],
+      destination_breakdowns: destination_breakdowns_stack_keys(by),
       zip_breakdowns: @data.involved_zipcodes.map{|z| z.split('-')[0]},
       client_counts: ['count']
-      # client_counts: by == :project_type ? @project_types : @projects
     }
     keys[data_type] || []
   end
@@ -106,6 +105,14 @@ class WarehouseReport::InitiativeBarCharts
       m = "comparison_#{m}"
     end
     @data.send(m) || {}
+  end
+
+  def destination_breakdowns_stack_keys(by)
+    (select_data(:destination_breakdowns, by, :report).select{|k, v| v > 0}.keys + select_data(:destination_breakdowns, by, :comparison).select{|k, v| v > 0}.keys).
+      map do |key|
+        key.split('__')[1]
+      end.
+      uniq
   end
 
   def living_situation_stack_keys(by)
@@ -144,7 +151,10 @@ class WarehouseReport::InitiativeBarCharts
       GrdaWarehouse::Hud::IncomeBenefit.income_ranges.
         select{|i_key, i_bucket| i_key.to_s == key}.
         map{|i_key, i_bucket| i_bucket[:name]}.
-        first  
+        first 
+    elsif data_type == :destination_breakdowns
+      ::HUD.valid_destinations.select{|id, value| key == id.to_s}.
+        map{|id, value| value}.first
     else
       key
     end
