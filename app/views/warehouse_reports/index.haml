@@ -27,7 +27,7 @@
                 .c-card__title= report.name
                 .c-card__description= report.description.html_safe
 
-  - if can_view_aggregate_health?
+  - if false #can_view_aggregate_health?
     #health-reports.tab-pane{role: :tabpanel}
       .warehouse-reports__health-reports
         %h3 Health Reports

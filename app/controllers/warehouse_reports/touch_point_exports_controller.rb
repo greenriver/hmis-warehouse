@@ -1,8 +1,11 @@
 module WarehouseReports
   class TouchPointExportsController < ApplicationController
-
+    include WarehouseReportAuthorization
+    
     def index
-      @filter = ::Filters::TouchPointExportsFilter.new filter_params
+      options = {search_scope: touch_point_scope}
+      options.merge!(filter_params) if filter_params.present?
+      @filter = ::Filters::TouchPointExportsFilter.new(options)
     end
 
     def download
@@ -14,11 +17,7 @@ module WarehouseReports
         redirect_to warehouse_reports_touch_point_exports_path, notice: 'Please select a name, start and end date' and return
       end
 
-      @responses = report_source.select(:client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id).
-        joins(:hmis_assessment, client: :destination_client).
-        where(name: @name).
-        where(collected_at: (@start_date..@end_date)).
-        order(:client_id, :collected_at)
+      @responses = report_source.select(:client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id). joins(:hmis_assessment, client: :destination_client). where(name: @name). where(collected_at: (@start_date..@end_date)). order(:client_id, :collected_at)
       @data = { sections: {} }
       @sections = {}
       @responses.each do |response|
@@ -39,7 +38,7 @@ module WarehouseReports
           end
         end
       end
-      
+
       respond_to do |format|
         format.xlsx do
           headers['Content-Disposition'] = "attachment; filename=Touch Point Exports - #{@name} #{@start} to #{@end}.xlsx"
@@ -53,6 +52,10 @@ module WarehouseReports
 
     def report_source
       GrdaWarehouse::HmisForm.non_confidential
+    end
+
+    def touch_point_scope
+      GrdaWarehouse::HMIS::Assessment.non_confidential
     end
 
   end

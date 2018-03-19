@@ -1,0 +1,11 @@
+- title = "Confidential Touch Point Exports"
+- content_for :title, title
+%h1= title
+%hr
+
+= render '/warehouse_reports/breadcrumbs', tab: 'health-reports'
+
+.well
+  .row
+    .col-sm-12
+      = render 'filter'
