@@ -130,19 +130,16 @@ module Cohorts
         elsif @population == 'parenting_youth'
           service_scope = :youth
         end
-        # we have to hack this because Active Records gets confused with the binds
-        # using to_sql forces binding the options one at a time
-        # https://github.com/rails/rails/issues/20077
-        enrollment_exists = GrdaWarehouse::ServiceHistoryEnrollment.
+
+        enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
             homeless.
             ongoing.
             entry.
             with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
             where(she_t[:client_id].eq(c_t[:id])).
-            send(@population).
-            to_sql
+            send(@population).select(c_t[:id])
         @clients = client_scope.
-          where("EXISTS (#{enrollment_exists})").distinct
+          where(id: enrollment_query).distinct
       elsif @actives
         @clients = client_scope.joins(:processed_service_history).
           where(
@@ -161,9 +158,11 @@ module Cohorts
       @days_homeless = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.select(:id)).
         pluck(:client_id, :homeless_days).to_h
+      Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
+      Rails.logger.info "CLIENTS: #{@clients.count}"
     end
 
     def load_cohort_names
