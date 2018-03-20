@@ -17,6 +17,19 @@ module GrdaWarehouse::HMIS
       where(active: true)
     end
 
+    scope :for_user, -> (user) do
+      user_scope = all
+      # remove confidential if you don't have health access
+      if ! user.can_administer_health?
+         user_scope = non_confidential
+      end
+      # limit to the window if you can't edit clients
+      if ! user.can_edit_clients?
+        user_scope = user_scope.window
+      end
+      user_scope
+    end
+
     scope :fetch_for_data_source, -> (ds_id) do
       where(data_source_id: ds_id).where(fetch: true)
     end

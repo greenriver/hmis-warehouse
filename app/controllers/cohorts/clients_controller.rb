@@ -5,6 +5,7 @@ module Cohorts
     include Chronic
     include CohortAuthorization
 
+
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
@@ -19,7 +20,24 @@ module Cohorts
     def index
       respond_to do |format|
         format.json do
-          render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+          if params[:content].present?
+            if params[:inactive].present?
+              @cohort_clients = @cohort.cohort_clients
+            else
+              @cohort_clients = @cohort.cohort_clients.where(active: true)
+            end
+            # Allow for individual refresh
+            if params[:cohort_client_id].present?
+              @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
+            end
+            @cohort_clients = @cohort_clients.
+              preload(:cohort_client_notes, client: :processed_service_history).
+              page(params[:page].to_i).per(params[:per].to_i)
+
+            render json: data_for_table() and return
+          else
+            render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+          end
         end
         format.html do
           if params[:inactive].present?
@@ -32,6 +50,48 @@ module Cohorts
           render layout: false
         end
       end
+    end
+
+    def data_for_table
+      data = []
+      expires = if Rails.env.development? 
+        1.minute 
+      else 
+        8.hours 
+      end
+
+      @cohort_clients.each do |cohort_client|
+        client = cohort_client.client
+        cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes, current_user.can_view_clients?, params], expires_in: expires) do
+          @visible_columns = [CohortColumns::Meta.new]
+          cohort_client_data = {}
+          @visible_columns += @cohort.visible_columns
+          if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+            @visible_columns << CohortColumns::Delete.new
+          end
+          @visible_columns.each do |cohort_column|
+            cohort_column.cohort = @cohort
+            cohort_column.cohort_names = @cohort_names
+            cohort_column.cohort_client = cohort_client
+            editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
+            cohort_client_data[cohort_column.column] = {
+              editable: editable, 
+              value: cohort_column.display_read_only(current_user), 
+              renderer: cohort_column.renderer,
+              cohort_client_id: cohort_client.id,
+              comments: cohort_column.comments,
+            }
+
+            if cohort_column.column == 'meta'
+              cohort_client_data[cohort_column.column].merge!(cohort_column.metadata)
+            end
+          end
+          cohort_client_data
+        end
+      
+        data << cohort_client_data
+      end
+      return data
     end
 
     def edit
@@ -70,19 +130,16 @@ module Cohorts
         elsif @population == 'parenting_youth'
           service_scope = :youth
         end
-        # we have to hack this because Active Records gets confused with the binds
-        # using to_sql forces binding the options one at a time
-        # https://github.com/rails/rails/issues/20077
-        enrollment_exists = GrdaWarehouse::ServiceHistoryEnrollment.
+
+        enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
             homeless.
             ongoing.
             entry.
             with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
             where(she_t[:client_id].eq(c_t[:id])).
-            send(@population).
-            to_sql
+            send(@population).select(c_t[:id])
         @clients = client_scope.
-          where("EXISTS (#{enrollment_exists})").distinct
+          where(id: enrollment_query).distinct
       elsif @actives
         @clients = client_scope.joins(:processed_service_history).
           where(
@@ -101,9 +158,11 @@ module Cohorts
       @days_homeless = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.select(:id)).
         pluck(:client_id, :homeless_days).to_h
+      Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
+      Rails.logger.info "CLIENTS: #{@clients.count}"
     end
 
     def load_cohort_names
@@ -180,6 +239,7 @@ module Cohorts
       ch.deleted_at = nil
       cohort_source.available_columns.each do |column|
         if column.has_default_value?
+          column.cohort = @cohort
           ch[column.column] = column.default_value(client_id)
         end
       end
@@ -241,7 +301,7 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:cohort_client).permit(*cohort_source.available_columns.map(&:column))
+      params.require(:cohort_client).permit(*cohort_source.available_columns.select{|m| m.column_editable?}.map(&:column))
     end
 
     def log_create(cohort_id, cohort_client_id)

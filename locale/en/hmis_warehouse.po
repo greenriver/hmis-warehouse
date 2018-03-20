@@ -155,7 +155,7 @@ msgstr ""
 msgid "Part of a family"
 msgstr ""
 
-msgid "Please attach each file as a separate document. Please do not upload a \"packet\" in which a number of documents are in one file."
+msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
 msgstr ""
 
 msgid "Process Duplicates"
@@ -195,9 +195,6 @@ msgid "This is a Youth VI-SPDAT"
 msgstr ""
 
 msgid "This is an Individual VI-SPDAT"
-msgstr ""
-
-msgid "This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. "
 msgstr ""
 
 msgid "U.S Citizen or Permanent Resident"

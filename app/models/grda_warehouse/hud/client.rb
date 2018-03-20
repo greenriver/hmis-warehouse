@@ -166,7 +166,7 @@ module GrdaWarehouse::Hud
     has_many :cas_houseds, class_name: GrdaWarehouse::CasHoused.name
 
     has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
-    has_many :users, through: :user_clients, inverse_of: :clients, dependent: :destroy
+    has_many :users, through: :user_clients, inverse_of: :clients
 
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
@@ -261,6 +261,25 @@ module GrdaWarehouse::Hud
 
     # End Standard Cohorts
     #################################
+    scope :individual, -> (on_date: Date.today) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          ongoing(on_date: on_date).
+          distinct.
+          individual.select(:client_id)
+      )
+    end
+
+    scope :homeless_individual, -> (on_date: Date.today, chronic_types_only: false) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.
+          currently_homeless(chronic_types_only: chronic_types_only).
+          distinct.
+          individual.select(:client_id)
+      )
+
+    end
+
     scope :currently_homeless, -> (chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable
@@ -370,6 +389,20 @@ module GrdaWarehouse::Hud
       destination.where(generate_history_pdf: true)
     end
 
+    scope :with_unconfirmed_consent, -> do
+      # The acts as taggable gem doesn't quite get the scope correct
+      # we'll need to pluck
+      joins(:client_files).
+      where(id: GrdaWarehouse::ClientFile.consent_forms.unconfirmed.pluck(:client_id))
+    end
+
+    scope :with_confirmed_consent, -> do
+      # The acts as taggable gem doesn't quite get the scope correct
+      # we'll need to pluck
+      joins(:client_files).
+      where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.pluck(:client_id))
+    end
+
     ####################
     # Callbacks
     ####################
@@ -416,7 +449,13 @@ module GrdaWarehouse::Hud
     end
 
     def self.consent_validity_period
-      1.years
+      if release_duration == 'One Year'
+        1.years
+      elsif release_duration == 'Indefinite'
+        100.years
+      else
+        raise 'Unknown Release Duration'
+      end
     end
 
     def self.revoke_expired_consent
@@ -632,6 +671,21 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def consent_confirmed?
+      client_files.consent_forms.where(
+        consent_form_signed_on: consent_form_signed_on
+      ).first&.consent_form_confirmed
+    end
+
+    def active_consent_form
+      client_files.consent_forms.confirmed.order(effective_date: :desc)&.first
+    end
+
+    def newest_consent_form
+      # Regardless of confirmation status
+      client_files.consent_forms.order(updated_at: :desc)&.first 
+    end
+
 
     # End Release information
     ##############################
@@ -817,7 +871,7 @@ module GrdaWarehouse::Hud
         image_data = nil
         if Rails.env.production?
           source_api_ids.detect do |api_id|
-            api ||= EtoApi::Base.new.tap{|api| api.connect}
+            api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
             image_data = api.client_image(
               client_id: api_id.id_in_data_source, 
               site_id: api_id.site_id_in_data_source
@@ -969,6 +1023,8 @@ module GrdaWarehouse::Hud
         child_in_household: _('Children under age 18 in household'),
         ha_eligible: _('Housing Authority Eligible'),
         cspech_eligible: _('CSPECH Eligible'),
+        congregate_housing: _('Willing to live in congregate housing'),
+        sober_housing: _('Appropriate for sober supportive housing')
       }
     end
 
@@ -1489,6 +1545,22 @@ module GrdaWarehouse::Hud
 
     def days_homeless_for_vispdat_prioritization
       vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
+    end
+
+    def calculate_vispdat_priority_score
+      vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization
+      vispdat_score = most_recent_vispdat_score
+      vispdat_length_homeless_in_days ||= 0
+      vispdat_score ||= 0
+      if vispdat_length_homeless_in_days > 730 && vispdat_score >= 8
+        730 + vispdat_score
+      elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
+        365 + vispdat_score
+      elsif vispdat_score >= 0 
+        vispdat_score
+      else 
+        0
+      end
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)

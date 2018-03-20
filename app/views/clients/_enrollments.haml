@@ -1,13 +1,13 @@
 :ruby
   only_ongoing ||= false
   include_links ||= can_view_projects?
-  
+
   enrollments = @client.enrollments_for_rollup(
-    en_scope: scope, 
-    include_confidential_names: @include_confidential_names, 
+    en_scope: scope,
+    include_confidential_names: @include_confidential_names,
     only_ongoing: only_ongoing
   )
-  
+
   any_homeless = enrollments.any?{ |e| e[:homeless] }
 
 - if enrollments.any?
@@ -60,7 +60,7 @@
         %td
           - if include_links
             = link_to e[:project_name], project_path(id: e[:project_id])
-          - else 
+          - else
             = e[:project_name]
         %td
           - living_situation = HUD.living_situation(e[:living_situation])
@@ -93,4 +93,5 @@
               = c['age']
               %br
 - else
-  No enrollments on file
+  %p.ml-3.mt-3
+    No enrollments on file

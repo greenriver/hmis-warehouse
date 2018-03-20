@@ -58,6 +58,11 @@ module ReportGenerators::Pit::Fy2018
     def initialize options
       @pit_date = options[:pit_date]
       @chronic_date = options[:chronic_date]
+      @coc_codes = options.try(:[], :coc_codes)
+      if @coc_codes.empty?
+        @coc_codes = GrdaWarehouse::Hud::ProjectCoc.all.
+          distinct.pluck(:CoCCode)
+      end
     end
 
     def run!
@@ -807,7 +812,8 @@ module ReportGenerators::Pit::Fy2018
           shs_t[:date].eq(@pit_date).
           and(shs_t[:record_type].eq('service'))
         ).
-        joins(:project).
+        joins(project: :project_cocs).
+        where(pc_t[:CoCCode].in(@coc_codes)).
         joins(:enrollment).
         distinct
     end

@@ -5,10 +5,9 @@
 - if addresses.any?
   #client__previous-addresses
   :coffeescript
-    markers = #{markers.to_json} 
+    markers = #{markers.to_json}
     labels = #{labels.to_json}
     map = new App.Maps.MapWithMarkers('client__previous-addresses', markers, labels)
 - else
-  No previous addresses
-  
-  
+  .no-data
+    No previous addresses

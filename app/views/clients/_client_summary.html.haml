@@ -17,8 +17,13 @@
               %li= "Last seen at #{projects.to_sentence}"
             %li
               = "#{@client.days_homeless} days homeless in ES, SO, TH, and SH between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
+            - if @client.service_history_enrollments.ongoing.residential.any?
+              %li
+                Enrolled in: 
+                = enrolled(@client) 
         - else
           %p None
+
       = render 'chronic_flags', client: @client
       = render 'cas_housed'
       = render 'clients/rollup/cohorts'

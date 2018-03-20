@@ -5,6 +5,7 @@ class ClientsController < ApplicationController
   include ClientPathGenerator   
 
   helper ClientMatchHelper
+  helper ClientHelper
 
   before_action :require_can_view_clients!, only: [:show, :index, :service_range]
   before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]

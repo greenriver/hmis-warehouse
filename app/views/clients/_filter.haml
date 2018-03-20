@@ -6,18 +6,18 @@
   %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
     Filter
     %span.caret
-  .dropdown-menu.dropdown-menu-right.options
+  .dropdown-menu.dropdown-menu-left.options
     %h3.client__filter-header Limit clients by:
     = form_tag(nil, method: "get") do
       -# preserve sort and search for filtering
-      - if params[:sort] 
+      - if params[:sort]
         = hidden_field_tag :sort, params[:sort]
-      - if params[:direction] 
+      - if params[:direction]
         = hidden_field_tag :direction, params[:direction]
-      - if params[:q] 
+      - if params[:q]
         = hidden_field_tag :q, params[:q]
       %h4 Dates Served
-      .row          
+      .row
         .col-xs-5
           .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
             %input.form-control{name: :start_date, type: :text, value: @start_date}
@@ -37,16 +37,16 @@
           .col-sm-4
             %h4 VSPDAT Vulnerability
             = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability]), class: 'select2', style: 'width: 100%;')
-          
+
         .col-sm-4
           %h4 Age Group
           = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
-          
+
       .row
         .col-xs-10
           .checkbox
             %label{for: :data_sharing}
-              %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing} 
+              %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing}
               = _('Fully signed data sharing agreement')
       .row.margin-bottom-02
         .col-sm-6
@@ -55,10 +55,13 @@
       .row
         .col-xs-6
           %p
-            %button.btn.btn-primary.icon-filter{type: :submit}
+            %button.btn.btn-primary{type: :submit}
+              %span.icon-filter.icon-inline
               Filter
         .col-xs-6.text-right
-          %p= link_to ' Clear Filters', clients_path, class: 'btn btn-secondary icon-cross'
+          = link_to clients_path, class:'btn btn-secondary' do
+            %span.icon-cross.icon-inline
+            Clear Filters
 = content_for :page_js do
   :javascript
     (function($) {
@@ -88,4 +91,3 @@
         }
       });
     })(jQuery);
-    

@@ -15,16 +15,27 @@ module Cohorts
     end
 
     def create
-      @note = note_source.create(note_params.merge({
-        cohort_client_id: params[:cohort_client_id],
-        user_id: current_user.id,
-      }))
-      respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      begin
+        @note = note_source.create(note_params.merge({
+          cohort_client_id: params[:cohort_client_id],
+          user_id: current_user.id,
+        }))
+        @note.cohort_client.touch
+        respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      rescue
+        @note = {error: 'Failed to create a note.'}
+      end
+      
     end
 
     def destroy
-      @note.destroy
-      respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      if @note.destroyable_by current_user
+        @note.destroy
+        respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      else
+        flash[:error] = "Unable to destroy note"
+        respond_with(@cohort, location: cohort_path(@cohort))
+      end
     end
 
     def note_params

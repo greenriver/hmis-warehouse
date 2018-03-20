@@ -5,7 +5,12 @@ module CohortColumns
 
 
     def available_options
-      ['Submitted', 'Client Ineligible', 'Client Uninterested']
+      [
+        '', 
+        'Submitted', 
+        'Client Ineligible', 
+        'Client Uninterested',
+      ]
     end
 
   end

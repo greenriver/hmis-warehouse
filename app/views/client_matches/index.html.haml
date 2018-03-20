@@ -25,7 +25,7 @@
         alert(error);
       });
     })
-  
+
 %h1= content_for :title
 %ul.nav.nav-tabs
   - @possible_statuses.each do |label, status|
@@ -46,7 +46,8 @@
       %span{style: 'font-weight: normal;'}
       = "SSN: #{dest.SSN}"
       = "DOB: #{dest.DOB}"
-    - matches.each do |match|
-      .slab.merge-card
-        = render match
+    .merge-cards
+      - matches.each do |match|
+        .slab.merge-card
+          = render match
 = paginate @matches

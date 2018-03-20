@@ -5,7 +5,14 @@ module CohortColumns
 
 
     def available_options
-      ['No', 'Sight', 'Hearing', 'Sight and Hearing', 'Other: Must be in Notes']
+      [
+        '', 
+        'No', 
+        'Sight', 
+        'Hearing', 
+        'Sight and Hearing', 
+        'Other: Must be in Notes',
+      ]
     end
 
   end

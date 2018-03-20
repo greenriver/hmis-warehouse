@@ -2,23 +2,49 @@
   padding: space(3);
   display: flex;
   align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.c-card--block {
+  display: block;
+}
+
+.c-card__header {
+  padding: space(3) space(3) 0 space(3);
 }
 
 .c-card > .c-card__content {
+  @include card;
   width: 100%;
-  background: $white;
-  padding: space(4);
-  color: $text-color;
-  display: block;
-  border: 1px solid transparent;
-  border-radius: 4px;
+}
+
+.c-card--flush {
+  @include card;
+  padding: 0;
+  .table {
+    margin-bottom: 0;
+  }
+  .table thead tr th,
+  .table tbody tr td {
+    &:first-of-type {
+      padding-left: rem(15px);
+    }
+    &:last-of-type {
+      padding-right: rem(15px);
+    }
+  }
+}
+
+.c-card--linked,
+.c-card > .c-card__content {
+  cursor: pointer;
   &:focus,
   &:hover {
     color: $text-color;
-    box-shadow: 0 2px 10px rgba($black, .1);
+    box-shadow: 0 2px 8px rgba($black, .1);
   }
   &:active {
-    background-color: darken($white, 1%);
+    background-color: $body-bg;
   }
 }
 

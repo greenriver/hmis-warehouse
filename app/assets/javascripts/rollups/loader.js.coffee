@@ -6,8 +6,8 @@ class App.Rollups.Loader
     for p in @targets
       do (p) =>
         $e = $(p)
-        $e.append('<div class="rollup-container"/>')  
-        $(document).queue "fx", => 
+        $e.append('<div class="rollup-container c-card c-card--flush c-card--block"/>')
+        $(document).queue "fx", =>
           $.get @rollupPath, partial: $e.data('partial'), (data) =>
             $e.find('.rollup-container').append data
             $e.find('[data-toggle=tooltip]').tooltip()

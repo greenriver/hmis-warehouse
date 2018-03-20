@@ -8,6 +8,10 @@ class App.Cohorts.Cohort
     @static_column_count = options['static_column_count']
     @client_count = options['client_count']
     @sort_direction = options['sort_direction']
+    @column_order = options['column_order']
+    @column_headers = options['column_headers']
+    @column_options = options['column_options']
+    @column_widths = options['column_widths']
     @size_toggle_class = options['size_toggle_class']
     @include_inactive = options['include_inactive']
     @client_path = options['client_path']
@@ -18,6 +22,7 @@ class App.Cohorts.Cohort
     @check_url = options['check_url']
     @input_selector = options['input_selector']
     @updated_ats = options['updated_ats']
+    @search_selector = options['search_selector']
 
     # Testing
     # @client_count = 15
@@ -26,150 +31,278 @@ class App.Cohorts.Cohort
     @pages = Math.round(@client_count/@batch_size)
 
     @current_page = 0
-    @row_data = ''
+    @raw_data = []
 
-    @initialize_data_table()
+    @initialize_handsontable()
+    @enable_searching()
 
-    @resizeable_fonts()
     @load_pages()
-    @enable_highlight()
-    @enable_editing()
-
+    @listen_for_page_resize()
+    
     @refresh_rate = 10000
     setInterval @check_for_new_data, @refresh_rate
 
-  initialize_data_table: () =>
-    @datatable = $(@table_selector).DataTable
-      # scrollY: '70vh',
-      scrollY: false,
-      scrollX: true,
-      scrollCollapse: false,
-      # fixedHeader: true,
-      lengthMenu: [ 5, 10, 25, 50]
-      paging: true,
-      fixedColumns: {
-       leftColumns: @static_column_count
-      },
-      order: [[1, @sort_direction]]
+  initialize_handsontable: () =>
+    direction = true
+    if @sort_direction == 'desc'
+      direction = false
+    @initial_sort = {column: 1, sortOrder: direction}
+    @current_sort = Object.assign({}, @initial_sort)
+    @table = new Handsontable $(@table_selector)[0], 
+      rowHeaders: true
+      colHeaders: @column_headers
+      correctFormat: true
+      dateFormat: 'll'
+      columns: @column_options
+      fixedColumnsLeft: @static_column_count
+      # manualColumnResize: @column_widths
+      manualColumnResize: true
+      rowHeights: 40
+      sortIndicator: true
+      search: true
+      comments: true
+      afterChange: @after_change
+  
+  after_change: (changes, source) =>
+    if source == 'edit'
+      @after_edit(changes)
 
-    @datatable.on 'draw', () =>
-      @reinitialize_js()
+  after_load_data: (changes) =>
+    @load_sort_order()
 
+  save_sort_order: () =>
+    { sortColumn, sortOrder } = @table
+    if typeof sortOrder == 'undefined'
+      @current_sort.column = @initial_sort.column
+      @current_sort.sortOrder = @initial_sort.sortOrder
+    else
+      @current_sort.column = sortColumn
+      @current_sort.sortOrder = sortOrder
 
-  save_batch: (data) =>
-    @row_data += data
-    percent_complete = Math.round(@current_page/@pages*100)
-    $(@loading_selector).find('.percent-loaded').text("#{percent_complete}% (#{@current_page} of #{@pages})")
+  load_sort_order: () =>
+    console.log(@current_sort)
+
+  enable_searching: () =>
+    searchField = $(@search_selector)[0]
+    Handsontable.dom.addEvent searchField, 'keyup', (e) =>
+      @save_sort_order()
+      
+      search_string = $(e.target).val()
+      # console.log search_string
+      queryResult = @table.search.query(search_string)
+      @filter_rows('' + search_string)
+
+      # restore sort order
+      @table.updateSettings
+        columnSorting: @current_sort
+      @table.render()
+
+  filter_rows: (search) =>
+    # console.log "searching for: #{search}"
+    data = @raw_data
+    metadata_copy = @cell_metadata
+    if search == ''
+      @table.loadData(data)
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, @cell_metadata, @table)
+      return
+    limited_data = []
+    limited_metadata = []
+    for row in [0...data.length] by 1
+      strings = $.map data[row], (obj) ->
+        if obj.renderer == 'html'
+          $(obj.value).text()
+        else
+          obj.value
+      for col in [0...strings.length] by 1
+        if ('' + strings[col]).toLowerCase().indexOf(search.toLowerCase()) > -1
+          # console.log "Found in:", data[row]
+          limited_data.push(data[row])
+          # console.log(@cell_metadata[row])
+          limited_metadata.push(metadata_copy[row])
+          break
+    @table.loadData(limited_data)
+    if limited_metadata.length > 0
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, limited_metadata, @table)
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
     @load_page().then(() =>
       # When we're all done fetching...
       $(@loading_selector).addClass('hidden')
-      @datatable.rows.add($(@row_data).filter('tr')).draw();
-
+      @format_data_for_table()
+      # add the data to the table
+      @table.loadData(@raw_data)
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, @cell_metadata, @table)
+        columnSorting: @initial_sort
+      # console.log @raw_data
       @set_rank_order()
+      @table.render()
     )
 
-  add_rows: (data) =>
-    @datatable.rows.add($(data).filter('tr')).draw();
+  format_cells: (row, col, prop, metadata, table) ->
+    cellProperties ={}
+    # console.log row, col, prop,  metadata[row][col]
+    return unless metadata[row]?
+    meta = metadata[row][col]
+    row_meta = @raw_data[row].meta
+
+    classes = []
+
+    # mark read-only cells as such
+    if meta?.editable == false
+      cellProperties.readOnly = 'true'
+
+    if meta.comments != null
+      cellProperties.comment = {value: meta.comments}
+
+    if meta.renderer == 'checkbox' || meta.column == 'notes' || meta.column == 'meta'
+      classes.push('htCenter')
+      classes.push('htMiddle')
+
+    # mark inactive clients
+    # if row_meta.activity == 'homeless_inactive'
+    #   classes.push(row_meta.activity)
+
+    # mark ineligible clients
+    # if row_meta.ineligible == true
+    #   classes.push('cohort_client_ineligible')
+
+    cellProperties.className = classes.join(' ')
+    return cellProperties
+
+  deep_find: (obj, path) ->
+    paths = path.split('.')
+    current = obj
+    for i in [0...paths.length] by 1
+      # console.log current[paths[i]], paths[i]
+      if current[paths[i]] == undefined
+        undefined
+      else
+        current = current[paths[i]]
+    return current
+
+  format_data_for_table: () =>
+    @table_data = $.map @raw_data, (row) =>
+      client = $.map @column_order, (column) =>
+        if row[column]['value'] == null
+          ''
+        else
+          row[column]['value']
+      [client]
+    @cell_metadata  = $.map @raw_data, (row) =>
+      client = $.map @column_order, (column) =>
+        m = row[column]
+        m['column'] = column
+        m
+      [client]
+    
+  load_page: () =>
+    @current_page += 1
+    url =  "#{@client_path}.json?page=#{@current_page}&per=#{@batch_size}&content=true"
+    if @include_inactive
+      url += "&inactive=true"
+    if @current_page > @pages + 1 
+      return $.Deferred().resolve().promise()
+    # Gather all the data first and then display it
+    $.get({url: url}).done(@save_batch).then(@load_page)
+
+  save_batch: (data, status) =>
+    $.merge @raw_data, data
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
-  load_page: () =>
-    @current_page += 1
-    url =  "#{@client_path}?page=#{@current_page}&per=#{@batch_size}"
-    if @include_inactive
-      url += "&inactive=true"
-    if @current_page > @pages + 1
-      return $.Deferred().resolve().promise()
-    # Gather all the data first and then display it
-    # $.get({url: url, dataType: 'html'}).done(@save_batch).then(@load_page)
-    
-    # Or, add data to the table as soon as it's available
-    $.get({url: url, dataType: 'html'}).done(@add_rows).then(@load_page)
-
   reinitialize_js: () ->
-    $('.select2').select2();
     $('[data-toggle="tooltip"]').tooltip();
-
-  resizeable_fonts: () =>
-    $(@wrapper_selector).on 'click', @size_toggle_class, (e) =>
-      clicked =  e.target
-      size = $(clicked).data('size')
-      $(@table_selector).removeClass('sm lg xl').addClass(size)
-      $(clicked).siblings().removeClass('btn-primary').addClass('btn-secondary')
-      $(clicked).removeClass('btn-secondary').addClass('btn-primary')
-      @datatable.draw()
-    
-  enable_highlight: () =>
-    $('.cohorts').on 'click', '.jSelectRow', (e) =>
-      cohort_client_id = $(e.target).closest('tr').data('cohort-client-id')
-      row = @datatable.row("[data-cohort-client-id=#{cohort_client_id}]").node()
-      $(row).siblings().removeClass('info')
-      $(row).toggleClass('info')
-      @datatable.draw()
+  
+  listen_for_page_resize: () =>
+    $(window).resize () =>
+      @table.render()
 
   set_rank_order: () =>
-    ids = $(@datatable.rows().nodes()).filter(@client_row_class).map ()->
-      $(this).data('cohort-client-id');
-    $('#rank_order').val(ids.get().join(','));
+    ids = for i in [0...@table.countRows()] by 1
+      physical_index = @table.sortIndex[i][0]
+      meta = @raw_data[physical_index].meta
+      cohort_client_id = meta.cohort_client_id
+    $('#rank_order').val(ids.join(','));
     $('.jReRank').removeClass('disabled');
 
-  enable_editing: () =>
-    $(@wrapper_selector).on 'change', @input_selector, (e) =>
-      $field = $(e.target)
-      cohort_client_id = $field.closest('tr').data('cohort-client-id')
-      field_name = $field.attr('name').replace("[#{cohort_client_id}]", '')
-      $form = $(@cohort_client_form_selector)
-      url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
-      proxy_field = $form.find('.proxy_field')
-      $(proxy_field).attr('name', field_name).attr('value', $field.val())
-      # update the hidden bit for searching
-      @update_search_text($field.closest('td'), $field.val())
-      
-      method = $form.attr("method");
-      data = $form.serialize();
-      options = {
-        url : "#{url}.js",
-        type: method,
-        data: data,
-        dataType: 'json' 
-      }
+  after_edit: (change) =>
+    [row, col, original, current] = change[0]
+    return if original == current
+    # translate the logical index (based on current sort order) to
+    # the physical index (the row it was originally)
+    physical_index = @table.sortIndex[row][0]
+    meta = @raw_data[physical_index].meta
+    # We need the containing metadata for the column and our pattern always uses value
+    cohort_column_column = col.replace('.value', '')
+    column = @deep_find(@raw_data[physical_index], cohort_column_column)
+    return unless column.editable
+    @table.validateRows [row], (valid) =>
+      if valid
+        field_name = "cohort_client[#{column.column}]"
+        cohort_client_id = meta.cohort_client_id
+        # console.log row, column, meta, cohort_client_id
+        $form = $(@cohort_client_form_selector)
+        proxy_field = $form.find('.proxy_field')
+        $(proxy_field).attr('name', field_name).attr('value', current)
+        url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
+        method = $form.attr("method");
+        data = $form.serialize();
+        options = {
+          url : "#{url}.js",
+          type: method,
+          data: data,
+          dataType: 'json' 
+        }
 
-      $.ajax(options).complete (jqXHR) =>
-        response = JSON.parse(jqXHR.responseText)
-        alert_class = response.alert
-        alert_text = response.message
-        updated_at = response.updated_at
-        cohort_client_id = response.cohort_client_id
+        $.ajax(options).complete (jqXHR) =>
+          response = JSON.parse(jqXHR.responseText)
+          alert_class = response.alert
+          alert_text = response.message
+          updated_at = response.updated_at
+          cohort_client_id = response.cohort_client_id
 
-        # Make note of successful update
-        @updated_ats[cohort_client_id] = updated_at
+          # Make note of successful update
+          @updated_ats[cohort_client_id] = updated_at
+          physical_index = @table.sortIndex[row][0]
+          @table_data[physical_index][col] = current
+          # console.log "saved", row, col, original, current, physical_index
 
-        alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
-        $('.utility .alert').remove()
-        $('.utility').append(alert)
-        $('.utility .alert').delay(2000).fadeOut(250)
-
-  update_search_text: ($td, value) =>
-    $td.find(@cohort_value_hidden_selector).text(value)
-    @datatable.cell($td).invalidate()
+          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
+          $('.utility .alert').remove()
+          $('.utility').append(alert)
+          $('.utility .alert').delay(2000).fadeOut(250)
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      if data != @updated_ats
-        @update_outdated(data)
+      # console.log 'checking'
+      $.each data, (id, timestamp) =>
+        if timestamp != @updated_ats[id]
+          # console.log(id, timestamp, @updated_ats[id])
+          @reload_client(id)
+      @updated_ats = data
+          
+  reload_client: (cohort_client_id) =>
+    url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
+    $.get url, (data) =>
+      client = data[0]
+      # console.log client
+      $.each @cell_metadata, (i, row) =>
+        $.each row, (j, col) =>
+          if col.cohort_client_id == +cohort_client_id
+            if col.value != client[col.column].value
+              # console.log i,j, client[col.column].value, @table_data[i][1], @raw_data[i][@column_order[j]]
+              @cell_metadata[i][j].comments = client[col.column].comments
+              @table_data[i][j] = client[col.column].value
+              @raw_data[i][@column_order[j]].value = client[col.column].value
 
-  update_outdated: (current) =>
-    for cohort_client_id, updated_at of @updated_ats
-      current_timestamp = current[cohort_client_id]
-      if current_timestamp != updated_at
-        selector = "#{@client_row_class}[data-cohort-client-id='#{cohort_client_id}']"
-        # $row = $(selector)
-        $rows = @datatable.rows(selector).nodes().to$()
-        $rows.find(@input_selector).attr('disabled', 'disabled')
-        @updated_ats[cohort_client_id] = current_timestamp
-        $rows.find('td:first').html('<div class="icon-warning"></div><strong>Data has changed, please refresh.</strong>')
-        $rows.addClass('warning')
-        @datatable.draw()
+      @table.updateSettings
+        cells: (row, col, prop) =>
+          @format_cells(row, col, prop, @cell_metadata, @table)
+      @table.render()

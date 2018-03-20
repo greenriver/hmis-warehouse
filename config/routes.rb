@@ -96,8 +96,16 @@ Rails.application.routes.draw do
     resources :really_old_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :expiring_consent, only: [:index]
+    resources :consent, only: [:index] do
+      post :update_clients, on: :collection
+    end
     resources :anomalies, only: [:index]
     resources :touch_point_exports, only: [:index] do
+      collection do
+        get :download
+      end
+    end 
+    resources :confidential_touch_point_exports, only: [:index] do
       collection do
         get :download
       end
@@ -409,6 +417,7 @@ Rails.application.routes.draw do
       get :icon_font
       get :add_goal
       get :add_team_member
+      get :alerts
     end
   end
 

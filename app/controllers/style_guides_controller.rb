@@ -2,6 +2,8 @@ class StyleGuidesController < ApplicationController
   include PjaxModalController
   include WindowClientPathGenerator
   
+  def alerts
+  end
 
   def icon_font
   end

@@ -5,7 +5,16 @@ module CohortColumns
 
 
     def available_options
-      ['Yes', 'No', 'No - ADT Only', 'No - Discharge', "No - Nat'l Guard", 'No - Reserves', 'No - Time']
+      [
+        '', 
+        'Yes', 
+        'No', 
+        'No - ADT Only', 
+        'No - Discharge', 
+        "No - Nat'l Guard", 
+        'No - Reserves', 
+        'No - Time'
+      ]
     end
   end
 end

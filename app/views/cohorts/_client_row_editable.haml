@@ -17,5 +17,10 @@
       - editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
       %td{data: {column: cohort_column.class.name, editable: editable.to_s}}
         = cohort_column.display_for(current_user)
-        .jCohortColumnValue.hidden
-          = cohort_column.display_read_only
+        - if editable
+          .jCohortColumnValue.hidden
+            = cohort_column.display_read_only
+    - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?  
+      %td
+        = link_to pre_destroy_cohort_cohort_client_path(@cohort, cohort_client), class: 'btn btn-danger', data: {loads_in_pjax_modal: true} do
+          %span.icon-cross

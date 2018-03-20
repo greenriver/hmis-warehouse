@@ -6,6 +6,7 @@ module CohortColumns
 
     def available_options
       [
+        '', 
         'Veteran',
         'HUES',
         'Street sleeper',

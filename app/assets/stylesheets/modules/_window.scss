@@ -1,11 +1,8 @@
-.clients__client-card
-{
-  border: 1px solid $gray-025;
-  padding: 1rem;
-  margin-bottom: 2rem;
-  border-radius: 0.5rem;
+.clients__client-card {
+  @include card;
+  margin-bottom: space(3);
 }
-.client__view_client
-{
+
+.client__view_client {
   float: right;
 }
