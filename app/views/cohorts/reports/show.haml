@@ -17,6 +17,7 @@
       %th Changed By
   %tbody
     - @changes.each do |change|
+      - next unless change.cohort_client.present? && change.cohort_client.client.present?
       - client = change.cohort_client.client
       %tr
         %td

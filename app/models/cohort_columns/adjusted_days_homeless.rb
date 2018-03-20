@@ -7,8 +7,13 @@ module CohortColumns
       true
     end
 
+    def description
+      'Days homeless for the client as calculated when added to the cohort'
+    end
+
     def default_value client_id
-      GrdaWarehouse::Hud::Client.days_homeless(client_id: client_id)
+      effective_date = cohort.effective_date || Date.today
+      GrdaWarehouse::Hud::Client.days_homeless(client_id: client_id, on_date: effective_date)
     end
 
   end

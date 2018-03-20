@@ -76,7 +76,8 @@ module EtoApi
       body_text = body.to_json
       debug_log "=> POST #{url}"
       debug_log "   #{body_text}"
-      r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/json'))
+
+      r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/json')) rescue '[]'
       debug_log "<= #{r.body}"
       JSON.parse(r.body)
     end
@@ -85,7 +86,7 @@ module EtoApi
       body_text = body.to_param
       debug_log "=> POST #{url}"
       debug_log "   #{body_text}"
-      r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/x-www-form-urlencoded'))
+      r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/x-www-form-urlencoded')) rescue '[]'
       debug_log "<= #{r.body}"
       JSON.parse(r.body)
     end

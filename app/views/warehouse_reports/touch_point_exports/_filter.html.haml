@@ -6,7 +6,7 @@
     .col-sm-4
       = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker, label: false
     .col-sm-4
-      = f.input :name, collection: @filter.names, input_html: { class: 'select2', data: { placeholder: 'Name' } }, label: false
+      = f.input :name, collection: @filter.touch_points_for_user(current_user), input_html: { class: 'select2', data: { placeholder: 'Name' } }, label: false
   .row
     .col-sm-12
       %div.pull-right

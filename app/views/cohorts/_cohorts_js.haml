@@ -9,6 +9,10 @@
         static_column_count: #{@cohort.static_column_count + 1},
         client_count: #{@cohort_clients.count},
         sort_direction: '#{@cohort.default_sort_direction}',
+        column_order: #{(@visible_columns.map(&:column)).to_json},
+        column_headers: #{@column_headers.to_json},
+        column_options: #{@column_options.to_json},
+        column_widths: #{(@visible_columns.map(&:width)).to_json},
         size_toggle_class: '.jToggleFontSize',
         include_inactive: #{params[:inactive].present?},
         client_path: "#{cohort_cohort_clients_path(@cohort)}",
@@ -18,8 +22,9 @@
         cohort_value_hidden_selector: '.jCohortColumnValue',
         check_url: '#{cohort_cohort_clients_path(@cohort)}',
         input_selector: '.jCohortClientInput',
-        updated_ats: #{@cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h.to_json}
+        updated_ats: #{@cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h.to_json},
+        search_selector: '#cohort-search' 
       }
-      var cohort = new App.Cohorts.Cohort(cohort_options)
+      $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
       
     })(jQuery);

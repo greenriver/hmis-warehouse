@@ -3,18 +3,23 @@
   .row.mb-4
     .col-md-6.col-lg-4
       .form-group
-        - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible].sort.each do |column|
+        - ([ :us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible, :sober_housing, :congregate_housing] & GrdaWarehouse::Config.get(:client_details).map(&:to_sym)).sort.each do |column|
           = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
 
       .form-group
         - if can_view_hiv_status?
-          = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
-          = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
+          - if GrdaWarehouse::Config.get(:client_details).include?('hiv_positive')
+            = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
+          - if GrdaWarehouse::Config.get(:client_details).include?('hues_eligible')
+            = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
 
         - if can_view_dmh_status?
-          = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
-
-      = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
+          - if GrdaWarehouse::Config.get(:client_details).include?('dmh_eligible')
+            = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
+            
+      .form-group
+        - if GrdaWarehouse::Config.get(:client_details).include?('chronically_homeless_for_cas')
+          = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
 
     .col-md-6
       .row.mb-5.mt-3
@@ -45,7 +50,7 @@
         .col-sm-6.mb-4
           %dt Consent Form Confirmed
           %dd
-            - confirmed = @client.client_files.where(consent_form_signed_on: @client.consent_form_signed_on).first&.consent_form_confirmed
+            - confirmed = @client.consent_confirmed?
             = checkmark_or_x confirmed
             - unless confirmed
               Form Not Confirmed

@@ -2,11 +2,16 @@
   display: inline-block;
   font-size: 0.75rem;
   text-decoration: none;
-  padding: 0.2em 0.5em;
   background-color: $gray-065;
   color: white;
   min-width: 4.2em;
   text-align: center;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  margin-right: rem(6px);
+  margin-top: rem(4px);
+  border-radius: rem(2px);
 }
 // FIXME: The following should be stored on the data source
 // with a color picker and a random default set when seeded

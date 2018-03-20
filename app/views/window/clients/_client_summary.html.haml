@@ -18,6 +18,10 @@
           Last Seen At:
           %strong
             = projects.to_sentence
+        - if @client.service_history_enrollments.residential.any?
+          %br
+          Enrolled in: 
+          = enrolled(@client, window_only: true) 
       %br
       Veteran:
       %strong

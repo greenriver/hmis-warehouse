@@ -229,6 +229,7 @@ module DefaultFileTypes
           name: 'Disability Verification',
           group: 'Document Type',
           weight: 3,
+          note: 'This verification form certifies ONLY that you have the appropriate medical document and certifications on file at your agency for this Client.  This verification should not include any reference whatsoever regarding the actual disability type or reason for disability for a client. ',
         },
         {
           name: 'Homeless Verification',
@@ -291,6 +292,7 @@ module DefaultFileTypes
         {
           name: 'Other',
           group: 'Document Type',
+          note: 'Please specify contents under note',
           weight: 15,
         }
       ]

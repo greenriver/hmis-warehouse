@@ -16,6 +16,17 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
   end
 
+  scope :self_sufficiency, -> do
+    where(name: 'Self-Sufficiency Matrix')
+  end
+
+  scope :case_management_notes, -> do 
+    where(name: 'SDH Case Management Note')
+  end
+  scope :health_touch_points, -> do
+    where(arel_table[:collection_location].matches('Social Determinants of Health%'))
+  end
+
   def primary_language
     return 'Unknown' unless answers.present?
     answers = self.answers.with_indifferent_access

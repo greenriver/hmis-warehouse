@@ -124,11 +124,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     else
       project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
+    # non-homeless includes TH if we only want chronic, so don't subtract it
     non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - project_types
 
     entry.
       ongoing(on_date: date).
-      homeless.
+      homeless(chronic_types_only: chronic_types_only).
       where.not(
         client_id: entry.ongoing(on_date: date).
           in_project_type(non_homeless).
@@ -143,6 +144,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     else
       project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
+    # non-homeless includes TH if we only want chronic, so don't subtract it
     non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - project_types
 
     entry.

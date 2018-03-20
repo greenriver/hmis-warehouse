@@ -11,12 +11,17 @@ module CohortColumns
         selected = !!value(cohort_client)
         check_box(form_group, column, checked: selected, class: input_class)
       else
-        display_read_only
+        display_read_only(user)
       end
     end
 
-    def display_read_only
-      ApplicationController.helpers.checkmark value(cohort_client)
+    def renderer
+      'checkbox'
+    end
+
+    def display_read_only user
+      # ApplicationController.helpers.checkmark value(cohort_client)
+      value(cohort_client) || false
     end
     
   end

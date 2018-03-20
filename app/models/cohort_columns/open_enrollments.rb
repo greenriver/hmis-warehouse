@@ -1,5 +1,5 @@
 module CohortColumns
-  class OpenEnrollments < Base
+  class OpenEnrollments < ReadOnly
     include ArelHelper
     attribute :column, String, lazy: true, default: :open_enrollments
     attribute :title, String, lazy: true, default: 'Open Residential Enrollments'
@@ -10,6 +10,10 @@ module CohortColumns
 
     def default_input_type
       :enrollment_tag
+    end
+
+    def renderer
+      'html'
     end
 
     def value(cohort_client)
@@ -27,10 +31,10 @@ module CohortColumns
     end
 
     def display_for user
-      display_read_only
+      display_read_only(user)
     end
 
-    def display_read_only
+    def display_read_only user
       value(cohort_client).map do |project_type, text|
         content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
           content_tag(:em, class: 'service-type__program-type') do

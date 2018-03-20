@@ -1,0 +1,109 @@
+%h1 Alerts
+.alert.alert-success
+  Hi this needs a link
+  %a{href: '#'} This goes no where.
+.alert.alert-info
+  Hi this needs a link
+  %a{href: '#'} This goes no where.
+
+.alert.alert-warning
+  Hi this needs a link
+  %a{href: '#'} This goes no where.
+
+.alert.alert-danger
+  Hi this needs a link
+  %a{href: '#'} This goes no where.
+
+.buttons
+  .btn-group.client__filter-active
+    %button.btn.btn-default
+      Test
+
+  .btn-group
+    %button.btn.btn-default
+      Test
+
+
+  .btn-group
+    %button.btn.btn-primary
+      Test
+  .btn-group
+    %button.btn.btn-secondary
+      Test
+
+  .btn-group
+    %button.btn.btn-danger
+      Test
+
+%div
+  .alert.alert-warning.client-flag.client-flag__longterm-stayer
+    Long-term Stayer
+
+  .alert.alert-warning.client-flag.client-flag__cas
+    = link_to 'Chronically Homeless and in CAS', "#"
+
+  .alert.alert-success.client-flag
+    Housed in CAS on #{Date.today}
+
+.cohorts
+  %h3 Cohort Table
+  %table.table-condensed.table-striped.table-right-border
+    %thead
+      %tr
+        %th Header
+        %th Header
+        %th Header
+    %tbody
+      %tr.odd
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+      %tr.odd.homeless_inactive
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+      %tr.homeless_inactive
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+      %tr.cohort_client_ineligible
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+      %tr.cohort_client_ineligible.homeless_inactive
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+      %tr.cohort_client_ineligible.homeless_inactive.odd
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+      %tr.cohort_client_ineligible.homeless_inactive.odd.cohort-client-selected
+        %td Test
+        %td Test
+        %td 
+          %a{href: '#'} This goes no where.
+
+.enrollments
+  %div
+    %span.id-sq
+      .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 179, 71); margin: auto;'}GRDA
+    .client__service_type_4.enrollment__project_type
+      %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} SO
+  %div
+    %span.id-sq
+      .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(179, 0, 0); margin: auto;'}BM
+    .client__service_type_8.enrollment__project_type
+      %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} SH
+  %div
+    %span.id-sq
+      .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 71, 179); margin: auto;'}BL
+    .client__service_type_1.enrollment__project_type
+      %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} ES
+    .confidential_project{data: {title: 'Confidential Project', toggle: :tooltip}} CP

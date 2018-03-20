@@ -20,6 +20,7 @@ wb.add_worksheet(name: "Changes to #{@cohort.name}".slice(0,30)) do |sheet|
     style: title
   )
   @changes.each do |change|
+    next unless change.cohort_client.present? && change.cohort_client.client.present?
     client = change.cohort_client.client
     sheet.add_row(
       [

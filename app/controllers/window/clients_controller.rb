@@ -3,6 +3,8 @@ module Window
     include PjaxModalController
     include ClientController
     include WindowClientPathGenerator
+
+    helper ClientHelper
     
     before_action :require_can_search_window!, only: [:index]
     before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]

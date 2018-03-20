@@ -1,5 +1,5 @@
 module CohortColumns
-  class Veteran < Radio
+  class Veteran < CohortBoolean
     attribute :column, String, lazy: true, default: :veteran
     attribute :title, String, lazy: true, default: 'Veteran'
 

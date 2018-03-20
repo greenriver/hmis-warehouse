@@ -116,6 +116,10 @@ class Report < ActiveRecord::Base
     false
   end
 
+  def has_coc_codes_option?
+    false
+  end
+
 end
 
 class ReportDatabaseStructureMissing < StandardError ; end

@@ -4,9 +4,14 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Destination'
     attribute :hint, String, lazy: true, default: 'Do not complete until housed.'
 
+    def description
+      'Manually entered destination'
+    end
+    
 
     def available_options
       [
+        '', 
         'CoC', 
         'Deceased', 
         'DMH Group Home', 
