@@ -1,6 +1,8 @@
 module WarehouseReports
   class TouchPointExportsController < ApplicationController
     include WarehouseReportAuthorization
+    before_action :set_filter_options, only: [:download]
+    before_action :load_responses, only: [:download]
     
     def index
       options = {search_scope: touch_point_scope}
@@ -9,6 +11,15 @@ module WarehouseReports
     end
 
     def download
+         
+      respond_to do |format|
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Touch Point Exports - #{@name} #{@start} to #{@end}.xlsx"
+        end
+      end
+    end
+
+    def set_filter_options
       @name = filter_params[:name]
       @start_date = filter_params[:start]
       @end_date = filter_params[:end]
@@ -16,14 +27,22 @@ module WarehouseReports
       if @name.blank? || @start_date.blank? || @end_date.blank?
         redirect_to warehouse_reports_touch_point_exports_path, notice: 'Please select a name, start and end date' and return
       end
+    end
 
-      @responses = report_source.select(:client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id). joins(:hmis_assessment, client: :destination_client). where(name: @name). where(collected_at: (@start_date..@end_date)). order(:client_id, :collected_at)
+    def load_responses
+      @responses = report_source.select(:client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id). 
+        joins(:hmis_assessment, client: :destination_client). 
+        where(name: @name). 
+        where(collected_at: (@start_date..@end_date)). 
+        order(:client_id, :collected_at)
       @data = { sections: {} }
       @sections = {}
+      @client_ids = Set.new
       @responses.each do |response|
         answers = response.answers
         client_name = response.client.name
         client_id = response.client.destination_client.id
+        @client_ids << client_id
         date = response.collected_at
         answers[:sections].each do |section|
           title = section[:section_title]
@@ -36,12 +55,6 @@ module WarehouseReports
             @data[:sections][title][question_text][client_id] ||= {}
             @data[:sections][title][question_text][client_id][date.to_s] = question[:answer]
           end
-        end
-      end
-
-      respond_to do |format|
-        format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Touch Point Exports - #{@name} #{@start} to #{@end}.xlsx"
         end
       end
     end

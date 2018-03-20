@@ -8,7 +8,7 @@
     %li{role: :presentation, class: (index == 0 ? 'active' : '')}
       %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
         #{group_name}
-  - if can_view_aggregate_health?
+  - if false # can_view_aggregate_health?
     %li{role: :presentation, class: active_class}
       %a{href: '#health-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Health Reports'}}
         Health
