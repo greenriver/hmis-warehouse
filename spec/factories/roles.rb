@@ -42,6 +42,16 @@ FactoryGirl.define do
     can_track_anomalies true
   end
 
+  factory :health_admin, class: 'Role' do
+    name "health admin"
+    verb nil
+    health_role true
+    can_view_assigned_reports true
+    can_administer_health true
+    can_edit_client_health true
+    can_view_client_health true
+  end
+
   factory :vispdat_viewer, class: 'Role' do
     name "vispdat viewer"
     can_view_vspdat true
@@ -66,5 +76,15 @@ FactoryGirl.define do
   factory :cohort_client_viewer, class: 'Role' do
     name 'cohort client viewer'
     can_view_assigned_cohorts true
+  end
+
+  factory :report_viewer, class: 'Role' do
+    name 'cohort client viewer'
+    can_view_all_reports true
+  end
+
+  factory :assigned_report_viewer, class: 'Role' do
+    name 'cohort client viewer'
+    can_view_assigned_reports true
   end
 end

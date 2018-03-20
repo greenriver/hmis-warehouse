@@ -281,6 +281,7 @@ module GrdaWarehouse::WarehouseReports
       }
       groups.each do |key, r_scope|
         data = {}
+        all_incomes = {}
         send(r_scope).joins(enrollment: :income_benefits).
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
@@ -293,8 +294,14 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] ||= []
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
+          all_incomes[project_type] ||= []
+          most_recent_income = incomes.sort_by{|row| row[:information_date]}.last[:income] || 0
+          all_incomes[project_type] << most_recent_income
         end
         add_data_and_support(key: key, data: data)  
+        # Then store all incomes for averaging
+        key = "all_#{key}".to_sym
+        @data.merge!(key => all_incomes)
       end
     end
 
@@ -313,6 +320,7 @@ module GrdaWarehouse::WarehouseReports
       }
       groups.each do |key, r_scope|
         data = {}
+        all_incomes = {}
         send(r_scope).joins(enrollment: :income_benefits).
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
@@ -325,8 +333,14 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] ||= []
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
+          all_incomes[project_id] ||= []
+          most_recent_income = incomes.sort_by{|row| row[:information_date]}.last[:income] || 0
+          all_incomes[project_id] << most_recent_income
         end
         add_data_and_support(key: key, data: data)
+        # Then store all incomes for averaging
+        key = "all_#{key}".to_sym
+        @data.merge!(key => all_incomes)
       end
     end
 
@@ -446,6 +460,7 @@ module GrdaWarehouse::WarehouseReports
       }
       groups.each do |key, r_scope|
         data = {}
+        lengths_of_stay = {}
         send(r_scope).joins(:service_history_services).
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
@@ -458,9 +473,17 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] ||= []
             data[data_key] << row if range.include?(days.count)
           end
+          lengths_of_stay[project_type] ||= []
+          lengths_of_stay[project_type] << days.count
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
+        # Then store all lengths of stay for averaging
+        key = "all_#{key}".to_sym
+        @data.merge!(key => lengths_of_stay)
+
       end
+      
+
     end
 
     def length_of_stay_breakdowns_by_project
@@ -477,6 +500,7 @@ module GrdaWarehouse::WarehouseReports
       }
       groups.each do |key, r_scope|
         data = {}
+        lengths_of_stay = {}
         send(r_scope).joins(:service_history_services).
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
@@ -489,8 +513,14 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] ||= []
             data[data_key] << row if range.include?(days.count)
           end
+          lengths_of_stay[project_id] ||= []
+          lengths_of_stay[project_id] << days.count
         end
         add_data_and_support(key: key, data: data)
+
+        # Then store all lengths of stay for averaging
+        key = "all_#{key}".to_sym
+        @data.merge!(key => lengths_of_stay)
       end
     end
 

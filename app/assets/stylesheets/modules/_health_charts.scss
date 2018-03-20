@@ -448,6 +448,112 @@ h2.ho-sub__h2 {
   margin-bottom: 20px;
 }
 
+//initiative reports
+
+.warehouse-reports__initiatives > h2 {
+  margin-top: 60px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #000000;
+  position: relative;
+  span {
+    padding: 0px 10px;
+    position: absolute;
+    top: -14px;
+    left: 20px;
+    background-color: #f9f9f9;
+  }
+}
+.loso__container .ho-container__header h4 {
+  margin-top: 0px;
+  display:inline-block;
+}
+
+.loso-footer {
+  padding-top: 20px;
+}
+
+.loso-collapse {
+  margin-top: 20px;
+  overflow-x: scroll;
+}
+
+table.table.loso-table {
+  table-layout:fixed;
+  min-width: 100%;
+  margin-bottom: 0px;
+}
+
+table.table.loso-table tr:last-of-type {
+  th, td {
+    border-bottom: 1px solid #dddddd;
+  }
+}
+
+table.table.loso-table tr.loso__median th:first-child {
+  border-bottom: 1px solid #dddddd;
+}
+
+table.table.loso-table th.loso-table__label {
+  vertical-align: middle;
+  text-align: center;
+  background-color: #F9F9F9;
+}
+
+[data-d3-key] {
+  position: relative;
+  span {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    width: 4px;
+  }
+}
+
+.loso__legend {
+  padding: 20px;
+}
+
+.loso__legend-item,
+.nc-legend__item {
+  position: relative;
+  font-size: 12px;
+  line-height: 12px;
+  margin-bottom: 10px;
+  float: left;
+  margin-right: 20px;
+  padding-left: 16px;
+}
+
+.nc-legend__item {
+  float: none;
+  margin-bottom: 12px;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.loso__legend-item-color,
+.nc-legend__item-color {
+  margin-right: 8px;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.loso__legend-pie {
+  margin-top: 20px;
+}
+
+.loso__legend-pie .loso__legend-item {
+  width: 50%;
+  padding-right: 10px;
+  margin-right: 0px;
+}
+
+
+
 
 
 

@@ -18,11 +18,12 @@ module GrdaWarehouse::HMIS
     end
 
     scope :for_user, -> (user) do
-      if user.can_administer_health?
-        user_scope = confidential
-      else
-        user_scope = non_confidential
+      user_scope = all
+      # remove confidential if you don't have health access
+      if ! user.can_administer_health?
+         user_scope = non_confidential
       end
+      # limit to the window if you can't edit clients
       if ! user.can_edit_clients?
         user_scope = user_scope.window
       end

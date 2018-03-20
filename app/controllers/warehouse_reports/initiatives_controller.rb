@@ -92,6 +92,32 @@ module WarehouseReports
       end
     end
 
+    def median array
+      mid = array.size / 2
+      sorted = array.sort
+      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2 
+    end
+    helper_method :median
+
+    def show_view_partials
+      [
+        {partial: 'breakdown', data: :client_counts},
+        {partial: 'nightly_census', title: 'Nightly Census'},
+        {partial: 'breakdown', data: :gender_breakdowns},
+        {partial: 'breakdown', data: :veteran_breakdowns, title: "Veteran Status Breakdowns"},
+        {partial: 'breakdown', data: :ethnicity_breakdowns},
+        {partial: 'breakdown', data: :race_breakdowns},
+        {partial: 'breakdown', data: :age_breakdowns},
+        {partial: 'breakdown', data: :length_of_stay_breakdowns},
+        {partial: 'breakdown', data: :living_situation_breakdowns, title: "Living Situation Breakdowns"},
+        {partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: "Living Income at Entry Breakdowns"},
+        {partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: "Living Income Most Recent Breakdowns"},
+        {partial: 'breakdown', data: :destination_breakdowns, title: "Living Destination Breakdowns"},
+        {partial: 'zip_map', title: "Living Permanent Zipcode Breakdowns"}
+        # {partial: 'breakdown', data: :zip_breakdowns, title: "Living Permanent Zipcode Breakdowns"}
+      ]
+    end
+    helper_method :show_view_partials
 
   end
 end

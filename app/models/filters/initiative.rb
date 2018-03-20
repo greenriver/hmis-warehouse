@@ -18,6 +18,9 @@ module Filters
       if comparison_start > self.comparison_end
         errors.add(:comparison_end, 'End date must follow start date.')
       end
+      if project_ids.reject(&:blank?).blank? && project_group_ids.reject(&:blank?).blank?
+        errors.add(:project_ids, 'At least one project or project group is required.')
+      end 
     end
 
     def comparison_range
@@ -63,9 +66,9 @@ module Filters
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups
-      if @effective_project_ids.empty?
-        @effective_project_ids = all_project_ids
-      end
+      # if @effective_project_ids.empty?
+      #   @effective_project_ids = all_project_ids
+      # end
       return @effective_project_ids.uniq
     end
 

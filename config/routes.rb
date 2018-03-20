@@ -105,6 +105,11 @@ Rails.application.routes.draw do
         get :download
       end
     end 
+    resources :confidential_touch_point_exports, only: [:index] do
+      collection do
+        get :download
+      end
+    end 
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
