@@ -91,7 +91,7 @@ class WarehouseReport::InitiativeBarCharts
       income_at_entry_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
       income_most_recent_breakdowns: GrdaWarehouse::Hud::IncomeBenefit.income_ranges.map{|i_key, income_bucket| i_key.to_s},
       destination_breakdowns: destination_breakdowns_stack_keys(by),
-      zip_breakdowns: @data.involved_zipcodes.map{|z| z.split('-')[0]},
+      zip_breakdowns: @data.involved_zipcodes.select(&:present?).map{|z| z.split('-')[0]},
       client_counts: ['count']
     }
     keys[data_type] || []
