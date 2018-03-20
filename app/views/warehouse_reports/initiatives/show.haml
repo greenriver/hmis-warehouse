@@ -23,7 +23,7 @@
     - else
       %h2
         %span= p[:title]
-      = render p[:partial]
+      = render p[:partial], title: p[:title]
 
 -#
   -# Client counts
@@ -88,6 +88,7 @@
 
 = content_for :page_js do
   :javascript
+    
     $(document).ready(function() {
       $('.jToggle').wrap('<div />').before('<button class="btn btn-secondary btn-sm jShowSupport">Show Details</button>');
       $('.jToggle').hide();

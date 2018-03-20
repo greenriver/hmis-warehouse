@@ -113,7 +113,8 @@ module WarehouseReports
         {partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: "Living Income at Entry Breakdowns"},
         {partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: "Living Income Most Recent Breakdowns"},
         {partial: 'breakdown', data: :destination_breakdowns, title: "Living Destination Breakdowns"},
-        {partial: 'breakdown', data: :zip_breakdowns, title: "Living Permanent Zipcode Breakdowns"}
+        {partial: 'zip_map', title: "Living Permanent Zipcode Breakdowns"}
+        # {partial: 'breakdown', data: :zip_breakdowns, title: "Living Permanent Zipcode Breakdowns"}
       ]
     end
     helper_method :show_view_partials

@@ -1,0 +1,21 @@
+- [:project_type, :project].each do |by|
+  - [:report, :comparison].each do |period|
+    - m = "zip_breakdowns_by_#{by.to_s}"
+    - if period == :comparison
+      - m = "comparison_#{m}"
+    - data = @data.send(m.to_sym) || {}
+    - id = "d3-zip-map-by-#{by}-for-#{period}"
+    .ho-container.loso__container
+      .ho-container__header
+        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period" 
+      .row
+        .col-xs-12
+          %div{id: id,style: 'height: 500px;'}
+      = content_for :page_js do
+        :javascript
+          $(document).ready(function() {
+            var id = '#'+#{id.to_json};
+            var chart = new 
+            App.D3Chart.ZipMap(id, '#{asset_path('d3_charts/zip3topo.json')}', #{data.to_json})
+            chart.draw()
+          })

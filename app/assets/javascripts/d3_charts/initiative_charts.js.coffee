@@ -14,6 +14,106 @@ class App.D3Chart.ColorCodedTable
         .attr('style', 'background-color: '+that.scale(that.keys.indexOf(d)))
     )
 
+class App.D3Chart.ZipMap extends App.D3Chart.Base
+  constructor: (container_selector, json_path, data) ->
+    super(container_selector, {top: 20, right: 20, left: 20, bottom: 20})
+    @json_path = json_path
+    @data = data
+    @values = Object.keys(@data).map((d) =>
+      @data[d]
+    )
+    @keys = d3.nest().key((d) => d.split('__')[0])
+      .entries(Object.keys(@data))
+      .map((d) => d.key)
+    @scale = {
+      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow),
+      radius: d3.scaleSqrt().domain(d3.extent(@values)).range([3, 10]);
+    }
+    @allZips = []
+    @zip3Data = []
+    Object.keys(data).forEach((d) =>
+      k = d.split('__')
+      zip = k[1].substring(0, 3)
+      @allZips.push(zip)
+      @zip3Data.push({zip: zip, type: k[0], value: @data[d]})
+    )
+    @projection = d3.geoAlbersUsa()
+      .scale(1000)
+      .translate([@dimensions.width/2, @dimensions.height/2]);
+    @path = d3.geoPath().projection(@projection);
+
+  draw: () ->
+    d3.json(@json_path, (error, us) =>
+      
+      width = @dimensions.width
+      height = @dimensions.height
+      chart = @chart
+
+      # clicked = () ->
+      #   console.log('clicked')
+      #   console.log('cx', this.getAttribute('cx')) 
+      #   x = width / 2;
+      #   y = height / 2;
+      #   k = 5;
+      #   chart.selectAll('g.zips, g.dots')
+      #     .attr('transform', () => 
+      #       "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")"
+      #     )
+
+      @chart.append("g")
+        .attr("class", "zips")
+        .selectAll("path")
+        .data(topojson.feature(us, us.objects.zip3).features)
+        .enter().append("path")
+          .attr("d", @path)
+          .attr('fill', '#f2f2f2')
+          .attr('stroke', 'black')
+          .attr('stroke-width', '0.5px')
+
+      @chart.append('g')
+        .attr('class', 'dots')
+        .selectAll('circle')
+        .data(topojson.feature(us, us.objects.zip3).features)
+        .enter().append('circle')
+          # .attr("transform", (d) => 
+          #   if @zip3Data.indexOf(d.properties.ZIP) >= 0
+          #     "translate(" + @path.centroid(d) + ")"
+          #   else
+          #     "translate(0)"
+          # )
+          .attr("cx", (d) =>
+            if @path(d)
+              @path.centroid(d)[0]
+            else
+              0
+          )
+          .attr("cy", (d) => 
+            if @path(d)
+              @path.centroid(d)[1]
+            else
+              0
+          )
+          .attr('r', (d) =>
+            i = i = @allZips.indexOf(d.properties.ZIP)
+            if i >= 0
+              v = @zip3Data[i].value
+              console.log('radius', @scale.radius(v))
+              @scale.radius(v)
+            else
+              0
+          )
+          .attr('fill', (d) =>
+            i = @allZips.indexOf(d.properties.ZIP)
+            if i >=0
+              type = @zip3Data[i].type
+              k = @keys.indexOf(type)
+              @scale.rainbowFill(k)
+            else
+              'transparent'
+          )
+          .attr('opacity', 0.8)
+          # .on("click", clicked)
+    )
 
 class App.D3Chart.Pie extends App.D3Chart.Base
   constructor: (container_selector, table_selector, legend_selector, data) ->
