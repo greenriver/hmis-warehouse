@@ -36,6 +36,10 @@ class CohortsController < ApplicationController
           options = {
             data: "#{m.column}.value"
           }
+          if m.date_format.present?
+            options[:dateFormat] = m.date_format
+          end
+
           case m.renderer
           when 'dropdown'
             options.merge!({type: m.renderer, source: m.available_options})

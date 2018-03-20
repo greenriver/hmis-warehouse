@@ -15,7 +15,7 @@ module GrdaWarehouse::Tasks
       @projects.each do |project|
 
         if should_update?(project)
-          debug_log("Updating #{project.ProjectName}...")
+          debug_log("Updating #{project.ProjectName} << #{project.organization.OrganizationName} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}")
           project_type = project.compute_project_type()
           project_source.transaction do
             # Update any service records with this project
@@ -46,17 +46,21 @@ module GrdaWarehouse::Tasks
     def should_update? project
       project_override_changed = (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.act_as_project_type.blank? && project.ProjectType != project.computed_project_type)
       
-      sh_project_types = service_history_enrollment_source.
+      sh_project_types_for_check = sh_project_types(project)
+      project_types_match_sh_types = true
+      if sh_project_types_for_check.count == 1
+        (project_type, computed_project_type) = sh_project_types_for_check.first
+        project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
+      end
+      project_type_changed_in_source = sh_project_types_for_check.count > 1 
+      project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
+    end
+
+    def sh_project_types project
+      service_history_enrollment_source.
         where(data_source_id: project.data_source_id, project_id: project.ProjectID).
         distinct.
         pluck(:project_type, :computed_project_type)
-      project_types_match_sh_types = true
-      if sh_project_types.count == 1
-        (project_type, computed_project_type) = sh_project_types.first
-        project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
-      end
-      project_type_changed_in_source = sh_project_types.count > 1 
-      project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
     end
 
     def project_source

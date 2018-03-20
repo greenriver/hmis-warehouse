@@ -44,6 +44,11 @@ module CohortColumns
       'text'
     end
 
+    # momentjs compatible
+    def date_format
+      nil
+    end
+    
     def width
       100
     end
