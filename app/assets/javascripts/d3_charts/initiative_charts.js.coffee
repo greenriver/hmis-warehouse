@@ -27,7 +27,7 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
       .map((d) => d.key)
     @scale = {
       rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow),
-      radius: d3.scaleSqrt().domain(d3.extent(@values)).range([3, 10]);
+      radius: d3.scaleSqrt().domain(d3.extent(@values)).range([3, 8]);
     }
     @allZips = []
     @zip3Data = []
@@ -41,6 +41,10 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
       .scale(1000)
       .translate([@dimensions.width/2, @dimensions.height/2]);
     @path = d3.geoPath().projection(@projection);
+    @zoom = d3.zoom().scaleExtent([1, 8]).on("zoom", () =>
+      @chart.attr('transform', d3.event.transform)
+    )
+    @svg.call(@zoom)
 
   draw: () ->
     d3.json(@json_path, (error, us) =>
@@ -48,17 +52,6 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
       width = @dimensions.width
       height = @dimensions.height
       chart = @chart
-
-      # clicked = () ->
-      #   console.log('clicked')
-      #   console.log('cx', this.getAttribute('cx')) 
-      #   x = width / 2;
-      #   y = height / 2;
-      #   k = 5;
-      #   chart.selectAll('g.zips, g.dots')
-      #     .attr('transform', () => 
-      #       "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")"
-      #     )
 
       @chart.append("g")
         .attr("class", "zips")
@@ -69,18 +62,13 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
           .attr('fill', '#f2f2f2')
           .attr('stroke', 'black')
           .attr('stroke-width', '0.5px')
+          .style('cursor', 'pointer')
 
       @chart.append('g')
         .attr('class', 'dots')
         .selectAll('circle')
         .data(topojson.feature(us, us.objects.zip3).features)
         .enter().append('circle')
-          # .attr("transform", (d) => 
-          #   if @zip3Data.indexOf(d.properties.ZIP) >= 0
-          #     "translate(" + @path.centroid(d) + ")"
-          #   else
-          #     "translate(0)"
-          # )
           .attr("cx", (d) =>
             if @path(d)
               @path.centroid(d)[0]

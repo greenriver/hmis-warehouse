@@ -3,7 +3,12 @@
     - m = "zip_breakdowns_by_#{by.to_s}"
     - if period == :comparison
       - m = "comparison_#{m}"
-    - data = @data.send(m.to_sym) || {}
+    -# data = @data.send(m.to_sym) || {}
+    - data = {}
+    - test_data = (@data.send(m.to_sym) || {})
+    - test_data.keys.each do |k|
+      - data[k] = Random.rand(20) 
+    %p= data
     - id = "d3-zip-map-by-#{by}-for-#{period}"
     .ho-container.loso__container
       .ho-container__header
