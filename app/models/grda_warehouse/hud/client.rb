@@ -686,9 +686,11 @@ module GrdaWarehouse::Hud
       client_files.consent_forms.order(updated_at: :desc)&.first 
     end
 
-
     # End Release information
     ##############################
+    def most_recent_verification_of_disability
+      client_files.verification_of_disability.order(updated_at: :desc)&.first 
+    end
 
     # cas needs a simplified version of this
     def cas_substance_response
