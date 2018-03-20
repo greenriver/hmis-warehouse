@@ -4,11 +4,11 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :controller 
 
   describe 'Administrative user' do
     let(:user) { create :user }
-    let(:admin_role) { create :admin_role }
-    let(:report) {create :touch_point_report}
+    let(:role) { create :admin_role }
+    let!(:report) {create :touch_point_report}
     
     before(:each) do
-      user.roles << admin_role
+      user.roles << role
       authenticate(user)
     end
 
@@ -22,7 +22,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :controller 
 
   describe 'User with no access to reports' do
     let(:user) { create :user }
-    let(:report) {create :touch_point_report}
+    let!(:report) {create :touch_point_report}
 
     before(:each) do
 
@@ -40,7 +40,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :controller 
   describe 'Report viewer' do
     let(:user) { create :user }
     let(:role) { create :report_viewer }
-    let(:report) {create :touch_point_report}
+    let!(:report) {create :touch_point_report}
     
     before(:each) do
       user.roles << role
@@ -58,7 +58,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :controller 
   describe 'Assigned Report viewer' do
     let(:user) { create :user }
     let(:role) { create :assigned_report_viewer }
-    let(:report) {create :touch_point_report}
+    let!(:report) {create :touch_point_report}
     
     before(:each) do
       user.roles << role
