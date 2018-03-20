@@ -1,19 +1,21 @@
-- data = @data.send(section)
-- if data.present?
-  %h4= title
-  = render 'bar_from_table', section: section
-  %div.chart{id: section}
-  %table.table.table-striped.jToggle{id: "#{section}_table"}
-    %thead
-      %tr
-        %th Project Type
-        %th Count
-    %tbody
-      - @data.involved_project_types.each do |p_type|
+-#
+  - data = @data.send(section)
+  %p= data.inspect
+  - if data.present?
+    %h4= title
+    = render 'bar_from_table', section: section
+    %div.chart{id: section}
+    %table.table.table-striped.jToggle{id: "#{section}_table"}
+      %thead
         %tr
-          %th= p_type
-          %td
-            - key = "#{p_type}__count"
-            - count = data[key] || 0 
-            = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—Client Count"), data: { loads_in_pjax_modal: true })
+          %th Project Type
+          %th Count
+      %tbody
+        - @data.involved_project_types.each do |p_type|
+          %tr
+            %th= p_type
+            %td
+              - key = "#{p_type}__count"
+              - count = data[key] || 0 
+              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—Client Count"), data: { loads_in_pjax_modal: true })
 

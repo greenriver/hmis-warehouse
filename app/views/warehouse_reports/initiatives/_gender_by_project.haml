@@ -1,19 +1,53 @@
-- data = @data.send(section)
-- if data.present?
-  %h4= title
-  = render 'bar_from_table', section: section
-  %table.table.table-striped.jToggle{id: "#{section}_table"}
-    %thead
-      %tr
-        %th Project
-        - @data.involved_genders.each do |gender|
-          %th= gender
-    %tbody
-      - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+%p= @data.gender_breakdowns_by_project
+%p= @data.comparison_gender_breakdowns_by_project
+
+- chart_data = gb_by_project
+- chart_1_data = {data: chart_data[:counts][:report], types: chart_data[:types], values: chart_data[:values]}
+- chart_2_data = {data: chart_data[:counts][:comparison], types: chart_data[:types], values: chart_data[:values]}
+
+.ho-container.loso__container
+  .ho-container__header
+    %h4= title
+    .loso__legend.clearfix.pull-right#d3-gbbp-by-project-type__legend
+  .row
+    .col-xs-12.col-md-6
+      %h5{style: 'margin-left: 20px;'} Report Period 
+      #d3-gbbp-report-by-project
+    .col-xs-12.col-md-6
+      %h5{style: 'margin-left: 20px;'} Comparison Period 
+      #d3-gbbp-comparison-by-project
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var chart1Data = #{chart_1_data.to_json}
+      var chart1Id = '#d3-gbbp-report-by-project'
+      var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data);
+      chart1.draw()
+      
+      var chart2Data = #{chart_2_data.to_json}
+      var chart2Id = '#d3-gbbp-comparison-by-project'
+      var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data);
+      chart2.draw()
+    })
+
+-#
+  - data = @data.send(section)
+  - if data.present?
+    %h4= title
+    = render 'bar_from_table', section: section
+    %table.table.table-striped.jToggle{id: "#{section}_table"}
+      %thead
         %tr
-          %th= p_name
+          %th Project
           - @data.involved_genders.each do |gender|
-            %td
-              - key = "#{p_id}__#{gender}"
-              - count = data[key] || 0
-              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_name}—#{gender}"), data: { loads_in_pjax_modal: true })
+            %th= gender
+      %tbody
+        - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
+          %tr
+            %th= p_name
+            - @data.involved_genders.each do |gender|
+              %td
+                - key = "#{p_id}__#{gender}"
+                - count = data[key] || 0
+                = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_name}—#{gender}"), data: { loads_in_pjax_modal: true })
