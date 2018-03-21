@@ -14,27 +14,56 @@ class App.D3Chart.ColorCodedTable
         .attr('style', 'background-color: '+that.scale(that.keys.indexOf(d)))
     )
 
+class App.D3Chart.InitiativeToolTip
+
+  constructor: (selector) ->
+    @selector = selector
+    @tooltip = d3.select(selector)
+
+  element: () ->
+    @tooltip
+
+  show: (d) ->
+    event = d3.event
+    @tooltip
+      .style('left', event.pageX+'px')
+      .style('top', event.pageY+'px')
+      .style('display', 'block')
+
+    @tooltip.transition()
+      .duration(50)
+      .style('opacity', 1)
+
+  hide: (d) ->
+    @tooltip.transition()
+      .duration(500)
+      .style('opacity', 0)
+      .on('end', () ->
+        d3.select(@)
+          .style('display', 'none')
+      )
+
 class App.D3Chart.ZipMap extends App.D3Chart.Base
-  constructor: (container_selector, json_path, data) ->
+  constructor: (container_selector, legend_selector, zoom_in_selector, zoom_out_selector, json_path, data) ->
     super(container_selector, {top: 20, right: 20, left: 20, bottom: 20})
+    @zoom_in = d3.select(zoom_in_selector)
+    @zoom_out = d3.select(zoom_out_selector)
+    @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
+    @legend = d3.select(legend_selector)
     @json_path = json_path
-    @data = data
+    @data = data.data
     @values = Object.keys(@data).map((d) =>
       @data[d]
     )
-    @keys = d3.nest().key((d) => d.split('__')[0])
-      .entries(Object.keys(@data))
-      .map((d) => d.key)
+    @keys = data.keys
     @scale = {
       rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow),
       radius: d3.scaleSqrt().domain(d3.extent(@values)).range([3, 8]);
     }
-    @allZips = []
     @zip3Data = []
-    Object.keys(data).forEach((d) =>
+    Object.keys(@data).forEach((d) =>
       k = d.split('__')
-      zip = k[1].substring(0, 3)
-      @allZips.push(zip)
+      zip = k[1]
       @zip3Data.push({zip: zip, type: k[0], value: @data[d]})
     )
     @projection = d3.geoAlbersUsa()
@@ -46,12 +75,43 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
     )
     @svg.call(@zoom)
 
+  _drawLegend: () ->
+    @legend.selectAll('div.loso__legend-item')
+      .data(@keys)
+      .enter()
+      .append('div')
+        .attr('class', 'loso__legend-item')
+        .text((d) => d)
+        .append('div')
+          .attr('class', 'loso__legend-item-color')
+          .attr('style', (d) => 'background-color:'+@scale.rainbowFill(@keys.indexOf(d)))
+
   draw: () ->
+    @_drawLegend()
+    @zoom_in.on('click', () =>
+      @zoom.scaleBy(@svg, 2);
+    )
+    @zoom_out.on('click', () =>
+      @zoom.scaleBy(@svg, 1/2);
+    )
     d3.json(@json_path, (error, us) =>
-      
-      width = @dimensions.width
-      height = @dimensions.height
-      chart = @chart
+      groupedTopo = d3.nest()
+        .key((d) => 
+          d.properties.ZIP
+        )
+        .entries(topojson.feature(us, us.objects.zip3).features)
+      @zipData = []
+      groupedTopo.forEach((d) =>
+        matches = @zip3Data.filter((z) ->
+          z.zip.substring(0, 3) == d.key
+        )
+        matches.forEach((m) =>
+          m.topo = d.values.filter((d) =>
+            if @path(d) then true else false
+          )
+          @zipData.push(m)
+        )
+      )
 
       @chart.append("g")
         .attr("class", "zips")
@@ -60,52 +120,62 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
         .enter().append("path")
           .attr("d", @path)
           .attr('fill', '#f2f2f2')
-          .attr('stroke', 'black')
+          .attr('stroke', '#cccccc')
           .attr('stroke-width', '0.5px')
           .style('cursor', 'pointer')
-
       @chart.append('g')
         .attr('class', 'dots')
-        .selectAll('circle')
-        .data(topojson.feature(us, us.objects.zip3).features)
-        .enter().append('circle')
-          .attr("cx", (d) =>
-            if @path(d)
-              @path.centroid(d)[0]
-            else
-              0
-          )
-          .attr("cy", (d) => 
-            if @path(d)
-              @path.centroid(d)[1]
-            else
-              0
-          )
-          .attr('r', (d) =>
-            i = i = @allZips.indexOf(d.properties.ZIP)
-            if i >= 0
-              v = @zip3Data[i].value
-              console.log('radius', @scale.radius(v))
-              @scale.radius(v)
-            else
-              0
-          )
-          .attr('fill', (d) =>
-            i = @allZips.indexOf(d.properties.ZIP)
-            if i >=0
-              type = @zip3Data[i].type
-              k = @keys.indexOf(type)
+          .selectAll('circle')
+          .data(@zipData)
+          .enter().append('circle')
+            .attr('cx', (d) =>
+              @path.centroid(d.topo[0])[0]
+            )
+            .attr('cy', (d) =>
+              @path.centroid(d.topo[0])[1]
+            )
+            .attr('r', (d) =>
+              @scale.radius(d.value)
+            )
+            .attr('fill', (d) =>
+              k = @keys.indexOf(d.type)
               @scale.rainbowFill(k)
-            else
-              'transparent'
-          )
-          .attr('opacity', 0.8)
-          # .on("click", clicked)
+            )
+            .attr('opacity', '0.8')
+            .on('mouseover', (d) =>
+              data = [d.type, d.zip, d.value]
+              currentItems = @tooltip.element().selectAll('div')
+                .data(data)
+                
+              currentItems.exit().remove()
+
+              newItems = currentItems.enter()
+                .append('div')
+
+              items = newItems.merge(currentItems)
+                .attr('class', (d, i) =>
+                  if i == 0
+                    'd3-tooltip__item'
+                )
+                .html((d, i) => 
+                  if i == 0
+                    k = @keys.indexOf(d)
+                    '<span class="d3-tooltip__swatch" style="background-color:'+@scale.rainbowFill(k)+';"></span><span>'+d+'</span>'
+                  else if i == 1
+                    'Zipcode: <b>'+d+'</b>'
+                  else
+                    'Count: <b>'+d+'</b>'
+                )
+
+              @tooltip.show(d)
+            )
+            .on('mouseout', (d) => @tooltip.hide(d))
     )
 
 class App.D3Chart.Pie extends App.D3Chart.Base
   constructor: (container_selector, table_selector, legend_selector, data) ->
     super(container_selector, {top: 20, right: 0, left: 20, bottom: 20})
+    @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
     @legend = d3.select(legend_selector)
     @chart.attr("transform", "translate(" + @dimensions.width / 2 + "," + @dimensions.height / 2 + ")")
     @radius = d3.min([@dimensions.width, @dimensions.height])/2
@@ -171,6 +241,29 @@ class App.D3Chart.Pie extends App.D3Chart.Base
             'background-color:'+@scale.rainbowFill(@keys.indexOf(d))
           )
 
+  _drawToolTip: (data, scale, keys) ->
+    currentItems = @tooltip.element().selectAll('div')
+      .data(data)
+      
+    currentItems.exit().remove()
+
+    newItems = currentItems.enter()
+      .append('div')
+
+    items = newItems.merge(currentItems)
+      .attr('class', (d, i) =>
+        if i == 0
+          'd3-tooltip__item'
+      )
+      .html((d, i) => 
+        if i == 0
+          k = keys.indexOf(d)
+          '<span class="d3-tooltip__swatch" style="background-color:'+scale(k)+';"></span><span>'+d+'</span>'
+        else
+          'Count: <b>'+d+'</b>'
+      )
+
+
   draw: () ->
     arc = @chart.selectAll(".arc")
       .data(@pie(@bucket_totals))
@@ -185,6 +278,12 @@ class App.D3Chart.Pie extends App.D3Chart.Base
       )
       .attr('stroke', (d) => 'white')
       .attr('stroke-width', '2px')
+      .on('mouseover', (d) =>
+        data = d.data
+        @_drawToolTip(data, @scale.outerFill, @outerKeys)
+        @tooltip.show(d)
+      )
+      .on('mouseout', (d) => @tooltip.hide(d))
 
     innerArc = @chart.selectAll('.arc2')
       .data(@pie(@all_totals))
@@ -199,6 +298,12 @@ class App.D3Chart.Pie extends App.D3Chart.Base
       )
       .attr('stroke', (d) => 'white')
       .attr('stroke-width', '2px')
+      .on('mouseover', (d) =>
+        data = [d.data[0], d.data[1]]
+        @_drawToolTip(data, @scale.rainbowFill, @keys)
+        @tooltip.show(d)
+      )
+      .on('mouseout', (d) => @tooltip.hide(d))
 
     @table.drawTableColors()
     @table2.drawTableColors()
@@ -360,6 +465,7 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
   
   constructor: (container_selector, table_selector, legend_selector, margin, data) ->
     @data = data
+    @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
     @container_selector = container_selector
     @margin = margin
     @_resizeContainer()
@@ -422,15 +528,40 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
     data = []
     Object.keys(d).forEach((x) =>
       if x != 'type'
-        data.push([x, d[x]])
+        data.push([x, d[x], d.type])
     )
-    data.type = d.type
-    data.index = i
+    # data['type'] = d.type
+    # data['index'] = i
     data
 
   _transformGroup: (d, i) ->
     t = if i == 0 then @labelHeight else (@labelHeight + (@barHeight*i))
     'translate(0,'+t+')'
+
+  _drawToolTip: (data) ->
+    # data = [group, type, count]
+    data = [data[0], data[2], data[1]]
+    currentItems = @tooltip.element().selectAll('div')
+      .data(data)
+      
+    currentItems.exit().remove()
+
+    newItems = currentItems.enter()
+      .append('div')
+
+    items = newItems.merge(currentItems)
+      .attr('class', (d, i) =>
+        if i == 1
+          'd3-tooltip__item'
+      )
+      .html((d, i) => 
+        if i == 0
+          '<b>'+@data.labels[d]+'</b>'
+        else if i == 1
+          '<span class="d3-tooltip__swatch" style="background-color:'+@scale.rainbowFill(@data.types.indexOf(d))+';"></span><span>'+d+'</span>'
+        else
+          '<b>'+d+'</b>'
+      )
   
   _drawOutlines: () ->
     @chart.selectAll('g.outlines')
@@ -440,7 +571,10 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
         .attr('class', 'outlines')
         .attr('transform', (d, i) => @_transformGroup(d, i))
         .selectAll('rect')
-          .data((d, i) => @_groupData(d, i))
+          .data((d, i) => 
+            # console.log(d)
+            @_groupData(d, i)
+          )
           .enter()
           .append('rect')
             .attr('x', (d) => @scale.x(0))
@@ -450,6 +584,11 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
             .attr('stroke', '#d2d2d2')
             .attr('stroke-width', '1px')
             .attr('fill', '#ffffff')
+            .on('mouseover', (d) =>
+              @_drawToolTip(d)
+              @tooltip.show(d)
+            )
+            .on('mouseout', (d) => @tooltip.hide(d))
 
   _drawBars: () ->
     @chart.selectAll('g.bars')
@@ -467,6 +606,11 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
             .attr('y', (d) => @scale.y(d[0]))
             .attr('width', (d) => @scale.x(d[1])-@scale.x(0))
             .attr('height', (d) => @barHeight)
+            .on('mouseover', (d) =>
+              @_drawToolTip(d)
+              @tooltip.show(d)
+            )
+            .on('mouseout', (d) => @tooltip.hide(d))
 
   _drawValues: () ->
     @chart.selectAll('g.values')
