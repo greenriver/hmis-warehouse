@@ -28,7 +28,7 @@ module WarehouseReports
         format.xlsx do
           filter = @report.parameters['filter']
           date = filter ? filter['on'] : ''
-          headers['Content-Disposition'] = "attachment; filename='Potentially Chronic Clients on #{date}.xlsx'"
+          headers['Content-Disposition'] = "attachment; filename=Potentially Chronic Clients on #{date}.xlsx"
         end
       end
     end
