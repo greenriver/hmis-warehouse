@@ -530,8 +530,6 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
       if x != 'type'
         data.push([x, d[x], d.type])
     )
-    # data['type'] = d.type
-    # data['index'] = i
     data
 
   _transformGroup: (d, i) ->
@@ -539,7 +537,6 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
     'translate(0,'+t+')'
 
   _drawToolTip: (data) ->
-    # data = [group, type, count]
     data = [data[0], data[2], data[1]]
     currentItems = @tooltip.element().selectAll('div')
       .data(data)

@@ -25,80 +25,15 @@
         %span= p[:title]
       = render p[:partial], title: p[:title]
 
--#
-  -# Client counts
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Client Counts by #{by.to_s.titleize}", vm: vm, data_type: :client_counts, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Nightly Census
-  = render 'nightly_census'
-
-  -# Gender
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Gender Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :gender_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Veteran Status
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Veteran Status Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :veteran_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Ethnicity
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Ethnicity Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :ethnicity_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Race
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Race Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :race_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Age
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Age Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :age_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Length of stay
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Length of Stay Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :length_of_stay_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# living situations
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Prior Living Situation Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :living_situation_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Income at entry
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Prior Living Income at Entry Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :income_at_entry_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Income - most recent
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Prior Living Income Most Recent Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :income_most_recent_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-  -# Destination
-  -#TODO I need to see the keys!
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Prior Living Destination Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :destination_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-  -#
-    = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Reporting Period', section: :destination_breakdowns_by_project_type
-
-    = render 'destination_by_project_type', title: 'Destination Breakdowns by Project Type for Comparison Period', section: :comparison_destination_breakdowns_by_project_type
-
-    = render 'destination_by_project', title: 'Destination Breakdowns by Project for Reporting Period', section: :destination_breakdowns_by_project
-
-    = render 'destination_by_project', title: 'Destination Breakdowns by Project for Comparison Period', section: :comparison_destination_breakdowns_by_project
-
-  -# last permanent zip
-  - [:project_type, :project].each do |by|
-    = render 'breakdown', title: "Prior Living Permanent Zipcode Breakdowns by #{by.to_s.titleize}", vm: vm, data_type: :zip_breakdowns, by: by, chart_1: :report, chart_2: :comparison
-
-= content_for :page_js do
+- content_for :page_js do
   :javascript
-    
     $(document).ready(function() {
-      $('.jToggle').wrap('<div />').before('<button class="btn btn-secondary btn-sm jShowSupport">Show Details</button>');
-      $('.jToggle').hide();
-      $('.warehouse-reports__initiatives').on('click', '.jShowSupport', function(){
-        $(this).next().toggle();
-        if($(this).next().is(':visible')) {
-          $(this).text('Hide Details');
-        }
-        else {
-          $(this).text('Show Details');
-        }
-      });
+      $('.loso-collapse').on('shown.bs.collapse', function(event) {
+        var id = event.target.id
+        $('[data-target="#'+id+'"]').text('Hide Details')
+      })
+      $('.loso-collapse').on('hidden.bs.collapse', function(event) {
+        var id = event.target.id
+        $('[data-target="#'+id+'"]').text('Show Details')
+      })
     })
