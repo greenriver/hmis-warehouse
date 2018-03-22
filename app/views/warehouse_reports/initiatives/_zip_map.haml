@@ -3,19 +3,51 @@
     - m = "zip_breakdowns_by_#{by.to_s}"
     - if period == :comparison
       - m = "comparison_#{m}"
-    - data = @data.send(m.to_sym) || {}
+    - raw_data = @data.send(m.to_sym) || {}
+    - clean_data = {}
+    - if by == :project
+      - raw_data.keys.each do |k|
+        - id = k.split('__')[0]
+        - zip = k.split('__')[1]
+        - n = @data.involved_projects.sort_by(&:last).select{|p_id, p_name| p_id == id}[0][1]
+        - clean_data["#{n}__#{zip}"] = raw_data[k]
+      - raw_data = clean_data
+    - data = {data: raw_data, keys: by == :project ? @data.involved_projects.sort_by(&:last).map{|id, name|name} : @data.involved_project_types}
+
     - id = "d3-zip-map-by-#{by}-for-#{period}"
+    - legend_id = "#{id}__legend"
+    - zoom_in_id = "#{id}__zoom-in"
+    - zoom_out_id = "#{id}__zoom-out"
     .ho-container.loso__container
       .ho-container__header
-        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period" 
+        - if period == :report
+          - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
+        - if period == :comparison 
+          - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
+        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period (#{dates})" 
       .row
         .col-xs-12
-          %div{id: id,style: 'height: 500px;'}
+          .loso__legend
+            .clearfix{id: legend_id}
+      .row
+        .col-xs-12
+          .clearfix
+            %p.pull-left
+              %small * Click the +/- buttons or scroll over the map to zoom in/out
+              %br
+              %small * Click and drag the map to change positions
+            .loso-zoom-buttons.pull-right
+              %button{id: zoom_in_id} +
+              %button{id: zoom_out_id} -
+          %div{id: id,style: 'height: 500px; border: 1px solid #000;'}
       = content_for :page_js do
         :javascript
           $(document).ready(function() {
             var id = '#'+#{id.to_json};
+            var legend_id = '#'+#{legend_id.to_json}
+            var zoom_in = '#'+#{zoom_in_id.to_json}
+            var zoom_out = '#'+#{zoom_out_id.to_json}
             var chart = new 
-            App.D3Chart.ZipMap(id, '#{asset_path('d3_charts/zip3topo.json')}', #{data.to_json})
+            App.D3Chart.ZipMap(id, legend_id, zoom_in, zoom_out, '#{asset_path('d3_charts/zip3topo.json')}', #{data.to_json})
             chart.draw()
           })

@@ -2,12 +2,17 @@ class WarehouseReport::InitiativeIncomePieCharts
 
   attr_accessor :projects, :project_types
 
-  def initialize(data)
+  def initialize(data, report_range, comparison_range)
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
 
     @income_buckets = GrdaWarehouse::Hud::IncomeBenefit.income_ranges
+
+    @ranges = {
+      report: report_range,
+      comparison: comparison_range,
+    }
   end
 
   def chart_data(data_type, by, period)

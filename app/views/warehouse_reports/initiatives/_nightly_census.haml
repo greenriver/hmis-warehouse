@@ -11,7 +11,11 @@
     - table_id = vm.table_id(by, period)
     .ho-container.loso__container
       .ho-container__header
-        %h4= "Nightly Census by #{by.to_s.titleize} for #{period.to_s.titleize} Period" 
+        - if period == :report
+          - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
+        - if period == :comparison 
+          - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
+        %h4= "Nightly Census by #{by.to_s.titleize} for #{period.to_s.titleize} Period (#{dates})" 
       .row
         .col-xs-10
           %div{id: chart_id, style: 'height: 400px;'}
@@ -32,7 +36,7 @@
                 %th.text-center{width: '150px'}= date
             - vm.table_rows(by).each_with_index do |row, index|
               %tr
-                - if index == 0
+                - if index == 0             
                   %th.loso-table__label{rowspan: vm.table_rows(by).size}= "#{period.to_s.titleize} Period"
                 %th{data: {d3_key: row}}
                   = row

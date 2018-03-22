@@ -14,10 +14,14 @@ class WarehouseReport::InitiativeMmBarCharts
     :median
   ]
 
-  def initialize(data)
+  def initialize(data, report_range, comparison_range)
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
+    @ranges = {
+      report: report_range,
+      comparison: comparison_range,
+    }
   end
 
   def chart_title(type)

@@ -42,12 +42,12 @@ class App.D3Chart.Base
   _drawChart: ->
     dimensions = @dimensions
     if @viewBoxSizing
-      svg = @container.append('svg')
+      @svg = @container.append('svg')
         .attr('viewBox', "0 0 #{dimensions.chartWidth} #{dimensions.chartHeight}")
     else
-      svg = @container.append('svg')
+      @svg = @container.append('svg')
         .attr('width', dimensions.chartWidth)
         .attr('height', dimensions.chartHeight)
-    chart = svg.append('g')
+    chart = @svg.append('g')
       .attr('transform', dimensions.chartTransform)
     return chart

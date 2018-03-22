@@ -50,6 +50,8 @@ module WarehouseReports
     def show
       @parameters = OpenStruct.new(@report.parameters.with_indifferent_access)
       @data = OpenStruct.new(@report.data.with_indifferent_access)
+      @report_range = @parameters.start..@parameters.end
+      @comparison_range = @parameters.comparison_start..@parameters.comparison_end
     end
 
     def set_report
@@ -110,11 +112,10 @@ module WarehouseReports
         {partial: 'breakdown', data: :age_breakdowns},
         {partial: 'breakdown', data: :length_of_stay_breakdowns},
         {partial: 'breakdown', data: :living_situation_breakdowns, title: "Living Situation Breakdowns"},
-        {partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: "Living Income at Entry Breakdowns"},
-        {partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: "Living Income Most Recent Breakdowns"},
-        {partial: 'breakdown', data: :destination_breakdowns, title: "Living Destination Breakdowns"},
-        {partial: 'zip_map', title: "Living Permanent Zipcode Breakdowns"}
-        # {partial: 'breakdown', data: :zip_breakdowns, title: "Living Permanent Zipcode Breakdowns"}
+        {partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: "Income at Entry Breakdowns"},
+        {partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: "Income Most Recent Breakdowns"},
+        {partial: 'breakdown', data: :destination_breakdowns, title: "Destination Breakdowns"},
+        {partial: 'zip_map', title: "Permanent Zipcode Breakdowns"}
       ]
     end
     helper_method :show_view_partials

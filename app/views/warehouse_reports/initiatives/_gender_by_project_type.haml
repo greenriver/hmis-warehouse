@@ -19,12 +19,12 @@
     $(document).ready(function() {
       var chart1Data = #{chart_1_data.to_json}
       var chart1Id = '#d3-gbbt-report-by-project'
-      var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data);
+      var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart1Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
       chart1.draw()
       
       var chart2Data = #{chart_2_data.to_json}
       var chart2Id = '#d3-gbbt-comparison-by-project'
-      var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data);
+      var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, {top: 0, right: 20, bottom: 20, left: 20}, chart2Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
       chart2.draw()
     })
 -#
