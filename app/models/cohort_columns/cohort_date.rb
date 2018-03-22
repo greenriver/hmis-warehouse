@@ -6,6 +6,10 @@ module CohortColumns
       :date_picker
     end
 
+    def date_format
+      'll'
+    end
+
     def display_for user
       if display_as_editable?(user, cohort_client)
         content_tag(:div, class: 'input-group date', data: {provide: :datepicker}) do

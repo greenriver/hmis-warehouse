@@ -686,9 +686,11 @@ module GrdaWarehouse::Hud
       client_files.consent_forms.order(updated_at: :desc)&.first 
     end
 
-
     # End Release information
     ##############################
+    def most_recent_verification_of_disability
+      client_files.verification_of_disability.order(updated_at: :desc)&.first 
+    end
 
     # cas needs a simplified version of this
     def cas_substance_response
@@ -1833,7 +1835,7 @@ module GrdaWarehouse::Hud
       @homeless_dates ||= enrollments.select do |e|
         e.computed_project_type.in? GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
       end.map do |e|
-       e.service_history_services.map(&:date)
+       e.service_history_services.where(record_type: :service).map(&:date)
       end.flatten.compact.uniq
    end
 
@@ -1842,16 +1844,17 @@ module GrdaWarehouse::Hud
     end
 
     # If we haven't been in a homeless project type in the last 30 days, this is a new episode
-    # If we dont' currently have a non-homeless residential and we have had one for the past 90 days
-    private def new_episode? enrollments:, enrollment:
+    # If we don't currently have a non-homeless residential and we have had one for the past 90 days
+    # residential_dates in this context is PH ONLY
+    def new_episode? enrollments:, enrollment:
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days
       ninety_days_ago = entry_date - 90.days
-      res_dates = residential_dates(enrollments: enrollments)
+      ph_dates = residential_dates(enrollments: enrollments)
       no_other_homeless = (homeless_dates(enrollments: enrollments) & (thirty_days_ago...entry_date).to_a).empty?
-      current_residential = res_dates.include?(entry_date)
-      residential_for_past_90_days = (res_dates & (ninety_days_ago...entry_date).to_a).present?
+      current_residential = ph_dates.include?(entry_date)
+      residential_for_past_90_days = (ph_dates & (ninety_days_ago...entry_date).to_a).present?
       no_other_homeless || (! current_residential && residential_for_past_90_days)
     end
   end

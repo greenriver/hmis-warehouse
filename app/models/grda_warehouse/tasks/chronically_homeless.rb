@@ -203,8 +203,9 @@ module GrdaWarehouse::Tasks
 
       @project_names = enrollments_by_project_entry.map do |_, e|
         e.map do |enrollment|
+          days_for_project = all_dates.select{|d| d[:project_name] == enrollment[:project_name]}.size
           project_type_id = ::HUD.project_type_brief(enrollment[:project_type])
-          [project_type_id, enrollment[:project_name]].join(": ")
+          "#{project_type_id}: #{enrollment[:project_name]} (#{days_for_project})"
         end
       end.flatten.uniq
 

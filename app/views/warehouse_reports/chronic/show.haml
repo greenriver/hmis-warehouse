@@ -3,7 +3,9 @@
 %h1
   = title
   %hr
-= render '/warehouse_reports/breadcrumbs'
+= content_for :crumbs do
+  = link_to warehouse_reports_chronic_index_path do
+    = "« Potentially Chronic Clients"
 
 .warehouse-reports__chronic
   .row

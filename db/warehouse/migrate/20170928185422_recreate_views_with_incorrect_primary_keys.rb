@@ -76,7 +76,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
         enrollments_table[:DateDeleted].eq nil
       )
 
-    create_view :report_enrollments, query
+    create_view :report_enrollments, sql_definition: query.to_sql
   end
 
   # see 20161115194005
@@ -95,7 +95,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
 
-    create_view :report_employment_educations, query
+    create_view :report_employment_educations, sql_definition: query.to_sql
   end
 
   # see 20161115173437
@@ -114,7 +114,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
 
-    create_view :report_disabilities, query
+    create_view :report_disabilities, sql_definition: query.to_sql
   end
 
   # see 20161115160857
@@ -133,7 +133,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
 
-    create_view :report_exits, query
+    create_view :report_exits, sql_definition: query.to_sql
   end
 
   # 20161115163024
@@ -152,7 +152,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
 
-    create_view :report_health_and_dvs, query
+    create_view :report_health_and_dvs, sql_definition: query.to_sql
   end
 
   # 20161115181519
@@ -171,7 +171,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
 
-    create_view :report_income_benefits, query
+    create_view :report_income_benefits, sql_definition: query.to_sql
   end
 
   # 20161111214343
@@ -190,7 +190,7 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
 
-    create_view :report_services, query
+    create_view :report_services, sql_definition: query.to_sql
   end
 
   def drop_order

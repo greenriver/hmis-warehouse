@@ -14,3 +14,4 @@ Rails.application.config.assets.precompile += %w( chart.js )
 Rails.application.config.assets.precompile += ['theme/styles/*.css']
 Rails.application.config.assets.precompile += %w( vendor/handsontable.full.min.css )
 Rails.application.config.assets.precompile += %w( vendor/handsontable.full.min.js )
+Rails.application.config.assets.precompile += %w( vendor/moment.min.js )

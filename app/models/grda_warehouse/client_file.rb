@@ -51,18 +51,25 @@ module GrdaWarehouse
     scope :consent_forms, -> do
       tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
     end
+    
     scope :confirmed, -> do
       where(consent_form_confirmed: true)
     end
+    
     scope :unconfirmed, -> do
       where(consent_form_confirmed: [false, nil])
     end
+
     scope :signed_on, -> (date) do
       where(consent_form_signed_on: date)
     end
 
     scope :signed, -> do
       where.not(consent_form_signed_on: nil)
+    end
+
+    scope :verification_of_disability, -> do
+      tagged_with(['Verification of Disability', 'Disability Verification'], any: true)
     end
 
     scope :notification_triggers, -> do
