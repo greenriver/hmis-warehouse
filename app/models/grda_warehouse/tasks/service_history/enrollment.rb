@@ -175,7 +175,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end_of_range = service_history_enrollment.last_date_in_program
         shs_t[:date].between(beginning_of_range..end_of_range)
       else
-        shs_t[:date].gt(beginning_of_range)
+        shs_t[:date].gte(beginning_of_range)
       end
     end
 
