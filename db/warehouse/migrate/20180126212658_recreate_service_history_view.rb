@@ -29,7 +29,7 @@ class RecreateServiceHistoryView < ActiveRecord::Migration
       )
     
 
-    create_view :service_history, view_sql
+    create_view :service_history, sql_definition: view_sql
   end
   def down
     drop_view :service_history

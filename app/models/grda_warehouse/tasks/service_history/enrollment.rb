@@ -28,7 +28,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
       action = false
-      return false if destination_client.blank?
+      return false if destination_client.blank? || project.blank?
       if should_rebuild?
         action = :update if create_service_history!
       elsif should_patch?
