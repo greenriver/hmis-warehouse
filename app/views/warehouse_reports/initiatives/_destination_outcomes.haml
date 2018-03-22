@@ -1,4 +1,4 @@
-- vm = WarehouseReport::InitiativeDestinationPieCharts.new(@data)
+- vm = WarehouseReport::InitiativeDestinationPieCharts.new(@data, @report_range, @comparison_range)
 - [:project_type, :project].each do |by|
   - [:report, :comparison].each do |period|
     - buckets = vm.chart_data(by, period) || {}
@@ -6,7 +6,11 @@
     - table_id = vm.table_id(by, period)
     - legend_id = vm.legend_id(by, period)
     - collapse_id = vm.collapse_id(by, period)
-    = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "Destination Counts by #{by.to_s.gsub('_', ' ').titleize} for #{period.to_s.titleize} Period"
+    - if period == :report
+      - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
+    - if period == :comparison 
+      - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
+    = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "Destination Counts by #{by.to_s.gsub('_', ' ').titleize} for #{period.to_s.titleize} Period (#{dates})"
 
 -#
   - if data = @data[:destination_breakdowns_by_project_type] 

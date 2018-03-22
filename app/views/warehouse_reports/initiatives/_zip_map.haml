@@ -20,7 +20,11 @@
     - zoom_out_id = "#{id}__zoom-out"
     .ho-container.loso__container
       .ho-container__header
-        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period" 
+        - if period == :report
+          - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
+        - if period == :comparison 
+          - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
+        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period (#{dates})" 
       .row
         .col-xs-12
           .loso__legend

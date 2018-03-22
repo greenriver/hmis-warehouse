@@ -173,12 +173,14 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
     )
 
 class App.D3Chart.Pie extends App.D3Chart.Base
-  constructor: (container_selector, table_selector, legend_selector, data) ->
+  constructor: (container_selector, table_selector, legend_selector, data, report_range_dates, comparison_range_dates) ->
     super(container_selector, {top: 20, right: 0, left: 20, bottom: 20})
     @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
     @legend = d3.select(legend_selector)
     @chart.attr("transform", "translate(" + @dimensions.width / 2 + "," + @dimensions.height / 2 + ")")
     @radius = d3.min([@dimensions.width, @dimensions.height])/2
+    @report_range_dates = report_range_dates
+    @comparison_range_dates = comparison_range_dates
     @_loadHelpers()
     @_loadData(data)
     
@@ -229,9 +231,9 @@ class App.D3Chart.Pie extends App.D3Chart.Base
         .attr('class', 'loso__legend-item clearfix')
         .text((d) => 
           if d == 'report'
-            "Report Period"
+            "Report Period (#{@report_range_dates})"
           else if d == 'comparison'
-            "Comparison Period"
+            "Comparison Period (#{@comparison_range_dates})"
           else 
             d
         )
@@ -463,11 +465,13 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
 
 class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
   
-  constructor: (container_selector, table_selector, legend_selector, margin, data) ->
+  constructor: (container_selector, table_selector, legend_selector, margin, data, report_range_dates, comparison_range_dates) ->
     @data = data
     @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
     @container_selector = container_selector
     @margin = margin
+    @report_range_dates = report_range_dates
+    @comparison_range_dates = comparison_range_dates
     @_resizeContainer()
     super(container_selector, margin)
     @range = @_loadRange()
@@ -685,9 +689,9 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
         .attr('class', 'loso__legend-item clearfix')
         .text((d) => 
           if d == 'report'
-            "Report Period"
+            "Report Period (#{@report_range_dates})"
           else if d == 'comparison'
-            "Comparison Period"
+            "Comparison Period (#{@comparison_range_dates})"
           else 
             d
         )

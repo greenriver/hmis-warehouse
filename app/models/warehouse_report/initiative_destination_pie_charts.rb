@@ -2,7 +2,7 @@ class WarehouseReport::InitiativeDestinationPieCharts
 
   attr_accessor :projects, :project_types
 
-  def initialize(data)
+  def initialize(data, report_range, comparison_range)
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
@@ -10,6 +10,10 @@ class WarehouseReport::InitiativeDestinationPieCharts
     @temporary_destinations = HUD::temporary_destinations
     @institutional_destinations = HUD::institutional_destinations
     @other_destinations = HUD::other_destinations
+    @ranges = {
+      report: report_range,
+      comparison: comparison_range,
+    }
   end
 
   def chart_id(by, period)

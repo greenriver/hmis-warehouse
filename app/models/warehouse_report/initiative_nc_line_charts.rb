@@ -11,6 +11,10 @@ class WarehouseReport::InitiativeNcLineCharts
     @comparison_ranage = comparison_range
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
+    @ranges = {
+      report: report_range,
+      comparison: comparison_range,
+    }
   end
 
   def table_rows(by)

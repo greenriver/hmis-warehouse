@@ -20,14 +20,19 @@ class WarehouseReport::InitiativeBarCharts
     :comparison
   ]
 
-  def initialize(data)
+  def initialize(data, report_range, comparison_range)
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
+    @ranges = {
+      report: report_range,
+      comparison: comparison_range,
+    }
   end
 
   def chart_title(period)
-    "#{period.to_s.titleize} Period"
+    dates = "(#{@ranges[period].first.to_date} to #{@ranges[period].last.to_date}"
+    "#{period.to_s.titleize} Period #{dates})"
   end
 
   def table_rows(by)
