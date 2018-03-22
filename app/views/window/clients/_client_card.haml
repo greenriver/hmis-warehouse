@@ -1,6 +1,6 @@
 - window_link = client.window_link_for?(current_user)
 - show_window_link = window_link.present?
-.clients__client-card.clients__client.c-card.c-card--linked{data: {id: client.id}, class: show_window_link ? 'js-client' : nil}
+.clients__client-card.clients__client.c-card.c-card--linked{data: {id: client.id, href: window_link}, class: show_window_link ? 'js-client' : nil}
   .client__details.client__details--identity
     - if ( akas = client_aliases(client)).empty?
       - main_client_name = client.source_clients.visible_in_window.first.data_source.short_name
@@ -54,4 +54,5 @@
         = client.consent_form_status.presence
   .client__details
     .client__view_client
-      = link_to 'View', window_client_path(client), class: 'btn btn-secondary'
+      - if show_window_link
+        = link_to 'View', window_link, class: 'btn btn-secondary'

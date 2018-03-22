@@ -2,7 +2,7 @@
   :javascript
     $('.js-client').on('click', function(event){
       if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
-        var href = '#{base_path}' + $(this).data('id');
+        var href = $(this).data('href');
         if(event.metaKey) {
           open(href, '_blank');
         }
