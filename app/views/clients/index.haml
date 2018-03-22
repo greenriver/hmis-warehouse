@@ -31,7 +31,7 @@
       - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
     - else
       - main_client_name = akas.shift
-    .clients__client-card.clients__client.c-card.c-card--linked.js-client{data: {id: client.id}}
+    .clients__client-card.clients__client.c-card.c-card--linked.js-client{data: {id: client.id, href: client_path(client)}}
       .client__details.client__details--identity
         .clients__client-name.h4= main_client_name
         .clients__client-additional-names
