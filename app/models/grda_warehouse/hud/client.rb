@@ -1487,39 +1487,50 @@ module GrdaWarehouse::Hud
           prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
 
-          # move any client notes
-          GrdaWarehouse::ClientNotes::Base.where(client_id: prev_destination_client.id).
-            update_all(client_id: self.id)
-
-          # move any client files
-          GrdaWarehouse::ClientFile.where(client_id: prev_destination_client.id).
-            update_all(client_id: self.id)
-
-          # move any patients
-          Health::Patient.where(client_id: prev_destination_client.id).
-            update_all(client_id: self.id)
-
-          # move any vi-spdats
-          GrdaWarehouse::Vispdat::Base.where(client_id: prev_destination_client.id).
-            update_all(client_id: self.id)
-
-          # move any cohort_clients
-          GrdaWarehouse::CohortClient.where(client_id: prev_destination_client.id).
-            update_all(client_id: self.id)
+          move_dependent_items(prev_destination_client.id, self.id)
+          
         end
-        # and invaldiate our own service history
+        # and invalidate our own service history
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
         self.class.clear_view_cache(prev_destination_client.id)
       end
       self.class.clear_view_cache(self.id)
       self.class.clear_view_cache(other_client.id)
-      # un-match anyone who we just moved so they don't show up in the matching again until they'be been checked
+      # un-match anyone who we just moved so they don't show up in the matching again until they've been checked
       moved.each do |m|
         GrdaWarehouse::ClientMatch.where(source_client_id: m.id).destroy_all
         GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all
       end
       moved
+    end
+
+    def move_dependent_items previous_id, new_id
+      # move any client notes
+      GrdaWarehouse::ClientNotes::Base.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any client files
+      GrdaWarehouse::ClientFile.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any patients
+      Health::Patient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any vi-spdats
+      GrdaWarehouse::Vispdat::Base.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any cohort_clients
+      GrdaWarehouse::CohortClient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # Chronics
+      GrdaWarehouse::Chronic.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::HudChronic.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild
