@@ -19,7 +19,9 @@
   %td= file.note
   - if can_manage_client_files?
     %td.text-center= checkmark file.visible_in_window
-  %td= file.user&.name
+  %td
+    = mail_to file.user&.email, subject: file.tag_list.join(', ') do
+      = file.user&.name
   %td= file.created_at
 
   - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list) && @consent_editable
