@@ -58,7 +58,7 @@ module GrdaWarehouse::Confidence
         iteration -= 1 # we want to start counting at 0
         calculate_after = Date.today + iteration.public_send(iteration_length)
         census_iterations.times do |census_iteration|
-          census_iteration -= 1 # we want to start counting at 0
+          # census_iteration -= 1 # we want to start counting at 0
           census_date = fifteenth_of_last_month - census_iteration.public_send(census_iteration_length)
           collections << {
             census: census_date,
