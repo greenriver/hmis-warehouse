@@ -9,6 +9,8 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
     'Client ID',
     'First Name',
     'Last Name',
+    'DOB',
+    'Veteran Status',
     "Cumulative Days Homeless as of #{Date.today}",
     "Days Homeless in The Past Three Years as of #{Date.today}",
   ])
@@ -17,6 +19,8 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
       client.id,
       client.FirstName,
       client.LastName,
+      client.DOB,
+      HUD.veteran_status(client.VeteranStatus),
       client.days_homeless,
       client.days_homeless_in_last_three_years,
     ])
