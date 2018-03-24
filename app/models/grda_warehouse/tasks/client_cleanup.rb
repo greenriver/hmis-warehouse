@@ -22,6 +22,7 @@ module GrdaWarehouse::Tasks
         @clients = find_unused_destination_clients
         debug_log "Found #{@clients.size} unused destination clients"
         remove_unused_service_history
+        invalidate_incorrect_family_enrollments()
         if @clients.any?
           debug_log "Deleting service history"
           clean_service_history
@@ -53,6 +54,38 @@ module GrdaWarehouse::Tasks
       all_destination_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       active_destination_clients = GrdaWarehouse::WarehouseClient.joins(:source).pluck(:destination_id)
       all_destination_clients - active_destination_clients
+    end
+
+    def invalidate_incorrect_family_enrollments
+      debug_log "Checking for enrollments flagged as individual where they should be family"
+      query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:project).merge(
+              GrdaWarehouse::Hud::Project.family
+            ).where(presented_as_individual: true)
+        )
+      count = query.count
+      debug_log "Found #{count}"
+      if count > 0
+        @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
+        query.update_all(processed_as: nil, processed_hash: nil)
+      end
+
+      debug_log "Checking for enrollments flagged as family where they should be individual"
+      query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:project).merge(
+              GrdaWarehouse::Hud::Project.individual
+            ).where(presented_as_individual: false)
+        )
+      count = query.count
+      debug_log "Found #{count}"
+      if count > 0
+        @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+        query.update_all(processed_as: nil, processed_hash: nil)
+      end
     end
 
     def remove_clients_without_enrollments!
