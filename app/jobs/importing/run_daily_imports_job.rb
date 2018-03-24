@@ -51,6 +51,11 @@ module Importing
         pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+      # Make sure there are no unprocessed invalidated enrollments
+      GrdaWarehouse::Hud::Enrollment.where(processed_as: nil).pluck(:id).each_slice(250) do |batch|
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      end
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
       # Make sure we've finished processing the service history before we move on
       # Some of the later items require this to be finished to be correct.
