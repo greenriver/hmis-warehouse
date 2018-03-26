@@ -203,8 +203,13 @@ module Import::HMISSixOneOne::Shared
             stats = process_to_add(headers: headers, to_add: to_add, stats: stats)
           end
         end
+        log_added(headers, to_add)
       end
       stats
+    end
+
+    def log_added headers, data
+
     end
 
     def process_to_add headers:, to_add:, stats:
