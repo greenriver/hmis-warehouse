@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180319204410) do
+ActiveRecord::Schema.define(version: 20180326140546) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1282,6 +1282,15 @@ ActiveRecord::Schema.define(version: 20180319204410) do
   end
 
   add_index "hud_chronics", ["client_id"], name: "index_hud_chronics_on_client_id", using: :btree
+
+  create_table "hud_create_logs", force: :cascade do |t|
+    t.string   "hud_key",        null: false
+    t.string   "type",           null: false
+    t.datetime "imported_at",    null: false
+    t.integer  "data_source_id", null: false
+  end
+
+  add_index "hud_create_logs", ["imported_at"], name: "index_hud_create_logs_on_imported_at", using: :btree
 
   create_table "identify_duplicates_log", force: :cascade do |t|
     t.datetime "started_at"
