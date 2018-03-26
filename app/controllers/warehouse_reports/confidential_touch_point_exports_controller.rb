@@ -3,7 +3,7 @@ module WarehouseReports
     before_action :require_can_administer_health!
 
     def download
-      @patients = Health::Patient.where(client_id: @client_ids.to_a).
+      @patients = ::Health::Patient.where(client_id: @client_ids.to_a).
         joins(:careplan).
         index_by(&:client_id)
       respond_to do |format|
