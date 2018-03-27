@@ -201,15 +201,30 @@ module Import::HMISSixOneOne::Shared
           if to_add.any?
             to_add = clean_to_add(to_add)
             stats = process_to_add(headers: headers, to_add: to_add, stats: stats)
+            log_added(headers, to_add)
           end
         end
-        log_added(headers, to_add)
+        
       end
       stats
     end
 
-    def log_added headers, data
+    def log_added data
+      return unless should_log?
+      headers = to_log().keys + [:effective_date]
+      data.each_slice(200) do |batch|
+        insert = batch.map do |row|
+          row.values_at(*to_log.values) + Time.now
+        end
+        self.new.insert_batch(
+          GrdaWarehouse::HudCreateLog,
+          headers,
+          insert
+        )
+    end
 
+    def should_log?
+      false
     end
 
     def process_to_add headers:, to_add:, stats:
