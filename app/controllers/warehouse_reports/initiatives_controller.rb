@@ -44,7 +44,8 @@ module WarehouseReports
     end
 
     def destroy
-      
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_initiatives_path)
     end
 
     def show
@@ -120,5 +121,8 @@ module WarehouseReports
     end
     helper_method :show_view_partials
 
+    def flash_interpolation_options
+      { resource_name: 'Initiative Report' }
+    end
   end
 end
