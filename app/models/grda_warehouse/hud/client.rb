@@ -273,7 +273,7 @@ module GrdaWarehouse::Hud
     scope :homeless_individual, -> (on_date: Date.today, chronic_types_only: false) do
       where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          currently_homeless(chronic_types_only: chronic_types_only).
+          currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
           distinct.
           individual.select(:client_id)
       )
