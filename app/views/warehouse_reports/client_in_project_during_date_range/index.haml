@@ -26,6 +26,8 @@
       %tr
         %th Last Name
         %th First Name
+        %th Age
+        %th Veteran Status
         %th= "Cumulative Days Homeless as of #{Date.today}"
         %th= "Days Homeless in The Past Three Years as of #{Date.today}"
     %tbody
@@ -33,6 +35,8 @@
         %tr
           %td= link_to client.LastName, client_path(client)
           %td= link_to client.FirstName, client_path(client)
+          %th= client.age
+          %th= HUD.veteran_status(client.VeteranStatus)
           %td.text-center= client.days_homeless
           %td.text-center= client.days_homeless_in_last_three_years
 %p= paginate @clients
