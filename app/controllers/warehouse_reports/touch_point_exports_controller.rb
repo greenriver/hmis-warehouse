@@ -25,7 +25,8 @@ module WarehouseReports
       @end_date = filter_params[:end]
 
       if @name.blank? || @start_date.blank? || @end_date.blank?
-        redirect_to warehouse_reports_touch_point_exports_path, notice: 'Please select a name, start and end date' and return
+        flash[:notice] = 'Please select a name, start, and end date'
+        redirect_to action: :index and return
       end
     end
 

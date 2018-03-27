@@ -272,7 +272,7 @@ module GrdaWarehouse::Hud
 
     scope :homeless_individual, -> (on_date: Date.today, chronic_types_only: false) do
       where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
           currently_homeless(chronic_types_only: chronic_types_only).
           distinct.
           individual.select(:client_id)
@@ -1641,6 +1641,16 @@ module GrdaWarehouse::Hud
       homeless_months_in_last_three_years(on_date: on_date).count
     end
 
+    def homeless_months_in_hud_chronic_in_last_three_years(on_date: Date.today)
+      self.class.dates_in_hud_chronic_homeless_last_three_years_scope(client_id: id, on_date: on_date).
+        pluck(:date).
+        map{ |date| [date.month, date.year]}.uniq
+    end
+
+    def months_homeless_in_hud_chronic_in_last_three_years(on_date: Date.today)
+      homeless_months_in_hud_chronic_in_last_three_years(on_date: on_date).count
+    end
+
     def self.dates_housed_scope(client_id:, on_date: Date.today)
       GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
         where(client_id: client_id).select(:date).distinct
@@ -1697,6 +1707,7 @@ module GrdaWarehouse::Hud
       enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date)
       chronic_enrollments = service_history_enrollments.entry.
+        open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true)
       chronic_enrollments.map do |enrollment|
         new_episode?(enrollments: enrollments, enrollment: enrollment)
