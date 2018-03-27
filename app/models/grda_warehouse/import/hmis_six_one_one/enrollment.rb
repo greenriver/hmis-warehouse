@@ -110,14 +110,14 @@ module GrdaWarehouse::Import::HMISSixOneOne
       return row
     end
 
-    def should_log?
+    def self.should_log?
       true
     end
 
-    def to_log
+    def self.to_log
       @to_log ||= {
         hud_key: self.hud_key,
-        type: self.class.name,
+        personal_id: :PersonalID,
         effective_date: :EntryDate,
         data_source_id: :data_source_id,
       }
