@@ -15,4 +15,6 @@
         = report.initiative_name
     %td
       = warehouse_report.completed_in
-    %td= render 'parameters', report: report
+    %td
+      .report-parameters
+        = render 'parameters', report: report, truncate: true

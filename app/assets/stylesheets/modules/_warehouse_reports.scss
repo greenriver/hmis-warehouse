@@ -27,16 +27,20 @@
 .warehouse-reports__completed .parameter-label,
 .warehouse-reports__chronic .parameter-label,
 .warehouse-reports__disabled .parameter-label,
-.warehouse-reports__active-veterans .parameter-label
+.warehouse-reports__active-veterans .parameter-label,
+.warehouse-reports__parameters .parameter-label
 {
   border-radius: 5px 0px 0px 5px;
 }
 .warehouse-reports__completed .parameter-value,
 .warehouse-reports__chronic .parameter-value,
 .warehouse-reports__disabled .parameter-value,
-.warehouse-reports__active-veterans .parameter-value
+.warehouse-reports__active-veterans .parameter-value,
+.warehouse-reports__parameters .parameter-value
 {
   border-radius: 0px 5px 5px 0px;
+  white-space: wrap;
+  max-width: 50%;
 }
 .warehouse-reports__hmis_export
 {
@@ -67,4 +71,16 @@
   text {
     @include open-sans-normal;
   }
+}
+
+.report-parameters
+{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.report-parameters__parameter
+{
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
 }
