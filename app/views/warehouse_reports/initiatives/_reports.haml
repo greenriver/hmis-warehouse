@@ -5,6 +5,7 @@
     %td= report.initiative_name
     %td= render 'spinner'
     %td= render 'parameters', report: report
+    %td
 - @reports.each do |warehouse_report|
   - report = OpenStruct.new(warehouse_report.parameters)
   %tr
@@ -15,4 +16,9 @@
         = report.initiative_name
     %td
       = warehouse_report.completed_in
-    %td= render 'parameters', report: report
+    %td
+      .report-parameters
+        = render 'parameters', report: report, truncate: true
+    %td
+      = link_to warehouse_reports_initiative_path(warehouse_report), method: :delete, class: 'btn btn-sm btn-danger' do
+        %i.icon-cross
