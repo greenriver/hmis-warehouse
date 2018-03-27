@@ -1285,11 +1285,14 @@ ActiveRecord::Schema.define(version: 20180326140546) do
 
   create_table "hud_create_logs", force: :cascade do |t|
     t.string   "hud_key",        null: false
+    t.string   "personal_id",    null: false
     t.string   "type",           null: false
     t.datetime "imported_at",    null: false
+    t.date     "effective_date", null: false
     t.integer  "data_source_id", null: false
   end
 
+  add_index "hud_create_logs", ["effective_date"], name: "index_hud_create_logs_on_effective_date", using: :btree
   add_index "hud_create_logs", ["imported_at"], name: "index_hud_create_logs_on_imported_at", using: :btree
 
   create_table "identify_duplicates_log", force: :cascade do |t|
