@@ -2,6 +2,12 @@ module WarehouseReports
   class ConfidentialTouchPointExportsController < TouchPointExportsController
     before_action :require_can_administer_health!
 
+    def index
+      options = {search_scope: touch_point_scope}
+      options.merge!(filter_params) if filter_params.present?
+      @filter = ::Filters::HealthTouchPointExportsFilter.new(options)
+    end
+
     def download
       @patients = ::Health::Patient.where(client_id: @client_ids.to_a).
         joins(:careplan).
