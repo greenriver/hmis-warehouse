@@ -65,7 +65,7 @@ module Window::Clients
       enrollment_scope.
         includes(:service_history_services, :organization).
         each do |enrollment|
-          project_type = enrollment.project_type
+          project_type = enrollment.send(enrollment.class.project_type_column)
           project_name = name_for_project(enrollment.project_name)
           @dates[enrollment.date] ||= []
           record = {
