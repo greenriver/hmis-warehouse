@@ -11,10 +11,9 @@ module WarehouseReports
     end
 
     def download
-         
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Touch Point Exports - #{@name} #{@start} to #{@end}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=TouchPoints-#{@name} #{@start_date&.to_date&.strftime("%F")} to #{@end_date&.to_date&.strftime("%F")}.xlsx"
         end
       end
     end
@@ -31,7 +30,7 @@ module WarehouseReports
     end
 
     def load_responses
-      @responses = report_source.select(:client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id). 
+      @responses = report_source.select(:id, :client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id). 
         joins(:hmis_assessment, client: :destination_client). 
         where(name: @name). 
         where(collected_at: (@start_date..@end_date)). 
@@ -45,16 +44,17 @@ module WarehouseReports
         client_id = response.client.destination_client.id
         @client_ids << client_id
         date = response.collected_at
+        response_id = response.id
         answers[:sections].each do |section|
           title = section[:section_title]
           @sections[title] ||= []
           @data[:sections][title] ||= {}
           section[:questions].each do |question|
             question_text = question[:question]
-            @sections[title] |= [question_text]
+            @sections[title] |= [question_text] # Union version of += (add if not there) for array
             @data[:sections][title][question_text] ||= {}
             @data[:sections][title][question_text][client_id] ||= {}
-            @data[:sections][title][question_text][client_id][date.to_s] = question[:answer]
+            @data[:sections][title][question_text][client_id][response_id] = question[:answer]
           end
         end
       end

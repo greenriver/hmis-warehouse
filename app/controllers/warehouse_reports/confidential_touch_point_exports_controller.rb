@@ -14,7 +14,7 @@ module WarehouseReports
         index_by(&:client_id)
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Touch Point Exports - #{@name} #{@start} to #{@end}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=Health TouchPoints-#{@name} #{@start_date&.to_date&.strftime("%F")} to #{@end_date&.to_date&.strftime("%F")}.xlsx"
         end
       end
     end
