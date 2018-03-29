@@ -94,7 +94,8 @@ module GrdaWarehouse::Tasks
         income_total_monthly: :max_current_total_monthly_income,
         alternate_names: :alternate_names,
         congregate_housing: :congregate_housing,
-        sober_housing: :sober_housing
+        sober_housing: :sober_housing,
+        enrolled_project_ids: :ongoing_enrolled_project_ids,
       }
     end
   end

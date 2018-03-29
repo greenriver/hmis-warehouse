@@ -1799,6 +1799,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def ongoing_enrolled_project_ids
+      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
+    end
+
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
       Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}", expires_in: CACHE_EXPIRY) do
         enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
