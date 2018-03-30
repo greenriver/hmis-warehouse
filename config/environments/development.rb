@@ -40,11 +40,11 @@ Rails.application.configure do
   config.assets.raise_runtime_errors = true
 
   # Duplicate Production asset handling
-  # config.assets.debug = false
-  # config.serve_static_files = true
-  # config.assets.js_compressor = :uglifier
-  # config.assets.compile = true
-  # config.assets.digest = true
+  config.assets.debug = false
+  config.serve_static_files = true
+  config.assets.js_compressor = :uglifier
+  config.assets.compile = true
+  config.assets.digest = true
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
