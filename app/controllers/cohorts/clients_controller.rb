@@ -147,9 +147,14 @@ module Cohorts
               she_t[:client_id].eq(wcp_t[:client_id])
             ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end]).
             exists
-          ).
-          where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless])).
-          distinct
+          ).distinct
+          if @actives[:limit_to_last_three_years] == '1'
+            @clients = @clients.where(
+              wcp_t[:days_homeless_last_three_years].gteq(@actives[:min_days_homeless])
+            )
+          else
+            @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
+          end
 
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_source.ransack(params[:q])
@@ -297,6 +302,7 @@ module Cohorts
         :start,
         :end,
         :min_days_homeless,
+        :limit_to_last_three_years
       )
     end
 
