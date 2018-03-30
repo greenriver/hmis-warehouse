@@ -34,8 +34,7 @@ class App.Cohorts.Cohort
     @raw_data = []
 
     @initialize_handsontable()
-    @enable_searching()
-
+    
     @load_pages()
     @listen_for_page_resize()
     
@@ -140,7 +139,10 @@ class App.Cohorts.Cohort
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
         columnSorting: @initial_sort
+      @enable_searching()
+      
       # console.log @raw_data
+      
       @set_rank_order()
       @table.render()
     )
@@ -148,7 +150,7 @@ class App.Cohorts.Cohort
   format_cells: (row, col, prop, metadata, table) ->
     cellProperties ={}
     # console.log row, col, prop,  metadata[row][col]
-    return unless metadata[row]?
+    return unless metadata? and metadata[row]?
     meta = metadata[row][col]
     row_meta = @raw_data[row].meta
 
