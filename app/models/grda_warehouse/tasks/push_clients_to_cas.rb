@@ -96,6 +96,7 @@ module GrdaWarehouse::Tasks
         congregate_housing: :congregate_housing,
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
+        active_cohort_ids: :active_cohort_ids,
       }
     end
   end
