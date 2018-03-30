@@ -141,7 +141,7 @@ class App.Cohorts.Cohort
         columnSorting: @initial_sort
       @enable_searching()
       
-      console.log @raw_data
+      # console.log @raw_data
       
       @set_rank_order()
       @table.render()
