@@ -11,6 +11,10 @@ module GrdaWarehouse
     
     delegate :name, to: :client
 
+    scope :active, -> do 
+      where(active: true)
+    end
+
     attr_accessor :reason
 
     def self.available_removal_reasons

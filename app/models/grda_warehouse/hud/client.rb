@@ -169,10 +169,13 @@ module GrdaWarehouse::Hud
     has_many :users, through: :user_clients, inverse_of: :clients
 
     has_many :cohort_clients, dependent: :destroy
+    has_many :active_cohort_clients, -> do
+      active
+    end, class_name: GrdaWarehouse::CohortClient.name
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
     has_many :active_cohorts, -> do
       where(active_cohort: true)
-    end, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
+    end, through: :active_cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
 
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
@@ -1797,6 +1800,10 @@ module GrdaWarehouse::Hud
           }
         end
       end
+    end
+
+    def ongoing_enrolled_project_ids
+      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
     end
 
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
