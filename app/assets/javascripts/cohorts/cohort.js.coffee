@@ -84,12 +84,11 @@ class App.Cohorts.Cohort
   enable_searching: () =>
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
-      # Ignore meta keys
-      return unless e.key.length == 1
       @save_sort_order()
       
       search_string = '' + $(e.target).val()
-      return unless search_string.length > 2 || search_string == ''
+      # Only reload if we really need to
+      return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
       # console.log search_string
       queryResult = @table.search.query(search_string)
       @filter_rows(search_string)
@@ -105,7 +104,7 @@ class App.Cohorts.Cohort
     metadata_copy = @cell_metadata
     if search == ''
       console.log data
-      console.log($.map limited_data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
+      console.log($.map data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
       @table.loadData(data)
       @table.updateSettings
         cells: (row, col, prop) =>
