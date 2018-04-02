@@ -29,7 +29,6 @@ module CohortColumns
         html += link_to value(cohort_client), window_client_path(cohort_client.client), target: '_blank'
       else
         html += value(cohort_client)
-        
       end
       html
     end

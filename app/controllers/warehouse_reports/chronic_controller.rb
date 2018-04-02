@@ -16,8 +16,14 @@ module WarehouseReports
         limit(50)
     end
 
+    def destroy
+      @report = report_source.find(params[:id].to_i)
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_chronic_index_path)
+    end
+
     def show
-      @report = report_source.find(params[:id])
+      @report = report_source.find(params[:id].to_i)
       @clients = @report.data
       @sort_options = sort_options
 
@@ -103,5 +109,8 @@ module WarehouseReports
       ]
     end
 
+    def flash_interpolation_options
+      { resource_name: 'Potentially Chronic Report' }
+    end
   end
 end
