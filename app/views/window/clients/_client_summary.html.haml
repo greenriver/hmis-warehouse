@@ -47,8 +47,7 @@
       .col-sm-4
         = render 'window/clients/required_documents'
 
-    - if eto_available
-      - if @client.image
-        .col-sm-4
-          .client__image
-            = image_tag(image_client_path(@client))
+    - if @client.image
+      .col-sm-4
+        .client__image
+          = image_tag(image_client_path(@client))

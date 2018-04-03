@@ -33,7 +33,7 @@
 
       = render 'window/clients/required_documents'
     .col-sm-4
-      - if (eto_available || ! Rails.env.production?) && @client.image
+      - if @client.image
         .client__image
           = image_tag(image_client_path)
       - if can_view_vspdat? && @client.vispdats.completed.any?

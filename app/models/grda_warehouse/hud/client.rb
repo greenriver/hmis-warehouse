@@ -870,32 +870,39 @@ module GrdaWarehouse::Hud
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for=10.minutes)
-      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
         if Rails.env.production?
-          source_api_ids.detect do |api_id|
-            api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
-            image_data = api.client_image(
-              client_id: api_id.id_in_data_source, 
-              site_id: api_id.site_id_in_data_source
-            ) rescue nil
-            (image_data && image_data.length > 0)
+          # Use the uploaded client image if available, otherwise use the API, if we have access
+          unless image_data = local_client_image_data()
+            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+            source_api_ids.detect do |api_id|
+              api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
+              image_data = api.client_image(
+                client_id: api_id.id_in_data_source, 
+                site_id: api_id.site_id_in_data_source
+              ) rescue nil
+              (image_data && image_data.length > 0)
+            end
           end
         else
-          if [0,1].include?(self[:Gender])
-            num = id % 99
-            gender = if self[:Gender] == 1
-              'men'
-            else
-              'women'
+          unless image_data = local_client_image_data()
+            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+            if [0,1].include?(self[:Gender])
+              num = id % 99
+              gender = if self[:Gender] == 1
+                'men'
+              else
+                'women'
+              end
+              response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
+              image_data = response.body
             end
-            response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-            image_data = response.body
           end
+          image_data || self.class.no_image_on_file_image
         end
-        image_data || self.class.no_image_on_file_image
+        image_data
       end
     end
 
@@ -927,6 +934,15 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # These need to be flagged as available in the Window. Since we cache these 
+    # in the file-system, we'll only show those that would be available to people
+    # with window access
+    def local_client_image_data
+      client_files.window.
+        tagged_with('Client Headshot')
+        order(updated_at: :desc).limit(1)&.
+        first&.file&.preview&.read
+    end
 
     def accessible_via_api?
       GrdaWarehouse::Config.get(:eto_api_available) && source_api_ids.exists?
@@ -1568,15 +1584,14 @@ module GrdaWarehouse::Hud
       vispdat_score = most_recent_vispdat_score
       vispdat_length_homeless_in_days ||= 0
       vispdat_score ||= 0
-      if vispdat_length_homeless_in_days > 730 && vispdat_score >= 8
-        730 + vispdat_score
+      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days > 730
+        730
       elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
-        365 + vispdat_score
-      elsif vispdat_score >= 0 
-        vispdat_score
-      else 
+        365
+      else
         0
       end
+      vispdat_score + vispdat_prioritized_days_score
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
