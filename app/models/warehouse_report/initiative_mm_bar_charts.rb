@@ -56,6 +56,10 @@ class WarehouseReport::InitiativeMmBarCharts
     "d3-#{data_type.to_s}-mm-by-#{by.to_s}__table"
   end
 
+  def support_section(data_type, by)
+    "#{data_type.to_s}_by_#{by.to_s}".parameterize.underscore
+  end
+
   def chart_data(data_type, by)
     m = "build_data_by_#{by.to_s}".to_sym
     send(m, data_type)
@@ -70,7 +74,8 @@ class WarehouseReport::InitiativeMmBarCharts
         types: chart_data[:types],
         values: chart_data[:values],
         keys: chart_data[:keys],
-        labels: chart_data[:labels]
+        labels: chart_data[:labels],
+        support_keys: chart_data[:support_keys],
       }
       charts[type]=data
     end
@@ -104,7 +109,7 @@ class WarehouseReport::InitiativeMmBarCharts
   end
 
   def chart_data_template
-    {counts: {mean:[], median:[]}, types: [], values: [], keys: []}
+    {counts: {mean:[], median:[]}, types: [], values: [], keys: [], support_keys: {}}
   end
 
   def build_data_by_project_type(data_type)
@@ -127,9 +132,9 @@ class WarehouseReport::InitiativeMmBarCharts
       end
     end
     chart_data[:types] = PERIODS
-    chart_data[:keys] = stack_keys
     chart_data[:labels] = {}
     stack_keys.each do |k|
+      chart_data[:keys] << k
       chart_data[:labels][k] = k
     end
     chart_data

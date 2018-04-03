@@ -57,7 +57,8 @@ class WarehouseReport::InitiativeBarCharts
         types: chart_data[:types], 
         values: chart_data[:values],
         keys: chart_data[:keys],
-        labels: chart_data[:labels]
+        labels: chart_data[:labels],
+        support_keys: chart_data[:support_keys],
       }
       charts[period]=data
     end
@@ -78,6 +79,10 @@ class WarehouseReport::InitiativeBarCharts
 
   def table_id(data_type, by)
     "d3-#{data_type.to_s}-by-#{by.to_s}__table"
+  end
+
+  def support_section(data_type, by)
+    "#{data_type.to_s}_by_#{by.to_s}".parameterize.underscore
   end
 
   def empty?(data_type, by, period)
@@ -166,7 +171,7 @@ class WarehouseReport::InitiativeBarCharts
   end
 
   def chart_data_template
-    {counts: {report:[], comparison:[]}, types: [], values: [], keys: []}
+    {counts: {report:[], comparison:[]}, types: [], values: [], keys: [], support_keys: {}}
   end
 
   def build_data_by_project_type(data_type)
@@ -178,17 +183,21 @@ class WarehouseReport::InitiativeBarCharts
         period = PERIODS[index]
         d = {type: k}
         stack_keys.each do |sk|
+          
           d[sk.parameterize] = (data["#{k}__#{sk}"]||0)
           chart_data[:values].push(d[sk.parameterize])
+          chart_data[:support_keys][k] ||= {}
+          chart_data[:support_keys][k][sk.parameterize] = "#{k}__#{sk}"
         end
         chart_data[:counts][period].push(d)
       end
     end
     chart_data[:types] = @project_types
-    chart_data[:keys] = stack_keys.map(&:parameterize)
     chart_data[:labels] = {}
     stack_keys.each do |k|
-      chart_data[:labels][k.parameterize] = label(data_type, k)
+      key = k.parameterize
+      chart_data[:keys] << key
+      chart_data[:labels][key] = label(data_type, k)
     end
     chart_data
   end
@@ -204,6 +213,9 @@ class WarehouseReport::InitiativeBarCharts
         stack_keys.each do |sk|
           d[sk.parameterize] = (data["#{p_id}__#{sk}"]||0)
           chart_data[:values].push(d[sk.parameterize])
+          chart_data[:support_keys][p_name] ||= {}
+
+          chart_data[:support_keys][p_name][sk.parameterize] = "#{p_id}__#{sk}"
         end
         chart_data[:counts][period].push(d)
       end
