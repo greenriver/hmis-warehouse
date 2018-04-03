@@ -11,13 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180319204410) do
+ActiveRecord::Schema.define(version: 20180326140546) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
-  enable_extension "pgcrypto"
   enable_extension "pg_stat_statements"
+  enable_extension "pgcrypto"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -1282,6 +1282,18 @@ ActiveRecord::Schema.define(version: 20180319204410) do
   end
 
   add_index "hud_chronics", ["client_id"], name: "index_hud_chronics_on_client_id", using: :btree
+
+  create_table "hud_create_logs", force: :cascade do |t|
+    t.string   "hud_key",        null: false
+    t.string   "personal_id",    null: false
+    t.string   "type",           null: false
+    t.datetime "imported_at",    null: false
+    t.date     "effective_date", null: false
+    t.integer  "data_source_id", null: false
+  end
+
+  add_index "hud_create_logs", ["effective_date"], name: "index_hud_create_logs_on_effective_date", using: :btree
+  add_index "hud_create_logs", ["imported_at"], name: "index_hud_create_logs_on_imported_at", using: :btree
 
   create_table "identify_duplicates_log", force: :cascade do |t|
     t.datetime "started_at"
@@ -2950,6 +2962,72 @@ ActiveRecord::Schema.define(version: 20180319204410) do
     WHERE ("Client"."DateDeleted" IS NULL);
   SQL
 
+  create_view "report_disabilities",  sql_definition: <<-SQL
+      SELECT "Disabilities"."DisabilitiesID",
+      "Disabilities"."ProjectEntryID",
+      "Disabilities"."PersonalID",
+      "Disabilities"."InformationDate",
+      "Disabilities"."DisabilityType",
+      "Disabilities"."DisabilityResponse",
+      "Disabilities"."IndefiniteAndImpairs",
+      "Disabilities"."DocumentationOnFile",
+      "Disabilities"."ReceivingServices",
+      "Disabilities"."PATHHowConfirmed",
+      "Disabilities"."PATHSMIInformation",
+      "Disabilities"."TCellCountAvailable",
+      "Disabilities"."TCellCount",
+      "Disabilities"."TCellSource",
+      "Disabilities"."ViralLoadAvailable",
+      "Disabilities"."ViralLoad",
+      "Disabilities"."ViralLoadSource",
+      "Disabilities"."DataCollectionStage",
+      "Disabilities"."DateCreated",
+      "Disabilities"."DateUpdated",
+      "Disabilities"."UserID",
+      "Disabilities"."DateDeleted",
+      "Disabilities"."ExportID",
+      "Disabilities".data_source_id,
+      "Disabilities".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Disabilities"
+       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Disabilities"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_employment_educations",  sql_definition: <<-SQL
+      SELECT "EmploymentEducation"."EmploymentEducationID",
+      "EmploymentEducation"."ProjectEntryID",
+      "EmploymentEducation"."PersonalID",
+      "EmploymentEducation"."InformationDate",
+      "EmploymentEducation"."LastGradeCompleted",
+      "EmploymentEducation"."SchoolStatus",
+      "EmploymentEducation"."Employed",
+      "EmploymentEducation"."EmploymentType",
+      "EmploymentEducation"."NotEmployedReason",
+      "EmploymentEducation"."DataCollectionStage",
+      "EmploymentEducation"."DateCreated",
+      "EmploymentEducation"."DateUpdated",
+      "EmploymentEducation"."UserID",
+      "EmploymentEducation"."DateDeleted",
+      "EmploymentEducation"."ExportID",
+      "EmploymentEducation".data_source_id,
+      "EmploymentEducation".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("EmploymentEducation"
+       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
+  SQL
+
   create_view "report_enrollments",  sql_definition: <<-SQL
       SELECT "Enrollment"."ProjectEntryID",
       "Enrollment"."PersonalID",
@@ -3069,72 +3147,6 @@ ActiveRecord::Schema.define(version: 20180319204410) do
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
     WHERE ("Enrollment"."DateDeleted" IS NULL);
-  SQL
-
-  create_view "report_disabilities",  sql_definition: <<-SQL
-      SELECT "Disabilities"."DisabilitiesID",
-      "Disabilities"."ProjectEntryID",
-      "Disabilities"."PersonalID",
-      "Disabilities"."InformationDate",
-      "Disabilities"."DisabilityType",
-      "Disabilities"."DisabilityResponse",
-      "Disabilities"."IndefiniteAndImpairs",
-      "Disabilities"."DocumentationOnFile",
-      "Disabilities"."ReceivingServices",
-      "Disabilities"."PATHHowConfirmed",
-      "Disabilities"."PATHSMIInformation",
-      "Disabilities"."TCellCountAvailable",
-      "Disabilities"."TCellCount",
-      "Disabilities"."TCellSource",
-      "Disabilities"."ViralLoadAvailable",
-      "Disabilities"."ViralLoad",
-      "Disabilities"."ViralLoadSource",
-      "Disabilities"."DataCollectionStage",
-      "Disabilities"."DateCreated",
-      "Disabilities"."DateUpdated",
-      "Disabilities"."UserID",
-      "Disabilities"."DateDeleted",
-      "Disabilities"."ExportID",
-      "Disabilities".data_source_id,
-      "Disabilities".id,
-      "Enrollment".id AS enrollment_id,
-      source_clients.id AS demographic_id,
-      destination_clients.id AS client_id
-     FROM (((("Disabilities"
-       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-    WHERE ("Disabilities"."DateDeleted" IS NULL);
-  SQL
-
-  create_view "report_employment_educations",  sql_definition: <<-SQL
-      SELECT "EmploymentEducation"."EmploymentEducationID",
-      "EmploymentEducation"."ProjectEntryID",
-      "EmploymentEducation"."PersonalID",
-      "EmploymentEducation"."InformationDate",
-      "EmploymentEducation"."LastGradeCompleted",
-      "EmploymentEducation"."SchoolStatus",
-      "EmploymentEducation"."Employed",
-      "EmploymentEducation"."EmploymentType",
-      "EmploymentEducation"."NotEmployedReason",
-      "EmploymentEducation"."DataCollectionStage",
-      "EmploymentEducation"."DateCreated",
-      "EmploymentEducation"."DateUpdated",
-      "EmploymentEducation"."UserID",
-      "EmploymentEducation"."DateDeleted",
-      "EmploymentEducation"."ExportID",
-      "EmploymentEducation".data_source_id,
-      "EmploymentEducation".id,
-      "Enrollment".id AS enrollment_id,
-      source_clients.id AS demographic_id,
-      destination_clients.id AS client_id
-     FROM (((("EmploymentEducation"
-       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_exits",  sql_definition: <<-SQL
