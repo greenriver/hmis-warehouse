@@ -10,7 +10,7 @@ module WarehouseReports
       raise 'Section required' if params[:section].blank?
       @key = params[:key].to_s
       @section = params[:section].to_s
-      @data = OpenStruct.new(@report.support[@section])
+      @data = OpenStruct.new(@report[@section])
       if params[:title].present?
         @title = params[:title].to_s
       else
@@ -27,7 +27,8 @@ module WarehouseReports
     end
 
     def set_report
-      @report = report_source.find(params[:warehouse_report_id].to_i)
+      report_id = params[:warehouse_report_id].to_i
+      @report = report_source.where(id: report_id).limit(1).pluck(:support)&.first
     end
 
     def report_source

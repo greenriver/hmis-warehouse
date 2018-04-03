@@ -57,7 +57,7 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
     )
     @keys = data.keys
     @scale = {
-      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow),
+      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateViridis),
       radius: d3.scaleSqrt().domain(d3.extent(@values)).range([3, 8]);
     }
     @zip3Data = []
@@ -185,8 +185,8 @@ class App.D3Chart.Pie extends App.D3Chart.Base
     @_loadData(data)
     
     @scale = {
-      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateRainbow),
-      outerFill: d3.scaleSequential().domain([0, @outerKeys.length]).interpolator(d3.interpolateBrBG)
+      rainbowFill: d3.scaleSequential().domain([0, @keys.length]).interpolator(d3.interpolateViridis),
+      outerFill: d3.scaleSequential().domain([0, @outerKeys.length]).interpolator(d3.interpolateWarm)
     }
     @table = new App.D3Chart.ColorCodedTable(table_selector, @outerKeys, @scale.outerFill)
     @table2 = new App.D3Chart.ColorCodedTable(table_selector+'-more-details', @keys, @scale.rainbowFill)
@@ -345,7 +345,7 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
     )
     @grouped = d3.nest().key((d) => d[0])
       .entries(@data)
-    @rainbowFillScale = d3.scaleSequential().domain([0, @grouped.length]).interpolator(d3.interpolateRainbow)
+    @rainbowFillScale = d3.scaleSequential().domain([0, @grouped.length]).interpolator(d3.interpolateViridis)
     @keys = @grouped.map((d) => d.key)
 
 
@@ -506,7 +506,7 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
     {
       x: d3.scaleLinear().domain(@domain.x).range(@range.x),
       y: d3.scaleBand().domain(@domain.y).range(@range.y)
-      rainbowFill: d3.scaleSequential().domain(@domain.rainbowFill).interpolator(d3.interpolateRainbow)
+      rainbowFill: d3.scaleSequential().domain(@domain.rainbowFill).interpolator(d3.interpolateViridis)
     }
 
   _drawAxis: () ->
@@ -715,8 +715,10 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
     if @legend
       @_drawLegend()
 
-
-
-
-
-
+class App.D3Chart.InitiativeStackedSummaryBar extends App.D3Chart.InitiativeStackedBar
+  _loadScale: () ->
+    {
+      x: d3.scaleLinear().domain(@domain.x).range(@range.x),
+      y: d3.scaleBand().domain(@domain.y).range(@range.y)
+      rainbowFill: d3.scaleSequential().domain(@domain.rainbowFill).interpolator(d3.interpolateWarm)
+    }
