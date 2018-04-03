@@ -184,7 +184,7 @@ module GrdaWarehouse::Tasks
         where(client_id: client_id)
       if homeless_reset(client_id: client_id).present?
         debug_log "Found previous residential history, using #{homeless_reset(client_id: client_id)} instead of #{@date - 3.years} as beginning of calculation"
-        scope = scope.where(date: homeless_reset(client_id: client_id)..@date)
+        scope = scope.where(shs_t[:date].between(homeless_reset(client_id: client_id)..@date))
       end
       all_dates = scope.pluck(*service_history_columns.values).map do |row|
         service_history_columns.keys.zip(row).to_h

@@ -160,9 +160,11 @@ module Cohorts
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
       end
-      @days_homeless = GrdaWarehouse::WarehouseClientsProcessed.
+      counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.select(:id)).
-        pluck(:client_id, :homeless_days).to_h
+        pluck(:client_id, :homeless_days, :days_homeless_last_three_years)
+      @days_homeless = counts.map{|client_id, days_homeless, _| [client_id, days_homeless]}.to_h
+      @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years| [client_id, days_homeless_last_three_years]}.to_h
       Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]

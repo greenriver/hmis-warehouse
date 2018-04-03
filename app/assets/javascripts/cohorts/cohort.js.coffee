@@ -86,11 +86,13 @@ class App.Cohorts.Cohort
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       @save_sort_order()
       
-      search_string = $(e.target).val()
+      search_string = '' + $(e.target).val()
+      # Only reload if we really need to
+      return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
       # console.log search_string
       queryResult = @table.search.query(search_string)
-      @filter_rows('' + search_string)
-
+      @filter_rows(search_string)
+      
       # restore sort order
       @table.updateSettings
         columnSorting: @current_sort
@@ -101,6 +103,8 @@ class App.Cohorts.Cohort
     data = @raw_data
     metadata_copy = @cell_metadata
     if search == ''
+      console.log data
+      console.log($.map data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
       @table.loadData(data)
       @table.updateSettings
         cells: (row, col, prop) =>
@@ -121,6 +125,8 @@ class App.Cohorts.Cohort
           # console.log(@cell_metadata[row])
           limited_metadata.push(metadata_copy[row])
           break
+    console.log(limited_data)
+    console.log($.map limited_data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
     @table.loadData(limited_data)
     if limited_metadata.length > 0
       @table.updateSettings

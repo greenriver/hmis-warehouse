@@ -23,7 +23,13 @@ module CohortColumns
       html = content_tag(:span, class: "hidden") do 
         value(cohort_client)
       end
-      html += link_to_if(user.can_view_clients?, value(cohort_client), client_path(cohort_client.client), target: '_blank')
+      if user.can_view_clients?
+        html += link_to value(cohort_client), client_path(cohort_client.client), target: '_blank'
+      elsif user.can_view_client_window?
+        html += link_to value(cohort_client), window_client_path(cohort_client.client), target: '_blank'
+      else
+        html += value(cohort_client)
+      end
       html
     end
   end
