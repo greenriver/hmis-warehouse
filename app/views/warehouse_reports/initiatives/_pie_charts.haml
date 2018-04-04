@@ -26,6 +26,7 @@
     .col-xs-12.col-md-5
       - unless empty
         - total = buckets[:data].keys.map{|bk| buckets[:data][bk][:total] || 0}.inject(0, :+)
+        %h4= "#{outer_legend} (crust)"
         %table.table.loso-table{id: table_id}
           - buckets[:data].keys.each_with_index do |bk, index|
             %tr
@@ -36,6 +37,7 @@
                 - if total > 0
                   %b= "#{(100.0 * (t/total.to_f)).round}%"
         .loso__legend-pie
+          %h4= "#{by.to_s.humanize.titleize} (filling)"
           .clearfix{id: legend_id}
   .loso-footer.clearfix
     %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}

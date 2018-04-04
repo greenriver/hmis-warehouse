@@ -24,7 +24,7 @@
   %div{role: :tabpanel, class: 'tab-pane', id: 'details'}
     .warehouse-reports__initiatives
       - show_view_partials.each do |p|
-        - if p[:partial] == 'breakdown'
+        - if ['breakdown','client_counts'].include?(p[:partial])
           %h2
             %span= p[:title] || p[:data].to_s.humanize.titleize
           - [:project_type, :project].each do |by|

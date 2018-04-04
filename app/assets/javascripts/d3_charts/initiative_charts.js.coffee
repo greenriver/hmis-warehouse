@@ -222,16 +222,17 @@ class App.D3Chart.Pie extends App.D3Chart.ResponsiveBase
   _loadHelpers: () ->
     @path = d3.arc()
       .outerRadius(@radius - 10)
-      .innerRadius(0);
+      .innerRadius(@radius - 30);
     @innerPath = d3.arc()
-      .outerRadius(@radius - 30)
+      .outerRadius(@radius - 40)
       .innerRadius(0)
     @pie = d3.pie()
       .sort(null)
       .value((d) => d[1])
 
   _drawLegend: () ->
-    @legend.selectAll('div.loso__legend-item')
+    @legend
+      .selectAll('div.loso__legend-item')
       .data(@keys)
       .enter()
       .append('div')
@@ -726,8 +727,8 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.ResponsiveBase
 
 class App.D3Chart.InitiativeStackedSummaryBar extends App.D3Chart.InitiativeStackedBar
   _loadScale: () ->
-    {
-      x: d3.scaleLinear().domain(@domain.x).range(@range.x),
+      x: d3.scaleLinear().domain(@domain.x).range(@range.x)
       y: d3.scaleBand().domain(@domain.y).range(@range.y)
-      rainbowFill: d3.scaleSequential().domain(@domain.rainbowFill).interpolator(d3.interpolateYlOrRd)
-    }
+      rainbowFill: (index) ->
+        ['#288BE4','#C4C1C7'][index]
+      # rainbowFill: d3.scaleOrdinal(d3.schemeCategory10).domain(@domain.rainbowFill)

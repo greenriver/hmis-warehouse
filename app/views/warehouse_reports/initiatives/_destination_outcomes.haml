@@ -10,7 +10,7 @@
       - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
     - if period == :comparison 
       - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
-    = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "Destination Counts by #{by.to_s.gsub('_', ' ').titleize} for #{period.to_s.titleize} Period (#{dates})"
+    = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "Destination Counts by #{by.to_s.gsub('_', ' ').titleize} for #{period.to_s.titleize} Period (#{dates})", outer_legend: 'Destination', by: by
 
 -#
   - if data = @data[:destination_breakdowns_by_project_type] 

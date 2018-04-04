@@ -1,26 +1,20 @@
 .warehouse-reports__parameters
-  .o-card-grid
-    %article.c-card
-      .c-card__content
-        .c-card__title Range
-        .c-card__description= "#{@parameters.start.to_date} to #{@parameters.end.to_date}"
-    %article.c-card
-      .c-card__content
-        .c-card__title Comparison Range
-        .c-card__description= "#{@parameters.comparison_start.to_date} to #{@parameters.comparison_end.to_date}"
-    %article.c-card
-      .c-card__content
-        .c-card__title Sub-Population
-        .c-card__description
-          - sub_population = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert.try(:[], @parameters.sub_population.to_sym)
-          = sub_population
-    %article.c-card
-      .c-card__content
-        .c-card__title Projects
-        .c-card__description
-          - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: @parameters.projects).pluck(:ProjectName)
-          - if project_names.empty? || project_names == @all_project_names
-            All
-          - else
-            - project_names.each do |name|
-              .project-name= name
+  .row
+    .col-sm-6
+      %h4 Report Period
+      %p= "#{@parameters.start.to_date} to #{@parameters.end.to_date}"
+      %h4 Comparison Period
+      %p= "#{@parameters.comparison_start.to_date} to #{@parameters.comparison_end.to_date}"
+      %h4 Sub-Population
+      %p
+        - sub_population = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert.try(:[], @parameters.sub_population.to_sym)
+        = sub_population
+    .col-sm-6
+      %h4 Projects
+      %ul
+        - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: @parameters.projects).pluck(:ProjectName)
+        - if project_names.empty? || project_names == @all_project_names
+          All
+        - else
+          - project_names.each do |name|
+            %li.project-name= name
