@@ -61,6 +61,8 @@ module GrdaWarehouse::Tasks
       extra_work = 0
       @clients.each_with_index do |client_id, index|
         debug_log "Calculating chronicity for #{client_id}"
+        # All chronically homeless must also be disabled
+        next unless disabled?(client_id)
         # remove any cached calculations from the previous client
         reset_for_batch()
         adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
