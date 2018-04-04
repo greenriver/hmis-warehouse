@@ -104,7 +104,7 @@ module WarehouseReports
 
     def show_view_partials
       [
-        {partial: 'breakdown', data: :client_counts},
+        {partial: 'client_counts', data: :client_counts},
         {partial: 'nightly_census', title: 'Nightly Census'},
         {partial: 'breakdown', data: :gender_breakdowns},
         {partial: 'breakdown', data: :veteran_breakdowns, title: "Veteran Status Breakdowns"},

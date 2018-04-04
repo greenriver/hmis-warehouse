@@ -50,7 +50,11 @@
           var chartId = '#'+#{chart_id.to_json}
           var legendId = '#'+#{legend_id.to_json}
           var tableId = '#'+#{table_id.to_json}
-          
-          var chart = new App.D3Chart.InitiativeLine(chartId, legendId, tableId, {top: 20, right: 20, bottom: 20, left: 40}, chartData);
-          chart.draw()
+          var chart;
+          $(window).on('resize', function() {
+            if($(chartId).is(':visible')) {
+              chart = new App.D3Chart.InitiativeLine(chartId, legendId, tableId, {top: 20, right: 20, bottom: 20, left: 40}, chartData);
+              chart.draw()
+            }
+          });
         })
