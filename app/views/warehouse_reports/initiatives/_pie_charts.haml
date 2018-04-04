@@ -15,9 +15,14 @@
               var chartId = '#'+#{chart_id.to_json}
               var tableId = '#'+#{table_id.to_json}
               var legendId = '#'+#{legend_id.to_json}
-              var chart = new App.D3Chart.Pie(chartId, tableId, legendId, data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}')
-              chart.draw()
-            })
+              var chart;
+              $(window).on('resize', function() {
+                if($(chartId).is(':visible')) {
+                  chart = new App.D3Chart.Pie(chartId, tableId, legendId, data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}')
+                  chart.draw()
+                }
+              });
+            });
     .col-xs-12.col-md-5
       - unless empty
         - total = buckets[:data].keys.map{|bk| buckets[:data][bk][:total] || 0}.inject(0, :+)

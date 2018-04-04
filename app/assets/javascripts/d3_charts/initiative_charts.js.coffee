@@ -1,3 +1,6 @@
+#= require ./namespace
+#= require ./responsive_base
+
 class App.D3Chart.ColorCodedTable
   constructor: (table_selector, keys, scale, selector='[data-d3-key]') ->
     @table = d3.select(table_selector)
@@ -43,8 +46,10 @@ class App.D3Chart.InitiativeToolTip
           .style('display', 'none')
       )
 
-class App.D3Chart.ZipMap extends App.D3Chart.Base
+class App.D3Chart.ZipMap extends App.D3Chart.ResponsiveBase
   constructor: (container_selector, legend_selector, zoom_in_selector, zoom_out_selector, json_path, data) ->
+    @container_selector = container_selector
+    @_reset()
     super(container_selector, {top: 20, right: 20, left: 20, bottom: 20})
     @zoom_in = d3.select(zoom_in_selector)
     @zoom_out = d3.select(zoom_out_selector)
@@ -172,8 +177,10 @@ class App.D3Chart.ZipMap extends App.D3Chart.Base
             .on('mouseout', (d) => @tooltip.hide(d))
     )
 
-class App.D3Chart.Pie extends App.D3Chart.Base
+class App.D3Chart.Pie extends App.D3Chart.ResponsiveBase
   constructor: (container_selector, table_selector, legend_selector, data, report_range_dates, comparison_range_dates) ->
+    @container_selector = container_selector
+    @_reset()
     super(container_selector, {top: 20, right: 0, left: 20, bottom: 20})
     @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
     @legend = d3.select(legend_selector)
@@ -312,9 +319,10 @@ class App.D3Chart.Pie extends App.D3Chart.Base
     @_drawLegend()
 
 
-class App.D3Chart.InitiativeLine extends App.D3Chart.Base
+class App.D3Chart.InitiativeLine extends App.D3Chart.ResponsiveBase
   constructor: (container_selector, legend_selector, table_selector, margin, data) ->
     @container_selector = container_selector
+    @_reset()
     @legend = d3.select(legend_selector)
     @data = []
     @dates = []
@@ -463,12 +471,13 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.Base
 
 
 
-class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
+class App.D3Chart.InitiativeStackedBar extends App.D3Chart.ResponsiveBase
   
   constructor: (container_selector, table_selector, legend_selector, margin, data, report_range_dates, comparison_range_dates) ->
     @data = data
     @tooltip = new App.D3Chart.InitiativeToolTip('#d3-tooltip')
     @container_selector = container_selector
+    @_reset()
     @margin = margin
     @report_range_dates = report_range_dates
     @comparison_range_dates = comparison_range_dates
@@ -481,7 +490,7 @@ class App.D3Chart.InitiativeStackedBar extends App.D3Chart.Base
       @table = d3.select(table_selector)
     if legend_selector
       @legend = d3.select(legend_selector)
-
+  
   _resizeContainer: ()->
     @labelHeight = if @data.keys[0] == 'count' then 0 else 22
     @barHeight = 12
@@ -720,5 +729,5 @@ class App.D3Chart.InitiativeStackedSummaryBar extends App.D3Chart.InitiativeStac
     {
       x: d3.scaleLinear().domain(@domain.x).range(@range.x),
       y: d3.scaleBand().domain(@domain.y).range(@range.y)
-      rainbowFill: d3.scaleSequential().domain(@domain.rainbowFill).interpolator(d3.interpolateWarm)
+      rainbowFill: d3.scaleSequential().domain(@domain.rainbowFill).interpolator(d3.interpolateYlOrRd)
     }

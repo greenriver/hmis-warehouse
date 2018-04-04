@@ -47,7 +47,12 @@
             var legend_id = '#'+#{legend_id.to_json}
             var zoom_in = '#'+#{zoom_in_id.to_json}
             var zoom_out = '#'+#{zoom_out_id.to_json}
-            var chart = new 
-            App.D3Chart.ZipMap(id, legend_id, zoom_in, zoom_out, '#{asset_path('d3_charts/zip3topo.json')}', #{data.to_json})
-            chart.draw()
-          })
+            var chart;
+            $(window).on('resize', function() {
+              if($(id).is(':visible')) {
+                chart = new 
+                App.D3Chart.ZipMap(id, legend_id, zoom_in, zoom_out, '#{asset_path('d3_charts/zip3topo.json')}', #{data.to_json})
+                chart.draw()
+              }
+            });
+          });

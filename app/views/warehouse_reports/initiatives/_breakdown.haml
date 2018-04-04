@@ -7,9 +7,9 @@
 - collapse_id = vm.collapse_id(data_type, by)
 - table_id = vm.table_id(data_type, by)
 - chart_type = 'InitiativeStackedBar'
-- if [:length_of_stay_breakdowns, :income_most_recent_breakdowns].include?(data_type)
+- if ['d3-length_of_stay_breakdowns-mm-by-project_type__table', 'd3-length_of_stay_breakdowns-mm-by-project__table', 'd3-income_most_recent_breakdowns-mm-by-project_type__table', 'd3-income_most_recent_breakdowns-mm-by-project__table'].include?(table_id)
   - chart_type = 'InitiativeStackedSummaryBar'
-=# debug [data_type, by]
+=# debug [data_type, by, table_id]
 .ho-container.loso__container
   .ho-container__header
     %h4= title 
@@ -66,16 +66,24 @@
   - content_for :page_js do
     :javascript
       $(document).ready(function() {
-        var chart1Data = #{chart_1_data.to_json}
-        var chart1Id = '#'+#{chart_1_id.to_json}
-        var legendId = '#'+#{legend_id.to_json}
-        var tableId = '#'+#{table_id.to_json}
-        var chart1 = new App.D3Chart.#{chart_type}(chart1Id, tableId, legendId, {top: 20, right: 50, bottom: 20, left: 20}, chart1Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
-        chart1.draw()
+        var chart1Data = #{chart_1_data.to_json};
+        var chart1Id = '#'+#{chart_1_id.to_json};
+        var legendId = '#'+#{legend_id.to_json};
+        var tableId = '#'+#{table_id.to_json};
 
-        var chart2Data = #{chart_2_data.to_json}
-        var chart2Id = '#'+#{chart_2_id.to_json}
-        var chart2 = new App.D3Chart.#{chart_type}(chart2Id, false, false, {top: 20, right: 50, bottom: 20, left: 20}, chart2Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
-        chart2.draw()
-      })
+        var chart2Data = #{chart_2_data.to_json};
+        var chart2Id = '#'+#{chart_2_id.to_json};
 
+        var chart1;
+        var chart2;
+        $(window).on('resize', function() {
+          if($(chart1Id).is(':visible')) {
+
+            chart1 = new App.D3Chart.#{chart_type}(chart1Id, tableId, legendId, {top: 20, right: 50, bottom: 20, left: 20}, chart1Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
+            chart2 = new App.D3Chart.#{chart_type}(chart2Id, false, false, {top: 20, right: 50, bottom: 20, left: 20}, chart2Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
+
+            chart1.draw();
+            chart2.draw();
+          }
+        });
+      });
