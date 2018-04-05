@@ -941,7 +941,7 @@ module GrdaWarehouse::Hud
       client_files.window.
         tagged_with('Client Headshot').
         order(updated_at: :desc).limit(1)&.
-        first&.file&.preview&.read
+        first&.file&.preview&.read rescue nil
     end
 
     def accessible_via_api?
