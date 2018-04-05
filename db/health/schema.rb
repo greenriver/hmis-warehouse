@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180301200541) do
+ActiveRecord::Schema.define(version: 20180405154902) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -160,6 +160,20 @@ ActiveRecord::Schema.define(version: 20180301200541) do
   end
 
   add_index "claims_top_providers", ["medicaid_id"], name: "index_claims_top_providers_on_medicaid_id", using: :btree
+
+  create_table "epic_goals", force: :cascade do |t|
+    t.string   "patient_id",               null: false
+    t.string   "entered_by"
+    t.string   "title"
+    t.string   "contents"
+    t.string   "id_in_source"
+    t.string   "received_valid_complaint"
+    t.datetime "goal_created_at"
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+  end
+
+  add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
 
   create_table "health_goals", force: :cascade do |t|
     t.integer  "careplan_id"

@@ -60,7 +60,7 @@ module Window::Health
     end
 
     def set_variable_goals
-      @goals = @careplan.goals.variable_goals.order(number: :asc)
+      @goals = @careplan.patient.epic_goals.visible
     end
 
     def careplan_params
