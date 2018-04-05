@@ -78,10 +78,10 @@ module Window::Clients
 
     def preview
       if stale?(etag: @file, last_modified: @file.updated_at)
-        @preview = @file.file&.preview
+        @preview = @file.as_preview
         head :ok and return unless @preview.present?
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
-        send_data @preview.file.read, filename: @file.name, disposition: :inline, content_type: @preview.file.content_type
+        send_data @preview, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
         logger.debug 'used browser cache'
       end
@@ -89,21 +89,18 @@ module Window::Clients
 
     def thumb
       if stale?(etag: @file, last_modified: @file.updated_at)
-        @thumb = @file.file&.thumb
+        @thumb = @file.as_thumb
         head :ok and return unless @thumb.present?
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
-        send_data @thumb.file.read, filename: @file.name, disposition: :inline, content_type: @thumb.file.content_type
+        send_data @thumb, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
         logger.debug 'used browser cache'
       end
     end
 
     def has_thumb
-      @thumb = @file.file&.thumb
-      if @thumb.blank? && FileUploader::MANIPULATEABLE.include?(@file.content_type)
-        @file.file.recreate_versions!
-      end
-      if @thumb.present? && @thumb.file.content_type == 'image/jpeg'
+      @thumb = @file.content_type == 'image/jpeg'
+      if @thumb
         head :ok and return
       else
         head :no_content and return

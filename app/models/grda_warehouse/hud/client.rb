@@ -938,10 +938,8 @@ module GrdaWarehouse::Hud
     # in the file-system, we'll only show those that would be available to people
     # with window access
     def local_client_image_data
-      client_files.window.
-        tagged_with('Client Headshot').
-        order(updated_at: :desc).limit(1)&.
-        first&.file&.preview&.read
+      headshot = client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first rescue nil
+      headshot.as_thumb if headshot
     end
 
     def accessible_via_api?
@@ -1584,7 +1582,7 @@ module GrdaWarehouse::Hud
       vispdat_score = most_recent_vispdat_score
       vispdat_length_homeless_in_days ||= 0
       vispdat_score ||= 0
-      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days > 730
+      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 730
         730
       elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
         365
