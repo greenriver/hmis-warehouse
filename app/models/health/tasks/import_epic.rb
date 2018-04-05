@@ -46,7 +46,8 @@ module Health::Tasks
             @new_patients << patient[:id_in_source]
           end
         end
-        if entry.updated_at < translated_row[:updated_at]
+        changed = entry.updated_at < translated_row[:updated_at] rescue false
+        if changed
           entry.update(translated_row)
         end
       end
