@@ -938,10 +938,8 @@ module GrdaWarehouse::Hud
     # in the file-system, we'll only show those that would be available to people
     # with window access
     def local_client_image_data
-      client_files.window.
-        tagged_with('Client Headshot').
-        order(updated_at: :desc).limit(1)&.
-        first&.file&.preview&.read rescue nil
+      headshot = client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first rescue nil
+      headshot.as_thumb if headshot
     end
 
     def accessible_via_api?
