@@ -84,19 +84,24 @@ class App.Cohorts.Cohort
   enable_searching: () =>
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
-      @save_sort_order()
-      
       search_string = '' + $(e.target).val()
-      # Only reload if we really need to
-      return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
-      # console.log search_string
-      queryResult = @table.search.query(search_string)
-      @filter_rows(search_string)
-      
-      # restore sort order
-      @table.updateSettings
-        columnSorting: @current_sort
+      results = @table.search.query(search_string)
       @table.render()
+      first_result = results[0]
+      @table.scrollViewportTo(first_result.row, first_result.col)
+      # @save_sort_order()
+      
+      # search_string = '' + $(e.target).val()
+      # # Only reload if we really need to
+      # return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
+      # # console.log search_string
+      # queryResult = @table.search.query(search_string)
+      # @filter_rows(search_string)
+      
+      # # restore sort order
+      # @table.updateSettings
+      #   columnSorting: @current_sort
+      # @table.render()
 
   filter_rows: (search) =>
     # console.log "searching for: #{search}"
