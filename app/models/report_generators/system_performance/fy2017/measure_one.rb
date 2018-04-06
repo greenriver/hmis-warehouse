@@ -10,6 +10,8 @@ module ReportGenerators::SystemPerformance::Fy2017
     ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1)
     # SH = [8]
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
+    # SO = [4]
+    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
     def run!
       # Disable logging so we don't fill the disk
@@ -139,21 +141,50 @@ module ReportGenerators::SystemPerformance::Fy2017
     end
 
     def add_one_b_answers
-      calculate_one_b_es_sh()
-      calculate_one_b_es_sh_th()      
+      calculate_one_b_es_sh_ph()
+      calculate_one_b_es_sh_th_ph()      
     end
 
-    def calculate_one_b_es_sh
-      # Universe is anyone who spent time in ES or SH
-      # Now include days between first reported homeless date and entry date
-      project_types = ES + SH
-      stop_project_types = PH + TH
-      remaining_scope = clients_in_projects_of_type(project_types: project_types).
+    def calculate_one_b_es_sh_ph
+      # Literally HUD homeless
+      # Clients from ES, SO SH
+      es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(ES + SO + SH).
+        open_between(start_date: @report_start - 1.day, end_date: @report_end).
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
         select(:client_id)
 
-      remaining_scope = add_filters(scope: remaining_scope)
+      es_so_sh_client_ids = add_filters(scope: es_so_sh_scope).distinct.pluck(:client_id)
 
-      remaining = remaining_scope.distinct.pluck(:client_id)
+      # Clients from PH & TH under certain conditions 
+      homeless_living_situations = [16, 1, 18, 27]
+      institutional_living_situations = [15, 6, 7, 24, 4, 5]
+      housed_living_situations = [14, 23, 21, 3, 22, 19, 25, 20, 26, 12, 13, 2, 8, 9, 99]
+      
+      ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(PH + TH).
+        open_between(start_date: @report_start - 1.day, end_date: @report_end).
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+        joins(:enrollment).
+        where(
+          e_t[:ResidencePrior].in(homeless_living_situations).
+            or(
+              e_t[:ResidencePrior].in(institutional_living_situations).
+                and(e_t[:LOSUnderThreshold].eq(1)).
+                and(e_t[:PreviousStreetESSH].eq(1))
+            ).
+            or(
+              e_t[:ResidencePrior].in(housed_living_situations).
+                and(e_t[:LOSUnderThreshold].eq(1)).
+                and(e_t[:PreviousStreetESSH].eq(1))
+            )
+        ).
+        select(:client_id)
+
+      ph_th_client_ids = add_filters(scope: ph_th_scope).distinct.pluck(:client_id)
+
+      remaining = (es_so_sh_client_ids + ph_th_client_ids).uniq
+
       Rails.logger.info "Processing #{remaining.count} clients"
       
       # Line 1
@@ -180,7 +211,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       end
     end
 
-    def calculate_one_b_es_sh_th
+    def calculate_one_b_es_sh_th_ph
       # Universe is anyone who spent time in TH, ES or SH
       # Now include days between first reported homeless date and entry date
       project_types = ES + SH + TH

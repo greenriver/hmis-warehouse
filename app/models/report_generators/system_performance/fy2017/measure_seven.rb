@@ -14,7 +14,7 @@ module ReportGenerators::SystemPerformance::Fy2017
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
     RRH = [13]
-    PH_PSH = [3,9,10] # All PH execpt 13, Measure 7 doesn't count RRH
+    PH_PSH = [3,9,10] # All PH except 13, Measure 7 doesn't count RRH
 
     def run!
       # Disable logging so we don't fill the disk
@@ -112,13 +112,13 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      temporary_leavers = destinations.select{ |id, destination| [1, 15, 14, 27, 4, 12, 13, 5, 2, 25].include?(destination.to_i)}
+      temporary_leavers = destinations.select{ |id, destination| [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25].include?(destination.to_i)}
       @answers[:sevena1_c3][:value] = temporary_leavers.size
       @support[:sevena1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
         counts: temporary_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31].include?(destination.to_i)}
       @answers[:sevena1_c4][:value] = permanent_leavers.size
       @support[:sevena1_c4][:support] = {
         headers: ['Client ID', 'Destination'],
