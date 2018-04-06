@@ -151,14 +151,12 @@ module ReportGenerators::SystemPerformance::Fy2017
       all_project_types = ES + SH + TH + PH
       @clients.each do |id, client|
         look_back_until =  LOOKBACK_STOP_DATE.to_date >= (client[:start_date].to_date - 730.days) ? LOOKBACK_STOP_DATE : (client[:start_date].to_date - 730.days).strftime('%Y-%m-%d')
-
-        sh = GrdaWarehouse::ServiceHistory.arel_table
-        earlier_date = GrdaWarehouse::ServiceHistory.entry.
+        earlier_date = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           where(client_id: id).
           hud_project_type(all_project_types).
-          where(sh[:first_date_in_program].lt(client[:start_date]).
-            and(sh[:last_date_in_program].eq(nil).
-              or(sh[:last_date_in_program].gteq(look_back_until))
+          where(she_t[:first_date_in_program].lt(client[:start_date]).
+            and(she_t[:last_date_in_program].eq(nil).
+              or(she_t[:last_date_in_program].gteq(look_back_until))
             )
           ).
           order(first_date_in_program: :asc).

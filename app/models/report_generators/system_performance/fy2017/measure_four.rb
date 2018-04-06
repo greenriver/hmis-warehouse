@@ -157,23 +157,23 @@ module ReportGenerators::SystemPerformance::Fy2017
       # Page 24 of 41
       # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
       # 3. The client must be an adult to be included in this measure.
-      ct = GrdaWarehouse::Hud::Client.arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
+
       columns = {
-        sh_t[:client_id].as('client_id').to_sql => :client_id, 
-        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
-        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
-        sh_t[:project_id].as('project_id').to_sql => :project_id, 
-        sh_t[:age].as('age').to_sql => :age, 
-        ct[:DOB].as('DOB').to_sql => :DOB, 
-        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
-        ct[:PersonalID].as('PersonalID').to_sql => :PersonalID, 
-        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
-        sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
-        sh_t[:project_name].as('project_name').to_sql => :project_name,
+        she_t[:client_id].to_sql => :client_id, 
+        she_t[:first_date_in_program].to_sql => :first_date_in_program, 
+        she_t[:last_date_in_program].to_sql => :last_date_in_program, 
+        she_t[:project_id].to_sql => :project_id, 
+        she_t[:age].to_sql => :age, 
+        c_t[:DOB].to_sql => :DOB, 
+        she_t[:enrollment_group_id].to_sql => :enrollment_group_id, 
+        c_t[:PersonalID].to_sql => :PersonalID, 
+        she_t[:data_source_id].to_sql => :data_source_id, 
+        she_t[:project_tracking_method].to_sql => :project_tracking_method, 
+        she_t[:project_name].to_sql => :project_name,
+        she_t[:id].to_sql => :enrollment_id,
       }
 
-      stayers_scope = GrdaWarehouse::ServiceHistory.entry.
+      stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         coc_funded_in(coc_code: COC_CODE).
         ongoing(on_date: @report.options['report_start']). # need at least 365 days and open on end date
         ongoing(on_date: @report.options['report_end']).
@@ -200,10 +200,10 @@ module ReportGenerators::SystemPerformance::Fy2017
 
           bed_night_enrollments = enrollments.select{|m| m[:project_tracking_method] == 3}
           long_enrollments += bed_night_enrollments.select do |enrollment|
-            night_count = GrdaWarehouse::ServiceHistory.service.
+            night_count = GrdaWarehouse::ServiceHistoryService.service.
               where(
                 client_id: enrollment[:client_id], 
-                enrollment_group_id: enrollment[:enrollment_group_id]
+                service_history_enrollment_id: enrollment[:enrollment_id]
               ).select(:date).
               distinct.
               count
@@ -227,23 +227,22 @@ module ReportGenerators::SystemPerformance::Fy2017
       # 1. A “system leaver” is any client who has exited from one or more of the relevant projects between [report start date] and [report end date] and who
       # is not active in any of the relevant projects as of the [report end date].
       # 2. The client must be an adult to be included.
-      ct = GrdaWarehouse::Hud::Client.arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
+
       columns = {
-        sh_t[:client_id].as('client_id').to_sql => :client_id, 
-        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
-        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
-        sh_t[:project_id].as('project_id').to_sql => :project_id, 
-        sh_t[:age].as('age').to_sql => :age, 
-        ct[:DOB].as('DOB').to_sql => :DOB, 
-        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
-        ct[:PersonalID].as('PersonalID').to_sql => :PersonalID, 
-        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
-        sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
-        sh_t[:project_name].as('project_name').to_sql => :project_name,
+        she_t[:client_id].to_sql => :client_id, 
+        she_t[:first_date_in_program].to_sql => :first_date_in_program, 
+        she_t[:last_date_in_program].to_sql => :last_date_in_program, 
+        she_t[:project_id].to_sql => :project_id, 
+        she_t[:age].to_sql => :age, 
+        c_t[:DOB].to_sql => :DOB, 
+        she_t[:enrollment_group_id].to_sql => :enrollment_group_id, 
+        c_t[:PersonalID].to_sql => :PersonalID, 
+        she_t[:data_source_id].to_sql => :data_source_id, 
+        she_t[:project_tracking_method].to_sql => :project_tracking_method, 
+        she_t[:project_name].to_sql => :project_name,
       }
 
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+      client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         ongoing(on_date: @report.options['report_end']).
         hud_project_type(PH + SH + TH).
         joins(project: :funders).
@@ -253,7 +252,7 @@ module ReportGenerators::SystemPerformance::Fy2017
 
       client_id_scope = add_filters(scope: client_id_scope)
 
-      leavers_scope = GrdaWarehouse::ServiceHistory.entry.
+      leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         coc_funded_in(coc_code: COC_CODE).
         ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.days).
