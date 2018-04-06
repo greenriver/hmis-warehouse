@@ -4,6 +4,10 @@ module Reports::Pit::Fy2018
       'PIT - FY 2018'
     end
 
+    def report_group_name
+      'Point in Time (PIT)'
+    end
+
     def continuum_name
       @continuum_name ||= GrdaWarehouse::Config.get(:continuum_name)
     end

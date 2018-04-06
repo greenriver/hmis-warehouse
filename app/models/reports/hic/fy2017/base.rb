@@ -4,6 +4,10 @@ module Reports::Hic::Fy2017
       'HIC - FY 2017'
     end
 
+    def report_group_name
+      'Housing Inventory Count (HIC)'
+    end
+
     def continuum_name
       'Boston Continuum of Care'
     end

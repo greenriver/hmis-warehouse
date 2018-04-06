@@ -5,7 +5,7 @@ class ReportsController < ApplicationController
 
   # GET /services
   def index
-    @reports = report_scope.order(weight: :asc)
+    @reports = report_scope.order(type: :desc, weight: :asc)
     @reports = group_reports(@reports).sort_by{|r| r.first}
   end
 
@@ -76,7 +76,14 @@ class ReportsController < ApplicationController
     end
 
     def group_reports reports
-      reports.group_by{|r|
-        r.type.split('::')[0...-1].join('::')}
+      grouped_reports = {}
+      reports.each do |r|
+        report_category = r.report_group_name
+        report_year = r.type.split('::')[0...-1].join('::')
+        grouped_reports[report_category] ||= {}
+        grouped_reports[report_category][report_year] ||= []
+        grouped_reports[report_category][report_year] << r
+      end
+      return grouped_reports
     end
 end

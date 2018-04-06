@@ -4,6 +4,10 @@ module Reports::SystemPerformance::Fy2015
       'HUD System Performance Reports - FY 2015'
     end
 
+    def report_group_name
+      'System Performance Measures'
+    end
+
     def download_type
       :csv
     end
