@@ -33,10 +33,13 @@ module Health
     end
 
     def part(section)
+      objective = 'Objective:'
+      steps = 'Steps to reach goal:'
+      team = 'Team members contributing to achieve goal:'
       @parts ||= {
-        objective: contents.match(/Objective: +(.+?)  /).try(:[], 1),
-        steps: contents.match(/Steps to reach goal: +(.+?)  /).try(:[], 1),
-        team: contents.match(/Team members contributing to achieve goal: +(.+?)  /).try(:[], 1),
+        objective: contents.match(/#{objective} +(.+?)  #{steps}/).try(:[], 1),
+        steps: contents.match(/#{steps} +(.+?)  #{team}/).try(:[], 1),
+        team: contents.match(/#{team} +(.+?)  /).try(:[], 1),
       }
       @parts[section]
     end
