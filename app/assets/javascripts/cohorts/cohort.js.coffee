@@ -85,7 +85,6 @@ class App.Cohorts.Cohort
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       search_string = '' + $(e.target).val()
-      return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
       results = @table.search.query(search_string)
       @table.render()
       first_result = results[0]
@@ -104,40 +103,40 @@ class App.Cohorts.Cohort
       #   columnSorting: @current_sort
       # @table.render()
 
-  filter_rows: (search) =>
-    # console.log "searching for: #{search}"
-    data = @raw_data
-    metadata_copy = @cell_metadata
-    if search == ''
-      console.log data
-      console.log($.map data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
-      @table.loadData(data)
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, @cell_metadata, @table)
-      return
-    limited_data = []
-    limited_metadata = []
-    for row in [0...data.length] by 1
-      strings = $.map data[row], (obj) ->
-        if obj.renderer == 'html'
-          $(obj.value).text()
-        else
-          obj.value
-      for col in [0...strings.length] by 1
-        if ('' + strings[col]).toLowerCase().indexOf(search.toLowerCase()) > -1
-          # console.log "Found in:", data[row]
-          limited_data.push(data[row])
-          # console.log(@cell_metadata[row])
-          limited_metadata.push(metadata_copy[row])
-          break
-    console.log(limited_data)
-    console.log($.map limited_data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
-    @table.loadData(limited_data)
-    if limited_metadata.length > 0
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, limited_metadata, @table)
+  # filter_rows: (search) =>
+  #   # console.log "searching for: #{search}"
+  #   data = @raw_data
+  #   metadata_copy = @cell_metadata
+  #   if search == ''
+  #     console.log data
+  #     console.log($.map data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
+  #     @table.loadData(data)
+  #     @table.updateSettings
+  #       cells: (row, col, prop) =>
+  #         @format_cells(row, col, prop, @cell_metadata, @table)
+  #     return
+  #   limited_data = []
+  #   limited_metadata = []
+  #   for row in [0...data.length] by 1
+  #     strings = $.map data[row], (obj) ->
+  #       if obj.renderer == 'html'
+  #         $(obj.value).text()
+  #       else
+  #         obj.value
+  #     for col in [0...strings.length] by 1
+  #       if ('' + strings[col]).toLowerCase().indexOf(search.toLowerCase()) > -1
+  #         # console.log "Found in:", data[row]
+  #         limited_data.push(data[row])
+  #         # console.log(@cell_metadata[row])
+  #         limited_metadata.push(metadata_copy[row])
+  #         break
+  #   console.log(limited_data)
+  #   console.log($.map limited_data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
+  #   @table.loadData(limited_data)
+  #   if limited_metadata.length > 0
+  #     @table.updateSettings
+  #       cells: (row, col, prop) =>
+  #         @format_cells(row, col, prop, limited_metadata, @table)
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
