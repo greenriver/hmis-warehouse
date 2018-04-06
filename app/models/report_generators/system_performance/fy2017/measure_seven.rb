@@ -69,13 +69,13 @@ module ReportGenerators::SystemPerformance::Fy2017
       # who also don't have an ongoing enrollment at an SO on the final day of the report 
       # eg. Those who were counted by SO, but exited to somewhere else
       
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+      client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report.options['report_end']).
           hud_project_type(SO)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
-      universe_scope = GrdaWarehouse::ServiceHistory.entry.
+      universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
         hud_project_type(SO).
@@ -93,7 +93,7 @@ module ReportGenerators::SystemPerformance::Fy2017
 
       destinations = {}
       universe.each do |id|
-        destination_scope = GrdaWarehouse::ServiceHistory.exit.
+        destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
           hud_project_type(SO).
@@ -124,7 +124,9 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      @answers[:sevena1_c5][:value] = (((@answers[:sevena1_c3][:value].to_f + @answers[:sevena1_c4][:value].to_f) / @answers[:sevena1_c2][:value]) * 100).round(2)
+      top = (@answers[:sevena1_c3][:value].to_f + @answers[:sevena1_c4][:value].to_f)
+      bottom = @answers[:sevena1_c2][:value]
+      @answers[:sevena1_c5][:value] = (top / bottom * 100).round(2)
   
       return @answers
     end
@@ -134,13 +136,13 @@ module ReportGenerators::SystemPerformance::Fy2017
       # who also don't have a "bed-night" at an ES, SH, TH and PH-RRH on the final day of the report 
       # eg. Those who were counted by ES, SH, TH and PH-RRH, but exited to somewhere else
       
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+      client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report.options['report_end']).
           hud_project_type(SH + TH + RRH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
-      universe_scope = GrdaWarehouse::ServiceHistory.entry.
+      universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
         hud_project_type(SH + TH + RRH).
@@ -158,7 +160,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       
       destinations = {}
       universe.each do |id|
-        destination_scope = GrdaWarehouse::ServiceHistory.exit.
+        destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
           hud_project_type(SH + TH + RRH).
@@ -183,7 +185,9 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      @answers[:sevenb1_c4][:value] = ((@answers[:sevenb1_c3][:value].to_f / @answers[:sevenb1_c2][:value]) * 100).round(2)
+      top = @answers[:sevenb1_c3][:value].to_f
+      bottom = @answers[:sevenb1_c2][:value]
+      @answers[:sevenb1_c4][:value] = (top / bottom * 100).round(2)
       return @answers
     end
 
@@ -192,13 +196,13 @@ module ReportGenerators::SystemPerformance::Fy2017
       # who also don't have an ongoing enrollment at a PH but not PH-RRH on the final day of the report 
       # eg. Those who were counted by PH but not PH-RRH, but exited to somewhere else
       
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+      client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report.options['report_end']).
           hud_project_type(PH_PSH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
-      leavers_scope = GrdaWarehouse::ServiceHistory.entry.
+      leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report.options['report_start'], 
         end_date: @report.options['report_end'].to_date + 1.day).
         hud_project_type(PH_PSH).
@@ -214,7 +218,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         distinct.
         pluck(:client_id)
       
-      stayers_scope = GrdaWarehouse::ServiceHistory.entry.
+      stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         ongoing(on_date: @report.options['report_end']).
         hud_project_type(PH_PSH)
 
@@ -227,7 +231,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       
       destinations = {}
       leavers.each do |id|
-        destination_scope = GrdaWarehouse::ServiceHistory.exit.
+        destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
           hud_project_type(PH).
@@ -252,7 +256,9 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      @answers[:sevenb2_c4][:value] = ((@answers[:sevenb2_c3][:value].to_f / @answers[:sevenb2_c2][:value]) * 100).round(2)
+      top = @answers[:sevenb2_c3][:value].to_f
+      bottom = @answers[:sevenb2_c2][:value]
+      @answers[:sevenb2_c4][:value] = (top / bottom * 100).round(2)
       return @answers
     end
 

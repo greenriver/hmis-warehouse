@@ -54,8 +54,8 @@ module ReportGenerators::SystemPerformance::Fy2017
         :project_name,
         :first_date_in_program,
       ]
-      client_scope = GrdaWarehouse::ServiceHistory.service.
-        service_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
+      client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
         hud_project_type(shelter_types)
       client_scope = add_filters(scope: client_scope)
   
@@ -93,9 +93,9 @@ module ReportGenerators::SystemPerformance::Fy2017
           project_name: :project_name,
           first_date_in_program: :first_date_in_program,
         }
-        client_scope = GrdaWarehouse::ServiceHistory.service.
+        client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           joins(:project).
-          service_within_date_range(start_date: @report_start - 1.day, end_date: @report_end)
+          with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
 
         client_scope = add_filters(scope: client_scope)
         

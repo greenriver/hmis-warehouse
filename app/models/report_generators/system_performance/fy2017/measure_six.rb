@@ -90,7 +90,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       look_back_until = LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days) ? LOOKBACK_STOP_DATE : (@report_start - 730.days)
       look_forward_until = @report_end - 730.days
 
-      project_exits_scope = GrdaWarehouse::ServiceHistory.exit.
+      project_exits_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
         joins(:project).
         coc_funded_in(coc_code: COC_CODE).
         ended_between(start_date: look_back_until, 
@@ -176,7 +176,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       }
       project_exits_to_ph.each do |id, p_exit|
         client_entries = {}
-        client_entries_scope = GrdaWarehouse::ServiceHistory.entry.
+        client_entries_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           joins(:project).
           coc_funded_in(coc_code: COC_CODE).
           started_between(start_date: p_exit[:last_date_in_program], 
@@ -278,7 +278,7 @@ module ReportGenerators::SystemPerformance::Fy2017
 
           elsif project_types.include?('PH')
             if (day.to_date - ph_check_date).to_i < 14
-              next_end_date_scope = GrdaWarehouse::ServiceHistory.entry.
+              next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
                 coc_funded_in(coc_code: COC_CODE).
                 where(
                   first_date_in_program: day, 
@@ -496,13 +496,13 @@ module ReportGenerators::SystemPerformance::Fy2017
       # who also don't have an ongoing enrollment at an SH, TH and PH-RRH on the final day of the report 
       # eg. Those who were counted by SH, TH and PH-RRH, but exited to somewhere else
        
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+      client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report.options['report_end']).
           hud_project_type(SH + TH + RRH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
-      universe_scope = GrdaWarehouse::ServiceHistory.entry.
+      universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         coc_funded_in(coc_code: COC_CODE).
         category_3.
         open_between(start_date: @report_start, 
@@ -522,7 +522,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       
       destinations = {}
       universe.each do |id|
-        destination_scope = GrdaWarehouse::ServiceHistory.exit.
+        destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           coc_funded_in(coc_code: COC_CODE).
           ended_between(start_date: @report_start, 
           end_date: @report_end + 1.day).
@@ -557,13 +557,13 @@ module ReportGenerators::SystemPerformance::Fy2017
       # who also don't have an ongoing enrollment at a PH but not PH-RRH on the final day of the report 
       # eg. Those who were counted by PH but not PH-RRH, but exited to somewhere else
       
-      client_id_scope = GrdaWarehouse::ServiceHistory.entry.
+      client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report_end).
           hud_project_type(PH_PSH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
-      leavers_scope = GrdaWarehouse::ServiceHistory.entry.
+      leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         coc_funded_in(coc_code: COC_CODE).
         category_3.
         open_between(start_date: @report_start, 
@@ -581,7 +581,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         distinct.
         pluck(:client_id)
     
-      stayers_scope = GrdaWarehouse::ServiceHistory.entry.
+      stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         coc_funded_in(coc_code: COC_CODE).
         category_3.
         ongoing(on_date: @report_end).
@@ -596,7 +596,7 @@ module ReportGenerators::SystemPerformance::Fy2017
       
       destinations = {}
       leavers.each do |id|
-        destination_scope = GrdaWarehouse::ServiceHistory.exit.
+        destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           coc_funded_in(coc_code: COC_CODE).
           ended_between(start_date: @report_start, 
           end_date: @report_end + 1.day).

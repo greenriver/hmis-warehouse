@@ -69,14 +69,7 @@ module ReportGenerators::SystemPerformance::Fy2017
 
     def calculate_one_a_es_sh
       # Universe is anyone who spent time in ES or SH
-      # 
-      # This uses service records instead of entry records, it is much slower, but 
-      # excludes clients with no service records for an enrollment
-      # remaining = GrdaWarehouse::ServiceHistory.service.
-      #   service_within_date_range(start_date: @report.options['report_start'].to_date - 1.day, end_date: @report.options['report_end'].to_date).
-      #   where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :sh).flatten(1)).
-      #   select(:client_id).distinct.pluck(:client_id)
-
+    
       project_types = ES + SH
       stop_project_types = PH + TH
       remaining_scope = clients_in_projects_of_type(project_types: project_types).
@@ -224,23 +217,23 @@ module ReportGenerators::SystemPerformance::Fy2017
     end
     
     def clients_in_projects_of_type project_types:
-      GrdaWarehouse::ServiceHistory.
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
         entry_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
-          hud_project_type(project_types)
+          hud_project_type(project_types).
+          with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
     end
 
     def calculate_days_homeless id, project_types, stop_project_types, include_pre_entry=false
       columns = {
-        date: sh_t[:date].to_sql, 
-        project_type: sh_t[:computed_project_type].to_sql, 
-        first_date_in_program: sh_t[:first_date_in_program].to_sql,
+        date: shs_t[:date].to_sql, 
+        project_type: she_t[:computed_project_type].to_sql, 
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
         DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
       }
-      #Rails.logger.info "Calculating Days Homelesss for: #{id}"
+      #Rails.logger.info "Calculating Days Homeless for: #{id}"
       # Load all bed nights
-      all_night_scope = GrdaWarehouse::ServiceHistory.
-        service.
-        joins(:enrollment, :project).
+      all_night_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:enrollment, :service_history_service).
         where(client_id: id).
         hud_project_type(PH + TH + ES + SH)
 

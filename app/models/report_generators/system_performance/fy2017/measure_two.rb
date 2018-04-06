@@ -61,13 +61,12 @@ module ReportGenerators::SystemPerformance::Fy2017
           project_id: :project_id,
           project_name: :project_name,
         }
-        sh = GrdaWarehouse::ServiceHistory.arel_table
-        project_exit_scope = GrdaWarehouse::ServiceHistory.exit.
+        project_exit_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
         hud_project_type(project_types).
         joins(:project).
         where(
-          sh[:last_date_in_program].lteq(look_forward_until).
-          and(sh[:last_date_in_program].gteq(look_back_until))
+          she_t[:last_date_in_program].lteq(look_forward_until).
+          and(she_t[:last_date_in_program].gteq(look_back_until))
         )
 
         project_exit_scope = add_filters(scope: project_exit_scope)
@@ -155,11 +154,11 @@ module ReportGenerators::SystemPerformance::Fy2017
         }
         project_exits_to_ph.each do |id, p_exit|
 
-          client_scope = GrdaWarehouse::ServiceHistory.entry.
+          client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
             joins(:project).
             where(client_id: p_exit[:client_id]).
-            where(sh[:first_date_in_program].lteq(@report_end).
-              and(sh[:first_date_in_program].gt(p_exit[:last_date_in_program])))
+            where(she_t[:first_date_in_program].lteq(@report_end).
+              and(she_t[:first_date_in_program].gt(p_exit[:last_date_in_program])))
 
           client_scope = add_filters(scope: client_scope)
 
@@ -259,7 +258,7 @@ module ReportGenerators::SystemPerformance::Fy2017
             elsif project_types.include?('PH')
               #puts "#{p_exit[:client_id]}: #{day.to_date} ---- #{ph_check_date.to_date} #{(day.to_date - ph_check_date.to_date).to_i}"
               if (day.to_date - ph_check_date.to_date).to_i < 14
-                next_end_date_scope = GrdaWarehouse::ServiceHistory.entry.
+                next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
                   where(
                     first_date_in_program: day, 
                     client_id: p_exit[:client_id]
