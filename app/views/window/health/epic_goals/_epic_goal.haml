@@ -1,0 +1,30 @@
+- goal = epic_goal
+.panel-group.panel-collapsible.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
+  .panel.panel-default
+    .panel-heading
+      .row
+        .col-md-7
+          %h3.section-expander-block__header
+            %a.toggle.collapsed{data: {parent: "#goal-#{goal.id}", toggle: 'collapse'}, href: "#goal-content-#{goal.id}"}
+              = goal.title
+        .col-md-5
+          .section-expander-block__expander-region
+            .section-expander-block__metadata.text-small
+              Last Modified: 
+              %strong
+                = goal.updated_at.to_date
+                = " by #{goal.entered_by}"
+            %a.toggle.collapsed{data: {parent: "#goal-#{goal.id}", toggle: 'collapse'}, href: "#goal-content-#{goal.id}"}
+              %i.arrow-icon.icon-arrow-circled-right
+              %i.arrow-icon.icon-arrow-circled-down.hide              
+    .panel-collapse.collapse{id: "goal-content-#{goal.id}"}
+      .panel-body
+        .row
+          .col-sm-4
+            %h4 Objective
+            = goal.objective
+            %h4 Steps to Reach Goal
+            = goal.steps
+          .col-sm-8
+            %h4 Team Members
+            = goal.team
