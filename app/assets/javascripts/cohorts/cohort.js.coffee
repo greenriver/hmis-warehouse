@@ -85,6 +85,7 @@ class App.Cohorts.Cohort
     searchField = $(@search_selector)[0]
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       search_string = '' + $(e.target).val()
+      return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
       results = @table.search.query(search_string)
       @table.render()
       first_result = results[0]
