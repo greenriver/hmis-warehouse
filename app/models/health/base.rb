@@ -18,6 +18,7 @@ module Health
         Health::Problem,
         Health::Team,
         Health::Visit,
+        Health::EpicGoal,
       ]
     end
   end
