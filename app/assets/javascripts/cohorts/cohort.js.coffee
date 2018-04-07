@@ -23,6 +23,7 @@ class App.Cohorts.Cohort
     @input_selector = options['input_selector']
     @updated_ats = options['updated_ats']
     @search_selector = options['search_selector']
+    @search_actions_selector = options['search_actions_selector']
 
     # Testing
     # @client_count = 15
@@ -81,14 +82,59 @@ class App.Cohorts.Cohort
   load_sort_order: () =>
     console.log(@current_sort)
 
+  initialize_search_buttons: () =>
+    $search_actions = $(@search_actions_selector)
+    $back = $search_actions.find('.jSearchBack')
+    $forward = $search_actions.find('.jSearchForward')
+    $back.on 'click', (e) =>
+      if @current_result == 0
+        @current_result = @search_results.length - 1
+      else
+        prev = @current_result - 1
+        @current_result = prev % @search_results.length
+      @set_search_position()
+    $forward.on 'click', (e) =>
+      next = @current_result + 1
+      @current_result = next % @search_results.length
+      @set_search_position()
+
+  move_to_current_result: () =>
+    current = @search_results[@current_result]
+    @table.scrollViewportTo(current.row, current.col)
+
+  set_search_position: () =>
+    $search_actions = $(@search_actions_selector)
+    $search_status = $search_actions.find('.jSearchStatus')
+    $search_status.text("#{@current_result + 1} of #{@search_results.length}")
+    @move_to_current_result()
+
+  update_search_navigation: () =>
+    # tt[4%tt.length]
+    $search_actions = $(@search_actions_selector)
+    $search_status = $search_actions.find('.jSearchStatus')
+    @current_result = 0
+    if @search_results? && @search_results.length > 0
+      $search_actions.removeClass('hide')
+      @set_search_position()
+    else
+      $search_actions.addClass('hide')
+
   enable_searching: () =>
     searchField = $(@search_selector)[0]
+    $(searchField).removeAttr('disabled')
+    @initialize_search_buttons()
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       search_string = '' + $(e.target).val()
-      results = @table.search.query(search_string)
+      @search_results = @table.search.query(search_string)
       @table.render()
-      first_result = results[0]
+      if @search_results.length == 0
+        @update_search_navigation()
+        return
+
+      first_result = @search_results[0]
       @table.scrollViewportTo(first_result.row, first_result.col)
+      @update_search_navigation()
+
       # @save_sort_order()
       
       # search_string = '' + $(e.target).val()
