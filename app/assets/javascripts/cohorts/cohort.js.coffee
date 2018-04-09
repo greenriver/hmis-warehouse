@@ -87,6 +87,7 @@ class App.Cohorts.Cohort
     $back = $search_actions.find('.jSearchBack')
     $forward = $search_actions.find('.jSearchForward')
     $back.on 'click', (e) =>
+      e.preventDefault()
       if @current_result == 0
         @current_result = @search_results.length - 1
       else
@@ -94,6 +95,7 @@ class App.Cohorts.Cohort
         @current_result = prev % @search_results.length
       @set_search_position()
     $forward.on 'click', (e) =>
+      e.preventDefault()
       next = @current_result + 1
       @current_result = next % @search_results.length
       @set_search_position()
