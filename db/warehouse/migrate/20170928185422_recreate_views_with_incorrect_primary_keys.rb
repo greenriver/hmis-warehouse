@@ -194,13 +194,13 @@ class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
   end
 
   def drop_order
-    drop_view :report_services
-    drop_view :report_income_benefits
-    drop_view :report_health_and_dvs
-    drop_view :report_exits
-    drop_view :report_employment_educations
-    drop_view :report_disabilities
-    drop_view :report_enrollments
+    drop_view :report_services if ActiveRecord::Base.connection.table_exists? :report_services
+    drop_view :report_income_benefits if ActiveRecord::Base.connection.table_exists? :report_income_benefits
+    drop_view :report_health_and_dvs if ActiveRecord::Base.connection.table_exists? :report_health_and_dvs
+    drop_view :report_exits if ActiveRecord::Base.connection.table_exists? :report_exits
+    drop_view :report_employment_educations if ActiveRecord::Base.connection.table_exists? :report_employment_educations
+    drop_view :report_disabilities if ActiveRecord::Base.connection.table_exists? :report_disabilities
+    drop_view :report_enrollments if ActiveRecord::Base.connection.table_exists? :report_enrollments
   end
 
   def create_order
