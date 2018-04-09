@@ -115,10 +115,12 @@ class App.Cohorts.Cohort
     $search_status = $search_actions.find('.jSearchStatus')
     @current_result = 0
     if @search_results? && @search_results.length > 0
-      $search_actions.removeClass('hide')
+      $search_actions.find('a').removeClass('disabled')
+      $search_status.removeClass('hide')
       @set_search_position()
     else
-      $search_actions.addClass('hide')
+      $search_actions.find('a').addClass('disabled')
+      $search_status.addClass('hide')
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]

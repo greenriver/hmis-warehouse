@@ -3,15 +3,19 @@
   - size = params[:size].to_sym
 .table-wrapper
   .row
-    .col-sm-6.cohort--table-info
+    .col-sm-7.cohort--table-info
       = "Cohort: #{pluralize(@cohort.cohort_clients.size, 'client')}; #{@cohort.cohort_clients.active.size} active."
-    .col-sm-3.text-right
-      .jSearchActions.hide
-        %span.jSearchStatus
-          -# 0 of 0
-        %a.jSearchBack.icon-arrow-left.btn.btn-sm.btn-secondary{href: '#back'}
-        %a.jSearchForward.icon-arrow-right.btn.btn-sm.btn-secondary{href: '#forward'}
-    .col-sm-3.cohort-search
-      %input#cohort-search.form-control.jSearchBox{placeholder: 'Search', type: :search, disabled: :disabled}
-      
+    .col-sm-1.text-right
+      .jSearchActions
+        %span.jSearchStatus.text-muted.hide
+        -# 0 of 0
+    .col-sm-4.cohort-search
+      .input-group.input-group-sm
+        %input#cohort-search.form-control.jSearchBox{placeholder: 'Search', type: :search, disabled: :disabled}
+
+        .jSearchActions.input-group-btn
+          %a.disabled.jSearchBack.icon-arrow-left.btn.btn-sm.btn-secondary{href: '#back'}
+          %a.disabled.jSearchForward.icon-arrow-right.btn.btn-sm.btn-secondary{href: '#forward'}
+          
+    
   .cohort-client__table.datatable{class: size}
