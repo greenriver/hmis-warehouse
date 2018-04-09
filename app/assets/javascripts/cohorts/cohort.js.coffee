@@ -109,7 +109,6 @@ class App.Cohorts.Cohort
     @move_to_current_result()
 
   update_search_navigation: () =>
-    # tt[4%tt.length]
     $search_actions = $(@search_actions_selector)
     $search_status = $search_actions.find('.jSearchStatus')
     @current_result = 0
@@ -125,64 +124,10 @@ class App.Cohorts.Cohort
     @initialize_search_buttons()
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
       search_string = '' + $(e.target).val()
+      search_string = '' unless search_string.length > 2 # Don't match until we have 3 characters
       @search_results = @table.search.query(search_string)
       @table.render()
-      if @search_results.length == 0
-        @update_search_navigation()
-        return
-
-      first_result = @search_results[0]
-      @table.scrollViewportTo(first_result.row, first_result.col)
       @update_search_navigation()
-
-      # @save_sort_order()
-      
-      # search_string = '' + $(e.target).val()
-      # # Only reload if we really need to
-      # return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
-      # # console.log search_string
-      # queryResult = @table.search.query(search_string)
-      # @filter_rows(search_string)
-      
-      # # restore sort order
-      # @table.updateSettings
-      #   columnSorting: @current_sort
-      # @table.render()
-
-  # filter_rows: (search) =>
-  #   # console.log "searching for: #{search}"
-  #   data = @raw_data
-  #   metadata_copy = @cell_metadata
-  #   if search == ''
-  #     console.log data
-  #     console.log($.map data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
-  #     @table.loadData(data)
-  #     @table.updateSettings
-  #       cells: (row, col, prop) =>
-  #         @format_cells(row, col, prop, @cell_metadata, @table)
-  #     return
-  #   limited_data = []
-  #   limited_metadata = []
-  #   for row in [0...data.length] by 1
-  #     strings = $.map data[row], (obj) ->
-  #       if obj.renderer == 'html'
-  #         $(obj.value).text()
-  #       else
-  #         obj.value
-  #     for col in [0...strings.length] by 1
-  #       if ('' + strings[col]).toLowerCase().indexOf(search.toLowerCase()) > -1
-  #         # console.log "Found in:", data[row]
-  #         limited_data.push(data[row])
-  #         # console.log(@cell_metadata[row])
-  #         limited_metadata.push(metadata_copy[row])
-  #         break
-  #   console.log(limited_data)
-  #   console.log($.map limited_data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
-  #   @table.loadData(limited_data)
-  #   if limited_metadata.length > 0
-  #     @table.updateSettings
-  #       cells: (row, col, prop) =>
-  #         @format_cells(row, col, prop, limited_metadata, @table)
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
