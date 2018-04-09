@@ -1,0 +1,6 @@
+- unless @readonly
+  .row
+    .col-sm-12.text-right
+      =link_to polymorphic_path([:print] + careplan_path_generator) do
+        %i.icon-printer
+        Print Care Plan

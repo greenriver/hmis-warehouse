@@ -14,7 +14,8 @@ module Health
       'medications.csv' => Health::Medication,
       'patients.csv' => Health::Patient,
       'problems.csv' => Health::Problem,
-      'recent_visits.csv' => Health::Visit,      
+      'recent_visits.csv' => Health::Visit,
+      'goals.csv' => Health::EpicGoal,
     }.freeze
   end
 end
