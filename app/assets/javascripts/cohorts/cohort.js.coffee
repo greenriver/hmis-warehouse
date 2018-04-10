@@ -38,9 +38,6 @@ class App.Cohorts.Cohort
     
     @load_pages()
     @listen_for_page_resize()
-    
-    @refresh_rate = 10000
-    setInterval @check_for_new_data, @refresh_rate
 
   initialize_handsontable: () =>
     direction = true
@@ -146,6 +143,8 @@ class App.Cohorts.Cohort
           @format_cells(row, col, prop, @cell_metadata, @table)
         columnSorting: @initial_sort
       @enable_searching()
+      @refresh_rate = 10000
+      setInterval @check_for_new_data, @refresh_rate
       
       # console.log @raw_data
       
