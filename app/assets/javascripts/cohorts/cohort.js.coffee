@@ -289,11 +289,16 @@ class App.Cohorts.Cohort
   check_for_new_data: =>    
     $.get @check_url, (data) =>
       console.log 'checking', @updated_ats
+      changed = false
       $.each data, (id, timestamp) =>
-        if timestamp != @updated_ats[parseInt id]
+        if timestamp != @updated_ats[id]
+          changed = true
+          console.log "didn't match", @updated_ats
           console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
-      @updated_ats = data
+      if changed
+        console.log 'Setting new updated ats'
+        @updated_ats = data
           
   reload_client: (cohort_client_id) =>
     url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
