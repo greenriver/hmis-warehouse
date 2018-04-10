@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-
+  
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -407,6 +407,7 @@ Rails.application.routes.draw do
       resources :assessments, only: [:index, :update]
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
+    resources :administrative_events, only: [:index, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
 
