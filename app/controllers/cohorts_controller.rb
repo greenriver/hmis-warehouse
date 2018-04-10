@@ -24,6 +24,7 @@ class CohortsController < ApplicationController
     else
       @cohort_clients = @cohort.cohort_clients.where(active: true)
     end
+    @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
