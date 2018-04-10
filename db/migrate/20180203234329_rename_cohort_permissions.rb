@@ -1,7 +1,11 @@
 class RenameCohortPermissions < ActiveRecord::Migration
   def up
-    remove_column :roles, :can_create_cohorts, :boolean, default: false
-    remove_column :roles, :can_view_cohorts, :boolean, default: false
+    if column_exists? :roles, :can_create_cohorts
+      remove_column :roles, :can_create_cohorts, :boolean, default: false
+    end
+    if column_exists? :roles, :can_view_cohorts
+      remove_column :roles, :can_view_cohorts, :boolean, default: false
+    end
     Role.ensure_permissions_exist   
   end
   def down
