@@ -288,10 +288,10 @@ class App.Cohorts.Cohort
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      # console.log 'checking'
+      console.log 'checking', @updated_ats
       $.each data, (id, timestamp) =>
         if timestamp != @updated_ats[id]
-          # console.log(id, timestamp, @updated_ats[id])
+          console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
       @updated_ats = data
           
