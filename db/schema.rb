@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180301214751) do
+ActiveRecord::Schema.define(version: 20180410152130) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -322,6 +322,7 @@ ActiveRecord::Schema.define(version: 20180301214751) do
     t.boolean  "notify_on_vispdat_completed",       default: false
     t.boolean  "notify_on_client_added",            default: false
     t.boolean  "notify_on_anomaly_identified",      default: false, null: false
+    t.string   "coc_codes",                         default: [],                 array: true
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
