@@ -406,6 +406,31 @@ module GrdaWarehouse::Hud
       where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.pluck(:client_id))
     end
 
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.coc_codes.none?
+        none
+      else
+        at = arel_table
+        e_t = GrdaWarehouse::Hud::Enrollment.arel_table
+        e_coc_t = GrdaWarehouse::Hud::EnrollmentCoc.arel_table
+        where(
+          e_t.project(Arel.star).
+            join(e_coc_t).
+              on(
+                e_t[:ProjectEntryID].       eq(e_coc_t[:ProjectEntryID]).
+                  and( e_t[:PersonalID].    eq e_coc_t[:PersonalID] ).
+                  and( e_t[:data_source_id].eq e_coc_t[:data_source_id] )
+              ).
+            where( e_coc_t[:CoCCode].   in user.coc_codes ).
+            where( e_t[:PersonalID].    eq at[:PersonalID] ).
+            where( e_t[:data_source_id].eq at[:data_source_id] ).
+            exists
+        )
+      end
+    end
+
     ####################
     # Callbacks
     ####################
