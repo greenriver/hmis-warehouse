@@ -132,20 +132,21 @@ module ReportGenerators::SystemPerformance::Fy2017
     end
 
     def calculate_7b_1
-      # Select clients who have a recorded stay in ES, SH, TH and PH-RRH during the report period
-      # who also don't have a "bed-night" at an ES, SH, TH and PH-RRH on the final day of the report 
-      # eg. Those who were counted by ES, SH, TH and PH-RRH, but exited to somewhere else
-      
+      # Select clients who have a recorded stay in ES, SH, TH and PH during the report period
+      # who also don't have a "bed-night" at an ES, SH, TH and PH on the final day of the report 
+      # eg. Those who were counted by ES, SH, TH and PH, but exited to somewhere else
+      # PH gets special treatment, 13 (RRH) is treated like ES,SH,TH, but 3,9,10 
+      # looks at housing move-in date and removes any where it is <= report_end
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report.options['report_end']).
-          hud_project_type(SH + TH + RRH)
+          hud_project_type(ES + SH + TH + PH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
-        hud_project_type(SH + TH + RRH).
+        hud_project_type(ES + SH + TH + PH).
         where.not(client_id: client_id_scope.
           select(:client_id).
           distinct
@@ -163,17 +164,25 @@ module ReportGenerators::SystemPerformance::Fy2017
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
-          hud_project_type(SH + TH + RRH).
+          hud_project_type(ES + SH + TH + PH).
           where(client_id: id)
 
         destination_scope = add_filters(scope: destination_scope)
-
-        destinations[id] = destination_scope.
+        exit_data = destination_scope.joins(:enrollment).
           order(date: :desc).
           limit(1).
-          pluck(:destination).first
+          pluck(:destination, :computed_project_type, e_t[:ResidentialMoveInDate]).map do |destination, project_type, move_in_date|
+            {
+              destination: destination,
+              project_type: project_type,
+              move_in_date: move_in_date,
+            }
+          end.first
+        # remove anyone who exited from PH, but had already moved into housing
+        next if PH_PSH.include?(exit_data[:destination].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report.options['report_end']
+        destinations[id] = exit_data[:destination]
       end
-      remaining_leavers = destinations.reject{ |id, destination| [15, 6,25,24].include?(destination.to_i)}
+      remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
       @answers[:sevenb1_c2][:value] = remaining_leavers.size
       @support[:sevenb1_c2][:support] = {
         headers: ['Client ID', 'Destination'],
@@ -224,25 +233,42 @@ module ReportGenerators::SystemPerformance::Fy2017
 
       stayers_scope = add_filters(scope: stayers_scope)
 
-      stayers = stayers_scope.
+      stayers = Set.new
+      stayers_scope.joins(:enrollment).
         select(:client_id).
         distinct.
-        pluck(:client_id)
+        order(first_date_in_program: :asc).
+        pluck(:client_id, :first_date_in_program, e_t[:ResidentialMoveInDate]).
+        group_by(&:first).each do |_, stays|
+          (client_id, entry_date, move_in_date) = stays.last
+          # remove anyone who hasn't moved in to housing yet
+          next if move_in_date.blank? || move_in_date > @report.options['report_end']
+          stayers << client_id
+        end
       
       destinations = {}
       leavers.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          joins(:enrollment).
           ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day).
           hud_project_type(PH).
           where(client_id: id)
 
         destination_scope = add_filters(scope: destination_scope)
-
-        destinations[id] = destination_scope.
+        exit_data = destination_scope.
           order(date: :desc).
           limit(1).
-          pluck(:destination).first
+          pluck(:destination, :computed_project_type, e_t[:ResidentialMoveInDate]).map do |destination, project_type, move_in_date|
+            {
+              destination: destination,
+              project_type: project_type,
+              move_in_date: move_in_date,
+            }
+          end.first
+        # remove anyone who exited from PH, but never moved into housing
+        next if exit_data[:move_in_date].blank?
+        destinations[id] = exit_data[:destination]
       end
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
       @answers[:sevenb2_c2][:value] = remaining_leavers.size + stayers.size
@@ -250,7 +276,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31].include?(destination.to_i)}
       @answers[:sevenb2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sevenb2_c3][:support] = {
         headers: ['Client ID', 'Destination'],
