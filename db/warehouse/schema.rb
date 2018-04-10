@@ -17,6 +17,7 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
   enable_extension "pgcrypto"
+  enable_extension "pg_stat_statements"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -766,6 +767,19 @@ ActiveRecord::Schema.define(version: 20180330145925) do
     t.boolean  "consent_form",         default: false
     t.string   "note"
   end
+
+  create_table "cas_enrollments", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "enrollment_id"
+    t.date     "entry_date"
+    t.date     "exit_date"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.json     "history"
+  end
+
+  add_index "cas_enrollments", ["client_id"], name: "index_cas_enrollments_on_client_id", using: :btree
+  add_index "cas_enrollments", ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id", using: :btree
 
   create_table "cas_houseds", force: :cascade do |t|
     t.integer "client_id",                     null: false
@@ -2709,6 +2723,7 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type", using: :btree
   add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id"], name: "index_sh_date_ds_id_org_id_proj_id", using: :btree
+  add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
   add_index "warehouse_client_service_history", ["date"], name: "index_warehouse_client_service_history_on_date", using: :btree
   add_index "warehouse_client_service_history", ["date"], name: "service_history_date_desc", order: {"date"=>:desc}, using: :btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
@@ -2970,7 +2985,6 @@ ActiveRecord::Schema.define(version: 20180330145925) do
       "Enrollment"."JailNights",
       "Enrollment"."HospitalNights",
       "Enrollment"."RunawayYouth",
-      "Enrollment".processed_hash,
       source_clients.id AS demographic_id,
       destination_clients.id AS client_id
      FROM ((("Enrollment"
@@ -3356,5 +3370,97 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
+
+  create_view "report_clients",  sql_definition: <<-SQL
+      SELECT "Client"."PersonalID",
+      "Client"."FirstName",
+      "Client"."MiddleName",
+      "Client"."LastName",
+      "Client"."NameSuffix",
+      "Client"."NameDataQuality",
+      "Client"."SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."OtherGender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID",
+      "Client".id
+     FROM "Client"
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE (data_sources.source_type IS NULL))));
+  SQL
+
+  create_view "report_demographics",  sql_definition: <<-SQL
+      SELECT "Client"."PersonalID",
+      "Client"."FirstName",
+      "Client"."MiddleName",
+      "Client"."LastName",
+      "Client"."NameSuffix",
+      "Client"."NameDataQuality",
+      "Client"."SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."OtherGender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID",
+      "Client".data_source_id,
+      "Client".id,
+      report_clients.id AS client_id
+     FROM (("Client"
+       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
+       JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
+    WHERE ("Client"."DateDeleted" IS NULL);
+  SQL
 
 end
