@@ -127,8 +127,8 @@ class App.Cohorts.Cohort
       search_string = '' + $(e.target).val()
       search_string = '' unless search_string.length > 2 # Don't match until we have 3 characters
       @search_results = @table.search.query(search_string)
-      @table.render()
       @update_search_navigation()
+      @table.render()
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
