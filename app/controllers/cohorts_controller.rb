@@ -46,7 +46,7 @@ class CohortsController < ApplicationController
             options.merge!({type: m.renderer, source: m.available_options})
           when 'date', 'checkbox', 'text', 'numeric'
             options.merge!({type: m.renderer})
-          else 
+          else
             options.merge!({renderer: m.renderer})
             options.merge!({readOnly: true}) unless m.editable 
           end

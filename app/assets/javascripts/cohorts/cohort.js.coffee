@@ -64,21 +64,6 @@ class App.Cohorts.Cohort
     if source == 'edit'
       @after_edit(changes)
 
-  after_load_data: (changes) =>
-    @load_sort_order()
-
-  save_sort_order: () =>
-    { sortColumn, sortOrder } = @table
-    if typeof sortOrder == 'undefined'
-      @current_sort.column = @initial_sort.column
-      @current_sort.sortOrder = @initial_sort.sortOrder
-    else
-      @current_sort.column = sortColumn
-      @current_sort.sortOrder = sortOrder
-
-  load_sort_order: () =>
-    console.log(@current_sort)
-
   initialize_search_buttons: () =>
     $search_actions = $(@search_actions_selector)
     $back = $search_actions.find('.jSearchBack')
