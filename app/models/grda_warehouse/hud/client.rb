@@ -145,8 +145,8 @@ module GrdaWarehouse::Hud
     has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :case_management_notes, -> { where(name: 'SDH Case Management Note')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :health_touch_points, -> do
-      f_t = GrdaWarehouse::HmisForm.arel_table
-      where(f_t[:collection_location].matches('Social Determinants of Health%'))
+      hmisf_t = GrdaWarehouse::HmisForm.arel_table
+      where(hmisf_t[:collection_location].matches('Social Determinants of Health%'))
     end, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
