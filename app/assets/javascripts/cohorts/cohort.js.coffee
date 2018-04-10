@@ -290,7 +290,7 @@ class App.Cohorts.Cohort
     $.get @check_url, (data) =>
       console.log 'checking', @updated_ats
       $.each data, (id, timestamp) =>
-        if timestamp != @updated_ats[id]
+        if timestamp != @updated_ats[parseInt id]
           console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
       @updated_ats = data
