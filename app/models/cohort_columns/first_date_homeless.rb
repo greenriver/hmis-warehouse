@@ -6,6 +6,10 @@ module CohortColumns
     def date_format
       'll'
     end
+
+    def renderer
+      'date'
+    end
     
     def value(cohort_client)
       cohort_client.client.first_homeless_date&.to_date&.to_s

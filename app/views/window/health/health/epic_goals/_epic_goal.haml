@@ -1,23 +1,19 @@
 - goal = epic_goal
-.panel-group.panel-collapsible.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
+.panel-group.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
   .panel.panel-default
     .panel-heading
       .row
         .col-md-5
           %h3.section-expander-block__header
-            %a.toggle.collapsed{data: {parent: "#goal-#{goal.id}", toggle: 'collapse'}, href: "#goal-content-#{goal.id}"}
-              = goal.title
+            = goal.title
         .col-md-7
           .section-expander-block__expander-region
             .section-expander-block__metadata.text-small
               Last Modified: 
               %strong
                 = goal.updated_at.to_date
-                = " by #{goal.entered_by}"
-            %a.toggle.collapsed{data: {parent: "#goal-#{goal.id}", toggle: 'collapse'}, href: "#goal-content-#{goal.id}"}
-              %i.arrow-icon.icon-arrow-circled-right
-              %i.arrow-icon.icon-arrow-circled-down.hide              
-    .panel-collapse.collapse{id: "goal-content-#{goal.id}"}
+                = " by #{goal.entered_by}"     
+    .panel-collapse{id: "goal-content-#{goal.id}"}
       .panel-body
         .row
           .col-sm-4

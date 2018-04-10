@@ -23,6 +23,7 @@ class App.Cohorts.Cohort
     @input_selector = options['input_selector']
     @updated_ats = options['updated_ats']
     @search_selector = options['search_selector']
+    @search_actions_selector = options['search_actions_selector']
 
     # Testing
     # @client_count = 15
@@ -37,9 +38,6 @@ class App.Cohorts.Cohort
     
     @load_pages()
     @listen_for_page_resize()
-    
-    @refresh_rate = 10000
-    setInterval @check_for_new_data, @refresh_rate
 
   initialize_handsontable: () =>
     direction = true
@@ -66,72 +64,56 @@ class App.Cohorts.Cohort
     if source == 'edit'
       @after_edit(changes)
 
-  after_load_data: (changes) =>
-    @load_sort_order()
+  initialize_search_buttons: () =>
+    $search_actions = $(@search_actions_selector)
+    $back = $search_actions.find('.jSearchBack')
+    $forward = $search_actions.find('.jSearchForward')
+    $back.on 'click', (e) =>
+      e.preventDefault()
+      if @current_result == 0
+        @current_result = @search_results.length - 1
+      else
+        prev = @current_result - 1
+        @current_result = prev % @search_results.length
+      @set_search_position()
+    $forward.on 'click', (e) =>
+      e.preventDefault()
+      next = @current_result + 1
+      @current_result = next % @search_results.length
+      @set_search_position()
 
-  save_sort_order: () =>
-    { sortColumn, sortOrder } = @table
-    if typeof sortOrder == 'undefined'
-      @current_sort.column = @initial_sort.column
-      @current_sort.sortOrder = @initial_sort.sortOrder
+  move_to_current_result: () =>
+    current = @search_results[@current_result]
+    @table.scrollViewportTo(current.row, current.col)
+
+  set_search_position: () =>
+    $search_actions = $(@search_actions_selector)
+    $search_status = $search_actions.find('.jSearchStatus')
+    $search_status.text("#{@current_result + 1} of #{@search_results.length}")
+    @move_to_current_result()
+
+  update_search_navigation: () =>
+    $search_actions = $(@search_actions_selector)
+    $search_status = $search_actions.find('.jSearchStatus')
+    @current_result = 0
+    if @search_results? && @search_results.length > 0
+      $search_actions.find('a').removeClass('disabled')
+      $search_status.removeClass('hide')
+      @set_search_position()
     else
-      @current_sort.column = sortColumn
-      @current_sort.sortOrder = sortOrder
-
-  load_sort_order: () =>
-    console.log(@current_sort)
+      $search_actions.find('a').addClass('disabled')
+      $search_status.addClass('hide')
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]
+    $(searchField).removeAttr('disabled')
+    @initialize_search_buttons()
     Handsontable.dom.addEvent searchField, 'keyup', (e) =>
-      @save_sort_order()
-      
       search_string = '' + $(e.target).val()
-      # Only reload if we really need to
-      return unless e.key.length == 1 || search_string.length > 2 || search_string == ''
-      # console.log search_string
-      queryResult = @table.search.query(search_string)
-      @filter_rows(search_string)
-      
-      # restore sort order
-      @table.updateSettings
-        columnSorting: @current_sort
+      search_string = '' unless search_string.length > 2 # Don't match until we have 3 characters
+      @search_results = @table.search.query(search_string)
+      @update_search_navigation()
       @table.render()
-
-  filter_rows: (search) =>
-    # console.log "searching for: #{search}"
-    data = @raw_data
-    metadata_copy = @cell_metadata
-    if search == ''
-      console.log data
-      console.log($.map data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
-      @table.loadData(data)
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, @cell_metadata, @table)
-      return
-    limited_data = []
-    limited_metadata = []
-    for row in [0...data.length] by 1
-      strings = $.map data[row], (obj) ->
-        if obj.renderer == 'html'
-          $(obj.value).text()
-        else
-          obj.value
-      for col in [0...strings.length] by 1
-        if ('' + strings[col]).toLowerCase().indexOf(search.toLowerCase()) > -1
-          # console.log "Found in:", data[row]
-          limited_data.push(data[row])
-          # console.log(@cell_metadata[row])
-          limited_metadata.push(metadata_copy[row])
-          break
-    console.log(limited_data)
-    console.log($.map limited_data, (obj) -> "#{$(obj.first_name.value).text()} #{$(obj.last_name.value).text()}")
-    @table.loadData(limited_data)
-    if limited_metadata.length > 0
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, limited_metadata, @table)
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -146,6 +128,8 @@ class App.Cohorts.Cohort
           @format_cells(row, col, prop, @cell_metadata, @table)
         columnSorting: @initial_sort
       @enable_searching()
+      @refresh_rate = 10000
+      setInterval @check_for_new_data, @refresh_rate
       
       # console.log @raw_data
       
@@ -289,12 +273,17 @@ class App.Cohorts.Cohort
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      # console.log 'checking'
+      console.log 'checking', @updated_ats
+      changed = false
       $.each data, (id, timestamp) =>
         if timestamp != @updated_ats[id]
-          # console.log(id, timestamp, @updated_ats[id])
+          changed = true
+          console.log "didn't match", @updated_ats
+          console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
-      @updated_ats = data
+      if changed
+        console.log 'Setting new updated ats'
+        @updated_ats = data
           
   reload_client: (cohort_client_id) =>
     url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
