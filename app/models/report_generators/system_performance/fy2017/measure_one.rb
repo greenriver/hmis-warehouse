@@ -146,45 +146,25 @@ module ReportGenerators::SystemPerformance::Fy2017
     end
 
     def calculate_one_b_es_sh_ph
-      # Literally HUD homeless
-      # Clients from ES, SO SH
-      es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        hud_project_type(ES + SO + SH).
-        open_between(start_date: @report_start - 1.day, end_date: @report_end).
-        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+      # Universe is anyone who spent time in ES, SH, PH pre-housed
+    
+      project_types = ES + SH + PH
+      stop_project_types = TH + PH
+      es_sh_scope = clients_in_projects_of_type(project_types: ES + SH).
         select(:client_id)
 
-      es_so_sh_client_ids = add_filters(scope: es_so_sh_scope).distinct.pluck(:client_id)
+      es_sh_ids = add_filters(scope: es_sh_scope).distinct.pluck(:client_id)
 
-      # Clients from PH & TH under certain conditions 
-      homeless_living_situations = [16, 1, 18, 27]
-      institutional_living_situations = [15, 6, 7, 24, 4, 5]
-      housed_living_situations = [14, 23, 21, 3, 22, 19, 25, 20, 26, 12, 13, 2, 8, 9, 99]
-      
-      ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        hud_project_type(PH + TH).
-        open_between(start_date: @report_start - 1.day, end_date: @report_end).
-        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-        joins(:enrollment).
+      ph_pre_housed_scope = clients_in_projects_of_type(project_types: PH).joins(:enrollment).
         where(
-          e_t[:ResidencePrior].in(homeless_living_situations).
-            or(
-              e_t[:ResidencePrior].in(institutional_living_situations).
-                and(e_t[:LOSUnderThreshold].eq(1)).
-                and(e_t[:PreviousStreetESSH].eq(1))
-            ).
-            or(
-              e_t[:ResidencePrior].in(housed_living_situations).
-                and(e_t[:LOSUnderThreshold].eq(1)).
-                and(e_t[:PreviousStreetESSH].eq(1))
-            )
-        ).
-        select(:client_id)
+          she_t[:first_date_in_program].in(@report_start..@report_end).
+          or(e_t[:ResidentialMoveInDate].in(@report_start..@report_end)).
+          or(e_t[:ResidentialMoveInDate].eq(nil).and(she_t[:last_date_in_program].in(@report_start..@report_end)))
+        )
 
-      ph_th_client_ids = add_filters(scope: ph_th_scope).distinct.pluck(:client_id)
+      ph_pre_housed_ids = add_filters(scope: ph_pre_housed_scope).distinct.pluck(:client_id)
 
-      remaining = (es_so_sh_client_ids + ph_th_client_ids).uniq
-
+      remaining = (es_sh_ids + ph_pre_housed_ids).uniq
       Rails.logger.info "Processing #{remaining.count} clients"
       
       # Line 1
@@ -196,10 +176,9 @@ module ReportGenerators::SystemPerformance::Fy2017
         end
         if index % 100 == 0 && index != 0
           # save our progress, divide by two because we need to loop over these again
-          update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 50).round(2))
+          update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
-
       if clients.size > 0
         @answers[:oneb_c2][:value] = clients.size
         @support[:oneb_c2][:support] = {
@@ -214,14 +193,23 @@ module ReportGenerators::SystemPerformance::Fy2017
     def calculate_one_b_es_sh_th_ph
       # Universe is anyone who spent time in TH, ES or SH
       # Now include days between first reported homeless date and entry date
-      project_types = ES + SH + TH
+      project_types = ES + SH + TH + PH
       stop_project_types = PH
-      remaining_scope = clients_in_projects_of_type(project_types: project_types).
+      es_sh_th_scope = clients_in_projects_of_type(project_types: ES + SH + TH).
         select(:client_id)
 
-      remaining_scope = add_filters(scope: remaining_scope)
-      
-      remaining = remaining_scope.distinct.pluck(:client_id)
+      es_sh_th_ids = add_filters(scope: es_sh_th_scope).distinct.pluck(:client_id)
+
+      ph_pre_housed_scope = clients_in_projects_of_type(project_types: PH).joins(:enrollment).
+        where(
+          she_t[:first_date_in_program].in(@report_start..@report_end).
+          or(e_t[:ResidentialMoveInDate].in(@report_start..@report_end)).
+          or(e_t[:ResidentialMoveInDate].eq(nil).and(she_t[:last_date_in_program].in(@report_start..@report_end)))
+        )
+
+      ph_pre_housed_ids = add_filters(scope: ph_pre_housed_scope).distinct.pluck(:client_id)
+
+      remaining = (es_sh_th_ids + ph_pre_housed_ids).uniq
 
       # Line 2
       clients = {} # Fill this with hashes: {client_id: days_homeless}
@@ -249,22 +237,25 @@ module ReportGenerators::SystemPerformance::Fy2017
     
     def clients_in_projects_of_type project_types:
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        entry_within_date_range(start_date: @report_start - 1.day, end_date: @report_end).
+        open_between(start_date: @report_start - 1.day, end_date: @report_end).
           hud_project_type(project_types).
           with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
     end
 
     def calculate_days_homeless id, project_types, stop_project_types, include_pre_entry=false
       columns = {
+        enrollment_id: she_t[:id].to_sql,
         date: shs_t[:date].to_sql, 
         project_type: she_t[:computed_project_type].to_sql, 
         first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
         DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
+        ResidentialMoveInDate: e_t[:ResidentialMoveInDate].to_sql,
       }
       #Rails.logger.info "Calculating Days Homeless for: #{id}"
       # Load all bed nights
       all_night_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:enrollment, :service_history_service).
+        joins(:enrollment, :service_history_services).
         where(client_id: id).
         hud_project_type(PH + TH + ES + SH)
 
@@ -277,9 +268,12 @@ module ReportGenerators::SystemPerformance::Fy2017
         end
       if include_pre_entry
         # Add fake records for every day between DateToStreetESSH and first_date_in_program.
+        # Also add fake records for
         # Find the first entry for each enrollment based on unique project type and first_date in program
         entries = all_nights.select{|m| project_types.include?(m[:project_type])}.index_by{|m| [m[:project_type], m[:first_date_in_program]]}
         entries.each do |_, entry|
+          next unless literally_homeless?(client_id: id, enrollment_id: entry[:enrollment_id])
+          # 3.917.3 - add any days prior to project entry
           if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
             start_date = [entry[:DateToStreetESSH].to_date, LOOKBACK_STOP_DATE.to_date].max
             new_nights = (start_date..entry[:first_date_in_program]).map do |date|
@@ -291,6 +285,31 @@ module ReportGenerators::SystemPerformance::Fy2017
               }
             end
             all_nights += new_nights
+          end
+          # move in date adjustments - These dates will exist as PH, but we want to make sure they get 
+          # included in the acceptable project types.  Convert the project type of any days pre-move-in 
+          # for PH to a project type we will be counting
+          if PH.include?(entry[:project_type]) && entry[:ResidentialMoveInDate].present? && entry[:ResidentialMoveInDate] > entry[:first_date_in_program]
+            (entry[:first_date_in_program]...entry[:ResidentialMoveInDate]).each do |date|
+              check = {
+                enrollment_id: entry[:enrollment_id],
+                date: date, 
+                project_type: entry[:project_type], 
+                first_date_in_program: entry[:first_date_in_program],
+                last_date_in_program: entry[:last_date_in_program],
+                DateToStreetESSH: entry[:DateToStreetESSH],
+                ResidentialMoveInDate: entry[:ResidentialMoveInDate],
+              }
+              matching_night = all_nights.detect do |m| 
+                m == check
+              end
+              if matching_night.present?
+                matching_night[:project_type] = project_types.first
+              else
+                check[:project_type] = project_types.first
+                all_nights << check
+              end
+            end
           end
         end
         all_nights.sort_by{|m| m[:date]}
@@ -328,8 +347,54 @@ module ReportGenerators::SystemPerformance::Fy2017
       homeless_days.uniq.count
     end
 
+    def literally_homeless?(client_id:, enrollment_id:)
+      # Literally HUD homeless
+      # Clients from ES, SO SH
+      es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(ES + SO + SH).
+        open_between(start_date: @report_start - 1.day, end_date: @report_end).
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+        where(client_id: client_id, id: enrollment_id).
+        distinct.
+        select(:client_id)
+
+      es_so_sh_client_ids = add_filters(scope: es_so_sh_scope).distinct.pluck(:client_id)
+
+      # Clients from PH & TH under certain conditions 
+      homeless_living_situations = [16, 1, 18, 27]
+      institutional_living_situations = [15, 6, 7, 24, 4, 5]
+      housed_living_situations = [14, 23, 21, 3, 22, 19, 25, 20, 26, 12, 13, 2, 8, 9, 99]
+      
+      ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        hud_project_type(PH + TH).
+        open_between(start_date: @report_start - 1.day, end_date: @report_end).
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+        where(client_id: client_id, id: enrollment_id).
+        joins(:enrollment).
+        where(
+          e_t[:ResidencePrior].in(homeless_living_situations).
+            or(
+              e_t[:ResidencePrior].in(institutional_living_situations).
+                and(e_t[:LOSUnderThreshold].eq(1)).
+                and(e_t[:PreviousStreetESSH].eq(1))
+            ).
+            or(
+              e_t[:ResidencePrior].in(housed_living_situations).
+                and(e_t[:LOSUnderThreshold].eq(1)).
+                and(e_t[:PreviousStreetESSH].eq(1))
+            )
+        ).
+        distinct.
+        select(:client_id)
+
+      ph_th_client_ids = add_filters(scope: ph_th_scope).distinct.pluck(:client_id)
+
+      literally_homeless = es_so_sh_client_ids + ph_th_client_ids
+      literally_homeless.include?(client_id)
+    end
+
     # Applies logic described in the Programming Specifications to limit the entries 
-    # for each day to one, and only those that should be considred based on the project types
+    # for each day to one, and only those that should be considered based on the project types
     def filter_days_for_homelessness dates, project_types, stop_project_types
       filtered_days = []
       # build a useful hash of arrays
