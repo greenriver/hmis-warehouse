@@ -1,7 +1,7 @@
 Rails.application.configure do
   deliver_method = ENV['MAIL_DELIVERY_METHOD'].to_sym
   slack_config = Rails.application.config_for(:exception_notifier)['slack']
-  
+
   config.cache_classes = true
   config.eager_load = true
   config.consider_all_requests_local       = false
@@ -23,6 +23,7 @@ Rails.application.configure do
     config.action_mailer.smtp_settings = {
       address: ENV['SMTP_SERVER'],
       port: 587,
+      domain: ENV['SMTP_DOMAIN'],
       user_name: ENV['SMTP_USERNAME'],
       password: ENV['SMTP_PASSWORD'],
       authentication: :login,
