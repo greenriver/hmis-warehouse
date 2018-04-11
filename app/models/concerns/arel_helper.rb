@@ -86,6 +86,9 @@ module ArelHelper
   def s_t
     GrdaWarehouse::Hud::Service.arel_table
   end
+  def site_t
+    GrdaWarehouse::Hud::Site.arel_table
+  end
   def e_t
     GrdaWarehouse::Hud::Enrollment.arel_table
   end
@@ -285,6 +288,9 @@ module ArelHelper
     end
     def s_t
       GrdaWarehouse::Hud::Service.arel_table
+    end
+    def site_t
+      GrdaWarehouse::Hud::Site.arel_table
     end
     def e_t
       GrdaWarehouse::Hud::Enrollment.arel_table
