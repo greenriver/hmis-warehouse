@@ -384,7 +384,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       hh_config:                        she_t[:presented_as_individual],
       prov_id:                          she_t[:project_name],
       _prov_id:                         she_t[:project_id],
-      prog_type:                        she_t[project_type_column], # see notes
+      prog_type:                        she_t[project_type_column],
       prov_jurisdiction:                site_t[:City],
       entry_exit_entry_date:            she_t[:first_date_in_program],
       entry_exit_exit_date:             she_t[:last_date_in_program],
@@ -424,7 +424,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       joins( project: :sites, enrollment: :exit ).
       includes( client: :source_disabilities ).
       references( client: :source_disabilities ).
-      where( pc_t[:CoCCode].eq coc_code ) # to identify the site
+      where( pc_t[:CoCCode].eq coc_code )
     spec.each do |header, selector|
       next if selector.nil?
       scope = scope.select selector.as(header.to_s)
