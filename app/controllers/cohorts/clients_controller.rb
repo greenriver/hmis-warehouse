@@ -62,6 +62,7 @@ module Cohorts
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
+        next if client.blank?
         cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes, current_user.can_view_clients?, params], expires_in: expires) do
           @visible_columns = [CohortColumns::Meta.new]
           cohort_client_data = {}
