@@ -1,0 +1,17 @@
+.modal.fade#new-patient-referral__modal{role: 'dialog'}
+  .modal-dialog{role: 'document'}
+    .modal-content
+      .modal-body
+        .pull-right
+          %button.close{type: 'button', data: {dismiss: 'modal'}}
+            %span &times;
+        %h3 Add Patient Referral
+        .row
+          .col-xs-12.col-md-6
+            = simple_form_for @new_patient_referral, url: admin_health_patient_referrals_path do |f|
+              = f.input :first_name, label: 'First Name'
+              = f.input :last_name, label: 'Last Name'
+              = f.input :birthdate, label: 'Date of Birth'
+              = f.input :ssn, label: 'SNN'
+              = f.input :medicaid_id, label: 'Medicaid ID'
+              = f.submit 'Add Patient', class: 'btn btn-secondary'
