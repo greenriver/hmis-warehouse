@@ -16,24 +16,28 @@
 // FIXME: The following should be stored on the data source
 // with a color picker and a random default set when seeded
 .ds-bphc,
-.ds-grda
+.ds-grda,
+.ds-1
 {
   background-color: $bphc;
 }
 .ds-dnd,
 .ds-bm,
-.ds-sp
+.ds-sp,
+.ds-2
 {
   background-color: $dnd;
 }
 .ds-ma,
-.ds-op
+.ds-op,
+.ds-3
 {
   background-color: $ma-state;
 }
 .ds-nechv,
 .ds-bl,
-.ds-homelink
+.ds-homelink,
+.ds-4
 {
   background-color: $nechv;
 }
@@ -41,7 +45,8 @@
 {
   background-color: $cob-sg-blue-002;
 }
-.ds-vi-spdat
+.ds-vi-spdat,
+.ds-5
 {
   background-color: $vi-spdat;
 }
