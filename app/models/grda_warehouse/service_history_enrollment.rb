@@ -6,7 +6,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
   belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
   has_one :source_client, through: :enrollment, source: :client, autosave: false
-  has_one :enrollment_coc_at_entry, through: :enrollment, inverse_of: :service_history, autosave: false
+  has_one :enrollment_coc_at_entry, through: :enrollment, autosave: false
   has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
   belongs_to :data_source, autosave: false
   belongs_to :processed_client, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
@@ -371,6 +371,132 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       :computed_project_type
     else
       :project_type
+    end
+  end
+
+  def self.export_entryexit(start_date:, end_date:, coc_code:)
+    spec = {
+      client_uid:                       she_t[:client_id],
+      entry_exit_uid:                   e_t[:ProjectEntryID],
+      hh_uid:                           she_t[:head_of_household_id],
+      group_uid:                        she_t[:enrollment_group_id],
+      head_of_household:                she_t[:head_of_household],
+      hh_config:                        she_t[:presented_as_individual],
+      prov_id:                          she_t[:project_name],
+      _prov_id:                         she_t[:project_id],
+      prog_type:                        she_t[project_type_column], # see notes
+      prov_jurisdiction:                site_t[:City],
+      entry_exit_entry_date:            she_t[:first_date_in_program],
+      entry_exit_exit_date:             she_t[:last_date_in_program],
+      client_dob:                       c_t[:DOB],
+      client_age_at_entry:              she_t[:age],
+      client_6orunder:                  nil,
+      client_7to17:                     nil,
+      client_18to24:                    nil,
+      veteran_status:                   c_t[:VeteranStatus],
+      hispanic_latino:                  c_t[:Ethnicity],
+      **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
+      disabling_condition:              d_t[:DisabilitiesID],
+      any_income_30days:                nil, # ???
+      county_homeless:                  nil, # ???
+      res_prior_to_entry:               e_t[:ResidencePrior],
+      length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
+      approx_date_homelessness_started: e_t[:DateToStreetESSH],
+      times_on_street:                  e_t[:TimesHomelessPastThreeYears],
+      total_months_homeless_on_street:  e_t[:MonthsHomelessPastThreeYears],
+      destination:                      she_t[:destination],
+      destination_other:                ex_t[:OtherDestination],
+      service_uid:                      shs_t[:id],
+      service_inactive:                 nil, # ???
+      service_code_desc:                shs_t[:service_type],
+      service_start_date:               shs_t[:date],
+      entry_exit_uid:                   nil, # ???
+      days_to_return:                   nil, # ???
+      entry_exit_uid:                   nil, # ??? REPEAT
+      days_last3years:                  nil, # ???
+      instances_last3years:             nil, # ???
+      entry_exit_uid:                   nil, # ??? REPEAT
+      rrh_time_in_shelter:              nil, # ???
+    }
+
+    scope = entry.open_between( start_date: start_date, end_date: end_date ).
+      joins( :client, :service_history_services ).
+      joins( project: :sites, enrollment: :exit ).
+      includes( client: :source_disabilities ).
+      references( client: :source_disabilities ).
+      where( pc_t[:CoCCode].eq coc_code ) # to identify the site
+    spec.each do |header, selector|
+      next if selector.nil?
+      scope = scope.select selector.as(header.to_s)
+    end
+    # dump the things we don't know how to deal with and munge a bit
+    headers = spec.keys.map do |header|
+      case header
+      when :any_income_30days, :county_homeless, :entry_exit_uid, :days_to_return, :days_last3years, :instances_last3years, :rrh_time_in_shelter
+        next
+      when -> (h) { h.to_s.starts_with? '_' }
+        next
+      when -> (h) { h.to_s.starts_with? 'primary_race_' }
+        :primary_race
+      else
+        header
+      end
+    end.compact.uniq
+
+    csv = CSV.generate headers: true do |csv|
+      csv << headers
+
+      connection.select_all(scope.to_sql).group_by{ |h| h.values_at :client_uid, :entry_exit_uid, :group_uid }.each do |_,shes|
+        she = shes.first # for values that don't need aggregation
+        row = []
+        headers.each do |h|
+          value = case h
+          when :hh_config
+            she['presented_as_individual'] == 't' ? 'Single' : 'Family'
+          when :prov_id
+            "#{she['prov_id']} (#{she['_prov_id']})"
+          when :prog_type
+            type = HUD.project_type she['prog_type']
+            "#{type} (HUD)"
+          when :client_6orunder
+            she['client_age_at_entry'].to_i <= 6
+          when :client_7to17
+            (7..17).include? she['client_age_at_entry'].to_i
+          when :client_18to24
+            (18..24).include? she['client_age_at_entry'].to_i
+          when :veteran_status
+            she['veteran_status'] == 1 ? 't' : 'f'
+          when :hispanic_latino
+            case she['hispanic_latino']
+            when 1 then 't'
+            when 0 then 'f'
+            end
+          when :primary_race
+            HUD.race c_t.engine.race_fields.find{ |f| she[f] == 1 }
+          when :disabling_condition
+            she['disabling_condition'].present? ? 't' : 'f'
+          when :res_prior_to_entry
+            HUD.living_situation she['res_prior_to_entry']
+          when :length_of_stay_prev_place
+            HUD.residence_prior_length_of_stay she['length_of_stay_prev_place']
+          when :destination
+            HUD.destination she['destination']
+          when :service_uid
+            ids = shes.map{ |h| h['service_uid'] }
+            "{#{ ids.join ',' }}"
+          when :service_code_desc
+            descs = shes.map{ |h| HUD.record_type h['service_code_desc'] }.map(&:inspect)
+            "{#{ descs.join ',' }}"
+          when :service_start_date
+            dates = shes.map{ |h| HUD.record_type h['service_code_desc'] }.map(&:inspect)
+            "{#{ dates.join ',' }}"
+          else
+            she[h.to_s]
+          end
+          row << value
+        end
+        csv << row
+      end
     end
   end
 
