@@ -34,5 +34,7 @@
               %tr
                 %td= link_to report.name, report.results_path
                 %td= report.last_result.try(:last_run)
-                %td= report.last_result.try(:last_run_status)
+                %td
+                  - if status = report.last_result.try(:last_run_status)
+                    = link_to status, report_report_result_path(report, report.last_result)
                 %td= report.last_result.try(:completed_in)
