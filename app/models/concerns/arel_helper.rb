@@ -134,7 +134,7 @@ module ArelHelper
   def f_t
     GrdaWarehouse::Hud::Funder.arel_table
   end
-  def st_t
+  def site_t
     GrdaWarehouse::Hud::Site.arel_table
   end
 
@@ -331,7 +331,7 @@ module ArelHelper
     def f_t
       GrdaWarehouse::Hud::Funder.arel_table
     end
-    def st_t
+    def site_t
       GrdaWarehouse::Hud::Site.arel_table
     end
   end

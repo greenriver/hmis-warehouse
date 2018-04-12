@@ -390,13 +390,13 @@ module GrdaWarehouse::Hud
         provider:            p_t[:ProjectName],
         _provider:           p_t[:ProjectID],
         hud_prog_type:       p_t[project_type_column],
-        fed_funding_source:  f_t[:Funder],   # almost certainly wrong
-        fed_partner_program: f_t[:FunderID], # almost certainly wrong
+        fed_funding_source:  f_t[:FunderID],
+        fed_partner_program: f_t[:FunderID],
         grant_id:            f_t[:GrantID],
         grant_start_date:    f_t[:StartDate],
         grant_end_date:      f_t[:EndDate],
         coc_code:            pc_t[:CoCCode],
-        hud_geocode:         st_t[:Geocode],
+        hud_geocode:         site_t[:Geocode],
         current_continuum_project: p_t[:ContinuumProject],
       }
       projects = joins( :funders, :organization, :project_cocs, :sites ).
@@ -424,6 +424,8 @@ module GrdaWarehouse::Hud
               d && Date.parse(d).to_s(:long)
             when :current_continuum_project
               ::HUD.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
+            when :fed_partner_program
+              ::HUD.funding_source project['fed_partner_program']
             else
               project[h.to_s]
             end
