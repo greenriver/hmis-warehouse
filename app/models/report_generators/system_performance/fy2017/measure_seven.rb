@@ -70,14 +70,14 @@ module ReportGenerators::SystemPerformance::Fy2017
       # eg. Those who were counted by SO, but exited to somewhere else
       
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ongoing(on_date: @report.options['report_end']).
+          ongoing(on_date: @report_end).
           hud_project_type(SO)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+        open_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
         hud_project_type(SO).
         where.not(client_id: client_id_scope.
           select(:client_id).
@@ -94,8 +94,8 @@ module ReportGenerators::SystemPerformance::Fy2017
       destinations = {}
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+          ended_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
           hud_project_type(SO).
           where(client_id: id)
         
@@ -138,14 +138,14 @@ module ReportGenerators::SystemPerformance::Fy2017
       # PH gets special treatment, 13 (RRH) is treated like ES,SH,TH, but 3,9,10 
       # looks at housing move-in date and removes any where it is <= report_end
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ongoing(on_date: @report.options['report_end']).
+          ongoing(on_date: @report_end).
           hud_project_type(ES + SH + TH + PH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+        open_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
         hud_project_type(ES + SH + TH + PH).
         where.not(client_id: client_id_scope.
           select(:client_id).
@@ -162,8 +162,8 @@ module ReportGenerators::SystemPerformance::Fy2017
       destinations = {}
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+          ended_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
           hud_project_type(ES + SH + TH + PH).
           where(client_id: id)
 
@@ -172,14 +172,16 @@ module ReportGenerators::SystemPerformance::Fy2017
           order(date: :desc).
           limit(1).
           pluck(:destination, :computed_project_type, e_t[:ResidentialMoveInDate].to_sql).map do |destination, project_type, move_in_date|
+            move_in_date = move_in_date.to_date if move_in_date.present?
             {
               destination: destination,
               project_type: project_type,
               move_in_date: move_in_date,
             }
           end.first
+        next if exit_data.blank?
         # remove anyone who exited from PH, but had already moved into housing
-        next if PH_PSH.include?(exit_data[:destination].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report.options['report_end']
+        next if PH_PSH.include?(exit_data[:destination].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report_end
         destinations[id] = exit_data[:destination]
       end
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
@@ -206,14 +208,14 @@ module ReportGenerators::SystemPerformance::Fy2017
       # eg. Those who were counted by PH but not PH-RRH, but exited to somewhere else
       
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ongoing(on_date: @report.options['report_end']).
+          ongoing(on_date: @report_end).
           hud_project_type(PH_PSH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: @report.options['report_start'], 
-        end_date: @report.options['report_end'].to_date + 1.day).
+        open_between(start_date: @report_start, 
+        end_date: @report_end + 1.day).
         hud_project_type(PH_PSH).
         where.not(client_id: client_id_scope.
           select(:client_id).
@@ -228,7 +230,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         pluck(:client_id)
       
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        ongoing(on_date: @report.options['report_end']).
+        ongoing(on_date: @report_end).
         hud_project_type(PH_PSH)
 
       stayers_scope = add_filters(scope: stayers_scope)
@@ -238,11 +240,11 @@ module ReportGenerators::SystemPerformance::Fy2017
         select(:client_id).
         distinct.
         order(first_date_in_program: :asc).
-        pluck(:client_id, :first_date_in_program, e_t[:ResidentialMoveInDate]).
+        pluck(:client_id, :first_date_in_program, e_t[:ResidentialMoveInDate].to_sql).
         group_by(&:first).each do |_, stays|
           (client_id, entry_date, move_in_date) = stays.last
           # remove anyone who hasn't moved in to housing yet
-          next if move_in_date.blank? || move_in_date > @report.options['report_end']
+          next if move_in_date.blank? || move_in_date > @report_end
           stayers << client_id
         end
       
@@ -250,8 +252,8 @@ module ReportGenerators::SystemPerformance::Fy2017
       leavers.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           joins(:enrollment).
-          ended_between(start_date: @report.options['report_start'], 
-          end_date: @report.options['report_end'].to_date + 1.day).
+          ended_between(start_date: @report_start, 
+          end_date: @report_end + 1.day).
           hud_project_type(PH).
           where(client_id: id)
 
