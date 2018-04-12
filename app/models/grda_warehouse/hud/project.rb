@@ -425,7 +425,7 @@ module GrdaWarehouse::Hud
             when :current_continuum_project
               ::HUD.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
             when :fed_partner_program
-              ::HUD.funding_source project['fed_partner_program']
+              ::HUD.funding_source project[h.to_s]
             else
               project[h.to_s]
             end
