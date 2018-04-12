@@ -514,6 +514,7 @@ module GrdaWarehouse::Hud
       client_scope.includes(:data_source).map do |m|
         {
           ds: m.data_source.short_name,
+          ds_id: m.data_source.id,
           name: m.full_name,
         }
       end

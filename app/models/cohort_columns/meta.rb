@@ -43,7 +43,7 @@ module CohortColumns
     end
 
     def last_activity
-      @last_activity ||= cohort_client.client.service_history_services.homeless.maximum(:date)
+      @last_activity ||= cohort_client.client.service_history_services.homeless.maximum(:date) rescue nil
     end
 
     def inactive
@@ -68,7 +68,7 @@ module CohortColumns
         activity: inactivity_class, 
         ineligible: cohort_client.ineligible?, 
         cohort_client_id: cohort_client.id, 
-        client_id: cohort_client.client.id, 
+        client_id: cohort_client&.client&.id, 
         cohort_client_updated_at: cohort_client.updated_at.to_i,
         last_activity: last_activity,
         inactive: inactive,

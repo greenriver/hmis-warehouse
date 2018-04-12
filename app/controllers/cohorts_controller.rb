@@ -24,6 +24,7 @@ class CohortsController < ApplicationController
     else
       @cohort_clients = @cohort.cohort_clients.where(active: true)
     end
+    @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
@@ -45,7 +46,7 @@ class CohortsController < ApplicationController
             options.merge!({type: m.renderer, source: m.available_options})
           when 'date', 'checkbox', 'text', 'numeric'
             options.merge!({type: m.renderer})
-          else 
+          else
             options.merge!({renderer: m.renderer})
             options.merge!({readOnly: true}) unless m.editable 
           end

@@ -64,21 +64,6 @@ class App.Cohorts.Cohort
     if source == 'edit'
       @after_edit(changes)
 
-  after_load_data: (changes) =>
-    @load_sort_order()
-
-  save_sort_order: () =>
-    { sortColumn, sortOrder } = @table
-    if typeof sortOrder == 'undefined'
-      @current_sort.column = @initial_sort.column
-      @current_sort.sortOrder = @initial_sort.sortOrder
-    else
-      @current_sort.column = sortColumn
-      @current_sort.sortOrder = sortOrder
-
-  load_sort_order: () =>
-    console.log(@current_sort)
-
   initialize_search_buttons: () =>
     $search_actions = $(@search_actions_selector)
     $back = $search_actions.find('.jSearchBack')
@@ -127,8 +112,8 @@ class App.Cohorts.Cohort
       search_string = '' + $(e.target).val()
       search_string = '' unless search_string.length > 2 # Don't match until we have 3 characters
       @search_results = @table.search.query(search_string)
-      @table.render()
       @update_search_navigation()
+      @table.render()
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -288,12 +273,17 @@ class App.Cohorts.Cohort
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      # console.log 'checking'
+      console.log 'checking', @updated_ats
+      changed = false
       $.each data, (id, timestamp) =>
         if timestamp != @updated_ats[id]
-          # console.log(id, timestamp, @updated_ats[id])
+          changed = true
+          console.log "didn't match", @updated_ats
+          console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
-      @updated_ats = data
+      if changed
+        console.log 'Setting new updated ats'
+        @updated_ats = data
           
   reload_client: (cohort_client_id) =>
     url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"

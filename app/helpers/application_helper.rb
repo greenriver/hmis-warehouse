@@ -142,8 +142,9 @@ module ApplicationHelper
     names = client.client_names(window: controller_path.include?('window'))
     names.map do |name|
       sn = name[:ds]
+      id = name[:ds_id]
       full_name = name[:name]
-      content_tag( :em, sn, class: "ds-#{sn.downcase}" ) + " #{full_name}"
+      content_tag( :em, sn, class: "ds-#{id}" ) + " #{full_name}"
     end
   end
 

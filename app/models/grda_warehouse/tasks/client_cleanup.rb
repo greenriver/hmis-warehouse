@@ -77,7 +77,7 @@ module GrdaWarehouse::Tasks
         merge(
           GrdaWarehouse::ServiceHistoryEnrollment.entry.
             joins(:project).merge(
-              GrdaWarehouse::Hud::Project.individual
+              GrdaWarehouse::Hud::Project.serves_individuals_only
             ).where(presented_as_individual: false)
         )
       count = query.count

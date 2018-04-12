@@ -41,7 +41,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
 
   def self.sub_tables
-    @table_name ||= table_years.map do |year|
+    table_years.map do |year|
       [year, "service_history_services_#{year}"]
     end.reverse.to_h
   end
