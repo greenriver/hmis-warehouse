@@ -374,10 +374,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
   end
 
-  def self.export_entryexit(start_date:, end_date:, coc_code:)
+  def self.export_entryexit(start_date: 3.years.ago, end_date: DateTime.current, coc_code: nil)
     spec = {
       client_uid:                       she_t[:client_id],
-      entry_exit_uid:                   e_t[:ProjectEntryID],
+      entry_exit_uid:                   e_t[:id],
       hh_uid:                           she_t[:head_of_household_id],
       group_uid:                        she_t[:enrollment_group_id],
       head_of_household:                she_t[:head_of_household],
@@ -419,16 +419,27 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       rrh_time_in_shelter:              nil, # ???
     }
 
-    scope = entry.open_between( start_date: start_date, end_date: end_date ).
+    scope = residential.entry.
+      open_between( start_date: start_date, end_date: end_date ).
       joins( :client, :service_history_services ).
       joins( project: :sites, enrollment: :exit ).
       includes( client: :source_disabilities ).
-      references( client: :source_disabilities ).
-      where( pc_t[:CoCCode].eq coc_code )
+      references( client: :source_disabilities )
+
+    scope = case coc_code
+    when Array
+      scope.where( pc_t[:CoCCode].in coc_code )
+    when String
+      scope.where( pc_t[:CoCCode].eq coc_code )
+    else
+      scope
+    end
+
     spec.each do |header, selector|
       next if selector.nil?
       scope = scope.select selector.as(header.to_s)
     end
+
     # dump the things we don't know how to deal with and munge a bit
     headers = spec.keys.map do |header|
       case header
@@ -446,52 +457,63 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     csv = CSV.generate headers: true do |csv|
       csv << headers
 
-      connection.select_all(scope.to_sql).group_by{ |h| h.values_at :client_uid, :entry_exit_uid, :group_uid }.each do |_,shes|
+      connection.select_all(scope.to_sql).group_by{ |h| h.values_at 'client_uid', 'entry_exit_uid' }.each do |_,shes|
         she = shes.first # for values that don't need aggregation
         row = []
         headers.each do |h|
+          value = she[h.to_s].presence
           value = case h
           when :hh_config
-            she['presented_as_individual'] == 't' ? 'Single' : 'Family'
+            value == 't' ? 'Single' : 'Family'
           when :prov_id
-            "#{she['prov_id']} (#{she['_prov_id']})"
+            "#{value} (#{she['_prov_id']})"
           when :prog_type
-            type = HUD.project_type she['prog_type']
-            "#{type} (HUD)"
+            pt = value&.to_i
+            if pt
+              type = ::HUD.project_type pt
+              if type == pt
+                pt
+              else
+                "#{type} (HUD)"
+              end
+            end
           when :client_6orunder
-            she['client_age_at_entry'].to_i <= 6
+            age = she['client_age_at_entry'].presence&.to_i
+            age && age <= 6
           when :client_7to17
-            (7..17).include? she['client_age_at_entry'].to_i
+            age = she['client_age_at_entry'].presence&.to_i
+            (7..17).include? age
           when :client_18to24
-            (18..24).include? she['client_age_at_entry'].to_i
+            age = she['client_age_at_entry'].presence&.to_i
+            (18..24).include? age
           when :veteran_status
-            she['veteran_status'] == 1 ? 't' : 'f'
+            value&.to_i == 1 ? 't' : 'f'
           when :hispanic_latino
-            case she['hispanic_latino']
+            case value&.to_i
             when 1 then 't'
             when 0 then 'f'
             end
           when :primary_race
-            HUD.race c_t.engine.race_fields.find{ |f| she[f] == 1 }
+            ::HUD.race c_t.engine.race_fields.find{ |f| she["primary_race_#{f.downcase}"].to_i == 1 }
           when :disabling_condition
-            she['disabling_condition'].present? ? 't' : 'f'
+            value ? 't' : 'f'
           when :res_prior_to_entry
-            HUD.living_situation she['res_prior_to_entry']
+            ::HUD.living_situation value&.to_i
           when :length_of_stay_prev_place
-            HUD.residence_prior_length_of_stay she['length_of_stay_prev_place']
+            ::HUD.residence_prior_length_of_stay value&.to_i
           when :destination
-            HUD.destination she['destination']
+            ::HUD.destination value&.to_i
           when :service_uid
-            ids = shes.map{ |h| h['service_uid'] }
+            ids = shes.map{ |hash| hash[h.to_s] }
             "{#{ ids.join ',' }}"
           when :service_code_desc
-            descs = shes.map{ |h| HUD.record_type h['service_code_desc'] }.map(&:inspect)
+            descs = shes.map{ |hash| ::HUD.record_type hash[h.to_s].presence&.to_i }
             "{#{ descs.join ',' }}"
           when :service_start_date
-            dates = shes.map{ |h| HUD.record_type h['service_code_desc'] }.map(&:inspect)
+            dates = shes.map{ |hash| hash[h.to_s].presence }
             "{#{ dates.join ',' }}"
           else
-            she[h.to_s]
+            value
           end
           row << value
         end
