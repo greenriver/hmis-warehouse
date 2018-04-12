@@ -7,14 +7,34 @@ set :client, ENV.fetch('CLIENT')
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
-    keys: [ENV['FORCE_SSH_KEY']]
+    keys: [ENV['FORCE_SSH_KEY']],
+    port: ENV.fetch('SSH_PORT') { '22' },
+    user: ENV.fetch('DEPLOY_USER')
   }
 end
 
-# Delayed Job
-set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
-set :delayed_job_roles, [:job]
-set :delayed_job_pools, { low_priority: 4, default_priority: 2, high_priority: 2, nil => 3}
+if ENV['DELAYED_JOB_SYSTEMD']=='true'
+  after 'passenger:restart', 'delayed_job:restart'
+else
+  set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
+  set :delayed_job_roles, [:job]
+  set :delayed_job_pools, { low_priority: 4, default_priority: 2, high_priority: 2, nil => 1}
+end
+
+set :ssh_port, ENV.fetch('SSH_PORT') { '22' }
+set :deploy_user , ENV.fetch('DEPLOY_USER')
+
+if ENV['RVM_CUSTOM_PATH']
+  set :rvm_custom_path, '/usr/share/rvm'
+end
+
+task :group_writable do
+  on roles(:web) do
+    execute "chmod --quiet g+w -R  #{fetch(:deploy_to)} || echo ok"
+    execute "chgrp --quiet ubuntu -R #{fetch(:deploy_to)} || echo ok"
+  end
+end
+after 'passenger:restart', :group_writable
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
@@ -37,19 +57,19 @@ set :delayed_job_pools, { low_priority: 4, default_priority: 2, high_priority: 2
 
 # Default value for :linked_files is []
 set :linked_files, fetch(:linked_files, []).push(
-  'config/secrets.yml', 
+  'config/secrets.yml',
   '.env',
   'app/views/root/_homepage_content.haml'
 )
 
 # Default value for linked_dirs is []
 set :linked_dirs, fetch(:linked_dirs, []).push(
-  'log', 
-  'tmp/pids', 
+  'log',
+  'tmp/pids',
   'tmp/cache',
   'tmp/client_images',
-  'public/system', 
-  'tmp/sockets', 
+  'public/system',
+  'tmp/sockets',
   'var',
   'app/assets/stylesheets/theme/styles',
   'app/assets/images/theme/logo',

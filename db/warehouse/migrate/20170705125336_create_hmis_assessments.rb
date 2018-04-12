@@ -1,7 +1,7 @@
 class CreateHmisAssessments < ActiveRecord::Migration
   def change
     if ActiveRecord::Base.connection.table_exists? :hmis_assessments
-      drop_table :hmis_assessments {}
+      drop_table :hmis_assessments
     end
     create_table :hmis_assessments do |t|
       t.integer :assessment_id, null: false, index: true
@@ -14,10 +14,10 @@ class CreateHmisAssessments < ActiveRecord::Migration
       t.integer :data_source_id, null: false, index: true
     end
     if ActiveRecord::Base.connection.table_exists? :hmis_answers
-      drop_table :hmis_answers {}
+      drop_table :hmis_answers
     end
     if ActiveRecord::Base.connection.table_exists? :hmis_questions
-      drop_table :hmis_questions {}
+      drop_table :hmis_questions
     end
   end
 end

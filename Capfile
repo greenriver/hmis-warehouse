@@ -24,10 +24,13 @@ require 'capistrano/rails/migrations'
 unless ENV['NO_PASSENGER']
   require 'capistrano/passenger'
 end
-require 'capistrano/delayed_job'
-
-# Load custom tasks from `lib/capistrano/tasks` if you have any defined
-Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }
 
 require 'dotenv'
 Dotenv.load('.env', '.env.local')
+
+if ENV['DELAYED_JOB_SYSTEMD']!='true'
+  require 'capistrano/delayed_job'
+end
+
+# Load custom tasks from `lib/capistrano/tasks` if you have any defined
+Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }
