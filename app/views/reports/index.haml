@@ -1,16 +1,25 @@
-- content_for :title, _("Reports")
+- content_for :title, _("HUD Reports")
 %header.mb-3
   %h1= content_for :title
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-condensed.table-hover.table-reports
-        - @reports.each_with_index do |base,i|
+
+%ul.nav.nav-tabs{role: :tablist}
+  - @reports.each_with_index do |(category,_), index|
+    %li{role: :presentation, class: (index == 0 ? 'active' : '')}
+      %a{href: "##{category.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{category}'}}
+        #{category}
+
+.tab-content
+  - @reports.each_with_index do |(category, years), index|
+    %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: category.parameterize.dasherize}
+      %table.table.table-condensed.table-hover.table-reports.table-responsive
+        - i = 0
+        - years.each do |base,reports|
           - show_header = i == 0
-          - base, reports = base
+          - i += 1
           %thead
             %tr{class: 'report-base'}
-              %th= link_to "#{base}::Base".constantize.report_name, report_results_summary_path(reports.first[:report_results_summary_id])
+              %th
+                = link_to "#{base}::Base".constantize.report_name, report_results_summary_path(reports.first[:report_results_summary_id])
               %th
                 - if show_header
                   = 'Last Run'
