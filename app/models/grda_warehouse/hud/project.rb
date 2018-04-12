@@ -353,7 +353,15 @@ module GrdaWarehouse::Hud
               AND
               #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
             WHERE
-              #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+              (
+                (
+                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+                  AND
+                  #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                )
+                OR
+                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+              )
               AND
               #{project_table}.#{qc[:id]} = pt.#{qc[:id]}
 
