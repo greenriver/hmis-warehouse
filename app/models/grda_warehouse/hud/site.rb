@@ -34,7 +34,7 @@ module GrdaWarehouse::Hud
       elsif user.coc_codes.none?
         none
       else
-        joins(:project_coc).where( GrdaWarehouse::Hud::ProjectCoc.arel_table[:CoCCode].in user.coc_codes )
+        joins(:project_coc).merge( GrdaWarehouse::Hud::ProjectCoc.viewable_by user )
       end
     end
 
