@@ -421,7 +421,7 @@ module GrdaWarehouse::Hud
               "#{project['provider']} (#{project['_provider']})".squish
             when :grant_start_date, :grant_end_date
               d = project[h.to_s].presence
-              d && Date.parse(d).to_s(:long)
+              d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
             when :current_continuum_project
               ::HUD.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
             when :fed_partner_program
