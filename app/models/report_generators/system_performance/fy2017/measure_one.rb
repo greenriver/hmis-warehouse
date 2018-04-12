@@ -259,7 +259,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         where(client_id: id).
         hud_project_type(PH + TH + ES + SH)
 
-      all_night_scope = add_filters(scope: all_night_scope)
+      #all_night_scope = add_filters(scope: all_night_scope)
 
       all_nights = all_night_scope.
         order(date: :asc).
@@ -279,9 +279,11 @@ module ReportGenerators::SystemPerformance::Fy2017
             new_nights = (start_date..entry[:first_date_in_program]).map do |date|
               {
                 date: date,
-                project_type: entry[:project_type],
+                project_type: 1, # force these days to be ES since that's included in all 1b measures
+                enrollment_id: entry[:enrollment_id],
                 first_date_in_program: entry[:first_date_in_program],
                 DateToStreetESSH: entry[:DateToStreetESSH],
+                ResidentialMoveInDate: entry[:ResidentialMoveInDate],
               }
             end
             all_nights += new_nights
@@ -289,8 +291,16 @@ module ReportGenerators::SystemPerformance::Fy2017
           # move in date adjustments - These dates will exist as PH, but we want to make sure they get 
           # included in the acceptable project types.  Convert the project type of any days pre-move-in 
           # for PH to a project type we will be counting
-          if PH.include?(entry[:project_type]) && entry[:ResidentialMoveInDate].present? && entry[:ResidentialMoveInDate] > entry[:first_date_in_program]
-            (entry[:first_date_in_program]...entry[:ResidentialMoveInDate]).each do |date|
+          if PH.include?(entry[:project_type]) 
+            stop_date = nil
+            if entry[:ResidentialMoveInDate].present? && entry[:ResidentialMoveInDate] > entry[:first_date_in_program]
+              stop_date = [entry[:ResidentialMoveInDate], @report_end + 1.day].min
+            elsif entry[:ResidentialMoveInDate].blank?
+              stop_date = [entry[:last_date_in_program] - 1.day, @report_end].min rescue @report_end
+            end
+            next unless stop_date.present?
+            date_range = (entry[:first_date_in_program]...stop_date)
+            date_range.each do |date|
               check = {
                 enrollment_id: entry[:enrollment_id],
                 date: date, 
@@ -300,13 +310,14 @@ module ReportGenerators::SystemPerformance::Fy2017
                 DateToStreetESSH: entry[:DateToStreetESSH],
                 ResidentialMoveInDate: entry[:ResidentialMoveInDate],
               }
-              matching_night = all_nights.detect do |m| 
-                m == check
+              matching_night = all_nights.detect do |night| 
+                night == check
               end
+              # convert date to homeless night
               if matching_night.present?
-                matching_night[:project_type] = project_types.first
+                matching_night[:project_type] = 1 # force these days to be ES since that's included in all 1b measures
               else
-                check[:project_type] = project_types.first
+                check[:project_type] = 1 # force these days to be ES since that's included in all 1b measures
                 all_nights << check
               end
             end
@@ -318,7 +329,7 @@ module ReportGenerators::SystemPerformance::Fy2017
 
       if homeless_days.any?
         # Find the latest bed night (stopping at the report date end)
-        client_end_date = [homeless_days.last.to_date, @report.options['report_end'].to_date].min
+        client_end_date = [homeless_days.last.to_date, @report_end].min
         #Rails.logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
@@ -327,6 +338,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         days_before_client_start_date = homeless_days.select do |d| 
           d.to_date < client_start_date.to_date
         end
+        # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
           if d.to_date == new_client_start_date.to_date - 1.day
