@@ -10,7 +10,6 @@
         can view all entities.
   - model = GrdaWarehouse::DataSource.viewable_by(current_user)
   - args = { selected: @user.data_sources.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[data_sources][]" } }
-  - collection = model.order(:name).map{ |ds| [ds.id, ds.name] }
   = f.input :data_sources, **args, collection: model.order(:name), placeholder: 'Data Source', multiple: true
 
   - model = GrdaWarehouse::Hud::Organization.viewable_by(current_user)
@@ -34,7 +33,6 @@
 
   - model = GrdaWarehouse::Cohort.viewable_by(current_user)
   - args = { selected: @user.cohorts.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[cohorts][]" } }
-  - collection = model.order(:name).map{ |cohort| [cohort.id, cohort.name] }
   = f.input :cohorts, **args, collection: model.order(:name), placeholder: 'Cohort', multiple: true
 
 - content_for :page_js do

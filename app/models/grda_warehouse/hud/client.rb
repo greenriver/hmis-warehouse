@@ -412,22 +412,7 @@ module GrdaWarehouse::Hud
       elsif user.coc_codes.none?
         none
       else
-        at = arel_table
-        e_t = GrdaWarehouse::Hud::Enrollment.arel_table
-        e_coc_t = GrdaWarehouse::Hud::EnrollmentCoc.arel_table
-        where(
-          e_t.project(Arel.star).
-            join(e_coc_t).
-              on(
-                e_t[:ProjectEntryID].       eq(e_coc_t[:ProjectEntryID]).
-                  and( e_t[:PersonalID].    eq e_coc_t[:PersonalID] ).
-                  and( e_t[:data_source_id].eq e_coc_t[:data_source_id] )
-              ).
-            where( e_coc_t[:CoCCode].   in user.coc_codes ).
-            where( e_t[:PersonalID].    eq at[:PersonalID] ).
-            where( e_t[:data_source_id].eq at[:data_source_id] ).
-            exists
-        )
+        distinct.joins(:enrollment_cocs).where( ec_t[:CoCCode].in user.coc_codes )
       end
     end
 
