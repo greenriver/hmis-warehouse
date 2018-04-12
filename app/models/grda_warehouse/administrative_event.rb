@@ -4,6 +4,6 @@ module GrdaWarehouse
     acts_as_paranoid
     
     belongs_to :user
-    
+    validates_presence_of :date, :title
   end
 end

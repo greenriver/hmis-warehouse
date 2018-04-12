@@ -407,7 +407,7 @@ Rails.application.routes.draw do
       resources :assessments, only: [:index, :update]
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
-    resources :administrative_events, only: [:index, :create, :destroy]
+    resources :administrative_events, only: [:index, :new, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
 

@@ -5,20 +5,24 @@
 .row
   .col-sm-8
     %h1= content_for :title
+  .col-sm-4
+    .row
+      .col-sm-12
+        = link_to new_admin_administrative_event_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+          %span.icon-plus
+          Add an Administrative Event
 
 .row
   .col-sm-12
     .table-responsive
       %table.table.table-condensed
         %thead
-          %th User
           %th Date
           %th Title
           %th Description
         %tbody
           - @events.each do |event|
             %tr
-              %td= event.user.name
               %td= event.date
               %td= event.title
               %td= event.description

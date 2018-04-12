@@ -1,0 +1,11 @@
+= simple_form_for @event, url: admin_administrative_events_path do |f|
+  = f.error_notification
+
+  .row
+    .col-sm-6
+      .form-inputs
+        = f.input :title, required: true
+        = f.input :description
+
+      .form-actions
+        = f.button :submit, "Create Administrative Event", class: 'btn btn-primary'
