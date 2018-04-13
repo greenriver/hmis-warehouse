@@ -269,7 +269,7 @@ module ReportGenerators::SystemPerformance::Fy2017
             }
           end.first
         # remove anyone who exited from PH, but never moved into housing
-        next if exit_data[:move_in_date].blank?
+        next if exit_data.blank?
         destinations[id] = exit_data[:destination]
       end
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
