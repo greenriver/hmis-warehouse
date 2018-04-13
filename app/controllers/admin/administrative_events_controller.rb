@@ -3,13 +3,12 @@ class Admin::AdministrativeEventsController < ApplicationController
   before_action :load_event, only: [:edit, :update]
   
   def index
-    @events = administrative_event_source.order(date: :desc).page(params[:page]).per(5)
+    @events = administrative_event_source.order(date: :desc).page(params[:page]).per(1)
   end
 
   def create
     @event = administrative_event_source.create(administrative_event_params.merge({
       user_id: current_user.id,
-      date: Date.today.to_s,
     }))
     respond_with(@event, location: admin_administrative_events_path)
   end

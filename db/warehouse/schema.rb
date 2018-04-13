@@ -732,7 +732,7 @@ ActiveRecord::Schema.define(version: 20180410081403) do
 
   create_table "administrative_events", force: :cascade do |t|
     t.string   "user_id"
-    t.string   "date"
+    t.date     "date"
     t.string   "title"
     t.string   "description"
     t.datetime "created_at",  null: false
