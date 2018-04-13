@@ -3,20 +3,25 @@
 namespace :delayed_job do
   task :restart do
     on roles(:job) do
-      puts fetch(:delayed_job_systemd).inspect
-      execute :sudo, "systemctl restart delayed_job-#{fetch(:client)}-hmis-#{fetch(:rails_env)}.service"
+      if ENV['DELAYED_JOB_SYSTEMD']=='true'
+        execute :sudo, "systemctl restart delayed_job-#{fetch(:client)}-hmis-#{fetch(:rails_env)}.service"
+      end
     end
   end
 
   task :stop do
     on roles(:job) do
-      execute :sudo, "systemctl stop delayed_job-#{fetch(:client)}-hmis-#{fetch(:rails_env)}.service"
+      if ENV['DELAYED_JOB_SYSTEMD']=='true'
+        execute :sudo, "systemctl stop delayed_job-#{fetch(:client)}-hmis-#{fetch(:rails_env)}.service"
+      end
     end
   end
 
   task :start do
     on roles(:job) do
-      execute :sudo, "systemctl start delayed_job-#{fetch(:client)}-hmis-#{fetch(:rails_env)}.service"
+      if ENV['DELAYED_JOB_SYSTEMD']=='true'
+        execute :sudo, "systemctl start delayed_job-#{fetch(:client)}-hmis-#{fetch(:rails_env)}.service"
+      end
     end
   end
 end
