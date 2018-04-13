@@ -1,8 +1,9 @@
 class Admin::AdministrativeEventsController < ApplicationController
   before_action :require_can_add_administrative_event!
+  before_action :load_event, only: [:edit, :update]
   
   def index
-    @events = administrative_event_source.all
+    @events = administrative_event_source.order(date: :desc).page(params[:page]).per(5)
   end
 
   def create
@@ -10,19 +11,21 @@ class Admin::AdministrativeEventsController < ApplicationController
       user_id: current_user.id,
       date: Date.today.to_s,
     }))
-
-    if @event.save
-      redirect_to admin_administrative_events_path
-    else
-      render :new
-    end
-    
+    respond_with(@event, location: admin_administrative_events_path)
   end
   
   def new
     @event = administrative_event_source.new 
   end
+  
+  def edit
+  end
 
+  def update
+    @event.update(administrative_event_params)
+    respond_with(@event, location: admin_administrative_events_path)
+  end
+  
   def destroy
     @event = administrative_event_source.find params[:id]
     @event.destroy
@@ -33,12 +36,21 @@ class Admin::AdministrativeEventsController < ApplicationController
     GrdaWarehouse::AdministrativeEvent
   end
   
+  def flash_interpolation_options
+    { resource_name: 'Event' }
+  end
+  
   private
     def administrative_event_params
       params.require(:grda_warehouse_administrative_event).permit(
         :title, 
         :description,
+        :date
       )
+    end
+    
+    def load_event
+      @event = administrative_event_source.find params[:id].to_i
     end
   
 end

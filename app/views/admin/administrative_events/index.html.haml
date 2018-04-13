@@ -25,9 +25,14 @@
             %tr
               %td= event.date
               %td= event.title
-              %td= event.description
+              %td= simple_format event.description
+              %td
+                = link_to action: :edit, id: event do
+                  %span.icon-pencil
+                  Edit
               %td
                 = link_to admin_administrative_event_path(event),  method: :delete, data: {confirm: "Would you really like to delete this administrative event?"} do
                   %span.icon-cross
                   Delete
                       
+%p= paginate @events

@@ -1,0 +1,10 @@
+= f.error_notification
+
+.row
+  .col-sm-6
+    .form-inputs
+      = f.input :title, required: true
+      = f.input :description, as: :text
+
+    .form-actions
+      = f.button :submit, "Submit", class: 'btn btn-primary'
