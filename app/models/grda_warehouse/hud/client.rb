@@ -412,7 +412,7 @@ module GrdaWarehouse::Hud
       elsif user.coc_codes.none?
         none
       else
-        distinct.joins(:enrollment_cocs).where( ec_t[:CoCCode].in user.coc_codes )
+        distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
       end
     end
 
