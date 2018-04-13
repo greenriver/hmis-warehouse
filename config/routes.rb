@@ -127,7 +127,7 @@ Rails.application.routes.draw do
         get :running
       end
     end
-    resources :chronic, only: [:index, :show] do
+    resources :chronic, only: [:index, :show, :destroy] do
       get :summary, on: :collection
       get :running, on: :collection
     end

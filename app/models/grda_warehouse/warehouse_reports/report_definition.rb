@@ -7,7 +7,9 @@ module GrdaWarehouse::WarehouseReports
       if user.can_view_all_reports?
         current_scope
       elsif user.can_view_assigned_reports?
-        joins(:user_viewable_entities)
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+      else
+        none
       end
     end
 

@@ -7,6 +7,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     
     after_commit :force_validity_calculation
 
+    scope :unprocessed, -> do
+      where(processed_as: nil)
+    end
+
     def service_history_valid?
       processed_as.present? && processed_as == calculate_hash
     end

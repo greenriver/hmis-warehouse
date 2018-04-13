@@ -4,6 +4,10 @@ module Reports::DataQuality::Fy2016
       'HUD Data Quality Reports - FY 2016'
     end
 
+    def report_group_name
+      'Data Quality'
+    end
+
     def download_type
       :csv
     end

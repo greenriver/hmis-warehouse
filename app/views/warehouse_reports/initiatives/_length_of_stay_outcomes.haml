@@ -1,76 +1,98 @@
 - vm = WarehouseReport::InitiativeMmBarCharts.new(@data, @report_range, @comparison_range)
 - [:project_type, :project].each do |by|
-  = render 'breakdown', title: "Changes in Length of Stay in Days by #{by.to_s.titleize}", vm: vm, data_type: :length_of_stay_breakdowns, by: by, chart_1: :mean, chart_2: :median
--# 
-  - if data = @data[:all_length_of_stay_breakdowns_by_project_type]
-    %h4 Changes in Length of Stay in Days by Project Type
-    - keys = data.keys
-    %table.table.table-striped
-      %thead
-        %tr
-          %th
-          - keys.each do |k|
-            %th= ::HUD.project_type_brief(k.to_i)
-      %tbody
-        %tr
-          %th Report Period Mean
-          - keys.each do |k|
-            - values = data[k] || [0]
-            - mean = (values.sum.to_f/values.length).round rescue 0
-            %td= mean
-        %tr
-          %th Report Period Median
-          - keys.each do |k|
-            - values = data[k] || [0]
-            - median = median(values)
-            %td= median
-        - data = @data[:all_comparison_length_of_stay_breakdowns_by_project_type]
-        %tr
-          %th Comparison Period Mean
-          - keys.each do |k|
-            - values = data[k] || [0]
-            - mean = (values.sum.to_f/values.length).round rescue 0
-            %td= mean
-        %tr
-          %th Comparison Period Median
-          - keys.each do |k|
-            - values = data[k] || [0]
-            - median = median(values)
-            %td= median
+  - data_type = :length_of_stay_breakdowns
+  - chart_1 = :mean
+  - chart_2 = :median
+  - title = "Length of Stay in Days by #{by.to_s.titleize}"
 
--#
-  - if data = @data[:all_length_of_stay_breakdowns_by_project]
-    %h4 Changes in Length of Stay in Days by Project
-    - keys = data.keys
-    %table.table.table-striped
-      %thead
-        %tr
-          %th
-          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-            %th= p_name
-      %tbody
-        %tr
-          %th Report Period Mean
-          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-            - values = data[p_id] || [0]
-            - mean = (values.sum.to_f/values.length).round rescue 0
-            %td= mean
-        %tr
-          %th Report Period Median
-          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-            - values = data[p_id] || [0]
-            - median = median(values)
-            %td= median
-        - data = @data[:all_comparison_length_of_stay_breakdowns_by_project]
-        %tr
-          %th Comparison Period Mean
-          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-            - values = data[p_id] || [0]
-            - mean = (values.sum.to_f/values.length).round rescue 0
-            %td= mean
-        %tr
-          %th Comparison Period Median
-          - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-            - values = data[p_id] || [0]
-            - median = median(values)
-            %td= median
+  =# render 'breakdown', title: "Changes in Length of Stay in Days by #{by.to_s.titleize}", vm: vm, data_type: :length_of_stay_breakdowns, by: by, chart_1: :mean, chart_2: :median
+  - charts = vm.charts(data_type, by)
+  - chart_1_data = charts[chart_1]
+  - chart_1_id = vm.chart_id(data_type, chart_1, by)
+  - chart_2_data = charts[chart_2]
+  - chart_2_id = vm.chart_id(data_type, chart_2, by)
+  - legend_id = vm.legend_id(data_type, by)
+  - collapse_id = vm.collapse_id(data_type, by)
+  - table_id = vm.table_id(data_type, by)
+  - chart_type = 'InitiativeStackedBar'
+  - if ['d3-length_of_stay_breakdowns-mm-by-project_type__table', 'd3-length_of_stay_breakdowns-mm-by-project__table', 'd3-income_most_recent_breakdowns-mm-by-project_type__table', 'd3-income_most_recent_breakdowns-mm-by-project__table'].include?(table_id)
+    - chart_type = 'InitiativeStackedSummaryBar'
+  =# debug [data_type, by, table_id]
+  =# debug chart_1_data
+  .ho-container.loso__container
+    .ho-container__header
+      %h4= title 
+    .row
+      .col-xs-12
+        .loso__legend
+          .clearfix{id: legend_id}
+    .row
+      - empty = false
+      - [chart_1, chart_2].each do |period|
+        .col-xs-12.col-md-6
+          %h5{style: 'margin-left: 20px;'}= vm.chart_title(period)
+          - if vm.empty?(data_type, by, period)
+            - empty = true
+            %p{style: 'margin-left: 20px;'} No Data
+          - else
+            %div{id: vm.chart_id(data_type, period, by)}
+    .loso-footer.clearfix
+      %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+        Show Details
+    .collapse.loso-collapse{id: collapse_id}
+      - stackKeys = vm.stack_keys(data_type, by)
+      - table_rows = vm.table_rows(by)
+      %div{id: table_id}
+        - [chart_1, chart_2].each_with_index do |chart, i|
+          - data = i == 0 ? chart_1_data : chart_2_data
+          %table.table.loso-table
+            %tr
+              %th{width: '100px'}
+              %th{width: '180px'}
+              - data[:keys].each do |key|
+                %th.text-center{width: '150px'}
+                  = data[:labels][key]
+            - table_rows.each_with_index do |row, index|
+              %tr
+                - if index == 0
+                  %th.loso-table__label{rowspan: table_rows.size}= (chart == :report || chart == :comparison) ? vm.chart_title(chart) : chart.to_s.titleize
+                %th{data: {d3_key: row}}
+                  = (row == :report || row == :comparison) ? "#{row.to_s} Period".titleize : row.to_s
+                - data[:keys].each do |key|
+                  %td.text-center
+                    - count = (data[:data].select{|d| d[:type] == row.to_s}[0] || {})[key]
+                    - support_key = chart_1_data.try(:[], :support_keys).try(:[], row.to_s).try(:[], key)
+                    - support_section = vm.support_section(data_type, by)
+                    =# debug chart_1_data.try(:[], :support_keys)
+                    =# debug row
+                    =# debug key
+                    - if chart == :comparison
+                      - support_section = "#{chart}_#{support_section}"
+                    - should_link = count > 0 && support_key.present? && can_view_all_reports?
+                    =link_to_if(should_link, count, warehouse_report_support_index_path(@report.id, key: support_key, section: support_section), data: { loads_in_pjax_modal: true })
+
+  - if !empty
+    - content_for :page_js do
+      :javascript
+        $(document).ready(function() {
+          var chart1Data = #{chart_1_data.to_json};
+          var chart1Id = '#'+#{chart_1_id.to_json};
+          var legendId = '#'+#{legend_id.to_json};
+          var tableId = '#'+#{table_id.to_json};
+
+          var chart2Data = #{chart_2_data.to_json};
+          var chart2Id = '#'+#{chart_2_id.to_json};
+
+          var chart1;
+          var chart2;
+          $(window).on('resize', function() {
+            if($(chart1Id).is(':visible')) {
+
+              chart1 = new App.D3Chart.#{chart_type}(chart1Id, tableId, legendId, {top: 20, right: 50, bottom: 20, left: 20}, chart1Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
+              chart2 = new App.D3Chart.#{chart_type}(chart2Id, false, false, {top: 20, right: 50, bottom: 20, left: 20}, chart2Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
+
+              chart1.draw();
+              chart2.draw();
+            }
+          });
+        });

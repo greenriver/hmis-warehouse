@@ -61,6 +61,8 @@ module GrdaWarehouse::Tasks
       extra_work = 0
       @clients.each_with_index do |client_id, index|
         debug_log "Calculating chronicity for #{client_id}"
+        # All chronically homeless must also be disabled
+        next unless disabled?(client_id)
         # remove any cached calculations from the previous client
         reset_for_batch()
         adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
@@ -184,7 +186,7 @@ module GrdaWarehouse::Tasks
         where(client_id: client_id)
       if homeless_reset(client_id: client_id).present?
         debug_log "Found previous residential history, using #{homeless_reset(client_id: client_id)} instead of #{@date - 3.years} as beginning of calculation"
-        scope = scope.where(date: homeless_reset(client_id: client_id)..@date)
+        scope = scope.where(shs_t[:date].between(homeless_reset(client_id: client_id)..@date))
       end
       all_dates = scope.pluck(*service_history_columns.values).map do |row|
         service_history_columns.keys.zip(row).to_h

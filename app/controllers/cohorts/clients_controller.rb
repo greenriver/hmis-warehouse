@@ -62,6 +62,7 @@ module Cohorts
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
+        next if client.blank?
         cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes, current_user.can_view_clients?, params], expires_in: expires) do
           @visible_columns = [CohortColumns::Meta.new]
           cohort_client_data = {}
@@ -147,17 +148,24 @@ module Cohorts
               she_t[:client_id].eq(wcp_t[:client_id])
             ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end]).
             exists
-          ).
-          where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless])).
-          distinct
+          ).distinct
+          if @actives[:limit_to_last_three_years] == '1'
+            @clients = @clients.where(
+              wcp_t[:days_homeless_last_three_years].gteq(@actives[:min_days_homeless])
+            )
+          else
+            @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
+          end
 
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
       end
-      @days_homeless = GrdaWarehouse::WarehouseClientsProcessed.
+      counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.select(:id)).
-        pluck(:client_id, :homeless_days).to_h
+        pluck(:client_id, :homeless_days, :days_homeless_last_three_years)
+      @days_homeless = counts.map{|client_id, days_homeless, _| [client_id, days_homeless]}.to_h
+      @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years| [client_id, days_homeless_last_three_years]}.to_h
       Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
@@ -297,6 +305,7 @@ module Cohorts
         :start,
         :end,
         :min_days_homeless,
+        :limit_to_last_three_years
       )
     end
 

@@ -4,6 +4,10 @@ module Reports::Ahar::Fy2016
       'AHAR - FY 2016'
     end
 
+    def report_group_name
+      'Annual Homeless Assessment Report'
+    end
+
     def self.available_projects_for_filtering
       GrdaWarehouse::Hud::Project.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name,id,ds_id,short_name|
         ["#{name} - #{short_name}", [id,ds_id]]

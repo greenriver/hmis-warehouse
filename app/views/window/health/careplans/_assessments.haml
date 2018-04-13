@@ -1,4 +1,5 @@
-.client__assessments
+.client__assessments.slab
+  %h3.section-expander-block__header Assessments
   - if status = @client.api_status
     - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
     - if status[:updating]

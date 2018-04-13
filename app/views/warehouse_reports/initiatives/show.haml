@@ -4,30 +4,52 @@
 
 %h1= content_for :title
 = render 'token_access'
-= render 'parameters', report: @parameters
+%ul.nav.nav-tabs{role: :tablist}
+  %li{role: :presentation, class: 'active'}
+    %a{href: "#outcomes", role: :tab, data: {toggle: :tab}, aria: {controls: 'outcomes'}}
+      Outcomes
+  %li{role: :presentation}
+    %a{href: "#details", role: :tab, data: {toggle: :tab}, aria: {controls: 'details'}}
+      Details
+  %li{role: :presentation}
+    %a{href: "#settings", role: :tab, data: {toggle: :tab}, aria: {controls: 'settings'}}
+      Chosen Options
 
-.warehouse-reports__initiatives
-  -# Outcomes
-  = render 'outcomes'
-  - show_view_partials.each do |p|
-    - if p[:partial] == 'breakdown'
-      %h2
-        %span= p[:title] || p[:data].to_s.humanize.titleize
-      - [:project_type, :project].each do |by|
-        - title = p[:title].present? ? "#{p[:title]} by #{by.to_s.titleize}" : "#{p[:data].to_s.titleize} by #{by.to_s.titleize}"
-        = render p[:partial], title: title, vm: vm, data_type: p[:data], by: by, chart_1: :report, chart_2: :comparison
-    - elsif p[:partial] == 'income_pie_charts'
-      %h2
-        %span= p[:title] || p[:data].to_s.humanize.titleize
-      = render p[:partial], data_type: p[:data]
-    - else
-      %h2
-        %span= p[:title]
-      = render p[:partial], title: p[:title]
+.tab-content
+  %div{role: :tabpanel, class: 'tab-pane', id: 'settings'}
+    = render 'settings'
+  %div{role: :tabpanel, class: 'active tab-pane', id: 'outcomes'}
+    .warehouse-reports__initiatives
+      = render 'outcomes'
+  %div{role: :tabpanel, class: 'tab-pane', id: 'details'}
+    .warehouse-reports__initiatives
+      - show_view_partials.each do |p|
+        - if ['breakdown','client_counts'].include?(p[:partial])
+          %h2
+            %span= p[:title] || p[:data].to_s.humanize.titleize
+          - [:project_type, :project].each do |by|
+            - title = p[:title].present? ? "#{p[:title]} by #{by.to_s.titleize}" : "#{p[:data].to_s.titleize} by #{by.to_s.titleize}"
+            = render p[:partial], title: title, vm: vm, data_type: p[:data], by: by, chart_1: :report, chart_2: :comparison
+        - elsif p[:partial] == 'income_pie_charts'
+          %h2
+            %span= p[:title] || p[:data].to_s.humanize.titleize
+          = render p[:partial], data_type: p[:data]
+        - else
+          %h2
+            %span= p[:title]
+          = render p[:partial], title: p[:title]
+
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
+      // setup d3 in bootstrap tabs
+      $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $(window).trigger('resize');
+      });
+      $(window).trigger('resize');
+
+      // Setup collapsing info tables
       $('.loso-collapse').on('shown.bs.collapse', function(event) {
         var id = event.target.id
         $('[data-target="#'+id+'"]').text('Hide Details')

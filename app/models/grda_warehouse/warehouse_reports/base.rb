@@ -5,7 +5,7 @@ module GrdaWarehouse::WarehouseReports
     scope :ordered, -> { order(created_at: :desc) }
 
     scope :for_list, -> do
-      select(column_names - ['data'])
+      select(column_names - ['data', 'support'])
     end
 
 

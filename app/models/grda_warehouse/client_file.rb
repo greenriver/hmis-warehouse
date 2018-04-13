@@ -140,5 +140,23 @@ module GrdaWarehouse
       GrdaWarehouse::AvailableFileTag.grouped
     end
 
+    def as_preview
+      return content unless content_type == 'image/jpeg'
+      image = MiniMagick::Image.read(content)
+      image.auto_level
+      image.strip
+      image.resize('1920x1080')
+      image.to_blob
+    end
+
+    def as_thumb
+      return nil unless content_type == 'image/jpeg'
+      image = MiniMagick::Image.read(content)
+      image.auto_level
+      image.strip
+      image.resize('400x400')
+      image.to_blob
+    end
+
   end
 end  

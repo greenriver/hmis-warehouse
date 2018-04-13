@@ -169,10 +169,13 @@ module GrdaWarehouse::Hud
     has_many :users, through: :user_clients, inverse_of: :clients
 
     has_many :cohort_clients, dependent: :destroy
+    has_many :active_cohort_clients, -> do
+      active
+    end, class_name: GrdaWarehouse::CohortClient.name
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
     has_many :active_cohorts, -> do
       where(active_cohort: true)
-    end, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
+    end, through: :active_cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
 
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
@@ -272,8 +275,8 @@ module GrdaWarehouse::Hud
 
     scope :homeless_individual, -> (on_date: Date.today, chronic_types_only: false) do
       where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.
-          currently_homeless(chronic_types_only: chronic_types_only).
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
           distinct.
           individual.select(:client_id)
       )
@@ -486,6 +489,7 @@ module GrdaWarehouse::Hud
       client_scope.includes(:data_source).map do |m|
         {
           ds: m.data_source.short_name,
+          ds_id: m.data_source.id,
           name: m.full_name,
         }
       end
@@ -867,32 +871,39 @@ module GrdaWarehouse::Hud
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for=10.minutes)
-      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
         if Rails.env.production?
-          source_api_ids.detect do |api_id|
-            api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
-            image_data = api.client_image(
-              client_id: api_id.id_in_data_source, 
-              site_id: api_id.site_id_in_data_source
-            ) rescue nil
-            (image_data && image_data.length > 0)
+          # Use the uploaded client image if available, otherwise use the API, if we have access
+          unless image_data = local_client_image_data()
+            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+            source_api_ids.detect do |api_id|
+              api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
+              image_data = api.client_image(
+                client_id: api_id.id_in_data_source, 
+                site_id: api_id.site_id_in_data_source
+              ) rescue nil
+              (image_data && image_data.length > 0)
+            end
           end
         else
-          if [0,1].include?(self[:Gender])
-            num = id % 99
-            gender = if self[:Gender] == 1
-              'men'
-            else
-              'women'
+          unless image_data = local_client_image_data()
+            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+            if [0,1].include?(self[:Gender])
+              num = id % 99
+              gender = if self[:Gender] == 1
+                'men'
+              else
+                'women'
+              end
+              response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
+              image_data = response.body
             end
-            response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-            image_data = response.body
           end
+          image_data || self.class.no_image_on_file_image
         end
-        image_data || self.class.no_image_on_file_image
+        image_data
       end
     end
 
@@ -924,6 +935,13 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # These need to be flagged as available in the Window. Since we cache these 
+    # in the file-system, we'll only show those that would be available to people
+    # with window access
+    def local_client_image_data
+      headshot = client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first rescue nil
+      headshot.as_thumb if headshot
+    end
 
     def accessible_via_api?
       GrdaWarehouse::Config.get(:eto_api_available) && source_api_ids.exists?
@@ -1565,15 +1583,14 @@ module GrdaWarehouse::Hud
       vispdat_score = most_recent_vispdat_score
       vispdat_length_homeless_in_days ||= 0
       vispdat_score ||= 0
-      if vispdat_length_homeless_in_days > 730 && vispdat_score >= 8
-        730 + vispdat_score
+      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 730
+        730
       elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
-        365 + vispdat_score
-      elsif vispdat_score >= 0 
-        vispdat_score
-      else 
+        365
+      else
         0
       end
+      vispdat_score + vispdat_prioritized_days_score
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
@@ -1641,6 +1658,16 @@ module GrdaWarehouse::Hud
       homeless_months_in_last_three_years(on_date: on_date).count
     end
 
+    def homeless_months_in_hud_chronic_in_last_three_years(on_date: Date.today)
+      self.class.dates_in_hud_chronic_homeless_last_three_years_scope(client_id: id, on_date: on_date).
+        pluck(:date).
+        map{ |date| [date.month, date.year]}.uniq
+    end
+
+    def months_homeless_in_hud_chronic_in_last_three_years(on_date: Date.today)
+      homeless_months_in_hud_chronic_in_last_three_years(on_date: on_date).count
+    end
+
     def self.dates_housed_scope(client_id:, on_date: Date.today)
       GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
         where(client_id: client_id).select(:date).distinct
@@ -1697,6 +1724,7 @@ module GrdaWarehouse::Hud
       enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date)
       chronic_enrollments = service_history_enrollments.entry.
+        open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true)
       chronic_enrollments.map do |enrollment|
         new_episode?(enrollments: enrollments, enrollment: enrollment)
@@ -1786,6 +1814,10 @@ module GrdaWarehouse::Hud
           }
         end
       end
+    end
+
+    def ongoing_enrolled_project_ids
+      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
     end
 
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false

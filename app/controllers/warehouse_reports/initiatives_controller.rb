@@ -44,7 +44,8 @@ module WarehouseReports
     end
 
     def destroy
-      
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_initiatives_path)
     end
 
     def show
@@ -103,7 +104,7 @@ module WarehouseReports
 
     def show_view_partials
       [
-        {partial: 'breakdown', data: :client_counts},
+        {partial: 'client_counts', data: :client_counts},
         {partial: 'nightly_census', title: 'Nightly Census'},
         {partial: 'breakdown', data: :gender_breakdowns},
         {partial: 'breakdown', data: :veteran_breakdowns, title: "Veteran Status Breakdowns"},
@@ -120,5 +121,8 @@ module WarehouseReports
     end
     helper_method :show_view_partials
 
+    def flash_interpolation_options
+      { resource_name: 'Initiative Report' }
+    end
   end
 end

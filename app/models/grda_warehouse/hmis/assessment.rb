@@ -4,6 +4,8 @@ module GrdaWarehouse::HMIS
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name, foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
 
+    has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
+
     scope :confidential, -> do 
       where(confidential: true)
     end
@@ -15,6 +17,14 @@ module GrdaWarehouse::HMIS
     end
     scope :active, -> do
       where(active: true)
+    end
+
+    scope :health_for_user, -> (user) do
+      if user.can_administer_health?
+        joins(:hmis_forms).merge(GrdaWarehouse::HmisForm.health_touch_points)
+      else
+        none
+      end
     end
 
     scope :for_user, -> (user) do

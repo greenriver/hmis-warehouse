@@ -14,7 +14,8 @@ module WarehouseReports
           where(cohort_clients: {client_id: @unconfirmed.select(:id)}).
           pluck(:id, :client_id, :name, :short_name).
           each do |id, client_id, name, short_name|
-            cohorts[id] ||= {name: short_name || name, clients: {}}
+            cohort_name = short_name.presence || name
+            cohorts[id] ||= {name: cohort_name, clients: {}}
             cohorts[id][:clients][client_id] = client_id
         end
         cohorts

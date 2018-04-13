@@ -22,8 +22,9 @@
         cohort_value_hidden_selector: '.jCohortColumnValue',
         check_url: '#{cohort_cohort_clients_path(@cohort)}',
         input_selector: '.jCohortClientInput',
-        updated_ats: #{@cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h.to_json},
-        search_selector: '#cohort-search' 
+        updated_ats: #{@cohort_client_updates.to_json},
+        search_selector: '#cohort-search',
+        search_actions_selector: '.jSearchActions'
       }
       $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
       

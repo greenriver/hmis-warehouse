@@ -4,6 +4,10 @@ module Reports::Ahar::Fy2017
       'AHAR - FY 2017'
     end
 
+    def report_group_name
+      'Annual Homeless Assessment Report'
+    end
+
     def self.generator
       ReportGenerators::Ahar::Fy2017::Base
     end

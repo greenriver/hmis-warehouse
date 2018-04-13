@@ -20,9 +20,10 @@
         %th
           Veteran
         %th
-          %span{data: {toggle: :tooltip, title: 'Homeless days shown does not take overlapping PH into account'}}
-            %i.icon-info
-            Days Homeless
+          Days Homeless
+        %th
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
+          Days Homeless in Past 3 Years
           
     %tbody
       - @clients.each do |client|
@@ -49,3 +50,5 @@
             = HUD.veteran_status(client[:VeteranStatus])
           %td
             = @days_homeless[client[:id]]
+          %td
+            = @days_homeless_three_years[client[:id]]

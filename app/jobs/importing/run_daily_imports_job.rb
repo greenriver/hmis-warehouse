@@ -51,6 +51,11 @@ module Importing
         pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+      # Make sure there are no unprocessed invalidated enrollments
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      end
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
       # Make sure we've finished processing the service history before we move on
       # Some of the later items require this to be finished to be correct.
@@ -92,24 +97,14 @@ module Importing
       # Only run the chronic calculator on the 1st and 15th
       # but run it for the past 2 of each
       if start_time.to_date.day.in?([1,15])
-        this_month = start_time.to_date.beginning_of_month
-        last_month = this_month - 1.month
-        if start_time.to_date.day < 15
-          two_months_ago = this_month - 2.months
-          dates = [
-            this_month,
-            Date.new(last_month.year, last_month.month, 15),
-            last_month,
-            Date.new(two_months_ago.year, two_months_ago.month, 15),
-          ]
-        else
-          dates = [
-            Date.new(this_month.year, this_month.month, 15),
-            this_month,
-            Date.new(last_month.year, last_month.month, 15),
-            last_month,
-          ]
+        months_to_build = 6
+        dates = []
+        months_to_build.times do |i| 
+          dates << i.months.ago.change(day: 15).to_date
+          dates << i.months.ago.change(day: 1).to_date
         end
+        dates.select!{|m| m <= Date.today}
+
         dates.each do |date|
           GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
           GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!

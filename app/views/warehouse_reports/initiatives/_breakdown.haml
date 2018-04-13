@@ -6,7 +6,10 @@
 - legend_id = vm.legend_id(data_type, by)
 - collapse_id = vm.collapse_id(data_type, by)
 - table_id = vm.table_id(data_type, by)
-
+- chart_type = 'InitiativeStackedBar'
+- if ['d3-length_of_stay_breakdowns-mm-by-project_type__table', 'd3-length_of_stay_breakdowns-mm-by-project__table', 'd3-income_most_recent_breakdowns-mm-by-project_type__table', 'd3-income_most_recent_breakdowns-mm-by-project__table'].include?(table_id)
+  - chart_type = 'InitiativeStackedSummaryBar'
+=# debug [data_type, by, table_id]
 .ho-container.loso__container
   .ho-container__header
     %h4= title 
@@ -45,25 +48,42 @@
               - if index == 0
                 %th.loso-table__label{rowspan: table_rows.size}= (chart == :report || chart == :comparison) ? vm.chart_title(chart) : chart.to_s.titleize
               %th{data: {d3_key: row}}
-                = (row == :report || row == :comparison) ? "#{row.to_s} Period".titleize : row.to_s.titleize
+                = (row == :report || row == :comparison) ? "#{row.to_s} Period".titleize : row.to_s
               - data[:keys].each do |key|
                 %td.text-center
-                  = (data[:data].select{|d| d[:type] == row.to_s}[0] || {})[key]
+                  - count = (data[:data].select{|d| d[:type] == row.to_s}[0] || {})[key]
+                  - support_key = chart_1_data.try(:[], :support_keys).try(:[], row.to_s).try(:[], key)
+                  - support_section = vm.support_section(data_type, by)
+                  =# debug chart_1_data.try(:[], :support_keys)
+                  =# debug row
+                  =# debug key
+                  - if chart == :comparison
+                    - support_section = "#{chart}_#{support_section}"
+                  - should_link = count > 0 && support_key.present? && can_view_all_reports?
+                  =link_to_if(should_link, count, warehouse_report_support_index_path(@report.id, key: support_key, section: support_section), data: { loads_in_pjax_modal: true })
 
 - if !empty
   - content_for :page_js do
     :javascript
       $(document).ready(function() {
-        var chart1Data = #{chart_1_data.to_json}
-        var chart1Id = '#'+#{chart_1_id.to_json}
-        var legendId = '#'+#{legend_id.to_json}
-        var tableId = '#'+#{table_id.to_json}
-        var chart1 = new App.D3Chart.InitiativeStackedBar(chart1Id, tableId, legendId, {top: 20, right: 50, bottom: 20, left: 20}, chart1Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
-        chart1.draw()
+        var chart1Data = #{chart_1_data.to_json};
+        var chart1Id = '#'+#{chart_1_id.to_json};
+        var legendId = '#'+#{legend_id.to_json};
+        var tableId = '#'+#{table_id.to_json};
 
-        var chart2Data = #{chart_2_data.to_json}
-        var chart2Id = '#'+#{chart_2_id.to_json}
-        var chart2 = new App.D3Chart.InitiativeStackedBar(chart2Id, false, false, {top: 20, right: 50, bottom: 20, left: 20}, chart2Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
-        chart2.draw()
-      })
+        var chart2Data = #{chart_2_data.to_json};
+        var chart2Id = '#'+#{chart_2_id.to_json};
 
+        var chart1;
+        var chart2;
+        $(window).on('resize', function() {
+          if($(chart1Id).is(':visible')) {
+
+            chart1 = new App.D3Chart.#{chart_type}(chart1Id, tableId, legendId, {top: 20, right: 50, bottom: 20, left: 20}, chart1Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
+            chart2 = new App.D3Chart.#{chart_type}(chart2Id, false, false, {top: 20, right: 50, bottom: 20, left: 20}, chart2Data, '#{@report_range.first.to_date} to #{@report_range.last.to_date}', '#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}');
+
+            chart1.draw();
+            chart2.draw();
+          }
+        });
+      });

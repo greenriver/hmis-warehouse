@@ -1,6 +1,6 @@
 - vm = WarehouseReport::InitiativeMmBarCharts.new(@data, @report_range, @comparison_range)
 - [:project_type, :project].each do |by|
-  = render 'breakdown', title: "Changes in Income by #{by.to_s.titleize}", vm: vm, data_type: :income_most_recent_breakdowns, by: by, chart_1: :mean, chart_2: :median
+  = render 'breakdown', title: "Income by #{by.to_s.titleize} in Dollars per Month", vm: vm, data_type: :income_most_recent_breakdowns, by: by, chart_1: :mean, chart_2: :median
 
 -#
   - if data = @data[:all_income_most_recent_breakdowns_by_project_type]

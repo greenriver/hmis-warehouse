@@ -109,5 +109,18 @@ module GrdaWarehouse::Import::HMISSixOneOne
       row[:FYSBYouth] = row.delete(:EligibleForRHY)
       return row
     end
+
+    def self.should_log?
+      true
+    end
+
+    def self.to_log
+      @to_log ||= {
+        hud_key: self.hud_key,
+        personal_id: :PersonalID,
+        effective_date: :EntryDate,
+        data_source_id: :data_source_id,
+      }
+    end
   end
 end
