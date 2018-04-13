@@ -390,7 +390,9 @@ Rails.application.routes.draw do
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
-      resources :patient_referrals, only: [:index, :create]
+      resources :patient_referrals, only: [:index, :create] do
+        post :assign_agency
+      end
       resources :users, only: [:index] do
         post :update, on: :collection
       end

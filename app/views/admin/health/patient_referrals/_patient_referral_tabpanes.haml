@@ -1,0 +1,10 @@
+.tab-content.patient-referrals
+  - @patient_referral_tabs.each do |tab|
+    - tab_classes = []
+    - if tab[:id] == @active_patient_referral_tab
+      - tab_classes.push('active')
+    .tab-pane{id: tab[:id], role: 'tabpanel', class: tab_classes}
+      - tab[:patient_referrals].each do |patient_referral|
+        .row
+          .col-xs-12
+            = render 'patient_referral', pr: patient_referral

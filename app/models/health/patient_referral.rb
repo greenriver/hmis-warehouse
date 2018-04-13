@@ -1,6 +1,19 @@
 module Health
   class PatientReferral < HealthBase
+
+    scope :assigned, -> {where.not(agency_id: nil)}
+    scope :unassigned, -> {where(agency_id: nil)}
+
     # TODO: What needs to be validated here?
+    validates_presence_of :first_name, :last_name, :birthdate, :ssn, :medicaid_id
+    validates_size_of :ssn, is: 9
+
+    has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
+    belongs_to :assigned_agency, class_name: 'Health::Agency'
+
+    def assigned?
+      agency_id.present?
+    end
 
     def name
       "#{first_name} #{last_name}"
@@ -22,9 +35,18 @@ module Health
       end
     end
 
-    def claimed_by
-      # TODO
-      ['Unclaimed']
+    def display_claimed_by
+      claimed = relationships.claimed
+      if claimed.any?
+        claimed.map{|r| r.agency.name}
+      else
+        ['Unclaimed']
+      end
+    end
+
+    def display_unclaimed_by
+      unclaimed = relationships.unclaimed
+      unclaimed.map{|r| r.agency.name}
     end
 
   end

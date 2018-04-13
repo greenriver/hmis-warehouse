@@ -1,0 +1,12 @@
+- dropdown_id = "assign-agency-to-#{pr.id}"
+.patient-referral__assign-agency
+  = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), namespace: dropdown_id, method: :post do |f|
+    = f.input :agency_id, as: :hidden
+  .dropdown
+    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'} do
+      Assign Agency
+      %span.caret
+    %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
+      - @agencies.each do |a|
+        %li
+          = link_to a.name, '#', data: {behavior: 'assign agency', agency_id: a.id}

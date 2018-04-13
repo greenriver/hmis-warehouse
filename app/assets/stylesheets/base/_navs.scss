@@ -40,3 +40,24 @@
 .nav-tabs > li {
   margin-bottom: -2px;
 }
+
+.sub-nav-tabs li {
+  display: inline-block;
+}
+
+.sub-nav-tabs li a {
+  color: #000000;
+  padding: 20px 5px 4px;
+  margin: 0px 10px 14px;
+}
+
+.sub-nav-tabs li a:hover,
+.sub-nav-tabs li a:active,
+.sub-nav-tabs li a:focus,
+.sub-nav-tabs li.active a {
+  background-color: transparent;
+  border-bottom: 1px solid #000000;
+}
+
+
+

@@ -1,0 +1,14 @@
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var containerSelector = '.patient-referral__assign-agency'
+      $("a[data-behavior='assign agency']").click(function(e) {
+        e.preventDefault();
+        var container = $(this).parents(containerSelector);
+        var form = $(container).find('form');
+        var input = $(form).find("input[name='health_patient_referral[agency_id]']");
+        var agencyId = $(this).data('agency-id');
+        $(input).val(agencyId);
+        $(form).submit();
+      });
+    });
