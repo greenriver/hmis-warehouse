@@ -8,26 +8,12 @@
         = panopticon.to_sentence
         = 'role'.pluralize panopticon.length
         can view all entities.
-  - if ( model = GrdaWarehouse::DataSource.viewable_by(current_user) ).exists
-    - args = { selected: @user.data_sources.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[data_sources][]" } }
-    - collection = model.order(:name).map{ |ds| [ds.id, ds.name] }
-    = f.input :data_sources, **args, collection: model.order(:name), placeholder: 'Data Source', multiple: true
-  - if ( model = GrdaWarehouse::Hud::Organization.viewable_by(current_user) ).exists
-    - collection = model.order(:name).preload(:data_source).group_by{ |o| o.data_source.name }
-    - args = { as: :grouped_select, group_method: :last, selected: @user.organizations.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[organizations][]" } }
-    = f.input :organizations, **args, collection: collection, placeholder: 'Organization', multiple: true
-  - if ( model = GrdaWarehouse::Hud::Project.viewable_by(current_user) ).exists
-    - collection = model.order(:name).preload(:organization, :data_source).group_by{ |p| "#{p.data_source&.name} / #{p.organization&.name}" }
-    - args = { as: :grouped_select, group_method: :last, selected: @user.projects.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[projects][]"} }
-    = f.input :projects, **args, collection: collection, placeholder: 'Project', multiple: true
-  - if ( model = GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(current_user) ).exists
-    - collection = model.order(:report_group, :name).map{ |rd| ["#{rd.report_group}: #{rd.name}", rd.id] }
-    - args = { selected: @user.reports.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[reports][]" } }
-    = f.input :reports, **args, collection: collection, placeholder: 'Report', multiple: true
-  - if ( model = GrdaWarehouse::Cohort.viewable_by(current_user) ).exists
-    - args = { selected: @user.cohorts.map(&:id), input_html: { class: 'jUserViewable', name: "#{base}[cohorts][]" } }
-    - collection = model.order(:name).map{ |cohort| [cohort.id, cohort.name] }
-    = f.input :cohorts, **args, collection: model.order(:name), placeholder: 'Cohort', multiple: true
+  = f.input :data_sources,  **data_source_viewability(base)
+  = f.input :organizations, **organization_viewability(base)
+  = f.input :projects,      **project_viewability(base)
+  = f.input :coc_codes,     **coc_viewability(base)
+  = f.input :reports,       **reports_viewability(base)
+  = f.input :cohorts,       **cohort_viewability(base)
 
 - content_for :page_js do
   :coffeescript

@@ -406,6 +406,16 @@ module GrdaWarehouse::Hud
       where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.pluck(:client_id))
     end
 
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.coc_codes.none?
+        none
+      else
+        distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
+      end
+    end
+
     ####################
     # Callbacks
     ####################

@@ -253,7 +253,8 @@ module GrdaWarehouse::Hud
           [
             has_access_to_project_through_viewable_entities(user, q, qc),
             has_access_to_project_through_organization(user, q, qc),
-            has_access_to_project_through_data_source(user, q, qc)
+            has_access_to_project_through_data_source(user, q, qc),
+            has_access_to_project_through_coc_codes(user, q, qc)
           ].join ' OR '
         )
       end
@@ -329,6 +330,41 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
+        )
+
+      SQL
+    end
+
+    private_class_method def self.has_access_to_project_through_coc_codes(user, q, qc)
+      return '(1=0)' unless user.coc_codes.any?
+
+      project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
+      project_table     = quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{project_coc_table}
+            INNER JOIN
+            #{project_table} AS pt
+            ON
+              #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
+              AND
+              #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+            WHERE
+              (
+                (
+                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+                  AND
+                  #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                )
+                OR
+                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+              )
+              AND
+              #{project_table}.#{qc[:id]} = pt.#{qc[:id]}
+
         )
 
       SQL

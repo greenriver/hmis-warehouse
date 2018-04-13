@@ -89,6 +89,9 @@ module ArelHelper
   def e_t
     GrdaWarehouse::Hud::Enrollment.arel_table
   end
+  def ec_t
+    GrdaWarehouse::Hud::EnrollmentCoc.arel_table
+  end
   def ex_t
     GrdaWarehouse::Hud::Exit.arel_table
   end
@@ -279,6 +282,9 @@ module ArelHelper
     end
     def e_t
       GrdaWarehouse::Hud::Enrollment.arel_table
+    end
+    def ec_t
+      GrdaWarehouse::Hud::EnrollmentCoc.arel_table
     end
     def ex_t
       GrdaWarehouse::Hud::Exit.arel_table
