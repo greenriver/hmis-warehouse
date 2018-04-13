@@ -134,6 +134,12 @@ module ArelHelper
   def hdv_t
     GrdaWarehouse::Hud::HealthAndDv.arel_table
   end
+  def f_t
+    GrdaWarehouse::Hud::Funder.arel_table
+  end
+  def site_t
+    GrdaWarehouse::Hud::Site.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -327,6 +333,12 @@ module ArelHelper
     end
     def hdv_t
       GrdaWarehouse::Hud::HealthAndDv.arel_table
+    end
+    def f_t
+      GrdaWarehouse::Hud::Funder.arel_table
+    end
+    def site_t
+      GrdaWarehouse::Hud::Site.arel_table
     end
   end
 end

@@ -417,6 +417,63 @@ module GrdaWarehouse::Hud
       @answer
     end
 
+    # generate a CSV file
+    # there may be multiple lines per project
+    def self.export_providers(coc_codes)
+      spec = {
+        hud_org_id:          o_t[:OrganizationID],
+        _hud_org_name:       o_t[:OrganizationName],
+        provider:            p_t[:ProjectName],
+        _provider:           p_t[:ProjectID],
+        hud_prog_type:       p_t[project_type_column],
+        fed_funding_source:  f_t[:FunderID],
+        fed_partner_program: f_t[:FunderID],
+        grant_id:            f_t[:GrantID],
+        grant_start_date:    f_t[:StartDate],
+        grant_end_date:      f_t[:EndDate],
+        coc_code:            pc_t[:CoCCode],
+        hud_geocode:         site_t[:Geocode],
+        current_continuum_project: p_t[:ContinuumProject],
+      }
+      projects = joins( :funders, :organization, :project_cocs, :sites ).
+        order( arel_table[:ProjectID], pc_t[:CoCCode], f_t[:FunderID] ).
+        where( pc_t[:CoCCode].in coc_codes )
+      spec.each do |header, selector|
+        projects = projects.select selector.as(header.to_s)
+      end
+
+      csv = CSV.generate headers: true do |csv|
+        headers = spec.keys.reject{ |k| k.to_s.starts_with? '_' }
+        csv << headers
+
+        last = nil
+        connection.select_all(projects.to_sql).each do |project|
+          row = []
+          headers.each do |h|
+            value = case h
+            when :hud_org_id
+              "#{project['_hud_org_name']} (#{project['hud_org_id']})".squish
+            when :provider
+              "#{project['provider']} (#{project['_provider']})".squish
+            when :grant_start_date, :grant_end_date
+              d = project[h.to_s].presence
+              d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
+            when :current_continuum_project
+              ::HUD.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
+            when :fed_partner_program
+              ::HUD.funding_source project[h.to_s].presence&.to_i
+            else
+              project[h.to_s]
+            end
+            row << value
+          end
+          next if row == last
+          last = row
+          csv << row
+        end
+      end
+    end
+
     # when we export, we always need to replace ProjectID with the value of id
     # and OrganizationID with the id of the related organization
     def self.to_csv(scope:, override_project_type:)
