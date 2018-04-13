@@ -2,10 +2,6 @@ require 'rails_helper'
 
 model = GrdaWarehouse::Hud::Project
 
-def sees user, *projects
- expect(model.viewable_by(user).pluck(:id).sort).to eq projects.map(&:id).sort
-end
-
 RSpec.describe model, type: :model do
 
   # set up hierarchy like so
@@ -42,7 +38,6 @@ RSpec.describe model, type: :model do
   let! :pc1 { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'foo' }
   let! :pc2 { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'foo' }
   let! :pc3 { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'foo' }
-  let! :pc4 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'foo' }
   let! :pc4 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'foo' }
   let! :pc5 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'foo', hud_coc_code: 'bar' }
   let! :pc6 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, hud_coc_code: 'bar' }
