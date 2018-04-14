@@ -1,13 +1,4 @@
-- title = 'Healthcare Administration'
-- content_for(:title, title)
-%h1= title
-= render 'menus/health_admin_tabs'
-.clearfix
-  .pull-left
-    %h3 Add and Review Patient Referrals
-    %p Patients added here can be claimed by agencies, subject to BHCHP approval.
-  .pull-right.margin-top-02
-    %button.btn.btn-secondary{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
+= render 'header'
 = render 'patient_referral_tabs'
 = render 'patient_referral_tabpanes'
 = render 'new_modal'

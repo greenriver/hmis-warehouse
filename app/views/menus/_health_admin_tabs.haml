@@ -1,33 +1,46 @@
-- if current_user.can_see_admin_menu? && can_administer_health? && GrdaWarehouse::Config.get(:healthcare_available)
-  :ruby
-    tabs = [
-      [
-        'Add / Review Refferals',
-        admin_health_patient_referrals_path,
-        'patient_referrals'
-      ],
-      [
-        'Match Patients / Clients',
-        admin_health_patients_path, 
-        'patients'
-      ],
-      [
-        'Manage Healthcare </br> Window Access',
-        admin_health_users_path, 
-        'users'
-      ],
-      [
-        'Permissions & Health </br> Related Roles',
-        admin_health_roles_path,
-        'roles'
-      ]
+:ruby
+  tabs = []
+  all_tabs = [
+    [
+      'Add / Review Refferals',
+      admin_health_patient_referrals_path,
+      ['patient_referrals', 'agency_patient_referrals']
+    ],
+    [
+      'Match Patients / Clients',
+      admin_health_patients_path, 
+      ['patients']
+    ],
+    [
+      'Manage Healthcare </br> Window Access',
+      admin_health_users_path, 
+      ['users']
+    ],
+    [
+      'Permissions & Health </br> Related Roles',
+      admin_health_roles_path,
+      ['roles']
     ]
+  ]
+- if GrdaWarehouse::Config.get(:healthcare_available)
+  - if current_user.can_see_admin_menu? && can_administer_health? 
+    - tabs = all_tabs 
+  - elsif current_user.can_manage_health_agency?
+    - tabs = [all_tabs.first]
+
+- if tabs.any?
   .row
     %ul.nav.nav-tabs.margin-bottom-02
       - tabs.each do |tab|
-        - text, path, controller = tab
-        %li{role: 'presentation', class: controller == controller_name ? 'active' : ''}
+        - text, path, controllers = tab
+        %li{role: 'presentation', class: controllers.include?(controller_name) ? 'active' : ''}
           = link_to path do
             = text.html_safe
+  
+
+
+
+
+
     
         

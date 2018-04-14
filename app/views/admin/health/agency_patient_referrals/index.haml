@@ -1,0 +1,7 @@
+- if @no_agency_user_warning.present?
+  .alert.alert-danger.error= @no_agency_user_warning
+- else
+  = render 'admin/health/patient_referrals/header'
+  = render 'admin/health/patient_referrals/patient_referral_tabs'
+  = render 'admin/health/patient_referrals/patient_referral_tabpanes'
+  = render 'admin/health/patient_referrals/new_modal'

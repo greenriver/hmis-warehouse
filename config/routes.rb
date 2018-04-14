@@ -393,6 +393,7 @@ Rails.application.routes.draw do
       resources :patient_referrals, only: [:index, :create] do
         post :assign_agency
       end
+      resources :agency_patient_referrals, only: [:index]
       resources :users, only: [:index] do
         post :update, on: :collection
       end

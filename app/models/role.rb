@@ -77,6 +77,7 @@ class Role < ActiveRecord::Base
       :can_edit_client_health,
       :can_view_client_health,
       :can_view_aggregate_health,
+      :can_manage_health_agency
     ]
   end
 

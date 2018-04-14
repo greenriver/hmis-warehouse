@@ -1,0 +1,9 @@
+.col-xs-12.col-md-7
+  - cb = pr.display_claimed_by_other(@agency)
+  - if cb.present?
+    %div.margin-bottom-02
+      %strong Claimed By:
+      %div= cb
+  %div
+    = link_to 'Our Patient', '#', class: 'padding-right-02'
+    = link_to 'Not Our Patient', '#'

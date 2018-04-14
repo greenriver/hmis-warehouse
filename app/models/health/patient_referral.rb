@@ -35,6 +35,21 @@ module Health
       end
     end
 
+    def display_claimed_by_other(agency)
+      cb = display_claimed_by
+      other_size = cb.select{|c| c != 'Unclaimed'}.size
+      if other_size > 0
+        if other_size == 1 && cb.include?(agency.name)
+          ''
+        else
+          agency = 'Agency'.pluralize(other_size)
+          "#{other_size} Other #{agency}"
+        end
+      else
+        'Unclaimed'
+      end
+    end
+
     def display_claimed_by
       claimed = relationships.claimed
       if claimed.any?
