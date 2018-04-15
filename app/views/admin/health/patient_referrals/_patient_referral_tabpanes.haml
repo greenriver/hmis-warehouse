@@ -4,7 +4,7 @@
     - if tab[:id] == @active_patient_referral_tab
       - tab_classes.push('active')
     .tab-pane{id: tab[:id], role: 'tabpanel', class: tab_classes}
-      - tab[:patient_referrals].each do |patient_referral|
-        .row
-          .col-xs-12
-            = render 'admin/health/patient_referrals/patient_referral', pr: patient_referral
+      - if tab[:partial_path].present?
+        = render tab[:partial_path], patient_referrals: (tab[:patient_referrals] || [])
+      - else
+        = render 'admin/health/patient_referrals/tab', patient_referrals: (tab[:patient_referrals] || [])

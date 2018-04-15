@@ -1,0 +1,4 @@
+- patient_referrals.each do |group, group_patient_referrals|
+  %h5= group ? 'Claimed By Your Agency' : 'Not Your Patient'
+  = render 'admin/health/patient_referrals/tab', patient_referrals: group_patient_referrals
+  

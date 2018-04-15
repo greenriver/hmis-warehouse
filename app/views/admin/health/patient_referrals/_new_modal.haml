@@ -11,7 +11,7 @@
           .alert.alert-danger.error= flash[:error]
         .row
           .col-xs-12.col-md-6
-            = simple_form_for @new_patient_referral, url: admin_health_patient_referrals_path do |f|
+            = simple_form_for @new_patient_referral, url: add_patient_referral_path do |f|
               = f.input :first_name, label: 'First Name'
               = f.input :last_name, label: 'Last Name'
               = f.input :birthdate, as: :date_picker, label: 'Date of Birth'

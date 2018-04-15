@@ -5,7 +5,7 @@ module PatientReferral
     @new_patient_referral = Health::PatientReferral.new()
   end
 
-  def create
+  def add_patient_referral
     @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
     if @new_patient_referral.save
       flash[:notice] = 'New patient referral added.'

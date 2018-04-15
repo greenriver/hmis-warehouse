@@ -13,9 +13,11 @@
         %i.icon-notification
 .col-xs-12.col-md-2
   - if pr.assigned?
-    Change Agency
+    %strong Assigned To:
+    %br
+    = pr.assigned_agency.name
+    = render 'assign_agency', pr: pr, label: 'Change Agency'
   - else
-    = render 'assign_agency', pr: pr
+    = render 'assign_agency', pr: pr, label: 'Assign Agency'
 .col-xs-12.col-md-2
-  Reject
 .col-xs-12.col-md-1

@@ -5,5 +5,15 @@
       %strong Claimed By:
       %div= cb
   %div
-    = link_to 'Our Patient', '#', class: 'padding-right-02'
-    = link_to 'Not Our Patient', '#'
+    - relationship = pr.relationship_to(@agency) || pr.relationships.build(agency: @agency, claimed: nil)
+    - path = relationship.new_record? ? admin_health_agency_patient_referrals_path : admin_health_agency_patient_referral_path(relationship)
+    = simple_form_for relationship, url: path, namespace: "relationship_for_#{pr.id}", html: {data: {behavior: 'claim patient'}} do |f|
+      = f.input :agency_id, as: :hidden
+      = f.input :patient_referral_id, as: :hidden
+      = f.input :claimed, as: :hidden
+      - if relationship.new_record?
+        - collection = [['Our Patient', true], ['Not Our Patient', false]]
+      - else
+        - collection = relationship.claimed? ? [['Not Our Patient', false]] : [['Our Patient', true]]
+      - collection.each do |c|
+        = link_to c.first, '#', data: {behavior: 'claim patient', value: c.last.to_s}, class: 'padding-right-02'

@@ -4,9 +4,10 @@
     = f.input :agency_id, as: :hidden
   .dropdown
     = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'} do
-      Assign Agency
+      = label
       %span.caret
     %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
       - @agencies.each do |a|
-        %li
-          = link_to a.name, '#', data: {behavior: 'assign agency', agency_id: a.id}
+        - unless pr.assigned_agency == a 
+          %li
+            = link_to a.name, '#', data: {behavior: 'assign agency', agency_id: a.id}

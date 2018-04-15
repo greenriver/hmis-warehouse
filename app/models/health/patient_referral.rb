@@ -9,7 +9,11 @@ module Health
     validates_size_of :ssn, is: 9
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
-    belongs_to :assigned_agency, class_name: 'Health::Agency'
+    belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
+
+    def relationship_to(agency)
+      relationships.where(agency_id: agency).last
+    end
 
     def assigned?
       agency_id.present?
@@ -39,9 +43,10 @@ module Health
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unclaimed'}.size
       if other_size > 0
-        if other_size == 1 && cb.include?(agency.name)
-          ''
-        else
+        if cb.include?(agency.name)
+          other_size = other_size - 1
+        end
+        if other_size > 0
           agency = 'Agency'.pluralize(other_size)
           "#{other_size} Other #{agency}"
         end
