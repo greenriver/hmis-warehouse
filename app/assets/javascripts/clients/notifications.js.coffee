@@ -14,7 +14,6 @@ class App.Clients.Notifications
       data: ids: ( n.id for n in @notifications )
       success: (data) =>
         console.log 'polled', data
-        debugger
         seen = new Set()
         for n in @notifications
           seen.add n.id
@@ -29,4 +28,4 @@ class App.Clients.Notifications
       dataType: 'json'
       data: id: notification.id
       success: (data) =>
-        console.log 'saw', notification
+        console.log 'saw', notification, data
