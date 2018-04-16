@@ -342,6 +342,10 @@ Rails.application.routes.draw do
   resources :weather, only: [:index]
 
   resources :notifications, only: [:show] do
+    collection do
+      get :poll
+      post :seen
+    end
     resources :projects, only: [:show] do
       resources :data_quality_reports, only: [:show]
     end

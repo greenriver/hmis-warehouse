@@ -8,6 +8,7 @@ class Notification < ActiveRecord::Base
   scope :unsent, -> { where sent_at: nil }
   scope :seen, -> (time=DateTime.current) { where arel_table[:seen_at].lteq time }  
   scope :unseen, -> { where seen_at: nil }
+  scope :before, -> (time) { where arel_table[:created_at].lt time }
 
   def senders
     User.where email: from
