@@ -167,7 +167,7 @@ module GrdaWarehouse::Hud
       spec.each do |header, selector|
         incomes = incomes.select selector.as(header.to_s)
       end
- 
+
       csv = CSV.generate headers: true do |csv|
         headers = spec.keys
         csv << headers
