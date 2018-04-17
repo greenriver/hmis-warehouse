@@ -1910,5 +1910,51 @@ module GrdaWarehouse::Hud
       residential_for_past_90_days = (ph_dates & (ninety_days_ago...entry_date).to_a).present?
       no_other_homeless || (! current_residential && residential_for_past_90_days)
     end
+
+    # perhaps this belongs in a task module of some sort?
+    def self.disability_csv(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
+      spec = {
+        entry_exit_uid:       e_t[:ProjectEntryID],
+        entry_exit_client_id: she_t[:client_id],
+        disability_type:      d_t[:DisabilityType],
+        start_date:           she_t[:first_date_in_program],
+        end_date:             she_t[:last_date_in_program],
+      }
+
+      clients = self.
+        joins( service_history_enrollments: { enrollment: [ :disabilities, :enrollment_coc_at_entry ] } ).
+        merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
+        where( ec_t[:CoCCode].eq coc_code ).
+        where( d_t[:DisabilityResponse].in [1,2,3] )
+      spec.each do |header, selector|
+        clients = clients.select selector.as(header.to_s)
+      end
+
+      CSV.generate headers: true do |csv|
+        headers = spec.keys
+        csv << headers
+
+        clients = connection.select_all(clients.to_sql).group_by do |h|
+          h.values_at %w( entry_exit_uid entry_exit_client_id start_date end_date )
+        end
+        clients.each do |_,clients|
+          client = clients.first
+          row = []
+          headers.each do |h|
+            value = client[h.to_s].presence
+            value = case h
+            when :disability_type
+              clients.map{ |c| ::HUD.disability_type c[h.to_s].presence&.to_i }.uniq.join ', '
+            when :start_date, :end_date
+              value && DateTime.parse(value).strftime('%Y-%m-%d %H:%M:%S')
+            else
+              value
+            end
+            row << value
+          end
+          csv << row
+        end
+       end
+    end
   end
 end
