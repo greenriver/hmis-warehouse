@@ -1,9 +1,8 @@
 FactoryGirl.define do
   factory :grda_warehouse_administrative_event, class: 'GrdaWarehouse::AdministrativeEvent' do
-    id "MyString"
-    user_id "MyString"
-    date "MyString"
-    title "MyString"
-    description "MyString"
+    user
+    date "2018-05-30"
+    title "Title"
+    description "Description"
   end
 end

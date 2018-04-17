@@ -1,9 +1,9 @@
 class Admin::AdministrativeEventsController < ApplicationController
   before_action :require_can_add_administrative_event!
-  before_action :load_event, only: [:edit, :update]
+  before_action :load_event, only: [:edit, :update, :destroy]
   
   def index
-    @events = administrative_event_source.order(date: :desc).page(params[:page]).per(1)
+    @events = administrative_event_source.order(date: :desc).page(params[:page]).per(25)
   end
 
   def create
@@ -26,9 +26,8 @@ class Admin::AdministrativeEventsController < ApplicationController
   end
   
   def destroy
-    @event = administrative_event_source.find params[:id]
     @event.destroy
-    redirect_to({action: :index}, notice: 'Administrative event deleted')
+    respond_with(@event, location: admin_administrative_events_path)
   end
   
   def administrative_event_source 
