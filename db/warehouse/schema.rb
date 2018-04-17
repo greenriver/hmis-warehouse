@@ -1356,6 +1356,15 @@ ActiveRecord::Schema.define(version: 20180330145925) do
     t.boolean "head_of_household",                           default: false, null: false
   end
 
+  add_index "new_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
+  add_index "new_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
+  add_index "new_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
+  add_index "new_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
+  add_index "new_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
+  add_index "new_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
+  add_index "new_service_history", ["first_date_in_program"], name: "index_new_service_history_on_first_date_in_program", using: :brin
+  add_index "new_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
+
   create_table "project_data_quality", force: :cascade do |t|
     t.integer  "project_id"
     t.string   "type"
@@ -2686,48 +2695,42 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   add_index "vispdats", ["user_id"], name: "index_vispdats_on_user_id", using: :btree
 
   create_table "warehouse_client_service_history", force: :cascade do |t|
-    t.integer "client_id",                                                   null: false
+    t.integer "client_id",                          null: false
     t.integer "data_source_id"
-    t.date    "date",                                                        null: false
-    t.date    "first_date_in_program",                                       null: false
+    t.date    "date",                               null: false
+    t.date    "first_date_in_program",              null: false
     t.date    "last_date_in_program"
-    t.string  "enrollment_group_id",             limit: 50
+    t.string  "enrollment_group_id",     limit: 50
     t.integer "age"
     t.integer "destination"
-    t.string  "head_of_household_id",            limit: 50
-    t.string  "household_id",                    limit: 50
-    t.string  "project_name",                    limit: 150
+    t.string  "head_of_household_id",    limit: 50
+    t.string  "household_id"
+    t.string  "project_id"
+    t.string  "project_name"
     t.integer "project_type"
     t.integer "project_tracking_method"
-    t.string  "organization_id",                 limit: 50
-    t.string  "record_type",                     limit: 50,                  null: false
+    t.string  "organization_id"
+    t.string  "record_type",                        null: false
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
     t.integer "service_type"
     t.integer "computed_project_type"
     t.boolean "presented_as_individual"
-    t.integer "other_clients_over_25",                       default: 0,     null: false
-    t.integer "other_clients_under_18",                      default: 0,     null: false
-    t.integer "other_clients_between_18_and_25",             default: 0,     null: false
-    t.boolean "unaccompanied_youth",                         default: false, null: false
-    t.boolean "parenting_youth",                             default: false, null: false
-    t.boolean "parenting_juvenile",                          default: false, null: false
-    t.boolean "children_only",                               default: false, null: false
-    t.boolean "individual_adult",                            default: false, null: false
-    t.boolean "individual_elder",                            default: false, null: false
-    t.boolean "head_of_household",                           default: false, null: false
-    t.string  "project_id",                      limit: 50
   end
 
-  add_index "warehouse_client_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
-  add_index "warehouse_client_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
-  add_index "warehouse_client_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
-  add_index "warehouse_client_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
+  add_index "warehouse_client_service_history", ["client_id"], name: "index_service_history_on_client_id", using: :btree
+  add_index "warehouse_client_service_history", ["computed_project_type"], name: "index_warehouse_client_service_history_on_computed_project_type", using: :btree
+  add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type", using: :btree
+  add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
+  add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id"], name: "index_sh_date_ds_id_org_id_proj_id", using: :btree
   add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
-  add_index "warehouse_client_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
-  add_index "warehouse_client_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
-  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :brin
-  add_index "warehouse_client_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
+  add_index "warehouse_client_service_history", ["date"], name: "index_warehouse_client_service_history_on_date", using: :btree
+  add_index "warehouse_client_service_history", ["date"], name: "service_history_date_desc", order: {"date"=>:desc}, using: :btree
+  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
+  add_index "warehouse_client_service_history", ["last_date_in_program"], name: "index_warehouse_client_service_history_on_last_date_in_program", using: :btree
+  add_index "warehouse_client_service_history", ["project_tracking_method"], name: "index_sh_tracking_method", using: :btree
+  add_index "warehouse_client_service_history", ["project_type"], name: "index_warehouse_client_service_history_on_project_type", using: :btree
+  add_index "warehouse_client_service_history", ["record_type"], name: "index_warehouse_client_service_history_on_record_type", using: :btree
 
   create_table "warehouse_clients", force: :cascade do |t|
     t.string   "id_in_source",    null: false
@@ -2871,98 +2874,6 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   add_foreign_key "warehouse_clients", "data_sources"
   add_foreign_key "warehouse_clients_processed", "\"Client\"", column: "client_id"
 
-  create_view "report_clients",  sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".id
-     FROM "Client"
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE (data_sources.source_type IS NULL))));
-  SQL
-
-  create_view "report_demographics",  sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".data_source_id,
-      "Client".id,
-      report_clients.id AS client_id
-     FROM (("Client"
-       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-       JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
-    WHERE ("Client"."DateDeleted" IS NULL);
-  SQL
-
   create_view "report_enrollments",  sql_definition: <<-SQL
       SELECT "Enrollment"."ProjectEntryID",
       "Enrollment"."PersonalID",
@@ -3074,7 +2985,6 @@ ActiveRecord::Schema.define(version: 20180330145925) do
       "Enrollment"."JailNights",
       "Enrollment"."HospitalNights",
       "Enrollment"."RunawayYouth",
-      "Enrollment".processed_hash,
       source_clients.id AS demographic_id,
       destination_clients.id AS client_id
      FROM ((("Enrollment"
@@ -3460,5 +3370,97 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
+
+  create_view "report_clients",  sql_definition: <<-SQL
+      SELECT "Client"."PersonalID",
+      "Client"."FirstName",
+      "Client"."MiddleName",
+      "Client"."LastName",
+      "Client"."NameSuffix",
+      "Client"."NameDataQuality",
+      "Client"."SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."OtherGender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID",
+      "Client".id
+     FROM "Client"
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE (data_sources.source_type IS NULL))));
+  SQL
+
+  create_view "report_demographics",  sql_definition: <<-SQL
+      SELECT "Client"."PersonalID",
+      "Client"."FirstName",
+      "Client"."MiddleName",
+      "Client"."LastName",
+      "Client"."NameSuffix",
+      "Client"."NameDataQuality",
+      "Client"."SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."OtherGender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID",
+      "Client".data_source_id,
+      "Client".id,
+      report_clients.id AS client_id
+     FROM (("Client"
+       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
+       JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
+    WHERE ("Client"."DateDeleted" IS NULL);
+  SQL
 
 end
