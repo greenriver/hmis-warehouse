@@ -494,7 +494,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
             when 0 then 'f'
             end
           when :primary_race
-            ::HUD.race c_t.engine.race_fields.find{ |f| she["primary_race_#{f.downcase}"].to_i == 1 }
+            fields = c_t.engine.race_fields.select{ |f| she["primary_race_#{f.downcase}"].to_i == 1 }
+            if fields.many?
+              'Multiracial'
+            elsif fields.any?
+              ::HUD.race fields.first
+            end
           when :disabling_condition
             value ? 't' : 'f'
           when :res_prior_to_entry
