@@ -1925,7 +1925,8 @@ module GrdaWarehouse::Hud
         joins( service_history_enrollments: { enrollment: [ :disabilities, :enrollment_coc_at_entry ] } ).
         merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
         where( ec_t[:CoCCode].eq coc_code ).
-        where( d_t[:DisabilityResponse].in [1,2,3] )
+        where( d_t[:DisabilityResponse].in [1,2,3] ).
+        order( d_t[:InformationDate].desc )
       spec.each do |header, selector|
         clients = clients.select selector.as(header.to_s)
       end
@@ -1937,16 +1938,15 @@ module GrdaWarehouse::Hud
         clients = connection.select_all(clients.to_sql).group_by do |h|
           h.values_at %w( entry_exit_uid entry_exit_client_id start_date end_date )
         end
-        clients.each do |_,clients|
-          client = clients.first
+        clients.each do |_,(client,*)|
           row = []
           headers.each do |h|
             value = client[h.to_s].presence
             value = case h
             when :disability_type
-              clients.map{ |c| ::HUD.disability_type c[h.to_s].presence&.to_i }.uniq.join ', '
+              ::HUD.disability_type(value&.to_i)&.titleize
             when :start_date, :end_date
-              value && DateTime.parse(value).strftime('%Y-%m-%d %H:%M:%S')
+              value && DateTime.parse(value).strftime('%Y-%m-%d %H:%M')
             else
               value
             end
