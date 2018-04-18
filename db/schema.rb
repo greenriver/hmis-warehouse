@@ -230,6 +230,7 @@ ActiveRecord::Schema.define(version: 20180416213522) do
     t.boolean  "can_view_client_health",           default: false
     t.boolean  "can_view_aggregate_health",        default: false
     t.boolean  "health_role",                      default: false, null: false
+    t.boolean  "can_add_administrative_event",     default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
