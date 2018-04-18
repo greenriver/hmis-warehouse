@@ -18,6 +18,9 @@ module Cohorts
     # Return a json object of {cohort_client.id : updated_at}
     # for easy poling
     def index
+      # Never let the browser cache this response
+      expires_now()
+
       respond_to do |format|
         format.json do
           if params[:content].present?
@@ -31,6 +34,7 @@ module Cohorts
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
             end
             @cohort_clients = @cohort_clients.
+              order(id: :asc).
               preload(:cohort_client_notes, client: :processed_service_history).
               page(params[:page].to_i).per(params[:per].to_i)
 
