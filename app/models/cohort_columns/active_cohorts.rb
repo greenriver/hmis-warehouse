@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Cohorts'
 
     def value(cohort_client)
-      cohort_ids = cohort_client.client.cohort_ids - [cohort.id]
+      cohort_ids = cohort_client.client.active_cohort_ids - [cohort.id]
       cohort_names.select{|k,_| cohort_ids.include?(k)}.values.join('; ')
     end
   end
