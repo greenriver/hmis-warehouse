@@ -113,23 +113,21 @@ ActiveRecord::Schema.define(version: 20180416213522) do
     t.datetime "updated_at",  null: false
   end
 
-  create_table "nicknames", force: :cascade do |t|
-    t.string  "name"
-    t.integer "nickname_id"
-  end
-
-  create_table "notifications", force: :cascade do |t|
+  create_table "messages", force: :cascade do |t|
+    t.integer  "user_id"
     t.string   "subject",    null: false
     t.text     "body",       null: false
-    t.string   "to",         null: false, array: true
-    t.string   "from",       null: false, array: true
+    t.string   "from",       null: false
     t.datetime "seen_at"
     t.datetime "sent_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  add_index "notifications", ["to"], name: "index_notifications_on_to", using: :gin
+  create_table "nicknames", force: :cascade do |t|
+    t.string  "name"
+    t.integer "nickname_id"
+  end
 
   create_table "report_results", force: :cascade do |t|
     t.integer  "report_id"
@@ -337,7 +335,7 @@ ActiveRecord::Schema.define(version: 20180416213522) do
     t.boolean  "notify_on_client_added",            default: false
     t.boolean  "notify_on_anomaly_identified",      default: false, null: false
     t.string   "coc_codes",                         default: [],                 array: true
-    t.boolean  "notify_daily",                      default: true,  null: false
+    t.string   "email_schedule"
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree

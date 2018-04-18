@@ -342,15 +342,18 @@ Rails.application.routes.draw do
   resources :weather, only: [:index]
 
   resources :notifications, only: [:show] do
-    collection do
-      get :poll
-      post :seen
-    end
     resources :projects, only: [:show] do
       resources :data_quality_reports, only: [:show]
     end
     resources :project_groups, only: [:show] do
       resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'
+    end
+  end
+
+  resources :messages, only: [] do
+    collection do
+      get :poll
+      post :seen
     end
   end
 

@@ -60,5 +60,6 @@
 //= require_directory ./clients
 //= require_directory ./cohorts
 //= require_directory ./window/clients
+//= require_directory ./users
 
 //= require init

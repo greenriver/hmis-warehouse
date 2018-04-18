@@ -39,7 +39,7 @@ class AccountsController < ApplicationController
           :current_password,
           :password,
           :password_confirmation,
-          :notify_daily,
+          :email_schedule,
         )
     end
 

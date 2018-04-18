@@ -3,20 +3,29 @@ module Mail
   class DatabaseDelivery
 
     def initialize(parameters)
-      # maybe we'll need something here
+      @parameters = parameters
     end
 
     def deliver!(mail)
-      # store the "email" in the database
-      message = Notification.create(
-        subject: mail.subject,
-        body:    mail.body,
-        to:      mail[:to].addresses,
-        from:    mail[:from].addresses,
-      )
-      
-      # perhaps do websocket notification here at some point
-      # MailChannel.notify message
+      User.where( email: mail[:to].addresses ).each do |user|
+        # store the "email" in the database
+        message = Message.create(
+          user_id: user.id,
+          subject: mail.subject,
+          body:    mail.body,
+          from:    mail[:from].addresses,
+          sent_at: ( DateTime.current if user.continuous_email_delivery? )
+        )
+        if user.continuous_email_delivery?
+          # use the configured delivery method
+          delivery_method = Rails.configuration.action_mailer.delivery_method
+          copy = mail.dup
+          copy.to = user.email
+          copy.delivery_method delivery_method
+          copy.perform_deliveries = true
+          copy.deliver
+        end
+      end
     end
   end
 end

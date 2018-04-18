@@ -70,4 +70,5 @@
     - if current_user
       = auto_session_timeout_js(frequency: 60)
       :javascript
-        var notifications = new App.Clients.Notifications(#{poll_notifications_path.to_json}, #{seen_notifications_path.to_json});
+        // we do not currently render notifications in the UI
+        // var messages = new App.Users.Messages(#{poll_messages_path.to_json}, #{seen_messages_path.to_json});

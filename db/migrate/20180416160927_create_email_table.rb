@@ -1,10 +1,10 @@
 class CreateEmailTable < ActiveRecord::Migration
   def change
-    create_table :notifications do |t|
+    create_table :messages do |t|
+      t.references :user
       t.string :subject, null: false
       t.text :body, null: false
-      t.string :to, null: false, array: true, index: { using: :gin }
-      t.string :from, null: false, array: true
+      t.string :from, null: false
       t.datetime :seen_at
       t.datetime :sent_at
 
