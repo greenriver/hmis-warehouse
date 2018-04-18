@@ -64,6 +64,54 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
 
     end
+
+    describe 'viewability' do
+      model = GrdaWarehouse::Hud::Client
+      let  :c1 { create :grda_warehouse_hud_client }
+      let  :c2 { create :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday}
+      let  :admin_role { create :admin_role }
+      let  :user { create :user }
+      let! :e1  { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID }
+      let! :e2  { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID }
+      let! :ec1 { create :hud_enrollment_coc, CoCCode: 'foo', data_source_id: e1.data_source_id, PersonalID: e1.PersonalID, ProjectEntryID: e1.ProjectEntryID }
+      let! :ec2 { create :hud_enrollment_coc, CoCCode: 'bar', data_source_id: e2.data_source_id, PersonalID: e2.PersonalID, ProjectEntryID: e2.ProjectEntryID }
+
+      user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
+      ids      = -> (*clients) { clients.map(&:id).sort }
+
+      describe 'ordinary user' do
+        it 'sees nothing' do
+          expect(model.viewable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'admin user' do
+        before do
+          user.roles << admin_role
+        end
+        after do
+          user.roles = []
+        end
+        it 'sees both' do
+          expect(user_ids[user]).to eq ids[ c1, c2 ]
+        end
+      end
+
+      describe 'user assigned to coc foo' do
+        before do
+          user.coc_codes << 'foo'
+          user.save
+        end
+        after do
+          user.coc_codes = []
+          user.save
+        end
+        it 'sees c1' do
+          expect(user_ids[user]).to eq ids[c1]
+        end
+      end
+
+    end
   end
 
   describe 'consent form release validity' do

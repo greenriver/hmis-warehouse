@@ -253,7 +253,8 @@ module GrdaWarehouse::Hud
           [
             has_access_to_project_through_viewable_entities(user, q, qc),
             has_access_to_project_through_organization(user, q, qc),
-            has_access_to_project_through_data_source(user, q, qc)
+            has_access_to_project_through_data_source(user, q, qc),
+            has_access_to_project_through_coc_codes(user, q, qc)
           ].join ' OR '
         )
       end
@@ -334,6 +335,41 @@ module GrdaWarehouse::Hud
       SQL
     end
 
+    private_class_method def self.has_access_to_project_through_coc_codes(user, q, qc)
+      return '(1=0)' unless user.coc_codes.any?
+
+      project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
+      project_table     = quoted_table_name
+
+      <<-SQL.squish
+
+        EXISTS (
+          SELECT 1 FROM
+            #{project_coc_table}
+            INNER JOIN
+            #{project_table} AS pt
+            ON
+              #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
+              AND
+              #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+            WHERE
+              (
+                (
+                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+                  AND
+                  #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                )
+                OR
+                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
+              )
+              AND
+              #{project_table}.#{qc[:id]} = pt.#{qc[:id]}
+
+        )
+
+      SQL
+    end
+
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|
       scope k, -> { where ProjectType: v }
@@ -379,6 +415,63 @@ module GrdaWarehouse::Hud
         .where(Services: {RecordType: 12})
         .exists?
       @answer
+    end
+
+    # generate a CSV file
+    # there may be multiple lines per project
+    def self.export_providers(coc_codes)
+      spec = {
+        hud_org_id:          o_t[:OrganizationID],
+        _hud_org_name:       o_t[:OrganizationName],
+        provider:            p_t[:ProjectName],
+        _provider:           p_t[:ProjectID],
+        hud_prog_type:       p_t[project_type_column],
+        fed_funding_source:  f_t[:FunderID],
+        fed_partner_program: f_t[:FunderID],
+        grant_id:            f_t[:GrantID],
+        grant_start_date:    f_t[:StartDate],
+        grant_end_date:      f_t[:EndDate],
+        coc_code:            pc_t[:CoCCode],
+        hud_geocode:         site_t[:Geocode],
+        current_continuum_project: p_t[:ContinuumProject],
+      }
+      projects = joins( :funders, :organization, :project_cocs, :sites ).
+        order( arel_table[:ProjectID], pc_t[:CoCCode], f_t[:FunderID] ).
+        where( pc_t[:CoCCode].in coc_codes )
+      spec.each do |header, selector|
+        projects = projects.select selector.as(header.to_s)
+      end
+
+      csv = CSV.generate headers: true do |csv|
+        headers = spec.keys.reject{ |k| k.to_s.starts_with? '_' }
+        csv << headers
+
+        last = nil
+        connection.select_all(projects.to_sql).each do |project|
+          row = []
+          headers.each do |h|
+            value = case h
+            when :hud_org_id
+              "#{project['_hud_org_name']} (#{project['hud_org_id']})".squish
+            when :provider
+              "#{project['provider']} (#{project['_provider']})".squish
+            when :grant_start_date, :grant_end_date
+              d = project[h.to_s].presence
+              d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
+            when :current_continuum_project
+              ::HUD.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
+            when :fed_partner_program
+              ::HUD.funding_source project[h.to_s].presence&.to_i
+            else
+              project[h.to_s]
+            end
+            row << value
+          end
+          next if row == last
+          last = row
+          csv << row
+        end
+      end
     end
 
     # when we export, we always need to replace ProjectID with the value of id
