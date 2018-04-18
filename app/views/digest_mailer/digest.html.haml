@@ -1,0 +1,18 @@
+- @messages.each_with_index do |message, i|
+
+  %table
+    %tr
+      %th Subject:
+      %td= message.subject
+    %tr
+      %th Sent at:
+      %td= message.created_at.to_s(:long)
+
+  - if message.html?
+    - Nokogiri(message.body).at('body').children.each do |node|
+      = node.to_s.html_safe
+  - else
+    %pre= message.body
+
+  - unless i == @messages.length - 1
+    %hr

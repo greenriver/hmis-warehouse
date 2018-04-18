@@ -115,13 +115,14 @@ ActiveRecord::Schema.define(version: 20180416213522) do
 
   create_table "messages", force: :cascade do |t|
     t.integer  "user_id"
-    t.string   "subject",    null: false
-    t.text     "body",       null: false
-    t.string   "from",       null: false
+    t.string   "from",                       null: false
+    t.string   "subject",                    null: false
+    t.text     "body",                       null: false
+    t.boolean  "html",       default: false, null: false
     t.datetime "seen_at"
     t.datetime "sent_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
   end
 
   create_table "nicknames", force: :cascade do |t|

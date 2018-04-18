@@ -11,6 +11,6 @@ class MessagesController < ApplicationController
   end
 
   private def messages
-    current_user.messages.unseen.order created_at: :desc
+    current_user.messages.unsent.unseen.order created_at: :desc
   end
 end

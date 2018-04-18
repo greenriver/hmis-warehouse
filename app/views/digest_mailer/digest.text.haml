@@ -1,0 +1,9 @@
+- @messages.each_with_index do |message, i|
+
+  Subject: #{message.subject}
+  Sent at: #{message.created_at.to_s(:long)}
+
+  = message.html? ? Nokogiri(message.body).text : message.body
+
+  - unless i == @messages.length - 1
+    = "---------------------------------------------------------"

@@ -1,4 +1,4 @@
-class ProjectDataQualityReportMailer < ApplicationMailer
+class ProjectDataQualityReportMailer < DatabaseMailer
 
   def report_complete projects, report, contact
     @projects = projects

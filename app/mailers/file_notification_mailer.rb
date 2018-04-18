@@ -1,4 +1,4 @@
-class FileNotificationMailer < ApplicationMailer
+class FileNotificationMailer < DatabaseMailer
 
   def notify client_id
     @client_id = client_id

@@ -9,12 +9,13 @@ module Mail
     def deliver!(mail)
       User.where( email: mail[:to].addresses ).each do |user|
         # store the "email" in the database
-        message = Message.create(
+        message = ::Message.create(
           user_id: user.id,
           subject: mail.subject,
-          body:    mail.body,
-          from:    mail[:from].addresses,
-          sent_at: ( DateTime.current if user.continuous_email_delivery? )
+          body:    mail.body.to_s,
+          from:    mail[:from].addresses.first,
+          html:    /\A<html>.*<\/html>\z/im === mail.body.to_s.strip,
+          sent_at: ( DateTime.current if user.continuous_email_delivery? ),
         )
         if user.continuous_email_delivery?
           # use the configured delivery method

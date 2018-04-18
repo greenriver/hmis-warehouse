@@ -1,4 +1,4 @@
-class NotifyUser < ApplicationMailer
+class NotifyUser < DatabaseMailer
 
   def vispdat_completed vispdat_id
     @vispdat = GrdaWarehouse::Vispdat::Base.where(id: vispdat_id).first
