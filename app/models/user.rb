@@ -197,7 +197,7 @@ class User < ActiveRecord::Base
   end
 
   def continuous_email_delivery?
-    email_schedule.nil? || email_schedule == 'continuous'
+    email_schedule.nil? || email_schedule == 'immediate'
   end
 
   private
