@@ -7,6 +7,7 @@ module Exporters::Tableau
     def null
       lit 'NULL'
     end
+    private_class_method :null
 
     def entry_exit(start_date: 3.years.ago, end_date: DateTime.current, coc_code: nil)
       model = she_t.engine
