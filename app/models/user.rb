@@ -13,7 +13,7 @@ class User < ActiveRecord::Base
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
-  validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: true
+  validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
