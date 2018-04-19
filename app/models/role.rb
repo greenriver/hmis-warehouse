@@ -65,7 +65,8 @@ class Role < ActiveRecord::Base
       :can_view_all_reports,
       :can_assign_reports,
       :can_view_assigned_reports,
-      :can_manage_organization_users
+      :can_manage_organization_users,
+      :can_add_administrative_event,
     ]
     perms += self.health_permissions unless exclude_health
     return perms
