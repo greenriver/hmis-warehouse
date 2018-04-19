@@ -20,6 +20,11 @@ module Exporters::Tableau
         merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
         where( ec_t[:CoCCode].eq coc_code ).
         where( d_t[:DisabilityResponse].in [1,2,3] ).
+        # for aesthetics
+        order( she_t[:client_id].asc ).
+        order( she_t[:first_date_in_program].desc ).
+        order( she_t[:last_date_in_program].desc ).
+        # for de-duping
         order( d_t[:InformationDate].desc )
       spec.each do |header, selector|
         clients = clients.select selector.as(header.to_s)
@@ -32,6 +37,7 @@ module Exporters::Tableau
         clients = model.connection.select_all(clients.to_sql).group_by do |h|
           h.values_at %w( entry_exit_uid entry_exit_client_id start_date end_date )
         end
+        # after sorting and grouping, we keep only the most recent disability record
         clients.each do |_,(client,*)|
           row = []
           headers.each do |h|
