@@ -37,7 +37,6 @@ module Exporters::Tableau
         headers = spec.keys - [:grouping_variable]
         csv << headers
 
-        last = []
         incomes = model.connection.select_all(incomes.to_sql)
         # get the *most recent* ib per enrollment and ignore the rest
         incomes.group_by{ |h| h['grouping_variable'] }.each do |_,(income,*)|
@@ -77,8 +76,6 @@ module Exporters::Tableau
             end
             row << value
           end
-          next if row == last
-          last = row
           csv << row
         end
        end
