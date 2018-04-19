@@ -7,6 +7,7 @@ module Exporters::Tableau
     
     def income(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
       model = ib_t.engine
+
       spec = {
         grouping_variable:       she_t[:id],
         entry_exit_uid:          e_t[:ProjectEntryID],
@@ -19,6 +20,7 @@ module Exporters::Tableau
         start_date:              she_t[:first_date_in_program],
         end_date:                she_t[:last_date_in_program],
       }
+
       incomes = model.
         joins( enrollment: [ :enrollment_coc_at_entry, :service_history_enrollment ] ).
         merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
