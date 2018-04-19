@@ -4,10 +4,16 @@ module Exporters::Tableau
 
   module_function
 
+    def null
+      lit 'NULL'
+    end
+
     def entry_exit(start_date: 3.years.ago, end_date: DateTime.current, coc_code: nil)
       model = she_t.engine
 
       spec = {
+        data_source:                      c_t[:data_source_id],
+        personal_id:                      c_t[:PersonalID],
         client_uid:                       she_t[:client_id],
         entry_exit_uid:                   e_t[:id],
         hh_uid:                           she_t[:head_of_household_id],
@@ -29,7 +35,7 @@ module Exporters::Tableau
         hispanic_latino:                  c_t[:Ethnicity],
         **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
         disabling_condition:              d_t[:DisabilitiesID],
-        any_income_30days:                nil, # ???
+        any_income_30days:                nil,
         county_homeless:                  nil, # ???
         res_prior_to_entry:               e_t[:ResidencePrior],
         length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
@@ -42,13 +48,14 @@ module Exporters::Tableau
         service_inactive:                 nil, # ???
         service_code_desc:                shs_t[:service_type],
         service_start_date:               shs_t[:date],
-        entry_exit_uid:                   nil, # ???
-        days_to_return:                   nil, # ???
-        entry_exit_uid:                   nil, # ??? REPEAT
-        days_last3years:                  nil, # ???
-        instances_last3years:             nil, # ???
-        entry_exit_uid:                   nil, # ??? REPEAT
-        rrh_time_in_shelter:              nil, # ???
+        # after this point in the sample data everything is NULL
+        entry_exit_uid:                   null,
+        days_to_return:                   null,
+        entry_exit_uid:                   null, # REPEAT
+        days_last3years:                  null,
+        instances_last3years:             null,
+        entry_exit_uid:                   null, # REPEAT
+        rrh_time_in_shelter:              null,
       }
 
       scope = model.residential.entry.
@@ -56,7 +63,13 @@ module Exporters::Tableau
         joins( :client, :service_history_services ).
         joins( project: :sites, enrollment: :exit ).
         includes( client: :source_disabilities ).
-        references( client: :source_disabilities )
+        references( client: :source_disabilities ).
+        # for aesthetics
+        order( she_t[:client_id].asc ).
+        order( e_t[:id].asc ).
+        order( she_t[:first_date_in_program].desc ).
+        order( she_t[:last_date_in_program].desc ).
+        order( shs_t[:id].asc )
 
       scope = case coc_code
       when Array
@@ -75,7 +88,7 @@ module Exporters::Tableau
       # dump the things we don't know how to deal with and munge a bit
       headers = spec.keys.map do |header|
         case header
-        when :any_income_30days, :county_homeless, :entry_exit_uid, :days_to_return, :days_last3years, :instances_last3years, :rrh_time_in_shelter
+        when :data_source, :personal_id, :county_homeless
           next
         when -> (h) { h.to_s.starts_with? '_' }
           next
@@ -89,8 +102,11 @@ module Exporters::Tableau
       csv = CSV.generate headers: true do |csv|
         csv << headers
 
+        thirty_day_limit = end_date - 30.days
         model.connection.select_all(scope.to_sql).group_by{ |h| h.values_at 'client_uid', 'entry_exit_uid' }.each do |_,shes|
           she = shes.first # for values that don't need aggregation
+          # de-dupe remainder by service_uid
+          shes = shes.group_by{ |h| h['service_uid'] }.map{ |_,(h,*)| h }
           row = []
           headers.each do |h|
             value = she[h.to_s].presence
@@ -149,6 +165,14 @@ module Exporters::Tableau
             when :service_start_date
               dates = shes.map{ |hash| hash[h.to_s].presence }
               "{#{ dates.join ',' }}"
+            when :any_income_30days
+              has_income = GrdaWarehouse::Hud::IncomeBenefit.
+                where( PersonalID: she['personal_id'], data_source_id: she['data_source'] ).
+                where( IncomeFromAnySource: 1 ).
+                where( ib_t[:InformationDate].gteq thirty_day_limit ).
+                where( ib_t[:InformationDate].lt end_date ).
+                exists?
+              has_income ? 't' : 'f'
             else
               value
             end
