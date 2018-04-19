@@ -23,6 +23,11 @@ module Exporters::Tableau
         joins( enrollment: [ :enrollment_coc_at_entry, :service_history_enrollment ] ).
         merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
         where( ec_t[:CoCCode].eq coc_code ).
+        # for aesthetics
+        order(she_t[:client_id].asc).
+        order(she_t[:first_date_in_program].desc).
+        order(she_t[:last_date_in_program].desc).
+        # for de-duping
         order(ib_t[:InformationDate].desc)
       spec.each do |header, selector|
         incomes = incomes.select selector.as(header.to_s)
