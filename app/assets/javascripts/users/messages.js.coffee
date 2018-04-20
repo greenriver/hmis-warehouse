@@ -3,7 +3,7 @@
 class App.Users.Messages
   constructor: (@polling_url, @seen_url) ->
     @messages = []
-    setInterval(@poll, 60000)
+    setInterval @poll, 60000
   # look for messages to display
   poll: () =>
     console.log 'polling for messages...'
@@ -20,6 +20,7 @@ class App.Users.Messages
         for n in data
           unless seen.has n.id
             @messages.push n
+        @ringBell()
   # mark a message as seen
   seen: (message) =>
     $.ajax
@@ -29,3 +30,10 @@ class App.Users.Messages
       data: id: message.id
       success: (data) =>
         console.log 'saw', message, data
+  ringBell: () =>
+    $bell = $ '.messages'
+    if @messages.length
+      $bell.removeClass 'hide'
+      $bell.find('.message-count').text @messages.length
+    else
+      $bell.addClass 'hide'

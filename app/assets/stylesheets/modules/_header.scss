@@ -58,6 +58,15 @@ body > header {
     margin-right: 0;
   }
 }
+.messages {
+  @extend .tagline;
+  width: 2rem;
+}
+.message-count {
+  position: relative;
+  top: -32px;
+  left: 12px;
+}
 .utility {
   @media (min-width: $screen-sm-min) {
     @include margin(null null null 243px);
