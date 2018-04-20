@@ -4,11 +4,6 @@ module Exporters::Tableau
 
   module_function
 
-    def null
-      lit 'NULL'
-    end
-    private_class_method :null
-
     def pathways_with_dest(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
     end
 
