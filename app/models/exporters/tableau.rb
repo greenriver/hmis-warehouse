@@ -13,103 +13,98 @@ module Exporters::Tableau
     end
 
     def pathways_common(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
-      model = c_t.engine
+      model = she_t.engine
       spec = {
-        client_uid:   she_t[:client_id],
-        is_family:    she_t[:presented_as_individual],
-        is_veteran:   c_t[:VeteranStatus],
-        is_youth:     shs_t[:age],
-        is_chronic:   p_t[:id],
-        hh_config:    she_t[:presented_as_individual],
-        prog1:        she_t[she_t.engine.project_type_column],
-        entry1:       she_t[:first_date_in_program],
-        exit1:        she_t[:last_date_in_program],
-        destination1: she_t[:destination],
-        # repeat? -- the sample data varies, so something else is going on
-        prog2:        null,
-        entry2:       null,
-        exit2:        null,
-        destination2: null,
-        prog3:        null,
-        entry3:       null,
-        exit3:        null,
-        destination3: null,
-        prog4:        null,
-        entry4:       null,
-        exit4:        null,
-        destination4: null,
-        prog5:        null,
-        entry5:       null,
-        exit5:        null,
-        destination5: null,
-        prog6:        null,
-        entry6:       null,
-        exit6:        null,
-        destination6: null,
-        link:         null,
+        client_uid:  she_t[:client_id],
+        is_family:   she_t[:presented_as_individual],
+        is_veteran:  c_t[:VeteranStatus],
+        is_youth:    she_t[:age],
+        is_chronic:  she_t[:computed_project_type],
+        hh_config:   she_t[:presented_as_individual],
+        prog:        she_t[she_t.engine.project_type_column],
+        entry:       she_t[:first_date_in_program],
+        exit:        she_t[:last_date_in_program],
+        destination: she_t[:destination],
       }
+      repeaters     = %i( prog entry exit destination )
+      non_repeaters = spec.keys - repeaters
 
       shs_t2 = Arel::Table.new shs_t.table_name
       shs_t2.table_alias = 'shs_t2'
       paths = model.
-        joins( service_history_services: { service_history_enrollment: { enrollment: :enrollment_cocs } } ).
+        joins( :client, enrollment: :enrollment_cocs ).
+        # merge( model.hud_residential ). # maybe spurious?
         merge(
-          # left join *chronic* projects
-          she_t.engine.
-            includes(:project).
-            references(:project).
-            merge(p_t.engine.hud_chronic)
-        ).
-        where( shs_t[:date].gteq start_date ).
-        where( shs_t[:date].lt end_date ).
-        where(
-          # this should be the *most recent* service history service for the client
-          shs_t2.project(Arel.star).
-            where( shs_t2[:client_id].eq c_t[:id] ).
-            where( shs_t2[:id].not_eq shs_t[:id] ).
-            where( shs_t2[:date].gteq start_date ).
-            where( shs_t2[:date].lt end_date ).
-            where( shs_t2[:date].gt shs_t[:date] ).
-            exists.not
+          model.
+            open_between( start_date: start_date, end_date: end_date ).
+            with_service_between( start_date: start_date, end_date: end_date )
         ).
         where( ec_t[:DataCollectionStage].eq 1 ).
         where( ec_t[:CoCCode].eq coc_code ).
         order( she_t[:client_id].asc ).
-        order( she_t[:first_date_in_program].desc ).
-        order( she_t[:last_date_in_program].desc )
+        order( she_t[:first_date_in_program].asc ).
+        order( she_t[:last_date_in_program].asc )
       spec.each do |header, selector|
         paths = paths.select selector.as(header.to_s)
       end
 
-      headers = spec.keys
-      rows = [headers]
+      # each row may represent multiple enrollments
+      # each enrollment is represented by a set of the repeater headers suffixed with a one-based index
+      # we collect the rows and then pad them with nils, as needed so they are all the same width
+      paths = model.connection.select_all(paths.to_sql).group_by{ |h| h['client_uid'] }
+      max_entries = 1
+      rows = []
+      headers = Set[*non_repeaters]
 
-      model.connection.select_all(paths.to_sql).each do |path|
-        rows << headers.map do |h|
+      paths.each do |_,paths|
+        path = paths.last # get the common data from the most recent enrollment
+        row = []
+        non_repeaters.map do |h|
           value = path[h.to_s].presence
-          case h
+          value = case h
           when :is_veteran
             value.to_i == 1 ? 't' : 'f' if value
           when :is_youth
             value.to_i.in?(18..24) ? 't' : 'f' if value
           when :is_chronic
-            value ? 't' : 'f'
+            value.to_i.in?(p_t.engine::CHRONIC_PROJECT_TYPES) ? 't' : 'f'
           when :hh_config
             value == 't' ? 'Single' : 'Family'
-          when :prog1, :prog2, :prog3, :prog4, :prog5, :prog6
-            ::HUD.project_type value.to_i if value
-          when :entry1, :entry2, :entry3, :entry4, :entry5, :entry6, :exit1, :exit2, :exit3, :exit4, :exit5, :exit6
-            value && DateTime.parse(value).strftime('%Y-%m-%d')
-          when :destination1, :destination2, :destination3, :destination4, :destination5, :destination6
-            ::HUD.destination value.to_i if value
-          when :link
-            'link' # ???
           else
             value
           end
+          row << value
         end
+
+        paths.each_with_index do |path, i|
+          repeaters.each do |h|
+            headers << "#{h}#{ i + 1 }".to_sym
+            value = path[h.to_s].presence
+            value = case h
+            when :prog
+              ::HUD.project_type value.to_i if value
+            when :entry, :exit
+              value && DateTime.parse(value).strftime('%Y-%m-%d')
+            when :destination
+              ::HUD.destination value.to_i if value
+            else
+              value
+            end
+            row << value
+          end
+        end
+
+        rows << row
+      end
+      # pad the rows
+      rows.each do |row|
+        row.concat Array.new headers.length - row.length, nil
+        row << 'link'
       end
 
+      # add pointless link header
+      headers << :link
+      rows.unshift headers.to_a
       rows
     end
     # private_class_method :pathways_common
