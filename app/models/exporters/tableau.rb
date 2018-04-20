@@ -72,11 +72,9 @@ module Exporters::Tableau
         order( she_t[:last_date_in_program].desc ).
         order( shs_t[:id].asc )
 
-      scope = case coc_code
-      when Array
-        scope.where( pc_t[:CoCCode].in coc_code )
-      when String
-        scope.where( pc_t[:CoCCode].eq coc_code )
+
+      scope = if coc_code.present?
+        scope.merge( pc_t.engine.in_coc coc_code: coc_code )
       else
         scope
       end
