@@ -37,7 +37,7 @@ module Exporters::Tableau
         **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
         disabling_condition:              d_t[:DisabilitiesID],
         any_income_30days:                nil,
-        county_homeless:                  nil, # ???
+        county_homeless:                  null, # ???
         res_prior_to_entry:               e_t[:ResidencePrior],
         length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
         approx_date_homelessness_started: e_t[:DateToStreetESSH],
@@ -46,7 +46,7 @@ module Exporters::Tableau
         destination:                      she_t[:destination],
         destination_other:                ex_t[:OtherDestination],
         service_uid:                      shs_t[:id],
-        service_inactive:                 nil, # ???
+        service_inactive:                 null, # ???
         service_code_desc:                shs_t[:service_type],
         service_start_date:               shs_t[:date],
         # after this point in the sample data everything is NULL
@@ -89,7 +89,7 @@ module Exporters::Tableau
       # dump the things we don't know how to deal with and munge a bit
       headers = spec.keys.map do |header|
         case header
-        when :data_source, :personal_id, :county_homeless
+        when :data_source, :personal_id
           next
         when -> (h) { h.to_s.starts_with? '_' }
           next
