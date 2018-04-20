@@ -4,10 +4,50 @@ module Exporters::Tableau
 
   module_function
 
-    def pathways_with_dest(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
+    def default_start
+      3.years.ago
+    end
+    private_class_method :default_start
+
+    def default_end
+      DateTime.current
+    end
+    private_class_method :default_end
+
+    def pathways_with_dest(start_date: default_start, end_date: default_end, coc_code:)
+      CSV.generate headers: true do |csv|
+        pathways_common( start_date: start_date, end_date: end_date, coc_code: coc_code ).each do |row|
+          csv << row
+        end
+      end
     end
 
-    def pathways_common(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
+    def pathways(start_date: default_start, end_date: default_end, coc_code:)
+      # make the recurring boilerplate
+      # why is this here? we do not know
+      path1 = (0..48).to_a
+      path2 = 97.step( 49, -1 ).to_a
+      t     = -6.0.step( 6, 0.25 ).to_a
+      mins  = %w[min]  * 49
+      maxs  = %w[max]  * 49
+      links = %w[link] * 49
+      boilerplate = ( path1 + path2 ).zip( t + t ).zip( mins + maxs ).zip( links + links ).map(&:flatten)
+      # get the real data which will be cross-producted with the boilerplate
+      data = pathways_common start_date: start_date, end_date: end_date, coc_code: coc_code
+      # add boilerplate headers
+      headers = %i( path t minmax link ) + data.shift
+      # do the cross product
+      CSV.generate headers: true do |csv|
+        csv << headers
+        data.each do |data_row|
+          boilerplate.each do |boilerplate_row|
+            csv << boilerplate_row + data_row
+          end
+        end
+      end
+    end
+
+    def pathways_common(start_date: default_start, end_date: default_end, coc_code:)
       model = she_t.engine
       spec = {
         client_uid:  she_t[:client_id],
@@ -102,6 +142,6 @@ module Exporters::Tableau
       rows.unshift headers.to_a
       rows
     end
-    # private_class_method :pathways_common
+    private_class_method :pathways_common
 
 end
