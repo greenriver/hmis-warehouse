@@ -64,8 +64,6 @@ module Exporters::Tableau
       repeaters     = %i( prog entry exit destination )
       non_repeaters = spec.keys - repeaters
 
-      shs_t2 = Arel::Table.new shs_t.table_name
-      shs_t2.table_alias = 'shs_t2'
       paths = model.
         joins( :client, enrollment: :enrollment_cocs ).
         # merge( model.hud_residential ). # maybe spurious?
