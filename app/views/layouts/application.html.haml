@@ -35,10 +35,7 @@
                 .tagline
                   = _('Ending Veteran & Chronic Homelessness in Boston')
               .col-xs-2
-                - if user_signed_in?
-                  %span.messages.hide
-                    %i.icon-bell
-                    %span.message-count.badge
+                - render 'layouts/messages'
           .col-xs-2
             - if user_signed_in?
               = render 'layouts/site_menu'
@@ -76,5 +73,3 @@
     = yield :page_js
     - if current_user
       = auto_session_timeout_js(frequency: 60)
-      :javascript
-        App.Users.Messages = new App.Users.Messages(#{poll_messages_path.to_json}, #{seen_messages_path.to_json});

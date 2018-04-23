@@ -1,0 +1,8 @@
+- if user_signed_in?
+  %span.messages.hide
+    %i.icon-bell
+    %span.message-count.badge
+
+  - content_for :page_js do
+    :javascript
+      App.Users.Messages = new App.Users.Messages(#{poll_messages_path.to_json}, #{seen_messages_path.to_json});
