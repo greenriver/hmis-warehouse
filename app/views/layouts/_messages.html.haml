@@ -1,7 +1,12 @@
-- if user_signed_in?
-  %span.messages.hide
-    %i.icon-bell
-    %span.message-count.badge
+- if user_signed_in? && current_user.in_app_messages?
+  %span.messages
+    %a.btn.dropdow-toggle{ href: '#', role: 'button', data: { toggle: 'dropdown' } }
+      %i.icon-envelope-o
+        %span.message-count.badge.hide
+    %ul.dropdown-menu.dropdown-menu-right
+      %li
+        = link_to messages_path, class: 'text-center' do
+          show all messages
 
   - content_for :page_js do
     :javascript

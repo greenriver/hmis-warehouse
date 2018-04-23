@@ -1,7 +1,19 @@
 class MessagesController < ApplicationController
+
+  def index
+  end
+
+  def show
+    @message = current_user.messages.find params.require(:id)
+    render layout: false
+  end
+
   def poll
     ids = params[:ids] || []
-    render json: messages.where.not( id: ids ).all
+    paths_and_subjects = messages.where.not( id: ids ).pluck( :id, :subject ).map do |id, subj|
+      [ view_context.message_path(id), id, subj ]
+    end
+    render json: paths_and_subjects
   end
 
   def seen
@@ -11,6 +23,7 @@ class MessagesController < ApplicationController
   end
 
   private def messages
-    current_user.messages.unsent.unseen.order created_at: :desc
+    current_user.messages.unseen.order created_at: :desc
   end
+
 end

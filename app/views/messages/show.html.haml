@@ -1,0 +1,11 @@
+%div{ style: 'padding: 2rem;' }
+  %table.table
+    %tr
+      %th Subject
+      %td= @message.subject
+    %tr
+      %th Created at
+      %td= @message.created_at.to_s(:long)
+
+  %div{ style: ( "white-space: pre;" unless @message.html? ) }
+    = @message.body_html

@@ -3,7 +3,7 @@
   Subject: #{message.subject}
   Sent at: #{message.created_at.to_s(:long)}
 
-  = message.html? ? Nokogiri(message.body).text : message.body
+  = message.body_text
 
   - unless i == @messages.length - 1
     = "---------------------------------------------------------"

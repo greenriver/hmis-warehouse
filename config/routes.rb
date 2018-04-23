@@ -350,7 +350,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :messages, only: [] do
+  resources :messages, only: [:show, :index] do
     collection do
       get :poll
       post :seen

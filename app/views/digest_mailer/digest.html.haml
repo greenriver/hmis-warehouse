@@ -8,11 +8,7 @@
       %th Sent at:
       %td= message.created_at.to_s(:long)
 
-  - if message.html?
-    - Nokogiri(message.body).at('body').children.each do |node|
-      = node.to_s.html_safe
-  - else
-    %pre= message.body
+  %div{ style: ( "white-space: pre;" unless message.html? ) }= message.body_html
 
   - unless i == @messages.length - 1
     %hr

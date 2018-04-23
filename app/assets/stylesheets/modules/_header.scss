@@ -58,15 +58,16 @@ body > header {
     margin-right: 0;
   }
 }
-.messages {
+.messages .btn [class^="icon-"] {
   @extend .tagline;
+  padding-top: 22px;
   width: 2rem;
-}
-.message-count {
-  position: relative;
-  background-color: #288be4;
-  top: -32px;
-  left: 12px;
+  .message-count {
+    position: relative;
+    background-color: #288be4;
+    top: -12px;
+    left: -18px;
+  }
 }
 .utility {
   @media (min-width: $screen-sm-min) {

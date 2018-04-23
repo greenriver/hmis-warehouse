@@ -196,8 +196,15 @@ class User < ActiveRecord::Base
     User.where(id: sub_ids - manager_ids)
   end
 
+  # send email upon creation or only in a periodic digest
   def continuous_email_delivery?
     email_schedule.nil? || email_schedule == 'immediate'
+  end
+
+  # does this user want to see messages in the app itself (versus only in email)
+  # TODO make this depend on some attribute(s) configurable by the user and/or admins
+  def in_app_messages?
+    true
   end
 
   private
