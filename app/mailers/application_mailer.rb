@@ -17,6 +17,8 @@ class ApplicationMailer < ActionMailer::Base
   def self.remove_prefix(subject)
     if subject.starts_with? prefix
       subject[prefix.length..-1].strip
+    else
+      subject
     end
   end
 end
