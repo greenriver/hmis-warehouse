@@ -1100,9 +1100,9 @@ ActiveRecord::Schema.define(version: 20180424190544) do
   create_table "enrollment_extras", force: :cascade do |t|
     t.integer  "enrollment_id",       null: false
     t.integer  "vispdat_grand_total"
-    t.datetime "vispdat_added_at"
-    t.datetime "vispdat_started_at"
-    t.datetime "vispdat_ended_at"
+    t.date     "vispdat_added_at"
+    t.date     "vispdat_started_at"
+    t.date     "vispdat_ended_at"
     t.string   "source_tab"
     t.datetime "created_at"
     t.datetime "updated_at"
