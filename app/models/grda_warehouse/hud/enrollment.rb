@@ -121,6 +121,8 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_belongs(Export), inverse_of: :enrollments, autosave: false
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments, autosave: false
     has_one :organization, through: :project, autosave: false
+
+    has_many :enrollment_extras, class_name: 'GrdaWarehouse::EnrollmentExtra', dependent: :destroy, inverse_of: :enrollment
     
     # Destination client
     has_one :destination_client, through: :client, autosave: false
