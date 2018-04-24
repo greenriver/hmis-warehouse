@@ -1,0 +1,34 @@
+%h3= "#{@description} Messages".titleize
+
+:css
+  ul.nav {
+    margin-bottom: 2rem;
+  }
+  ul.nav a {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+%ul.nav.nav-pills
+  %li.nav-item{ class: ( 'active' if @search == 'all' ) }
+    = link_to 'All', messages_path( message_params.merge search: 'all' )
+  %li.nav-item{ class: ( 'active' if @search == 'unseen' ) }
+    = link_to 'Unseen', messages_path( message_params.merge search: 'unseen' )
+
+.row
+  .col-xs-4
+
+    %table.table.table-condensed
+      - @messages.each do |m|
+        %tr
+          %td
+            %i{ class: ( m.opened? ? 'icon-eye' : 'icon-eye-blocked' ) }
+            = link_to m.subject, messages_path( message_params.merge id: m.id )
+          %td
+            = link_to m.created_at, messages_path( message_params.merge id: m.id )
+
+    %p= paginate @messages
+
+  .col-xs-8
+    - if @message
+      = render 'message'

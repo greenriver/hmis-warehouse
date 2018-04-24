@@ -5,6 +5,6 @@ class HealthConsentChangeMailer < DatabaseMailer
     @revoked_consent = revoked_consent
     @new_patients = new_patients
     @unmatched = unmatched
-    mail(to: user.email, subject: "[Warehouse] Health Data Import Summary")
+    mail(to: user.email, subject: "#{prefix} Health Data Import Summary")
   end
 end

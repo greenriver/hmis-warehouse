@@ -4,7 +4,7 @@ class FileNotificationMailer < DatabaseMailer
     @client_id = client_id
     @notify = User.receives_file_notifications
     @notify.each do |user|
-      mail(to: user.email, subject: "[Warehouse] File upload notification")
+      mail(to: user.email, subject: "#{prefix} File upload notification")
     end
   end
 end

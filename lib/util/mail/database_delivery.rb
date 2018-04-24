@@ -31,7 +31,7 @@ module Mail
           copy.delivery_method delivery_method, options
           copy.perform_deliveries = true
           copy.deliver
-          message.update_attribute :sent_at, DateTime.current
+          message.update_attributes sent_at: DateTime.current, seen_at: DateTime.current
         end
       end
     end

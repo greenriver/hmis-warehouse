@@ -23,4 +23,8 @@ class Message < ActiveRecord::Base
     return body unless html?
     Nokogiri(body).text
   end
+
+  def opened?
+    seen_at.present?
+  end
 end

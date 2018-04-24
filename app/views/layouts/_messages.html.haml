@@ -1,4 +1,4 @@
-- if user_signed_in? && current_user.in_app_messages?
+- if !@hide_messages && user_signed_in? && current_user.in_app_messages?
   %span.messages
     %a.btn.dropdow-toggle{ href: '#', role: 'button', data: { toggle: 'dropdown' } }
       %i.icon-envelope-o
