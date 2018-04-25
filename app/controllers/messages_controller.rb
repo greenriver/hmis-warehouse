@@ -1,4 +1,5 @@
 class MessagesController < ApplicationController
+  include PjaxModalController
 
   def index
     @hide_messages = true
@@ -24,7 +25,6 @@ class MessagesController < ApplicationController
 
   def show
     @message = current_user.messages.find params.require(:id)
-    render layout: false
   end
 
   def poll
