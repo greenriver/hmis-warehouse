@@ -34,13 +34,13 @@ class App.Users.Messages
         console.log 'saw', id
   # set up the notification widget
   ringBell: () =>
-    $envelope = $ '.messages'
+    $envelope = $ '.email-messages'
     $badge = $envelope.find('.badge')
+    $dropdown = $envelope.find '.dropdown-menu'
+    $dropdown.find('.message').remove()
     if @messages.length
       $badge.removeClass 'hide'
       $badge.text @messages.length
-      $dropdown = $envelope.find '.dropdown-menu'
-      $dropdown.find('.message').remove()
       for [ path, id, subject ] in @messages
         $m = $ """
                <li class="dropdown-item message">

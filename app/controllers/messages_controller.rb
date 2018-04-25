@@ -38,8 +38,8 @@ class MessagesController < ApplicationController
 
   def seen
     @notification = messages.unseen.find params.require(:id)
-    @seen = @notification&.update_attribute :seen_at, DateTime.current
-    render json: { seen: !!@seen }
+    @notification&.update_attribute :seen_at, DateTime.current unless @notification.open?
+    head :ok
   end
 
   private def messages
