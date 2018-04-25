@@ -1,8 +1,7 @@
-- is_all = @search == 'all'
 %h3= "#{@description} Messages".titleize
 
 %ul.nav.nav-tabs
-  %li.nav-item{ class: ( 'active' if is_all ) }
+  %li.nav-item{ class: ( 'active' if @search == 'all' ) }
     = link_to 'All', messages_path( message_params.merge search: 'all' )
   %li.nav-item{ class: ( 'active' if @search == 'unseen' ) }
     = link_to 'Unseen', messages_path( message_params.merge search: 'unseen' )
@@ -12,20 +11,22 @@
 
     %table.table.table-condensed
       %tr
-        - if is_all
-          %th Old
         %th Subject
         %th Sent
       - @messages.each do |m|
         %tr
-          - if is_all
-            %td
-              - if m.opened?
-                %i.icon-checkmark{ data: { toggle: 'tooltip', title: "seen #{m.seen_at}" } }
           %td
-            = link_to ApplicationMailer.remove_prefix(m.subject), messages_path( message_params.merge id: m.id )
+            - link = link_to ApplicationMailer.remove_prefix(m.subject), messages_path( message_params.merge id: m.id )
+            - if m.opened?
+              = link
+            - else
+              %b= link
           %td
-            = link_to m.created_at, messages_path( message_params.merge id: m.id )
+            - link = link_to m.created_at, messages_path( message_params.merge id: m.id )
+            - if m.opened?
+              = link.html_safe
+            - else
+              %b= link
 
     %p= paginate @messages
 
