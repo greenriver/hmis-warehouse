@@ -4,11 +4,11 @@
       %th.text-left Subject
       %td= @message.subject
     %tr
-      %th.text-left Sent at
+      %th.text-left Sent
       %td= @message.created_at.to_s(:long)
     - if @message.seen_at
       %tr
-        %th.text-left Seen at
+        %th.text-left Seen
         %td= @message.seen_at.to_s(:long)
 
 

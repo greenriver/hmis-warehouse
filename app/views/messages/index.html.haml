@@ -22,8 +22,9 @@
       - @messages.each do |m|
         %tr
           %td
-            %i{ class: ( m.opened? ? 'icon-eye' : 'icon-eye-blocked' ) }
-            = link_to m.subject, messages_path( message_params.merge id: m.id )
+            - if m.opened?
+              %i.icon-checkmark{ data: { toggle: 'tooltip', title: "seen #{m.seen_at}" } }
+            = link_to ApplicationMailer.remove_prefix(m.subject), messages_path( message_params.merge id: m.id )
           %td
             = link_to m.created_at, messages_path( message_params.merge id: m.id )
 
