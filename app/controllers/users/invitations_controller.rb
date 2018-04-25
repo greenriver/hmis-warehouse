@@ -1,5 +1,6 @@
 class Users::InvitationsController < Devise::InvitationsController
   prepend_before_action :require_can_edit_users!, only: [:new, :create]
+  include ViewableEntities
 
   # GET /resource/invitation/new
   def new
@@ -43,13 +44,18 @@ class Users::InvitationsController < Devise::InvitationsController
 
     def invite_params
       params.require(:user).permit(
-        :first_name,
         :last_name,
+        :first_name,
         :email,
         :phone,
         :agency,
         :receive_file_upload_notifications,
+        :notify_on_vispdat_completed,
+        :notify_on_client_added,
+        :notify_on_anomaly_identified,
         role_ids: [],
+        coc_codes: [],
+        contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
         )
     end
 
@@ -57,7 +63,9 @@ class Users::InvitationsController < Devise::InvitationsController
       params.require(:user).permit(
         data_sources: [],
         organizations: [],
-        projects: []
+        projects: [],
+        reports: [],
+        cohorts: []
       )
     end
 

@@ -13,7 +13,7 @@ end
 wb.add_worksheet name: 'Bed Utilization' do |sheet|
   title = sheet.styles.add_style **style
   headers = [
-    'Program Name', 'Project Type', 'ProgramID', 'Capacity',
+    'Program Name', 'Project Type', 'ProjectID', 'Capacity',
     'Persons (avg)', '% Capacity (avg)',
     'Persons (1st)', '% Capacity (1st)',
     'Persons (15th)', '% Capacity (15th)',

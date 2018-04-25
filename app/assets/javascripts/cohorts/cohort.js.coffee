@@ -273,16 +273,16 @@ class App.Cohorts.Cohort
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      console.log 'checking', @updated_ats
+      # console.log 'checking', @updated_ats
       changed = false
       $.each data, (id, timestamp) =>
         if timestamp != @updated_ats[id]
           changed = true
-          console.log "didn't match", @updated_ats
-          console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
+          # console.log "didn't match", @updated_ats
+          # console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
       if changed
-        console.log 'Setting new updated ats'
+        # console.log 'Setting new updated ats'
         @updated_ats = data
           
   reload_client: (cohort_client_id) =>
@@ -298,8 +298,14 @@ class App.Cohorts.Cohort
               @cell_metadata[i][j].comments = client[col.column].comments
               @table_data[i][j] = client[col.column].value
               @raw_data[i][@column_order[j]].value = client[col.column].value
-
+      # Preserve the sort order
+      sort_column = @table.sortColumn
+      sort_direction = @table.sortOrder
+      sorting = {column: sort_column, sortOrder: sort_direction}
+      
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
+        columnSorting: sorting
       @table.render()
+
