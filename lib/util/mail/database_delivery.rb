@@ -7,14 +7,15 @@ module Mail
     end
 
     def deliver!(mail)
+      is_html, body = content_and_type mail
       User.where( email: mail[:to].addresses ).each do |user|
         # store the "email" in the database
         message = ::Message.create(
           user_id: user.id,
           subject: mail.subject,
-          body:    mail.body.to_s,
+          body:    body,
           from:    mail[:from].addresses.first,
-          html:    /\A<html>.*<\/html>\z/im === mail.body.to_s.strip,
+          html:    is_html,
         )
         if user.continuous_email_delivery?
           # use the configured delivery method
@@ -34,6 +35,19 @@ module Mail
           message.update_attributes sent_at: DateTime.current, seen_at: DateTime.current
         end
       end
+    end
+
+    # save content as HTML if possible
+    def content_and_type(mail)
+      if mail.body.parts.any?
+        html_part = mail.body.parts.find{ |p| p.content_type.starts_with? "text/html" }
+        return [ true, html_part.body.to_s ] if html_part
+        text_part = mail.body.parts.find{ |p| p.content_type.starts_with? "text/plain" }
+        return [ false, text_part.body.to_s ] if text_part
+      end
+      body    = mail.body.to_s
+      is_html = /\A<html>.*<\/html>\z/im === body.strip
+      [ is_html, body ]
     end
   end
 end
