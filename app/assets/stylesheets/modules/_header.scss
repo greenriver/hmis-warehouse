@@ -58,15 +58,24 @@ body > header {
     margin-right: 0;
   }
 }
-.messages .btn [class^="icon-"] {
-  @extend .tagline;
-  padding-top: 22px;
-  width: 2rem;
-  .message-count {
-    position: relative;
-    background-color: #288be4;
-    top: -12px;
-    left: -18px;
+.messages {
+  .btn [class^="icon-"] {
+    @extend .tagline;
+    padding-top: 22px;
+    width: 2rem;
+    .message-count {
+      position: relative;
+      background-color: #288be4;
+      top: -12px;
+      left: -18px;
+    }
+  }
+  .show-all {
+    display: table;
+    margin: 5px auto;
+  }
+  .dropdown-menu {
+    top: 160%;
   }
 }
 .utility {
