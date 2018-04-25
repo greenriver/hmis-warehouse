@@ -133,6 +133,7 @@ module GrdaWarehouse
         ::CohortColumns::DisabilityVerificationDate.new(),
         ::CohortColumns::AvailableForMatchingInCas.new(),
         ::CohortColumns::Sober.new(),
+        ::CohortColumns::OriginalChronic.new(),
       ]
     end
 
