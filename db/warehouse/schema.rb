@@ -1005,6 +1005,7 @@ ActiveRecord::Schema.define(version: 20180425140146) do
     t.boolean  "ineligible",                              default: false, null: false
     t.integer  "adjusted_days_homeless_last_three_years", default: 0,     null: false
     t.boolean  "original_chronic",                        default: false, null: false
+    t.string   "not_a_vet"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree

@@ -134,6 +134,7 @@ module GrdaWarehouse
         ::CohortColumns::AvailableForMatchingInCas.new(),
         ::CohortColumns::Sober.new(),
         ::CohortColumns::OriginalChronic.new(),
+        ::CohortColumns::NotAVet.new(),
       ]
     end
 
