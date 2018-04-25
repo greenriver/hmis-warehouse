@@ -72,7 +72,7 @@ module GrdaWarehouse::Tasks
           send spec[:method], sheet
         end
       end
-      if @log.any?
+      if @log.present?
         puts "Errors"
         puts "------"
         @log.group_by{ |m| m[:sheet] }.each do |sheet, ms|
@@ -105,14 +105,14 @@ module GrdaWarehouse::Tasks
         first
       if enrollment
         # start_date, end_date, added_date = [ start_date, end_date, added_date ].map{ |d| d && Date.parse(d) }
-        model.first_or_create(
+        extras = model.where(
           enrollment_id:       enrollment.id,
           source_tab:          @name,
           vispdat_grand_total: total.to_i,
           vispdat_added_at:    added_date,
           vispdat_started_at:  start_date,
           vispdat_ended_at:    end_date,
-        )
+        ).first_or_create
       else
         log "could not find enrollment for row #{row.inspect}"
       end
