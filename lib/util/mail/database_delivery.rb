@@ -8,13 +8,15 @@ module Mail
 
     def deliver!(mail)
       is_html, body = content_and_type mail
+      subject       = ApplicationMailer.remove_prefix mail.subject
+      from          = mail[:from].addresses.first
       User.where( email: mail[:to].addresses ).each do |user|
         # store the "email" in the database
         message = ::Message.create(
           user_id: user.id,
-          subject: mail.subject,
+          subject: subject,
           body:    body,
-          from:    mail[:from].addresses.first,
+          from:    from,
           html:    is_html,
         )
         if user.continuous_email_delivery?

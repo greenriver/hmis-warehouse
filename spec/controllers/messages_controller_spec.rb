@@ -18,7 +18,7 @@ RSpec.describe MessagesController, type: :controller do
       expected_response = [
         "/messages/#{event.id}",
         event.id,
-        ApplicationMailer.remove_prefix(event.subject)
+        event.subject,
       ]
       expect(response.body).to eq [expected_response].to_json
     end

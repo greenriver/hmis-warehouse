@@ -31,7 +31,7 @@ class MessagesController < ApplicationController
     ids = params[:ids] || []
     @messages = messages.unseen.where.not( id: ids ).limit(10)
     paths_and_subjects = @messages.pluck( :id, :subject ).reverse.map do |id, subj|
-      [ view_context.message_path(id), id, ApplicationMailer.remove_prefix(subj) ]
+      [ view_context.message_path(id), id, subj ]
     end
     render json: paths_and_subjects
   end
