@@ -38,7 +38,7 @@ class MessagesController < ApplicationController
 
   def seen
     @notification = messages.unseen.find params.require(:id)
-    @notification&.update_attribute :seen_at, DateTime.current unless @notification.open?
+    @notification&.update_attribute :seen_at, DateTime.current unless @notification.opened?
     head :ok
   end
 

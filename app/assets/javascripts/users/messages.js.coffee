@@ -42,24 +42,25 @@ class App.Users.Messages
       $badge.removeClass 'hide'
       $badge.text @messages.length
       for [ path, id, subject ] in @messages
-        $m = $ """
-               <li class="dropdown-item message">
-                 <a data-loads-in-pjax-modal="true">
-                   <i class="icon-envelope-o"/>
-                   &nbsp;
-                 </a>
-               </li>
-               """
-        $a = $m.find 'a'
-        $a.append subject
-        $a.attr 'href', path
-        $a.click =>
-          @seen id
-          @messages.find ([p, i, s], index, array) ->
-            if id is i
-              array.splice index, 1
-              return true
-          @ringBell()
-        $dropdown.prepend($m)
+        do (path, id, subject) =>
+          $m = $ """
+                 <li class="dropdown-item message">
+                   <a data-loads-in-pjax-modal="true">
+                     <i class="icon-envelope-o"/>
+                     &nbsp;
+                   </a>
+                 </li>
+                 """
+          $a = $m.find 'a'
+          $a.append subject
+          $a.attr 'href', path
+          $a.click =>
+            @seen id
+            @messages.find ([p, i, s], index, array) ->
+              if id is i
+                array.splice index, 1
+                return true
+            @ringBell()
+          $dropdown.prepend($m)
     else
       $badge.addClass 'hide'
