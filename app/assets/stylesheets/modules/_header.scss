@@ -59,6 +59,16 @@ body > header {
   }
 }
 .messages {
+  float: right;
+  @media (min-width: $screen-sm-min) {
+    margin-right: -120px;
+  }
+  @media (min-width: $screen-md-min) {
+    margin-right: -140px;
+  }
+  @media (min-width: $screen-lg-min) {
+    margin-right: -40px;
+  }
   .btn [class^="icon-"] {
     @extend .tagline;
     padding-top: 22px;
@@ -73,9 +83,6 @@ body > header {
   .show-all {
     display: table;
     margin: 5px auto;
-  }
-  .dropdown-menu {
-    top: 160%;
   }
 }
 .utility {

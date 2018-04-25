@@ -24,18 +24,15 @@
       .container-fluid{class: container_classes}
         .row
           .col-xs-10
-            .row
-              .col-xs-10
-                .site-name
-                  .site-title
-                    = link_to root_path do
-                      = _('Boston DND Warehouse')
-                      - unless Rails.env.production?
-                        %span{style: 'font-size:12px;'}= "[#{Rails.env}]"
-                .tagline
-                  = _('Ending Veteran & Chronic Homelessness in Boston')
-              .col-xs-2
-                = render 'layouts/messages'
+            = render 'layouts/messages'
+            .site-name
+              .site-title
+                = link_to root_path do
+                  = _('Boston DND Warehouse')
+                  - unless Rails.env.production?
+                    %span{style: 'font-size:12px;'}= "[#{Rails.env}]"
+            .tagline
+              = _('Ending Veteran & Chronic Homelessness in Boston')
           .col-xs-2
             - if user_signed_in?
               = render 'layouts/site_menu'
