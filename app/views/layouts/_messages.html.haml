@@ -1,5 +1,5 @@
 - if !@hide_messages && user_signed_in? && current_user.in_app_messages?
-  .messages.dropdown
+  .email-messages.dropdown
     %a.btn.dropdow-toggle{ href: '#', role: 'button', data: { toggle: 'dropdown' } }
       %i.icon-envelope-o
         %span.message-count.badge.hide

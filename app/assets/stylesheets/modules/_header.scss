@@ -58,7 +58,7 @@ body > header {
     margin-right: 0;
   }
 }
-.messages {
+.email-messages {
   float: right;
   @media (min-width: $screen-sm-min) {
     margin-right: -120px;
@@ -83,6 +83,9 @@ body > header {
   .show-all {
     display: table;
     margin: 5px auto;
+  }
+  .dropdown-menu {
+    padding: 5px;
   }
 }
 .utility {

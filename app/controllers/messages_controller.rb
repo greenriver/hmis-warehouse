@@ -14,7 +14,7 @@ class MessagesController < ApplicationController
       @description = 'unread'
       messages.unseen
     end
-    @messages = @messages.order( created_at: :desc ).page(message_params[:page]).per(25)
+    @messages = @messages.page(message_params[:page]).per(25)
   end
 
   private def message_params
@@ -29,8 +29,8 @@ class MessagesController < ApplicationController
 
   def poll
     ids = params[:ids] || []
-    @messages = messages.unseen.order( created_at: :asc ).where.not( id: ids )
-    paths_and_subjects = @messages.pluck( :id, :subject ).map do |id, subj|
+    @messages = messages.unseen.where.not( id: ids ).limit(10)
+    paths_and_subjects = @messages.pluck( :id, :subject ).reverse.map do |id, subj|
       [ view_context.message_path(id), id, ApplicationMailer.remove_prefix(subj) ]
     end
     render json: paths_and_subjects
@@ -43,7 +43,7 @@ class MessagesController < ApplicationController
   end
 
   private def messages
-    current_user.messages
+    current_user.messages.order( created_at: :desc )
   end
 
 end
