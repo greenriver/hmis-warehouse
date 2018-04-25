@@ -16,7 +16,7 @@ when 'Project'
   proj = GrdaWarehouse::Hud::Project.find @query.project
   [
     ['Program Name', 'ProjectID', 'Data Source'],
-    [ proj.name, proj.ProgramID, proj.data_source.name ]
+    [ proj.name, proj.ProjectID, proj.data_source.name ]
   ]
 end
 if hs

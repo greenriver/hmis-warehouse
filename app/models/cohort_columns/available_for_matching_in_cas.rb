@@ -8,7 +8,11 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      checkmark_or_x cohort_client.client.active_in_cas?
+      checkmark_or_x text_value(cohort_client)
+    end
+
+    def text_value cohort_client
+      cohort_client.client.active_in_cas?
     end
   end
 end
