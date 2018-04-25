@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180330145925) do
+ActiveRecord::Schema.define(version: 20180425140146) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -730,6 +730,18 @@ ActiveRecord::Schema.define(version: 20180330145925) do
   add_index "Site", ["data_source_id", "SiteID"], name: "unk_Site", unique: true, using: :btree
   add_index "Site", ["data_source_id"], name: "index_Site_on_data_source_id", using: :btree
 
+  create_table "administrative_events", force: :cascade do |t|
+    t.integer  "user_id",     null: false
+    t.date     "date",        null: false
+    t.string   "title",       null: false
+    t.string   "description"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "administrative_events", ["deleted_at"], name: "index_administrative_events_on_deleted_at", using: :btree
+
   create_table "anomalies", force: :cascade do |t|
     t.integer  "client_id"
     t.integer  "submitted_by"
@@ -992,6 +1004,8 @@ ActiveRecord::Schema.define(version: 20180330145925) do
     t.string   "vulnerability_rank"
     t.boolean  "ineligible",                              default: false, null: false
     t.integer  "adjusted_days_homeless_last_three_years", default: 0,     null: false
+    t.boolean  "original_chronic",                        default: false, null: false
+    t.string   "not_a_vet"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree

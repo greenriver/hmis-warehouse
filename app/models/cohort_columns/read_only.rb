@@ -1,7 +1,6 @@
 module CohortColumns
   class ReadOnly < Base
 
-
     def column_editable?
       false
     end
@@ -15,6 +14,10 @@ module CohortColumns
     end
 
     def display_read_only(user)
+      value(cohort_client)
+    end
+
+    def text_value cohort_client
       value(cohort_client)
     end
   end

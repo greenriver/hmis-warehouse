@@ -40,6 +40,7 @@ FactoryGirl.define do
     can_edit_client_notes true
     can_edit_window_client_notes true
     can_track_anomalies true
+    can_add_administrative_event true
   end
 
   factory :health_admin, class: 'Role' do

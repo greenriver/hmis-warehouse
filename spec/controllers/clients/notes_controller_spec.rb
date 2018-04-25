@@ -3,12 +3,11 @@ require_relative '../../../app/models/grda_warehouse/client_notes/base'
 require_relative '../../../app/models/grda_warehouse/client_notes/chronic_justification'
 
 RSpec.describe Clients::NotesController, type: :controller do
-  let!(:admin) { create(:user) }
-  let!(:admin_role) { create :admin_role }
-  let!( :chronic_justification ) { create :grda_warehouse_client_notes_chronic_justification}
-  let!(:initial_note_count) {GrdaWarehouse::ClientNotes::ChronicJustification.count}
-  let!(:admin) { create(:user) }
-  let!(:client) { create :grda_warehouse_hud_client }
+  let!( :admin ) { create :user }
+  let!( :admin_role ) { create :admin_role }
+  let!( :chronic_justification ) { create :grda_warehouse_client_notes_chronic_justification }
+  let!( :initial_note_count ) { GrdaWarehouse::ClientNotes::ChronicJustification.count }
+  let!( :client ) { create :grda_warehouse_hud_client }
 
   before do
     authenticate admin
