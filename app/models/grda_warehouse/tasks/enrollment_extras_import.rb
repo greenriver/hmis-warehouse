@@ -65,11 +65,11 @@ module GrdaWarehouse::Tasks
       workbook = Roo::Spreadsheet.open(@source)
       model.transaction do
         workbook.each_with_pagename do |name, sheet|
-          Rails.log.info "importing sheet #{name} from #{@source}"
+          Rails.logger.info "importing sheet #{name} from #{@source}"
           spec = SPEC[name] or raise "unexpected sheet: #{name}"
           validate_headers sheet, name, spec[:headers]
           @name = name
-          send spec[:method], spec, sheet
+          send spec[:method], sheet
         end
       end
       if @log.any?
@@ -104,7 +104,7 @@ module GrdaWarehouse::Tasks
         where( p_t[:ProjectID].eq project_id ).
         first
       if enrollment
-        start_date, end_date, added_date = [ start_date, end_date, added_date ].map{ |d| d && Date.parse d }
+        # start_date, end_date, added_date = [ start_date, end_date, added_date ].map{ |d| d && Date.parse(d) }
         model.first_or_create(
           enrollment_id:       enrollment.id,
           source_tab:          @name,
@@ -126,7 +126,7 @@ module GrdaWarehouse::Tasks
       sheet.to_a[2..-1].each do |row|
         next if row.none?(&:present?)
         # rearrange columns
-        personal_id, project_id_etc, project_entry_id, _, total, added_date, start_date, end_date = row
+        personal_id, project_entry_id, project_id_etc, _, total, added_date, start_date, end_date = row
         _handle_vispdat_row [ personal_id, project_id_etc, project_entry_id, total, added_date, start_date, end_date ]
       end
     end
@@ -153,7 +153,7 @@ module GrdaWarehouse::Tasks
           where( e_t[:data_source_id].eq @data_source_id ).
           where( e_t[:ProjectEntryID].eq project_entry_id ).
           where( p_t[:ProjectID].eq project_id ).
-          where( e_t[:EntryDate].eq Date.parse(eee_date) ).
+          where( e_t[:EntryDate].eq eee_date ).
           first
         if enrollment
           roi_permission = roi_permission.strip == "Yes"
