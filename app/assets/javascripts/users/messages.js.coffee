@@ -60,6 +60,6 @@ class App.Users.Messages
               array.splice index, 1
               return true
           @ringBell()
-        $dropdown.append($m)
+        $dropdown.prepend($m)
     else
       $badge.addClass 'hide'
