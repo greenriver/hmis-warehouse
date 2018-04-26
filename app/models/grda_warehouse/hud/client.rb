@@ -1910,5 +1910,6 @@ module GrdaWarehouse::Hud
       residential_for_past_90_days = (ph_dates & (ninety_days_ago...entry_date).to_a).present?
       no_other_homeless || (! current_residential && residential_for_past_90_days)
     end
+
   end
 end
