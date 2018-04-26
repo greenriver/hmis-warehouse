@@ -16,6 +16,13 @@ brew install freetds
 brew install icu4c
 brew install openssl
 ```
+Sometimes icu4c and charlock_holmes give us issues.  Here's a relatively complete fix.
+```shell
+brew uninstall icu4c --force --ignore-dependencies
+brew reinstall node
+gem install charlock_holmes --version 0.7.6 -- --with-icu-dir=/usr/local/opt/icu4c --with-cxxflags=-std=c++11
+bundle
+```
 
 3. Create a `.env` file and add values for each of the variables in the `config/*.yml` files.
 
