@@ -140,6 +140,9 @@ module ArelHelper
   def site_t
     GrdaWarehouse::Hud::Site.arel_table
   end
+  def enx_t
+    GrdaWarehouse::EnrollmentExtra.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -339,6 +342,9 @@ module ArelHelper
     end
     def site_t
       GrdaWarehouse::Hud::Site.arel_table
+    end
+    def enx_t
+      GrdaWarehouse::EnrollmentExtra.arel_table
     end
   end
 end
