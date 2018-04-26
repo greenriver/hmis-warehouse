@@ -1,6 +1,7 @@
 namespace :non_hmis do
 
   desc "Ingest code for additional non-HMIS Export; params: data_source_id, file=var/import/non_hmis.xls"
+  # Example: bin/rake non_hmis:enrollment_extras data_source_id=1
   task :enrollment_extras => [:environment] do |task, args|
     data_source_id = ENV['data_source_id'].presence || raise("no data_source_id provided")
     # verify that this data source exists

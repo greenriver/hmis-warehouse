@@ -170,7 +170,7 @@ module GrdaWarehouse::Tasks
           where( e_t[:EntryDate].eq eee_date ).
           first
         if enrollment
-          roi_permission = roi_permission.strip == "Yes"
+          roi_permission = roi_permission.strip == "Yes" rescue nil
           enrollment.update_columns roi_permission: roi_permission, last_locality: locality, last_zipcode: zip
         else
           log "could not find enrollment for row #{row.inspect}"
