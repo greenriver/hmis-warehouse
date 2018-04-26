@@ -5,5 +5,6 @@
 
 - content_for :modal_title, @message.subject
 - content_for :modal_footer do
-  sent:
+  %strong
+    Sent:
   = @message.created_at
