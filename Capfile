@@ -21,6 +21,7 @@ require 'capistrano/rvm'
 require 'capistrano/bundler'
 require 'capistrano/rails/assets'
 require 'capistrano/rails/migrations'
+require "whenever/capistrano"
 unless ENV['NO_PASSENGER']
   require 'capistrano/passenger'
 end
