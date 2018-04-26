@@ -198,7 +198,7 @@ module Exporters::Tableau
        end
     end
 
-    def income(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
+    def income(start_date: default_start, end_date: default_end, coc_code:)
       model = ib_t.engine
 
       spec = {
