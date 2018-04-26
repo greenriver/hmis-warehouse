@@ -1,4 +1,5 @@
 require 'roo'
+require 'roo-xls'
 module GrdaWarehouse::Tasks
   class EnrollmentExtrasImport
     # include TsqlImport
@@ -62,7 +63,8 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
-      workbook = Roo::Spreadsheet.open(@source)
+      puts @source
+      workbook = Roo::Excel.new(@source)
       model.transaction do
         workbook.each_with_pagename do |name, sheet|
           Rails.logger.info "importing sheet #{name} from #{@source}"
@@ -89,19 +91,30 @@ module GrdaWarehouse::Tasks
       ( @log ||= [] ) << { sheet: @name, message: msg }
     end
 
-    def parse_project_id(value)
-      value.strip[ /.*\((\d+)\)/, 1 ]
+    # This is contained in the final parenthesis of the string
+    def parse_project_id value
+      value.strip[ /.*\((.+)\).*/, 1 ]
+    end
+
+    def clean_string value
+      value_to_i = value.to_i
+      if value.try(:round) == value_to_i
+        value_to_i
+      else
+        value
+      end
     end
 
     def _handle_vispdat_row(row)
       personal_id, project_id_etc, project_entry_id, total, added_date, start_date, end_date = row
       project_id = parse_project_id(project_id_etc)
+      personal_id = clean_string(personal_id)
+      project_entry_id = clean_string(project_entry_id)
       enrollment = e_t.engine.
-        joins(:project).
         where( e_t[:PersonalID].eq personal_id ).
         where( e_t[:data_source_id].eq @data_source_id ).
         where( e_t[:ProjectEntryID].eq project_entry_id ).
-        where( p_t[:ProjectID].eq project_id ).
+        where( e_t[:ProjectID].eq project_id ).
         first
       if enrollment
         # start_date, end_date, added_date = [ start_date, end_date, added_date ].map{ |d| d && Date.parse(d) }
@@ -147,12 +160,13 @@ module GrdaWarehouse::Tasks
         next if row.none?(&:present?)
         personal_id, project_entry_id, project_id_etc, roi_permission, eee_date, _, locality, zip = row
         project_id = parse_project_id(project_id_etc)
+        personal_id = clean_string(personal_id)
+        project_entry_id = clean_string(project_entry_id)
         enrollment = e_t.engine.
-          joins(:project).
-          where( e_t[:PersonalID].eq personal_id ).
+          where( e_t[:PersonalID].eq personal_id.to_s ).
           where( e_t[:data_source_id].eq @data_source_id ).
-          where( e_t[:ProjectEntryID].eq project_entry_id ).
-          where( p_t[:ProjectID].eq project_id ).
+          where( e_t[:ProjectEntryID].eq project_entry_id.to_s ).
+          where( e_t[:ProjectID].eq project_id ).
           where( e_t[:EntryDate].eq eee_date ).
           first
         if enrollment
