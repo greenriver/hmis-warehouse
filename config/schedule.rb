@@ -19,6 +19,11 @@
 
 # Learn more: http://github.com/javan/whenever
 if environment == 'production'
+
+  every 1.day, at: '4:00 am' do
+    rake "messages:daily"
+  end
+
   every 1.day, at: '6:10 pm' do
     rake "grda_warehouse:daily"
   end

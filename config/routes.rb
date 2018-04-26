@@ -350,6 +350,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :messages, only: [:show, :index] do
+    collection do
+      get :poll
+      post :seen
+    end
+  end
+
   namespace :api do
     namespace :health do
       namespace :claims do

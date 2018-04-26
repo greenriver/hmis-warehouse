@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180410081403) do
+ActiveRecord::Schema.define(version: 20180425140146) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -290,6 +290,9 @@ ActiveRecord::Schema.define(version: 20180410081403) do
     t.integer  "RunawayYouth"
     t.string   "processed_hash"
     t.string   "processed_as"
+    t.boolean  "roi_permission"
+    t.string   "last_locality"
+    t.string   "last_zipcode"
   end
 
   add_index "Enrollment", ["DateCreated"], name: "enrollment_date_created", using: :btree
@@ -643,6 +646,7 @@ ActiveRecord::Schema.define(version: 20180410081403) do
     t.date     "OperatingEndDate"
     t.integer  "VictimServicesProvider"
     t.integer  "HousingType"
+    t.string   "local_planning_group"
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
@@ -1004,6 +1008,7 @@ ActiveRecord::Schema.define(version: 20180410081403) do
     t.string   "vulnerability_rank"
     t.boolean  "ineligible",                              default: false, null: false
     t.integer  "adjusted_days_homeless_last_three_years", default: 0,     null: false
+    t.boolean  "original_chronic",                        default: false, null: false
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1091,6 +1096,17 @@ ActiveRecord::Schema.define(version: 20180410081403) do
     t.string   "short_name"
     t.boolean  "visible_in_window",  default: false, null: false
     t.boolean  "authoritative",      default: false
+  end
+
+  create_table "enrollment_extras", force: :cascade do |t|
+    t.integer  "enrollment_id",       null: false
+    t.integer  "vispdat_grand_total"
+    t.date     "vispdat_added_at"
+    t.date     "vispdat_started_at"
+    t.date     "vispdat_ended_at"
+    t.string   "source_tab"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "exports", force: :cascade do |t|

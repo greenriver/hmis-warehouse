@@ -1,0 +1,9 @@
+- @messages.each_with_index do |message, i|
+
+  Subject: #{message.subject}
+  Sent at: #{message.created_at.to_s(:long)}
+
+  = message.body_text
+
+  - unless i == @messages.length - 1
+    = "---------------------------------------------------------"

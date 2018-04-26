@@ -13,7 +13,11 @@ module Window
 
     def update
       clean_params = client_params
-      clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+      if can_view_full_ssn?
+        clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+      else
+        clean_params[:SSN] = @client.SSN
+      end
       valid_params = validate_new_client_params(clean_params)
       if valid_params
         @client.update(clean_params)
