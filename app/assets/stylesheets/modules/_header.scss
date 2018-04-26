@@ -40,7 +40,7 @@ body > header {
 }
 .tagline {
   display: none;
-  @media (min-width: $screen-sm-min) {
+  @media (min-width: $screen-xs-min) {
     display: block;
     color: #fff;
     @include montserrat-normal;
@@ -50,6 +50,9 @@ body > header {
     padding-top: 14px;
     @include margin(null null null 243px);
   }
+  @media (min-width: $screen-sm-min) {
+    
+  }
   @media (min-width: $screen-md-min) {
     padding-top: 28px;
   }
@@ -57,6 +60,47 @@ body > header {
     font-size: rem(19);
     margin-right: 0;
   }
+}
+.email-messages {
+  float: right;
+  @media (min-width: $screen-xs-min) {
+    margin-right: -100px;
+  }
+  @media (min-width: $screen-sm-min) {
+    margin-right: -130px;
+  }
+  @media (min-width: $screen-md-min) {
+    margin-right: -140px;
+  }
+  @media (min-width: $screen-lg-min) {
+    margin-right: -40px;
+  }
+  .btn [class^="icon-"] {
+    @extend .tagline;
+    padding-top: 22px;
+    width: 2rem;
+    .message-count {
+      position: relative;
+      background-color: $cob-sg-optimistic-blue;
+      top: -12px;
+      left: -18px;
+    }
+  }
+  .show-all {
+    margin: 5px auto;
+  }
+  .dropdown-menu {
+    min-width: 200px;
+  }
+}
+.btn.email-messages-envelope:focus,
+.btn.email-messages-envelope.focus
+{
+  outline: 0;
+}
+.btn.email-messages-envelope [class^="icon-"]:hover
+{
+  color:  $cob-sg-optimistic-blue;
 }
 .utility {
   @media (min-width: $screen-sm-min) {

@@ -164,6 +164,7 @@ group :test do
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
+  gem 'timecop'
 end
 
 group :development, :staging do

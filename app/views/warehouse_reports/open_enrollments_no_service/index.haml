@@ -19,7 +19,7 @@
       
     %tbody
       - @entries.each do |entry|
-        - client_name = "#{@clients[entry[:client_id]][:FirstName]} #{@clients[entry[:client_id]][:LastName]}"
+        - client_name = "#{@clients[entry[:client_id]]&.fetch(:FirstName)} #{@clients[entry[:client_id]]&.fetch(:LastName)}"
         %tr
           %td= link_to client_name, client_path(entry[:client_id])
           %td= link_to entry[:project_name], project_path(entry[:project_id])
