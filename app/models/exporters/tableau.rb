@@ -9,7 +9,7 @@ module Exporters::Tableau
     end
     private_class_method :null
 
-    def vispdat(start_date: 3.years.ago, end_date: DateTime.current, local_planning_group:)
+    def vispdat(start_date: 3.years.ago, end_date: DateTime.current, coc_code:)
       spec = {
         client_uid:               e_t[:PersonalID],
         vispdat_1_recordset_id:   null,
@@ -31,9 +31,15 @@ module Exporters::Tableau
       model = enx_t.engine
 
       vispdats = model.
-        joins( enrollment: [ :service_history_enrollment, { project: :organization } ] ).
+        joins(
+          enrollment: [
+            :enrollment_coc_at_entry,
+            :service_history_enrollment,
+            { project: :organization }
+          ]
+        ).
         merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
-        where( p_t[:local_planning_group].eq local_planning_group ).
+        where( ec_t[:CoCCode].eq coc_code ).
         # for aesthetics
         order( e_t[:PersonalID].asc ).
         order( o_t[:OrganizationName] ).
