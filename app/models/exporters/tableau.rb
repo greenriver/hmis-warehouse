@@ -14,6 +14,11 @@ module Exporters::Tableau
     end
     private_class_method :default_end
 
+    def null
+      lit 'NULL'
+    end
+    private_class_method :null
+
     def pathways_with_dest(start_date: default_start, end_date: default_end, coc_code:)
       CSV.generate headers: true do |csv|
         pathways_common( start_date: start_date, end_date: end_date, coc_code: coc_code ).each do |row|
