@@ -1,0 +1,16 @@
+%div{ style: 'padding: 2rem;' }
+  %table.table
+    %tr
+      %th.text-left Subject
+      %td= @message.subject
+    %tr
+      %th.text-left Sent
+      %td= @message.created_at.to_s(:long)
+    - if @message.seen_at
+      %tr
+        %th.text-left Seen
+        %td= @message.seen_at.to_s(:long)
+
+
+  %div{ style: ( "white-space: pre;" unless @message.html? ) }
+    = @message.body_html

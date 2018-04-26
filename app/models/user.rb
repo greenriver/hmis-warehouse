@@ -13,6 +13,7 @@ class User < ActiveRecord::Base
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
+  validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
@@ -20,6 +21,7 @@ class User < ActiveRecord::Base
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
   has_many :entities, class_name: GrdaWarehouse::UserViewableEntity.name
+  has_many :messages
 
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
@@ -192,6 +194,17 @@ class User < ActiveRecord::Base
       .pluck(:id)
 
     User.where(id: sub_ids - manager_ids)
+  end
+
+  # send email upon creation or only in a periodic digest
+  def continuous_email_delivery?
+    email_schedule.nil? || email_schedule == 'immediate'
+  end
+
+  # does this user want to see messages in the app itself (versus only in email)
+  # TODO make this depend on some attribute(s) configurable by the user and/or admins
+  def in_app_messages?
+    true
   end
 
   private
