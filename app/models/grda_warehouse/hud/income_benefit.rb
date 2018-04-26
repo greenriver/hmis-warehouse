@@ -147,5 +147,6 @@ module GrdaWarehouse::Hud
         missing: { name: 'Missing', range: [nil] },
       }
     end
+
   end
 end
