@@ -419,6 +419,10 @@ GEM
     roo (2.7.1)
       nokogiri (~> 1)
       rubyzip (~> 1.1, < 2.0.0)
+    roo-xls (1.2.0)
+      nokogiri
+      roo (>= 2.0.0, < 3)
+      spreadsheet (> 0.9.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -442,6 +446,7 @@ GEM
     rspec-support (3.5.0)
     ruby-filemagic (0.7.2)
     ruby-graphviz (1.2.2)
+    ruby-ole (1.2.12.1)
     ruby-prof (0.16.2)
     ruby-progressbar (1.8.1)
     ruby_dep (1.5.0)
@@ -479,6 +484,8 @@ GEM
     slack-notifier (1.5.1)
     slop (3.6.0)
     soundex (0.1.2)
+    spreadsheet (1.1.7)
+      ruby-ole (>= 1.0)
     spring (2.0.0)
       activesupport (>= 4.2)
     sprockets (3.7.1)
@@ -616,6 +623,7 @@ DEPENDENCIES
   responders
   rest-client (~> 2.0)
   roo
+  roo-xls
   rspec-mocks
   rspec-rails
   ruby-filemagic
