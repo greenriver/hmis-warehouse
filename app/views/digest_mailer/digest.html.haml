@@ -1,0 +1,14 @@
+- @messages.each_with_index do |message, i|
+
+  %table
+    %tr
+      %th Subject:
+      %td= message.subject
+    %tr
+      %th Sent at:
+      %td= message.created_at.to_s(:long)
+
+  %div{ style: ( "white-space: pre;" unless message.html? ) }= message.body_html
+
+  - unless i == @messages.length - 1
+    %hr
