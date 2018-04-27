@@ -9,6 +9,7 @@ module Exporters::Tableau
       available_exports.each do |file_name, klass|
         file_path = File.join(path, file_name.to_s)
         file_path += '.csv'
+        Rails.logger.info "Exporting #{file_path}"
         klass.to_csv(start_date: start_date, end_date: end_date, coc_code: coc_code, path: file_path)
       end
     end
