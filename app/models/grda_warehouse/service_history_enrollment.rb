@@ -234,6 +234,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       where(date: (start_date..end_date)).
       send(service_scope).
       exists)
+
   end
 
   scope :visible_in_window, -> do

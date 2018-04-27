@@ -3,7 +3,7 @@ module Exporters::Tableau::Vispdat
   include TableauExport
 
   module_function
-    def to_csv(start_date: default_start, end_date: default_end, coc_code: nil)
+    def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       spec = {
         client_uid:               e_t[:PersonalID],
         vispdat_1_recordset_id:   null,
@@ -46,24 +46,35 @@ module Exporters::Tableau::Vispdat
         vispdats = vispdats.select selector.as(header.to_s)
       end
 
-      CSV.generate headers: true do |csv|
-        headers = spec.keys.reject{ |k| k.to_s.starts_with? '_' }
-        csv << headers
-
-        model.connection.select_all(vispdats.to_sql).each do |vispdat|
-          row = []
-          headers.each do |h|
-            value = vispdat[h.to_s].presence
-            value = case h
-            when :vispdat_2_provider
-              "#{value}: #{vispdat['_pn']} (#{vispdat['_pid']})"
-            else
-              value
-            end
-            row << value
-          end
-          csv << row
+      if path.present?
+        CSV.open path, 'wb', headers: true do |csv|
+          export model, spec, vispdats, csv
         end
+        return true
+      else
+        CSV.generate headers: true do |csv|
+          export model, spec, vispdats, csv
+        end
+      end
+    end
+
+    def export model, spec, vispdats, csv
+      headers = spec.keys.reject{ |k| k.to_s.starts_with? '_' }
+      csv << headers
+
+      model.connection.select_all(vispdats.to_sql).each do |vispdat|
+        row = []
+        headers.each do |h|
+          value = vispdat[h.to_s].presence
+          value = case h
+          when :vispdat_2_provider
+            "#{value}: #{vispdat['_pn']} (#{vispdat['_pid']})"
+          else
+            value
+          end
+          row << value
+        end
+        csv << row
       end
     end
   # End Module Functions

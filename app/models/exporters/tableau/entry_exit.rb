@@ -3,7 +3,7 @@ module Exporters::Tableau::EntryExit
   include TableauExport
 
   module_function
-    def to_csv(start_date: default_start, end_date: default_end, coc_code: nil)
+    def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       model = she_t.engine
 
       spec = {
@@ -45,19 +45,19 @@ module Exporters::Tableau::EntryExit
         service_code_desc:                nil, # Collected from service history
         service_start_date:               nil, # Collected from service history
         # after this point in the sample data everything is NULL
-        entry_exit_uid:                   null,
+        entry_exit_uid_1:                   null,
         days_to_return:                   null,
-        entry_exit_uid:                   null, # REPEAT
+        entry_exit_uid_2:                   null, # REPEAT
         days_last3years:                  null,
         instances_last3years:             null,
-        entry_exit_uid:                   null, # REPEAT
+        entry_exit_uid_3:                   null, # REPEAT
         rrh_time_in_shelter:              null,
       }
 
       scope = model.residential.entry.
         open_between( start_date: start_date, end_date: end_date ).
-        joins( :client ).
-        joins( project: :sites, enrollment: :exit ).
+        with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
+        joins( :client, project: :sites, enrollment: :exit ).
         includes( client: :source_disabilities ).
         references( client: :source_disabilities ).
         # for aesthetics
@@ -76,10 +76,24 @@ module Exporters::Tableau::EntryExit
         scope = scope.select selector.as(header.to_s)
       end
 
-      # cleanup returned data
+      
+      if path.present?
+        CSV.open path, 'wb', headers: true do |csv|
+          export model, spec, scope, end_date, csv
+        end
+        return true
+      else
+        CSV.generate headers: true do |csv|
+          export model, spec, scope, end_date, csv
+        end
+      end
+    end
+
+    def export model, spec, scope, end_date, csv
+      # cleanup headers
       headers = spec.keys.map do |header|
         case header
-        when :data_source, :personal_id
+        when :data_source, :personal_id, :id
           next
         when -> (h) { h.to_s.starts_with? '_' }
           next
@@ -90,100 +104,113 @@ module Exporters::Tableau::EntryExit
         end
       end.compact.uniq
 
-      csv = CSV.generate headers: true do |csv|
-        csv << headers
+      csv << headers
 
-        thirty_day_limit = end_date - 30.days
-        model.connection.select_all(scope.to_sql).each do |row|
-          # fetch related service history
-          service_history = shs_t.engine.where(
-            service_history_enrollment_id: row['id'],
-            date: (row['entry_exit_entry_date'].to_date..row['entry_exit_exit_date'].to_date),
-            client_id: row['client_uid']
-          ).pluck(:id, :service_type, :date).map do |id, service_type, date|
-            {
-              service_uid: id,
-              service_code_desc: service_type,
-              service_start_date: date,
-            }
-          end
-
-          csv_row = []
-          headers.each do |h|
-            value = row[h.to_s].presence
-            value = case h
-            when :hh_config
-              value == 't' ? 'Single' : 'Family'
-            when :prov_id
-              "#{value} (#{row['_prov_id']})"
-            when :prog_type
-              pt = value&.to_i
-              if pt
-                type = ::HUD.project_type pt
-                if type == pt
-                  pt
-                else
-                  "#{type} (HUD)"
-                end
-              end
-            when :client_6orunder
-              age = row['client_age_at_entry'].presence&.to_i
-              age && age <= 6
-            when :client_7to17
-              age = row['client_age_at_entry'].presence&.to_i
-              (7..17).include? age
-            when :client_18to24
-              age = row['client_age_at_entry'].presence&.to_i
-              (18..24).include? age
-            when :veteran_status
-              value&.to_i == 1 ? 't' : 'f'
-            when :hispanic_latino
-              case value&.to_i
-              when 1 then 't'
-              when 0 then 'f'
-              end
-            when :primary_race
-              fields = c_t.engine.race_fields.select{ |f| row["primary_race_#{f.downcase}"].to_i == 1 }
-              if fields.many?
-                'Multiracial'
-              elsif fields.any?
-                ::HUD.race fields.first
-              end
-            when :disabling_condition
-              value ? 't' : 'f'
-            when :res_prior_to_entry
-              ::HUD.living_situation value&.to_i
-            when :length_of_stay_prev_place
-              ::HUD.residence_prior_length_of_stay value&.to_i
-            when :destination
-              ::HUD.destination value&.to_i
-            when :service_uid
-              ids = service_history.map{ |hash| hash[h] }
-              "{#{ ids.join ',' }}"
-            when :service_inactive
-              ids = service_history.map{ |hash| 'f' }
-              "{#{ ids.join ',' }}"
-            when :service_code_desc
-              descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
-              "{#{ descs.join ',' }}"
-            when :service_start_date
-              dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
-              "{#{ dates.join ',' }}"
-            when :any_income_30days
-              has_income = GrdaWarehouse::Hud::IncomeBenefit.
-                where( PersonalID: row['personal_id'], data_source_id: row['data_source'] ).
-                where( IncomeFromAnySource: 1 ).
-                where( ib_t[:InformationDate].gteq thirty_day_limit ).
-                where( ib_t[:InformationDate].lt end_date ).
-                exists?
-              has_income ? 't' : 'f'
-            else
-              value
-            end
-            csv_row << value
-          end
-          csv << csv_row
+      thirty_day_limit = end_date - 30.days
+      model.connection.select_all(scope.to_sql).group_by do |row| 
+        row['id'] 
+      end.each do |_, (*,row)| # use only the most recent disability record
+        # fetch related service history
+        service_history = shs_t.engine.where(
+          service_history_enrollment_id: row['id'],
+          record_type: :service,
+          date: (row['entry_exit_entry_date'].to_date..row['entry_exit_exit_date'].to_date),
+          client_id: row['client_uid']
+        ).pluck(:id, :service_type, :date).map do |id, service_type, date|
+          {
+            service_uid: id,
+            service_code_desc: service_type,
+            service_start_date: date,
+          }
         end
+
+        csv_row = []
+        headers.each do |h|
+          value = row[h.to_s].presence
+          value = case h
+          when :hh_config
+            value == 't' ? 'Single' : 'Family'
+          when :prov_id
+            "#{value} (#{row['_prov_id']})"
+          when :prog_type
+            pt = value&.to_i
+            if pt
+              type = ::HUD.project_type pt
+              if type == pt
+                pt
+              else
+                "#{type} (HUD)"
+              end
+            end
+          when :client_6orunder
+            age = row['client_age_at_entry'].presence&.to_i
+            if age && age <= 6 
+              't'
+            else 
+              'f' 
+            end
+          when :client_7to17
+            age = row['client_age_at_entry'].presence&.to_i
+            if (7..17).include? age 
+              't'
+            else 
+              'f' 
+            end
+          when :client_18to24
+            age = row['client_age_at_entry'].presence&.to_i
+            if (18..24).include? age
+              't'
+            else 
+              'f' 
+            end
+          when :veteran_status
+            value&.to_i == 1 ? 't' : 'f'
+          when :hispanic_latino
+            case value&.to_i
+            when 1 then 't'
+            when 0 then 'f'
+            end
+          when :primary_race
+            fields = c_t.engine.race_fields.select{ |f| row["primary_race_#{f.downcase}"].to_i == 1 }
+            if fields.many?
+              'Multiracial'
+            elsif fields.any?
+              ::HUD.race fields.first
+            end
+          when :disabling_condition
+            value ? 't' : 'f'
+          when :res_prior_to_entry
+            ::HUD.living_situation value&.to_i
+          when :length_of_stay_prev_place
+            ::HUD.residence_prior_length_of_stay value&.to_i
+          when :destination
+            ::HUD.destination value&.to_i
+          when :service_uid
+            ids = service_history.map{ |hash| hash[h] }
+            "{#{ ids.join ',' }}"
+          when :service_inactive
+            ids = service_history.map{ |hash| 'f' }
+            "{#{ ids.join ',' }}"
+          when :service_code_desc
+            descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
+            "{#{ descs.join ',' }}"
+          when :service_start_date
+            dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
+            "{#{ dates.join ',' }}"
+          when :any_income_30days
+            has_income = GrdaWarehouse::Hud::IncomeBenefit.
+              where( PersonalID: row['personal_id'], data_source_id: row['data_source'] ).
+              where( IncomeFromAnySource: 1 ).
+              where( ib_t[:InformationDate].gteq thirty_day_limit ).
+              where( ib_t[:InformationDate].lt end_date ).
+              exists?
+            has_income ? 't' : 'f'
+          else
+            value
+          end
+          csv_row << value
+        end
+        csv << csv_row
       end
     end
   # End Module Functions

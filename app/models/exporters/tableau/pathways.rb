@@ -3,7 +3,7 @@ module Exporters::Tableau::Pathways
   include TableauExport
   
   module_function
-    def to_csv(start_date: default_start, end_date: default_end, coc_code: nil)
+    def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       # make the recurring boilerplate
       # why is this here? we do not know
       path1 = (0..48).to_a
@@ -18,12 +18,24 @@ module Exporters::Tableau::Pathways
       # add boilerplate headers
       headers = %i( path t minmax link ) + data.shift
       # do the cross product
-      CSV.generate headers: true do |csv|
-        csv << headers
-        data.each do |data_row|
-          boilerplate.each do |boilerplate_row|
-            csv << boilerplate_row + data_row
-          end
+      
+      if path.present?
+        CSV.open path, 'wb', headers: true do |csv|
+          export headers, data, boilerplate, csv
+        end
+        return true
+      else
+        CSV.generate headers: true do |csv|
+          export headers, data, boilerplate, csv
+        end
+      end
+    end
+
+    def export headers, data, boilerplate, csv
+      csv << headers
+      data.each do |data_row|
+        boilerplate.each do |boilerplate_row|
+          csv << boilerplate_row + data_row
         end
       end
     end
