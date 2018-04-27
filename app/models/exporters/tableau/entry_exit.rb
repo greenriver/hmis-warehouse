@@ -16,6 +16,7 @@ module Exporters::Tableau::EntryExit
         group_uid:                        she_t[:enrollment_group_id],
         head_of_household:                she_t[:head_of_household],
         hh_config:                        she_t[:presented_as_individual],
+        rel_to_hoh:                       e_t[:RelationshipToHoH],
         prov_id:                          she_t[:project_name],
         _prov_id:                         she_t[:project_id],
         prog_type:                        she_t[model.project_type_column],
@@ -28,11 +29,12 @@ module Exporters::Tableau::EntryExit
         client_7to17:                     nil,
         client_18to24:                    nil,
         veteran_status:                   c_t[:VeteranStatus],
+        gender:                           c_t[:Gender],
         hispanic_latino:                  c_t[:Ethnicity],
         **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
         disabling_condition:              nil,
         any_income_30days:                nil,
-        county_homeless:                  null, # ???
+        county_homeless:                  nil, # ???
         res_prior_to_entry:               e_t[:ResidencePrior],
         length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
         approx_date_homelessness_started: e_t[:DateToStreetESSH],
@@ -40,18 +42,24 @@ module Exporters::Tableau::EntryExit
         total_months_homeless_on_street:  e_t[:MonthsHomelessPastThreeYears],
         destination:                      she_t[:destination],
         destination_other:                ex_t[:OtherDestination],
-        service_uid:                      nil, # Collected from service history
-        service_inactive:                 nil, # Collected from service history
-        service_code_desc:                nil, # Collected from service history
-        service_start_date:               nil, # Collected from service history
+        tracking_method:                  she_t[:project_tracking_method],
+        night_before_es_sh:               nil, 
+        less_than_7_nights:               nil, 
+        less_than_90_days:                nil, 
+        movein_date:                      e_t[:ResidentialMoveInDate],
+        chronic:                          nil,
+        # service_uid:                      nil, # Collected from service history
+        # service_inactive:                 nil, # Collected from service history
+        # service_code_desc:                nil, # Collected from service history
+        # service_start_date:               nil, # Collected from service history
         # after this point in the sample data everything is NULL
         entry_exit_uid_1:                 null,
-        days_to_return:                   null,
+        days_to_return:                   null, # ???
         entry_exit_uid_2:                 null, # REPEAT
         days_last3years:                  null,
         instances_last3years:             null,
         entry_exit_uid_3:                 null, # REPEAT
-        rrh_time_in_shelter:              null,
+        rrh_time_in_shelter:              null, # ???
       }
 
       scope = model.residential.entry.
@@ -79,17 +87,17 @@ module Exporters::Tableau::EntryExit
       
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, scope, end_date, csv
+          export model, spec, scope, start_date, end_date, csv
         end
         return true
       else
         CSV.generate headers: true do |csv|
-          export model, spec, scope, end_date, csv
+          export model, spec, scope, start_date, end_date, csv
         end
       end
     end
 
-    def export model, spec, scope, end_date, csv
+    def export model, spec, scope, start_date, end_date, csv
       # cleanup headers
       headers = spec.keys.map do |header|
         case header
@@ -109,27 +117,27 @@ module Exporters::Tableau::EntryExit
       thirty_day_limit = end_date - 30.days
 
       data = model.connection.select_all(scope.to_sql)
-      client_ids = data.map{|row| row['client_uid']}
+      client_ids = data.map{|row| row['client_uid']}.uniq
       dobs = c_t.engine.where(id: client_ids).pluck(:id, :DOB).to_h
-
+      clients = GrdaWarehouse::Hud::Client.where( id: client_ids ).index_by(&:id)
       data.group_by do |row| 
         row['id'] 
       end.each do |_, (*,row)| # use only the most recent disability record
         # fetch related service history
-        enrollment_start = row['entry_exit_entry_date'].to_date
-        enrollment_end = row['entry_exit_exit_date'].to_date rescue end_date.to_date
-        service_history = shs_t.engine.where(
-          service_history_enrollment_id: row['id'],
-          record_type: :service,
-          date: (enrollment_start..enrollment_end),
-          client_id: row['client_uid']
-        ).pluck(:id, :service_type, :date).map do |id, service_type, date|
-          {
-            service_uid: id,
-            service_code_desc: service_type,
-            service_start_date: date,
-          }
-        end
+        # enrollment_start = row['entry_exit_entry_date'].to_date
+        # enrollment_end = row['entry_exit_exit_date'].to_date rescue end_date.to_date
+        # service_history = shs_t.engine.where(
+        #   service_history_enrollment_id: row['id'],
+        #   record_type: :service,
+        #   date: (enrollment_start..enrollment_end),
+        #   client_id: row['client_uid']
+        # ).pluck(:id, :service_type, :date).map do |id, service_type, date|
+        #   {
+        #     service_uid: id,
+        #     service_code_desc: service_type,
+        #     service_start_date: date,
+        #   }
+        # end
 
         csv_row = []
         headers.each do |h|
@@ -137,6 +145,8 @@ module Exporters::Tableau::EntryExit
           value = case h
           when :hh_config
             value == 't' ? 'Single' : 'Family'
+          when :rel_to_hoh
+            ::HUD.relationship_to_hoh value&.to_i
           when :prov_id
             "#{value} (#{row['_prov_id']})"
           when :prog_type
@@ -148,6 +158,26 @@ module Exporters::Tableau::EntryExit
               else
                 "#{type} (HUD)"
               end
+            end
+          when :times_on_street
+            ::HUD.times_homeless_past_three_years_brief value&.to_i
+          when :total_months_homeless_on_street
+            ::HUD.months_homeless_past_three_years_brief value&.to_i
+          when :night_before_es_sh
+            entering_from_es = ::HUD.institutional_destinations + ::HUD.temporary_destinations
+            entering_from_ph = ::HUD.permanent_destinations
+            if entering_from_es.include? row['res_prior_to_entry']&.to_i
+              'Yes'
+            elsif entering_from_ph.include? row['res_prior_to_entry']&.to_i
+              'No'
+            end
+          when :less_than_7_nights
+            if ::HUD.residence_prior_length_of_stay_brief value&.to_i == '0-7'
+              'Yes'
+            end
+          when :less_than_90_days
+            if ['7-30', '30-90'].include?(::HUD.residence_prior_length_of_stay_brief value&.to_i)
+              'Yes'
             end
           when :client_6orunder
             age = row['client_age_at_entry'].presence&.to_i
@@ -174,6 +204,8 @@ module Exporters::Tableau::EntryExit
             dobs[row['client_uid']]
           when :veteran_status
             value&.to_i == 1 ? 't' : 'f'
+          when :gender
+            ::HUD.gender value&.to_i
           when :hispanic_latino
             case value&.to_i
             when 1 then 't'
@@ -199,21 +231,26 @@ module Exporters::Tableau::EntryExit
           when :res_prior_to_entry
             ::HUD.living_situation value&.to_i
           when :length_of_stay_prev_place
-            ::HUD.residence_prior_length_of_stay value&.to_i
+            ::HUD.residence_prior_length_of_stay_brief value&.to_i
           when :destination
             ::HUD.destination value&.to_i
-          when :service_uid
-            ids = service_history.map{ |hash| hash[h] }
-            "{#{ ids.join ';' }}"
-          when :service_inactive
-            ids = service_history.map{ |hash| 'f' }
-            "{#{ ids.join ',' }}"
-          when :service_code_desc
-            descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
-            "{#{ descs.join ',' }}"
-          when :service_start_date
-            dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
-            "{#{ dates.join ',' }}"
+          when :tracking_method
+            ::HUD.tracking_method value&.to_i
+          when :chronic
+            client = clients[row['client_uid'].to_i]
+            client.hud_chronic?( on_date: start_date ) ? 't' : 'f'
+          # when :service_uid
+          #   ids = service_history.map{ |hash| hash[h] }
+          #   "{#{ ids.join ';' }}"
+          # when :service_inactive
+          #   ids = service_history.map{ |hash| 'f' }
+          #   "{#{ ids.join ',' }}"
+          # when :service_code_desc
+          #   descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
+          #   "{#{ descs.join ',' }}"
+          # when :service_start_date
+          #   dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
+          #   "{#{ dates.join ',' }}"
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
               where( 
