@@ -204,16 +204,16 @@ module Exporters::Tableau::EntryExit
             ::HUD.destination value&.to_i
           when :service_uid
             ids = service_history.map{ |hash| hash[h] }
-            "{#{ ids.join '|' }}"
+            "{#{ ids.join ';' }}"
           when :service_inactive
             ids = service_history.map{ |hash| 'f' }
-            "{#{ ids.join '|' }}"
+            "{#{ ids.join ',' }}"
           when :service_code_desc
             descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
-            "{#{ descs.join '|' }}"
+            "{#{ descs.join ',' }}"
           when :service_start_date
             dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
-            "{#{ dates.join '|' }}"
+            "{#{ dates.join ',' }}"
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
               where( 
