@@ -22,7 +22,7 @@ module Exporters::Tableau::EntryExit
         prov_jurisdiction:                site_t[:City],
         entry_exit_entry_date:            she_t[:first_date_in_program],
         entry_exit_exit_date:             she_t[:last_date_in_program],
-        client_dob:                       c_t[:DOB],
+        client_dob:                       nil,
         client_age_at_entry:              she_t[:age],
         client_6orunder:                  nil,
         client_7to17:                     nil,
@@ -30,7 +30,7 @@ module Exporters::Tableau::EntryExit
         veteran_status:                   c_t[:VeteranStatus],
         hispanic_latino:                  c_t[:Ethnicity],
         **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
-        disabling_condition:              d_t[:DisabilitiesID],
+        disabling_condition:              nil,
         any_income_30days:                nil,
         county_homeless:                  null, # ???
         res_prior_to_entry:               e_t[:ResidencePrior],
@@ -45,21 +45,21 @@ module Exporters::Tableau::EntryExit
         service_code_desc:                nil, # Collected from service history
         service_start_date:               nil, # Collected from service history
         # after this point in the sample data everything is NULL
-        entry_exit_uid_1:                   null,
+        entry_exit_uid_1:                 null,
         days_to_return:                   null,
-        entry_exit_uid_2:                   null, # REPEAT
+        entry_exit_uid_2:                 null, # REPEAT
         days_last3years:                  null,
         instances_last3years:             null,
-        entry_exit_uid_3:                   null, # REPEAT
+        entry_exit_uid_3:                 null, # REPEAT
         rrh_time_in_shelter:              null,
       }
 
       scope = model.residential.entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-        joins( :client, project: :sites, enrollment: :exit ).
-        includes( client: :source_disabilities ).
-        references( client: :source_disabilities ).
+        joins( project: :sites, enrollment: :client ).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         # for aesthetics
         order( she_t[:client_id].asc ).
         order( e_t[:id].asc ).
@@ -107,14 +107,21 @@ module Exporters::Tableau::EntryExit
       csv << headers
 
       thirty_day_limit = end_date - 30.days
-      model.connection.select_all(scope.to_sql).group_by do |row| 
+
+      data = model.connection.select_all(scope.to_sql)
+      client_ids = data.map{|row| row['client_uid']}
+      dobs = c_t.engine.where(id: client_ids).pluck(:id, :DOB).to_h
+
+      data.group_by do |row| 
         row['id'] 
       end.each do |_, (*,row)| # use only the most recent disability record
         # fetch related service history
+        enrollment_start = row['entry_exit_entry_date'].to_date
+        enrollment_end = row['entry_exit_exit_date'].to_date rescue end_date.to_date
         service_history = shs_t.engine.where(
           service_history_enrollment_id: row['id'],
           record_type: :service,
-          date: (row['entry_exit_entry_date'].to_date..row['entry_exit_exit_date'].to_date),
+          date: (enrollment_start..enrollment_end),
           client_id: row['client_uid']
         ).pluck(:id, :service_type, :date).map do |id, service_type, date|
           {
@@ -163,6 +170,8 @@ module Exporters::Tableau::EntryExit
             else 
               'f' 
             end
+          when :client_dob
+            dobs[row['client_uid']]
           when :veteran_status
             value&.to_i == 1 ? 't' : 'f'
           when :hispanic_latino
@@ -178,7 +187,15 @@ module Exporters::Tableau::EntryExit
               ::HUD.race fields.first
             end
           when :disabling_condition
-            value ? 't' : 'f'
+            if [1,2,3].include? d_t.engine.where(
+              ProjectEntryID: row['group_uid'],
+              PersonalID: row['personal_id'],
+              data_source_id: row['data_source_id'],
+            ).order(InformationDate: :desc).limit(1).pluck(:DisabilityResponse).first
+              't'
+            else
+              'f'
+            end
           when :res_prior_to_entry
             ::HUD.living_situation value&.to_i
           when :length_of_stay_prev_place
@@ -187,19 +204,23 @@ module Exporters::Tableau::EntryExit
             ::HUD.destination value&.to_i
           when :service_uid
             ids = service_history.map{ |hash| hash[h] }
-            "{#{ ids.join ',' }}"
+            "{#{ ids.join '|' }}"
           when :service_inactive
             ids = service_history.map{ |hash| 'f' }
-            "{#{ ids.join ',' }}"
+            "{#{ ids.join '|' }}"
           when :service_code_desc
             descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
-            "{#{ descs.join ',' }}"
+            "{#{ descs.join '|' }}"
           when :service_start_date
             dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
-            "{#{ dates.join ',' }}"
+            "{#{ dates.join '|' }}"
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
-              where( PersonalID: row['personal_id'], data_source_id: row['data_source'] ).
+              where( 
+                PersonalID: row['personal_id'], 
+                data_source_id: row['data_source'],
+                ProjectEntryID: row['group_uid']
+              ).
               where( IncomeFromAnySource: 1 ).
               where( ib_t[:InformationDate].gteq thirty_day_limit ).
               where( ib_t[:InformationDate].lt end_date ).
