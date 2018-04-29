@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
-  ActiveJob::Base.queue_adapter = ActiveJob::QueueAdapters::DelayedJobAdapter
+  ActiveJob::Base.queue_adapter = :test
   let(:vispdat) { create :vispdat }
 
   describe 'youth?' do
@@ -30,10 +30,10 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       end
 
       it 'queues an email' do
-        expect( Delayed::Job.count ).to eq 1
+        expect( ActiveJob::Base.queue_adapter.enqueued_jobs.size ).to eq 1
       end
       it 'queues a vispdat complete email' do
-        expect( Delayed::Job.first.payload_object.job_data['arguments'] ).to include "NotifyUser", "vispdat_completed"
+        expect( ActiveJob::Base.queue_adapter.enqueued_jobs.first[:args] ).to include "NotifyUser", "vispdat_completed"
       end
 
     end
