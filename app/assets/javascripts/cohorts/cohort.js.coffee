@@ -276,6 +276,11 @@ class App.Cohorts.Cohort
     return unless column.editable
     @table.validateRows [row], (valid) =>
       if ! valid
+        alert = "<div class='alert alert-danger' style='position: fixed; top: 0; width: 20em;'>Failed to save. <br /> There is an invalid value in at least one column in the row.  Please check for any red cells.  <br/>You will have to re-enter your last change, after fixing any invalid cells.</div>"
+        $('.utility .alert').remove()
+        $('.utility').append(alert)
+        $('.utility .alert').delay(20000).fadeOut(250)
+
         console.log 'invalid column in row! (may not be the column you just changed)'
       else
         field_name = "cohort_client[#{column.column}]"
