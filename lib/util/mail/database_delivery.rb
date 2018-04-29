@@ -9,7 +9,7 @@ module Mail
     def deliver!(mail)
       is_html, body = content_and_type mail
       subject       = ApplicationMailer.remove_prefix mail.subject
-      from          = mail[:from].addresses.first
+      from          = mail[:from].addresses.first || ENV['DEFAULT_FROM']
       User.where( email: mail[:to].addresses ).each do |user|
         # store the "email" in the database
         message = ::Message.create(
