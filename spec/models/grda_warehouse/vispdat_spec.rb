@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
-  
+  ActiveJob::Base.queue_adapter = ActiveJob::QueueAdapters::DelayedJobAdapter
   let(:vispdat) { create :vispdat }
 
   describe 'youth?' do
