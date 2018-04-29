@@ -53,7 +53,7 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], port: ENV['PORT'] }
 
   # don't need email sandbox with letter opener
-  config.sandbox_email_mode = false
+  config.sandbox_email_mode = true
 
   # make the development log noisy so you can see request parameters, views rendered, etc.
   config.lograge.enabled = false
