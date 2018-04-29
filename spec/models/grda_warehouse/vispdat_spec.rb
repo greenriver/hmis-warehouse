@@ -1,4 +1,5 @@
 require 'rails_helper'
+include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
   ActiveJob::Base.queue_adapter = :test
@@ -26,6 +27,8 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
     context 'and completed is set' do
 
       before(:each) do
+        ActiveJob::Base.queue_adapter.enqueued_jobs = []
+        ActiveJob::Base.queue_adapter.performed_jobs = []
         vispdat.update( submitted_at: Time.now )
       end
 
