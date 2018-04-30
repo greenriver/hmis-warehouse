@@ -26,7 +26,7 @@ module Mail
         )
         if user.continuous_email_delivery?
           ::ImmediateMailer.immediate(message, user.email).deliver_now
-          message.update(sent_at: Time.now)
+          message.update(sent_at: Time.now, seen_at: Time.now)
         end
       end
     end

@@ -9,7 +9,7 @@ server ENV['STAGING_HOST'], user: fetch(:deploy_user), roles: %w{app db web job}
 
 set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_known', 'challenge')
 
-set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml', 'app/mail_interceptors/sandbox_email_interceptor.rb')
+set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')
 
 namespace :deploy do
   after :updated, :warehouse_migrations do
