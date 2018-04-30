@@ -1,0 +1,5 @@
+- # Contains HTML, just show it
+- if strip_tags(@message.body) != @message.body
+  = @message.body
+- else # is plain text, make it look prettier
+  = simple_format(@message.body).gsub(URI.regexp(['http', 'https']), '<a href="\0">\0</a>').html_safe
