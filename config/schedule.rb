@@ -21,6 +21,8 @@ Dotenv.load('.env', '.env.local')
 
 # Learn more: http://github.com/javan/whenever
 if environment == 'production'
+
+  # All installs get these
   daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
   every 1.day, at: daily_schedule do
     rake "grda_warehouse:daily"
@@ -30,6 +32,11 @@ if environment == 'production'
     rake "grda_warehouse:save_service_history_snapshots"
   end
 
+  every 1.day, at: '4:00 am' do
+    rake "messages:daily"
+  end
+
+  # These only happen in some scenarios
   if ENV['ETO_API_SITE1'] != 'unknown'
     every 1.day, at: '4:00 pm' do
       rake "eto:import:demographics"

@@ -86,6 +86,9 @@ module ArelHelper
   def s_t
     GrdaWarehouse::Hud::Service.arel_table
   end
+  def site_t
+    GrdaWarehouse::Hud::Site.arel_table
+  end
   def e_t
     GrdaWarehouse::Hud::Enrollment.arel_table
   end
@@ -137,8 +140,8 @@ module ArelHelper
   def f_t
     GrdaWarehouse::Hud::Funder.arel_table
   end
-  def site_t
-    GrdaWarehouse::Hud::Site.arel_table
+  def enx_t
+    GrdaWarehouse::EnrollmentExtra.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -286,6 +289,9 @@ module ArelHelper
     def s_t
       GrdaWarehouse::Hud::Service.arel_table
     end
+    def site_t
+      GrdaWarehouse::Hud::Site.arel_table
+    end
     def e_t
       GrdaWarehouse::Hud::Enrollment.arel_table
     end
@@ -337,8 +343,8 @@ module ArelHelper
     def f_t
       GrdaWarehouse::Hud::Funder.arel_table
     end
-    def site_t
-      GrdaWarehouse::Hud::Site.arel_table
+    def enx_t
+      GrdaWarehouse::EnrollmentExtra.arel_table
     end
   end
 end

@@ -65,7 +65,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       client.enrollments << enrollment_12_months_homeless
 
       # return client as head of household
-      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:client).and_return( client )
+      expect_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:client).and_return( client )
 
       # fake out the source_enrollments so client is disabled.
       source_enrollments = double('source_enrollments')
@@ -73,7 +73,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       expect( source_enrollments ).to receive(:pluck).with(:DisablingCondition).and_return [1]
 
       # return an enrollment that has a date to street
-      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:enrollment).and_return( enrollment_12_months_homeless )
+      expect_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:enrollment).and_return( enrollment_12_months_homeless )
       @is_chronic = client.hud_chronic? on_date: april_1_2016
     end
 
@@ -93,7 +93,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       client.enrollments << enrollment_11_months_homeless
 
       # return client as head of household
-      expect_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:client).and_return( client )
+      expect_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:client).and_return( client )
 
       # fake out the source_enrollments so client is disabled.
       source_enrollments = double('source_enrollments')
@@ -105,7 +105,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
       before(:each) do
         # return an enrollment that has a date to street
-        allow_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:enrollment).and_return( enrollment_11_months_homeless )
+        allow_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:enrollment).and_return( enrollment_11_months_homeless )
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 
@@ -121,7 +121,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
       before(:each) do
         # return an enrollment that has a date to street
-        allow_any_instance_of( GrdaWarehouse::ServiceHistory ).to receive(:enrollment).and_return( enrollment_12_months_on_street )
+        allow_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:enrollment).and_return( enrollment_12_months_on_street )
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 

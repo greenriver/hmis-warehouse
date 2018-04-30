@@ -1,11 +1,11 @@
-class NotifyUser < ApplicationMailer
+class NotifyUser < DatabaseMailer
 
   def vispdat_completed vispdat_id
     @vispdat = GrdaWarehouse::Vispdat::Base.where(id: vispdat_id).first
     @user = User.where(id: @vispdat.user_id).first
     users_to_notify = User.where(notify_on_vispdat_completed: true).where.not(id: @user.id)
     users_to_notify.each do |user|
-      mail(to: user.email, subject: "[Warehouse] A VI-SPDAT was completed.")
+      mail(to: user.email, subject: "A VI-SPDAT was completed.")
     end
   end
 
@@ -14,7 +14,7 @@ class NotifyUser < ApplicationMailer
     @user = User.where(id: @client.creator_id).first
     users_to_notify = User.where(notify_on_client_added: true).where.not(id: @user.id)
     users_to_notify.each do |user|
-      mail(to: user.email, subject: "[Warehouse] A Client was added.")
+      mail(to: user.email, subject: "A Client was added.")
     end
   end
 
@@ -35,7 +35,7 @@ class NotifyUser < ApplicationMailer
       end
       next if @url.nil?
 
-      mail(to: user&.email, subject: "[Warehouse] A file was uploaded.")
+      mail(to: user&.email, subject: "A file was uploaded.")
     end
   end
 
@@ -56,7 +56,7 @@ class NotifyUser < ApplicationMailer
       end
       next if @url.nil?
 
-      mail(to: user&.email, subject: "[Warehouse] A note was added.")
+      mail(to: user&.email, subject: "A note was added.")
     end
   end
   
@@ -65,7 +65,7 @@ class NotifyUser < ApplicationMailer
     users_to_notify = User.where(notify_on_anomaly_identified: true).
       where.not(id: user_id)
     users_to_notify.each do |user|
-      mail(to: user.email, subject: "[Warehouse] Client anomaly identified")
+      mail(to: user.email, subject: "Client anomaly identified")
     end
   end
 
@@ -74,7 +74,7 @@ class NotifyUser < ApplicationMailer
     users_to_notify = User.where(id: involved_user_ids).
       where.not(id: user_id)
     users_to_notify.each do |user|
-      mail(to: user.email, subject: "[Warehouse] Client anomaly updated")
+      mail(to: user.email, subject: "Client anomaly updated")
     end
   end
 
@@ -82,35 +82,35 @@ class NotifyUser < ApplicationMailer
     @user = User.find(user_id)
     @report = GrdaWarehouse::WarehouseReports::ChronicReport.find(report_id)
     @report_url = warehouse_reports_chronic_url(@report)
-    mail(to: @user.email, subject: "[Warehouse] Your Chronic report has finished")
+    mail(to: @user.email, subject: "Your Chronic report has finished")
   end
 
   def hud_chronic_report_finished user_id, report_id
     @user = User.find(user_id)
     @report = GrdaWarehouse::WarehouseReports::HudChronicReport.find(report_id)
     @report_url = warehouse_reports_hud_chronic_url(@report)
-    mail(to: @user.email, subject: "[Warehouse] Your HUD Chronic report has finished")
+    mail(to: @user.email, subject: "Your HUD Chronic report has finished")
   end
 
   def hmis_export_finished user_id, report_id
     @user = User.find(user_id)
     @report = GrdaWarehouse::HmisExport.find(report_id)
     @report_url = warehouse_reports_hmis_exports_url()
-    mail(to: @user.email, subject: "[Warehouse] Your HMIS Export has finished")
+    mail(to: @user.email, subject: "Your HMIS Export has finished")
   end
 
   def enrolled_disabled_report_finished user_id, report_id
     @user = User.find(user_id)
     @report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.find(report_id)
     @report_url = warehouse_reports_disability_url(@report)
-    mail(to: @user.email, subject: "[Warehouse] Your Enrolled with Disability report has finished")
+    mail(to: @user.email, subject: "Your Enrolled with Disability report has finished")
   end
 
   def active_veterans_report_finished user_id, report_id
     @user = User.find(user_id)
     @report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.find(report_id)
     @report_url = warehouse_reports_active_veteran_url(@report)
-    mail(to: @user.email, subject: "[Warehouse] Your Active Veterans report has finished")
+    mail(to: @user.email, subject: "Your Active Veterans report has finished")
   end
 
 end

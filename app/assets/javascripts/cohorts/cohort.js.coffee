@@ -280,6 +280,7 @@ class App.Cohorts.Cohort
         $('.utility .alert').remove()
         $('.utility').append(alert)
         $('.utility .alert').delay(20000).fadeOut(250)
+
         console.log 'invalid column in row! (may not be the column you just changed)'
       else
         field_name = "cohort_client[#{column.column}]"

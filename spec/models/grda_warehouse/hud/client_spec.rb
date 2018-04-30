@@ -1,6 +1,8 @@
 require 'rails_helper'
+include ActiveJob::TestHelper
 
-RSpec.describe GrdaWarehouse::Hud::Client, type: :model do  
+RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
+  ActiveJob::Base.queue_adapter = :test
   let(:client) { build :grda_warehouse_hud_client }
   let(:client_signed_yesterday) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday}
   let(:client_signed_2_years_ago) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date}
@@ -12,16 +14,18 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     context 'and send_notifications true' do
       it 'queues a notify job' do
-        client.send_notifications = true
-        client.save
-        expect( Delayed::Job.count ).to eq 1
+        expect{
+          client.send_notifications = true
+          client.save
+        }.to have_enqueued_job.on_queue('mailers')
       end
     end
     context 'and send_notifications false' do
       it 'does not queue a notify job' do
-        client.send_notifications = false
-        client.save
-        expect( Delayed::Job.count ).to eq 0
+        expect{
+          client.send_notifications = false
+          client.save
+        }.to change(ActiveJob::Base.queue_adapter.enqueued_jobs, :size).by 0
       end
     end
   end
