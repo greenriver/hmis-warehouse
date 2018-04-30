@@ -25,7 +25,7 @@ module Mail
           html:    is_html,
         )
         if user.blank? || user.continuous_email_delivery?
-          ImmediateMailer.immediate(message, contact.email).deliver_now
+          ::ImmediateMailer.immediate(message, contact.email).deliver_now
           message.update(sent_at: Time.now)
         end
       end
