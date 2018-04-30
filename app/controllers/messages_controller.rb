@@ -29,11 +29,13 @@ class MessagesController < ApplicationController
 
   def poll
     ids = params[:ids] || []
-    @messages = messages.unseen.where.not( id: ids ).limit(10)
+    query = messages.unseen.where.not( id: ids )
+    @unseen_count = query.count
+    @messages = query.limit(10)
     paths_and_subjects = @messages.pluck( :id, :subject ).reverse.map do |id, subj|
       [ view_context.message_path(id), id, subj ]
     end
-    render json: paths_and_subjects
+    render json: {messages: paths_and_subjects, count: @unseen_count}
   end
 
   def seen

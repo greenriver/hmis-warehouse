@@ -15,12 +15,15 @@ RSpec.describe MessagesController, type: :controller do
   describe 'GET poll' do
     it "only gets yesterday's event" do
       get :poll
-      expected_response = [
-        "/messages/#{event.id}",
-        event.id,
-        event.subject,
-      ]
-      expect(response.body).to eq [expected_response].to_json
+      expected_response = {
+        messages: [[
+          "/messages/#{event.id}",
+          event.id,
+          event.subject,
+        ]],
+        count: 1
+      }
+      expect(response.body).to eq expected_response.to_json
     end
   end
 
