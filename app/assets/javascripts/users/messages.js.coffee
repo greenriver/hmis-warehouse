@@ -19,9 +19,10 @@ class App.Users.Messages
         seen = new Set()
         for n in @messages
           seen.add n.id
-        for n in data
+        for n in data.messages
           unless seen.has n.id
             @messages.push n
+        @unseen_count = data.count
         @ringBell()
   # mark a message as seen
   seen: (id) =>
@@ -40,7 +41,7 @@ class App.Users.Messages
     $dropdown.find('.message').remove()
     if @messages.length
       $badge.removeClass 'hide'
-      $badge.text @messages.length
+      $badge.text @unseen_count
       for [ path, id, subject ] in @messages
         do (path, id, subject) =>
           $m = $ """
@@ -60,6 +61,7 @@ class App.Users.Messages
               if id is i
                 array.splice index, 1
                 return true
+            @unseen_count -= 1
             @ringBell()
           $dropdown.prepend($m)
     else
