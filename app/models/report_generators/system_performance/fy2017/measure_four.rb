@@ -1,7 +1,6 @@
 module ReportGenerators::SystemPerformance::Fy2017
   class MeasureFour < Base
     LOOKBACK_STOP_DATE = '2012-10-01'
-    COC_CODE = 'MA-500'
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -103,6 +102,9 @@ module ReportGenerators::SystemPerformance::Fy2017
           @support[:four3_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
         end
       end
+      @answers[:four1_c4][:value] = (@answers[:four1_c3][:value].to_f / @answers[:four1_c2][:value] * 100).round(2) rescue 0
+      @answers[:four2_c4][:value] = (@answers[:four2_c3][:value].to_f / @answers[:four2_c2][:value] * 100).round(2) rescue 0
+      @answers[:four3_c4][:value] = (@answers[:four3_c3][:value].to_f / @answers[:four3_c2][:value] * 100).round(2) rescue 0
     end
 
     def add_leaver_answers
@@ -151,6 +153,9 @@ module ReportGenerators::SystemPerformance::Fy2017
           @support[:four6_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
         end
       end
+      @answers[:four4_c4][:value] = (@answers[:four4_c3][:value].to_f / @answers[:four4_c2][:value] * 100).round(2) rescue 0
+      @answers[:four5_c4][:value] = (@answers[:four5_c3][:value].to_f / @answers[:four5_c2][:value] * 100).round(2) rescue 0
+      @answers[:four6_c4][:value] = (@answers[:four6_c3][:value].to_f / @answers[:four6_c2][:value] * 100).round(2) rescue 0
     end
     def calculate_stayers
       # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
@@ -174,13 +179,15 @@ module ReportGenerators::SystemPerformance::Fy2017
       }
 
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        coc_funded_in(coc_code: COC_CODE).
         ongoing(on_date: @report.options['report_start']). # need at least 365 days and open on end date
         ongoing(on_date: @report.options['report_end']).
         hud_project_type(PH + SH + TH).
         joins(:client, project: :funders).
         where(Funder: {Funder: [2, 3, 4, 5]}).
         grant_funded_between(start_date: @report.options['report_start'], end_date: @report.options['report_end'].to_date + 1.day)
+        if @report.options['coc_code'].present?
+          stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+        end
 
       stayers_scope = add_filters(scope: stayers_scope)
       
@@ -253,7 +260,6 @@ module ReportGenerators::SystemPerformance::Fy2017
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        coc_funded_in(coc_code: COC_CODE).
         ended_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.days).
         hud_project_type(PH + SH + TH).
@@ -266,6 +272,10 @@ module ReportGenerators::SystemPerformance::Fy2017
         where(Funder: {Funder: [2, 3, 4, 5]}).
         grant_funded_between(start_date: @report.options['report_start'], 
           end_date: @report.options['report_end'].to_date + 1.day)
+
+      if @report.options['coc_code'].present?
+          leavers_scope = leavers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+        end
 
       leavers_scope = add_filters(scope: leavers_scope)
 
