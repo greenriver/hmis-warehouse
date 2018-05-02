@@ -48,10 +48,6 @@ module ReportGenerators::SystemPerformance::Fy2017
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
-    def act_as_coc_overlay
-      nf( 'COALESCE', [ pc_t[:hud_coc_code], pc_t[:CoCCode] ] ).as('CoCCode').to_sql
-    end
-
     def set_report_start_and_end
       @report_start ||= @report.options['report_start'].to_date
       @report_end ||= @report.options['report_end'].to_date

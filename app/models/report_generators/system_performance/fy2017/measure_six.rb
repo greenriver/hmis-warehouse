@@ -1,7 +1,6 @@
 module ReportGenerators::SystemPerformance::Fy2017
   class MeasureSix < Base
     LOOKBACK_STOP_DATE = '2012-10-01'
-    COC_CODE = 'MA-500'
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -92,11 +91,14 @@ module ReportGenerators::SystemPerformance::Fy2017
 
       project_exits_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
         joins(:project).
-        coc_funded_in(coc_code: COC_CODE).
         ended_between(start_date: look_back_until, 
           end_date: look_forward_until.to_date + 1.days).
         category_3.
         hud_project_type(project_types)
+
+      if @report.options['coc_code'].present?
+        project_exits_scope = project_exits_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+      end
 
       project_exits_scope = add_filters(scope: project_exits_scope)
 
@@ -178,10 +180,13 @@ module ReportGenerators::SystemPerformance::Fy2017
         client_entries = {}
         client_entries_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           joins(:project).
-          coc_funded_in(coc_code: COC_CODE).
           started_between(start_date: p_exit[:last_date_in_program], 
             end_date: @report.options['report_end'].to_date + 1.day).
           where(client_id: p_exit[:client_id])
+
+        if @report.options['coc_code'].present?
+          client_entries_scope = client_entries_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+        end
 
         client_entries_scope = add_filters(scope: client_entries_scope)
         
@@ -279,12 +284,15 @@ module ReportGenerators::SystemPerformance::Fy2017
           elsif project_types.include?('PH')
             if (day.to_date - ph_check_date).to_i < 14
               next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-                coc_funded_in(coc_code: COC_CODE).
                 where(
                   first_date_in_program: day, 
                   client_id: p_exit[:client_id]
                 ).
                 hud_project_type(PH)
+
+              if @report.options['coc_code'].present?
+                next_end_date_scope = next_end_date_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+              end
 
               next_end_date_scope = add_filters(scope: next_end_date_scope)
 
@@ -503,7 +511,6 @@ module ReportGenerators::SystemPerformance::Fy2017
       client_id_scope = add_filters(scope: client_id_scope)
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        coc_funded_in(coc_code: COC_CODE).
         category_3.
         open_between(start_date: @report_start, 
           end_date: @report_end + 1.day).
@@ -512,6 +519,10 @@ module ReportGenerators::SystemPerformance::Fy2017
           select(:client_id).
           distinct
         )
+
+      if @report.options['coc_code'].present?
+        universe_scope = universe_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+      end
 
       universe_scope = add_filters(scope: universe_scope)
 
@@ -523,11 +534,14 @@ module ReportGenerators::SystemPerformance::Fy2017
       destinations = {}
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          coc_funded_in(coc_code: COC_CODE).
           ended_between(start_date: @report_start, 
           end_date: @report_end + 1.day).
           hud_project_type(SH + TH + RRH).
           where(client_id: id)
+
+        if @report.options['coc_code'].present?
+          destination_scope = destination_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+        end
 
         destination_scope = add_filters(scope: destination_scope)
 
@@ -564,7 +578,6 @@ module ReportGenerators::SystemPerformance::Fy2017
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        coc_funded_in(coc_code: COC_CODE).
         category_3.
         open_between(start_date: @report_start, 
         end_date: @report_end + 1.day).
@@ -574,6 +587,10 @@ module ReportGenerators::SystemPerformance::Fy2017
           distinct
         )
 
+      if @report.options['coc_code'].present?
+        leavers_scope = leavers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+      end
+
       leavers_scope = add_filters(scope: leavers_scope)
 
       leavers = leavers_scope.
@@ -582,10 +599,13 @@ module ReportGenerators::SystemPerformance::Fy2017
         pluck(:client_id)
     
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        coc_funded_in(coc_code: COC_CODE).
         category_3.
         ongoing(on_date: @report_end).
         hud_project_type(PH_PSH)
+
+      if @report.options['coc_code'].present?
+        stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+      end
       
       stayers_scope = add_filters(scope: stayers_scope)
 
@@ -597,12 +617,15 @@ module ReportGenerators::SystemPerformance::Fy2017
       destinations = {}
       leavers.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          coc_funded_in(coc_code: COC_CODE).
           ended_between(start_date: @report_start, 
           end_date: @report_end + 1.day).
           hud_project_type(PH).
           where(client_id: id)
         
+        if @report.options['coc_code'].present?
+          destination_scope = destination_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+        end
+
         destination_scope = add_filters(scope: destination_scope)
 
         destinations[id] = destination_scope.

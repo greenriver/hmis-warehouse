@@ -43,7 +43,9 @@ class CohortsController < ApplicationController
 
           case m.renderer
           when 'dropdown'
-            options.merge!({type: m.renderer, source: m.available_options})
+            # options.merge!({type: m.renderer, source: m.available_options})
+            # Be more forgiving of drop-down data
+            options.merge!({type: 'autocomplete', source: m.available_options, strict: false, filter: false})
           when 'date', 'checkbox', 'text', 'numeric'
             options.merge!({type: m.renderer})
           else
