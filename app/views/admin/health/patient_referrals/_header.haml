@@ -4,7 +4,12 @@
 = render 'menus/health_admin_tabs'
 .clearfix
   .pull-left
-    %h3 Add and Review Patient Referrals
+    %h3 Add and Review Patient Assignments
     %p Patients added here can be claimed by agencies, subject to BHCHP approval.
   .pull-right.margin-top-02
     %button.btn.btn-secondary{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
+.row
+  .col-sm-6
+    = render 'search_form'
+  .col-sm-4
+    = render 'filter'

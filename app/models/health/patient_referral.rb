@@ -69,5 +69,29 @@ module Health
       unclaimed.map{|r| r.agency.name}
     end
 
+    def self.text_search(text)
+      return none unless text.present?
+      text.strip!
+      pr_t = arel_table
+      # Explicitly search for only last, first if there's a comma in the search
+      if text.include?(',')
+        last, first = text.split(',').map(&:strip)
+        where = pr_t[:first_name].lower.matches("#{first.downcase}%")
+          .and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
+        # Explicity search for "first last"
+      elsif text.include?(' ')
+        first, last = text.split(' ').map(&:strip)
+        where = pr_t[:first_name].lower.matches("#{first.downcase}%")
+          .and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
+      else
+        query = "%#{text.downcase}%"
+        
+        where = pr_t[:last_name].lower.matches(query).
+          or(pr_t[:first_name].lower.matches(query)).
+          or(pr_t[:medicaid_id].lower.matches(query))
+      end
+      where(where)
+    end
+
   end
 end
