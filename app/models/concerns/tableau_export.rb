@@ -4,12 +4,31 @@ module TableauExport
     module_function
 
       def default_start
-        3.years.ago
+        '2014-01-01'.to_date
       end
       private_class_method :default_start
 
       def default_end
         DateTime.current
+      end
+      private_class_method :default_end
+
+      def project_types
+        [
+          1, # => 'Emergency Shelter',
+          2, #=> 'Transitional Housing',
+          3, #=> 'PH - Permanent Supportive Housing',
+          4, #=> 'Street Outreach',
+          # 6, #=> 'Services Only',
+          # 7, #=> 'Other',
+          8, #=> 'Safe Haven',
+          9, #=> 'PH – Housing Only',
+          10, #=> 'PH – Housing with Services (no disability required for entry)',
+          # 11, #=> 'Day Shelter',
+          12, #=> 'Homelessness Prevention',
+          13, #=> 'PH - Rapid Re-Housing',
+          14, #=> 'Coordinated Assessment',
+        ]
       end
       private_class_method :default_end
 
@@ -40,7 +59,7 @@ module TableauExport
         joins( :client, enrollment: :enrollment_cocs ).
         # merge( model.hud_residential ). # maybe spurious?
         merge(
-          model.
+          model.in_project_type(project_types).
             open_between( start_date: start_date, end_date: end_date ).
             with_service_between( start_date: start_date, end_date: end_date )
         ).
@@ -93,12 +112,12 @@ module TableauExport
             headers << "#{h}#{ i + 1 }".to_sym
             value = path[h.to_s].presence
             value = case h
-            when :prog
-              ::HUD.project_type value.to_i if value
+            # when :prog
+            #   ::HUD.project_type value.to_i if value
             when :entry, :exit
               value && DateTime.parse(value).strftime('%Y-%m-%d')
-            when :destination
-              ::HUD.destination value.to_i if value
+            # when :destination
+            #   ::HUD.destination value.to_i if value
             else
               value
             end

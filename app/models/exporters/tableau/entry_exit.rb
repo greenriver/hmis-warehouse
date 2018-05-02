@@ -57,12 +57,12 @@ module Exporters::Tableau::EntryExit
         days_to_return:                   null, # ???
         entry_exit_uid_2:                 null, # REPEAT
         days_last3years:                  null,
-        instances_last3years:             null,
+        # instances_last3years:             null,
         entry_exit_uid_3:                 null, # REPEAT
         rrh_time_in_shelter:              null, # ???
       }
 
-      scope = model.residential.entry.
+      scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
         joins( project: :sites, enrollment: :client ).
@@ -145,24 +145,24 @@ module Exporters::Tableau::EntryExit
           value = case h
           when :hh_config
             value == 't' ? 'Single' : 'Family'
-          when :rel_to_hoh
-            ::HUD.relationship_to_hoh value&.to_i
+          # when :rel_to_hoh
+          #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id
             "#{value} (#{row['_prov_id']})"
-          when :prog_type
-            pt = value&.to_i
-            if pt
-              type = ::HUD.project_type pt
-              if type == pt
-                pt
-              else
-                "#{type} (HUD)"
-              end
-            end
-          when :times_on_street
-            ::HUD.times_homeless_past_three_years_brief value&.to_i
-          when :total_months_homeless_on_street
-            ::HUD.months_homeless_past_three_years_brief value&.to_i
+          # when :prog_type
+          #   pt = value&.to_i
+          #   if pt
+          #     type = ::HUD.project_type pt
+          #     if type == pt
+          #       pt
+          #     else
+          #       "#{type} (HUD)"
+          #     end
+          #   end
+          # when :times_on_street
+          #   ::HUD.times_homeless_past_three_years_brief value&.to_i
+          # when :total_months_homeless_on_street
+          #   ::HUD.months_homeless_past_three_years_brief value&.to_i
           when :night_before_es_sh
             entering_from_es = ::HUD.institutional_destinations + ::HUD.temporary_destinations
             entering_from_ph = ::HUD.permanent_destinations
@@ -204,8 +204,8 @@ module Exporters::Tableau::EntryExit
             dobs[row['client_uid']]
           when :veteran_status
             value&.to_i == 1 ? 't' : 'f'
-          when :gender
-            ::HUD.gender value&.to_i
+          # when :gender
+          #   ::HUD.gender value&.to_i
           when :hispanic_latino
             case value&.to_i
             when 1 then 't'
@@ -228,14 +228,14 @@ module Exporters::Tableau::EntryExit
             else
               'f'
             end
-          when :res_prior_to_entry
-            ::HUD.living_situation value&.to_i
-          when :length_of_stay_prev_place
-            ::HUD.residence_prior_length_of_stay_brief value&.to_i
-          when :destination
-            ::HUD.destination value&.to_i
-          when :tracking_method
-            ::HUD.tracking_method value&.to_i
+          # when :res_prior_to_entry
+          #   ::HUD.living_situation value&.to_i
+          # when :length_of_stay_prev_place
+          #   ::HUD.residence_prior_length_of_stay_brief value&.to_i
+          # when :destination
+          #   ::HUD.destination value&.to_i
+          # when :tracking_method
+          #   ::HUD.tracking_method value&.to_i
           when :chronic
             client = clients[row['client_uid'].to_i]
             client.hud_chronic?( on_date: start_date ) ? 't' : 'f'
