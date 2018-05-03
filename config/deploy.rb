@@ -119,6 +119,6 @@ end
 
 task :echo_options do
   puts "\nDid you run ssh-add before running?\n\n"
-  puts "Deploying as: #{fetch(:deploy_user)}@#{ENV['STAGING_HOST']}:#{fetch(:ssh_port)}:#{deploy_to}\n\n"
+  puts "Deploying as: #{fetch(:deploy_user)} on port: #{fetch(:ssh_port)} to location: #{deploy_to}\n\n"
 end
 after 'git:wrapper', :echo_options
