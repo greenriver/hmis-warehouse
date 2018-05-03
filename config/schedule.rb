@@ -45,7 +45,7 @@ if environment == 'production'
 
   if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
     every 1.day, at: '5:30 pm' do
-      rake "grda_warehouse:import_data_sources_s3['hmis_611']"
+      rake "grda_warehouse:import_data_sources_s3[hmis_611]"
     end
   end
 
