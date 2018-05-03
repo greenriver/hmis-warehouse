@@ -19,6 +19,20 @@ module PatientReferral
 
   private
 
+  def load_search!
+    if params[:q].present?
+      @patient_referrals = @patient_referrals.text_search(params[:q])
+    end
+  end
+
+  def tab_path_params
+    {q: params[:q], filters: params[:filters]}
+  end
+
+  def load_new_patient_referral
+    @new_patient_referral = Health::PatientReferral.new()
+  end
+
   def clean_patient_referral_params
     clean_params = patient_referral_params
     clean_params[:ssn] = clean_params[:ssn].gsub(/\D/, '')

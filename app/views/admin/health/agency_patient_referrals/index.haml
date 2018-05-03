@@ -2,7 +2,8 @@
   .alert.alert-danger.error= @no_agency_user_warning
 - else
   = render 'admin/health/patient_referrals/header'
-  = render 'admin/health/patient_referrals/patient_referral_tabs'
-  = render 'admin/health/patient_referrals/patient_referral_tabpanes'
+  = render 'admin/health/patient_referrals/tabs'
+  = render 'admin/health/patient_referrals/paginate'
+  = render 'admin/health/patient_referrals/patient_referrals'
   = render 'admin/health/patient_referrals/new_modal'
   = render 'claim_patient_referral_js'

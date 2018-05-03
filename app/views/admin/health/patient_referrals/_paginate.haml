@@ -1,0 +1,4 @@
+.clearfix.margin-top-03
+  .pull-left
+    .margin-bottom-02= page_entries_info @patient_referrals, entry_name: _('assignments')
+    %div= paginate @patient_referrals, params: {q: params[:q], filters: params[:filters]}

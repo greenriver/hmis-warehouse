@@ -11,5 +11,6 @@
 .row
   .col-sm-6
     = render 'search_form'
-  .col-sm-4
-    = render 'filter'
+  - if show_filters?
+    .col-sm-4
+      = render 'admin/health/patient_referrals/filter'

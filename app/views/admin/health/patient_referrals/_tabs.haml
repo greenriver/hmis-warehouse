@@ -4,6 +4,7 @@
     - if tab[:id] == @active_patient_referral_tab
       - tab_classes.push('active')
     %li{role: 'presentation', class: tab_classes}
-      = link_to tab[:tab_text], "##{tab[:id]}", role: 'tab', data: {toggle: 'tab'}, aria: {controls: tab[:id]}
+      = link_to tab[:tab_text], tab[:path]
+
 
   

@@ -120,3 +120,43 @@ label {
 .client-file .radio input[type="radio"] {
   margin-left: 0px;
 }
+
+// health admin filters patient referrals
+.radio-button-buttons__container {
+  font-size: 0px;
+  label {
+    position: relative;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+  }
+  span {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: $gray-030;
+    color: $text-color;
+    text-transform: uppercase;
+  }
+  label:not(:last-child) {
+    span {border-right: 1px solid #FFF;}
+  }
+  label:first-child {
+    span {
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+  }
+  label:last-child {
+    span {
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+  label input:checked ~ span {
+    background-color: $cob-sg-blue-006;
+    color: #FFFFFF;
+  }
+}

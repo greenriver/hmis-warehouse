@@ -3,15 +3,46 @@
     Filter
     %span.caret
   .dropdown-menu#filter-patient-referrals{style: 'padding: 10px;'}
-    = simple_form_for :filters, url: admin_health_patient_referrals_path, method: :get do |f|
-      = f.input :added_before, as: :date_picker
-      = f.input :relationship, as: :radio_buttons, collection: [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]], label: 'Claimed?'
-      = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id
-      .text-right
-        = link_to admin_health_patient_referrals_path, class: 'btn btn-secondary margin-right-02' do
-          %i.icon-cross
-          Clear Filters
-        %button.btn.btn-action{type: 'submit'}
-          %i.icon-filter
-          Filter
-
+    %div{style: 'width: 500px;'}
+      = simple_form_for :filters, url: review_admin_health_patient_referrals_path(q: params[:q]), method: :get do |f|
+        .row
+          .col-sm-6
+            = f.input :added_before, as: :date_picker, required: false
+        .row
+          .col-sm-6
+            = label_tag 'Claimed?'
+            .radio-button-buttons__container
+              - [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]].each do |btn|
+                = f.label :relationship, value: btn.last do
+                  = f.radio_button :relationship, btn.last
+                  %span= btn.first
+          .col-sm-6
+            .form-group
+              = label_tag :agency_id, 'Claimed by', class: 'control-label'
+              .controls.ui-front
+                = f.hidden_field :agency_id
+                = text_field_tag :agency_id, @filter_agency&.name, class: 'form-control'
+        .text-right
+          = link_to admin_health_patient_referrals_path, class: 'btn btn-secondary margin-right-02' do
+            %i.icon-cross
+            Clear Filters
+          %button.btn.btn-action-2{type: 'submit'}
+            %i.icon-filter
+            Filter
+- agency_data = @agencies.map{|a| {label: a.name, value: a.id}}.to_json
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('#agency_id').autocomplete({
+        source: #{agency_data},
+        focus: function(event, ui) {
+          $('#agency_id').val(ui.item.label)
+          return false
+        },
+        select: function(event, ui) {
+          $('#agency_id').val(ui.item.label)
+          $('#filters_agency_id').val(ui.item.value);
+          return false
+        }
+      });
+    });

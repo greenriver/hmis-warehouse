@@ -390,11 +390,21 @@ Rails.application.routes.draw do
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
-      resources :patient_referrals, only: [:index, :create] do
+      resources :patient_referrals, only: [:create] do
+        collection do
+          get :review
+          get :assigned
+          get :rejected
+        end
         post :assign_agency
       end
-      resources :agency_patient_referrals, only: [:index, :create, :update] do
-        post :add_patient_referral, on: :collection
+      resources :agency_patient_referrals, only: [:create, :update] do
+        # post :add_patient_referral, on: :collection
+        collection do
+          post :add_patient_referral, as: :add
+          get :review
+          get :reviewed
+        end
       end
       resources :users, only: [:index] do
         post :update, on: :collection
