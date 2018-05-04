@@ -89,6 +89,7 @@ module GrdaWarehouse::Tasks
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
         vispdat_length_homeless_in_days: :days_homeless_for_vispdat_prioritization,
+        vispdat_priority_score: :calculate_vispdat_priority_score,
         ha_eligible: :ha_eligible,
         cspech_eligible: :cspech_eligible,
         income_total_monthly: :max_current_total_monthly_income,

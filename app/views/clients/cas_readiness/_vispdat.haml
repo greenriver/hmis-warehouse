@@ -9,6 +9,8 @@
     .col-sm-6
       %dt Days reported on VI-SPDAT
       %dd= @client.most_recent_vispdat_length_homeless_in_days
+      %td Prioritized VI-SPDAT Score
+      %dd= @client.calculate_vispdat_priority_score
 
   .row
     .col-sm-4
