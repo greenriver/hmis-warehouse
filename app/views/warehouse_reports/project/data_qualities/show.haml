@@ -86,9 +86,9 @@
 
       $('.jSelectAll').on('click', function(e){
         checked = $(this).is(':checked');
-        org_id = $(this).closest('.jOrganization').data('organizationId');
-        $(".jProject[data-organization-id='" + org_id + "']").find('jProjectSelect').attr('checked', checked);
-        $(".jProject[data-organization-id='" + org_id + "']").find('.jProjectSelect').attr('checked', checked);
+        org_id = $(this).closest('.jOrganization').data('organization-id');
+
+        $(".jProject[data-organization-id='" + org_id + "'] .jProjectSelect").prop('checked', checked);
         if (checked) {
           $(this).closest('.jOrganization').children('.closed').removeClass('closed');
           $(".jProject[data-organization-id='" + org_id + "']").removeClass('hidden');
