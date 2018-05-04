@@ -2,6 +2,27 @@
 %h1= content_for :title
 
 = render 'breadcrumbs'
+%p
+  The following list of organizations and projects can be used to generate and send data quality reports to contacts at each entity.  To generate a new version of a report, check-off the 
+  %strong Select
+  checkbox next to the particular project, or organization.  Then select the
+  %strong Generate
+  option at the bottom of the page.  If you would like the generated reports sent immediately to the contacts associated with the organizations or projects, select the 
+  %strong Email
+  option as well.
+%p
+  Organization contacts will receive an email for each project report generated within that organization.  Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the 
+  %strong Email
+  checkbox is checked.
+%p
+  Contacts will not have access to the client-level details of the report, 
+  %strong unless
+  they are logged-in with a user account that has either the 
+  %strong Can view project data quality client details
+  or the
+  %strong Can view projects
+  permission.
+
 = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
   %table.table.table-condensed
     %thead
