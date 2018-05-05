@@ -20,4 +20,6 @@
   - else
     = render 'assign_agency', pr: pr, label: 'Assign Agency'
 .col-xs-12.col-md-2
-.col-xs-12.col-md-1
+.col-xs-12.col-md-1.text-right
+  - if can_administer_health? && can_bulk_assign?
+    = check_box_tag :patient_referral_id, pr.id

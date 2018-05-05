@@ -59,6 +59,15 @@ button.close {
   border-color: darken($link-blue, 10%);
   color: #fff;
 }
+.btn-group-action-2 {
+  .btn.active,
+  .btn.active:hover,
+  .btn.active:focus {
+    background-color: $link-blue;
+    border-color: $link-blue;
+    color: #FFFFFF;
+  }
+}
 .btn-min-width-medium {
   @media (min-width: $screen-xs-min) {
     min-width: 165px;

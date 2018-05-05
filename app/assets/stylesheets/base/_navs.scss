@@ -45,6 +45,10 @@
   display: inline-block;
 }
 
+.sub-nav-tabs li:first-child a {
+  margin-left: 0px;
+}
+
 .sub-nav-tabs li a {
   color: #000000;
   padding: 20px 5px 4px;

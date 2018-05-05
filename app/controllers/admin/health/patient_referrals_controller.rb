@@ -6,27 +6,25 @@ module Admin::Health
     before_action :require_can_administer_health!
     before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
 
-    Filters = Struct.new(:added_before, :relationship, :agency_id)
-
     def review
       @active_patient_referral_tab = 'review'
       @patient_referrals = Health::PatientReferral.unassigned.includes(:relationships)
-      load_index_vars!
+      load_index_vars
       render 'index'
     end
 
     def assigned
       @active_patient_referral_tab = 'assigned'
       @patient_referrals = Health::PatientReferral.assigned.includes(:relationships)
-      load_index_vars!
+      load_index_vars
       render 'index'
     end
 
     def rejected
       # TODO: need more info about what rejected means
       @active_patient_referral_tab = 'rejected'
-      @patient_referrals = Health::PatientReferral.all
-      load_index_vars!
+      @patient_referrals = Health::PatientReferral.all.includes(:relationships)
+      load_index_vars
       render 'index'
     end
 
@@ -44,45 +42,13 @@ module Admin::Health
       redirect_to admin_health_patient_referrals_path
     end
 
-    private
-
-    def load_filters!
-      filter_params = params[:filters] || {}
-      @filters = Filters.new(
-        filter_params[:added_before], 
-        filter_params[:relationship], 
-        filter_params[:agency_id]
-      )
-      if @filters.added_before.present?
-        date = DateTime.parse(@filters.added_before)
-        added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
-        @patient_referrals = @patient_referrals.where("created_at < ?", added_before_date)
-      end
-      if @filters.agency_id.present?
-        @filter_agency = Health::Agency.find(@filters.agency_id)
-        @patient_referrals = @patient_referrals.
-          where('agency_patient_referrals.agency_id = ?', @filters.agency_id).
-          references(:relationships)
-      end
-      if @filters.relationship.present?
-        if @filters.relationship != 'all'
-          r = @filters.relationship == 'claimed'
-          @patient_referrals = @patient_referrals.
-            where('agency_patient_referrals.id is not null').
-            where('agency_patient_referrals.claimed = ?', r).
-            references(:relationships)
-        end
-      else
-        @filters.relationship = 'all'
-      end
+    def bulk_assign_agency
+      @params = {}
     end
 
-    def load_index_vars!
-      @agencies = Health::Agency.all
-      load_search!
-      load_filters!
-      @patient_referrals = @patient_referrals.
-        page(params[:page].to_i).per(20)
+    private
+
+    def load_tabs
       @patient_referral_tabs = [
         {id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_patient_referrals_path(tab_path_params)},
         {id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params)},
@@ -96,6 +62,20 @@ module Admin::Health
       )
     end
 
+    def filters_path
+      case action_name
+      when 'review'
+        review_admin_health_patient_referrals_path
+      when 'assigned'
+        assigned_admin_health_patient_referrals_path
+      when 'rejected'
+        rejected_admin_health_patient_referrals_path
+      else
+        review_admin_health_patient_referrals_path
+      end
+    end
+    helper_method :filters_path
+
     def show_filters?
       true
     end
@@ -106,8 +86,25 @@ module Admin::Health
     end
     helper_method :add_patient_referral_path
 
+    def can_bulk_assign?
+      action_name == 'review'
+    end
+    helper_method :can_bulk_assign?
+
+    def create_patient_referral_notice
+      if @new_patient_referral.assigned_agency.present?
+        "New patient added and assigned to #{@new_patient_referral.assigned_agency.name}"
+      else
+        "New patient added."
+      end
+    end
+
     def create_patient_referral_success_path
-      review_admin_health_patient_referrals_path
+      if @new_patient_referral.assigned_agency.present?
+        assigned_admin_health_patient_referrals_path
+      else
+        review_admin_health_patient_referrals_path
+      end
     end
 
   end

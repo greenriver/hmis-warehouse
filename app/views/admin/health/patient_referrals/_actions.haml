@@ -1,0 +1,12 @@
+.pull-right.padding-right-03
+  .dropdown.margin-right-02{style: 'display:inline-block;'}
+    %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+      Actions
+      %span.caret
+    .dropdown-menu.dropdown-menu-right{style: 'padding:10px;'}
+      %div{style: 'width: 300px;'}
+        = simple_form_for :bulk_assignment, url: bulk_assign_agency_admin_health_patient_referrals_path do |f|
+          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id
+          = f.input :patient_referral_ids, as: :hidden
+
+  = check_box_tag :select_all, 'all', false

@@ -8,9 +8,4 @@
     %p Patients added here can be claimed by agencies, subject to BHCHP approval.
   .pull-right.margin-top-02
     %button.btn.btn-secondary{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
-.row
-  .col-sm-6
-    = render 'search_form'
-  - if show_filters?
-    .col-sm-4
-      = render 'admin/health/patient_referrals/filter'
+= render 'admin/health/patient_referrals/filter'

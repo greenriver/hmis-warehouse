@@ -395,11 +395,11 @@ Rails.application.routes.draw do
           get :review
           get :assigned
           get :rejected
+          post :bulk_assign_agency
         end
         post :assign_agency
       end
       resources :agency_patient_referrals, only: [:create, :update] do
-        # post :add_patient_referral, on: :collection
         collection do
           post :add_patient_referral, as: :add
           get :review

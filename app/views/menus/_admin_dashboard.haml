@@ -5,7 +5,7 @@
         Admin Dashboard
 - if GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency?)
   .vsm-group.vsm-group__group-a
-    - path = can_manage_health_agency? ? admin_health_agency_patient_referrals_path : admin_health_admin_index_path
+    - path = can_manage_health_agency? ? review_admin_health_agency_patient_referrals_path : admin_health_admin_index_path
     = link_to path, class: 'vsm-item-link' do
       .vsm-item-link--description
         Healthcare Admin

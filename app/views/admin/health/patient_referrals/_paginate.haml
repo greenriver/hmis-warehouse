@@ -1,4 +1,12 @@
-.clearfix.margin-top-03
-  .pull-left
-    .margin-bottom-02= page_entries_info @patient_referrals, entry_name: _('assignments')
-    %div= paginate @patient_referrals, params: {q: params[:q], filters: params[:filters]}
+- if @active_patient_referral_group.present?
+  .pull-left.margin-top-03
+    .btn-group.btn-group-action-2.btn-group-xs{role: 'group'}
+      - @patient_referral_groups.each do |group|
+        - btn_classes = ['btn', 'btn-default']
+        - if @active_patient_referral_group == group[:id]
+          - btn_classes.push('active')
+        = link_to group[:id].titleize, group[:path], class: btn_classes
+    %h4.margin-top-03= @active_patient_referral_group == 'our patient' ? 'Claimed By Your Agency' : 'Not Your Patient'
+.margin-top-03{class: @active_patient_referral_group.present? ? 'pull-right text-right' : 'pull-left'}
+  .margin-bottom-02= page_entries_info @patient_referrals, entry_name: _('assignments')
+  %div= paginate @patient_referrals, params: {q: params[:q], filters: params[:filters]}

@@ -122,6 +122,22 @@ label {
 }
 
 // health admin filters patient referrals
+.ui-front .ui-menu {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  padding-left: 0px;
+  li {list-style: none;}
+}
+.ui-menu-item-wrapper {
+  padding: 10px 20px;
+}
+
+.ui-state-active {
+  background-color: $cob-sg-blue-006;
+  color: #FFFFFF;
+}
+
 .radio-button-buttons__container {
   font-size: 0px;
   label {
@@ -160,3 +176,31 @@ label {
     color: #FFFFFF;
   }
 }
+
+.radio-button-list__container {
+  min-width: 100px;
+  label {
+    display: block;
+    position: relative;
+    cursor: pointer;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+  }
+  span {
+    display: block;
+    padding: 6px 12px;
+  }
+  label input:checked ~ span {
+    background-color: $cob-sg-blue-006;
+    color: #FFFFFF;
+  }
+  label input:hover ~ span,
+  label input:focus ~ span {
+    background-color: $cob-sg-blue-006;
+    color: #FFFFFF;
+  }
+}
+
+

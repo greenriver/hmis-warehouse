@@ -1,6 +1,9 @@
 = render 'header'
 = render 'tabs'
-= render 'paginate'
+.clearfix
+  = render 'paginate'
+  - if can_administer_health? && can_bulk_assign?
+    = render 'actions'
 = render 'patient_referrals'
 = render 'new_modal'
 = render 'assign_agency_js'

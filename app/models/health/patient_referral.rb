@@ -11,6 +11,8 @@ module Health
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
 
+    accepts_nested_attributes_for :relationships
+
     def relationship_to(agency)
       relationships.where(agency_id: agency).last
     end

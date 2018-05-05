@@ -11,4 +11,9 @@
         $(input).val(agencyId);
         $(form).submit();
       });
+
+      $("[name='select_all']").change(function(e) {
+        var pr = $("[name='patient_referral_id']");
+        pr.prop('checked', $(this).is(':checked'));
+      });
     });
