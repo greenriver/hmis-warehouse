@@ -15,7 +15,7 @@ module EtoApi
         forms: 'https://services.etosoftware.com/API/Form.svc',
         search: 'https://services.etosoftware.com/API/Search.svc',
         actor: 'https://services.etosoftware.com/API/Actor.svc',
-        touch_pount: 'https://services.etosoftware.com/API/TouchPoint.svc',
+        touch_point: 'https://services.etosoftware.com/API/TouchPoint.svc',
         staff: 'https://services.etosoftware.com/API/Staff.svc',
         activity: 'https://services.etosoftware.com/API/Activity.svc',
       }
@@ -337,33 +337,33 @@ module EtoApi
     # "HUD Assessment (Entry/Update/Annual/Exit)" is TouchPointID: 75, it doesn't show up in the lists
     # by site
     def touch_points(site_id:, program_id: nil)
-      api_get_json "#{@endpoints[:touch_pount]}/ListTouchPoint", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/ListTouchPoint", get_site_creds(site_id)
     end
     memoize :touch_points
 
     # "HUD Assessment (Entry/Update/Annual/Exit)" is TouchPointID: 75
     def touch_point(site_id:, id: )
-      api_get_json "#{@endpoints[:touch_pount]}/GetTouchPoint?#{{TouchPointID: id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPoint?#{{TouchPointID: id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point
 
     def touch_point_response(site_id:, response_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_pount]}/GetTouchPointResponse?#{{TouchPointID: touch_point_id, TouchPointResponseID: response_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponse?#{{TouchPointID: touch_point_id, TouchPointResponseID: response_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point_response
 
     def touch_point_response_by_response_set_id(site_id:, response_set_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_pount]}/GetTouchPointResponsesByID?#{{TouchPointID: id, ResponseSetID: response_set_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponsesByID?#{{TouchPointID: id, ResponseSetID: response_set_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point_response_by_response_set_id
 
     def list_touch_point_responses(site_id:, subject_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_pount]}/ListTouchPointResponses?#{{SubjectID: subject_id,TouchPointID: touch_point_id}.to_param}", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/ListTouchPointResponses?#{{SubjectID: subject_id,TouchPointID: touch_point_id}.to_param}", get_site_creds(site_id)
     end
     memoize :list_touch_point_responses
 
     def touch_point_collection_types(site_id:)
-      api_get_json "#{@endpoints[:touch_pount]}/ListCollectionTypes", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/ListCollectionTypes", get_site_creds(site_id)
     end
     memoize :touch_point_collection_types
 
