@@ -1,20 +1,36 @@
-= simple_form_for :actives, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
-  = f.error_notification
-  .row
-    .col-sm-4
-      = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
-    .col-sm-4
-      = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
-    .col-sm-4
-      = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: 180, style: 'width: 5em;'}
-  .row
-    .col-sm-12
-      = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}
-  .row
-    .col-sm-8
-      %p
-        The days counted are the unique dates in ES, SO, SH, and TH where they do not overlap with PH.
-    .col-sm-4.text-right
-      %label.control-label &nbsp;
-      %div
-        = f.button :submit, value: 'Search'
+.panel.panel-default
+  .panel-heading
+    .row
+      .col-xs-8
+        %h4.panel-title
+          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
+            Clients active within a date range
+      .col-xs-4.text-right
+        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
+          %i.icon-arrow-circled-right
+          %i.icon-arrow-circled-down.hide
+  #actives.panel-collapse.collapse
+    .panel-body
+      = simple_form_for :actives, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+        = f.error_notification
+        .row
+          .col-sm-4
+            = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
+          .col-sm-4
+            = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
+          .col-sm-4
+            = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: 180, style: 'width: 5em;'}
+        .row
+          .col-sm-6
+            = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}
+          .col-sm-6
+            Limit by population 
+            = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans', 'Individual Adults'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', include_blank: 'All Clients')
+        .row
+          .col-sm-8
+            %p
+              The days counted are the unique dates in ES, SO, SH, and TH where they do not overlap with PH.
+          .col-sm-4.text-right
+            %label.control-label &nbsp;
+            %div
+              = f.button :submit, value: 'Search'

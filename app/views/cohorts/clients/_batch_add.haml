@@ -1,0 +1,18 @@
+.panel.panel-default
+  .panel-heading
+    .row
+      .col-xs-8
+        %h4.panel-title
+          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#batch'}
+            Add by Warehouse ID
+      .col-xs-4.text-right
+        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#batch'}
+          %i.icon-arrow-circled-right
+          %i.icon-arrow-circled-down.hide
+  #batch.panel-collapse.collapse
+    .panel-body
+      %p Add or Paste warehouse ids for clients below.  Separate ids by white-space
+      = simple_form_for :batch, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+        = f.input :client_ids, as: :text, label: false, class: 'form-control'
+
+        = f.button :submit, value: 'Show'
