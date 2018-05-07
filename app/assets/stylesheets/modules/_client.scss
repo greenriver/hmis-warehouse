@@ -282,16 +282,23 @@ $client-match-action-row-height: 22px;
 .client__assessment-question
 {
   padding-bottom: 0.5em;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
 }
 .client__assessment-answer
 {
   padding-bottom: 1.5em;
   margin-left: 1em;
+  text-indent: 1em;
 }
 .client__assessment-section-heading
 {
   border-bottom: 1px solid $gray-040;
+  font: Open Sans;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 24px;
 }
 .enrollment__project_type
 {

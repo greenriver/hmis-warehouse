@@ -46,6 +46,7 @@ class ClientsController < ApplicationController
   # display an assessment form in a modal
   def assessment
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
+    @client = @form.client
     render 'assessment_form'
   end
 
