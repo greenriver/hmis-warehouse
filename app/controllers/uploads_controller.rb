@@ -20,6 +20,12 @@ class UploadsController < ApplicationController
 
   def create
     run_import = false
+    # Prevent create if user forgot to include file
+    if !upload_params[:file]
+      flash[:alert] = _("You must attach a file in the form.")
+      redirect_to action: :new
+      return
+    end
     file = upload_params[:file]
     @upload = upload_source.new(upload_params.merge({
       percent_complete: 0.0, 
