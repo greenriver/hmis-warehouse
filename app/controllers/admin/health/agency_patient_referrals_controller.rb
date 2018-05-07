@@ -17,8 +17,8 @@ module Admin::Health
           unassigned.includes(:relationships).
           where('agency_patient_referrals.id is null or agency_patient_referrals.patient_referral_id not in (?)', @agency_patient_referral_ids).
           references(:relationships)
+        load_index_vars
       end
-      load_index_vars
       render 'index'
     end
 
@@ -35,8 +35,8 @@ module Admin::Health
           joins(:relationships).
           where(agency_patient_referrals: {agency_id: @agency.id}).
           where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'})
+        load_index_vars
       end
-      load_index_vars
       render 'index'
     end
 
@@ -80,7 +80,7 @@ module Admin::Health
     end
 
     def load_agency_user
-      @agency_user = Health::AgencyUser.where(user_id: current_user.id).first
+      @agency_user = current_user.agency_user
       @agency = @agency_user&.agency
       if !@agency
         @no_agency_user_warning = "This user doesn't belong to any agency"
@@ -115,10 +115,6 @@ module Admin::Health
       add_admin_health_agency_patient_referrals_path
     end
     helper_method :add_patient_referral_path
-
-    def claim_agency_eq_user_agency?
-      @new_patient_referral.relationships.first.agency.id == @agency.id
-    end
 
     def create_patient_referral_notice
       "New patient added and claimed by #{@agency.name}"

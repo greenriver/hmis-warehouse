@@ -11,8 +11,7 @@ module PatientReferral
 
   def add_patient_referral
     @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
-    meets_requirement = can_manage_health_agency? ? claim_agency_eq_user_agency? : true
-    if meets_requirement && @new_patient_referral.save
+    if @new_patient_referral.save
       flash[:notice] = create_patient_referral_notice
       redirect_to create_patient_referral_success_path
     else
@@ -26,9 +25,13 @@ module PatientReferral
 
   def load_index_vars
     @agencies = Health::Agency.all
-    load_filters
-    @patient_referrals = @patient_referrals.
-      page(params[:page].to_i).per(20)
+    if @patient_referrals.present?
+      load_filters
+      @patient_referrals = @patient_referrals.
+        page(params[:page].to_i).per(20)
+    else
+      @patient_referrals = Health::PatientReferral.where(id: nil).page(params[:page].to_i).per(20)
+    end
     load_tabs
   end
 

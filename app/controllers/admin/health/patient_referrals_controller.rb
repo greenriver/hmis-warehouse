@@ -39,11 +39,25 @@ module Admin::Health
       else
         flash[:error] = 'Patient referral could not be assigned.'
       end
-      redirect_to admin_health_patient_referrals_path
+      redirect_to review_admin_health_patient_referrals_path
     end
 
     def bulk_assign_agency
-      @params = {}
+      @params = params[:bulk_assignment] || {}
+      @agency = Health::Agency.find(@params[:agency_id]) if @params[:agency_id].present? 
+      @patient_referrals = Health::PatientReferral.where(id: (@params[:patient_referral_ids] || []))
+      if @patient_referrals.any? && @agency.present?
+        @patient_referrals.update_all(agency_id: @agency.id)
+        flash[:notice] = "#{pluralize(@patient_referrals.size, 'patient')} have been assigned to #{@agency.name}"
+        redirect_to assigned_admin_health_patient_referrals_path
+      elsif !@agency.present?
+        flash[:error] = 'Error: Please select an agency to assign patients to.'
+        redirect_to review_admin_health_patient_referrals_path
+      elsif !@patient_referrals.any?
+        flash[:error] = 'Error: Please select patients to assign.'
+        redirect_to review_admin_health_patient_referrals_path
+      end
+      
     end
 
     private

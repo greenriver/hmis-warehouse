@@ -7,6 +7,8 @@
       = label
       %span.caret
     %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
+      %li
+        = link_to 'None', '#', data: {behavior: 'assign agency', agency_id: ''}
       - @agencies.each do |a|
         - unless pr.assigned_agency == a 
           %li

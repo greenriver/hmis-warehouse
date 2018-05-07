@@ -21,14 +21,41 @@
                 = t.input :id, as: :hidden, input_html: { id: "users[#{user.id}]id", name: "users[#{user.id}]id"}
               %td
                 = user.email
-                %td
-                  .form-group.check_boxes.optional.user_roles               
-                    - Role.health.each do |role|
-                      - id = "users[#{user.id}]roles[#{role.id}]"
-                      - name = "users[#{user.id}]roles[]"
-                      %span.checkbox
-                        %label{for: id}
-                          = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
-                          = role.name
+              %td
+                .form-group.check_boxes.optional.user_roles               
+                  - Role.health.each do |role|
+                    - id = "users[#{user.id}]roles[#{role.id}]"
+                    - name = "users[#{user.id}]roles[]"
+                    %span.checkbox
+                      %label{for: id}
+                        = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
+                        = role.name
+                - if user.can_manage_health_agency?
+                  %label Health Agency Manager For:
+                  %div 
+                    - agency_user = user.agency_user
+                    - if agency_user.present?
+                      = user.health_agency.name
+                      = link_to 'Edit', edit_admin_health_user_agency_user_path(user, agency_user), data: {behavior: 'assign agency user'}
+                    - else
+                      = link_to 'Assign Agency', new_admin_health_user_agency_user_path(user), class: 'btn btn-default btn-xs', data: {behavior: 'assign agency user'}
   .form-actions
     = f.button :submit, class: 'btn btn-primary'
+
+= render 'agency_user_modal'
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function(e) {
+      var modal = $('#agency-user-modal');
+      $('a[data-behavior="assign agency user"]').click(function(e) {
+        e.preventDefault();
+        var container = $('#agency-user-form');
+        var url = $(this).attr('href');
+        modal.modal('show');
+        container.html("loading...");
+        container.load(url);
+        return false
+      });
+    });
+

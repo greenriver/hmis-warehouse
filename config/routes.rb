@@ -408,6 +408,7 @@ Rails.application.routes.draw do
       end
       resources :users, only: [:index] do
         post :update, on: :collection
+        resources :agency_users, only: [:new, :edit, :create, :update]
       end
       resources :roles, only: [:index]
     end

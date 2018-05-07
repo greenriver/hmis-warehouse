@@ -15,5 +15,25 @@
       $("[name='select_all']").change(function(e) {
         var pr = $("[name='patient_referral_id']");
         pr.prop('checked', $(this).is(':checked'));
+        updateBulkAssignmentValues()
       });
+
+      $("[name='patient_referral_id']").change(function(e) {
+        var id = "#bulk_assignment_patient_referral_ids_"
+        var match = $(id+$(this).val());
+        match.prop('checked', $(this).is(':checked'));
+        if(!$(this).is(':checked')) {
+          $("[name='select_all']").prop('checked', false);
+        }
+      });
+
+      var updateBulkAssignmentValues = function(e) {
+        var pr = $("[name='patient_referral_id']")
+        var id = "#bulk_assignment_patient_referral_ids_"
+        pr.each(function(index, p) {
+          var match = $(id+$(p).val());
+          match.prop('checked', $(p).is(':checked'));
+        })
+      }
+
     });

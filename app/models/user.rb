@@ -20,7 +20,7 @@ class User < ActiveRecord::Base
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
   has_many :entities, class_name: GrdaWarehouse::UserViewableEntity.name
-
+  
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
@@ -192,6 +192,14 @@ class User < ActiveRecord::Base
       .pluck(:id)
 
     User.where(id: sub_ids - manager_ids)
+  end
+
+  def health_agency
+    agency_user&.agency
+  end
+
+  def agency_user
+    Health::AgencyUser.where(user_id: id).last
   end
 
   private
