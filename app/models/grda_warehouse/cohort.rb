@@ -135,6 +135,7 @@ module GrdaWarehouse
         ::CohortColumns::Sober.new(),
         ::CohortColumns::OriginalChronic.new(),
         ::CohortColumns::NotAVet.new(),
+        ::CohortColumns::EtoCoordinatedEntryAssessmentScore.new(),
       ]
     end
 
