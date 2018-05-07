@@ -22,8 +22,9 @@ class UploadsController < ApplicationController
     run_import = false
     # Prevent create if user forgot to include file
     if !upload_params[:file]
-      flash[:alert] = _("You must attach a file in the form.")
-      redirect_to action: :new
+      @upload = upload_source.new
+      flash[:alert] = _("You must attach a file in the form.")    
+      render :new
       return
     end
     file = upload_params[:file]
@@ -39,7 +40,7 @@ class UploadsController < ApplicationController
       flash[:notice] = _("Upload queued to start.")
       redirect_to action: :index
     else
-      flash[:alert] = _("Upload failed to queue.")
+      flash[:alert] = _("Upload failed to queue, did you attach a file?")
       render :new
     end
     if run_import
