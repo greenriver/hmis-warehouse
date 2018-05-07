@@ -39,7 +39,7 @@ if environment == 'production'
   # These only happen in some scenarios
   if ENV['ETO_API_SITE1'] != 'unknown'
     every 1.day, at: '4:00 pm' do
-      rake "eto:import:demographics"
+      rake "eto:import:update_ids_and_demographics"
     end
   end
 
