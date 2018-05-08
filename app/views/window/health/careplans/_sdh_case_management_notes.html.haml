@@ -1,22 +1,22 @@
 - if @client.health_touch_points.any?
-  %table.table.table-condensed.datatable-ssm
+  %table.table.table-condensed.datatable-sdh
     %thead
       %tr
         %th Assessment
         %th Date Completed
         %th Case Worker
     %tbody
-      - @client.health_touch_points.self_sufficiency.order(collected_at: :desc).each do |form|
+      - @client.health_touch_points.case_management_notes.order(collected_at: :desc).each do |form|
         %tr
           %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
           %td= form.collected_at.to_date
           %td= form.staff
 - else
-  No Self-Sufficiency Assessment on file
+  No SDH Case Management Notes on file
 
 = content_for :page_js do
   :javascript
-    $('.datatable-ssm').DataTable({
+    $('.datatable-sdh').DataTable({
       searching: false,
       ordering: false,
       pageLength: 20,
