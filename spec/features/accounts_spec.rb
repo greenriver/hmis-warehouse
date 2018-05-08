@@ -39,11 +39,12 @@ RSpec.feature "Accounts", type: :feature do
       expect( page ).to have_content  'Your account is locked.'
       
       #Jump forward the necessary amount of time and verify that the account is unlocked
-      Timecop.travel(Time.now + Devise.unlock_in)
-      fill_in 'Email', with: user.email
-      fill_in 'Password', with: 'abcd1234'
-      click_button 'Log in'
-      expect( page ).to have_content  'You have successfully signed in.'
+      Timecop.travel(Time.now + Devise.unlock_in) do 
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: 'abcd1234'
+        click_button 'Log in'
+        expect( page ).to have_content  'You have successfully signed in.'
+      end
     end
   end
 
