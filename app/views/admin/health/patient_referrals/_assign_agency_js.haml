@@ -25,6 +25,7 @@
         if(!$(this).is(':checked')) {
           $("[name='select_all']").prop('checked', false);
         }
+        updateBulkAsssignmentLabel();
       });
 
       var updateBulkAssignmentValues = function(e) {
@@ -33,7 +34,19 @@
         pr.each(function(index, p) {
           var match = $(id+$(p).val());
           match.prop('checked', $(p).is(':checked'));
-        })
+        });
+        updateBulkAsssignmentLabel();
       }
+
+      var updateBulkAsssignmentLabel = function() {
+        var label = $('.bulk_assignment_agency_id label');
+        var ids = $('.bulk_assignment_patient_referral_ids input:checked');
+        var p = 'Patients';
+        if(ids.length === 1) {
+          p = 'Patient';
+        }
+        label.text('Assign agency to '+ids.length+' '+p+'.');
+      }
+      updateBulkAsssignmentLabel();
 
     });
