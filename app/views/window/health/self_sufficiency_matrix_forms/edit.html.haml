@@ -1,0 +1,18 @@
+- title = 'Self Sufficiency Matrix Form'
+= content_for(:title, title)
+%h1
+  = "#{content_for(:title)} for #{@client.full_name}"
+= render 'window/clients/breadcrumbs'
+= render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
+
+.row
+  .col-sm-12
+    %h2= "#{content_for(:title)} for #{@client.full_name}"
+    %small
+      Entered by
+      = @form.user.name
+    %hr
+
+.row
+  .col-sm-12
+    = render 'form'
