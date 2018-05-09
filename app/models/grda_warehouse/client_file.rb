@@ -51,6 +51,10 @@ module GrdaWarehouse
     scope :consent_forms, -> do
       tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
     end
+
+    scope :non_consent, -> do
+      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
+    end
     
     scope :confirmed, -> do
       where(consent_form_confirmed: true)
@@ -80,7 +84,9 @@ module GrdaWarehouse
     # Callbacks
     ####################
     after_create :notify_users
-    after_save :set_client_consent
+    before_save :adjust_consent_date
+    after_save :note_changes_in_consent
+    after_commit :set_client_consent, on: [:create, :update]
 
     ####################
     # Access
@@ -97,17 +103,45 @@ module GrdaWarehouse
 
     def confirm_consent!
       update(consent_form_confirmed: true)
+      note_changes_in_consent
+      set_client_consent
+    end
+
+    def adjust_consent_date
+      if GrdaWarehouse::AvailableFileTag.contains_consent_form?(tag_list)
+        self.consent_form_signed_on = effective_date
+      end
+    end
+
+    def note_changes_in_consent
+      @consent_form_signed_on_changed_recently = consent_form_signed_on_changed? || false
+      @consent_form_confirmed_changed_recently = consent_form_confirmed_changed? || false
     end
 
     def set_client_consent
-      if consent_form_signed_on_changed?
-        client.update_column :consent_form_signed_on, consent_form_signed_on
-      end
-      if consent_form_confirmed_changed?
+      # If the client consent is not valid,
+      # update client to match file (don't overwrite with blanks)
+      # 
+      # If the consent if valid on the client, 
+      # remove consent only if the confirmation was also changed and this is the only confirmed consent file
+      if ! client.consent_form_valid?
+        if consent_form_signed_on.present?
+          client.update_column(:consent_form_signed_on, consent_form_signed_on)
+        end
         if consent_form_confirmed
           client.update_column(:housing_release_status, client.class.full_release_string)
-        else
-          client.update_column(:housing_release_status, '')
+        end
+      else
+        if @consent_form_confirmed_changed_recently
+          consent_form_ids = self.class.consent_forms.confirmed.pluck(:id)
+          no_other_confirmed_consent_files = consent_form_ids.count == 1 && consent_form_ids.first == id
+          if consent_form_confirmed
+            client.update_column(:housing_release_status, client.class.full_release_string)
+            client.update_column(:consent_form_signed_on, consent_form_signed_on)
+          elsif no_other_confirmed_consent_files
+            client.update_column(:housing_release_status, nil)
+            client.update_column(:consent_form_signed_on, consent_form_signed_on)
+          end
         end
       end
     end

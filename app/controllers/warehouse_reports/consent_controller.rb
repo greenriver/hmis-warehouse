@@ -28,12 +28,10 @@ module WarehouseReports
       to_activate_in_cas = params[:clients].try(:[], :active_in_cas).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
       release_statuses = params[:clients].try(:[], :housing_release_status).map{|id,v| [id.to_i, v]} rescue []
       if to_confirm.any?
-        # load up the most recent consent form for the client, mark it as confirmed and save it
-        to_confirm.each do |client_id|
+        to_confirm.each do |file_id|
           form = consent_form_source.
             unconfirmed.
-            where(client_id: client_id).
-            order(consent_form_confirmed: :desc).first
+            find_by(id: file_id)
           form.confirm_consent!
         end
       end
@@ -42,11 +40,11 @@ module WarehouseReports
         client_source.where(id: to_activate_in_cas).update_all(sync_with_cas: true)
       end
 
-      release_statuses.each do |client_id, release_status|
+      release_statuses.each do |file_id, release_status|
         release_status = nil if release_status.blank?
-        client = client_source.find(client_id)
-        client.housing_release_status = release_status
-        client.save if client.changed?
+        file = consent_form_source.find(file_id)
+        Rails.logger.debug "CONSENTFORM: #{file.id} #{file.consent_type} -> #{release_status}"
+        file.update(consent_type: release_status)
       end
       flash[:notice] = "Clients updated"
       redirect_to warehouse_reports_consent_index_path

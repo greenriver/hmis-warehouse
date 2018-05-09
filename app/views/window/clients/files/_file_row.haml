@@ -20,9 +20,11 @@
   - if can_manage_client_files?
     %td.text-center= checkmark file.visible_in_window
   %td
+    = file.created_at
+    by
     = mail_to file.user&.email, subject: file.tag_list.join(', ') do
       = file.user&.name
-  %td= file.created_at
+    
 
   - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list) && @consent_editable
     %td
@@ -31,16 +33,25 @@
           = f.input :consent_form_signed_on, as: :date_picker, label: false, input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
       - else
         = file.consent_form_signed_on
-
-    %td.text-center
-      - if can_confirm_housing_release?
-        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
-          = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
-      - else
-        = checkmark file.consent_form_confirmed
+    - if consent
+      %td.text-center
+        - if can_confirm_housing_release?
+          = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+            = f.input :consent_type, collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed',  label: false, input_html: { class: 'submit-on-change' }
+        - else
+          = file.consent_type
+      %td.text-center
+        - if can_confirm_housing_release?
+          = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+            = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
+        - else
+          = checkmark file.consent_form_confirmed
+    
   - else
     %td= file.effective_date
-    %td
+    - if consent
+      %td.text-center= file.consent_type
+      %td.text-center= checkmark file.consent_form_confirmed
 
   %td
     - if file.editable_by?(current_user)
