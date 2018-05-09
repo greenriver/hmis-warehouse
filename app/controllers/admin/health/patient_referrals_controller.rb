@@ -21,11 +21,24 @@ module Admin::Health
     end
 
     def rejected
-      # TODO: need more info about what rejected means
       @active_patient_referral_tab = 'rejected'
-      @patient_referrals = Health::PatientReferral.all.includes(:relationships)
+      @patient_referrals = Health::PatientReferral.rejected.includes(:relationships)
       load_index_vars
       render 'index'
+    end
+
+    def reject
+      @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
+      if @patient_referral.update_attributes!(reject_params)
+        if !@patient_referral.rejected_reason_none?
+          flash[:notice] = "Patient has been rejected."
+        else
+          flash[:notice] = "Patient rejection removed."
+        end
+      else
+        flash[:error] = 'An error occurred, please try again.'
+      end
+      redirect_to rejected_admin_health_patient_referrals_path
     end
 
     def create
@@ -75,6 +88,12 @@ module Admin::Health
         {id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params)},
         {id: 'rejected', tab_text: 'Refused Consent/Other Rejections', path: rejected_admin_health_patient_referrals_path(tab_path_params)}
       ]
+    end
+
+    def reject_params
+      params.require(:health_patient_referral).permit(
+        :rejected_reason
+      )
     end
 
     def assign_agency_params

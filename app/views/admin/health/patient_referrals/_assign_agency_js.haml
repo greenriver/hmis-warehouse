@@ -1,16 +1,37 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var containerSelector = '.patient-referral__assign-agency'
+      var assignContainerSelector = '.patient-referral__assign-agency';
+      var assignInputSelector = "input[name='health_patient_referral[agency_id]']";
       $("a[data-behavior='assign agency']").click(function(e) {
         e.preventDefault();
-        var container = $(this).parents(containerSelector);
-        var form = $(container).find('form');
-        var input = $(form).find("input[name='health_patient_referral[agency_id]']");
-        var agencyId = $(this).data('agency-id');
-        $(input).val(agencyId);
-        $(form).submit();
+        // var container = $(this).parents(assignContainerSelector);
+        // var form = $(container).find('form');
+        // var input = $(form).find("input[name='health_patient_referral[agency_id]']");
+        // var agencyId = $(this).data('agency-id');
+        // $(input).val(agencyId);
+        // $(form).submit();
+        setInputValueFromListItem(this, assignContainerSelector, assignInputSelector, 'agency-id');
       });
+
+      var rejectContainerSelector = '.patient-referral__reject';
+      var rejectInputSelector = "input[name='health_patient_referral[rejected_reason]']";
+      $("a[data-behavior='reject patient referral']").click(function(e) {
+        e.preventDefault();
+        // var container = $(this).parents(rejectContainerSelector);
+        // var form = $(container).find('form');
+        // var input = 
+        setInputValueFromListItem(this, rejectContainerSelector, rejectInputSelector, 'rejected-reason');
+      });
+
+      var setInputValueFromListItem = function(link, containerSelector, inputSelector, valAttr) {
+        var container = $(link).parents(containerSelector);
+        var form = $(container).find('form');
+        var input = $(form).find(inputSelector);
+        var value = $(link).data(valAttr);
+        $(input).val(value);
+        $(form).submit();
+      }
 
       $("[name='select_all']").change(function(e) {
         var pr = $("[name='patient_referral_id']");

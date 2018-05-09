@@ -391,6 +391,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :patient_referrals, only: [:create] do
+        patch :reject
         collection do
           get :review
           get :assigned
