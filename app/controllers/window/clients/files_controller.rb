@@ -63,12 +63,16 @@ module Window::Clients
     def destroy
       @file = editable_scope.find(params[:id].to_i)
       @client = @file.client
-      
+
       begin
         @file.destroy!
         flash[:notice] = "File was successfully deleted."
         # Keep various client fields in sync with files if appropriate
+        if @client.consent_form_id == @file.id
+          @client.invalidate_consent!
+        end
         @client.sync_cas_attributes_with_files
+
       rescue Exception => e
         flash[:error] = "File could not be deleted."
       end

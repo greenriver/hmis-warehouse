@@ -101,8 +101,12 @@ module GrdaWarehouse
       false
     end
 
+    def active_consent_form?
+      client.consent_form_id == id
+    end
+
     def consent_type
-      if GrdaWarehouse::AvailableFileTag.full_consent?(tag_list)
+      if GrdaWarehouse::AvailableFileTag.full_release?(tag_list)
         GrdaWarehouse::Hud::Client.full_release_string
       elsif GrdaWarehouse::AvailableFileTag.partial_consent?(tag_list)
         GrdaWarehouse::Hud::Client.partial_release_string
@@ -132,28 +136,30 @@ module GrdaWarehouse
       # 
       # If the consent if valid on the client, 
       # remove consent only if the confirmation was also changed and this is the only confirmed consent file
+
       if ! client.consent_form_valid?
-        puts '---'
-        puts consent_form_confirmed.inspect
-        puts consent_type.inspect
         if consent_form_signed_on.present?
           client.update_column(:consent_form_signed_on, consent_form_signed_on)
         end
         if consent_form_confirmed
-          client.update_column(:housing_release_status, consent_type)
+          client.update_columns(
+            housing_release_status: consent_type, 
+            consent_form_signed_on: consent_form_signed_on,
+            consent_form_id: id
+          )
         end
       else
-        puts '==='
-        puts consent_form_confirmed.inspect
-        puts consent_type.inspect
         consent_form_ids = self.class.consent_forms.confirmed.pluck(:id)
-        no_other_confirmed_consent_files = consent_form_ids.count == 1 && consent_form_ids.first == id
+        no_other_confirmed_consent_files = consent_form_ids.count == 0 && ! consent_form_confirmed || consent_form_ids.count == 1 && consent_form_ids.first == id
+
         if consent_form_confirmed
-          client.update_column(:housing_release_status, consent_type)
-          client.update_column(:consent_form_signed_on, consent_form_signed_on)
+          client.update_columns(
+            housing_release_status: consent_type, 
+            consent_form_signed_on: consent_form_signed_on, 
+            consent_form_id: id
+          )
         elsif no_other_confirmed_consent_files
-          client.update_column(:housing_release_status, nil)
-          client.update_column(:consent_form_signed_on, consent_form_signed_on)
+          client.invalidate_consent!
         end
       end
     end

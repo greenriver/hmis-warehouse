@@ -37,6 +37,10 @@
       %td.text-center
         = file.consent_type
       %td.text-center
+        - if file.active_consent_form?
+          .active-release{data: {toggle: :tooltip, title: 'You will need to refresh the page to see changes to active release forms'}}
+            %i.icon-flag
+            Active
         - if can_confirm_housing_release?
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
             = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }

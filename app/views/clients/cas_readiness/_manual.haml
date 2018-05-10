@@ -16,17 +16,12 @@
         = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
 
       = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
+    .col-md-6
+      = render 'consent_form', f: f
 
-    .col-sm-8
-      .row.mb-5.mt-3
-        .col-md-6
-          = f.label :housing_release_status, class: 'o-text--semibold'
-          .release
-            = @client.housing_release_status || 'Not Signed'
-
-  .row.mb-4
-    .col-lg-8.col-xl-6
-      = render 'vispdat', f: f
+    .row.mb-4
+      .col-lg-8.col-xl-6
+        = render 'vispdat', f: f
 
   = render 'window/clients/required_documents'
   = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f

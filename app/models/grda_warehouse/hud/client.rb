@@ -167,6 +167,8 @@ module GrdaWarehouse::Hud
       where(active_cohort: true)
     end, through: :active_cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
 
+    has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
+
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
     delegate :last_homeless_date, to: :processed_service_history, allow_nil: true
@@ -586,8 +588,6 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Some file tags represent client attributes, 
-    # Never trigger the full-release with just a file
     def sync_cas_attributes_with_files
       return unless GrdaWarehouse::Config.get(:cas_flag_method) == 'file'
       self.ha_eligible = client_files.tagged_with(cas_attributes_file_tag_map[:ha_eligible], any: true).exists?
@@ -598,15 +598,6 @@ module GrdaWarehouse::Hud
           pluck(:updated_at).first
       else
         self.disability_verified_on = nil
-      end
-      # Only convert blank to limited cas and limited to blank, full has been 
-      # confirmed by a human
-      if self.housing_release_status != self.class.full_release_string
-        if client_files.tagged_with(cas_attributes_file_tag_map[:limited_cas_release], any: true).exists?
-          self.housing_release_status = self.class.partial_release_string
-        else
-          self.housing_release_status = nil
-        end
       end
       save
     end
@@ -681,13 +672,29 @@ module GrdaWarehouse::Hud
       ).first&.consent_form_confirmed
     end
 
-    def active_consent_form
-      client_files.consent_forms.confirmed.order(effective_date: :desc)&.first
-    end
-
     def newest_consent_form
       # Regardless of confirmation status
       client_files.consent_forms.order(updated_at: :desc)&.first 
+    end
+
+    def release_status_for_cas
+      if housing_release_status.blank?
+        return 'None on file'
+      end
+      if release_duration == 'One Year'
+        if ! (consent_form_valid? && consent_confirmed?)
+          return 'Expired'
+        end
+      end
+      return _(housing_release_status)
+    end
+
+    def invalidate_consent!
+      update_columns(
+        consent_form_id: nil,
+        housing_release_status: nil,
+        consent_form_signed_on: nil
+      )
     end
 
     # End Release information

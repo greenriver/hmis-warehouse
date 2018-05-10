@@ -20,31 +20,8 @@
       .form-group
         - if GrdaWarehouse::Config.get(:client_details).include?('chronically_homeless_for_cas')
           = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
-
     .col-md-6
-      .row.mb-5.mt-3
-        .col-md-6
-          = f.label :housing_release_status, class: 'o-text--semibold'
-          .release
-            = @client.housing_release_status || 'Not Signed'
-      %dl.row
-        .col-sm-6.mb-4
-          %dt Consent Form Signed On
-          %dd
-            - signed_date = @client.consent_form_signed_on
-            - if signed_date
-              %i.icon-calendar
-              = signed_date
-            - else
-              %i.fa.fa-times-circle.o-color--warning.inline-icon
-              Form Not Signed
-        .col-sm-6.mb-4
-          %dt Consent Form Confirmed
-          %dd
-            - confirmed = @client.consent_confirmed?
-            = checkmark_or_x confirmed
-            - unless confirmed
-              Form Not Confirmed
+      = render 'consent_form', f: f
       .mb-8
         %p.o-text--semibold The following attributes are determined based exclusively on the existance of an uploaded file.
         %p
