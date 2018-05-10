@@ -34,7 +34,7 @@ module HudChronicDefinition
     # Has is been at least 12 months since client was
     # first homeless to on_date?
     def months_12_homeless? on_date:
-      date_to_street = service_history.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.DateToStreetESSH
+      date_to_street = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.DateToStreetESSH
       return false unless date_to_street
       # how many unique months between data_to_street and on_date
       months_on_street = (on_date.year * 12 + on_date.month) - (date_to_street.year * 12 + date_to_street.month) + 1 # plus one for current month 
@@ -45,7 +45,7 @@ module HudChronicDefinition
     # Has the client been homeless 4 times within the past
     # 3 years?
     def times_4_homeless? on_date:
-      times_on_street = service_history.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.TimesHomelessPastThreeYears
+      times_on_street = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.TimesHomelessPastThreeYears
       times_on_street == 4
     end
 
@@ -72,7 +72,7 @@ module HudChronicDefinition
     # 113 More than 12 months
 
     def months_homeless_past_three_years_more_than_12? on_date:
-      months_on_street = service_history.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.MonthsHomelessPastThreeYears
+      months_on_street = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.MonthsHomelessPastThreeYears
       return false unless months_on_street
       # 8, 9, 99 are missing, reused etc.
       hud_chronic_data[:months_in_last_three_years] = months_on_street - 100
@@ -81,7 +81,7 @@ module HudChronicDefinition
     
     # Has the client been homeless more than 12 months
     def total_months_homeless_more_than_12? on_date:
-      entry = service_history.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
+      entry = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
       months_on_street = entry&.enrollment&.MonthsHomelessPastThreeYears
       return false unless months_on_street
       return false unless months_on_street > 100
@@ -93,14 +93,14 @@ module HudChronicDefinition
 
     # Is the head of household for this client disabled?
     def hoh_disabled? on_date:
-      entry = service_history.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
+      entry = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
       return false unless entry
       entry.head_of_household&.source_enrollments&.pluck(:DisablingCondition)&.include?(1)
     end
 
     # is the current client disabled?
     def disabled? on_date:
-      entry = service_history.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
+      entry = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
       return false unless entry
       entry.client&.source_enrollments&.pluck(:DisablingCondition)&.include?(1)
     end

@@ -37,5 +37,10 @@ module CohortColumns
       html += link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
       html
     end
+
+    def text_value cohort_client
+      self.cohort_client = cohort_client
+      comments
+    end
   end
 end

@@ -43,33 +43,31 @@ module Admin::Health
     # update relationship between patient referral and agency
     def update
       @relationship = Health::AgencyPatientReferral.find(params[:id])
-      if @relationship.update_attributes(relationship_params)
-        r = @relationship.claimed? ? 'Our Patient' : 'Not Our Patient'
-        flash[:notice] = "Patient referral marked as '#{r}'"
-        redirect_to review_admin_health_agency_patient_referrals_path
-      else
-        load_index_vars
-        flash[:error] = "An error occurred, please try again."
-        render 'index'
-      end
+      build_relationship(@relationship)
     end
 
     # create relationship between patient referral and agency
     def create
-      # aka agency_patient_referral
       @new_relationship = Health::AgencyPatientReferral.new(relationship_params)
-      if @new_relationship.save
-        r = @new_relationship.claimed? ? 'Our Patient' : 'Not Our Patient'
-        flash[:notice] = "Patient referral marked as '#{r}'"
-        redirect_to review_admin_health_agency_patient_referrals_path
+      build_relationship(@new_relationship)
+    end
+
+    private
+
+    def build_relationship(relationship)
+      # aka agency_patient_referral
+      path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path 
+      success = relationship.new_record? ? relationship.save : relationship.update_attributes(relationship_params)
+      if success
+        r = relationship.claimed? ? 'Our Patient' : 'Not Our Patient'
+        flash[:notice] = "Patient marked as '#{r}'"
+        redirect_to path
       else
         load_index_vars
         flash[:error] = "An error occurred, please try again."
         render 'index'
       end
     end
-
-    private
 
     def relationship_params
       params.require(:health_agency_patient_referral).permit(

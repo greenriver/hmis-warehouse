@@ -1,10 +1,20 @@
 module Health
   class PatientReferral < HealthBase
 
-    scope :assigned, -> {where.not(agency_id: nil)}
-    scope :unassigned, -> {where(agency_id: nil)}
+    before_validation :update_rejected_from_reason
+
+    # TODO: this needs to be updated with list provided by bhchp 
+    # example {rejected_reason_none: 0, rejected_reason_refused_consent: 1}
+    # rejected_reason_none: 0 always needs to be there
+    # this is the default and means that the patient referral is not rejected
+    enum rejected_reason: {rejected_reason_none: 0, rejected_reason_reason_1: 1, rejected_reason_reason_2: 2}
+
+    scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
+    scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
+    scope :rejected, -> {where(rejected: true)}
 
     # TODO: What needs to be validated here?
+    # TODO: how to validate medicaid id?
     validates_presence_of :first_name, :last_name, :birthdate, :ssn, :medicaid_id
     validates_size_of :ssn, is: 9
 
@@ -12,6 +22,15 @@ module Health
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
 
     accepts_nested_attributes_for :relationships
+
+    def update_rejected_from_reason
+      if self.rejected_reason_none?
+        self.rejected = false
+      else
+        self.rejected = true
+      end
+      return true
+    end
 
     def relationship_to(agency)
       relationships.where(agency_id: agency).last
@@ -30,6 +49,17 @@ module Health
         ((Time.now - birthdate.to_time)/1.year.seconds).floor
       else
         'Unknown'
+      end
+    end
+
+    def self.display_rejected_reason(reason)
+      r = reason.split('_')
+      r.shift(2)
+      result = r.join(' ').capitalize
+      if result == 'None'
+        'Remove Rejection'
+      else
+        result
       end
     end
 

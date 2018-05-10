@@ -9,17 +9,12 @@
       %strong 
         Unknown By 
         = unclaimed.size
-      .inline-icon.inline-icon--left{data: {toggle: 'tooltip', placement: 'right', title: unclaimed.join('</br>'), html: 'true'}}
+      .inline-icon.inline-icon--left{data: {toggle: 'tooltip', placement: 'right', title: unclaimed.map{|uc| "<div style='white-space:nowrap;text-align:left;'>#{uc}</div>"}.join(''), html: 'true'}}
         %i.icon-notification
 .col-xs-12.col-md-2
-  - if pr.assigned?
-    %strong Assigned To:
-    %br
-    = pr.assigned_agency.name
-    = render 'assign_agency', pr: pr, label: 'Change Agency'
-  - else
-    = render 'assign_agency', pr: pr, label: 'Assign Agency'
-.col-xs-12.col-md-2
-.col-xs-12.col-md-1.text-right
-  - if can_administer_health? && can_bulk_assign?
+  = render 'assign_agency', pr: pr
+%div{class: can_bulk_assign? ? 'col-xs-12 col-md-2' : 'col-xs-12 col-md-3'}
+  = render 'reject', pr: pr
+- if can_bulk_assign?
+  .col-xs-12.col-md-1.text-right
     = check_box_tag :patient_referral_id, pr.id

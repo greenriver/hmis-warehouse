@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
     include ApplicationHelper
     include HudSharedScopes
     include HudChronicDefinition
+    include Eto::TouchPoints
 
     has_many :client_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
@@ -109,12 +110,6 @@ module GrdaWarehouse::Hud
     has_many :direct_employment_educations, **hud_many(EmploymentEducation), inverse_of: :direct_client
     # End cleanup relationships
 
-    has_many :client_attributes_defined_text, class_name: GrdaWarehouse::HMIS::ClientAttributeDefinedText.name, inverse_of: :client
-    has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
-    has_many :non_confidential_hmis_forms, -> do
-      joins(:hmis_forms).where(id: GrdaWarehouse::HmisForm.window.non_confidential.select(:id))
-    end, class_name: GrdaWarehouse::HmisForm.name
-
     has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
@@ -142,12 +137,7 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
-    has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
-    has_many :case_management_notes, -> { where(name: 'SDH Case Management Note')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
-    has_many :health_touch_points, -> do
-      f_t = GrdaWarehouse::HmisForm.arel_table
-      where(f_t[:collection_location].matches('Social Determinants of Health%'))
-    end, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
@@ -406,6 +396,16 @@ module GrdaWarehouse::Hud
       where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.pluck(:client_id))
     end
 
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.coc_codes.none?
+        none
+      else
+        distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
+      end
+    end
+
     ####################
     # Callbacks
     ####################
@@ -489,6 +489,7 @@ module GrdaWarehouse::Hud
       client_scope.includes(:data_source).map do |m|
         {
           ds: m.data_source.short_name,
+          ds_id: m.data_source.id,
           name: m.full_name,
         }
       end
@@ -1899,5 +1900,6 @@ module GrdaWarehouse::Hud
       residential_for_past_90_days = (ph_dates & (ninety_days_ago...entry_date).to_a).present?
       no_other_homeless || (! current_residential && residential_for_past_90_days)
     end
+
   end
 end

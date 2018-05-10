@@ -21,11 +21,24 @@ module Admin::Health
     end
 
     def rejected
-      # TODO: need more info about what rejected means
       @active_patient_referral_tab = 'rejected'
-      @patient_referrals = Health::PatientReferral.all.includes(:relationships)
+      @patient_referrals = Health::PatientReferral.rejected.includes(:relationships)
       load_index_vars
       render 'index'
+    end
+
+    def reject
+      @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
+      if @patient_referral.update_attributes!(reject_params)
+        if !@patient_referral.rejected_reason_none?
+          flash[:notice] = "Patient has been rejected."
+        else
+          flash[:notice] = "Patient rejection removed."
+        end
+      else
+        flash[:error] = 'An error occurred, please try again.'
+      end
+      redirect_to rejected_admin_health_patient_referrals_path
     end
 
     def create
@@ -35,11 +48,17 @@ module Admin::Health
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes(assign_agency_params)
-        flash[:notice] = 'Patient referral assigned to agency.'
+        if @patient_referral.assigned_agency.present?
+          flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency.name}."
+          redirect_to assigned_admin_health_patient_referrals_path
+        else
+          flash[:notice] = 'Patient unassigned.'
+          redirect_to review_admin_health_patient_referrals_path
+        end
       else
-        flash[:error] = 'Patient referral could not be assigned.'
+        flash[:error] = 'Patient could not be assigned.'
+        redirect_to review_admin_health_patient_referrals_path
       end
-      redirect_to review_admin_health_patient_referrals_path
     end
 
     def bulk_assign_agency
@@ -48,7 +67,8 @@ module Admin::Health
       @patient_referrals = Health::PatientReferral.where(id: (@params[:patient_referral_ids] || []))
       if @patient_referrals.any? && @agency.present?
         @patient_referrals.update_all(agency_id: @agency.id)
-        flash[:notice] = "#{pluralize(@patient_referrals.size, 'patient')} have been assigned to #{@agency.name}"
+        size = @patient_referrals.size
+        flash[:notice] = "#{size} #{'Patient'.pluralize(size)} have been assigned to #{@agency.name}"
         redirect_to assigned_admin_health_patient_referrals_path
       elsif !@agency.present?
         flash[:error] = 'Error: Please select an agency to assign patients to.'
@@ -68,6 +88,12 @@ module Admin::Health
         {id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params)},
         {id: 'rejected', tab_text: 'Refused Consent/Other Rejections', path: rejected_admin_health_patient_referrals_path(tab_path_params)}
       ]
+    end
+
+    def reject_params
+      params.require(:health_patient_referral).permit(
+        :rejected_reason
+      )
     end
 
     def assign_agency_params

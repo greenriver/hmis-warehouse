@@ -3,6 +3,11 @@ module ServiceHistoryServiceConcern
   included do
     scope :service, -> { where record_type: service_types }
     scope :extrapolated, -> { where record_type: :extrapolated }
+    # The following scope is sometimes used to determine if any "real" service
+    # was performed within a date range, it isn't correctly interpreted 
+    # if used with ServiceHistoryEnrollment.with_service_between
+    # unless it is explicitly a string
+    scope :service_excluding_extrapolated, -> { where("record_type = 'service'") }
 
     scope :residential, -> {
       where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)

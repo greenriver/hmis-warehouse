@@ -7,8 +7,12 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client)
-      checkmark_or_x cohort_client.client.consent_confirmed?
+    def value cohort_client
+      checkmark_or_x text_value(cohort_client)
+    end
+
+    def text_value cohort_client
+      cohort_client.client.consent_confirmed?
     end
   end
 end

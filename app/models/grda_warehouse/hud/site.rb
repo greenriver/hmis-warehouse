@@ -28,6 +28,16 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_belongs(Export), inverse_of: :sites
     has_one :project, through: :project_coc, source: :project
 
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.coc_codes.none?
+        none
+      else
+        joins(:project_coc).merge( GrdaWarehouse::Hud::ProjectCoc.viewable_by user )
+      end
+    end
+
     def name
       "#{self.Address} #{self.City}"
     end

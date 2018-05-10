@@ -1,8 +1,21 @@
-= simple_form_for :population, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
-  = f.error_notification
-  %p Clients selected by population must will have an open homeless enrollment (ES, SO, SH, TH) with service within the past 90 days.  If there is an age restriction, it is enforced during the last 90 days.  It is possible you will see clients who recently aged out of the population in the search results.
-  .row
-    .col-sm-6
-      = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans', 'Individual Adults'), :last, :first, params[:population]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
-    .col-sm-6
-      = f.button :submit, value: 'Show'
+.panel.panel-default
+  .panel-heading
+    .row
+      .col-xs-8
+        %h4.panel-title
+          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#population'}
+            Pick from an active population
+      .col-xs-4.text-right
+        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#population'}
+          %i.icon-arrow-circled-right
+          %i.icon-arrow-circled-down.hide
+  #population.panel-collapse.collapse
+    .panel-body
+      = simple_form_for :population, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+        = f.error_notification
+        %p Clients selected by population must will have an open homeless enrollment (ES, SO, SH, TH) with service within the past 90 days.  If there is an age restriction, it is enforced during the last 90 days.  It is possible you will see clients who recently aged out of the population in the search results.
+        .row
+          .col-sm-6
+            = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans', 'Individual Adults'), :last, :first, params[:population]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
+          .col-sm-6
+            = f.button :submit, value: 'Show'

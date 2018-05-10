@@ -20,9 +20,9 @@ class CohortsController < ApplicationController
     @cohort = cohort_with_preloads.first
     
     if params[:inactive].present?
-      @cohort_clients = @cohort.cohort_clients
+      @cohort_clients = @cohort.cohort_clients.joins(:client)
     else
-      @cohort_clients = @cohort.cohort_clients.where(active: true)
+      @cohort_clients = @cohort.cohort_clients.joins(:client).where(active: true)
     end
     @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
     respond_to do |format|
@@ -43,7 +43,9 @@ class CohortsController < ApplicationController
 
           case m.renderer
           when 'dropdown'
-            options.merge!({type: m.renderer, source: m.available_options})
+            # options.merge!({type: m.renderer, source: m.available_options})
+            # Be more forgiving of drop-down data
+            options.merge!({type: 'autocomplete', source: m.available_options, strict: false, filter: false})
           when 'date', 'checkbox', 'text', 'numeric'
             options.merge!({type: m.renderer})
           else

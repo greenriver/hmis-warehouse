@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-
+  
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -351,6 +351,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :messages, only: [:show, :index] do
+    collection do
+      get :poll
+      post :seen
+    end
+  end
+
   namespace :api do
     namespace :health do
       namespace :claims do
@@ -392,6 +399,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :patient_referrals, only: [:create] do
+        patch :reject
         collection do
           get :review
           get :assigned
@@ -425,6 +433,7 @@ Rails.application.routes.draw do
       resources :assessments, only: [:index, :update]
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
+    resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
   end
   resource :account, only: [:edit, :update]
 

@@ -26,10 +26,23 @@ module GrdaWarehouse::Hud
 
     scope :in_coc, -> (coc_code:) do
       # hud_coc_code overrides CoCCode
+      coc_code = Array(coc_code)
+      pc_t = arel_table
       where(
-        arel_table[:CoCCode].eq(coc_code).and(arel_table[:hud_coc_code].eq(nil)).
-        or(arel_table[:hud_coc_code].eq(coc_code))
+        pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil)).
+        or(pc_t[:hud_coc_code].in(coc_code))
       )
     end
+
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.coc_codes.none?
+        none
+      else
+        in_coc( coc_code: user.coc_codes )
+      end
+    end
+
   end
 end

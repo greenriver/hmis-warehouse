@@ -1,4 +1,9 @@
 - dropdown_id = "assign-agency-to-#{pr.id}"
+- label = pr.assigned? ? 'Change Agency' : 'Assign Agency'
+- if pr.assigned?
+  %strong Assigned To:
+  %br
+  = pr.assigned_agency.name
 .patient-referral__assign-agency
   = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), namespace: dropdown_id, method: :post do |f|
     = f.input :agency_id, as: :hidden

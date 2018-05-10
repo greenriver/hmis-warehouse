@@ -18,3 +18,13 @@ class App.Clients.EtoApiRefresher
       success: (data) =>
         replacement = $(data).find(@fragment_class)
         $(@fragment_class).replaceWith(replacement)
+        @reinitialize_data_table()
+
+  reinitialize_data_table: ->
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 20,
+      lengthChange: false,
+      pagingType: 'simple'
+    })

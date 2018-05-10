@@ -6,8 +6,8 @@
     .dropdown-menu.dropdown-menu-right{style: 'padding:10px;'}
       %div{style: 'width: 300px;'}
         = simple_form_for :bulk_assignment, url: bulk_assign_agency_admin_health_patient_referrals_path do |f|
-          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id
-          = f.input :patient_referral_ids, as: :check_boxes, collection: @patient_referrals, label_method: :first_name, value_method: :id, wrapper_html: {style: 'display:none;'}
-          = f.submit
+          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, required: false
+          = f.input :patient_referral_ids, as: :check_boxes, collection: @patient_referrals, label_method: :first_name, value_method: :id, wrapper_html: {style: 'display:none;'}, label: false
+          = f.submit 'Assign Agencies', class: 'btn btn-primary'
 
   = check_box_tag :select_all, 'all', false

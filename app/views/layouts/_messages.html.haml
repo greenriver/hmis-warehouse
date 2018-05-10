@@ -1,0 +1,16 @@
+- if user_signed_in? && current_user.in_app_messages?
+  .email-messages.dropdown
+    %a.btn.dropdow-toggle.email-messages-envelope{ href: '#', role: 'button', data: { toggle: 'dropdown' } }
+      %i.icon-envelope-o
+        %span.message-count.badge.hide
+    %ul.dropdown-menu.dropdown-menu-right
+      %li.text-center
+        .btn-group.btn-group-xs{role: :group}
+          = link_to messages_path(search: :all), class: 'btn btn-default show-all' do
+            all messages
+          = link_to messages_path, class: 'btn btn-default show-all' do
+            new messages
+
+  - content_for :page_js do
+    :javascript
+      App.Users.Messages = new App.Users.Messages(#{poll_messages_path.to_json}, #{seen_messages_path.to_json});

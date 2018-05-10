@@ -1,5 +1,6 @@
 module Admin
   class UsersController < ApplicationController
+    include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
@@ -32,7 +33,8 @@ module Admin
       existing_health_roles = @user.roles.health.to_a
       begin
         User.transaction do
-          @user.update(user_params) 
+          @user.skip_reconfirmation! 
+          @user.update(user_params)
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
           @user.set_viewables viewable_params
@@ -78,6 +80,7 @@ module Admin
         :notify_on_client_added,
         :notify_on_anomaly_identified,
         role_ids: [],
+        coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
       )
     end
@@ -103,5 +106,7 @@ module Admin
     private def log_user
       log_item(@user) if @user.present?
     end
+
+    
   end
 end

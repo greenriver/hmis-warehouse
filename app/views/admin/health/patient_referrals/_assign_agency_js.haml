@@ -1,16 +1,37 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var containerSelector = '.patient-referral__assign-agency'
+      var assignContainerSelector = '.patient-referral__assign-agency';
+      var assignInputSelector = "input[name='health_patient_referral[agency_id]']";
       $("a[data-behavior='assign agency']").click(function(e) {
         e.preventDefault();
-        var container = $(this).parents(containerSelector);
-        var form = $(container).find('form');
-        var input = $(form).find("input[name='health_patient_referral[agency_id]']");
-        var agencyId = $(this).data('agency-id');
-        $(input).val(agencyId);
-        $(form).submit();
+        // var container = $(this).parents(assignContainerSelector);
+        // var form = $(container).find('form');
+        // var input = $(form).find("input[name='health_patient_referral[agency_id]']");
+        // var agencyId = $(this).data('agency-id');
+        // $(input).val(agencyId);
+        // $(form).submit();
+        setInputValueFromListItem(this, assignContainerSelector, assignInputSelector, 'agency-id');
       });
+
+      var rejectContainerSelector = '.patient-referral__reject';
+      var rejectInputSelector = "input[name='health_patient_referral[rejected_reason]']";
+      $("a[data-behavior='reject patient referral']").click(function(e) {
+        e.preventDefault();
+        // var container = $(this).parents(rejectContainerSelector);
+        // var form = $(container).find('form');
+        // var input = 
+        setInputValueFromListItem(this, rejectContainerSelector, rejectInputSelector, 'rejected-reason');
+      });
+
+      var setInputValueFromListItem = function(link, containerSelector, inputSelector, valAttr) {
+        var container = $(link).parents(containerSelector);
+        var form = $(container).find('form');
+        var input = $(form).find(inputSelector);
+        var value = $(link).data(valAttr);
+        $(input).val(value);
+        $(form).submit();
+      }
 
       $("[name='select_all']").change(function(e) {
         var pr = $("[name='patient_referral_id']");
@@ -25,6 +46,7 @@
         if(!$(this).is(':checked')) {
           $("[name='select_all']").prop('checked', false);
         }
+        updateBulkAsssignmentLabel();
       });
 
       var updateBulkAssignmentValues = function(e) {
@@ -33,7 +55,19 @@
         pr.each(function(index, p) {
           var match = $(id+$(p).val());
           match.prop('checked', $(p).is(':checked'));
-        })
+        });
+        updateBulkAsssignmentLabel();
       }
+
+      var updateBulkAsssignmentLabel = function() {
+        var label = $('.bulk_assignment_agency_id label');
+        var ids = $('.bulk_assignment_patient_referral_ids input:checked');
+        var p = 'Patients';
+        if(ids.length === 1) {
+          p = 'Patient';
+        }
+        label.text('Assign agency to '+ids.length+' '+p+'.');
+      }
+      updateBulkAsssignmentLabel();
 
     });

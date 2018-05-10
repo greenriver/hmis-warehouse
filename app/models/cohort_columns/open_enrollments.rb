@@ -27,7 +27,10 @@ module CohortColumns
             [project_type, HUD.project_type_brief(project_type)]
           end
         end
-     
+    end
+
+    def text_value cohort_client
+      value(cohort_client).map(&:last).join(' ')
     end
 
     def display_for user
