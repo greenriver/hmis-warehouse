@@ -35,7 +35,7 @@
     .client__assessment-answer
       = Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
     .client__assessment-question
-      = "Notes (#{title})"
+      = "#{title} Notes"
     .client__assessment-answer
       = simple_format @form.send("#{section_key}_notes")
 
