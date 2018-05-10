@@ -4,7 +4,7 @@
   .form-inputs
     = f.input :name, label: 'Role name'
     - Role.permissions(exclude_health: true).each do |permission|
-      = f.input permission
+      = f.input permission, as: :boolean
 
   .form-actions
     = f.button :submit, class: 'btn btn-primary'

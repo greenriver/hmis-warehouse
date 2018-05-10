@@ -20,7 +20,7 @@ module EtoApi::Tasks
       self.logger = Rails.logger
       logger.info "Fetching client mappings from ETO"
       @config = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_sftp.yml"))).result)[Rails.env]
-      @data_sources = GrdaWarehouse::DataSource.importable_via_sftp.where(short_name: @config.keys).select do |ds| 
+      @data_sources = GrdaWarehouse::DataSource.importable_via_s3.where(short_name: @config.keys).select do |ds| 
         @config[ds.short_name]['api_match_file'].present?
       end
       logger.info "Looking at #{@data_sources.count} data sources"

@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :grda_warehouse_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :grda_warehouse_data_source
-    # PersonalID
+    sequence(:PersonalID, 100)
     FirstName 'Bob'
     # MiddleName
     # LastName

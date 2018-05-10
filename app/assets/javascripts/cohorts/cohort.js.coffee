@@ -45,6 +45,7 @@ class App.Cohorts.Cohort
       direction = false
     @initial_sort = {column: 1, sortOrder: direction}
     @current_sort = Object.assign({}, @initial_sort)
+    @add_sort_options()
     @table = new Handsontable $(@table_selector)[0], 
       rowHeaders: true
       colHeaders: @column_headers
@@ -59,10 +60,31 @@ class App.Cohorts.Cohort
       search: true
       comments: true
       afterChange: @after_change
+      beforeChange: @before_change
   
+  add_sort_options:  =>
+    for column in @column_options
+      if column.type == 'checkbox'
+        column.sortFunction = (sortOrder) =>
+          (a, b) =>
+            @sort_checkboxes(a, b, sortOrder)
+
+  # This is to work around a bug in handsontable
+  # https://github.com/handsontable/handsontable/issues/4047
+  sort_checkboxes: (a, b, sort_order) =>
+    ret = if a[1] > b[1] then 1 else -1
+    if sort_order
+      if a[1] > b[1] then 1 else -1
+    else
+      if b[1] > a[1] then 1 else -1
+
   after_change: (changes, source) =>
     if source == 'edit'
       @after_edit(changes)
+
+  before_change: (changes, source) =>
+    if source == 'edit'
+      @before_edit(changes)
 
   initialize_search_buttons: () =>
     $search_actions = $(@search_actions_selector)
@@ -224,8 +246,24 @@ class App.Cohorts.Cohort
     $('#rank_order').val(ids.join(','));
     $('.jReRank').removeClass('disabled');
 
-  after_edit: (change) =>
-    [row, col, original, current] = change[0]
+  before_edit: (changes, source) =>
+    # an array of changes (only ever one for us)
+    # changes[0][3] holds new value
+    [row, col, original, current] = changes[0] 
+    return if original == current
+    physical_index = @table.sortIndex[row][0]
+    meta = @raw_data[physical_index].meta
+    # We need the containing metadata for the column and our pattern always uses value
+    cohort_column_column = col.replace('.value', '')
+    column = @deep_find(@raw_data[physical_index], cohort_column_column)
+    # If this is a date field, attempt to catch some common formats
+    if column.renderer == 'date'
+       current = moment(current).format('ll')
+       @table.setDataAtRowProp(row, col, current)
+       changes[0][3] = current
+
+  after_edit: (changes) =>
+    [row, col, original, current] = changes[0]
     return if original == current
     # translate the logical index (based on current sort order) to
     # the physical index (the row it was originally)
@@ -234,9 +272,17 @@ class App.Cohorts.Cohort
     # We need the containing metadata for the column and our pattern always uses value
     cohort_column_column = col.replace('.value', '')
     column = @deep_find(@raw_data[physical_index], cohort_column_column)
+
     return unless column.editable
     @table.validateRows [row], (valid) =>
-      if valid
+      if ! valid
+        alert = "<div class='alert alert-danger' style='position: fixed; top: 0; width: 20em;'>Failed to save. <br /> There is an invalid value in at least one column in the row.  Please check for any red cells.  <br/>You will have to re-enter your last change, after fixing any invalid cells.</div>"
+        $('.utility .alert').remove()
+        $('.utility').append(alert)
+        $('.utility .alert').delay(20000).fadeOut(250)
+
+        console.log 'invalid column in row! (may not be the column you just changed)'
+      else
         field_name = "cohort_client[#{column.column}]"
         cohort_client_id = meta.cohort_client_id
         # console.log row, column, meta, cohort_client_id
@@ -273,16 +319,16 @@ class App.Cohorts.Cohort
 
   check_for_new_data: =>    
     $.get @check_url, (data) =>
-      console.log 'checking', @updated_ats
+      # console.log 'checking', @updated_ats
       changed = false
       $.each data, (id, timestamp) =>
         if timestamp != @updated_ats[id]
           changed = true
-          console.log "didn't match", @updated_ats
-          console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
+          # console.log "didn't match", @updated_ats
+          # console.log({client_id: id, server_timestamp: timestamp, client_timestamp: @updated_ats[id]})
           @reload_client(id)
       if changed
-        console.log 'Setting new updated ats'
+        # console.log 'Setting new updated ats'
         @updated_ats = data
           
   reload_client: (cohort_client_id) =>
@@ -298,8 +344,14 @@ class App.Cohorts.Cohort
               @cell_metadata[i][j].comments = client[col.column].comments
               @table_data[i][j] = client[col.column].value
               @raw_data[i][@column_order[j]].value = client[col.column].value
-
+      # Preserve the sort order
+      sort_column = @table.sortColumn
+      sort_direction = @table.sortOrder
+      sorting = {column: sort_column, sortOrder: sort_direction}
+      
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
+        columnSorting: sorting
       @table.render()
+

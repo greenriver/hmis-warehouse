@@ -1,20 +1,34 @@
 # config valid only for current version of Capistrano
-lock '3.6.1'
+lock '3.10.2'
 
 set :application, 'boston_hmis'
 set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
+set :whenever_identifier, ->{ "#{fetch(:application)}_#{fetch(:stage)}" }
+set :cron_user, ENV.fetch('CRON_USER') { 'ubuntu'}
+set :whenever_roles, [:cron, :production_cron, :staging_cron]
+set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && /usr/share/rvm/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
+
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
     keys: [ENV['FORCE_SSH_KEY']],
     port: ENV.fetch('SSH_PORT') { '22' },
-    user: ENV.fetch('DEPLOY_USER')
+    user: ENV.fetch('DEPLOY_USER'),
+    forward_agent: true
+  }
+else
+  set :ssh_options, {
+    port: ENV.fetch('SSH_PORT') { '22' },
+    user: ENV.fetch('DEPLOY_USER'),
+    forward_agent: true
   }
 end
 
 if ENV['DELAYED_JOB_SYSTEMD']=='true'
-  after 'passenger:restart', 'delayed_job:restart'
+  unless ENV['SKIP_JOBS']=='true'
+    after 'passenger:restart', 'delayed_job:restart'
+  end
 else
   set :delayed_job_prefix, "#{ENV['CLIENT']}-hmis"
   set :delayed_job_roles, [:job]
@@ -25,7 +39,7 @@ set :ssh_port, ENV.fetch('SSH_PORT') { '22' }
 set :deploy_user , ENV.fetch('DEPLOY_USER')
 
 if ENV['RVM_CUSTOM_PATH']
-  set :rvm_custom_path, '/usr/share/rvm'
+  set :rvm_custom_path, ENV['RVM_CUSTOM_PATH']
 end
 
 task :group_writable do
@@ -102,3 +116,9 @@ namespace :deploy do
   end
 
 end
+
+task :echo_options do
+  puts "\nDid you run ssh-add before running?\n\n"
+  puts "Deploying as: #{fetch(:deploy_user)} on port: #{fetch(:ssh_port)} to location: #{deploy_to}\n\n"
+end
+after 'git:wrapper', :echo_options

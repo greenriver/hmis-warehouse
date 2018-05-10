@@ -1,0 +1,11 @@
+= f.error_notification
+
+.row
+  .col-sm-6
+    .form-inputs
+      = f.input :title, required: true
+      = f.input :description, as: :text
+      = f.input :date, required: true, as: :date_picker              
+
+    .form-actions
+      = f.button :submit, "Submit", class: 'btn btn-primary'

@@ -36,6 +36,7 @@
                 = sort_link(titles[k], k, directions)
                 %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
             %th Status
+            %th Roles
             %th
             %th
         %tbody
@@ -46,6 +47,7 @@
               %td
                 = user.email
               %td= render 'user_invitation_status', user: user
+              %td= user.roles.map(&:name).join(', ')
               %td
                 = link_to admin_user_audit_path(user) do
                   %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}

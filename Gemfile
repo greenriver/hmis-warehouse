@@ -79,6 +79,7 @@ gem 'redcarpet'
 gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
 gem 'roo', require: false
+gem 'roo-xls', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
@@ -137,7 +138,6 @@ group :development do
   gem 'html2haml'
   gem 'brakeman', require: false
   gem 'bundler-audit', require: false
-  gem 'capistrano', '~> 3.6.1'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
   gem 'capistrano-passenger'
@@ -164,6 +164,7 @@ group :test do
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
+  gem 'timecop'
 end
 
 group :development, :staging do

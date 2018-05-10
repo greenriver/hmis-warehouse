@@ -11,62 +11,12 @@
 .row
   .col-sm-10
     #client-search-options.panel-group.panel-collapsible
-      .panel.panel-default
-        .panel-heading
-          .row
-            .col-xs-8
-              %h4.panel-title
-                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
-                  Search clients
-            .col-xs-4.text-right
-              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
-                %i.icon-arrow-circled-right
-                %i.icon-arrow-circled-down.hide
-        #search.panel-collapse.collapse
-          .panel-body
-            = render 'search_form'
-      .panel.panel-default
-        .panel-heading
-          .row
-            .col-xs-8
-              %h4.panel-title
-                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#chronic'}
-                  Pick from chronic lists
-            .col-xs-4.text-right
-              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#chronic'}
-                %i.icon-arrow-circled-right
-                %i.icon-arrow-circled-down.hide
-        #chronic.panel-collapse.collapse
-          .panel-body
-            = render 'chronic'
-      .panel.panel-default
-        .panel-heading
-          .row
-            .col-xs-8
-              %h4.panel-title
-                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#population'}
-                  Pick from an active population
-            .col-xs-4.text-right
-              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#population'}
-                %i.icon-arrow-circled-right
-                %i.icon-arrow-circled-down.hide
-        #population.panel-collapse.collapse
-          .panel-body
-            = render 'population'
-      .panel.panel-default
-        .panel-heading
-          .row
-            .col-xs-8
-              %h4.panel-title
-                %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
-                  Clients active within a date range
-            .col-xs-4.text-right
-              %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
-                %i.icon-arrow-circled-right
-                %i.icon-arrow-circled-down.hide
-        #actives.panel-collapse.collapse
-          .panel-body
-            = render 'active'
+      
+      = render 'search_form'
+      = render 'chronic'
+      = render 'population'
+      = render 'active'
+      = render 'batch_add'
     = render 'results'
     
   .col-sm-2

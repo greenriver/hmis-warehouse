@@ -262,7 +262,7 @@ namespace :grda_warehouse do
   end
 
   desc "Save Service History Snapshots"
-  task :save_service_history_snapshots, [:environment, "log:info_to_stdout"] do |task, args|
+  task :save_service_history_snapshots, [] => [:environment, "log:info_to_stdout"] do |task, args|
     app = ActionDispatch::Integration::Session.new(Rails.application)
     include Rails.application.routes.url_helpers
     GrdaWarehouse::Hud::Client.needs_history_pdf.each do |client|

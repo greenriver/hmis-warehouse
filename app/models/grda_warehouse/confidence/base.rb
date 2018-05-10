@@ -82,7 +82,7 @@ module GrdaWarehouse::Confidence
 
     def self.create_batch!
       collections = []
-      batch_scope.pluck(:client_id).each do |id|
+      batch_scope.distinct.pluck(:client_id).each do |id|
         collections += collection_dates_for_client(id)
       end
       self.new.insert_batch(self, collections.first.keys, collections.map(&:values))

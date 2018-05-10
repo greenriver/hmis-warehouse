@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180413221626) do
+ActiveRecord::Schema.define(version: 20180504140026) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -113,6 +113,18 @@ ActiveRecord::Schema.define(version: 20180413221626) do
     t.datetime "updated_at",  null: false
   end
 
+  create_table "messages", force: :cascade do |t|
+    t.integer  "user_id"
+    t.string   "from",                       null: false
+    t.string   "subject",                    null: false
+    t.text     "body",                       null: false
+    t.boolean  "html",       default: false, null: false
+    t.datetime "seen_at"
+    t.datetime "sent_at"
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+  end
+
   create_table "nicknames", force: :cascade do |t|
     t.string  "name"
     t.integer "nickname_id"
@@ -159,65 +171,67 @@ ActiveRecord::Schema.define(version: 20180413221626) do
   add_index "reports", ["report_results_summary_id"], name: "index_reports_on_report_results_summary_id", using: :btree
 
   create_table "roles", force: :cascade do |t|
-    t.string   "name",                                             null: false
+    t.string   "name",                                                         null: false
     t.string   "verb"
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.boolean  "can_view_clients",                 default: false
-    t.boolean  "can_edit_clients",                 default: false
-    t.boolean  "can_view_censuses",                default: false
-    t.boolean  "can_view_census_details",          default: false
-    t.boolean  "can_edit_users",                   default: false
-    t.boolean  "can_view_full_ssn",                default: false
-    t.boolean  "can_view_full_dob",                default: false
-    t.boolean  "can_view_hiv_status",              default: false
-    t.boolean  "can_view_dmh_status",              default: false
-    t.boolean  "can_view_imports",                 default: false
-    t.boolean  "can_edit_roles",                   default: false
-    t.boolean  "can_view_projects",                default: false
-    t.boolean  "can_edit_projects",                default: false
-    t.boolean  "can_edit_project_groups",          default: false
-    t.boolean  "can_view_organizations",           default: false
-    t.boolean  "can_edit_organizations",           default: false
-    t.boolean  "can_edit_data_sources",            default: false
-    t.boolean  "can_view_client_window",           default: false
-    t.boolean  "can_upload_hud_zips",              default: false
-    t.boolean  "can_edit_translations",            default: false
-    t.boolean  "can_manage_assessments",           default: false
-    t.boolean  "can_edit_anything_super_user",     default: false
-    t.boolean  "can_manage_client_files",          default: false
-    t.boolean  "can_manage_window_client_files",   default: false
-    t.boolean  "can_manage_config",                default: false
-    t.boolean  "can_edit_dq_grades",               default: false
-    t.boolean  "can_view_vspdat",                  default: false
-    t.boolean  "can_edit_vspdat",                  default: false
-    t.boolean  "can_administer_health",            default: false
-    t.boolean  "can_edit_client_health",           default: false
-    t.boolean  "can_view_client_health",           default: false
-    t.boolean  "health_role",                      default: false, null: false
-    t.boolean  "can_view_aggregate_health",        default: false
-    t.boolean  "can_create_clients",               default: false
-    t.boolean  "can_view_client_history_calendar", default: false
-    t.boolean  "can_search_window",                default: false
-    t.boolean  "can_see_own_file_uploads",         default: false
-    t.boolean  "can_submit_vspdat",                default: false
-    t.boolean  "can_edit_client_notes",            default: false
-    t.boolean  "can_edit_window_client_notes",     default: false
-    t.boolean  "can_see_own_window_client_notes",  default: false
-    t.boolean  "can_manage_cohorts",               default: false
-    t.boolean  "can_edit_cohort_clients",          default: false
-    t.boolean  "can_assign_users_to_clients",      default: false
-    t.boolean  "can_view_client_user_assignments", default: false
-    t.boolean  "can_export_hmis_data",             default: false
-    t.boolean  "can_confirm_housing_release",      default: false
-    t.boolean  "can_track_anomalies",              default: false
-    t.boolean  "can_view_all_reports",             default: false
-    t.boolean  "can_assign_reports",               default: false
-    t.boolean  "can_view_assigned_reports",        default: false
-    t.boolean  "can_edit_assigned_cohorts",        default: false
-    t.boolean  "can_view_assigned_cohorts",        default: false
-    t.boolean  "can_manage_organization_users",    default: false
-    t.boolean  "can_manage_health_agency",         default: false, null: false
+    t.datetime "created_at",                                                   null: false
+    t.datetime "updated_at",                                                   null: false
+    t.boolean  "can_view_clients",                             default: false
+    t.boolean  "can_edit_clients",                             default: false
+    t.boolean  "can_view_censuses",                            default: false
+    t.boolean  "can_view_census_details",                      default: false
+    t.boolean  "can_edit_users",                               default: false
+    t.boolean  "can_view_full_ssn",                            default: false
+    t.boolean  "can_view_full_dob",                            default: false
+    t.boolean  "can_view_hiv_status",                          default: false
+    t.boolean  "can_view_dmh_status",                          default: false
+    t.boolean  "can_view_imports",                             default: false
+    t.boolean  "can_edit_roles",                               default: false
+    t.boolean  "can_view_projects",                            default: false
+    t.boolean  "can_edit_projects",                            default: false
+    t.boolean  "can_edit_project_groups",                      default: false
+    t.boolean  "can_view_organizations",                       default: false
+    t.boolean  "can_edit_organizations",                       default: false
+    t.boolean  "can_edit_data_sources",                        default: false
+    t.boolean  "can_view_client_window",                       default: false
+    t.boolean  "can_upload_hud_zips",                          default: false
+    t.boolean  "can_edit_translations",                        default: false
+    t.boolean  "can_manage_assessments",                       default: false
+    t.boolean  "can_edit_anything_super_user",                 default: false
+    t.boolean  "can_manage_client_files",                      default: false
+    t.boolean  "can_manage_window_client_files",               default: false
+    t.boolean  "can_manage_config",                            default: false
+    t.boolean  "can_edit_dq_grades",                           default: false
+    t.boolean  "can_view_vspdat",                              default: false
+    t.boolean  "can_edit_vspdat",                              default: false
+    t.boolean  "can_administer_health",                        default: false
+    t.boolean  "can_edit_client_health",                       default: false
+    t.boolean  "can_view_client_health",                       default: false
+    t.boolean  "health_role",                                  default: false, null: false
+    t.boolean  "can_view_aggregate_health",                    default: false
+    t.boolean  "can_create_clients",                           default: false
+    t.boolean  "can_view_client_history_calendar",             default: false
+    t.boolean  "can_search_window",                            default: false
+    t.boolean  "can_see_own_file_uploads",                     default: false
+    t.boolean  "can_submit_vspdat",                            default: false
+    t.boolean  "can_edit_client_notes",                        default: false
+    t.boolean  "can_edit_window_client_notes",                 default: false
+    t.boolean  "can_see_own_window_client_notes",              default: false
+    t.boolean  "can_manage_cohorts",                           default: false
+    t.boolean  "can_edit_cohort_clients",                      default: false
+    t.boolean  "can_assign_users_to_clients",                  default: false
+    t.boolean  "can_view_client_user_assignments",             default: false
+    t.boolean  "can_export_hmis_data",                         default: false
+    t.boolean  "can_confirm_housing_release",                  default: false
+    t.boolean  "can_track_anomalies",                          default: false
+    t.boolean  "can_view_all_reports",                         default: false
+    t.boolean  "can_assign_reports",                           default: false
+    t.boolean  "can_view_assigned_reports",                    default: false
+    t.boolean  "can_edit_assigned_cohorts",                    default: false
+    t.boolean  "can_view_assigned_cohorts",                    default: false
+    t.boolean  "can_manage_organization_users",                default: false
+    t.boolean  "can_manage_health_agency",                     default: false, null: false
+    t.boolean  "can_view_project_data_quality_client_details", default: false
+    t.boolean  "can_add_administrative_event",                 default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -287,13 +301,13 @@ ActiveRecord::Schema.define(version: 20180413221626) do
   add_index "user_roles", ["user_id"], name: "index_user_roles_on_user_id", using: :btree
 
   create_table "users", force: :cascade do |t|
-    t.string   "last_name",                                         null: false
-    t.string   "email",                                             null: false
-    t.string   "encrypted_password",                default: "",    null: false
+    t.string   "last_name",                                               null: false
+    t.string   "email",                                                   null: false
+    t.string   "encrypted_password",                default: "",          null: false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
-    t.integer  "sign_in_count",                     default: 0,     null: false
+    t.integer  "sign_in_count",                     default: 0,           null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
     t.inet     "current_sign_in_ip"
@@ -304,11 +318,11 @@ ActiveRecord::Schema.define(version: 20180413221626) do
     t.string   "unconfirmed_email"
     t.string   "invitation_token"
     t.datetime "invitation_created_at"
-    t.integer  "failed_attempts",                   default: 0,     null: false
+    t.integer  "failed_attempts",                   default: 0,           null: false
     t.string   "unlock_token"
     t.datetime "locked_at"
-    t.datetime "created_at",                                        null: false
-    t.datetime "updated_at",                                        null: false
+    t.datetime "created_at",                                              null: false
+    t.datetime "updated_at",                                              null: false
     t.datetime "deleted_at"
     t.string   "first_name"
     t.datetime "invitation_sent_at"
@@ -322,7 +336,9 @@ ActiveRecord::Schema.define(version: 20180413221626) do
     t.string   "agency"
     t.boolean  "notify_on_vispdat_completed",       default: false
     t.boolean  "notify_on_client_added",            default: false
-    t.boolean  "notify_on_anomaly_identified",      default: false, null: false
+    t.boolean  "notify_on_anomaly_identified",      default: false,       null: false
+    t.string   "coc_codes",                         default: [],                       array: true
+    t.string   "email_schedule",                    default: "immediate", null: false
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree

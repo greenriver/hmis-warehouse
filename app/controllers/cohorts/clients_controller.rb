@@ -18,6 +18,9 @@ module Cohorts
     # Return a json object of {cohort_client.id : updated_at}
     # for easy poling
     def index
+      # Never let the browser cache this response
+      expires_now()
+
       respond_to do |format|
         format.json do
           if params[:content].present?
@@ -31,6 +34,7 @@ module Cohorts
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
             end
             @cohort_clients = @cohort_clients.
+              order(id: :asc).
               preload(:cohort_client_notes, client: :processed_service_history).
               page(params[:page].to_i).per(params[:per].to_i)
 
@@ -113,6 +117,7 @@ module Cohorts
       @filter = ::Filters::Chronic.new(params[:filter])
       @population = params[:population]
       @actives = actives_params()
+      @client_ids = params[:batch].try(:[], :client_ids)
 
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
@@ -141,14 +146,12 @@ module Cohorts
             send(@population).select(c_t[:id])
         @clients = client_scope.
           where(id: enrollment_query).distinct
+
       elsif @actives
-        @clients = client_scope.joins(:processed_service_history).
-          where(
-            GrdaWarehouse::ServiceHistoryEnrollment.where(
-              she_t[:client_id].eq(wcp_t[:client_id])
-            ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end]).
-            exists
-          ).distinct
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.where(
+            she_t[:client_id].eq(wcp_t[:client_id])
+          ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end])
+        @clients = client_scope.joins(:processed_service_history).distinct
           if @actives[:limit_to_last_three_years] == '1'
             @clients = @clients.where(
               wcp_t[:days_homeless_last_three_years].gteq(@actives[:min_days_homeless])
@@ -156,7 +159,29 @@ module Cohorts
           else
             @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
           end
+          
+          if @actives[:actives_population].present?
+            population = @actives[:actives_population]
+            # Force service to fall within the correct age ranges for some populations
+            service_scope = :current_scope
+            if ['youth', 'children'].include? population 
+              service_scope = population
+            elsif population == 'parenting_children'
+              service_scope = :children
+            elsif population == 'parenting_youth'
+              service_scope = :youth
+            end
 
+            enrollment_scope = enrollment_scope.with_service_between(
+              start_date: @actives[:start], 
+              end_date: @actives[:end], 
+              service_scope: service_scope
+            ).send(population)
+          end
+          @clients = @clients.where(enrollment_scope.exists)
+      elsif @client_ids.present?
+        @client_ids = @client_ids.strip.split(/\s+/).map{|m| m[/\d+/].to_i}
+        @clients = client_scope.where(id: @client_ids)
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
@@ -305,7 +330,8 @@ module Cohorts
         :start,
         :end,
         :min_days_homeless,
-        :limit_to_last_three_years
+        :limit_to_last_three_years,
+        :actives_population
       )
     end
 

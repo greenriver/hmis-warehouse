@@ -2,13 +2,16 @@
   %h3 VI-SPDAT Related
 
   %dl.o-list--featured.row
-    .col-sm-6
+    .col-sm-4
       %dt Days homeless in past 3 years, HMIS Based
       %dd= @client.days_homeless_in_last_three_years
 
-    .col-sm-6
+    .col-sm-4
       %dt Days reported on VI-SPDAT
       %dd= @client.most_recent_vispdat_length_homeless_in_days
+    .col-sm-4
+      %dt Prioritized VI-SPDAT Score
+      %dd= @client.calculate_vispdat_priority_score
 
   .row
     .col-sm-4

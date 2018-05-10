@@ -1,7 +1,18 @@
-= search_form_for @q, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
-  %h3
-    Search Clients
-  .input-group{style: 'margin-bottom: 20px;'}
-    = f.search_field :full_text_search, label: false, class: 'form-control'
-    %span.input-group-btn
-      %button.btn.btn-default{type: :submit} Search
+.panel.panel-default
+  .panel-heading
+    .row
+      .col-xs-8
+        %h4.panel-title
+          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
+            Search clients
+      .col-xs-4.text-right
+        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
+          %i.icon-arrow-circled-right
+          %i.icon-arrow-circled-down.hide
+  #search.panel-collapse.collapse
+    .panel-body
+      = search_form_for @q, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+        .input-group{style: 'margin-bottom: 20px;'}
+          = f.search_field :full_text_search, label: false, class: 'form-control'
+          %span.input-group-btn
+            %button.btn.btn-default{type: :submit} Search

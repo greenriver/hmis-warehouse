@@ -53,7 +53,7 @@ module Importing
       end
       GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
       # Make sure there are no unprocessed invalidated enrollments
-      GrdaWarehouse::Hud::Enrollment.where(processed_as: nil).pluck(:id).each_slice(250) do |batch|
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
       # GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!

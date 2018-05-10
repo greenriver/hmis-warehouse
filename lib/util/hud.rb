@@ -586,6 +586,22 @@ module HUD
 
     _translate map, id, reverse
   end
+  def residence_prior_length_of_stay_brief(id, reverse=false)
+    map = {
+      2 => '7-30',
+      3 => '30-90',
+      4 => '90-365',
+      5 => '365+',
+      8 => '',
+      9 => '',
+      10 => '0-7',
+      11 => '0-7',
+      99 => '',
+    }
+
+    _translate map, id, reverse
+  end
+
 
   # 3.917.4
   def times_homeless_past_three_years(id, reverse=false)
@@ -597,6 +613,19 @@ module HUD
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
+    }
+
+    _translate map, id, reverse
+  end
+  def times_homeless_past_three_years_brief(id, reverse=false)
+    map = {
+      1 => '1',
+      2 => '2',
+      3 => '3',
+      4 => '4+',
+      8 => '',
+      9 => '',
+      99 => '',
     }
 
     _translate map, id, reverse
@@ -621,6 +650,28 @@ module HUD
       111 => '11',
       112 => '12',
       113 => 'More than 12 months',
+    }
+
+    _translate map, id, reverse
+  end
+  def months_homeless_past_three_years_brief(id, reverse=false)
+    map = {
+      8 => '',
+      9 => '',
+      99 => '',
+      101 => '0-1',
+      102 => '2',
+      103 => '3',
+      104 => '4',
+      105 => '5',
+      106 => '6',
+      107 => '7',
+      108 => '8',
+      109 => '9',
+      110 => '10',
+      111 => '11',
+      112 => '12',
+      113 => '12+',
     }
 
     _translate map, id, reverse
