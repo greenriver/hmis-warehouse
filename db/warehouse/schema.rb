@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180509174652) do
+ActiveRecord::Schema.define(version: 20180510002556) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -781,6 +781,7 @@ ActiveRecord::Schema.define(version: 20180509174652) do
     t.boolean  "notification_trigger", default: false
     t.boolean  "consent_form",         default: false
     t.string   "note"
+    t.boolean  "full_release",         default: false, null: false
   end
 
   create_table "cas_houseds", force: :cascade do |t|
@@ -1146,7 +1147,6 @@ ActiveRecord::Schema.define(version: 20180509174652) do
     t.boolean  "consent_form_confirmed"
     t.float    "size"
     t.date     "effective_date"
-    t.string   "consent_type"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree

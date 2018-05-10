@@ -43,7 +43,6 @@ module Window::Clients
           visible_in_window: window_visible?(allowed_params[:visible_in_window]),
           effective_date: allowed_params[:effective_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
-          consent_type: allowed_params[:consent_type],
         }
         
         @file.assign_attributes(attrs)
@@ -144,7 +143,6 @@ module Window::Clients
           :visible_in_window,
           :consent_form_signed_on,
           :consent_form_confirmed,
-          :consent_type,
           :effective_date,
           :tag_list,
         )

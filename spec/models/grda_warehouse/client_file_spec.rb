@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::ClientFile, type: :model do
 
   describe 'Creating a client file' do
-    let!(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form' }
+    let!(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full: true }
     let!(:other_tag) { create :available_file_tag, consent_form: false, name: 'Other Tag' }
     let(:file) { create :client_file, effective_date: 5.days.ago }
     let(:second_file) { create :client_file, effective_date: 3.days.ago, client: file.client }
@@ -75,7 +75,32 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
             it 'changes the client consent_form_signed_on' do
               expect(second_file.client.reload.consent_form_signed_on).to eq(second_file.effective_date)
             end
+            describe 'when the new consent form is un-confirmed' do
+              before :each do
+                second_file.update(consent_form_confirmed: false)
+              end
+              it 'the client release remains valid' do
+                expect(second_file.client.consent_form_valid?).to be true
+              end
+              describe 'when the new consent type is set to not signed' do
+                before :each do
+                  second_file.update(consent_type: nil)
+                end
+                it 'the client  release remains valid' do
+                  expect(second_file.client.consent_form_valid?).to be true
+                end
+                describe 'when the original consent is un-confirmed' do
+                  before :each do
+                    file.update(consent_form_confirmed: false)
+                  end
+                  it 'the client release should no longer be valid' do
+                    expect(file.client.consent_form_valid?).to be false
+                  end           
+                end
+              end
+            end
           end
+
         end
 
         # describe 'when a new consent form is uploaded that is confirmed' do

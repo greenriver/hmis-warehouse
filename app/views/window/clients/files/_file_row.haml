@@ -35,11 +35,7 @@
         = file.consent_form_signed_on
     - if consent
       %td.text-center
-        - if can_confirm_housing_release?
-          = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
-            = f.input :consent_type, collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed',  label: false, input_html: { class: 'submit-on-change' }
-        - else
-          = file.consent_type
+        = file.consent_type
       %td.text-center
         - if can_confirm_housing_release?
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|

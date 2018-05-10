@@ -26,7 +26,7 @@ module WarehouseReports
     def update_clients
       to_confirm = params[:clients].try(:[], :confirm_consent).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
       to_activate_in_cas = params[:clients].try(:[], :active_in_cas).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
-      release_statuses = params[:clients].try(:[], :housing_release_status).map{|id,v| [id.to_i, v]} rescue []
+
       if to_confirm.any?
         to_confirm.each do |file_id|
           form = consent_form_source.
@@ -40,12 +40,6 @@ module WarehouseReports
         client_source.where(id: to_activate_in_cas).update_all(sync_with_cas: true)
       end
 
-      release_statuses.each do |file_id, release_status|
-        release_status = nil if release_status.blank?
-        file = consent_form_source.find(file_id)
-        Rails.logger.debug "CONSENTFORM: #{file.id} #{file.consent_type} -> #{release_status}"
-        file.update(consent_type: release_status)
-      end
       flash[:notice] = "Clients updated"
       redirect_to warehouse_reports_consent_index_path
     end

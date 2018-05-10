@@ -55,9 +55,9 @@
               %td.text-center
                 = link_to preview_client_file_path(client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.consent_form_signed_on&.to_date || 'Not signed'
+              
+              %td= file.consent_type
               - if current_user.can_confirm_housing_release?
-                %td
-                  = f.input "[housing_release_status][#{file.id}]", collection: GrdaWarehouse::Hud::Client.housing_release_options.map{|m| [_(m), m]}, include_blank: 'Not Signed', label: false, selected: file.consent_type
                 %td.text-center
                   = f.input "[confirm_consent][#{file.id}]", as: :boolean, label: false, input_html: {class: 'jConsent'}
                 %td{colspan: columns_to_skip}
