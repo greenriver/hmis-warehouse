@@ -56,6 +56,16 @@ module CombinedClientPathsGenerator
     end
     helper_method :vispdats_path_generator
 
+    def self_sufficiency_matrix_forms_path_generator
+      health_path_generator + [:self_sufficiency_matrix_forms]
+    end
+    helper_method :self_sufficiency_matrix_forms_path_generator
+
+    def self_sufficiency_matrix_form_path_generator
+      health_path_generator + [:self_sufficiency_matrix_form]
+    end
+    helper_method :self_sufficiency_matrix_form_path_generator
+
     def edit_cas_readiness_path_generator
       [:edit] + client_path_generator + [:cas_readiness]
     end

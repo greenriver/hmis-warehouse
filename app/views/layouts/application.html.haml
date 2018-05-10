@@ -68,5 +68,5 @@
     = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js') if Rails.env.development?
 
     = yield :page_js
-    - if current_user
+    - if current_user && !Rails.env.development?
       = auto_session_timeout_js(frequency: 60)

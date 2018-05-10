@@ -45,6 +45,7 @@
 //= require pjax-modals
 //= require util
 //= require site_menu
+//= require ssm
 //= require vispdats
 //= require files
 //= require_directory ./census
