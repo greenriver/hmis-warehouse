@@ -138,7 +138,6 @@ group :development do
   gem 'html2haml'
   gem 'brakeman', require: false
   gem 'bundler-audit', require: false
-  gem 'capistrano', '~> 3.6.1'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
   gem 'capistrano-passenger'

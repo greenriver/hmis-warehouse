@@ -1,15 +1,7 @@
-require 'net/sftp'
 require 'csv'
-# Fix for bug in imap date conversion
-# https://github.com/gmailgem/gmail/issues/228
-class Object
-  def to_imap_date
-    date = respond_to?(:utc) ? utc.to_s : to_s
-    Date.parse(date).strftime('%d-%b-%Y')
-  end
-end
+
 module EtoApi::Tasks
-  class UpdateClientLookupViaSftp < UpdateClientLookup
+  class UpdateClientLookupViaLocal < UpdateClientLookup
     include TsqlImport
     attr_accessor :logger
 
@@ -44,15 +36,9 @@ module EtoApi::Tasks
     protected def fetch_most_recent_mapping_file data_source
       connection_info = @config[data_source.short_name]
       return unless connection_info['api_match_file'].present?
-      sftp = Net::SFTP.start(
-        connection_info['host'], 
-        connection_info['username'],
-        password: connection_info['password'],
-        # verbose: :debug,
-        auth_methods: ['publickey','password']
-      )
-      file_path = connection_info['api_match_file']
-      sftp.download!(file_path)
+      # This file must be manually placed in var/
+      file_path = File.join('var', File.basename(connection_info['api_match_file']))
+      File.read(file_path)
     end
   end
 end

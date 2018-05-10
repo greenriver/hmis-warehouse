@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
     include ApplicationHelper
     include HudSharedScopes
     include HudChronicDefinition
+    include Eto::TouchPoints
 
     has_many :client_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
@@ -109,12 +110,6 @@ module GrdaWarehouse::Hud
     has_many :direct_employment_educations, **hud_many(EmploymentEducation), inverse_of: :direct_client
     # End cleanup relationships
 
-    has_many :client_attributes_defined_text, class_name: GrdaWarehouse::HMIS::ClientAttributeDefinedText.name, inverse_of: :client
-    has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name
-    has_many :non_confidential_hmis_forms, -> do
-      joins(:hmis_forms).where(id: GrdaWarehouse::HmisForm.window.non_confidential.select(:id))
-    end, class_name: GrdaWarehouse::HmisForm.name
-
     has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
@@ -142,12 +137,7 @@ module GrdaWarehouse::Hud
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
-    has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
-    has_many :case_management_notes, -> { where(name: 'SDH Case Management Note')}, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
-    has_many :health_touch_points, -> do
-      hmisf_t = GrdaWarehouse::HmisForm.arel_table
-      where(hmisf_t[:collection_location].matches('Social Determinants of Health%'))
-    end, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
+    
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client

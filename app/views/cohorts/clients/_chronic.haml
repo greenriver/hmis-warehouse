@@ -1,20 +1,33 @@
-= simple_form_for @filter, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
-  = f.error_notification
-  .row
-    .col-sm-3
-      = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'select2 jFilterOn'}
-    .col-sm-2
-      = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
-    .col-sm-3
-      = f.input :min_days_homeless, label: 'Min. Days Homeless', as: :integer, class: 'form-control'
-    .col-sm-4
-      = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
-      = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
-      = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00'}
-  .row
-    .col-sm-4
-      = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false
-    .col-sm-4.text-right
-      %label.control-label &nbsp;
-      %div
-        = f.button :submit, value: 'Search'
+.panel.panel-default
+  .panel-heading
+    .row
+      .col-xs-8
+        %h4.panel-title
+          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#chronic'}
+            Pick from chronic lists
+      .col-xs-4.text-right
+        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#chronic'}
+          %i.icon-arrow-circled-right
+          %i.icon-arrow-circled-down.hide
+  #chronic.panel-collapse.collapse
+    .panel-body
+      = simple_form_for @filter, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+        = f.error_notification
+        .row
+          .col-sm-3
+            = f.input :on, collection: @filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'select2 jFilterOn'}
+          .col-sm-2
+            = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
+          .col-sm-3
+            = f.input :min_days_homeless, label: 'Min. Days Homeless', as: :integer, class: 'form-control'
+          .col-sm-4
+            = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
+            = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
+            = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'margin-bottom-00'}
+        .row
+          .col-sm-4
+            = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false
+          .col-sm-4.text-right
+            %label.control-label &nbsp;
+            %div
+              = f.button :submit, value: 'Search'

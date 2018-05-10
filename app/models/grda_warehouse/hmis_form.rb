@@ -27,6 +27,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(arel_table[:collection_location].matches('Social Determinants of Health%'))
   end
 
+  scope :newest_first, -> do
+    order(collected_at: :desc)
+  end
+
   def primary_language
     return 'Unknown' unless answers.present?
     answers = self.answers.with_indifferent_access
@@ -42,7 +46,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     name == 'Triage Assessment'
   end
 
-  # a display order we use on the client rollups page
+  # a display order we use on the client dashboard
   def <=>(other)
     if triage? ^ other.triage?
       return triage? ? -1 : 1

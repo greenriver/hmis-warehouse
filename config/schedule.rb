@@ -29,7 +29,7 @@ if environment == 'production'
   end
 
   every 4.hours do
-    rake "grda_warehouse:save_service_history_snapshots"
+    # rake "grda_warehouse:save_service_history_snapshots"
   end
 
   every 1.day, at: '4:00 am' do
@@ -39,13 +39,13 @@ if environment == 'production'
   # These only happen in some scenarios
   if ENV['ETO_API_SITE1'] != 'unknown'
     every 1.day, at: '4:00 pm' do
-      rake "eto:import:demographics"
+      rake "eto:import:update_ids_and_demographics"
     end
   end
 
-  if ENV['BOSTON_ETO_S3_REGION'] != nil
+  if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
     every 1.day, at: '5:30 pm' do
-      rake "grda_warehouse:import_data_sources_s3['hmis_611']"
+      rake "grda_warehouse:import_data_sources_s3[hmis_611]"
     end
   end
 
