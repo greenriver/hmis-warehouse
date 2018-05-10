@@ -1,8 +1,6 @@
 module Health
   class SelfSufficiencyMatrixForm < HealthBase
 
-    validates :housing_score, presence: true
-
     SECTIONS = {
       housing: {
         1 => "Homeless or threatened with eviction. (in-crisis)",
