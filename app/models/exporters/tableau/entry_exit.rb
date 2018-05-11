@@ -110,6 +110,7 @@ module Exporters::Tableau::EntryExit
       client_ids = data.map{|row| row['client_uid']}.uniq
       dobs = c_t.engine.where(id: client_ids).pluck(:id, :DOB).to_h
       clients = GrdaWarehouse::Hud::Client.where( id: client_ids ).index_by(&:id)
+      ph_th = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       data.group_by do |row| 
         row['id'] 
       end.each do |_, (*,row)| # use only the most recent disability record
@@ -218,7 +219,7 @@ module Exporters::Tableau::EntryExit
             end
           when :chronic
             client = clients[row['client_uid'].to_i]
-            client.hud_chronic?( on_date: row['entry_exit_entry_date'] ) ? 't' : 'f'
+            client.hud_chronic?( on_date: row['entry_exit_entry_date'].to_date ) ? 't' : 'f'
 
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
@@ -234,19 +235,50 @@ module Exporters::Tableau::EntryExit
             has_income ? 't' : 'f'
           when :days_to_return
             # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a
-            if ::HUD.permanent_destinations.include? row['destination']
+            # nil - no exit
+            # positive number = days to return
+            # -1 = no return
+            if ::HUD.permanent_destinations.include? row['destination'].to_i
               # select all residential enrollments where the entry date is greater than this exit date
               # if the next enrollment is TH it must be > 14 days after exit to count
               # if the next enrollment is PH it must be > 14 days after exit AND 14 days after any other PH or TH exits 
-              exit_date = row['entry_exit_exit_date']
+              exit_date = row['entry_exit_exit_date'].to_date
               newer_residential_enrollments = data.select do |enrollment|
-                enrollment['client_id'] == row['client_id'] && 
-                GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.include?(enrollment['prog_type']) &&
+                enrollment['client_uid'] == row['client_uid'] && 
+                GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(enrollment['prog_type'].to_i) &&
                 enrollment['entry_exit_entry_date'].to_date > exit_date
               end.sort_by do |enrollment|
                 enrollment['entry_exit_entry_date']
               end
-              binding.pry
+              if newer_residential_enrollments.size == 0
+                -1
+              else
+                next_enrollment = newer_residential_enrollments.first
+                next_entry_date = next_enrollment['entry_exit_entry_date'].to_date
+                if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(next_enrollment['prog_type'].to_i)
+                  if next_entry_date > exit_date + 14.days
+                    (next_entry_date - exit_date).to_i
+                  end
+                elsif  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(next_enrollment['prog_type'].to_i)
+                  if next_entry_date > exit_date + 14.days
+                    # there are no other TH or PH (this is the only newer enrollment)
+                    if newer_residential_enrollments.size == 1
+                      (next_entry_date - exit_date).to_i
+                    else
+                      max_other_ph_th_exit_dates = newer_residential_enrollments.drop(1).select do |enrollment|
+                        ph_th.include?(enrollment['prog_type'].to_i)
+                      end.map do |enrollment|
+                        enrollment['entry_exit_exit_date'].to_date
+                      end.compact.max
+                      if next_entry_date > max_other_ph_th_exit_dates + 14.days
+                        (next_entry_date - exit_date).to_i
+                      end
+                    end
+                  end
+                else # Not TH or PH
+                  (next_entry_date - exit_date).to_i
+                end
+              end
             end
           when :rrh_time_in_shelter
             # only calculate for RRH
