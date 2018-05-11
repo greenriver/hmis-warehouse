@@ -159,8 +159,8 @@ module Cohorts
           else
             @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
           end
-          
-          if @actives[:actives_population].present?
+
+          if @actives.key? :actives_population
             population = @actives[:actives_population]
             # Force service to fall within the correct age ranges for some populations
             service_scope = :current_scope
@@ -170,15 +170,22 @@ module Cohorts
               service_scope = :children
             elsif population == 'parenting_youth'
               service_scope = :youth
+            elsif population == 'individual_adult'
+              service_scope = :adult
             end
 
             enrollment_scope = enrollment_scope.with_service_between(
               start_date: @actives[:start], 
               end_date: @actives[:end], 
               service_scope: service_scope
-            ).send(population)
+            )
+            if @actives[:actives_population].present?
+              enrollment_scope = enrollment_scope.send(population)
+            end
           end
-          @clients = @clients.where(enrollment_scope.exists)
+          # Active record seems to have trouble with the complicated nature of this scope
+          @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
+          
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map{|m| m[/\d+/].to_i}
         @clients = client_scope.where(id: @client_ids)
