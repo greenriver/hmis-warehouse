@@ -20,7 +20,7 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name],
         _prov_id:                         she_t[:project_id],
         prog_type:                        she_t[model.project_type_column],
-        prov_jurisdiction:                site_t[:City],
+        coc_code:                         ec_t[:CoCCode],
         entry_exit_entry_date:            she_t[:first_date_in_program],
         entry_exit_exit_date:             she_t[:last_date_in_program],
         client_dob:                       nil,
@@ -34,7 +34,6 @@ module Exporters::Tableau::EntryExit
         **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
         disabling_condition:              nil,
         any_income_30days:                nil,
-        county_homeless:                  nil, # ???
         res_prior_to_entry:               e_t[:ResidencePrior],
         length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
         approx_date_homelessness_started: e_t[:DateToStreetESSH],
@@ -47,25 +46,16 @@ module Exporters::Tableau::EntryExit
         less_than_7_nights:               nil, 
         less_than_90_days:                nil, 
         movein_date:                      e_t[:ResidentialMoveInDate],
-        chronic:                          nil,
-        # service_uid:                      nil, # Collected from service history
-        # service_inactive:                 nil, # Collected from service history
-        # service_code_desc:                nil, # Collected from service history
-        # service_start_date:               nil, # Collected from service history
-        # after this point in the sample data everything is NULL
-        entry_exit_uid_1:                 null,
-        days_to_return:                   null, # ???
-        entry_exit_uid_2:                 null, # REPEAT
-        days_last3years:                  null,
-        # instances_last3years:             null,
-        entry_exit_uid_3:                 null, # REPEAT
-        rrh_time_in_shelter:              null, # ???
+        chronic:                          nil, # at enrollment start
+        days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a
+        rrh_time_in_shelter:              nil, # ???
+        _date_to_street_es_sh:            nil,
       }
 
       scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-        joins( project: :sites, enrollment: :client ).
+        joins( project: :sites, enrollment: [:client, :enrollment_coc_at_entry]).
         includes(enrollment: :exit).
         references(enrollment: :exit).
         # for aesthetics
@@ -204,8 +194,6 @@ module Exporters::Tableau::EntryExit
             dobs[row['client_uid']]
           when :veteran_status
             value&.to_i == 1 ? 't' : 'f'
-          # when :gender
-          #   ::HUD.gender value&.to_i
           when :hispanic_latino
             case value&.to_i
             when 1 then 't'
@@ -228,29 +216,10 @@ module Exporters::Tableau::EntryExit
             else
               'f'
             end
-          # when :res_prior_to_entry
-          #   ::HUD.living_situation value&.to_i
-          # when :length_of_stay_prev_place
-          #   ::HUD.residence_prior_length_of_stay_brief value&.to_i
-          # when :destination
-          #   ::HUD.destination value&.to_i
-          # when :tracking_method
-          #   ::HUD.tracking_method value&.to_i
           when :chronic
             client = clients[row['client_uid'].to_i]
-            client.hud_chronic?( on_date: start_date ) ? 't' : 'f'
-          # when :service_uid
-          #   ids = service_history.map{ |hash| hash[h] }
-          #   "{#{ ids.join ';' }}"
-          # when :service_inactive
-          #   ids = service_history.map{ |hash| 'f' }
-          #   "{#{ ids.join ',' }}"
-          # when :service_code_desc
-          #   descs = service_history.map{ |hash| ::HUD.record_type hash[h].presence&.to_i }
-          #   "{#{ descs.join ',' }}"
-          # when :service_start_date
-          #   dates = service_history.map{ |hash| hash[h].presence&.strftime('%F') }
-          #   "{#{ dates.join ',' }}"
+            client.hud_chronic?( on_date: row['entry_exit_entry_date'] ) ? 't' : 'f'
+
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
               where( 
@@ -263,6 +232,27 @@ module Exporters::Tableau::EntryExit
               where( ib_t[:InformationDate].lt end_date ).
               exists?
             has_income ? 't' : 'f'
+          when :days_to_return
+            # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a
+            if ::HUD.permanent_destinations.include? row['destination']
+              # select all residential enrollments where the entry date is greater than this exit date
+              # if the next enrollment is TH it must be > 14 days after exit to count
+              # if the next enrollment is PH it must be > 14 days after exit AND 14 days after any other PH or TH exits 
+              exit_date = row['entry_exit_exit_date']
+              newer_residential_enrollments = data.select do |enrollment|
+                enrollment['client_id'] == row['client_id'] && 
+                GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.include?(enrollment['prog_type']) &&
+                enrollment['entry_exit_entry_date'].to_date > exit_date
+              end.sort_by do |enrollment|
+                enrollment['entry_exit_entry_date']
+              end
+              binding.pry
+            end
+          when :rrh_time_in_shelter
+            # only calculate for RRH
+            if row['prog_type'] == 13 && row['_date_to_street_es_sh'].present?
+              (row['entry_exit_entry_date'].to_date - row['_date_to_street_es_sh'].to_date).to_i rescue nil
+            end
           else
             value
           end

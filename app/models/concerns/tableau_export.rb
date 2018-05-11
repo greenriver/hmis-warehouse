@@ -42,10 +42,6 @@ module TableauExport
       model = she_t.engine
       spec = {
         client_uid:  she_t[:client_id],
-        is_family:   she_t[:presented_as_individual],
-        is_veteran:  c_t[:VeteranStatus],
-        is_youth:    she_t[:age],
-        is_chronic:  c_t[:id],
         hh_config:   she_t[:presented_as_individual],
         prog:        she_t[she_t.engine.project_type_column],
         entry:       she_t[:first_date_in_program],
@@ -80,7 +76,7 @@ module TableauExport
       # each enrollment is represented by a set of the repeater headers suffixed with a one-based index
       # we collect the rows and then pad them with nils, as needed so they are all the same width
       paths = model.connection.select_all(paths.to_sql)
-      clients = GrdaWarehouse::Hud::Client.where( id: paths.map{ |h| h['is_chronic'] }.uniq ).index_by(&:id)
+
       paths = paths.group_by{ |h| h['client_uid'] }
       max_entries = 1
       rows = []
@@ -92,13 +88,7 @@ module TableauExport
         non_repeaters.map do |h|
           value = path[h.to_s].presence
           value = case h
-          when :is_veteran
-            value.to_i == 1 ? 't' : 'f' if value
-          when :is_youth
-            value.to_i.in?(18..24) ? 't' : 'f' if value
-          when :is_chronic
-            client = clients[value.to_i]
-            client.hud_chronic?( on_date: start_date ) ? 't' : 'f'
+          
           when :hh_config
             value == 't' ? 'Single' : 'Family'
           else
