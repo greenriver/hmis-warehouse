@@ -6,20 +6,20 @@ module Exporters::Tableau::Vispdat
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       spec = {
         client_uid:               e_t[:PersonalID],
-        vispdat_1_recordset_id:   nil,
-        vispdat_1_provider:       nil,
-        vispdat_1_start_date:     nil,
-        vispdat_1_grand_total:    nil,
+        vispdat_1_recordset_id:   null,
+        vispdat_1_provider:       null,
+        vispdat_1_start_date:     null,
+        vispdat_1_grand_total:    null,
         vispdat_2_recordset_id:   enx_t[:id],
         vispdat_2_provider:       o_t[:OrganizationName],
         _pn:                      p_t[:ProjectName],
         _pid:                     p_t[:ProjectID],
         vispdat_2_start_date:     enx_t[:vispdat_started_at],
         vispdat_2_grand_total:    enx_t[:vispdat_grand_total],
-        vispdat_fam_recordset_id: nil,
-        vispdat_fam_provider:     nil,
-        vispdat_fam_start_date:   nil,
-        vispdat_fam_grand_total:  nil,
+        vispdat_fam_recordset_id: null,
+        vispdat_fam_provider:     null,
+        vispdat_fam_start_date:   null,
+        vispdat_fam_grand_total:  null,
       }
 
       model = enx_t.engine
