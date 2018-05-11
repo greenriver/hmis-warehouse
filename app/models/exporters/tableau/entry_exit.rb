@@ -50,6 +50,7 @@ module Exporters::Tableau::EntryExit
         days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a
         rrh_time_in_shelter:              nil, # ???
         _date_to_street_es_sh:            nil,
+        prior_es_enrollment_last3_count:  nil,
       }
 
       scope = model.in_project_type(project_types).entry.
@@ -268,9 +269,9 @@ module Exporters::Tableau::EntryExit
                       max_other_ph_th_exit_dates = newer_residential_enrollments.drop(1).select do |enrollment|
                         ph_th.include?(enrollment['prog_type'].to_i)
                       end.map do |enrollment|
-                        enrollment['entry_exit_exit_date'].to_date
+                        enrollment['entry_exit_exit_date']&.to_date
                       end.compact.max
-                      if next_entry_date > max_other_ph_th_exit_dates + 14.days
+                      if max_other_ph_th_exit_dates.present? && next_entry_date > max_other_ph_th_exit_dates + 14.days
                         (next_entry_date - exit_date).to_i
                       end
                     end
@@ -285,6 +286,14 @@ module Exporters::Tableau::EntryExit
             if row['prog_type'] == 13 && row['_date_to_street_es_sh'].present?
               (row['entry_exit_entry_date'].to_date - row['_date_to_street_es_sh'].to_date).to_i rescue nil
             end
+          when :prior_es_enrollment_last3_count
+            entry_date = row['entry_exit_entry_date'].to_date
+            three_years_prior = entry_date - 3.years
+            data.select do |enrollment|
+              enrollment['client_uid'] == row['client_uid'] && 
+              GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(enrollment['prog_type'].to_i) &&
+              (three_years_prior...entry_date).include?(enrollment['entry_exit_entry_date'].to_date)
+            end.count
           else
             value
           end

@@ -97,7 +97,7 @@ module TableauExport
           row << value
         end
 
-        paths.each_with_index do |path, i|
+        paths.first(3).each_with_index do |path, i|
           repeaters.each do |h|
             headers << "#{h}#{ i + 1 }".to_sym
             value = path[h.to_s].presence
