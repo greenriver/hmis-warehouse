@@ -9,48 +9,47 @@ module Exporters::Tableau::EntryExit
       spec = {
         data_source:                      she_t[:data_source_id],
         personal_id:                      c_t[:PersonalID],
-        client_uid:                       she_t[:client_id],
+        client_uid:                       she_t[:client_id], # in use
         id:                               she_t[:id],
-        entry_exit_uid:                   e_t[:id],
-        hh_uid:                           e_t[:HouseholdID],
-        group_uid:                        she_t[:enrollment_group_id],
-        head_of_household:                she_t[:head_of_household],
-        hh_config:                        she_t[:presented_as_individual],
-        rel_to_hoh:                       e_t[:RelationshipToHoH],
-        prov_id:                          she_t[:project_name],
-        _prov_id:                         she_t[:project_id],
-        prog_type:                        she_t[model.project_type_column],
-        coc_code:                         site_t[:CoCCode],
-        entry_exit_entry_date:            she_t[:first_date_in_program],
-        entry_exit_exit_date:             she_t[:last_date_in_program],
-        client_dob:                       c_t[:DOB],
-        client_age_at_entry:              she_t[:age],
-        client_6orunder:                  nil,
-        client_7to17:                     nil,
-        client_18to24:                    nil,
-        veteran_status:                   c_t[:VeteranStatus],
-        gender:                           c_t[:Gender],
+        entry_exit_uid:                   e_t[:id],  # in use
+        hh_uid:                           e_t[:HouseholdID], # in use
+        # group_uid:                        she_t[:enrollment_group_id],
+        # head_of_household:                she_t[:head_of_household],
+        hh_config:                        she_t[:presented_as_individual], # in use
+        rel_to_hoh:                       e_t[:RelationshipToHoH], # in use
+        prov_id:                          she_t[:project_name], # in use
+        _prov_id:                         she_t[:project_id], # in use
+        prog_type:                        she_t[model.project_type_column], # in use
+        coc_code:                         site_t[:CoCCode], # in use
+        entry_exit_entry_date:            she_t[:first_date_in_program], # in use
+        entry_exit_exit_date:             she_t[:last_date_in_program], # in use
+        client_age_at_entry:              she_t[:age], # in use
+        # client_6orunder:                  nil,
+        # client_7to17:                     nil,
+        # client_18to24:                    nil,
+        veteran_status:                   c_t[:VeteranStatus], # in use
+        gender:                           c_t[:Gender], # in use
         hispanic_latino:                  c_t[:Ethnicity],
-        **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky
-        disabling_condition:              nil,
-        any_income_30days:                nil,
+        **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky # in use
+        # disabling_condition:              nil,
+        # any_income_30days:                nil,
         res_prior_to_entry:               e_t[:ResidencePrior],
         length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
         approx_date_homelessness_started: e_t[:DateToStreetESSH],
         times_on_street:                  e_t[:TimesHomelessPastThreeYears],
         total_months_homeless_on_street:  e_t[:MonthsHomelessPastThreeYears],
-        destination:                      she_t[:destination],
+        destination:                      she_t[:destination], # in use
         destination_other:                ex_t[:OtherDestination],
         tracking_method:                  she_t[:project_tracking_method],
-        night_before_es_sh:               nil, 
-        less_than_7_nights:               nil, 
-        less_than_90_days:                nil, 
-        movein_date:                      e_t[:ResidentialMoveInDate],
-        chronic:                          nil, # at enrollment start
-        days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a
-        rrh_time_in_shelter:              nil, # ???
-        _date_to_street_es_sh:            nil,
-        prior_es_enrollment_last3_count:  nil,
+        # night_before_es_sh:               nil, 
+        # less_than_7_nights:               nil, 
+        # less_than_90_days:                nil, 
+        movein_date:                      e_t[:ResidentialMoveInDate], # in use
+        chronic:                          nil, # at enrollment start # in use
+        days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a # in use
+        rrh_time_in_shelter:              nil, # in use
+        _date_to_street_es_sh:            nil, # in use
+        prior_es_enrollment_last3_count:  nil, # in use
       }
 
       scope = model.in_project_type(project_types).entry.

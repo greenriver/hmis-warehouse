@@ -41,12 +41,12 @@ module TableauExport
       def pathways_common(start_date: default_start, end_date: default_end, coc_code: nil)
       model = she_t.engine
       spec = {
-        client_uid:  she_t[:client_id],
+        client_uid:  she_t[:client_id], # in use
         hh_config:   she_t[:presented_as_individual],
-        prog:        she_t[she_t.engine.project_type_column],
-        entry:       she_t[:first_date_in_program],
-        exit:        she_t[:last_date_in_program],
-        destination: she_t[:destination],
+        prog:        she_t[she_t.engine.project_type_column], # in use
+        entry:       she_t[:first_date_in_program], # in use
+        exit:        she_t[:last_date_in_program], # in use
+        destination: she_t[:destination], # in use
       }
       repeaters     = %i( prog entry exit destination )
       non_repeaters = spec.keys - repeaters
