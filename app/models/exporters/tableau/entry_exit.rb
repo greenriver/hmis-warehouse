@@ -7,12 +7,12 @@ module Exporters::Tableau::EntryExit
       model = she_t.engine
 
       spec = {
-        data_source:                      c_t[:data_source_id],
+        data_source:                      she_t[:data_source_id],
         personal_id:                      c_t[:PersonalID],
         client_uid:                       she_t[:client_id],
         id:                               she_t[:id],
         entry_exit_uid:                   e_t[:id],
-        hh_uid:                           she_t[:head_of_household_id],
+        hh_uid:                           e_t[:HouseholdID],
         group_uid:                        she_t[:enrollment_group_id],
         head_of_household:                she_t[:head_of_household],
         hh_config:                        she_t[:presented_as_individual],
@@ -20,10 +20,10 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name],
         _prov_id:                         she_t[:project_id],
         prog_type:                        she_t[model.project_type_column],
-        coc_code:                         ec_t[:CoCCode],
+        coc_code:                         site_t[:CoCCode],
         entry_exit_entry_date:            she_t[:first_date_in_program],
         entry_exit_exit_date:             she_t[:last_date_in_program],
-        client_dob:                       nil,
+        client_dob:                       c_t[:DOB],
         client_age_at_entry:              she_t[:age],
         client_6orunder:                  nil,
         client_7to17:                     nil,
@@ -56,9 +56,9 @@ module Exporters::Tableau::EntryExit
       scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-        joins( project: :sites, enrollment: [:client, :enrollment_coc_at_entry]).
-        includes(enrollment: :exit).
-        references(enrollment: :exit).
+        joins( project: :sites, enrollment: :client).
+        includes(enrollment: [:exit, :enrollment_coc_at_entry]).
+        references(enrollment: [:exit, :enrollment_coc_at_entry]).
         # for aesthetics
         order( she_t[:client_id].asc ).
         order( e_t[:id].asc ).
@@ -111,6 +111,9 @@ module Exporters::Tableau::EntryExit
       client_ids = data.map{|row| row['client_uid']}.uniq
       dobs = c_t.engine.where(id: client_ids).pluck(:id, :DOB).to_h
       clients = GrdaWarehouse::Hud::Client.where( id: client_ids ).index_by(&:id)
+      data_by_client = data.group_by do |row| 
+        row['client_uid'] 
+      end
       ph_th = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       data.group_by do |row| 
         row['id'] 
@@ -137,6 +140,8 @@ module Exporters::Tableau::EntryExit
           value = case h
           when :hh_config
             value == 't' ? 'Single' : 'Family'
+          when :hh_uid
+            "#{value}_#{row['_prov_id']}_#{row['data_source']}"
           # when :rel_to_hoh
           #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id
@@ -192,8 +197,6 @@ module Exporters::Tableau::EntryExit
             else 
               'f' 
             end
-          when :client_dob
-            dobs[row['client_uid']]
           when :veteran_status
             value&.to_i == 1 ? 't' : 'f'
           when :hispanic_latino
@@ -244,8 +247,7 @@ module Exporters::Tableau::EntryExit
               # if the next enrollment is TH it must be > 14 days after exit to count
               # if the next enrollment is PH it must be > 14 days after exit AND 14 days after any other PH or TH exits 
               exit_date = row['entry_exit_exit_date'].to_date
-              newer_residential_enrollments = data.select do |enrollment|
-                enrollment['client_uid'] == row['client_uid'] && 
+              newer_residential_enrollments = data_by_client[row['client_uid']].select do |enrollment|
                 GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(enrollment['prog_type'].to_i) &&
                 enrollment['entry_exit_entry_date'].to_date > exit_date
               end.sort_by do |enrollment|
@@ -289,8 +291,7 @@ module Exporters::Tableau::EntryExit
           when :prior_es_enrollment_last3_count
             entry_date = row['entry_exit_entry_date'].to_date
             three_years_prior = entry_date - 3.years
-            data.select do |enrollment|
-              enrollment['client_uid'] == row['client_uid'] && 
+            data_by_client[row['client_uid']].select do |enrollment|
               GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(enrollment['prog_type'].to_i) &&
               (three_years_prior...entry_date).include?(enrollment['entry_exit_entry_date'].to_date)
             end.count
