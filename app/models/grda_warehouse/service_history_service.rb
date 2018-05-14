@@ -33,7 +33,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
 
   scope :adult, -> do
-    where(she_t[:age].gteq(18))
+    where(age: (18..Float::INFINITY))
   end
 
   def self.project_type_column

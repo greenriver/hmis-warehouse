@@ -25,7 +25,7 @@
             = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}
           .col-sm-6
             Limit by population 
-            = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans', 'Individual Adults'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', include_blank: 'All Clients')
+            = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', include_blank: 'All Clients')
         .row
           .col-sm-8
             %p
