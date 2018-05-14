@@ -165,6 +165,8 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
+  gem 'test_after_commit'
+  gem 'after_commit_exception_notification'
 end
 
 group :development, :staging do

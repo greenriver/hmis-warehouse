@@ -14,4 +14,15 @@
   - else
     = _("You can only see files you upload.")
 = render 'download_warning'
-= render 'file_list'
+- if @client.client_files.any?
+  = render 'batch_download'
+  - if @consent_files.any?
+    .slab
+      %h4 Consent Forms
+      = render 'file_list', files: @consent_files, paginate: false, consent: true
+  - if @files.any?
+    .slab
+      %h4 Other Files
+      = render 'file_list', files: @files, paginate: true, consent: false
+- else
+  No file uploads

@@ -1,31 +1,27 @@
-- if @client.client_files.any?
-  .row.table-utilities
-    .col-sm-12
-      = render 'batch_download'
-      .table-responsive
-        %table.table.table-condensed.table-hover
-          %thead
-            %tr
-              %th.text-center Select
-              %th.text-center Preview
-              %th.text-center File
-              %th.text-center Document
-              %th.text-center Note
-              - if can_manage_client_files?
-                %th.text-center Visible in Window
-              %th.text-center Uploaded By
-              %th.text-center Uploaded On
-              %th.text-center 
-                Effective Date /
-                %br
-                Signed On
-              - if can_manage_client_files? 
-                %th.text-center Consent Confirmed
-              %th.text-center Delete
-            %tbody
-              - @files.each do |file|
-                = render 'file_row', file: file
-  %p= paginate @files
-  
-- else
-  No file uploads
+
+.table-responsive
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th.text-center Select
+        %th.text-center Preview
+        %th.text-center File
+        %th.text-center Document
+        %th.text-center Note
+        - if can_manage_client_files?
+          %th.text-center Visible in Window
+        %th.text-center Uploaded
+        %th.text-center 
+          Effective Date /
+          %br
+          Signed On
+        - if consent
+          %th.text-center Consent Type
+          %th.text-center Consent Confirmed
+        %th.text-center Delete
+      %tbody
+        - files.each do |file|
+          = render 'file_row', file: file, consent: consent
+- if paginate
+  %p= paginate(files)
+
