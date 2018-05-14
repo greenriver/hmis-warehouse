@@ -4,6 +4,7 @@ module CohortColumns
     include ActionView::Context
     include ApplicationHelper
     include Rails.application.routes.url_helpers
+    include ArelHelper
     attr_accessor :column, :title, :hint, :visible
     attribute :visible, Boolean, lazy: false, default: true
     attribute :input_type, String, lazy: true, default: -> (r,_) { r.default_input_type }
