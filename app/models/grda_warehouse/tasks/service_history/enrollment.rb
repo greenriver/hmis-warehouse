@@ -531,10 +531,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def street_outreach_acts_as_bednight?
-      @street_outreach_acts_as_bednight ||= services.joins(:project).where(
-        Services: {RecordType: 12}, 
-        Project: {ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]}
-      ).exists?
+      @street_outreach_acts_as_bednight ||= if project.so?
+          project.services.where(
+          Services: {RecordType: 12},
+        ).exists?
+        else
+          false
+        end
     end
 
     def build_for_dates
