@@ -48,7 +48,7 @@ task :group_writable do
     execute "chgrp --quiet ubuntu -R #{fetch(:deploy_to)} || echo ok"
   end
 end
-after 'passenger:restart', :group_writable
+after 'deploy:log_revision', :group_writable
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
