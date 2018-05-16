@@ -6,7 +6,8 @@
     .col-md-6
       %select.col-sm-12.new-assessment
         %option{ value: 0 } Add New...
-        %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
+        - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
+          %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
         %option{ value: '' } Comprehensive Health Assessment
 
   - if status = @client.api_status
