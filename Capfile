@@ -35,7 +35,3 @@ Dotenv.load('.env', '.env.local')
 
 # Load custom tasks from `lib/capistrano/tasks` if you have any defined
 Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }
-
-if ENV['DELAYED_JOB_SYSTEMD']!='true'
-  require 'capistrano/delayed_job'
-end
