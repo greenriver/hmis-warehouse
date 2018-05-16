@@ -5,10 +5,24 @@
       %h3.ho-patient__name
         = @patient.client.name
       .ho-patient__details
-        - @patient_summary[:details].each do |detail|
-          .ho-patient__detail
-            %span= "#{detail[0]}: "
-            = detail[1]
+        .row
+          .col-md-6
+            - @patient_summary[:details].each do |detail|
+              .ho-patient__detail
+                %span= "#{detail[0]}: "
+                = detail[1]
+
+          .col-md-6.text-right  
+            .row
+              .col-sm-6(style='white-space:nowrap')
+                PREFERRED COMMUNICATION:
+              .col-sm-6.text-left
+                (preference)
+                %br
+                (phone)
+                %br
+                (email)
+
     .ho-patient__content
       %h4
         Demographics
@@ -19,7 +33,16 @@
               %td
                 %small= "#{td[0]}: "
                 = td[1]
-      %h4 
-        Allergies
-      %p{style: 'padding-left: 10px;'}= @patient.allergy_list.presence || 'none'
+      .row
+        .col-sm-6
+          %h4 
+            Allergies
+        .col-sm-6
+          %h4
+            Advanced Directive
+      .row
+        .col-sm-6
+          = @patient.allergy_list.presence || 'none'
+        .col-sm-6
+          (provided by CHA)
 
