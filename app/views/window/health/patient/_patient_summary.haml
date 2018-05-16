@@ -3,7 +3,29 @@
   .ho-patient__container
     .ho-patient__header
       %h3.ho-patient__name
-        = @patient.client.name
+        .row
+          .col-sm-6
+            = @patient.client.name
+          .col-sm-6.text-right
+            .btn-group
+              %button{ type: 'button', class: 'btn btn-default dropdown-toggle', :'data-toggle' => 'dropdown' } 
+                Engagement Readiness & Forms
+                %span.caret
+              %ul.dropdown-menu
+                %li
+                  - if @patient.participation_forms.none?
+                    = link_to 'Participation Form', polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }
+                  - else 
+                    = link_to polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @patient.participation_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.o-color--positive
+                      Participation Form
+                %li
+                  %a.dropdown-item{ href: '#' } 
+                    .row
+                      .col-sm-6
+                        %span.icon-checkmark.o-color--positive
+                        Release of Information Form
+
       .ho-patient__details
         .row
           .col-md-6
@@ -14,7 +36,7 @@
 
           .col-md-6.text-right  
             .row
-              .col-sm-6(style='white-space:nowrap')
+              .col-sm-6.text-right
                 PREFERRED COMMUNICATION:
               .col-sm-6.text-left
                 (preference)
