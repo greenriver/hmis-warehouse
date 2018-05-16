@@ -3,7 +3,7 @@
   .row
     .col-md-6.col-lg-4
       .form-group
-        - [:us_citizen, :asylee, :ineligible_immigrant, :va_eligible, :lifetime_sex_offender, :meth_production_conviction, :family_member, :child_in_household, :cspech_eligible].sort.each do |column|
+        - GrdaWarehouse::Hud::Client.manual_cas_columns.sort.each do |column|
           = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
 
       .form-group
@@ -14,14 +14,14 @@
         - if can_view_dmh_status?
           = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
         = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
-
-      = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
+      .form-group
+        = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
     .col-md-6
       = render 'consent_form', f: f
 
-    .row.mb-4
-      .col-lg-8.col-xl-6
-        = render 'vispdat', f: f
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'vispdat', f: f
 
   = render 'window/clients/required_documents'
   = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f

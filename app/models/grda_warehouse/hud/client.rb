@@ -1055,6 +1055,16 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.manual_cas_columns
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on).
+        keys
+    end
+
+    def self.file_cas_columns
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible).
+        keys
+    end
+
     def self.housing_release_options
       options = [full_release_string]
       options << partial_release_string if GrdaWarehouse::Config.get(:allow_partial_release)
