@@ -1,0 +1,18 @@
+wb = xlsx_package.workbook
+style = {
+  sz: 12,
+  b: true,
+  alignment: { horizontal: :center }
+}
+wb.add_worksheet name: 'Organization' do |sheet|
+  title = sheet.styles.add_style **style
+  sheet.add_row ['Organization Name', 'OrganizationID', 'Data Source', 'Start', 'End'], style: title
+  sheet.add_row [@filter.organization.name, @filter.organization.OrganizationID, @filter.organization.data_source.name, l(@filter.start), l(@filter.end) ]
+end
+wb.add_worksheet name: 'Length of Stay' do |sheet|
+  # title = sheet.styles.add_style **style
+  # sheet.add_row %w(Program) + @headers, style: title
+  # @data.each do |project, hash|
+  #   sheet.add_row [project] + @headers.map{ |h| hash[h] }
+  # end
+end
