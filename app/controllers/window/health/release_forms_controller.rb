@@ -1,5 +1,5 @@
 module Window::Health
-  class ParticipationFormsController < ApplicationController
+  class ReleaseFormsController < ApplicationController
 
     include PjaxModalController
     include HealthPatient
@@ -11,14 +11,14 @@ module Window::Health
     before_action :set_form, only: [:show, :edit, :update]
 
     def new
-      @participation_form = @patient.participation_forms.build(case_manager: current_user)
+      @release_form = @patient.release_forms.build(user: current_user)
       render :new
     end
 
     def create
-      @participation_form = @patient.participation_forms.create(form_params)
-      @participation_form.save
-      respond_with @participation_form
+      @release_form = @patient.release_forms.create(form_params)
+      @release_form.save
+      respond_with @release_form
     end
 
     def show
@@ -30,27 +30,26 @@ module Window::Health
     end
     
     def update
-      @participation_form.update(form_params)
-      respond_with @participation_form, location: polymorphic_path(health_path_generator)
+      @release_form.update(form_params)
+      respond_with @release_form, location: polymorphic_path(health_path_generator)
     end
 
     private
 
     def interpolation_options
-      { resource_name: 'Participation Form' }
+      { resource_name: 'Release Form' }
     end
 
     def form_params
       params.require(:form).permit( 
         :signature_on,
-        :case_manager_id,
-        :reviewed_by_id,
-        :location
+        :file_location,
+        :supervisor_reviewed
       )
     end
 
     def set_form
-      @participation_form = @patient.participation_forms.where(id: params[:id]).first
+      @release_form = @patient.release_forms.where(id: params[:id]).first
     end
 
   end

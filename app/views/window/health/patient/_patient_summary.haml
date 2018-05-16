@@ -14,17 +14,20 @@
               %ul.dropdown-menu
                 %li
                   - if @patient.participation_forms.none?
-                    = link_to 'Participation Form', polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }
+                    = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }, style: 'margin-left: 20px' do
+                      Participation Form
                   - else 
                     = link_to polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @patient.participation_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
                       %span.icon-checkmark.o-color--positive
                       Participation Form
                 %li
-                  %a.dropdown-item{ href: '#' } 
-                    .row
-                      .col-sm-6
-                        %span.icon-checkmark.o-color--positive
-                        Release of Information Form
+                  - if @patient.release_forms.none?
+                    = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }, style: 'margin-left: 20px' do
+                      Release Form
+                  - else 
+                    = link_to polymorphic_path(release_form_path_generator, client_id: @client.id, id: @patient.release_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.o-color--positive
+                      Release Form
 
       .ho-patient__details
         .row

@@ -76,6 +76,16 @@ module CombinedClientPathsGenerator
     end
     helper_method :participation_form_path_generator
 
+    def release_forms_path_generator
+      health_path_generator + [:release_forms]
+    end
+    helper_method :release_forms_path_generator
+
+    def release_form_path_generator
+      health_path_generator + [:release_form]
+    end
+    helper_method :release_form_path_generator
+
     def edit_cas_readiness_path_generator
       [:edit] + client_path_generator + [:cas_readiness]
     end

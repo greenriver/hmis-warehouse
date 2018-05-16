@@ -1,0 +1,11 @@
+- content_for :modal_title, 'Release Form'
+
+%dl.release-form
+  %dt Date of Signature
+  %dd= @release_form.signature_on
+
+  %dt Physical location of file
+  %dd= @release_form.file_location
+
+  %dt Supervisor Review
+  %dd= yes_no @release_form.supervisor_reviewed?
