@@ -97,9 +97,6 @@ gem 'exception_notification'
 gem 'puma', '~> 3.7.1'
 gem 'letsencrypt_plugin'
 
-# Use Capistrano for deployment
-# gem 'capistrano-rails', group: :development
-
 gem 'newrelic_rpm', require: false
 # gem "temping", require: false
 gem 'dotenv-rails'
@@ -142,7 +139,6 @@ group :development do
   gem 'capistrano-rvm'
   gem 'capistrano-passenger'
   gem 'capistrano-rails'
-  gem 'capistrano3-delayed-job', '~> 1.0'
   gem 'rails-erd'
   gem 'web-console'
   gem 'quiet_assets'
