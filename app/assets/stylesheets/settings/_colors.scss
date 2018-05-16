@@ -61,3 +61,9 @@ $nechv: rgb(112, 76, 112); // #704C70
 $ma-state: rgb(120, 115, 39); // #787327
 $vi-spdat: rgb(147, 12, 0);
 // next rgb(143, 78, 69); // #8F4E45
+
+// Tables
+$table-border-color: #DDDDDD;
+$table-cell-bg-positive: lighten($brand-success-l, 25%);
+$table-cell-bg-warning: lighten($brand-warning-l, 25%);
+$table-cell-bg-danger: lighten($brand-danger-l, 25%);

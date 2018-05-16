@@ -35,6 +35,10 @@
   }
 }
 
+.c-card--no-padding {
+  padding: 0;
+}
+
 .c-card--linked,
 .c-card > .c-card__content {
   cursor: pointer;

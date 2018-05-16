@@ -299,7 +299,7 @@ $client-match-action-row-height: 22px;
 }
 .enrollment__new-episode {
   > td {
-    background: lighten($brand-success-l, 25%);
+    background: $table-cell-bg-positive;
   }
 }
 .assessment__new-type:not(:first-child) {
