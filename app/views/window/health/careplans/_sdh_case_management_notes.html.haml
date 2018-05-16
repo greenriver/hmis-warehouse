@@ -1,4 +1,5 @@
-- if @client.health_touch_points.any?
+= link_to 'New Note', polymorphic_path([:new] + sdh_case_management_note_path_generator)
+- if @client.health_touch_points.any? || @patient.sdh_case_management_notes.any?
   %table.table.table-condensed.datatable-sdh
     %thead
       %tr
@@ -11,6 +12,13 @@
           %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
           %td= form.collected_at.to_date
           %td= form.staff
+      - @patient.sdh_case_management_notes.each do |note|
+        %tr
+          %td= note.topics
+          %td= note.title
+          %td
+            %p= note.total_time_spent_in_minutes
+            %p= note.date_of_contact
 - else
   No SDH Case Management Notes on file
 

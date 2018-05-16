@@ -66,6 +66,16 @@ module CombinedClientPathsGenerator
     end
     helper_method :self_sufficiency_matrix_form_path_generator
 
+    def sdh_case_management_notes_path_generator
+      health_path_generator + [:sdh_case_management_notes]
+    end
+    helper_method :sdh_case_management_notes_path_generator
+
+    def sdh_case_management_note_path_generator
+      health_path_generator + [:sdh_case_management_note]
+    end
+    helper_method :sdh_case_management_note_path_generator
+
     def edit_cas_readiness_path_generator
       [:edit] + client_path_generator + [:cas_readiness]
     end
