@@ -297,9 +297,10 @@ $client-match-action-row-height: 22px;
 {
   display: inline-block;
 }
-.enrollment__new-episode
-{
-  border-bottom: 2px solid $cob-sg-optimistic-blue;
+.enrollment__new-episode {
+  > td {
+    background: lighten($brand-success-l, 25%);
+  }
 }
 .assessment__new-type:not(:first-child) {
   border-top: 2px solid $cob-sg-optimistic-blue;
