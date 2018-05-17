@@ -4,13 +4,7 @@
     .d-flex.flex-wrap
       %dl.mr-10.mb-2
         %dd.d-inline-block
-          - status = @client.release_current_status
-          - if status == 'None on file'
-            .alert.alert-warning.pt-2.pb-2= status
-          - elsif status == 'Expired'
-            .alert.alert-danger.pt-2.pb-2= status
-          - else
-            .alert.alert-success.pt-2.pb-2=status
+          = render 'window/clients/consent_form_status_tags'
       %dl.mr-8.mb-2
         %dt Release Type
         %dd

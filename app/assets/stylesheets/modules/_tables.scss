@@ -122,10 +122,10 @@ table.dataTable thead .sorting_desc:after {
       }
     }
     &.btn-link--danger {
-      color: $brand-danger;
+      color: $brand-danger-d;
       font-size: 1.75rem;
       &:hover {
-        color: darken($brand-danger, 10%);
+        color: darken($brand-danger-d, 10%);
       }
     }
   }
