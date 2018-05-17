@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180516032040) do
+ActiveRecord::Schema.define(version: 20180516223016) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -293,6 +293,15 @@ ActiveRecord::Schema.define(version: 20180516032040) do
     t.string   "patient_id"
   end
 
+  create_table "sdh_case_management_note_activities", force: :cascade do |t|
+    t.integer "note_id"
+    t.string  "mode_of_contact"
+    t.string  "mode_of_contact_other"
+    t.string  "reached_client"
+    t.string  "reached_client_collateral_contact"
+    t.string  "activity"
+  end
+
   create_table "sdh_case_management_notes", force: :cascade do |t|
     t.integer  "user_id"
     t.integer  "patient_id"
@@ -306,6 +315,11 @@ ActiveRecord::Schema.define(version: 20180516032040) do
     t.string   "housing_status"
     t.string   "place_of_contact_other"
     t.string   "housing_status_other"
+    t.datetime "housing_placement_date"
+    t.string   "client_action"
+    t.text     "notes_from_encounter"
+    t.text     "next_steps"
+    t.string   "client_phone_number"
   end
 
   create_table "self_sufficiency_matrix_forms", force: :cascade do |t|

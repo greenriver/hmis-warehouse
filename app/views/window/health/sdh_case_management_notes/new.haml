@@ -1,31 +1,33 @@
 %h1 New SDH Case Management Note
-- note = Health::SdhCaseManagementNote
-= simple_form_for @note, url: polymorphic_path(sdh_case_management_notes_path_generator, client_id: @client.id) do |f|
-  = f.input :topics, collection: note.topics_collection, as: :check_boxes
-  = f.input :title
-  = f.input :total_time_spent_in_minutes
-  = f.input :date_of_contact, as: :date_picker
-  .string-collection-with-other__container
-    = f.input :place_of_contact, as: :radio_buttons, collection: note.place_of_contact_collection, label: 'Place of contact (if in person)'
-    = f.input :place_of_contact_other, label: 'Please specify:', wrapper_html: {class: 'string-collection-with-other__input', style: f.object.place_of_contact_is_other? ? '' : 'display:none;'}
-  
-  = f.submit
+= render 'form'
+-#
+  - note = Health::SdhCaseManagementNote
+  = simple_form_for @note, url: polymorphic_path(sdh_case_management_notes_path_generator, client_id: @client.id) do |f|
+    = f.input :topics, collection: note.topics_collection, as: :check_boxes
+    = f.input :title
+    = f.input :total_time_spent_in_minutes
+    = f.input :date_of_contact, as: :date_picker
+    .string-collection-with-other__container
+      = f.input :place_of_contact, as: :radio_buttons, collection: note.place_of_contact_collection, label: 'Place of contact (if in person)'
+      = f.input :place_of_contact_other, label: 'Please specify:', wrapper_html: {class: 'string-collection-with-other__input', style: f.object.place_of_contact_is_other? ? '' : 'display:none;'}
+    
+    = f.submit
 
-- content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var containerSelector = '.string-collection-with-other__container';
-      var inputSelector = '.string-collection-with-other__input';
-      var container = $(containerSelector);
-      var inputs = container.find('input[type="radio"]');
-      inputs.change(function() {
-        var thisContainer = $(this).parents(containerSelector);
-        var other = thisContainer.find(inputSelector);
-        if($(this).is(':checked') && $(this).val() === "Other") {
-          other.slideDown();
-        } else {
-          other.find('input').val('');
-          other.slideUp();
-        }
+  - content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        var containerSelector = '.string-collection-with-other__container';
+        var inputSelector = '.string-collection-with-other__input';
+        var container = $(containerSelector);
+        var inputs = container.find('input[type="radio"]');
+        inputs.change(function() {
+          var thisContainer = $(this).parents(containerSelector);
+          var other = thisContainer.find(inputSelector);
+          if($(this).is(':checked') && $(this).val() === "Other") {
+            other.slideDown();
+          } else {
+            other.find('input').val('');
+            other.slideUp();
+          }
+        });
       });
-    });

@@ -2,6 +2,14 @@
   color: red;
 }
 
+.gray {
+  color: $gray;
+}
+
 .light {
   color: $light-body-text;
+}
+
+.gray-light {
+  color: $gray-light;
 }

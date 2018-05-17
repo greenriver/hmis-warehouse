@@ -1,0 +1,54 @@
+- note = Health::SdhCaseManagementNote
+- activity = Health::SdhCaseManagementNoteActivity
+= simple_form_for @note, url: form_url do |f|
+  .row
+    .col-md-10
+      %h3 Note Topic, Title, Time Spent
+      .well
+        .row
+          .col-md-8
+            = f.input :topics, collection: note.topics_collection, as: :check_boxes
+            = f.input :title
+            = f.input :total_time_spent_in_minutes, input_html: {min: 0}
+            = f.input :date_of_contact, as: :date_picker
+      %h3 Qualifying Activities
+      .well
+        .row
+          .col-md-8
+            = f.simple_fields_for :activities do |f2|
+              %h4.uppercase.gray-light= "Qualifying Activity ##{f2.index+1}"
+              = render 'string_collection_with_other', note: activity, f: f2, note_attr: 'mode_of_contact', label: 'Mode of Contact', other_label: 'Please Specify:', other: 'other'
+              = render 'string_collection_with_other', note: activity, f: f2, note_attr: 'reached_client', label: 'Reached Client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact'
+              = f2.input :activity, collection: activity.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'
+      %h3 Additional Questions
+      .well
+        .row
+          .col-md-8
+            = render 'string_collection_with_other', note: note, f: f, note_attr: 'place_of_contact', label: 'Place of contact (if in person)', other_label: 'Please specify:', other: 'other'
+            = render 'string_collection_with_other', note: note, f: f, note_attr: 'housing_status', label: 'Housing Status', other_label: 'Please specify', other: 'other'
+            = f.input :housing_placement_date, as: :date_picker
+            = f.input :client_action, as: :radio_buttons, collection: note.client_action_collection, label: 'Did any of the following happen?'
+            = f.input :notes_from_encounter, input_html: {rows: 10}
+            = f.input :next_steps, hint: 'List of steps that Client or Case Manager will complete. Please separate and number each step.', input_html: {rows: 10}
+        .text-right
+          = f.submit 'Save Case Note', class: 'btn btn-action'
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var containerSelector = '.string-collection-with-other__container';
+      var inputSelector = '.string-collection-with-other__input';
+      var container = $(containerSelector);
+      var inputs = container.find('input[type="radio"]');
+      inputs.change(function() {
+        var thisContainer = $(this).parents(containerSelector);
+        var other = thisContainer.find(inputSelector);
+        var otherValue = other.data('other-value');
+        if($(this).is(':checked') && $(this).val() === otherValue) {
+          other.slideDown();
+        } else {
+          other.find('input').val('');
+          other.slideUp();
+        }
+      });
+    });
