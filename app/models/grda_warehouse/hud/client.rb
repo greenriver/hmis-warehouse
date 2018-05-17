@@ -557,8 +557,12 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def show_health_for?(user)
-      patient.present? && patient.accessible_by_user(user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+    def show_health_pilot_for?(user)
+      patient.present? && patient.accessible_by_user(user).present? && patient.pilot_patient? && GrdaWarehouse::Config.get(:healthcare_available)
+    end
+
+    def show_health_hpc_for?(user)
+      patient.present? && patient.accessible_by_user(user).present? && patient.hpc_patient? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     def show_window_demographic_to?(user)

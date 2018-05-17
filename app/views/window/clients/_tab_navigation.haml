@@ -1,5 +1,6 @@
 :ruby
-  show_health = @client.show_health_for?(current_user) rescue false
+  show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
+  show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
   show_demographic = @client.show_window_demographic_to?(current_user) rescue false
   tabs = {
     polymorphic_path(client_path_generator, id: @client.id) => {
@@ -28,15 +29,15 @@
     },
     polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
      title: 'Health',
-     permission: show_health,
+     permission: show_health_pilot,
     },
     polymorphic_path(careplan_path_generator, client_id: @client.id) => {
      title: 'Care Plan',
-     permission: show_health,
+     permission: show_health_pilot,
     },
     polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
       title: 'Metrics',
-      permission: show_health,
+      permission: show_health_pilot,
     }
   }
 

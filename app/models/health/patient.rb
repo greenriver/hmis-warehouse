@@ -28,7 +28,6 @@ module Health
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
 
-
     self.source_key = :PAT_ID
 
     def self.accessible_by_user user
@@ -48,6 +47,14 @@ module Health
       return true if user.can_administer_health?
       return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
       return false
+    end
+
+    def pilot_patient?
+      pilot == true
+    end
+
+    def hpc_patient?
+      ! pilot_patient?
     end
 
     def consented?
