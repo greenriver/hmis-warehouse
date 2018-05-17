@@ -274,27 +274,24 @@ module ReportGenerators::DataQuality::Fy2017
 
 
     def fetch_clients(project_types)
-      et = GrdaWarehouse::Hud::Enrollment.arel_table
-      ct = GrdaWarehouse::Hud::Client.arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        client_id: sh_t[:client_id].as('client_id').to_sql, 
-        age: sh_t[:age].as('age').to_sql,
-        DOB: ct[:DOB].as('DOB').to_sql,
-        project_type: act_as_project_overlay, 
-        project_id: sh_t[:project_id].as('project_id').to_sql,
-        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
-        destination: sh_t[:destination].as('destination').to_sql,
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
-        ResidencePrior: et[:ResidencePrior].as('ResidencePrior').to_sql,
-        ResidencePriorLengthOfStay: et[:ResidencePriorLengthOfStay].as('ResidencePriorLengthOfStay').to_sql,
-        DateToStreetESSH: et[:DateToStreetESSH].as('DateToStreetESSH').to_sql,
-        TimesHomelessPastThreeYears: et[:TimesHomelessPastThreeYears].as('TimesHomelessPastThreeYears').to_sql,
-        MonthsHomelessPastThreeYears: et[:MonthsHomelessPastThreeYears].as('MonthsHomelessPastThreeYears').to_sql,
-        PreviousStreetESSH: et[:PreviousStreetESSH].as('PreviousStreetESSH').to_sql,
+        client_id: she_t[:client_id].to_sql, 
+        age: she_t[:age].to_sql,
+        DOB: c_t[:DOB].to_sql,
+        project_type: she_t[:computed_project_type].to_sql, 
+        project_id: she_t[:project_id].to_sql,
+        data_source_id: she_t[:data_source_id].to_sql,
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
+        project_name: she_t[:project_name].to_sql,
+        destination: she_t[:destination].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
+        ResidencePrior: e_t[:ResidencePrior].to_sql,
+        ResidencePriorLengthOfStay: e_t[:ResidencePriorLengthOfStay].to_sql,
+        DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
+        TimesHomelessPastThreeYears: e_t[:TimesHomelessPastThreeYears].to_sql,
+        MonthsHomelessPastThreeYears: e_t[:MonthsHomelessPastThreeYears].to_sql,
+        PreviousStreetESSH: e_t[:PreviousStreetESSH].to_sql,
       }
       
       all_client_scope.

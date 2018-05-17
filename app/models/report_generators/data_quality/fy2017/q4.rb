@@ -25,20 +25,18 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def fetch_all_clients
-      ct = GrdaWarehouse::Hud::Client.arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        client_id: sh_t[:client_id].as('client_id').to_sql, 
-        age: sh_t[:age].as('age').to_sql,
-        DOB: ct[:DOB].as('DOB').to_sql,
-        project_type: act_as_project_overlay, 
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
-        project_id: sh_t[:project_id].as('project_id').to_sql, 
-        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        project_name: sh_t[:project_name].as('project_name').to_sql,
-        destination: sh_t[:destination].as('destination').to_sql,
+        client_id: she_t[:client_id].to_sql, 
+        age: she_t[:age].to_sql,
+        DOB: c_t[:DOB].to_sql,
+        project_type: she_t[:computed_project_type].to_sql, 
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
+        project_id: she_t[:project_id].to_sql, 
+        data_source_id: she_t[:data_source_id].to_sql,
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
+        project_name: she_t[:project_name].to_sql,
+        destination: she_t[:destination].to_sql,
       }
       
       all_client_scope.
@@ -59,7 +57,7 @@ module ReportGenerators::DataQuality::Fy2017
     def add_destination_answers
       counted = Set.new # Only count each client once
       poor_quality = leavers.select do |_, enrollment|
-        [8,9,30,99,nil].include?(enrollment[:destination])
+        [8,9,30,nil].include?(enrollment[:destination])
       end
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
@@ -115,7 +113,7 @@ module ReportGenerators::DataQuality::Fy2017
           if enrollment[:first_date_in_program] != income[:first_date_in_program]
             enrollment[:reason] = 'Missing income assessment on entry date'
             poor_quality[id] = enrollment
-          elsif [8,9,99,nil].include?(income[:IncomeFromAnySource])
+          elsif [8,9,nil].include?(income[:IncomeFromAnySource])
             enrollment[:reason] = 'Income from any source refused or missing'
             poor_quality[id] = enrollment
           else
@@ -183,7 +181,7 @@ module ReportGenerators::DataQuality::Fy2017
           if enrollment[:last_date_in_program] != income[:last_date_in_program]
             enrollment[:reason] = 'Missing income assessment on exit date'
             poor_quality[id] = enrollment
-          elsif [8,9,99,nil].include?(income[:IncomeFromAnySource])
+          elsif [8,9,nil].include?(income[:IncomeFromAnySource])
             enrollment[:reason] = 'Income from any source refused or missing'
             poor_quality[id] = enrollment
           else
@@ -259,7 +257,7 @@ module ReportGenerators::DataQuality::Fy2017
             poor_quality[id] = enrollment
           else
             income = anniversary_incomes.last
-            if [8,9,99,nil].include?(income[:IncomeFromAnySource])
+            if [8,9,nil].include?(income[:IncomeFromAnySource])
               enrollment[:reason] = 'Income from any source refused or missing'
               poor_quality[id] = enrollment
             else
@@ -327,20 +325,17 @@ module ReportGenerators::DataQuality::Fy2017
 
     def income_columns
       @columns ||= begin
-        ct = GrdaWarehouse::Hud::Client.arel_table
-        sh_t = GrdaWarehouse::ServiceHistory.arel_table
-        it = GrdaWarehouse::Hud::IncomeBenefit.arel_table
-        income_source_columns = Hash[income_sources.map{|v| [v, it[v].as(v.to_s).to_sql]}]
+        income_source_columns = Hash[income_sources.map{|v| [v, ib_t[v].as(v.to_s).to_sql]}]
         {
-          client_id: sh_t[:client_id].as('client_id').to_sql, 
-          project_id: sh_t[:project_id].as('project_id').to_sql, 
-          data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-          first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-          last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
-          project_name: sh_t[:project_name].as('project_name').to_sql, 
-          InformationDate: it[:InformationDate].as('InformationDate').to_sql,
-          enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-          IncomeFromAnySource: it[:IncomeFromAnySource].as('IncomeFromAnySource').to_sql,
+          client_id: she_t[:client_id].to_sql, 
+          project_id: she_t[:project_id].to_sql, 
+          data_source_id: she_t[:data_source_id].to_sql,
+          first_date_in_program: she_t[:first_date_in_program].to_sql,
+          last_date_in_program: she_t[:last_date_in_program].to_sql,
+          project_name: she_t[:project_name].to_sql, 
+          InformationDate: ib_t[:InformationDate].to_sql,
+          enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+          IncomeFromAnySource: ib_t[:IncomeFromAnySource].to_sql,
         }.merge(income_source_columns)        
       end
       @columns

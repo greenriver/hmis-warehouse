@@ -150,9 +150,11 @@ module ReportGenerators::DataQuality::Fy2017
       )
       quality_issues = @all_clients.select do |id, enrollments|
         enrollment = enrollments.last
+        approximate = enrollment[:DOBDataQuality].to_i == 2
         too_old = enrollment[:DOB].present? && enrollment[:DOB] < '1915-01-01'.to_date
         too_new = enrollment[:DOB].present? && enrollment[:DOB] > enrollment[:DateCreated]
-        too_late = enrollment[:DOB].present? && enrollment[:DOB] >= enrollment[:first_date_in_program]
+        too_late = enrollment[:DOB].present? && enrollment[:head_of_household] && enrollment[:DOB] >= enrollment[:first_date_in_program]
+        approximate || too_old || too_new || too_late
       end
       @clients_with_issues += quality_issues.keys
       @answers[:q2_d4][:value] = quality_issues.size
@@ -290,30 +292,28 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def fetch_all_clients
-      et = GrdaWarehouse::Hud::Enrollment.arel_table
-      ct = GrdaWarehouse::Hud::Client.arel_table
-      sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        client_id: sh_t[:client_id].as('client_id').to_sql, 
-        age: sh_t[:age].as('age').to_sql,
-        project_type: act_as_project_overlay, 
-        VeteranStatus: ct[:VeteranStatus].as('VeteranStatus').to_sql, 
-        enrollment_group_id: sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql, 
-        project_id: sh_t[:project_id].as('project_id').to_sql, 
-        data_source_id: sh_t[:data_source_id].as('data_source_id').to_sql,
-        NameDataQuality: ct[:NameDataQuality].as('NameDataQuality').to_sql,
-        FirstName: ct[:FirstName].as('FirstName').to_sql, 
-        LastName: ct[:LastName].as('LastName').to_sql, 
-        SSN: ct[:SSN].as('SSN').to_sql, 
-        SSNDataQuality: ct[:SSNDataQuality].as('SSNDataQuality').to_sql,
-        DOB: ct[:DOB].as('DOB').to_sql,
-        DOBDataQuality: ct[:DOBDataQuality].as('DOBDataQuality').to_sql,
-        DateCreated: et[:DateCreated].as('DateCreated').to_sql,
-        first_date_in_program: sh_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: sh_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        Ethnicity: ct[:Ethnicity].as('Ethnicity').to_sql,
-        Gender: ct[:Gender].as('Gender').to_sql,
-        RaceNone: ct[:RaceNone].as('RaceNone').to_sql,
+        client_id: she_t[:client_id].to_sql, 
+        age: she_t[:age].to_sql,
+        project_type: she_t[:computed_project_type].to_sql, 
+        VeteranStatus: c_t[:VeteranStatus].to_sql, 
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
+        project_id: she_t[:project_id].to_sql, 
+        data_source_id: she_t[:data_source_id].to_sql,
+        NameDataQuality: c_t[:NameDataQuality].to_sql,
+        FirstName: c_t[:FirstName].to_sql, 
+        LastName: c_t[:LastName].to_sql, 
+        SSN: c_t[:SSN].to_sql, 
+        SSNDataQuality: c_t[:SSNDataQuality].to_sql,
+        DOB: c_t[:DOB].to_sql,
+        DOBDataQuality: c_t[:DOBDataQuality].to_sql,
+        DateCreated: e_t[:DateCreated].to_sql,
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
+        Ethnicity: c_t[:Ethnicity].to_sql,
+        Gender: c_t[:Gender].to_sql,
+        RaceNone: c_t[:RaceNone].to_sql,
+        head_of_household: she_t[:head_of_household].to_sql,
       }
                   
       all_client_scope.
