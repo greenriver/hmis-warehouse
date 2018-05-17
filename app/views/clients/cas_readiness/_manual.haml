@@ -1,31 +1,43 @@
 - check_wrapper_class = {class: 'form-group--tight'}
 = simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
   .row
-    .col-md-6.col-lg-4
-      .form-group
-        - GrdaWarehouse::Hud::Client.manual_cas_columns.sort.each do |column|
-          = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
+    %section.o-section-card.col-lg-8.col-xl-6
+      %h3 Characteristics
+      .c-card.c-card--flush.c-card--padded.flex-wrap
+        .row
+          .form-group.mb-6.col-md-4
+            - GrdaWarehouse::Hud::Client.manual_cas_columns.sort.each do |column|
+              = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
 
-      .form-group
-        - if can_view_hiv_status?
-          = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
-          = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
+          .form-group.mb-6.col-md-4
+            - if can_view_hiv_status?
+              = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
+              = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
 
-        - if can_view_dmh_status?
-          = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
-        = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
-      .form-group
-        = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
-    .col-md-6
+            - if can_view_dmh_status?
+              = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
+            = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
+
+          .form-group.col-md-4
+            = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
+
+  .row
+    .col-lg-8.col-xl-6
       = render 'consent_form', f: f
 
   .row.mb-4
     .col-lg-8.col-xl-6
       = render 'vispdat', f: f
 
-  = render 'window/clients/required_documents'
-  = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'window/clients/required_documents'
 
-  .row.mt-8
-    .col-sm-6
-      = f.submit value: 'Update CAS Info', class: 'btn btn-secondary'
+  %section.o-section-card.row
+    .col-lg-8.col-xl-6
+      %h3 Release
+      .c-card.c-card--block.c-card--padded.c-card--flush
+        = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
+
+  .form__actions
+    = f.submit value: 'Update CAS Info', class: 'btn btn-primary'
