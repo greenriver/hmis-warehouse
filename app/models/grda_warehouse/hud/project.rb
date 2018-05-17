@@ -158,7 +158,9 @@ module GrdaWarehouse::Hud
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
-        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil)).
+        arel_table[:ContinuumProject].eq(1).and(
+          arel_table[:hud_continuum_funded].eq(nil).or(arel_table[:hud_continuum_funded].eq(false))
+        ).
         or(arel_table[:hud_continuum_funded].eq(true))
       )
     end
