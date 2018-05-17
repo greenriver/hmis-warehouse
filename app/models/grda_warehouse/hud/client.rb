@@ -295,10 +295,11 @@ module GrdaWarehouse::Hud
         as('sh_t')
       joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
-    scope :disabled, -> do
-      dt = Disability.arel_table
-      where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
-    end
+    # scope :disabled, -> do
+    #   dt = Disability.arel_table
+    #   where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
+    # end
+    # 
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
@@ -495,6 +496,30 @@ module GrdaWarehouse::Hud
           name: m.full_name,
         }
       end
+    end
+
+    def self.disabled_client_ids
+      at1 = GrdaWarehouse::Hud::Disability.arel_table
+      at2 = Arel::Table.new(at1.table_name)
+      at2.table_alias = 'disability2'
+      GrdaWarehouse::Hud::Client.joins(:source_enrollment_disabilities).where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).where(
+        at2.project(Arel.star).where(
+          at2[:DateDeleted].eq(nil)
+        ).where(
+          at2[:PersonalID].eq(at1[:PersonalID])
+        ).where(
+          at2[:data_source_id].eq(at1[:data_source_id])
+        ).where(
+          at2[:DisabilityType].eq(at1[:DisabilityType])
+        ).where(
+          at2[:InformationDate].gt(at1[:InformationDate])
+        ).join(e_t).on(
+          e_t[:PersonalID].eq(at2[:PersonalID]).
+          and(e_t[:data_source_id].eq(at2[:data_source_id])).
+          and(e_t[:ProjectEntryID].eq(at2[:ProjectEntryID])).
+          and(e_t[:DateDeleted].eq(nil))
+        ).exists.not  
+      ).pluck(:id)
     end
 
     def deceased?
