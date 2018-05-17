@@ -51,7 +51,7 @@ module Admin::Health
     end
 
     def patient_scope
-      patient_source.all
+      patient_source.pilot
     end
 
     def patient_source

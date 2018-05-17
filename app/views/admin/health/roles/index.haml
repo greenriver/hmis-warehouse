@@ -1,5 +1,7 @@
+- content_for :title,  'Healthcare Related Roles'
+%h1= content_for :title
 = render 'breadcrumbs'
-%h1 Healthcare Related Roles
+= render 'menus/health_admin_tabs'
 .table-responsive
   %table.table.table-condensed
     %thead

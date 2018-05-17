@@ -23,6 +23,9 @@ module Health
     has_many :participation_forms
     has_many :release_forms
 
+    scope :pilot, -> { where pilot: true }
+    scope :hpc, -> { where pilot: false }
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
@@ -46,6 +49,14 @@ module Health
       return true if user.can_administer_health?
       return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
       return false
+    end
+
+    def pilot_patient?
+      pilot == true
+    end
+
+    def hpc_patient?
+      ! pilot_patient?
     end
 
     def consented?

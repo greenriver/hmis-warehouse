@@ -12,12 +12,12 @@
       ['patients']
     ],
     [
-      'Manage Healthcare </br> Window Access',
+      'Healthcare Window Access',
       admin_health_users_path, 
       ['users']
     ],
     [
-      'Permissions & Health </br> Related Roles',
+      'Permissions & Health Roles',
       admin_health_roles_path,
       ['roles']
     ]
@@ -33,7 +33,7 @@
     %ul.nav.nav-tabs.margin-bottom-02
       - tabs.each do |tab|
         - text, path, controllers = tab
-        %li{role: 'presentation', class: controllers.include?(controller_name) ? 'active' : ''}
+        %li.nav-item{role: 'presentation', class: controllers.include?(controller_name) ? 'active' : ''}
           = link_to path do
             = text.html_safe
   
