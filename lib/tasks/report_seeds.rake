@@ -115,6 +115,25 @@ namespace :reports do
       r.update(weight: 6, report_results_summary: rs)
       r = Reports::DataQuality::Fy2016::Q7.where(name: 'HUD Data Quality Report FY 2016 - Q7').first_or_create
       r.update(weight: 7, report_results_summary: rs)
+
+
+      rs = ReportResultsSummaries::DataQuality::Fy2016.where(name: 'HUD Data Quality Report 2017').first_or_create
+      rs.update(weight: 0)
+
+      r = Reports::DataQuality::Fy2017::Q1.where(name: 'HUD Data Quality Report FY 2017 - Q1').first_or_create
+      r.update(weight: 1, report_results_summary: rs)
+      r = Reports::DataQuality::Fy2017::Q2.where(name: 'HUD Data Quality Report FY 2017 - Q2').first_or_create
+      r.update(weight: 2, report_results_summary: rs)
+      r = Reports::DataQuality::Fy2017::Q3.where(name: 'HUD Data Quality Report FY 2017 - Q3').first_or_create
+      r.update(weight: 3, report_results_summary: rs)
+      r = Reports::DataQuality::Fy2017::Q4.where(name: 'HUD Data Quality Report FY 2017 - Q4').first_or_create
+      r.update(weight: 4, report_results_summary: rs)
+      r = Reports::DataQuality::Fy2017::Q5.where(name: 'HUD Data Quality Report FY 2017 - Q5').first_or_create
+      r.update(weight: 5, report_results_summary: rs)
+      r = Reports::DataQuality::Fy2017::Q6.where(name: 'HUD Data Quality Report FY 2017 - Q6').first_or_create
+      r.update(weight: 6, report_results_summary: rs)
+      r = Reports::DataQuality::Fy2017::Q7.where(name: 'HUD Data Quality Report FY 2017 - Q7').first_or_create
+      r.update(weight: 7, report_results_summary: rs)
   end
   desc "Remove all report types"
   task :clear => [:environment, "log:info_to_stdout"] do
