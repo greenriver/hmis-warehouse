@@ -30,7 +30,7 @@ module WarehouseReports
     end
 
     def load_responses
-      @responses = report_source.select(:id, :client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id). 
+      @responses = report_source.select(:id, :client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id, :staff). 
         joins(:hmis_assessment, client: :destination_client). 
         where(name: @name). 
         where(collected_at: (@start_date..@end_date)). 
