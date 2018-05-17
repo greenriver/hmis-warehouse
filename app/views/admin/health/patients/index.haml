@@ -1,6 +1,7 @@
 - content_for :title,  'Patient - Client management'
 - sort_options = Health::Patient.sort_options
 %h1= content_for :title
+= render 'menus/health_admin_tabs'
 = render 'breadcrumbs'
 %p Use this form to connect any patients who are not automatically matched to clients on import, or to fix an incorrectly matched patient.
 .row
