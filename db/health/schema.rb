@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180509194250) do
+ActiveRecord::Schema.define(version: 20180517151557) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -244,6 +244,18 @@ ActiveRecord::Schema.define(version: 20180509194250) do
     t.string   "patient_id"
   end
 
+  create_table "participation_forms", force: :cascade do |t|
+    t.integer "patient_id"
+    t.date    "signature_on"
+    t.integer "case_manager_id"
+    t.integer "reviewed_by_id"
+    t.string  "location"
+  end
+
+  add_index "participation_forms", ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
+  add_index "participation_forms", ["patient_id"], name: "index_participation_forms_on_patient_id", using: :btree
+  add_index "participation_forms", ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id", using: :btree
+
   create_table "patient_referrals", force: :cascade do |t|
     t.string   "first_name"
     t.string   "last_name"
@@ -258,7 +270,7 @@ ActiveRecord::Schema.define(version: 20180509194250) do
   end
 
   create_table "patients", force: :cascade do |t|
-    t.string   "id_in_source",             null: false
+    t.string   "id_in_source",                             null: false
     t.string   "first_name"
     t.string   "middle_name"
     t.string   "last_name"
@@ -271,14 +283,15 @@ ActiveRecord::Schema.define(version: 20180509194250) do
     t.string   "ethnicity"
     t.string   "veteran_status"
     t.string   "ssn"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
     t.integer  "client_id"
     t.string   "gender"
     t.datetime "consent_revoked"
     t.string   "medicaid_id"
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
+    t.boolean  "pilot",                    default: false, null: false
   end
 
   create_table "problems", force: :cascade do |t|
@@ -292,6 +305,17 @@ ActiveRecord::Schema.define(version: 20180509194250) do
     t.string   "id_in_source"
     t.string   "patient_id"
   end
+
+  create_table "release_forms", force: :cascade do |t|
+    t.integer "patient_id"
+    t.integer "user_id"
+    t.date    "signature_on"
+    t.string  "file_location"
+    t.boolean "supervisor_reviewed"
+  end
+
+  add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
+  add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "self_sufficiency_matrix_forms", force: :cascade do |t|
     t.integer  "patient_id"

@@ -21,9 +21,13 @@ module Health
     has_many :amount_paids, class_name: Health::Claims::AmountPaid.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :self_sufficiency_matrix_forms
 
+    scope :pilot, -> { where pilot: true }
+    scope :hpc, -> { where pilot: false }
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
+
 
     self.source_key = :PAT_ID
 
