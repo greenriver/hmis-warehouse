@@ -217,8 +217,19 @@ module Health
     belongs_to :patient
     belongs_to :user
 
+    scope :in_progress, -> { where(completed_at: nil) }
+
     def completed?
       completed_at.present?
+    end
+
+    def claim_submitted?
+      # FIXME: need logic for this
+      false
+    end
+
+    def editable_by? editor
+      !claim_submitted? && (editor == user)
     end
 
     def self.point_completed_options

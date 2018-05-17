@@ -10,6 +10,14 @@ module GrdaWarehouse
       where(consent_form: true)
     end
 
+    scope :full_release, -> do
+      consent_forms.where(full_release: true)
+    end
+
+    scope :partial_consent, -> do
+      consent_forms.where(full_release: false)
+    end
+
     scope :document_ready, -> do
       where(document_ready: true)
     end
@@ -20,6 +28,14 @@ module GrdaWarehouse
 
     def self.contains_consent_form?(tag_names=[])
       consent_forms.where(name: tag_names).exists?
+    end
+
+    def self.full_release?(tag_names=[])
+      full_release.where(name: tag_names).exists?
+    end
+
+    def self.partial_consent?(tag_names=[])
+      partial_consent.where(name: tag_names).exists?
     end
 
     def self.should_send_notifications?(tag_names=[])

@@ -22,7 +22,7 @@ module Exporters::Tableau::Income
 
       scope = model.
         joins( enrollment: [ :enrollment_coc_at_entry, :service_history_enrollment ] ).
-        merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
+        merge( she_t.engine.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
         # for aesthetics
         order(she_t[:client_id].asc).
         order(she_t[:first_date_in_program].desc).

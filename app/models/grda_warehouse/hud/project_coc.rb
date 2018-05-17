@@ -29,7 +29,7 @@ module GrdaWarehouse::Hud
       coc_code = Array(coc_code)
       pc_t = arel_table
       where(
-        pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil)).
+        pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil).or(pc_t[:hud_coc_code].eq(''))).
         or(pc_t[:hud_coc_code].in(coc_code))
       )
     end

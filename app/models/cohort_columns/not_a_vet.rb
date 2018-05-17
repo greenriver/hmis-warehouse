@@ -6,10 +6,8 @@ module CohortColumns
 
     def available_options
       [
-        '', 
-        'Not a Veteran',
+        '',
         'Unchecked in HMIS',
-        'SF-180 Ordered',
       ]
     end
   end

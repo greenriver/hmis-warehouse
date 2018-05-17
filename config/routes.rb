@@ -98,6 +98,7 @@ Rails.application.routes.draw do
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
+    resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :consent, only: [:index] do
       post :update_clients, on: :collection

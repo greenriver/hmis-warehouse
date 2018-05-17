@@ -32,7 +32,7 @@ module Exporters::Tableau::Vispdat
             { project: :organization }
           ]
         ).
-        merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
+        merge( she_t.engine.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
         # for aesthetics
         order( e_t[:PersonalID].asc ).
         order( o_t[:OrganizationName] ).

@@ -16,7 +16,7 @@ module Exporters::Tableau::Disability
 
       scope = model.
         joins( service_history_enrollments: { enrollment: [ :disabilities, :enrollment_coc_at_entry ] } ).
-        merge( she_t.engine.open_between start_date: start_date, end_date: end_date ).
+        merge( she_t.engine.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
         where( d_t[:DisabilityResponse].in [1,2,3] ).
         # for aesthetics
         order( she_t[:client_id].asc ).
@@ -59,8 +59,8 @@ module Exporters::Tableau::Disability
         headers.each do |h|
           value = client[h.to_s].presence
           value = case h
-          when :disability_type
-            ::HUD.disability_type(value&.to_i)&.titleize
+          # when :disability_type
+          #   ::HUD.disability_type(value&.to_i)&.titleize
           when :start_date, :end_date
             value && DateTime.parse(value).strftime('%Y-%m-%d')
           else
