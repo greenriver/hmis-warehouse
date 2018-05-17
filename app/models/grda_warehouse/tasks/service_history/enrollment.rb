@@ -12,7 +12,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_history_valid?
-      processed_as.present? && processed_as == calculate_hash
+      processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
     def source_data_changed?
       ! service_history_valid?
@@ -184,7 +184,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_dates_from_service_history_for_enrollment
-      return [] unless destination_client.present?
+      return [] unless destination_client.present? && service_history_enrollment.present?
       set_entry_record_id()
       
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
