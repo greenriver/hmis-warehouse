@@ -61,6 +61,11 @@
   font-style: normal;
   font-weight: 400;
 }
+@mixin open-sans-light {
+  @include open-sans;
+  font-style: normal;
+  font-weight: 300;
+}
 @mixin open-sans-normal-italic {
   @include open-sans;
   font-style: italic;

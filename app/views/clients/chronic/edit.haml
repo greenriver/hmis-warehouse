@@ -3,17 +3,26 @@
 = render 'clients/tab_navigation', current: edit_client_chronic_path(@client)
 %h1= content_for :title
 = render 'clients/breadcrumbs'
-= render 'clients/chronic_flags', client: @client
+
+.mb-6
+  = render 'clients/chronic_flags', client: @client
 .row
   .col-sm-6
-    .rollup{data: {partial: :chronic}}
-      %h3 Chronic Days
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic}}
+      %header
+        %h1.h3 Chronic Days
   .col-sm-6
     =render "clients/note_form"
-    .rollup{data: {partial: :chronic_notes}}
-      %h3 Notes
-.rollup{data: {partial: :residential_enrollments}}
-  %h3 Residential Enrollments
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_notes}}
+      %header
+        %h1.h3 Notes
+%article.o-dashboard__block.o-dashboard__block--secondary.rollup{data: {partial: :residential_enrollments}}
+  %header
+    %h1.h3 Residential Enrollments
+    .c-color-key.ml-auto
+      %span.c-color-key__swatch.c-color-key__swatch--positive
+      %span.c-color-key__title New Episode
+
 -# load in all the bits of aggregate statistics via ajax
 = content_for :page_js do
   - source_clients = @client.source_clients.preload(:data_source, :organizations)
