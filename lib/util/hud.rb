@@ -716,6 +716,7 @@ module HUD
       28 => 'Rental by client, with GPD TIP housing subsidy',
       29 => 'Residential project or halfway house with no homeless criteria',
       30 => 'No exit interview completed',
+      31 => 'Rental by client, with RRH or equivalent subsidy',
       99 => 'Data not collected',
     }
   end
@@ -734,6 +735,7 @@ module HUD
       24 => 'Deceased',
       26 => 'Moved from one HOPWA funded project to HOPWA PH',
       28 => 'Rental by client, with GPD TIP housing subsidy',
+      31 => 'Rental by client, with RRH or equivalent subsidy',
     }.keys
   end
 

@@ -27,12 +27,12 @@
     .col-sm-4
       %dt Release Signed On?
       %dd
-        = @vispdat.release_signed_on
+        = @client.consent_form_signed_on
         - if @vispdat.expired?
-          %span.label.label-danger Expired
+          %span.label.label-danger (Expired)
         - else
-          %span.label.label-success
-            %span.icon-checkmark
+          %span.label.label-success (Valid)
+
       %p
         - if @vispdat.files.any?
           = link_to polymorphic_path(file_path_generator, id: @vispdat.files.first) do
@@ -47,13 +47,13 @@
       %dd= yes_no @vispdat.hiv_release
   .row
     .col-sm-4
-      - if can_confirm_housing_release?
+      - if can_confirm_housing_release? && ! @vispdat.show_as_readonly?
         %label{ for: 'housing_release_confirmed', style: "cursor:pointer" }
           = check_box_tag :housing_release_confirmed, '1', @vispdat.housing_release_confirmed, data: { remote: true, url: polymorphic_path(vispdat_path_generator), method: :patch }
           %strong Housing Release Confirmed
       - else
         %dt Housing Release Confirmed?
-        %dd= yes_no @vispdat.housing_release_confirmed
+        %dd= yes_no @client.consent_confirmed?
 
 - if @vispdat.family?
   %h2 2nd Parent

@@ -97,6 +97,7 @@ module GrdaWarehouse
         ::CohortColumns::LastDateApproached.new(),
         ::CohortColumns::PreContemplativeLastDateApproached.new(),
         ::CohortColumns::HousingTrackSuggested.new(),
+        ::CohortColumns::PrimaryHousingTrackSuggested.new(),
         ::CohortColumns::HousingTrackEnrolled.new(),
         ::CohortColumns::VaEligible.new(),
         ::CohortColumns::VashEligible.new(),
