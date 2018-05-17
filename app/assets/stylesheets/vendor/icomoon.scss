@@ -19,7 +19,7 @@
     font-variant: normal;
     text-transform: none;
     line-height: 1;
-    
+
     /* Enable Ligatures ================ */
     letter-spacing: 0;
     -webkit-font-feature-settings: "liga";
@@ -34,171 +34,14 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-settings_backup_restore:before {
-  content: "\e90b";
+@each $name, $char-code in $icons {
+  .icon-#{$name} {
+    &::before {
+      content: $char-code;
+    }
+  }
 }
-.icon-move:before {
-  content: "\e90a";
-}
-.icon-home3:before {
-  content: "\e90d";
-}
-.icon-pencil:before {
-  content: "\e907";
-}
-.icon-copy:before {
-  content: "\e92c";
-}
-.icon-bell:before {
-  content: "\e951";
-}
-.icon-calendar:before {
-  content: "\e953";
-}
-.icon-printer:before {
-  content: "\e954";
-}
-.icon-database:before {
-  content: "\e964";
-}
-.icon-user:before {
-  content: "\e971";
-}
-.icon-users:before {
-  content: "\e972";
-}
-.icon-enlarge2:before {
-  content: "\e98b";
-}
-.icon-shrink2:before {
-  content: "\e98c";
-}
-.icon-lock:before {
-  content: "\e98f";
-}
-.icon-unlocked:before {
-  content: "\e990";
-}
-.icon-cog:before {
-  content: "\e994";
-}
-.icon-menu:before {
-  content: "\e9bd";
-}
-.icon-download2:before {
-  content: "\e9c5";
-}
-.icon-upload2:before {
-  content: "\e9c6";
-}
-.icon-flag:before {
-  content: "\e9cc";
-}
-.icon-eye:before {
-  content: "\e9ce";
-}
-.icon-eye-blocked:before {
-  content: "\e9d1";
-}
-.icon-warning:before {
-  content: "\ea07";
-}
-.icon-notification:before {
-  content: "\ea08";
-}
-.icon-question:before {
-  content: "\ea09";
-}
-.icon-plus:before {
-  content: "\ea0a";
-}
-.icon-minus:before {
-  content: "\ea0b";
-}
-.icon-info:before {
-  content: "\ea0c";
-}
-.icon-cross:before {
-  content: "\ea0f";
-}
-.icon-checkmark:before {
-  content: "\ea10";
-}
-.icon-checkmark2:before {
-  content: "\ea11";
-}
-.icon-enter:before {
-  content: "\ea13";
-}
-.icon-exit:before {
-  content: "\ea14";
-}
-.icon-arrow-right2:before {
-  content: "\ea3c";
-}
-.icon-checkbox-checked:before {
-  content: "\ea52";
-}
-.icon-checkbox-unchecked:before {
-  content: "\ea53";
-}
-.icon-filter:before {
-  content: "\ea5b";
-}
-.icon-arrow-circled-down:before {
-  content: "\e908";
-  color: #90a4bc;
-}
-.icon-arrow-circled-right:before {
-  content: "\e909";
-  color: #90a4bc;
-}
-.icon-helping-hands:before {
-  content: "\e901";
-}
-.icon-medical-provider:before {
-  content: "\e902";
-}
-.icon-mental-health:before {
-  content: "\e903";
-}
-.icon-nurse-clipboard:before {
-  content: "\e904";
-}
-.icon-reminder:before {
-  content: "\e905";
-}
-.icon-team:before {
-  content: "\e906";
-}
-.icon-envelope-o:before {
-  content: "\e90c";
-}
-.icon-wheelchair:before {
-  content: "\e900";
-}
-.icon-equalizer:before,
-.icon-guages:before {
-  content: "\e992";
-}
-.icon-arrow-up:before{
-  content: "\ea32"
-}
-.icon-arrow-down:before{
-  content: "\ea36"
-}
-.icon-arrow-left:before{
-  content: "\ea38"
-}
-.icon-arrow-right:before{
-  content: "\ea34"
-}
-.icon-group:before {
-  content: "\e90e";
-}
-.icon-individual:before {
-  content: "\e910";
-}
-.icon-child:before {
-  content: "\e90f";
+
+@function get-icon-code($name) {
+  @return map-get($icons, "#{$name}");
 }

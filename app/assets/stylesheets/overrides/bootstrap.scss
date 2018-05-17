@@ -29,13 +29,17 @@ th .fa {
 .alert {
   z-index: $zIndex-3--notice;
   @include open-sans-medium;
+  color: rgba($black, .75);
+  &-info {
+    color: rgba($white, .90);
+  }
 }
 
 .alert a {
-  color: #fff;
+  color: rgba($black, .75);
 }
-.alert a:link
-{
+
+.alert a:link {
   text-decoration: underline;
 }
 
@@ -43,8 +47,14 @@ th .fa {
 .alert a:focus {
   text-decoration: none;
 }
-a.icon-cross:link
-{
+
+.alert-info {
+  a {
+    color: rgba($white, .90);
+  }
+}
+
+a.icon-cross:link {
   text-decoration: none;
 }
 
@@ -64,8 +74,12 @@ a.icon-cross:link
 }
 
 .btn-link--danger {
-  color: $brand-danger;
+  color: $brand-danger-d;
   &:hover {
-    color: darken($brand-danger, 10%);
+    color: darken($brand-danger-d, 10%);
   }
+}
+
+.label {
+  @extend .c-tag-pill;
 }

@@ -14,7 +14,7 @@
   Hi this needs a link
   %a{href: '#'} This goes no where.
 
-.buttons
+.buttons.mb-6
   .btn-group.client__filter-active
     %button.btn.btn-default
       Test
@@ -36,14 +36,35 @@
       Test
 
 %div
-  .alert.alert-warning.client-flag.client-flag__longterm-stayer
-    Long-term Stayer
+  .d-flex.mr-3.mb-5
+    .c-tag.c-tag--warning.client-flag
+      .c-tag__wrapper
+        .c-tag__icon
+          .icon-clock
+        .c-tag__content
+          %span Long-term Stayer
 
-  .alert.alert-warning.client-flag.client-flag__cas
-    = link_to 'Chronically Homeless and in CAS', "#"
+  .d-flex.mr-3.mb-5
+    .c-tag.c-tag--info.client-flag
+      .c-tag__wrapper
+        .c-tag__icon
+          .icon-clock
+        .c-tag__content
+          %span Chronically Homeless &amp; in CAS
+          = link_to 'View in CAS', "#", class: 'ml-4'
 
-  .alert.alert-success.client-flag
-    Housed in CAS on #{Date.today}
+  .d-flex.mr-3.mb-5
+    .c-tag.c-tag--success.client-flag
+      .c-tag__wrapper
+        .c-tag__icon
+          .icon-house
+        .c-tag__content
+          %span Housed in CAS on #{Date.today}
+
+.label.label-success 44
+.label.label-warning 44
+.label.label-danger 44
+.label.label-info 44
 
 .cohorts
   %h3 Cohort Table
@@ -57,53 +78,58 @@
       %tr.odd
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
       %tr.odd.homeless_inactive
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
       %tr.homeless_inactive
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
       %tr.cohort_client_ineligible
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
       %tr.cohort_client_ineligible.homeless_inactive
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
       %tr.cohort_client_ineligible.homeless_inactive.odd
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
       %tr.cohort_client_ineligible.homeless_inactive.odd.cohort-client-selected
         %td Test
         %td Test
-        %td 
+        %td
           %a{href: '#'} This goes no where.
 
 .enrollments
   %div
     %span.id-sq
-      .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 179, 71); margin: auto;'}GRDA
+      .rollup__square.c-tag-pill{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 179, 71); margin: auto;'}GRDA
     .client__service_type_4.enrollment__project_type
       %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} SO
   %div
     %span.id-sq
-      .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(179, 0, 0); margin: auto;'}BM
+      .c-tag-pill.rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(179, 0, 0); margin: auto;'}BM
     .client__service_type_8.enrollment__project_type
       %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} SH
   %div
     %span.id-sq
       .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 71, 179); margin: auto;'}BL
     .client__service_type_1.enrollment__project_type
-      %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} ES
+      %em.c-tag-pill.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} ES
     .confidential_project{data: {title: 'Confidential Project', toggle: :tooltip}} CP
+
+  .c-tag-pill.c-tag-pill--info RD
+  .c-tag-pill.c-tag-pill--success TGH
+  .c-tag-pill.c-tag-pill--warning RD
+  .c-tag-pill.c-tag-pill--danger RD

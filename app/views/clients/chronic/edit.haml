@@ -3,7 +3,9 @@
 = render 'clients/tab_navigation', current: edit_client_chronic_path(@client)
 %h1= content_for :title
 = render 'clients/breadcrumbs'
-= render 'clients/chronic_flags', client: @client
+
+.mb-6
+  = render 'clients/chronic_flags', client: @client
 .row
   .col-sm-6
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic}}

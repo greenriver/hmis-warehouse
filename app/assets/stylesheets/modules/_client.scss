@@ -34,12 +34,9 @@
   color: white;
 }
 .service-type__program-type {
-  font-weight: bold;
-  font-size: 0.7em;
   background-color: black;
+  @extend .c-tag-pill;
   color: white;
-  display: inline-block;
-  padding: 0.2em 0.4em;
 }
 .client__client_unique_id
 {
@@ -59,80 +56,82 @@
 {
   vertical-align: top;
 }
+
+
 .client__service_type_1 {
-  border-bottom: 1px solid #0074D9;
+  /* border-bottom: 1px solid #0074D9; */
   .service-type__program-type {
     background-color: #0074D9;
   }
 }
 .client__service_type_2 {
-  border-bottom: 1px solid #3c84b7;
+  /* border-bottom: 1px solid #3c84b7; */
   .service-type__program-type {
     background-color: #3c84b7;
   }
 }
 .client__service_type_3 {
-  border-bottom: 1px solid #299b9b;
+  /* border-bottom: 1px solid #299b9b; */
   .service-type__program-type {
     background-color: #299b9b;
   }
 }
 .client__service_type_4 {
-  border-bottom: 1px solid #3D9970;
+  /* border-bottom: 1px solid #3D9970; */
   .service-type__program-type {
     background-color: #3D9970;
   }
 }
 .client__service_type_6 {
-  border-bottom: 1px solid #8e7a30;
+  /* border-bottom: 1px solid #8e7a30; */
   .service-type__program-type {
     background-color: #8e7a30;
   }
 }
 .client__service_type_7 {
-  border-bottom: 1px solid #d36e15;
+  /* border-bottom: 1px solid #d36e15; */
   .service-type__program-type {
     background-color: #d36e15;
   }
 }
 .client__service_type_8 {
-  border-bottom: 1px solid #FF4136;
+  /* border-bottom: 1px solid #FF4136; */
   .service-type__program-type {
     background-color: #FF4136;
   }
 }
 .client__service_type_9 {
-  border-bottom: 1px solid #85144b;
+  /* border-bottom: 1px solid #85144b; */
   .service-type__program-type {
     background-color: #85144b;
   }
 }
 .client__service_type_10 {
-  border-bottom: 1px solid #ce0ea3;
+  /* border-bottom: 1px solid #ce0ea3; */
   .service-type__program-type {
     background-color: #ce0ea3;
   }
 }
 .client__service_type_11 {
-  border-bottom: 1px solid #B10DC9;
+  /* border-bottom: 1px solid #B10DC9; */
   .service-type__program-type {
     background-color: #B10DC9;
   }
 }
 .client__service_type_12 {
-  border-bottom: 1px solid #21992f;
+  /* border-bottom: 1px solid #21992f; */
   .service-type__program-type {
     background-color: #21992f;
   }
 }
 .client__service_type_13 {
-  border-bottom: 1px solid #00b750;
+  /* border-bottom: 1px solid #00b750; */
   .service-type__program-type {
     background-color: #00b750;
   }
 }
 .client__service_type_14 {
-  border-bottom: 1px solid #001f3f;
+  /* border-bottom: 1px solid #001f3f; */
   .service-type__program-type {
     background-color: #001f3f;
   }
@@ -308,14 +307,12 @@ $client-match-action-row-height: 22px;
 .zero-width {
   width: 0;
 }
-.rollup__square
-{
-  font-size: 0.7em;
+
+.rollup__square {
+  @extend .c-tag-pill;
   color: white;
-  padding: 0.2em 0.4em;
-  font-weight: bold;
-  cursor: pointer;
 }
+
 .destination-data-source-tag
 {
   /* display: inline-block;
@@ -324,18 +321,14 @@ $client-match-action-row-height: 22px;
   margin: auto; */
 }
 
-.destination-sqr
-{
+.destination-sqr {
+  @extend .c-tag-pill;
+  color: $white;
   background-color: $cob-sg-blue-002;
-  padding: 2px 5px;
-  display: inline-block;
 }
-.confidential_project
-{
-  display: inline-block;
-  font-size: 0.7em;
-  font-weight: bold;
-  padding: 0.2em 0.4em;
+
+.confidential_project {
+  @extend .c-tag-pill;
   color: white;
   background-color: orange;
 }
@@ -358,55 +351,19 @@ $client-match-action-row-height: 22px;
   float: right;
   clear: right;
 }
+
 .client__cas-flags .form-group,
-.client__cas-flags .checkbox
-{
+.client__cas-flags .checkbox {
   margin-bottom: 0.25em;
 }
 
-.client-flag {
-  text-align: center;
-  margin-top: 0.5em;
-  margin-bottom: 0.25em;
-  padding: .25em 0.75em;
-  display: inline-block;
-  padding: 0.25em 0.5em;
-  color: $text-color;
-}
-
-.client-flag.alert-success
-{
-  color: white;
-}
-
-.client-flag.alert a {
-  color: $text-color;
-  &:hover {
-    color: $black;
-  }
-}
-
-.client-flag__longterm-stayer
-{
-  background-color: $brand-warning;
-  border-color: $brand-warning;
-  color: white;
-}
-
-.client-flag__cas
-{
-  background-color: $brand-info;
-  border-color: $brand-info;
-}
-.client-name-input
-{
+.client-name-input {
   width: 30%;
   float: left;
   margin-right: 2%;
 }
 
-.client-consent-status .alert
-{
+.client-consent-status .alert {
   text-align: center;
   margin-top: 0.5em;
   margin-bottom: 0.25em;

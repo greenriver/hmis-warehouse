@@ -23,15 +23,18 @@ $gray-light:             lighten($gray-base, 46.7%) !default; // #777
 $gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
 
 $brand-primary:         #88A6C9 !default;
-$brand-success:         #009f44 !default;
+$brand-success-d:       #009f44 !default;
 $brand-success-l:       #81e7a7 !default;
-$brand-positive: $brand-success;
-$brand-positive-l: $brand-success-l;
+$brand-success:         $brand-success-l !default;
+$brand-positive:        $brand-success;
+$brand-positive-l:      $brand-success-l;
 $brand-info:            #d5e7eb !default;
-$brand-warning:         #bc6923 !default;
+$brand-warning-d:       #bc6923 !default;
 $brand-warning-l:       #ffcb9b !default;
-$brand-danger:          #bb2716 !default;
+$brand-warning:         $brand-warning-l !default;
+$brand-danger-d:        #bb2716 !default;
 $brand-danger-l:        #ffa69b !default;
+$brand-danger:          $brand-danger-l !default;
 
 // COB-sg colors
 $cob-sg-freedom-trail-red: rgb(251, 77, 66); // #FB4D42

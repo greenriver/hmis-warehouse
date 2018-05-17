@@ -6,6 +6,7 @@
 @import
   'settings/colors',
   'settings/variables',
+  'settings/icons',
   'settings/spacing',
   'settings/stack_order';
 
@@ -60,7 +61,8 @@
 // ()
 @import
   'components/card',
-  'components/color_key';
+  'components/color_key',
+  'components/tag';
 
 // @import 'base/grid_framework';
 @import
