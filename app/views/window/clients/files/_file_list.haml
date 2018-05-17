@@ -1,27 +1,25 @@
-
 .table-responsive
-  %table.table.table-condensed.table-hover
+  %table.table.table-condensed
     %thead
       %tr
         %th.text-center Select
-        %th.text-center Preview
-        %th.text-center File
-        %th.text-center Document
-        %th.text-center Note
+        %th Preview
+        %th Document
+        %th Note
         - if can_manage_client_files?
-          %th.text-center Visible in Window
-        %th.text-center Uploaded
-        %th.text-center 
+          %th Visible in <br> Window
+        %th Uploaded
+        %th
           Effective Date /
           %br
           Signed On
         - if consent
           %th.text-center Consent Type
           %th.text-center Consent Confirmed
-        %th.text-center Delete
+        %th.text-center
       %tbody
         - files.each do |file|
           = render 'file_row', file: file, consent: consent
 - if paginate
-  %p= paginate(files)
-
+  .o-pagination.o-pagination--centered.mt-5
+    = paginate(files)

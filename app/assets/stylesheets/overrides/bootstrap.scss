@@ -52,3 +52,20 @@ a.icon-cross:link
   font-weight: 800;
 }
 
+.control-label.required {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  abbr {
+    color: $brand-danger;
+    text-decoration: none;
+    margin-left: space(1);
+    border-bottom: 0;
+  }
+}
+
+.btn-link--danger {
+  color: $brand-danger;
+  &:hover {
+    color: darken($brand-danger, 10%);
+  }
+}

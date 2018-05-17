@@ -414,7 +414,46 @@ $client-match-action-row-height: 22px;
   display: inline-block;
   padding: 0.5em 0.5em;
 }
-.file-thumbnail
-{
-  width: 100px;
+
+$file-thumbnail-size: 75px;
+.file-thumbnail {
+  width: $file-thumbnail-size;
+  height: $file-thumbnail-size;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $black;
+  &::before {
+    font-family: 'icomoon';
+    content: '\e9ce'; // Eye
+    color: $white;
+    font-size: 1.5rem;
+  }
+  &:hover {
+    &::before {
+      color: $gray-020;
+    }
+    &::after {
+      background: rgba($black, .3);
+    }
+  }
+}
+
+.file-thumbnail--image {
+  background-size: cover;
+  background-position: center center;
+  &::before {
+    z-index: 5;
+  }
+  &::after {
+    content: '';
+    z-index: 1;
+    position: absolute;
+    background: rgba($black, .5);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 }
