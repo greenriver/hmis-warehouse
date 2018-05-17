@@ -37,7 +37,8 @@
   'elements/body',
   'elements/dl',
   'elements/html',
-  'elements/main';
+  'elements/main',
+  'elements/section';
 
 // Layouts
 // (Super high-level structural layout)
@@ -92,6 +93,7 @@
   'overrides/bootstrap';
 
 @import
+  'utilities/bootstrap_polyfills',
   'utilities/general',
   'utilities/helper_classes',
   'utilities/tables',
