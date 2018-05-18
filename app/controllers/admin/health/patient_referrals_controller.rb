@@ -49,6 +49,7 @@ module Admin::Health
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes(assign_agency_params)
+        @patient_referral.convert_to_patient()
         if @patient_referral.assigned_agency.present?
           flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency.name}."
           redirect_to assigned_admin_health_patient_referrals_path
@@ -68,6 +69,9 @@ module Admin::Health
       @patient_referrals = Health::PatientReferral.where(id: (@params[:patient_referral_ids] || []))
       if @patient_referrals.any? && @agency.present?
         @patient_referrals.update_all(agency_id: @agency.id)
+        @patient_referrals.each do |patient_referral|
+          patient_referral.convert_to_patient()
+        end
         size = @patient_referrals.size
         flash[:notice] = "#{size} #{'Patient'.pluralize(size)} have been assigned to #{@agency.name}"
         redirect_to assigned_admin_health_patient_referrals_path

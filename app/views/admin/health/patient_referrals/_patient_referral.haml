@@ -1,10 +1,19 @@
 .patient-referral.margin-bottom-02
   .row
     .col-xs-12.col-md-2
-      = pr.name
+      - if client = pr.client
+        = link_to pr.name, window_client_path(client)
+      - else
+        = pr.name
     .col-xs-12.col-md-3
-      %div= "<strong>DOB:</strong> #{pr.birthdate} <strong>Age:</strong> #{pr.age}".html_safe 
-      %div= "<strong>SNN:</strong> #{pr.display_ssn}".html_safe
-      %div= "<strong>Medicaid ID:</strong> #{pr.medicaid_id}".html_safe
+      %div
+        %strong DOB:
+        = pr.birthdate
+      %div
+        %strong Age:
+        = pr.age
+      %div
+        %strong Medicaid ID:
+        = pr.medicaid_id
     = render 'patient_referral_actions', pr: pr
     

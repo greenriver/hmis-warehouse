@@ -15,7 +15,7 @@ module HealthAuthorization
     def require_can_claim_patients!
       if current_user.can_approve_patient_assignments? ||
         current_user.can_manage_all_patients? ||
-        current_user.can_manage_patients_for_own_agency?
+        current_user.can_manage_health_agency?
         return true
       end
       not_authorized!
