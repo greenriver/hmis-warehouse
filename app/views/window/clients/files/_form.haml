@@ -1,6 +1,12 @@
 = render 'instructions'
 = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
-  = f.error_notification
+  
+  - if @file.errors.any?
+    .alert.alert-danger 
+      %p Failed to upload file. Please review the errors below
+      %ul.error_list 
+        - @file.errors.messages.values.first.uniq.each do |msg|
+          %li= msg
   .form-inputs
     %h3 What Does This File Contain?
     .well.row.client-file
@@ -34,7 +40,8 @@
     = f.input :note, as: :string, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
     - if can_manage_client_files?
       = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
-    = f.input :file, as: :file, :required => true            
+    = f.input :file, as: :file, :required => true, :error => false, :full_error => true
+    
   .row
     .col-sm-6
       = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
