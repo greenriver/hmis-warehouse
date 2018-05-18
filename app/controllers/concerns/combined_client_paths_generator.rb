@@ -11,6 +11,11 @@ module CombinedClientPathsGenerator
     end
     helper_method :health_path_generator
 
+    def hpc_path_generator
+      health_path_generator + [:hpc]
+    end
+    helper_method :hpc_path_generator
+
     def history_path_generator
       client_path_generator + [:history]
     end
