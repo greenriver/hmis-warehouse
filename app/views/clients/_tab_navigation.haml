@@ -34,13 +34,21 @@
       title: 'Relationships',
       permission: can_assign_users_to_clients?,
     },
-    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+    polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
       title: 'Health',
       permission: show_health_pilot,
     },
-    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
+    polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
       title: 'Care Plan',
       permission: show_health_pilot,
+    },
+    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+      title: 'Health',
+      permission: show_health_hpc,
+    },
+    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
+      title: 'Care Plan',
+      permission: show_health_hpc,
     },
     polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
       title: 'Metrics',

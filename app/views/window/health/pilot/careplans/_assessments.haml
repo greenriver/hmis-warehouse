@@ -1,0 +1,71 @@
+.client__assessments.slab
+  .row
+    .col-md-6
+      %h3.section-expander-block__header
+        Assessments
+    .col-md-6
+      %select.col-sm-12.new-assessment
+        %option{ value: 0 } Add New...
+        - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
+          %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
+        %option{ value: '' } Comprehensive Health Assessment
+
+  - if status = @client.api_status
+    - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
+    - if status[:updating]
+      .row
+        .col-sm-10
+          .api-status-status.jApiStatus
+            Updating since
+            = status[:started_at]
+        .col-sm-2.pull-right
+          = render 'spinner'
+    - else
+      .row
+        .col-xs-8
+          Last updated: 
+          = status[:updated_at]
+        .col-xs-4
+          = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
+
+  .row
+    .col-md-12
+      = render 'touch_points_table'
+
+.client__assessments.slab
+  %h3.section-expander-block__header SDH Case Management Notes
+  - if status = @client.api_status
+    - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
+    - if status[:updating]
+      .row
+        .col-sm-10
+          .api-status-status.jApiStatus
+            Updating since
+            = status[:started_at]
+        .col-sm-2.pull-right
+          = render 'spinner'
+    - else
+      .row
+        .col-xs-8
+          Last updated: 
+          = status[:updated_at]
+        .col-xs-4
+          = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
+
+  / # = render 'touch_points_table'
+  = render 'sdh_case_management_notes'
+
+= content_for :page_js do
+  :javascript
+    var status_class = '.jApiStatus'
+    var refresher = new App.Clients.EtoApiRefresher($(status_class), "#{eto_api_path}", document.URL, '.client__assessments');
+
+  :coffee
+    $(document).on 'change', '.new-assessment', (e) ->
+      path = $(e.target).val()
+      window.location.href = path unless path == '0'
+
+
+
+
+

@@ -31,6 +31,13 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
       end
+      namespace :pilot do 
+        resources :patient, only: [:index]
+        resource :careplan, except: [:destroy] do
+          get :self_sufficiency_assessment
+          get :print
+        end
+      end
       namespace :careplan do
         resources :goals do
           post :sort, on: :collection

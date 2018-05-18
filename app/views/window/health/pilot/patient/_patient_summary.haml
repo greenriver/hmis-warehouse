@@ -1,0 +1,73 @@
+#summary
+  = render 'patient_status'
+  .ho-patient__container
+    .ho-patient__header
+      %h3.ho-patient__name
+        .row
+          .col-sm-6
+            = @patient.client.name
+          .col-sm-6.text-right
+            .btn-group
+              %button{ type: 'button', class: 'btn btn-default dropdown-toggle', :'data-toggle' => 'dropdown' } 
+                Engagement Readiness & Forms
+                %span.caret
+              %ul.dropdown-menu
+                %li
+                  - if @patient.participation_forms.none?
+                    = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }, style: 'margin-left: 20px' do
+                      Participation Form
+                  - else 
+                    = link_to polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @patient.participation_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.o-color--positive
+                      Participation Form
+                %li
+                  - if @patient.release_forms.none?
+                    = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }, style: 'margin-left: 20px' do
+                      Release Form
+                  - else 
+                    = link_to polymorphic_path(release_form_path_generator, client_id: @client.id, id: @patient.release_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.o-color--positive
+                      Release Form
+
+      .ho-patient__details
+        .row
+          .col-md-6
+            - @patient_summary[:details].each do |detail|
+              .ho-patient__detail
+                %span= "#{detail[0]}: "
+                = detail[1]
+
+          .col-md-6.text-right  
+            .row
+              .col-sm-6.text-right
+                PREFERRED COMMUNICATION:
+              .col-sm-6.text-left
+                (preference)
+                %br
+                (phone)
+                %br
+                (email)
+
+    .ho-patient__content
+      %h4
+        Demographics
+      %table
+        - @patient_summary[:demographics].each do |row|
+          %tr
+            - row.each do |td|
+              %td
+                %small= "#{td[0]}: "
+                = td[1]
+      .row
+        .col-sm-6
+          %h4 
+            Allergies
+        .col-sm-6
+          %h4
+            Advanced Directive
+      .row
+        .col-sm-6
+          = @patient.allergy_list.presence || 'none'
+        .col-sm-6
+          (provided by CHA)
+

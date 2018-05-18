@@ -6,15 +6,20 @@ module CombinedClientPathsGenerator
     end
     helper_method :careplan_path_generator
 
+    def careplan_pilot_path_generator
+      health_pilot_path_generator + [:careplan]
+    end
+    helper_method :careplan_pilot_path_generator
+
     def health_path_generator
       client_path_generator + [:health]
     end
     helper_method :health_path_generator
 
-    def hpc_path_generator
-      health_path_generator + [:hpc]
+    def health_pilot_path_generator
+      health_path_generator + [:pilot]
     end
-    helper_method :hpc_path_generator
+    helper_method :health_pilot_path_generator
 
     def history_path_generator
       client_path_generator + [:history]

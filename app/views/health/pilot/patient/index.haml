@@ -1,0 +1,27 @@
+- title = 'Client Healthcare Dashboard'
+= content_for(:title, title)
+%h1= "#{title} for #{@client.full_name}"
+
+= content_for :page_js do
+  :javascript
+    $('body').css('position', 'relative');
+
+= content_for :body_data_scrollspy, true
+
+= render 'clients/breadcrumbs'
+= render 'clients/tab_navigation', current: client_health_patient_index_path(@client)
+.row
+  .col-sm-9
+    %h2 Patient Summary
+    - if @patient.present?
+      = render 'patient_summary'
+      = render 'simplified_metrics'
+      = render 'patient_dashboard'
+      = render 'patient_details'
+
+      = render 'patient_js'
+    - else
+      %p No patient record found.
+
+  .col-sm-3.scrollspy
+    = render 'on_page_nav'
