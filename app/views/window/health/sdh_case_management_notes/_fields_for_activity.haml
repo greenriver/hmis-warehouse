@@ -1,0 +1,5 @@
+= f.input :user_id, as: :hidden
+= f.input :user_full_name, as: :hidden
+= render 'string_collection_with_other', note: activity, f: f, note_attr: 'mode_of_contact', label: 'Mode of Contact', other_label: 'Please Specify:', other: 'other'
+= render 'string_collection_with_other', note: activity, f: f, note_attr: 'reached_client', label: 'Reached Client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact'
+= f.input :activity, collection: activity.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'

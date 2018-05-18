@@ -45,22 +45,23 @@ module Health
       'Client wants to switch to a different BH CP'
     ]
 
-    validates_presence_of :patient_id, :user_id, :title
-    validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?
-    validates_presence_of :housing_status_other, if: :housing_status_is_other? 
-    validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_nil: true
-    validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_nil: true
-    validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_nil: true
-    validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_nil: true
-    
     belongs_to :patient
     belongs_to :user
 
-    has_many :activities, class_name: '::Health::SdhCaseManagementNoteActivity', dependent: :destroy, foreign_key: 'note_id'
+    # has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', foreign_key: 'source_id', inverse_of: :source
+    has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
     serialize :topics, Array
 
     accepts_nested_attributes_for :activities, reject_if: :all_blank
+
+    validates_presence_of :patient_id, :user_id, :title
+    # validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?
+    # validates_presence_of :housing_status_other, if: :housing_status_is_other? 
+    # validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
+    # validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
+    # validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
+    # validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_blank: true
 
     def self.topics_collection
       TOPICS

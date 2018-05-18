@@ -1,9 +1,13 @@
+.underline-header.padding-bottom-02
+  %h1= "Case Management Note for #{@patient.name}"
+  - unless @note.new_record?
+    %small= "Entered by #{@note.user.name}, #{@note.created_at.strftime('%b %d, %Y')}"
 - note = Health::SdhCaseManagementNote
-- activity = Health::SdhCaseManagementNoteActivity
+- activity = Health::QualifyingActivity
 = simple_form_for @note, url: form_url do |f|
   .row
     .col-md-10
-      %h3 Note Topic, Title, Time Spent
+      %h4 Note Topic, Title, Time Spent
       .well
         .row
           .col-md-8
@@ -11,16 +15,21 @@
             = f.input :title
             = f.input :total_time_spent_in_minutes, input_html: {min: 0}
             = f.input :date_of_contact, as: :date_picker
-      %h3 Qualifying Activities
+      %h4 Qualifying Activities
       .well
         .row
           .col-md-8
-            = f.simple_fields_for :activities do |f2|
-              %h4.uppercase.gray-light= "Qualifying Activity ##{f2.index+1}"
-              = render 'string_collection_with_other', note: activity, f: f2, note_attr: 'mode_of_contact', label: 'Mode of Contact', other_label: 'Please Specify:', other: 'other'
-              = render 'string_collection_with_other', note: activity, f: f2, note_attr: 'reached_client', label: 'Reached Client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact'
-              = f2.input :activity, collection: activity.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'
-      %h3 Additional Questions
+            %div{data: {behavior: 'activities'}}
+              = f.simple_fields_for :activities do |f2|
+                %h5.uppercase.gray-light= "Qualifying Activity ##{f2.index+1}"
+                %div{data: {behavior: 'activity'}}
+                  = render 'fields_for_activity', f: f2, activity: activity
+            -# template for js to copy to add activity
+            = f.simple_fields_for :activities, @template_activity, child_index: 'COPY' do |f2|
+              %div{style: 'display:none;', data: {behavior: 'activity to copy'}}
+                = render 'fields_for_activity', f: f2, activity: activity
+      = link_to 'Add Activity', '#', onclick: 'addActivity(event)'
+      %h4 Additional Questions
       .well
         .row
           .col-md-8
@@ -33,22 +42,4 @@
         .text-right
           = f.submit 'Save Case Note', class: 'btn btn-action'
 
-- content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var containerSelector = '.string-collection-with-other__container';
-      var inputSelector = '.string-collection-with-other__input';
-      var container = $(containerSelector);
-      var inputs = container.find('input[type="radio"]');
-      inputs.change(function() {
-        var thisContainer = $(this).parents(containerSelector);
-        var other = thisContainer.find(inputSelector);
-        var otherValue = other.data('other-value');
-        if($(this).is(':checked') && $(this).val() === otherValue) {
-          other.slideDown();
-        } else {
-          other.find('input').val('');
-          other.slideUp();
-        }
-      });
-    });
+= render 'form_js'
