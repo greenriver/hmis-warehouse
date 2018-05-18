@@ -6,7 +6,7 @@
         - if @active_patient_referral_group == group[:id]
           - btn_classes.push('active')
         = link_to group[:id].titleize, group[:path], class: btn_classes
-    %h4.margin-top-03= @active_patient_referral_group == 'our patient' ? 'Claimed By Your Agency' : 'Not Your Patient'
+    %h4.margin-top-03= @active_patient_referral_group == 'our patient' ? "Claimed By #{@agency.name}" : 'Not Your Patient'
 .margin-top-03{class: @active_patient_referral_group.present? ? 'pull-right text-right' : 'pull-left'}
   .margin-bottom-02= page_entries_info @patient_referrals, entry_name: _('assignments')
   %div= paginate @patient_referrals, params: {q: params[:q], filters: params[:filters]}

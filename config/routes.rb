@@ -398,6 +398,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :admin, only: [:index]
+      resources :agencies, except: [:show]
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
