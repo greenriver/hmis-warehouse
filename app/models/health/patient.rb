@@ -20,6 +20,8 @@ module Health
     has_one :claims_roster, class_name: Health::Claims::Roster.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :amount_paids, class_name: Health::Claims::AmountPaid.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :self_sufficiency_matrix_forms
+    has_many :participation_forms
+    has_many :release_forms
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }

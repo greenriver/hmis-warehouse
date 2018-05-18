@@ -1,0 +1,12 @@
+= simple_form_for @release_form, url: polymorphic_path(release_forms_path_generator, client_id: @client.id), as: :form, remote: true do |f|
+  
+  = f.error_notification
+
+  .col-sm-12
+    = f.input :signature_on, as: :date_picker
+    = f.input :file_location
+    = f.input :supervisor_reviewed, as: :boolean
+
+  .col-sm-12
+    .text-right
+      = f.button :submit, 'Save'

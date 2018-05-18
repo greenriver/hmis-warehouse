@@ -66,6 +66,26 @@ module CombinedClientPathsGenerator
     end
     helper_method :self_sufficiency_matrix_form_path_generator
 
+    def participation_forms_path_generator
+      health_path_generator + [:participation_forms]
+    end
+    helper_method :participation_forms_path_generator
+
+    def participation_form_path_generator
+      health_path_generator + [:participation_form]
+    end
+    helper_method :participation_form_path_generator
+
+    def release_forms_path_generator
+      health_path_generator + [:release_forms]
+    end
+    helper_method :release_forms_path_generator
+
+    def release_form_path_generator
+      health_path_generator + [:release_form]
+    end
+    helper_method :release_form_path_generator
+
     def edit_cas_readiness_path_generator
       [:edit] + client_path_generator + [:cas_readiness]
     end
