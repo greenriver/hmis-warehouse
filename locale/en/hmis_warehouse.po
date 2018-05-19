@@ -17,6 +17,9 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "\n"
 
+msgid "Appropriate for sober supportive housing"
+msgstr ""
+
 msgid "Asylee, Refugee"
 msgstr ""
 
@@ -206,7 +209,7 @@ msgstr ""
 msgid "Update Data Source"
 msgstr ""
 
-msgid "Upload failed to queue."
+msgid "Upload failed to queue, did you attach a file?"
 msgstr ""
 
 msgid "Upload queued to start."
@@ -227,6 +230,9 @@ msgstr ""
 msgid "Warehouse Reports"
 msgstr ""
 
+msgid "Willing to live in congregate housing"
+msgstr ""
+
 msgid "Window into the Warehouse"
 msgstr ""
 
@@ -237,6 +243,9 @@ msgid "You can only see files you upload."
 msgstr ""
 
 msgid "You can only see notes you add."
+msgstr ""
+
+msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"
