@@ -424,3 +424,10 @@ $client-match-action-row-height: 22px;
 {
   width: 100px;
 }
+
+.sdh-note__activity h5 a {
+  text-transform: none;
+  @include open-sans-normal;
+  padding-left: 20px;
+  font-size: 90%;
+}

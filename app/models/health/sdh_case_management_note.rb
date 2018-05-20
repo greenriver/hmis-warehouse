@@ -1,6 +1,8 @@
 module Health
   class SdhCaseManagementNote < HealthBase
 
+    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/
+
     TOPICS = [
       'Basic Needs',
       'Behavioral Health',
@@ -48,20 +50,30 @@ module Health
     belongs_to :patient
     belongs_to :user
 
-    # has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', foreign_key: 'source_id', inverse_of: :source
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
     serialize :topics, Array
 
-    accepts_nested_attributes_for :activities, reject_if: :all_blank
+    # what fields are required here? 
+    # current: reject_if user input fields are empty
+    accepts_nested_attributes_for :activities, reject_if: proc {|a| a['mode_of_contact'].blank? && a['reached_client'].blank? && a['activity'].blank? && a['date_of_activity'].blank?}
 
-    validates_presence_of :patient_id, :user_id, :title
-    # validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?
-    # validates_presence_of :housing_status_other, if: :housing_status_is_other? 
-    # validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
-    # validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
-    # validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
-    # validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_blank: true
+    validates_presence_of :patient, :user, :title
+    validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?
+    validates_presence_of :housing_status_other, if: :housing_status_is_other? 
+    validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
+    validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
+    validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
+    validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_blank: true
+    validates :client_phone_number, format: { with: US_PHONE_NUMBERS }, allow_blank: true
+
+    def submitted_activities
+      activities.submitted
+    end
+
+    def unsubmitted_activities
+      activities.unsubmitted
+    end
 
     def self.topics_collection
       TOPICS
@@ -99,6 +111,18 @@ module Health
 
     def housing_status_other_value
       HOUSING_STATUS_OTHER
+    end
+
+    def user_can_edit?(current_user)
+      current_user.id == user_id
+    end
+
+    def display_note_form_sections
+      [
+        {id: :basic_info, title: 'Note Topic, Title, Time Spent'},
+        {id: :activities, title: 'Qualifying Activities'},
+        {id: :additional_questions, title: 'Additional Questions'}
+      ]
     end
 
     def display_basic_info_section

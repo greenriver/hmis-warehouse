@@ -2,44 +2,20 @@
   %h1= "Case Management Note for #{@patient.name}"
   - unless @note.new_record?
     %small= "Entered by #{@note.user.name}, #{@note.created_at.strftime('%b %d, %Y')}"
-- note = Health::SdhCaseManagementNote
-- activity = Health::QualifyingActivity
 = simple_form_for @note, url: form_url do |f|
   .row
     .col-md-10
-      %h4 Note Topic, Title, Time Spent
-      .well
-        .row
-          .col-md-8
-            = f.input :topics, collection: note.topics_collection, as: :check_boxes
-            = f.input :title
-            = f.input :total_time_spent_in_minutes, input_html: {min: 0}
-            = f.input :date_of_contact, as: :date_picker
-      %h4 Qualifying Activities
-      .well
-        .row
-          .col-md-8
-            %div{data: {behavior: 'activities'}}
-              = f.simple_fields_for :activities do |f2|
-                %h5.uppercase.gray-light= "Qualifying Activity ##{f2.index+1}"
-                %div{data: {behavior: 'activity'}}
-                  = render 'fields_for_activity', f: f2, activity: activity
-            -# template for js to copy to add activity
-            = f.simple_fields_for :activities, @template_activity, child_index: 'COPY' do |f2|
-              %div{style: 'display:none;', data: {behavior: 'activity to copy'}}
-                = render 'fields_for_activity', f: f2, activity: activity
-      = link_to 'Add Activity', '#', onclick: 'addActivity(event)'
-      %h4 Additional Questions
-      .well
-        .row
-          .col-md-8
-            = render 'string_collection_with_other', note: note, f: f, note_attr: 'place_of_contact', label: 'Place of contact (if in person)', other_label: 'Please specify:', other: 'other'
-            = render 'string_collection_with_other', note: note, f: f, note_attr: 'housing_status', label: 'Housing Status', other_label: 'Please specify', other: 'other'
-            = f.input :housing_placement_date, as: :date_picker
-            = f.input :client_action, as: :radio_buttons, collection: note.client_action_collection, label: 'Did any of the following happen?'
-            = f.input :notes_from_encounter, input_html: {rows: 10}
-            = f.input :next_steps, hint: 'List of steps that Client or Case Manager will complete. Please separate and number each step.', input_html: {rows: 10}
-        .text-right
-          = f.submit 'Save Case Note', class: 'btn btn-action'
+      - form_sections = @note.display_note_form_sections
+      - form_sections.each_with_index do |section, index|
+        %h4= section[:title]
+        .well
+          .row
+            .col-md-8
+              = render "fields_for_#{section[:id]}", f: f
+          - if form_sections.size == (index + 1)
+            .text-right
+            = f.submit 'Save Case Note', class: 'btn btn-action'
+        - if section[:id] == :activities
+          = link_to 'Add Activity', '#', onclick: 'addActivity(event)', class: 'btn btn-primary btn-primary__reverse'
 
 = render 'form_js'

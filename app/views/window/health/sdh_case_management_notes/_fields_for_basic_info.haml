@@ -1,0 +1,5 @@
+- note = Health::SdhCaseManagementNote
+= f.input :topics, collection: note.topics_collection, as: :check_boxes
+= f.input :title
+= f.input :total_time_spent_in_minutes, input_html: {min: 0}
+= f.input :date_of_contact, as: :date_picker

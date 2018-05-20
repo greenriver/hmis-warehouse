@@ -31,16 +31,27 @@ module Health
       'Referral to ACO for Flexible Services'
     ]
 
-    # belongs_to :source, polymorphic: true, inverse_of: :activities
+    scope :submitted, -> {where.not(claim_submitted_on: nil)}
+    scope :unsubmitted, -> {where(claim_submitted_on: nil)}
+
     belongs_to :source, polymorphic: true
     belongs_to :user
 
-    # validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT}, allow_nil: true
-    # validates :reached_client, inclusion: {in: REACHED_CLIENT}, allow_nil: true
-    # validates :activity, inclusion: {in: ACTIVITY}, allow_nil: true 
-    validates_presence_of :user_id, :user_full_name, :source
-    # validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
-    # validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
+    # what fields are required here?
+    validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT}, allow_blank: true
+    validates :reached_client, inclusion: {in: REACHED_CLIENT}, allow_blank: true
+    validates :activity, inclusion: {in: ACTIVITY}, allow_blank: true 
+    validates_presence_of :user, :user_full_name, :source
+    validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
+    validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
+
+    def submitted?
+      claim_submitted_on.present?
+    end
+
+    def unsubmitted?
+      !submitted?
+    end
 
     def self.load_string_collection(collection)
       [['None', '']] + collection.map do |c|
@@ -77,14 +88,19 @@ module Health
     end
 
     def display_sections(index)
-      {
+      section = {
         subtitle: "Qualifying Activity ##{index+1}",
         values: [
           {key: 'Mode of Contact:', value: mode_of_contact, other: (mode_of_contact_is_other? ? {key: 'Other:', value: mode_of_contact_other} : false)},
           {key: 'Reached Client:', value: reached_client, other: (reached_client_is_collateral_contact? ? {key: 'Collateral Contact:', value: reached_client_collateral_contact} : false)},
-          {key: 'Which type of activity took place?', value: activity, include_br_before: true}
+          {key: 'Which type of activity took place?', value: activity, include_br_before: true},
+          {key: 'Date of Activity:', value: date_of_activity&.strftime('%b %d, %Y')}
         ]
       }
+      if claim_submitted_on.present?
+        section[:values].push({key: 'Claim submitted on:', value: claim_submitted_on.strftime('%b %d, %Y')})
+      end
+      section
     end
 
   end

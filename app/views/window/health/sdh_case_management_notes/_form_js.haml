@@ -13,13 +13,34 @@
       }
     }
 
+    var behaviorSelector = function(behavior) {
+      return '[data-behavior="'+behavior+'"]'
+    }
+
+    var removeActivity = function(event, link) {
+      event.preventDefault();
+      var activity = $(link).parents(behaviorSelector('activity'));
+      activity.remove();
+      var activities = $(behaviorSelector("activity"));
+      if(activities.length === 0) {
+        var none = $(behaviorSelector("no activities"));
+        none.show();
+      }
+    }
+
     var addActivity = function(event) {
       event.preventDefault();
-      var container = $('[data-behavior="activities"]');
-      var activities = $('[data-behavior="activity"]');
-      var template = $('[data-behavior="activity to copy"]')[0];
+      var container = $(behaviorSelector("activities"));
+      var none = $(behaviorSelector("no activities"));
+      var activities = $(behaviorSelector("activity"));
+      var template = $(behaviorSelector("activity to copy"))[0];
       var html = $(template).html().replace(/COPY/gi, activities.length);
-      container.append("<h5 class='uppercase gray-light'>Qualifying Activity #"+(activities.length+1)+"</h5>");
-      container.append("<div data-behavior='activity'>"+html+"</div>");
+      
+      var newActivityContainer = $("<div class='sdh-note__activity' data-behavior='activity'></div>").appendTo(container);
+      var newHeader = $("<h5 class='uppercase gray-light'>Qualifying Activity #"+(activities.length+1)+"</h5>").appendTo(newActivityContainer);
+      var newActivity = $(html).appendTo(newActivityContainer);
+
+      $('<a href="#" onclick="removeActivity(event, this)">remove ×</a>').appendTo(newHeader);
+      none.hide();
       return false
     }

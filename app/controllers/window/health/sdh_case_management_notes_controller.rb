@@ -17,15 +17,17 @@ module Window::Health
 
     def new
       @note = @patient.sdh_case_management_notes.build(user: current_user)
-      @note.activities.build(user_id: current_user.id, user_full_name: current_user.name)
+      @note.activities.build(user: current_user, user_full_name: current_user.name)
     end
 
     def create
       create_params = note_params.merge({user: current_user})
       @note = @patient.sdh_case_management_notes.build(create_params)
       if @note.save
+        flash[:notice] = "New SDH Management Note Created."
         redirect_to polymorphic_path(careplan_path_generator)
       else
+        flash[:error] = "Please fix the errors below."
         load_template_activity
         render :new
       end
@@ -33,15 +35,26 @@ module Window::Health
 
     def edit
       @note = Health::SdhCaseManagementNote.find(params[:id])
+      if !@note.user_can_edit?(current_user)
+        flash[:error] = "You can't edit this note."
+        redirect_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) 
+      end
     end
 
     def update
       @note = Health::SdhCaseManagementNote.find(params[:id])
-      if @note.update_attributes(note_params)
-        redirect_to polymorphic_path(careplan_path_generator)
+      if !@note.user_can_edit?(current_user)
+        flash[:error] = "You can't edit this note."
+        redirect_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) 
       else
-        load_template_activity
-        render :edit
+        if @note.update_attributes(note_params)
+          flash[:notice] = "SDH Management Note Updated."
+          redirect_to polymorphic_path(careplan_path_generator)
+        else
+          flash[:error] = "Please fix the errors below."
+          load_template_activity
+          render :edit
+        end
       end
     end
 
@@ -77,12 +90,17 @@ module Window::Health
       @template_activity = Health::QualifyingActivity.new(user: current_user, user_full_name: current_user.name)
     end
 
-    def note_params
+    def clean_note_params!
       # NOTE: Remove COPY from activities_attributes -- if this is present in params we get unpermitted params
       # Let me know if there is a better solution @meborn
       # COPY is used to add activities via js see health/sdh_case_management_note/form_js addActivity
       (params[:health_sdh_case_management_note][:activities_attributes]||{}).reject!{|k,v| k == "COPY"}
-      
+      # remove empty element from topics array
+      (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
+    end
+
+    def note_params
+      clean_note_params!
       params.require(:health_sdh_case_management_note).permit(
         :title,
         :total_time_spent_in_minutes,
@@ -105,7 +123,8 @@ module Window::Health
           :mode_of_contact_other, 
           :reached_client,
           :reached_client_collateral_contact,
-          :activity
+          :activity,
+          :date_of_activity
         ]
       ).reject{|k, v| v.blank?}
     end
