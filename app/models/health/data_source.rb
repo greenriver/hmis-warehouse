@@ -1,5 +1,6 @@
 module Health
   class DataSource < Base
+    acts_as_paranoid
 
     has_many :patients
     has_many :medications
