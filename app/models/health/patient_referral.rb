@@ -170,7 +170,8 @@ module Health
         ssn: ssn,
         client_id: destination_client.id,
         medicaid_id: medicaid_id,
-        pilot: false
+        pilot: false,
+        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
 
       update(patient_id: patient.id)
