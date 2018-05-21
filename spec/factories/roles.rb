@@ -88,9 +88,4 @@ FactoryGirl.define do
     name 'cohort client viewer'
     can_view_assigned_reports true
   end
-
-  factory :assigned_ds_viewer, class: 'Role' do
-    name 'ds viewer'
-    can_see_clients_in_window_for_assigned_data_sources true
-  end
 end

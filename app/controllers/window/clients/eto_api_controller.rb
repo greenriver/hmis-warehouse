@@ -24,7 +24,7 @@ module Window::Clients
     end
     
     def client_scope
-      client_source.destination.joins(source_clients: :data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+      client_source.destination.joins(source_clients: :data_source).where(data_sources: {visible_in_window: true})
     end
   end
 end

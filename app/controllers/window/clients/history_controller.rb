@@ -95,7 +95,7 @@ module Window::Clients
     end
 
     def enrollment_scope
-      @client.service_history_enrollments.visible_in_window_to(current_user)
+      @client.service_history_enrollments.visible_in_window
     end
     
     def set_client
@@ -117,7 +117,7 @@ module Window::Clients
     def client_scope
       client_source.destination.
         joins(source_clients: :data_source).
-        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+        where(data_sources: {visible_in_window: true})
     end
   end
 end

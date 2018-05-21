@@ -8,12 +8,6 @@
         = panopticon.to_sentence
         = 'role'.pluralize panopticon.length
         can view all entities.
-  %p.alert.alert-info
-    %i.icon-warning
-    Clients with records in specified data source will be visible
-    in the window to this user, regardless of data source visibility setting if they belong to a role with the
-    %strong Can see clients in window for assigned data sources
-    permission.
   = f.input :data_sources,  **data_source_viewability(base)
   = f.input :organizations, **organization_viewability(base)
   = f.input :projects,      **project_viewability(base)

@@ -68,7 +68,6 @@ class Role < ActiveRecord::Base
       :can_view_project_data_quality_client_details,
       :can_manage_organization_users,
       :can_add_administrative_event,
-      :can_see_clients_in_window_for_assigned_data_sources,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

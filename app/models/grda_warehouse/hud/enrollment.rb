@@ -180,8 +180,8 @@ module GrdaWarehouse::Hud
       joins(:project).merge(Project.hud_non_residential)
     end
 
-    scope :visible_in_window_to, -> (user) do
-      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+    scope :visible_in_window, -> do
+      joins(:data_source).where(data_sources: {visible_in_window: true})
     end
 
     scope :open_during_range, -> (range) do

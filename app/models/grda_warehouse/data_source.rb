@@ -75,13 +75,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
-  scope :visible_in_window_to, -> (user) do
-    if user.can_see_clients_in_window_for_assigned_data_sources?
-      ds_ids = user.data_sources.pluck(:entity_id)
-      where(arel_table[:id].in(ds_ids).or(arel_table[:visible_in_window].eq(true)))
-    else
-      where(visible_in_window: true)
-    end
+  scope :visible_in_window, -> do
+    where(visible_in_window: true)
   end
 
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
@@ -205,10 +200,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       end
       spans_by_id
     end
-  end
-
-  def users
-    User.where(id: user_viewable_entities.uniq.map(&:user_id))
   end
 
   def data_span

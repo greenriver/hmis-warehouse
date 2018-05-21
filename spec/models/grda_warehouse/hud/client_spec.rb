@@ -69,38 +69,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     end
 
-    describe 'window visibility' do 
-      model = GrdaWarehouse::Hud::Client
-      let! :c1 { create :grda_warehouse_hud_client }
-      let! :user { create :user }
-      let! :role { create :assigned_ds_viewer }
-      let :data_source { c1.data_source }
-      it 'user cannot see client' do
-        expect(model.visible_in_window_to(user).pluck(:id)).not_to include(c1.id)
-      end
-      describe 'when data source is visible in the window' do
-        it 'user is able to see the client' do
-          data_source.update visible_in_window: true
-          expect(model.visible_in_window_to(user).pluck(:id)).to include(c1.id)
-        end
-      end
-      describe 'when data source is not visible in the window, but user has data source assigned' do
-        it 'user is able to see the client' do
-          data_source.update visible_in_window: false
-          user.entities.create entity: data_source
-          expect(model.visible_in_window_to(user).pluck(:id)).not_to include(c1.id)
-        end
-      end
-      describe 'when data source is not visible in the window, but user has data source assigned, and appropriate role' do
-        it 'user is able to see the client' do
-          data_source.update visible_in_window: false
-          user.entities.create entity: data_source
-          user.roles << role
-          expect(model.visible_in_window_to(user).pluck(:id)).to include(c1.id)
-        end
-      end
-    end
-
     describe 'viewability' do
       model = GrdaWarehouse::Hud::Client
       let  :c1 { create :grda_warehouse_hud_client }

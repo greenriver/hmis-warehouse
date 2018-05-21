@@ -237,8 +237,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   end
 
-  scope :visible_in_window_to, -> (user) do
-    joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+  scope :visible_in_window, -> do
+    joins(:data_source).where(data_sources: {visible_in_window: true})
   end
 
   #################################

@@ -25,7 +25,7 @@
       %br
       Veteran:
       %strong
-        - if @client.source_clients.visible_in_window_to(current_user).map(&:veteran?).include?(true)
+        - if @client.source_clients.visible_in_window.map(&:veteran?).include?(true)
           Yes
         - else
           No

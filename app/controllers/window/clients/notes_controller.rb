@@ -61,7 +61,7 @@ module Window::Clients
 
     def client_scope
       GrdaWarehouse::Hud::Client.destination.joins(source_clients: :data_source).
-        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+      where(data_sources: {visible_in_window: true})
     end
 
     # Only allow a trusted parameter "white list" through.

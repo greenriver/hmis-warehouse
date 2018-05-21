@@ -2,7 +2,7 @@ module ClientHelper
   def enrolled client, window_only:true
     enrollments = client.service_history_enrollments.ongoing.residential
     if window_only
-      enrollments = enrollments.visible_in_window_to(current_user)
+      enrollments = enrollments.visible_in_window
     end
     enrollments.distinct.pluck(:project_type).map do |project_type|
       if project_type == 13

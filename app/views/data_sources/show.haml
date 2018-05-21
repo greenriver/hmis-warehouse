@@ -25,9 +25,6 @@
               Visible in the Window into the Warehouse?
             %td
               = f.input :visible_in_window, label: false
-        %tr
-          %th Viewable by the following users, regardless of visibility in window
-          %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
     .col-sm-6.text-right
       - if ! @data_source.authoritative? && can_upload_hud_zips?
         = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
