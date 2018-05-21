@@ -181,7 +181,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :visible_in_window_to, -> (user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
-  end
+  end 
 
   #################################
     # Standard Cohort Scopes
