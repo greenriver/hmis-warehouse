@@ -7,7 +7,7 @@ module CohortColumns
       Rails.cache.fetch([cohort_client.client.id, 'household_members'], expires_at: 8.hours) do
         households = cohort_client.client.households
         if households.present?
-          households.households.values.flatten.
+          households.values.flatten.
             map do |_, member| 
               "#{member['FirstName']} #{member['LastName']} (#{member['age']} in #{member['date'].year})"
             end.uniq.join('; ')
