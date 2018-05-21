@@ -89,6 +89,7 @@ class Role < ActiveRecord::Base
       :can_create_care_plans_for_own_agency,
       :can_view_all_patients, # Read-only
       :can_view_patients_for_own_agency, # Read-only
+      :can_add_case_management_notes,
     ]
   end
 

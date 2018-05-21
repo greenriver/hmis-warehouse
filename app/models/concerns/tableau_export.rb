@@ -4,12 +4,31 @@ module TableauExport
     module_function
 
       def default_start
-        3.years.ago
+        '2014-01-01'.to_date
       end
       private_class_method :default_start
 
       def default_end
         DateTime.current
+      end
+      private_class_method :default_end
+
+      def project_types
+        [
+          1, # => 'Emergency Shelter',
+          2, #=> 'Transitional Housing',
+          3, #=> 'PH - Permanent Supportive Housing',
+          4, #=> 'Street Outreach',
+          # 6, #=> 'Services Only',
+          # 7, #=> 'Other',
+          8, #=> 'Safe Haven',
+          9, #=> 'PH – Housing Only',
+          10, #=> 'PH – Housing with Services (no disability required for entry)',
+          # 11, #=> 'Day Shelter',
+          12, #=> 'Homelessness Prevention',
+          13, #=> 'PH - Rapid Re-Housing',
+          14, #=> 'Coordinated Assessment',
+        ]
       end
       private_class_method :default_end
 
@@ -22,16 +41,12 @@ module TableauExport
       def pathways_common(start_date: default_start, end_date: default_end, coc_code: nil)
       model = she_t.engine
       spec = {
-        client_uid:  she_t[:client_id],
-        is_family:   she_t[:presented_as_individual],
-        is_veteran:  c_t[:VeteranStatus],
-        is_youth:    she_t[:age],
-        is_chronic:  c_t[:id],
+        client_uid:  she_t[:client_id], # in use
         hh_config:   she_t[:presented_as_individual],
-        prog:        she_t[she_t.engine.project_type_column],
-        entry:       she_t[:first_date_in_program],
-        exit:        she_t[:last_date_in_program],
-        destination: she_t[:destination],
+        prog:        she_t[she_t.engine.project_type_column], # in use
+        entry:       she_t[:first_date_in_program], # in use
+        exit:        she_t[:last_date_in_program], # in use
+        destination: she_t[:destination], # in use
       }
       repeaters     = %i( prog entry exit destination )
       non_repeaters = spec.keys - repeaters
@@ -40,7 +55,7 @@ module TableauExport
         joins( :client, enrollment: :enrollment_cocs ).
         # merge( model.hud_residential ). # maybe spurious?
         merge(
-          model.
+          model.in_project_type(project_types).
             open_between( start_date: start_date, end_date: end_date ).
             with_service_between( start_date: start_date, end_date: end_date )
         ).
@@ -61,7 +76,7 @@ module TableauExport
       # each enrollment is represented by a set of the repeater headers suffixed with a one-based index
       # we collect the rows and then pad them with nils, as needed so they are all the same width
       paths = model.connection.select_all(paths.to_sql)
-      clients = GrdaWarehouse::Hud::Client.where( id: paths.map{ |h| h['is_chronic'] }.uniq ).index_by(&:id)
+
       paths = paths.group_by{ |h| h['client_uid'] }
       max_entries = 1
       rows = []
@@ -73,13 +88,7 @@ module TableauExport
         non_repeaters.map do |h|
           value = path[h.to_s].presence
           value = case h
-          when :is_veteran
-            value.to_i == 1 ? 't' : 'f' if value
-          when :is_youth
-            value.to_i.in?(18..24) ? 't' : 'f' if value
-          when :is_chronic
-            client = clients[value.to_i]
-            client.hud_chronic?( on_date: start_date ) ? 't' : 'f'
+          
           when :hh_config
             value == 't' ? 'Single' : 'Family'
           else
@@ -88,17 +97,17 @@ module TableauExport
           row << value
         end
 
-        paths.each_with_index do |path, i|
+        paths.first(3).each_with_index do |path, i|
           repeaters.each do |h|
             headers << "#{h}#{ i + 1 }".to_sym
             value = path[h.to_s].presence
             value = case h
-            when :prog
-              ::HUD.project_type value.to_i if value
+            # when :prog
+            #   ::HUD.project_type value.to_i if value
             when :entry, :exit
               value && DateTime.parse(value).strftime('%Y-%m-%d')
-            when :destination
-              ::HUD.destination value.to_i if value
+            # when :destination
+            #   ::HUD.destination value.to_i if value
             else
               value
             end

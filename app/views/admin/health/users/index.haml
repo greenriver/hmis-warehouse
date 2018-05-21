@@ -1,4 +1,7 @@
+- content_for :title,  'Manage Healthcare Window Access'
+%h1= content_for :title
 = render 'breadcrumbs'
+= render 'menus/health_admin_tabs'
 %p Use this form to grant access to the healthcare sections of the window into the warehouse to users. 
 
 = simple_form_for :users, url: admin_health_users_path do |f|

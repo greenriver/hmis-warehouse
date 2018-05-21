@@ -1,9 +1,10 @@
 module Admin::Health
   class AgencyPatientReferralsController < ApplicationController
 
+    include HealthAuthorization
     include PatientReferral
 
-    before_action :require_can_manage_health_agency!
+    before_action :require_can_claim_patients!
     before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
     before_action :load_new_patient_referral, only: [:review, :reviewed]
 
@@ -87,7 +88,7 @@ module Admin::Health
 
     def load_tabs
       @patient_referral_tabs = [
-        {id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_agency_patient_referrals_path(tab_path_params)},
+        {id: 'review', tab_text: "Assignments to Review for #{@agency.name}", path: review_admin_health_agency_patient_referrals_path(tab_path_params)},
         {id: 'reviewed', tab_text: 'Previously Reviewed', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params)}
       ]
     end

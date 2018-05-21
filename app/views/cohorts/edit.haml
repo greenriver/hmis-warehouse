@@ -9,7 +9,7 @@
   = f.input :active_cohort, label: 'Active'
   = f.input :static_column_count, label: 'Number of static columns'
   = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
-  - hint = 'The cohort will be sorted by the first column'
+  - hint = "The cohort will be sorted by the first column".html_safe
   - if @cohort.column_state.present?
     - hint += ", currently: <strong>#{@cohort.column_state&.first&.title}</strong>".html_safe
   = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint

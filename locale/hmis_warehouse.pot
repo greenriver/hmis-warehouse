@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-09 15:41-0500\n"
-"PO-Revision-Date: 2018-03-09 15:41-0500\n"
+"POT-Creation-Date: 2018-05-18 20:34-0400\n"
+"PO-Revision-Date: 2018-05-18 20:34-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,6 +17,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+msgid "Appropriate for sober supportive housing"
+msgstr ""
 
 msgid "Asylee, Refugee"
 msgstr ""
@@ -207,7 +210,7 @@ msgstr ""
 msgid "Update Data Source"
 msgstr ""
 
-msgid "Upload failed to queue."
+msgid "Upload failed to queue, did you attach a file?"
 msgstr ""
 
 msgid "Upload queued to start."
@@ -228,6 +231,9 @@ msgstr ""
 msgid "Warehouse Reports"
 msgstr ""
 
+msgid "Willing to live in congregate housing"
+msgstr ""
+
 msgid "Window into the Warehouse"
 msgstr ""
 
@@ -238,6 +244,9 @@ msgid "You can only see files you upload."
 msgstr ""
 
 msgid "You can only see notes you add."
+msgstr ""
+
+msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"

@@ -6,10 +6,20 @@ module CombinedClientPathsGenerator
     end
     helper_method :careplan_path_generator
 
+    def careplan_pilot_path_generator
+      health_pilot_path_generator + [:careplan]
+    end
+    helper_method :careplan_pilot_path_generator
+
     def health_path_generator
       client_path_generator + [:health]
     end
     helper_method :health_path_generator
+
+    def health_pilot_path_generator
+      health_path_generator + [:pilot]
+    end
+    helper_method :health_pilot_path_generator
 
     def history_path_generator
       client_path_generator + [:history]
@@ -75,6 +85,26 @@ module CombinedClientPathsGenerator
       health_path_generator + [:sdh_case_management_note]
     end
     helper_method :sdh_case_management_note_path_generator
+
+    def participation_forms_path_generator
+      health_path_generator + [:participation_forms]
+    end
+    helper_method :participation_forms_path_generator
+
+    def participation_form_path_generator
+      health_path_generator + [:participation_form]
+    end
+    helper_method :participation_form_path_generator
+
+    def release_forms_path_generator
+      health_path_generator + [:release_forms]
+    end
+    helper_method :release_forms_path_generator
+
+    def release_form_path_generator
+      health_path_generator + [:release_form]
+    end
+    helper_method :release_form_path_generator
 
     def edit_cas_readiness_path_generator
       [:edit] + client_path_generator + [:cas_readiness]

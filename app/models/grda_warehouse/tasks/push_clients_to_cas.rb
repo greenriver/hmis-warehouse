@@ -77,7 +77,7 @@ module GrdaWarehouse::Tasks
         va_eligible: :va_eligible,
         hues_eligible: :hues_eligible,
         hiv_positive: :hiv_positive,
-        housing_release_status: :housing_release_status,
+        housing_release_status: :release_status_for_cas,
         us_citizen: :us_citizen,
         asylee: :asylee,
         ineligible_immigrant: :ineligible_immigrant,

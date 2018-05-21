@@ -5,7 +5,18 @@
 .row
   .col-sm-12
     = render 'clients/tab_navigation', current: client_files_path(@client)
-  
 = render 'window/clients/files/file_upload'
 = render 'window/clients/files/download_warning'
-= render 'window/clients/files/file_list'
+- if @client.client_files.any?
+  = render 'window/clients/files/batch_download'
+  - if @consent_files.any?
+    .slab
+      %h4 Consent Forms
+      = render 'window/clients/files/file_list', files: @consent_files, paginate: false, consent: true
+  - if @files.any?
+    .slab
+      %h4 Other Files
+      = render 'window/clients/files/file_list', files: @files, paginate: true, consent: false
+- else
+  No file uploads  
+

@@ -12,15 +12,32 @@ module Clients
     end
 
     def update
-      allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
-      attrs = allowed_params
-      attrs[:effective_date] = allowed_params[:consent_form_signed_on]
+      attrs = if current_user.can_confirm_housing_release?
+        file_params 
+      else 
+        file_params.except(:consent_form_confirmed)
+      end
+
+      if attrs.key?(:consent_form_signed_on)
+        attrs[:effective_date] = attrs[:consent_form_signed_on]
+      end
       @file.update(attrs)
     end
     
-    def file_scope
+    def all_file_scope
       file_source.where(client_id: @client.id)
     end
+
+    def file_scope
+      file_source.non_consent.where(client_id: @client.id)
+    end
+
+    def consent_scope
+      file_source.consent_forms.where(client_id: @client.id).
+        order(consent_form_confirmed: :desc, consent_form_signed_on: :desc)
+    end
+
+
     
     def require_can_manage_these_client_files!
       require_can_manage_client_files!

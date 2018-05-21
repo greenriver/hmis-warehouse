@@ -364,13 +364,8 @@ module GrdaWarehouse::Tasks
     # end
 
     def disabled?(client_id)
-      candidates = client_sources[client_id] || []
-      candidates << client_id
-      @disabled_clients ||= GrdaWarehouse::Hud::Client.joins(:disabilities)
-        .where( d_t[:DisabilityResponse].in [1, 2, 3] )
-        .distinct
-        .pluck(:id).to_set
-      candidates.any?{ |id| @disabled_clients.include? id }
+      @disabled_clients ||= GrdaWarehouse::Hud::Client.disabled_client_ids
+      @disabled_clients.include? client_id
     end
 
     def client_sources

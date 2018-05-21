@@ -12,7 +12,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_history_valid?
-      processed_as.present? && processed_as == calculate_hash
+      processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
     def source_data_changed?
       ! service_history_valid?
@@ -184,7 +184,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_dates_from_service_history_for_enrollment
-      return [] unless destination_client.present?
+      return [] unless destination_client.present? && service_history_enrollment.present?
       set_entry_record_id()
       
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
@@ -531,10 +531,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def street_outreach_acts_as_bednight?
-      @street_outreach_acts_as_bednight ||= services.joins(:project).where(
-        Services: {RecordType: 12}, 
-        Project: {ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]}
-      ).exists?
+      @street_outreach_acts_as_bednight ||= if project.so?
+          project.services.where(
+          Services: {RecordType: 12},
+        ).exists?
+        else
+          false
+        end
     end
 
     def build_for_dates

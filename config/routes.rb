@@ -26,9 +26,18 @@ Rails.application.routes.draw do
       resources :metrics, only: [:index]
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
+      resources :participation_forms
+      resources :release_forms
       resource :careplan, except: [:destroy] do
         get :self_sufficiency_assessment
         get :print
+      end
+      namespace :pilot do 
+        resources :patient, only: [:index]
+        resource :careplan, except: [:destroy] do
+          get :self_sufficiency_assessment
+          get :print
+        end
       end
       namespace :careplan do
         resources :goals do
@@ -97,6 +106,7 @@ Rails.application.routes.draw do
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
+    resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :consent, only: [:index] do
       post :update_clients, on: :collection
@@ -396,6 +406,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :admin, only: [:index]
+      resources :agencies, except: [:show]
       resources :patients, only: [:index] do
         post :update, on: :collection
       end

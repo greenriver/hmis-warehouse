@@ -13,7 +13,7 @@ module ReportResults
       @data = support[key]
       respond_to do |format|
         format.xlsx do
-          render xlsx: :index, filename: "support-#{key}.xlsx"
+          render xlsx: :index, filename: "support-#{key.parameterize}.xlsx"
         end
         format.html {}
       end

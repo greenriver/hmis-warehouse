@@ -20,6 +20,11 @@ module Health
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
+    belongs_to :patient, required: false
+
+    def client
+      patient&.client
+    end
 
     accepts_nested_attributes_for :relationships
 
@@ -99,6 +104,77 @@ module Health
     def display_unclaimed_by
       unclaimed = relationships.unclaimed
       unclaimed.map{|r| r.agency.name}
+    end
+
+    def convert_to_patient
+      # nothing to do if we have a client already
+      return if client.present?
+      source_client = create_source_client
+      destination_client = connect_destination_client(source_client)
+      create_patient(destination_client)
+    end
+
+    def create_source_client
+      data_source = GrdaWarehouse::DataSource.find_by(short_name: 'Health')
+      raise 'Data Source Not Available' if data_source.blank?
+      client = GrdaWarehouse::Hud::Client.create(
+        data_source_id: data_source.id,
+        PersonalID: id,
+        FirstName: first_name,
+        LastName: last_name,
+        SSN: ssn,
+        DOB: birthdate,
+        DateCreated: Time.now,
+        DateUpdated: Time.now
+      )
+    end
+
+    def matching_destination_client
+      if ssn.present? && birthdate.present?
+        GrdaWarehouse::Hud::Client.destination.find_by(SSN: ssn, DOB: birthdate)
+      end
+    end
+
+    def connect_destination_client source_client
+      # attempt to find a match based on exact match of DOB and SSN
+      destination_client = matching_destination_client || create_destination_client(source_client)
+      GrdaWarehouse::WarehouseClient.create(
+        id_in_source: source_client.PersonalID,
+        source_id: source_client.id,
+        destination_id: destination_client.id,
+        data_source_id: source_client.data_source_id
+      )
+      return destination_client
+    end
+
+    def create_destination_client source_client
+      destination_data_source_id = GrdaWarehouse::DataSource.destination.pluck(:id).first
+      GrdaWarehouse::Hud::Client.create(
+        data_source_id: destination_data_source_id,
+        PersonalID: source_client.PersonalID,
+        FirstName: source_client.FirstName,
+        LastName: source_client.LastName,
+        SSN: source_client.SSN,
+        DOB: source_client.DOB,
+        DateCreated: Time.now,
+        DateUpdated: Time.now
+      )
+    end
+
+    def create_patient destination_client
+      patient = Health::Patient.create(
+        id_in_source: id,
+        first_name: first_name,
+        last_name: last_name,
+        birthdate: birthdate,
+        ssn: ssn,
+        client_id: destination_client.id,
+        medicaid_id: medicaid_id,
+        pilot: false,
+        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
+      )
+
+      update(patient_id: patient.id)
     end
 
     def self.text_search(text)

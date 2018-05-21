@@ -190,7 +190,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31].include?(destination.to_i)}
       @answers[:sevenb1_c3][:value] = permanent_leavers.size
       @support[:sevenb1_c3][:support] = {
         headers: ['Client ID', 'Destination'],

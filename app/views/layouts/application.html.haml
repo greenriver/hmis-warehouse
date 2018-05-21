@@ -30,7 +30,7 @@
                 = link_to root_path do
                   = _('Boston DND Warehouse')
                   - unless Rails.env.production?
-                    %span{style: 'font-size:12px;'}= "[#{Rails.env}]"
+                    %span.rails-env{style: 'font-size:12px;'}= "[#{Rails.env}]"
             .tagline
               = _('Ending Veteran & Chronic Homelessness in Boston')
           .col-xs-2

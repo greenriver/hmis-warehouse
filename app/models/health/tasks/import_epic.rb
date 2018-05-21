@@ -12,18 +12,26 @@ module Health::Tasks
       setup_notifier('HealthImporter')
       
       @logger = logger
-      @config = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+            
       @load_locally = load_locally
+      
       @to_revoke = []
       @to_restore = []
       @new_patients = []
     end
 
     def run!
-      fetch_files() unless @load_locally
-      import_files()
-      update_consent()
-      return change_counts()
+      # TODO: Ansible and the .env will need to be updated when this is deployed
+      configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      configs.each do |_, config|
+        @config = config
+        ds = Health::DataSource.find_by(name: config['data_source_name'])
+        @data_source_id = ds.id
+        fetch_files() unless @load_locally
+        import_files()
+        update_consent()
+        return change_counts()
+      end
     end
 
     def import klass:, file:
@@ -40,7 +48,11 @@ module Health::Tasks
         translated_row = row.to_h.map do |k,v| 
           [klass.csv_map[k.to_sym], v]
         end.to_h
-        entry = klass.where(klass.csv_map[klass.source_key] => key).
+        # Make note that the import of patients is only functional for the pilot
+        if klass == Health::Patient
+          translated_row[:pilot] = true
+        end
+        entry = klass.where(klass.csv_map[klass.source_key] => key, data_source_id: @data_source_id).
           first_or_create(translated_row) do |patient|
           if klass == Health::Patient
             @new_patients << patient[:id_in_source]

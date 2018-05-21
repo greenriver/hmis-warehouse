@@ -10,6 +10,29 @@ namespace :health do
     Importing::RunHealthImportJob.new.perform
   end
 
+  desc "Create Healthcare for the Homeless Data Source"
+  task setup_healthcare_ds: [:environment, "log:info_to_stdout"] do
+    ds = GrdaWarehouse::DataSource.where(short_name: 'Health', name: 'Healthcare for the Homeless').first_or_initialize
+    ds.source_type = :authoritative
+    ds.visible_in_window = true
+    ds.authoritative = true
+    ds.save!
+  end
+
+  desc "Generate HPC Patient Referrals for development/staging"
+  task dev_create_patient_referrals: [:environment, "log:info_to_stdout"] do
+    require 'faker'
+    20.times do 
+      patient = Health::PatientReferral.new
+      patient.first_name = Faker::Name.first_name
+      patient.last_name = Faker::Name.last_name
+      patient.ssn = Faker::IDNumber.valid.gsub('-','')
+      patient.birthdate = Faker::Date.birthday(18, 75)
+      patient.medicaid_id = Faker::Number.number(12)
+      patient.save!
+    end
+  end
+
   
   desc "Import development data"
   task :dev_import, [:reset] => [:environment, "log:info_to_stdout"] do |task, args|

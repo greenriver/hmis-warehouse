@@ -167,6 +167,8 @@ module GrdaWarehouse::Hud
       where(active_cohort: true)
     end, through: :active_cohort_clients, class_name: 'GrdaWarehouse::Cohort', source: :cohort
 
+    has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
+
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
     delegate :last_homeless_date, to: :processed_service_history, allow_nil: true
@@ -293,10 +295,11 @@ module GrdaWarehouse::Hud
         as('sh_t')
       joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
-    scope :disabled, -> do
-      dt = Disability.arel_table
-      where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
-    end
+    # scope :disabled, -> do
+    #   dt = Disability.arel_table
+    #   where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
+    # end
+    # 
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
@@ -495,6 +498,30 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def self.disabled_client_ids
+      at1 = GrdaWarehouse::Hud::Disability.arel_table
+      at2 = Arel::Table.new(at1.table_name)
+      at2.table_alias = 'disability2'
+      GrdaWarehouse::Hud::Client.joins(:source_enrollment_disabilities).where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).where(
+        at2.project(Arel.star).where(
+          at2[:DateDeleted].eq(nil)
+        ).where(
+          at2[:PersonalID].eq(at1[:PersonalID])
+        ).where(
+          at2[:data_source_id].eq(at1[:data_source_id])
+        ).where(
+          at2[:DisabilityType].eq(at1[:DisabilityType])
+        ).where(
+          at2[:InformationDate].gt(at1[:InformationDate])
+        ).join(e_t).on(
+          e_t[:PersonalID].eq(at2[:PersonalID]).
+          and(e_t[:data_source_id].eq(at2[:data_source_id])).
+          and(e_t[:ProjectEntryID].eq(at2[:ProjectEntryID])).
+          and(e_t[:DateDeleted].eq(nil))
+        ).exists.not  
+      ).pluck(:id)
+    end
+
     def deceased?
       deceased_on.present?
     end
@@ -555,8 +582,12 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def show_health_for?(user)
-      patient.present? && patient.accessible_by_user(user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+    def show_health_pilot_for?(user)
+      patient.present? && patient.accessible_by_user(user).present? && patient.pilot_patient? && GrdaWarehouse::Config.get(:healthcare_available)
+    end
+
+    def show_health_hpc_for?(user)
+      patient.present? && patient.accessible_by_user(user).present? && patient.hpc_patient? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     def show_window_demographic_to?(user)
@@ -586,8 +617,6 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Some file tags represent client attributes, 
-    # Never trigger the full-release with just a file
     def sync_cas_attributes_with_files
       return unless GrdaWarehouse::Config.get(:cas_flag_method) == 'file'
       self.ha_eligible = client_files.tagged_with(cas_attributes_file_tag_map[:ha_eligible], any: true).exists?
@@ -598,15 +627,6 @@ module GrdaWarehouse::Hud
           pluck(:updated_at).first
       else
         self.disability_verified_on = nil
-      end
-      # Only convert blank to limited cas and limited to blank, full has been 
-      # confirmed by a human
-      if self.housing_release_status != self.class.full_release_string
-        if client_files.tagged_with(cas_attributes_file_tag_map[:limited_cas_release], any: true).exists?
-          self.housing_release_status = self.class.partial_release_string
-        else
-          self.housing_release_status = nil
-        end
       end
       save
     end
@@ -681,13 +701,29 @@ module GrdaWarehouse::Hud
       ).first&.consent_form_confirmed
     end
 
-    def active_consent_form
-      client_files.consent_forms.confirmed.order(effective_date: :desc)&.first
-    end
-
     def newest_consent_form
       # Regardless of confirmation status
       client_files.consent_forms.order(updated_at: :desc)&.first 
+    end
+
+    def release_status_for_cas
+      if housing_release_status.blank?
+        return 'None on file'
+      end
+      if release_duration == 'One Year'
+        if ! (consent_form_valid? && consent_confirmed?)
+          return 'Expired'
+        end
+      end
+      return _(housing_release_status)
+    end
+
+    def invalidate_consent!
+      update_columns(
+        consent_form_id: nil,
+        housing_release_status: nil,
+        consent_form_signed_on: nil
+      )
     end
 
     # End Release information
@@ -1046,6 +1082,16 @@ module GrdaWarehouse::Hud
         congregate_housing: _('Willing to live in congregate housing'),
         sober_housing: _('Appropriate for sober supportive housing')
       }
+    end
+
+    def self.manual_cas_columns
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on).
+        keys
+    end
+
+    def self.file_cas_columns
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible).
+        keys
     end
 
     def self.housing_release_options

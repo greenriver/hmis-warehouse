@@ -157,8 +157,9 @@ module GrdaWarehouse::Hud
 
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
+      # These can only be overridden in the positive direction
       where(
-        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil)).
+        arel_table[:ContinuumProject].eq(1).
         or(arel_table[:hud_continuum_funded].eq(true))
       )
     end
@@ -357,7 +358,7 @@ module GrdaWarehouse::Hud
                 (
                   #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
                   AND
-                  #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                  #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL or #{project_coc_table}.#{qc[:hud_coc_code]} = ''
                 )
                 OR
                 #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })

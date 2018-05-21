@@ -7,7 +7,7 @@ wb.add_worksheet(name: "Touch Point") do |sheet|
     [section] + [nil]*(questions.size-1)
   end
   sheet.add_row ['Selected Range:', @start_date, @end_date] + section_columns.flatten
-  sheet.add_row ["Client ID", "Client Name", "Collected On", "Location"] + @sections.values.flatten
+  sheet.add_row ["Client ID", "Client Name", "Collected On", "Location", "Staff"] + @sections.values.flatten
 
   @responses.each do |response|
     row = []
@@ -17,6 +17,7 @@ wb.add_worksheet(name: "Touch Point") do |sheet|
     row << client_name
     row << response.collected_at
     row << response.hmis_assessment.site_name
+    row << response.staff
     @sections.each do |title, questions|
       questions.each do |question|
         row << @data.dig(:sections, title, question, client_id, response.id)

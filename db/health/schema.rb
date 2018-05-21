@@ -11,13 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180517171655) do
+ActiveRecord::Schema.define(version: 20180521133817) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "agencies", force: :cascade do |t|
-    t.string "name"
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
   end
 
   create_table "agency_patient_referrals", force: :cascade do |t|
@@ -37,11 +40,12 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.string   "doctor"
     t.string   "department"
     t.string   "sa"
-    t.datetime "created_at",       null: false
-    t.datetime "updated_at",       null: false
+    t.datetime "created_at",                   null: false
+    t.datetime "updated_at",                   null: false
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
+    t.integer  "data_source_id",   default: 6, null: false
   end
 
   create_table "careplans", force: :cascade do |t|
@@ -176,16 +180,24 @@ ActiveRecord::Schema.define(version: 20180517171655) do
 
   add_index "claims_top_providers", ["medicaid_id"], name: "index_claims_top_providers_on_medicaid_id", using: :btree
 
+  create_table "data_sources", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "deleted_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "epic_goals", force: :cascade do |t|
-    t.string   "patient_id",               null: false
+    t.string   "patient_id",                           null: false
     t.string   "entered_by"
     t.string   "title"
     t.string   "contents"
     t.string   "id_in_source"
     t.string   "received_valid_complaint"
     t.datetime "goal_created_at"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.integer  "data_source_id",           default: 6, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
@@ -238,11 +250,24 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.date     "ordered_date"
     t.text     "name"
     t.text     "instructions"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
+    t.integer  "data_source_id", default: 6, null: false
   end
+
+  create_table "participation_forms", force: :cascade do |t|
+    t.integer "patient_id"
+    t.date    "signature_on"
+    t.integer "case_manager_id"
+    t.integer "reviewed_by_id"
+    t.string  "location"
+  end
+
+  add_index "participation_forms", ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
+  add_index "participation_forms", ["patient_id"], name: "index_participation_forms_on_patient_id", using: :btree
+  add_index "participation_forms", ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id", using: :btree
 
   create_table "patient_referrals", force: :cascade do |t|
     t.string   "first_name"
@@ -255,10 +280,11 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.integer  "agency_id"
     t.boolean  "rejected",        default: false, null: false
     t.integer  "rejected_reason", default: 0,     null: false
+    t.integer  "patient_id"
   end
 
   create_table "patients", force: :cascade do |t|
-    t.string   "id_in_source",             null: false
+    t.string   "id_in_source",                             null: false
     t.string   "first_name"
     t.string   "middle_name"
     t.string   "last_name"
@@ -271,14 +297,16 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.string   "ethnicity"
     t.string   "veteran_status"
     t.string   "ssn"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
     t.integer  "client_id"
     t.string   "gender"
     t.datetime "consent_revoked"
     t.string   "medicaid_id"
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
+    t.boolean  "pilot",                    default: false, null: false
+    t.integer  "data_source_id",           default: 6,     null: false
   end
 
   create_table "problems", force: :cascade do |t|
@@ -287,10 +315,19 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.text     "name"
     t.text     "comment"
     t.string   "icd10_list"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
+    t.integer  "data_source_id", default: 6, null: false
+  end
+
+  create_table "release_forms", force: :cascade do |t|
+    t.integer "patient_id"
+    t.integer "user_id"
+    t.date    "signature_on"
+    t.string  "file_location"
+    t.boolean "supervisor_reviewed"
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -326,6 +363,9 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.text     "next_steps"
     t.string   "client_phone_number"
   end
+
+  add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
+  add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "self_sufficiency_matrix_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -419,10 +459,11 @@ ActiveRecord::Schema.define(version: 20180517171655) do
     t.string   "visit_type"
     t.string   "provider"
     t.string   "id_in_source"
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
+    t.integer  "data_source_id",  default: 6, null: false
   end
 
 end

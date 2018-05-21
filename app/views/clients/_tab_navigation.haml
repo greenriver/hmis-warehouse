@@ -1,5 +1,6 @@
-- show_health = @client.patient.present? && @client.patient.accessible_by_user(current_user).present? && GrdaWarehouse::Config.get(:healthcare_available)
 :ruby
+  show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
+  show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
   tabs = {
     client_path(@client) => {
       title: 'Dashboard',
@@ -33,17 +34,25 @@
       title: 'Relationships',
       permission: can_assign_users_to_clients?,
     },
+    polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
+      title: 'Health',
+      permission: show_health_pilot,
+    },
+    polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
+      title: 'Care Plan',
+      permission: show_health_pilot,
+    },
     polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
       title: 'Health',
-      permission: show_health,
+      permission: show_health_hpc,
     },
     polymorphic_path(careplan_path_generator, client_id: @client.id) => {
       title: 'Care Plan',
-      permission: show_health,
+      permission: show_health_hpc,
     },
     polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
       title: 'Metrics',
-      permission: show_health,
+      permission: show_health_pilot,
     },
     edit_client_path(@client) => {
       title: 'Merge',
