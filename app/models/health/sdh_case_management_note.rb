@@ -58,7 +58,7 @@ module Health
     # current: reject_if user input fields are empty
     accepts_nested_attributes_for :activities, reject_if: proc {|a| a['mode_of_contact'].blank? && a['reached_client'].blank? && a['activity'].blank? && a['date_of_activity'].blank?}
 
-    validates_presence_of :patient, :user, :title
+    validates_presence_of :patient, :user, :title, :date_of_contact
     validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?
     validates_presence_of :housing_status_other, if: :housing_status_is_other? 
     validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
