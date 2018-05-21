@@ -44,7 +44,8 @@ if environment == 'production'
   end
 
   if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
-    every 1.day, at: '5:30 pm' do
+    import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
+    every 1.day, at: import_schedule do
       rake "grda_warehouse:import_data_sources_s3[hmis_611]"
     end
   end

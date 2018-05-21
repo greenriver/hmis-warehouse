@@ -46,7 +46,7 @@ module EtoApi::Tasks
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
 
-        @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
+        @api = EtoApi::Base.new(trace: @trace, api_connection: key)
         @api.connect
 
         cs = load_candidates(type: :demographic)
