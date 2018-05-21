@@ -8,7 +8,7 @@ module CohortColumns
         households = cohort_client.client.households
         if households.present?
           households.values.flatten.
-            map do |_, member| 
+            map do |member| 
               "#{member['FirstName']} #{member['LastName']} (#{member['age']} in #{member['date'].year})"
             end.uniq.join('; ')
         end
