@@ -1,5 +1,5 @@
 module Health::Pilot
-  class PatientController < Window::Health::PatientController
+  class PatientController < Window::Health::Pilot::PatientController
     include ClientPathGenerator
     
     
