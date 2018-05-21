@@ -74,7 +74,7 @@ module GrdaWarehouse::Hud
     has_many :warehouse_client_destination, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :destination_id, inverse_of: :destination
     has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
-    has_many :window_source_clients, -> {visible_in_window}, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
+    has_many :window_source_clients, -> {visible_in_window_to(current_user)}, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
     has_one :processed_service_history, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
@@ -347,8 +347,8 @@ module GrdaWarehouse::Hud
       where.not(hiv_positive: false)
     end
 
-    scope :visible_in_window, -> do
-      joins(:data_source).where(data_sources: {visible_in_window: true})
+    scope :visible_in_window_to, -> (user) do
+      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
     end
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
@@ -483,9 +483,9 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names window: true
+    def client_names window: true, user: nil
       client_scope = if window
-        source_clients.visible_in_window
+        source_clients.visible_in_window_to(user)
       else
         source_clients
       end
