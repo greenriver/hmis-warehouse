@@ -1,15 +1,17 @@
 - content_for :title, "Project Data Quality Report for #{@project_group.name}"
 %h1= content_for :title
 
+
+- support_path = [:support, :project_group, :data_quality_report]
 = render 'summary'
 = render 'grading_scale'
-= render 'bed_utilization'
-= render 'missing_values'
-= render 'length_of_stay'
-= render 'other_dq'
+= render 'bed_utilization', support_path: support_path
+= render 'missing_values', support_path: support_path
+= render 'length_of_stay', support_path: support_path
+= render 'other_dq', support_path: support_path
 - if @report.processing_errors.present?
   .alert.alert-danger
     Processing error:
     = JSON.parse(@report.processing_errors).first
 - elsif @report.report.present?
-  = render 'report_table'
+  = render 'report_table', support_path: support_path
