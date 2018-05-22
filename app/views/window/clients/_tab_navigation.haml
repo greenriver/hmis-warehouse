@@ -31,7 +31,7 @@
      title: 'Health',
      permission: show_health_hpc,
     },
-    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
+    polymorphic_path(careplans_path_generator, client_id: @client.id) => {
      title: 'Care Plan',
      permission: show_health_hpc,
     },

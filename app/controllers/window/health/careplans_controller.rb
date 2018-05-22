@@ -13,6 +13,12 @@ module Window::Health
     before_action :set_housing_goal, only: [:show, :print]
     before_action :set_variable_goals, only: [:show, :print]
     
+    def index
+      @goal = Health::Goal::Base.new
+      @readonly = false
+      @careplans = @patient.careplans
+    end
+
     def show
       @goal = Health::Goal::Base.new
       @readonly = false

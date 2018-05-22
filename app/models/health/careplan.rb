@@ -6,5 +6,9 @@ module Health
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
 
+    # TODO
+    def editable?
+      true
+    end
   end
 end
