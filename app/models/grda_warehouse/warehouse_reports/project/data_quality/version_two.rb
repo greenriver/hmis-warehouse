@@ -509,7 +509,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           select(:client_id).
           distinct.
           count
-        missing_clients = counts.values.reduce(&:+)
+        missing_clients = counts.values.reduce(&:+).map(&:first).to_set
         totals[:total_missing] ||= Set.new
         totals[:total_missing] += missing_clients
         answers[:project_missing][project.id][:total_missing] = missing_clients.size
