@@ -1,5 +1,6 @@
 module Health
   class ParticipationForm < HealthBase
+    mount_uploader :file, FileUploader
 
     belongs_to :case_manager, class_name: 'User'
     belongs_to :reviewed_by, class_name: 'User'

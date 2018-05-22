@@ -18,7 +18,7 @@ module Window::Health
     def create
       @release_form = @patient.release_forms.create(form_params)
       @release_form.save
-      respond_with @release_form
+      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     def show
@@ -31,12 +31,12 @@ module Window::Health
     
     def update
       @release_form.update(form_params)
-      respond_with @release_form, location: polymorphic_path(health_path_generator)
+      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     private
 
-    def interpolation_options
+    def flash_interpolation_options
       { resource_name: 'Release Form' }
     end
 
@@ -44,6 +44,7 @@ module Window::Health
       params.require(:form).permit( 
         :signature_on,
         :file_location,
+        :file,
         :supervisor_reviewed
       )
     end

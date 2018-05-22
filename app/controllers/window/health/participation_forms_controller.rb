@@ -18,7 +18,7 @@ module Window::Health
     def create
       @participation_form = @patient.participation_forms.create(form_params)
       @participation_form.save
-      respond_with @participation_form
+      respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     def show
@@ -31,12 +31,12 @@ module Window::Health
     
     def update
       @participation_form.update(form_params)
-      respond_with @participation_form, location: polymorphic_path(health_path_generator)
+      respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     private
 
-    def interpolation_options
+    def flash_interpolation_options
       { resource_name: 'Participation Form' }
     end
 
@@ -45,7 +45,8 @@ module Window::Health
         :signature_on,
         :case_manager_id,
         :reviewed_by_id,
-        :location
+        :location,
+        :file
       )
     end
 

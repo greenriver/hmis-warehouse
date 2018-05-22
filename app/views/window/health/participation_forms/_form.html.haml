@@ -5,6 +5,8 @@
   .col-sm-12
     = f.input :signature_on, as: :date_picker
     = f.input :location
+    = f.input :file
+    %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
   .col-sm-12
     .text-right

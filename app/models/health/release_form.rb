@@ -1,5 +1,6 @@
 module Health
   class ReleaseForm < HealthBase
+    mount_uploader :file, FileUploader
 
     belongs_to :patient
     belongs_to :user

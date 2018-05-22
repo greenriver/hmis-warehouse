@@ -11,5 +11,9 @@
   %dt Reviewed by Supervisor
   %dd= @participation_form.reviewed_by&.name
 
+  - if @participation_form.file.present?
+    %dt Download File
+    %dd= link_to(@participation_form.file&.file&.filename, @participation_form.file&.url)
+
   %dt Location
   %dd= @participation_form.location

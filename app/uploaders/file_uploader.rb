@@ -115,6 +115,7 @@ class FileUploader < CarrierWave::Uploader::Base
   # actual data, name defaults to thethe original_filename
   # if its not already set in the model
   def extract_file_metadata!
+    return if [Health::ReleaseForm, Health::ParticipationForm].include?(model.class)
     model.name ||= file&.filename
     model.size = file&.size
     model.content_type = content_type_from_bytes(file) # use magic for this and NOT ruby's built in lookup

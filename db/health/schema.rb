@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180521133817) do
+ActiveRecord::Schema.define(version: 20180522205450) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -263,6 +263,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.integer "case_manager_id"
     t.integer "reviewed_by_id"
     t.string  "location"
+    t.string  "file"
   end
 
   add_index "participation_forms", ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
@@ -328,6 +329,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.date    "signature_on"
     t.string  "file_location"
     t.boolean "supervisor_reviewed"
+    t.string  "file"
   end
 
   add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
