@@ -9,16 +9,16 @@
     .col-sm-4
       %h3 Other Data Quality Measures
   .well.overflow-scroll
-    %table.table.table-condensed
+    %table.table.data-quality__table
       %thead
         %tr
           %th Project Name
           %th Project Type
-          %th.page-bg-color DOB on or after entry date
+          %th.data-quality__odd-columns DOB on or after entry date
           %th No service in the final month of enrollment
-          %th Service after exit
+          %th.data-quality__odd-columns Service after exit
           %th Individuals at a Family Project
-          %th Families at an Individual Project
+          %th.data-quality__odd-columns Families at an Individual Project
           %th Enrollments with no Service
       %tbody
         - @report.projects.each do |project|
@@ -27,12 +27,12 @@
           %tr
             %td
               = project.ProjectName
-            %td
+            %td.text-center
               %span{class: "client__service_type_#{project.ProjectType}"}
                 .enrollment__project_type{class: p_class}
                   %em.service-type__program-type= p_type
             - if incorrect_counts.present?
-              %td.page-bg-color
+              %td.text-center.data-quality__odd-columns
                 - measure = incorrect_counts[project.id.to_s]
                 - key = "incorrect_dob_#{project.id}"
                 - if measure > 0
@@ -41,7 +41,7 @@
                 - else
                   = measure
             - if no_service_counts.present?
-              %td
+              %td.text-center
                 - measure = no_service_counts[project.id.to_s]
                 - key = "missing_nights_#{project.id}"
                 - if measure > 0
@@ -50,7 +50,7 @@
                 - else
                   = measure
             - if service_after_close_counts.present?
-              %td
+              %td.text-center.data-quality__odd-columns
                 - measure = service_after_close_counts[project.id.to_s]
                 - key = "service_after_close_#{project.id}"
                 - if measure > 0
@@ -59,7 +59,7 @@
                 - else
                   = measure
             - if individual_at_family.present?
-              %td
+              %td.text-center
                 - measure = individual_at_family[project.id.to_s]
                 - key = "individuals_at_family_projects_#{project.id}"
                 - if measure > 0
@@ -68,7 +68,7 @@
                 - else
                   = measure
             - if family_at_individual.present?
-              %td
+              %td.text-center.data-quality__odd-columns
                 - measure = family_at_individual[project.id.to_s]
                 - key = "families_at_individual_projects_#{project.id}"
                 - if measure > 0
@@ -77,7 +77,7 @@
                 - else
                   = measure
             - if enrollments_missing_service.present?
-              %td
+              %td.text-center
                 - measure = enrollments_missing_service[project.id.to_s]
                 - key = "enrollments_with_no_service_#{project.id}"
                 - if measure > 0
