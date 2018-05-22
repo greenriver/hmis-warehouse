@@ -8,10 +8,7 @@ module Window::Health
     before_action :require_can_edit_client_health!
     before_action :set_client
     before_action :set_patient
-    before_action :set_careplan
-    before_action :set_self_management_goal, only: [:show, :print]
-    before_action :set_housing_goal, only: [:show, :print]
-    before_action :set_variable_goals, only: [:show, :print]
+    before_action :set_careplan, only: [:show, :edit, :update]
     
     def index
       @goal = Health::Goal::Base.new
@@ -24,18 +21,29 @@ module Window::Health
       @readonly = false
     end
 
+    def edit
+      @form_url = polymorphic_path(careplan_path_generator)
+      @form_button = 'Save Care Plan'
+    end
+
+    def new
+      @careplan = @patient.careplans.build
+      @form_url = polymorphic_path(careplans_path_generator)
+      @form_button = 'Create Care Plan'
+    end
+
+    def create
+      @careplan = @patient.careplans.create!(careplan_params)
+      respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
+    end
+
     def print
       @readonly = true
     end
 
     def update
-      begin
-        @careplan.update!(careplan_params)
-        flash[:notice] = "Care plan updated"
-      rescue Exception => e
-        flash[:error] = "Failed to update care plan. #{e}"
-      end
-      redirect_to action: :show
+      @careplan.update!(careplan_params)
+      respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
     def self_sufficiency_assessment
@@ -43,41 +51,22 @@ module Window::Health
     end
     
     def set_careplan
-      @careplan = Health::Careplan.where(patient_id: @patient.id).first_or_create do |cp|
+      @careplan = careplan_source.where(patient_id: @patient.id).first_or_create do |cp|
         cp.user = current_user
         cp.save!
       end
     end
 
-    def set_self_management_goal
-      @self_management = Health::Goal::SelfManagement.where(careplan_id: @careplan.id).first_or_create do |goal|
-        goal.name = 'Self Management'
-        goal.number = -1
-        goal.save!
-      end
+    def careplan_source
+      Health::Careplan
     end
-
-    def set_housing_goal
-      @housing = Health::Goal::Housing.where(careplan_id: @careplan.id).first_or_create do |goal|
-        goal.name = 'Housing'
-        goal.number = -1
-        goal.save!
-      end
-    end
-
-    def set_variable_goals
-      @goals = @careplan.patient.epic_goals.visible
-    end
-
+    
     def careplan_params
-      params.require(:careplan).
+      params.require(:health_careplan).
         permit(
-          :sdh_enroll_date,
-          :first_meeting_with_case_manager_date,
-          :self_sufficiency_baseline_due_date,
-          :self_sufficiency_final_due_date,
-          :self_sufficiency_baseline_completed_date,
-          :self_sufficiency_final_completed_date
+          :patient_signed_on,
+          :provider_signed_on,
+          :case_manager_id,
         )
     end
 

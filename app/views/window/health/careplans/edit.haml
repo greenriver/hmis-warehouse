@@ -1,0 +1,4 @@
+= content_for(:title, 'Edit Care Plan')
+%h1= "#{content_for(:title)} for #{@client.full_name}"
+
+= render 'careplan_form'

@@ -12,7 +12,8 @@
       %thead
         %tr
           %th Initiated
-          %th Signed
+          %th Patient Signed
+          %th Provider Signed
           %th Updated
           %th Case Manager
           %th
@@ -20,7 +21,8 @@
         - @careplans.each do |careplan|
           %tr
             %td= careplan.created_at.to_date
-            %td TODO
+            %td= careplan.patient_signed_on&.to_date
+            %td= careplan.provider_signed_on&.to_date
             %td= careplan.updated_at.to_date
             %td TODO
             %td

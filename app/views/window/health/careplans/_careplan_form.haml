@@ -1,0 +1,6 @@
+= simple_form_for @careplan, url: @form_url do |f|
+  
+  = f.input :patient_signed_on, as: :date_picker
+  = f.input :provider_signed_on, as: :date_picker
+
+  = f.button :submit, @form_button
