@@ -69,7 +69,7 @@
                     - key = "project_missing_#{project.id}_missing_#{word}"
                     - measure = counts["#{project.id}"]["#{type}_#{word}"]
                     - if measure > 0
-                      = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                      = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                         = measure
                     - else
                       = measure
@@ -78,4 +78,29 @@
                   %td{class: odd_class, style: "border-top-width: 3px; border-top-color: #{grade.color};"}
                     = counts["#{project.id}"]["#{type}_#{word}_percentage"]
                 - else
-                  %td{class: odd_class}               
+                  %td{class: odd_class}
+        - if @report.projects.count > 1        
+          %tr
+            - totals = counts['totals'].with_indifferent_access
+            - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals['score'])
+            %th.text-right{colspan: 2} Totals
+            %td= totals[:total_open_enrollments]
+            %td= totals[:clients_served_during_range]
+            %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+            %td.page-bg-color= totals['total_missing']
+            %td.page-bg-color{style: "border-top-width: 3px; border-top-color: #{grade.color};"}
+              = totals['total_missing_percentage']
+            - @report.class.missing_refused_names.each_with_index do |word, index|
+              - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end
+              - [:missing, :refused, :unknown].each do |type|
+                %td{class: odd_class}
+                  - measure = totals["#{type}_#{word}"]
+                  - key = "project_missing_totals_#{type}_#{word}"
+                  - if measure > 0
+                    = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                      = measure
+                  - else 
+                    = measure
+                - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals["#{type}_#{word}_percentage"])
+                %td{class: odd_class, style: "border-top-width: 3px; border-top-color: #{grade.color};"}
+                  = totals["#{type}_#{word}_percentage"]

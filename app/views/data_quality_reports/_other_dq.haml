@@ -36,7 +36,7 @@
                 - measure = incorrect_counts[project.id.to_s]
                 - key = "incorrect_dob_#{project.id}"
                 - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure
                 - else
                   = measure
@@ -45,7 +45,7 @@
                 - measure = no_service_counts[project.id.to_s]
                 - key = "missing_nights_#{project.id}"
                 - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure
                 - else
                   = measure
@@ -54,7 +54,7 @@
                 - measure = service_after_close_counts[project.id.to_s]
                 - key = "service_after_close_#{project.id}"
                 - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure
                 - else
                   = measure
@@ -63,7 +63,7 @@
                 - measure = individual_at_family[project.id.to_s]
                 - key = "individuals_at_family_projects_#{project.id}"
                 - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure
                 - else
                   = measure
@@ -72,7 +72,7 @@
                 - measure = family_at_individual[project.id.to_s]
                 - key = "families_at_individual_projects_#{project.id}"
                 - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure
                 - else
                   = measure
@@ -81,7 +81,7 @@
                 - measure = enrollments_missing_service[project.id.to_s]
                 - key = "enrollments_with_no_service_#{project.id}"
                 - if measure > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = measure
                 - else
                   = measure

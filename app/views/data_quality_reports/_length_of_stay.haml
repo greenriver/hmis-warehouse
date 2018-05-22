@@ -13,7 +13,7 @@
         %tr
           %th Project Name
           %th Project Type
-          %th.page-bg-color
+          %th.page-bg-color 
             Average Length of Stay
           - buckets.each_with_index do |(title, _), index|
             - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
@@ -38,7 +38,23 @@
                 - if measure.present?
                   - key = "enrolled_length_of_stay_#{project.id}_#{range}"
                   - if measure > 0
-                    = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                       = measure
                   - else
                     = measure
+      - if @report.projects.count > 1
+        %tfoot
+          %tr
+            %th.text-right{colspan: 2} Totals
+            %td.page-bg-color
+              = totals[:average]
+            - buckets.each_with_index do |(_, range), index|
+              - odd_class = if index % 2 != 1 then '' else 'page-bg-color' end 
+              %td{class: odd_class}
+                - measure = totals[:buckets][range.to_s]
+                - key = "enrolled_length_of_stay_totals_#{range}"
+                - if measure.present? && measure > 0
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = measure
+                - else
+                  = measure

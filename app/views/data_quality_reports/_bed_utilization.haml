@@ -42,12 +42,27 @@
             
             %td= project[:capacity]
             - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
-              - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end
+              - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end 
               %td{class: odd_class}
                 - key = "bed_utilization_#{project[:id]}_#{measure}"
                 - if project[measure] > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     = project[measure]
               - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project["#{measure}_percentage"])
               %td{class: odd_class, style: "border-top-width: 3px; border-top-color: #{grade.color};"}
                 = project["#{measure}_percentage"]
+        - if @report.projects.count > 1
+          %tr
+            - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts][:average_daily_percentage])
+            %th.text-right{colspan: 2} Totals
+            %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+            %td= totals[:counts][:capacity]
+            - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
+              - key = "bed_utilization_totals_#{measure}"
+              - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end 
+              %td{class: odd_class}
+                = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = totals[:counts][measure]
+              - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts]["#{measure}_percentage"])
+              %td{class: odd_class, style: "border-top-width: 3px; border-top-color: #{grade.color};"}
+                = totals[:counts]["#{measure}_percentage"]
