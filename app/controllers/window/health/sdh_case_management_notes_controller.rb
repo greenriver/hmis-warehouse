@@ -6,6 +6,7 @@ module Window::Health
     include WindowClientPathGenerator
 
     before_action :require_can_edit_client_health!
+    before_action :require_can_add_case_management_notes!, only: [:new, :create, :edit, :update]
     before_action :set_client
     before_action :set_patient
     before_action :load_template_activity, only: [:new, :edit]
@@ -58,12 +59,17 @@ module Window::Health
       end
     end
 
-    def form_url
+    def form_url(opts = {})
       if @note.new_record?
-        polymorphic_path(sdh_case_management_notes_path_generator, client_id: @client.id)
+        opts = opts.merge({client_id: @client.id})
+        path = sdh_case_management_notes_path_generator
+        # polymorphic_path(sdh_case_management_notes_path_generator, client_id: @client.id)
       else
-        polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
+        opts = opts.merge({client_id: @client.id, id: @note.id})
+        path = sdh_case_management_note_path_generator
+        # polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
       end
+      polymorphic_path(path, opts)
     end
     helper_method :form_url
 

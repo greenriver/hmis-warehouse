@@ -114,7 +114,7 @@ module Health
     end
 
     def user_can_edit?(current_user)
-      current_user.id == user_id
+      current_user.id == user_id && current_user.can_add_case_management_notes?
     end
 
     def display_note_form_sections
@@ -140,7 +140,8 @@ module Health
         values: [
           {key: 'Topic:', value: topics.join(', ')},
           {key: 'Title:', value: title},
-          {key: 'Time Spent:', value: (total_time_spent_in_minutes.present? ? "#{total_time_spent_in_minutes} minutes" : '')}
+          {key: 'Time Spent:', value: (total_time_spent_in_minutes.present? ? "#{total_time_spent_in_minutes} minutes" : '')},
+          {key: 'Date of contact:', value: date_of_contact&.strftime('%b %d, %Y')}
         ]
       }
     end

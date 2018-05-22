@@ -44,3 +44,24 @@
       none.hide();
       return false
     }
+
+    $(document).ready(function() {
+      var form = $(behaviorSelector('form'));
+      var required = $(behaviorSelector('required input'));
+      $(document).on('change', behaviorSelector('sdh case management note form'), function(e) {
+        var emptyRequired = required.filter(function() {
+          console.log($(this).val().length);
+          return $(this).val().length === 0;
+        });
+        console.log(emptyRequired);
+        if(emptyRequired.length === 0) {
+          console.log('all the required inputs have stuff');
+        }
+        else {
+          console.log('required fields need filled in');
+        }
+      });
+    });
+
+
+

@@ -1,4 +1,3 @@
-= link_to 'New Note', polymorphic_path([:new] + sdh_case_management_note_path_generator)
 - if @client.health_touch_points.any? || @patient.sdh_case_management_notes.any?
   %table.table.table-condensed.datatable-sdh
     %thead
@@ -9,17 +8,21 @@
     %tbody
       - @client.health_touch_points.case_management_notes.order(collected_at: :desc).each do |form|
         %tr
-          %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+          %td
+            = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
+              -# What are topics for old notes?
+              %span &nbsp;
+              .padding-left-02= form.assessment_type
           %td= form.collected_at.to_date
           %td= form.staff
       - @patient.sdh_case_management_notes.each do |note|
         %tr
           %td
             = link_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: note.id), data: {loads_in_pjax_modal: true} do 
-              %p= (note.topics.any? ? note.topics.join(', ') : "&nbsp;").html_safe
-              %p.padding-left-02= note.title
-          %td
-          %td
+              %div= (note.topics.any? ? note.topics.join(', ') : "&nbsp;").html_safe
+              .padding-left-02= note.title
+          %td TODO
+          %td= note.user.name
       
 - else
   No SDH Case Management Notes on file

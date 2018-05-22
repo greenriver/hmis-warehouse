@@ -2,7 +2,7 @@
   %h1= "Case Management Note for #{@patient.name}"
   - unless @note.new_record?
     %small= "Entered by #{@note.user.name}, #{@note.created_at.strftime('%b %d, %Y')}"
-= simple_form_for @note, url: form_url do |f|
+= simple_form_for @note, url: form_url, data: {behavior: 'form', url: form_url({format: :js})} do |f|
   .row
     .col-md-10
       - form_sections = @note.display_note_form_sections
@@ -16,6 +16,5 @@
             .text-right
             = f.submit 'Save Case Note', class: 'btn btn-action'
         - if section[:id] == :activities
-          = link_to 'Add Activity', '#', onclick: 'addActivity(event)', class: 'btn btn-primary btn-primary__reverse'
+          = link_to 'Add Another Qualifying Activity', '#', onclick: 'addActivity(event)', class: 'btn-xs btn-primary btn-primary__reverse'
 
-= render 'form_js'
