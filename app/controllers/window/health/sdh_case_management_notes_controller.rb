@@ -38,6 +38,7 @@ module Window::Health
 
     def edit
       @note = Health::SdhCaseManagementNote.find(params[:id])
+      @activities = @note.activities.sort_by(&:id)
       respond_with @note
     end
 
@@ -51,6 +52,7 @@ module Window::Health
         @note.save(validate: false)
         @noteAdded = (@activity_count != @note.activities.size)
       end
+      @activities = @note.activities.sort_by(&:id)
       respond_with @note, location: polymorphic_path(careplan_path_generator)
     end
 

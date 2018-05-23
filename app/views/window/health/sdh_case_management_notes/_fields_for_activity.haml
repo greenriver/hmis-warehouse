@@ -4,3 +4,4 @@
 = render 'string_collection_with_other', object: activity, f: f, note_attr: 'reached_client', label: 'Reached Client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact'
 = f.input :activity, collection: activity.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'
 = f.input :date_of_activity, as: :date_picker
+= f.input :follow_up

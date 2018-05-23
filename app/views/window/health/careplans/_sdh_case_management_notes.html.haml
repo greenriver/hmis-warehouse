@@ -4,7 +4,7 @@
       %tr
         %th Assessment
         %th Date Completed
-        %th Case Worker
+        %th Case Manager
     %tbody
       - @client.health_touch_points.case_management_notes.order(collected_at: :desc).each do |form|
         %tr
@@ -20,8 +20,8 @@
           %td
             = link_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: note.id), data: {loads_in_pjax_modal: true} do 
               %div= (note.topics.any? ? note.topics.join(', ') : "&nbsp;").html_safe
-              .padding-left-02= note.title
-          %td TODO
+              .padding-left-02= note.title || 'No Title'
+          %td= note.completed_on&.to_date
           %td= note.user.name
       
 - else

@@ -128,7 +128,7 @@ module Health
       {
         values: [
           {key: 'Name:', value: patient.client.name},
-          {key: 'Date Completed:', value: 'TODO'},
+          {key: 'Date Completed:', value: completed_on&.to_date},
           {key: 'Case Worker:', value: user.name}
         ]
       }

@@ -18,5 +18,7 @@
             .text-right
             = f.submit 'Save Case Note', class: 'btn btn-action'
         - if section[:id] == :activities
-          = link_to 'Add Another Qualifying Activity', '#', onclick: 'addActivity(event)', class: 'btn-xs btn-primary btn-primary__reverse'
+          - btn_text = @activities.any? ? 'Add Another Qualifying Activity' : 'Add Qualifying Activity'
+          .margin-bottom-04
+            = link_to btn_text, '#', onclick: 'addActivity(event)', class: 'btn-xs btn-primary btn-primary__reverse'
 
