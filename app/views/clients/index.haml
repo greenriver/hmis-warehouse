@@ -35,8 +35,8 @@
       .client__details.client__details--identity
         .clients__client-name.h4= main_client_name
         .clients__client-additional-names
-          .client__client-name
-            - akas.each_with_index do | aka, i |
+          - akas.each_with_index do | aka, i |
+            .client__client-name
               .client-aka
                 = aka
       .client__details.client__details--demographics

@@ -220,37 +220,35 @@ $client-match-action-row-height: 22px;
   }
 }
 
+
 .client__details--status,
 .client__details--demographics {
   align-self: center;
 }
 
-.clients__client-name
-{
-  font-size: 1.2rem;
-  margin-bottom: 0.15rem;
-  margin-bottom: 0;
-  font-size: 1.35rem;
-}
-.client__client-name
-{
-  margin-bottom: 0.15rem;
-}
 .clients__client-name,
 .client__client-name {
+  display: flex;
   align-items: center;
+  margin-bottom: 0.25rem;
 }
-.clients__users
-{
+
+.clients__client-name {
+  font-size: 1.2rem;
+  font-size: 1.35rem;
+  margin-bottom: .45rem;
+}
+
+.clients__users {
   margin-top: 2rem;
 }
-.clients__users h4
-{
+
+.clients__users h4 {
   margin-bottom: 0;
 }
+
 .client__filter .dropdown-menu.options,
-.client__filter-active .dropdown-menu.options
-{
+.client__filter-active .dropdown-menu.options {
   width: 38em;
   padding: 1em;
 }
