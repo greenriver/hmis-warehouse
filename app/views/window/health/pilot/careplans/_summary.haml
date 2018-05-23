@@ -1,6 +1,6 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 .slab
-  = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_path_generator), wrapper: wrapper do |f|
+  = simple_form_for @careplan, as: :careplan, url: polymorphic_path(careplan_pilot_path_generator), wrapper: wrapper do |f|
     .row
       .col-sm-12
         %h3.section-expander-block__header Care Plan Dates

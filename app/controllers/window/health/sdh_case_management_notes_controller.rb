@@ -28,7 +28,7 @@ module Window::Health
       @note = @patient.sdh_case_management_notes.build(create_params)
       if @note.save
         flash[:notice] = "New SDH Management Note Created."
-        redirect_to polymorphic_path(careplan_path_generator)
+        redirect_to polymorphic_path(careplans_path_generator)
       else
         flash[:error] = "Please fix the errors below."
         load_template_activity
@@ -53,7 +53,7 @@ module Window::Health
         @noteAdded = (@activity_count != @note.activities.size)
       end
       @activities = @note.activities.sort_by(&:id)
-      respond_with @note, location: polymorphic_path(careplan_path_generator)
+      respond_with @note, location: polymorphic_path(careplans_path_generator)
     end
 
     def form_url(opts = {})
@@ -130,6 +130,10 @@ module Window::Health
           :follow_up
         ]
       ).reject{|k, v| v.blank?}
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Case Management Note' }
     end
   
   end

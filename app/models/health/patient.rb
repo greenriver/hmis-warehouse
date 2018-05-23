@@ -9,11 +9,10 @@ module Health
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
-    has_one :team
+    has_many :teams, through: :careplans
     has_many :team_members, class_name: Health::Team::Member.name, through: :team
 
-    has_one :careplan
-    has_many :goals, class_name: Health::Goal::Base.name, through: :careplan
+    has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
@@ -23,6 +22,7 @@ module Health
     has_many :sdh_case_management_notes
     has_many :participation_forms
     has_many :release_forms
+    has_many :careplans
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }

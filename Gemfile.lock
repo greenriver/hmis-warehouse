@@ -132,6 +132,7 @@ GEM
     charlock_holmes (0.7.6)
     choice (0.2.0)
     chronic (0.10.2)
+    cocoon (1.2.11)
     coderay (1.1.1)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -565,6 +566,7 @@ DEPENDENCIES
   carrierwave
   carrierwave-i18n
   charlock_holmes
+  cocoon
   coffee-rails
   composite_primary_keys (~> 8.0)
   daemons
@@ -588,6 +590,7 @@ DEPENDENCIES
   haml-rails
   handlebars_assets
   html2haml
+  htmlentities
   jquery-minicolors-rails
   jquery-rails
   jquery-ui-rails

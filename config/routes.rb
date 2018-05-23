@@ -28,7 +28,9 @@ Rails.application.routes.draw do
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
       resources :participation_forms
       resources :release_forms
-      resource :careplan, except: [:destroy] do
+      resources :careplans, except: [:destroy, :create] do
+        resources :team_members, except: [:index, :show]
+        resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment
         get :print
       end

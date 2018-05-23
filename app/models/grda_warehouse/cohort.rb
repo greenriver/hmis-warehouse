@@ -137,6 +137,9 @@ module GrdaWarehouse
         ::CohortColumns::OriginalChronic.new(),
         ::CohortColumns::NotAVet.new(),
         ::CohortColumns::EtoCoordinatedEntryAssessmentScore.new(),
+        ::CohortColumns::HouseholdMembers.new(),
+        ::CohortColumns::MinimumBedroomSize.new(),
+        ::CohortColumns::SpecialNeeds.new(),
       ]
     end
 

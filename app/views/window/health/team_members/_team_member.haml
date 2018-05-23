@@ -1,0 +1,28 @@
+.health__team-member__individual.clearfix.jTeamMember{data: {id: member.id}}
+  .pull-right
+    .health__team-member__action.health__team-member--email
+      = mail_to member.email, subject: 'Collaborative Care Plan' do
+        %i.icon-envelope-o
+    - if restore
+      .health__team-member__action.health__team-member--restore
+        -# link_to polymorphic_path(careplan_path_generator + [:team, :member, :restore], member_id: member.id), method: :restore do
+          %span.icon-settings_backup_restore
+          Restore
+    - else
+      .health__team-member__action.health__team-member--delete
+        = link_to polymorphic_path(careplan_path_generator + [:team, :member], careplan_id: @careplan.id, id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do 
+          %span.icon-cross
+  .health__team-member--name
+    = member&.full_name
+    %br
+    = member&.organization
+    %br
+    = mail_to member.email, subject: 'Collaborative Care Plan' do
+      = member&.email
+  - if member.last_contact.present?
+    .health__team-member--last-contact
+      Last Visit:
+      = member.last_contact
+  - if restore
+    Deleted on:
+    = member.deleted_at.to_date
