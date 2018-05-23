@@ -55,8 +55,6 @@
   margin-bottom: 24px;
 }
 .health__team-member--type {
-  background-color: #fff;
-  border: 1px solid $gray-040;
   padding: 4px;
   font-size: 16px;
   line-height: 1;
@@ -69,9 +67,7 @@
   vertical-align: middle;
 }
 .health__team-member__individual {
-  margin-bottom: 9px;
-  padding-bottom: 9px;
-  border-bottom: 2px solid $gray-040;
+  min-height: 180px;
 }
 .health__team-member__action {
   display: inline-block;

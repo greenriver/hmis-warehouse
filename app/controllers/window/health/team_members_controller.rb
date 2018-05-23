@@ -45,10 +45,14 @@ module Window::Health
         team_id: @team.id,
         user_id: current_user.id
       })
-
       raise 'Member type not found' unless klass.present?
-      @new_member = klass.create(opts)
-
+      if ! request.xhr?
+        @member = klass.create(opts)
+        respond_with(@member, location: polymorphic_path([:edit] + careplan_path_generator, id: @careplan))
+        return
+      else
+        @new_member = klass.create(opts)
+      end
     end
 
     def destroy
@@ -88,6 +92,10 @@ module Window::Health
     private def ensure_patient_team
       @careplan.create_team unless @careplan.team.present?
       @team = @careplan.team
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Team Member' }
     end
   end
 end

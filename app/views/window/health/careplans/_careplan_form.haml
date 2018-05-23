@@ -5,10 +5,10 @@
 
   .health__team
     %h3 Care Team Members
-    .health__team-members
+    .row.health__team-members
       - if @careplan.team_members.any?
         - @careplan.team_members.each do |member|
-          = render 'window/health/team_members/team_member', member: member
+          = render 'window/health/team_members/team_member', member: member, restore: false
             
       - else
         %p No team members currently.
