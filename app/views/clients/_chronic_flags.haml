@@ -13,10 +13,11 @@
       .c-tag__icon
         .icon-clock
       .c-tag__content
-        %span Chronically Homeless &amp; in CAS
-        - if cas_id.present?
-          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
-            View in CAS
+        %span
+          Chronically Homeless &amp; in CAS
+          - if cas_id.present?
+            = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+              View in CAS
 
 - elsif client.chronically_homeless_for_cas?
   .c-tag.c-tag--warning.client-flag
@@ -32,7 +33,8 @@
       .c-tag__icon
         .icon-user
       .c-tag__content
-        %span Available in CAS
-        - if cas_id.present?
-          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
-            View in CAS
+        %span
+          Available in CAS
+          - if cas_id.present?
+            = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+              View in CAS

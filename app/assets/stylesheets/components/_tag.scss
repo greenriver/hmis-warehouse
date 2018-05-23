@@ -24,9 +24,11 @@ $tag-icon-shadow: $white;
 
 .c-tag__wrapper {
   display: flex;
+  align-items: center;
 }
 
 .c-tag__icon {
+  flex: 0 0 auto;
   height: $tag-height;
   width: $tag-height;
   box-shadow: 0 0 0 2px $tag-icon-shadow;
@@ -43,7 +45,7 @@ $tag-icon-shadow: $white;
 }
 
 .c-tag__content {
-  height: $tag-height;
+  min-height: $tag-height;
   @if ($tag-has-min-width) {
     min-width: rem(175px);
   }
@@ -56,10 +58,13 @@ $tag-icon-shadow: $white;
   justify-content: flex-end;
   padding-right: space(3);
   padding-left: $tag-icon-space;
+  padding-top: space(1);
+  padding-bottom: space(1);
   transform: translateX($tag-correction * -1);
   z-index: 1;
   border-radius: rem(2px);
   margin-right: (-$tag-correction);
+
 }
 
 .c-tag__content--shout {
@@ -68,7 +73,6 @@ $tag-icon-shadow: $white;
 }
 
 .c-tag__content a {
-  margin-left: space(2);
   &:hover {
     text-decoration: underline;
   }
