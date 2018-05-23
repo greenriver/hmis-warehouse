@@ -1,0 +1,66 @@
+- content_for :page_js do
+  :javascript
+    
+    var radioButtonsWithOtherChange = function(input) {
+      var container = $(input).parents('.string-collection-with-other__container');
+      var otherInput = container.find('.string-collection-with-other__input');
+      var otherValue = otherInput.data('other-value');
+      if($(input).is(':checked') && $(input).val() === otherValue) {
+        otherInput.slideDown();
+      } else {
+        otherInput.find('input').val('');
+        otherInput.slideUp();
+      }
+    }
+
+    var behaviorSelector = function(behavior) {
+      return '[data-behavior="'+behavior+'"]'
+    }
+
+    var saveNote = function(e) {
+      console.log('save note');
+      var form = $(e.target).closest('form');
+      $.ajax({
+        url: form.data('url'),
+        type: 'PATCH',
+        data: form.serialize()
+      }).done(function(e) {
+        console.log('done');
+      }).fail(function(e) {
+        console.log('fail');
+      })
+    }
+
+    var addActivity = function(event) {
+      event.preventDefault();
+      var container = $(behaviorSelector("activities"));
+      var none = $(behaviorSelector("no activities"));
+      var activities = $(behaviorSelector("activity"));
+      var template = $(behaviorSelector("activity to copy"))[0];
+      var html = $(template).html().replace(/COPY/gi, activities.length);
+      
+      var newActivityContainer = $("<div class='sdh-note__activity' data-behavior='activity'></div>").appendTo(container);
+      var newHeader = $("<h5 class='uppercase gray-light'>Qualifying Activity #"+(activities.length+1)+"</h5>").appendTo(newActivityContainer);
+      var newActivity = $(html).appendTo(newActivityContainer);
+      none.hide();
+      saveNote(event);
+      return false
+    }
+
+    var init = function() {
+      var datepickers = $('.datepicker');
+      datepickers.on('changeDate', saveNote);
+      $('.sdh-cmn-form input').each(function() {
+        if(!$(this).hasClass('datepicker')) {
+          $(this).on('change', saveNote);
+        }
+      });
+    }
+
+    $(document).ready(function() {
+      init();
+    });
+
+
+
+

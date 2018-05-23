@@ -11,7 +11,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180522205450) do
+
+ActiveRecord::Schema.define(version: 20180523125514) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -60,6 +61,9 @@ ActiveRecord::Schema.define(version: 20180522205450) do
     t.datetime "deleted_at"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.date     "patient_signed_on"
+    t.date     "provider_signed_on"
+    t.boolean  "locked",                                   default: false, null: false
   end
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
@@ -323,6 +327,21 @@ ActiveRecord::Schema.define(version: 20180522205450) do
     t.integer  "data_source_id", default: 6, null: false
   end
 
+  create_table "qualifying_activities", force: :cascade do |t|
+    t.string   "mode_of_contact"
+    t.string   "mode_of_contact_other"
+    t.string   "reached_client"
+    t.string   "reached_client_collateral_contact"
+    t.string   "activity"
+    t.string   "source_type"
+    t.integer  "source_id"
+    t.datetime "claim_submitted_on"
+    t.datetime "date_of_activity"
+    t.integer  "user_id"
+    t.string   "user_full_name"
+    t.string   "follow_up"
+  end
+
   create_table "release_forms", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "user_id"
@@ -334,6 +353,27 @@ ActiveRecord::Schema.define(version: 20180522205450) do
 
   add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
   add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
+
+  create_table "sdh_case_management_notes", force: :cascade do |t|
+    t.integer  "user_id"
+    t.integer  "patient_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.text     "topics"
+    t.string   "title"
+    t.integer  "total_time_spent_in_minutes"
+    t.datetime "date_of_contact"
+    t.string   "place_of_contact"
+    t.string   "housing_status"
+    t.string   "place_of_contact_other"
+    t.string   "housing_status_other"
+    t.datetime "housing_placement_date"
+    t.string   "client_action"
+    t.text     "notes_from_encounter"
+    t.text     "next_steps"
+    t.string   "client_phone_number"
+    t.datetime "completed_on"
+  end
 
   create_table "self_sufficiency_matrix_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -395,6 +435,7 @@ ActiveRecord::Schema.define(version: 20180522205450) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "user_id"
+    t.string   "phone"
   end
 
   add_index "team_members", ["team_id"], name: "index_team_members_on_team_id", using: :btree
@@ -406,7 +447,10 @@ ActiveRecord::Schema.define(version: 20180522205450) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "user_id"
+    t.integer  "careplan_id"
   end
+
+  add_index "teams", ["careplan_id"], name: "index_teams_on_careplan_id", using: :btree
 
   create_table "versions", force: :cascade do |t|
     t.string   "item_type",  null: false

@@ -31,7 +31,7 @@
      title: 'Health',
      permission: show_health_hpc,
     },
-    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
+    polymorphic_path(careplans_path_generator, client_id: @client.id) => {
      title: 'Care Plan',
      permission: show_health_hpc,
     },
@@ -48,7 +48,7 @@
       permission: show_health_pilot,
     }
   }
-
+- allow_click_on_current = allow_click_on_current || false
 - can_see_tabs = false
 - tabs.each do |action, details|
   - if details[:permission]
@@ -59,9 +59,14 @@
     - tabs.each do |action, details|
       - if action == current
         - if details[:permission]
-          %li.active.active-tab{role: 'presentation'}
-            %a{href: '#'}
-              = details[:title]
+          - if allow_click_on_current
+            -# we want the tab to appear active but we want it clickable for sub pages of a tab (example: care plan tab edit/new note)
+            %li.active{role: 'presentation'}
+              = link_to details[:title], action
+          - else
+            %li.active.active-tab{role: 'presentation'}
+              %a{href: '#'}
+                = details[:title]
       - else
         - if details[:permission]
           %li= link_to details[:title], action

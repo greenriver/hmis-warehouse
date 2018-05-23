@@ -1,0 +1,10 @@
+var noteAdded = "<%= j @noteAdded.to_json %>"
+if(noteAdded === 'true') {
+  var container = $(behaviorSelector('container'));
+  container.empty();
+  container.append("<%= j render(partial: 'form') %>");
+  init();
+  var notes = $('.sdh-note__activity');
+  var last = notes.last();
+  last.find('input[type="radio"]').first().focus();
+}

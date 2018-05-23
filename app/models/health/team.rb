@@ -6,5 +6,7 @@ module Health
     belongs_to :patient
     belongs_to :editor, class_name: User.name, foreign_key: :user_id
 
+    accepts_nested_attributes_for :members, allow_destroy: true
+
   end
 end

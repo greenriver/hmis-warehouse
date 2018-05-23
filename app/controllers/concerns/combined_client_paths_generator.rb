@@ -1,6 +1,11 @@
 module CombinedClientPathsGenerator
   extend ActiveSupport::Concern
   included do
+    def careplans_path_generator
+      health_path_generator + [:careplans]
+    end
+    helper_method :careplans_path_generator
+
     def careplan_path_generator
       health_path_generator + [:careplan]
     end
@@ -75,6 +80,16 @@ module CombinedClientPathsGenerator
       health_path_generator + [:self_sufficiency_matrix_form]
     end
     helper_method :self_sufficiency_matrix_form_path_generator
+
+    def sdh_case_management_notes_path_generator
+      health_path_generator + [:sdh_case_management_notes]
+    end
+    helper_method :sdh_case_management_notes_path_generator
+
+    def sdh_case_management_note_path_generator
+      health_path_generator + [:sdh_case_management_note]
+    end
+    helper_method :sdh_case_management_note_path_generator
 
     def participation_forms_path_generator
       health_path_generator + [:participation_forms]

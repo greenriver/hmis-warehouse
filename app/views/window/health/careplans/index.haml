@@ -2,13 +2,13 @@
 = content_for(:title, title)
 %h1= "#{content_for(:title)} for #{@client.full_name}"
 = render 'window/clients/breadcrumbs'
-= render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
+= render 'window/clients/tab_navigation', current: polymorphic_path(careplans_path_generator)
 = render 'window/health/patient/patient_status'
-= render 'print_link'
+
 .row
-  .col-sm-4
+  .col-sm-5
     - unless @readonly
       = render 'assessments'
-  .col-sm-8
+  .col-sm-7
     = render 'summary'
-    = render 'epic_goals'
+

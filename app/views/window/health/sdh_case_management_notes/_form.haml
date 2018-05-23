@@ -1,0 +1,24 @@
+.underline-header.padding-bottom-02
+  %h1= "Case Management Note for #{@patient.name}"
+  - unless @note.new_record?
+    %small= "Entered by #{@note.user.name}, #{@note.completed_on&.strftime('%b %d, %Y')}"
+= simple_form_for @note, url: form_url, html: {class: 'sdh-cmn-form', data: {url: form_url({format: :js})}} do |f|
+  .row
+    .col-md-10
+      .padding-top-02
+        = f.error_notification
+      - form_sections = @note.display_note_form_sections
+      - form_sections.each_with_index do |section, index|
+        %h4= section[:title]
+        .well
+          .row
+            .col-md-8
+              = render "fields_for_#{section[:id]}", f: f
+          - if form_sections.size == (index + 1)
+            .text-right
+            = f.submit 'Save Case Note', class: 'btn btn-action'
+        - if section[:id] == :activities
+          - btn_text = @activities.any? ? 'Add Another Qualifying Activity' : 'Add Qualifying Activity'
+          .margin-bottom-04
+            = link_to btn_text, '#', onclick: 'addActivity(event)', class: 'btn-xs btn-primary btn-primary__reverse'
+

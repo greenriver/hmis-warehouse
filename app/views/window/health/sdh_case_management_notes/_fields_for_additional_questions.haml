@@ -1,0 +1,8 @@
+- note = Health::SdhCaseManagementNote
+= render 'string_collection_with_other', object: note, f: f, note_attr: 'place_of_contact', label: 'Place of contact (if in person)', other_label: 'Please specify:', other: 'other'
+= render 'string_collection_with_other', object: note, f: f, note_attr: 'housing_status', label: 'Housing Status', other_label: 'Please specify', other: 'other'
+= f.input :housing_placement_date, as: :date_picker
+= f.input :client_action, as: :radio_buttons, collection: note.client_action_collection, label: 'Did any of the following happen?'
+= f.input :notes_from_encounter, input_html: {rows: 10}
+= f.input :next_steps, hint: 'List of steps that Client or Case Manager will complete. Please separate and number each step.', input_html: {rows: 10}
+= f.input :client_phone_number

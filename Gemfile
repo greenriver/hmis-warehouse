@@ -47,6 +47,7 @@ gem 'daemons'
 
 gem "simple_form"
 gem 'virtus'
+gem 'cocoon'
 
 # Asset related
 gem 'bootstrap-sass'
@@ -62,6 +63,7 @@ gem 'jquery-ui-rails'
 gem 'nominatim'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
+gem 'htmlentities'
 # gem 'jquery-datatables-rails'
 
 # ETO API related

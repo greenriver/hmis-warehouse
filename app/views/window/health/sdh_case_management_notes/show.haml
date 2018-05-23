@@ -1,0 +1,6 @@
+- content_for :modal_title, 'Case Management Note'
+- if @note.user_can_edit?(current_user)
+  .pull-right
+    = link_to 'Edit', polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id), class: 'btn btn-primary btn-primary__reverse'
+- display_note_object.each do |section|
+  = render 'display_note_section', section: section

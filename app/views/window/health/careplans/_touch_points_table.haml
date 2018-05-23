@@ -4,7 +4,7 @@
       %tr
         %th Assessment
         %th Date Completed
-        %th Case Worker
+        %th Case Manager
     %tbody
       - @patient.self_sufficiency_matrix_forms.order(completed_at: :desc).each do |form|
         %tr
