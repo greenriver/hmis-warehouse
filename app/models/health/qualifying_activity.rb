@@ -37,7 +37,6 @@ module Health
     belongs_to :source, polymorphic: true
     belongs_to :user
 
-    # what fields are required here?
     validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT}, allow_blank: true
     validates :reached_client, inclusion: {in: REACHED_CLIENT}, allow_blank: true
     validates :activity, inclusion: {in: ACTIVITY}, allow_blank: true 

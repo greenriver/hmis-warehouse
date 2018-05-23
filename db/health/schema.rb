@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180521133817) do
+ActiveRecord::Schema.define(version: 20180522203840) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,7 +45,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id",   default: 6, null: false
+    t.integer  "data_source_id",   default: 1, null: false
   end
 
   create_table "careplans", force: :cascade do |t|
@@ -197,7 +197,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.datetime "goal_created_at"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
-    t.integer  "data_source_id",           default: 6, null: false
+    t.integer  "data_source_id",           default: 1, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
@@ -254,7 +254,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 6, null: false
+    t.integer  "data_source_id", default: 1, null: false
   end
 
   create_table "participation_forms", force: :cascade do |t|
@@ -306,7 +306,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 6,     null: false
+    t.integer  "data_source_id",           default: 1,     null: false
   end
 
   create_table "problems", force: :cascade do |t|
@@ -319,15 +319,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 6, null: false
-  end
-
-  create_table "release_forms", force: :cascade do |t|
-    t.integer "patient_id"
-    t.integer "user_id"
-    t.date    "signature_on"
-    t.string  "file_location"
-    t.boolean "supervisor_reviewed"
+    t.integer  "data_source_id", default: 1, null: false
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -342,7 +334,19 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.datetime "date_of_activity"
     t.integer  "user_id"
     t.string   "user_full_name"
+    t.string   "follow_up"
   end
+
+  create_table "release_forms", force: :cascade do |t|
+    t.integer "patient_id"
+    t.integer "user_id"
+    t.date    "signature_on"
+    t.string  "file_location"
+    t.boolean "supervisor_reviewed"
+  end
+
+  add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
+  add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "sdh_case_management_notes", force: :cascade do |t|
     t.integer  "user_id"
@@ -362,10 +366,8 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.text     "notes_from_encounter"
     t.text     "next_steps"
     t.string   "client_phone_number"
+    t.datetime "completed_on"
   end
-
-  add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
-  add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "self_sufficiency_matrix_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -463,7 +465,7 @@ ActiveRecord::Schema.define(version: 20180521133817) do
     t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
-    t.integer  "data_source_id",  default: 6, null: false
+    t.integer  "data_source_id",  default: 1, null: false
   end
 
 end

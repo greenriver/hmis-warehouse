@@ -1,10 +1,12 @@
 .underline-header.padding-bottom-02
   %h1= "Case Management Note for #{@patient.name}"
   - unless @note.new_record?
-    %small= "Entered by #{@note.user.name}, #{@note.created_at.strftime('%b %d, %Y')}"
-= simple_form_for @note, url: form_url, data: {behavior: 'form', url: form_url({format: :js})} do |f|
+    %small= "Entered by #{@note.user.name}, #{@note.completed_on&.strftime('%b %d, %Y')}"
+= simple_form_for @note, url: form_url, html: {class: 'sdh-cmn-form', data: {url: form_url({format: :js})}} do |f|
   .row
     .col-md-10
+      .padding-top-02
+        = f.error_notification
       - form_sections = @note.display_note_form_sections
       - form_sections.each_with_index do |section, index|
         %h4= section[:title]

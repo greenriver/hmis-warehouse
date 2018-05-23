@@ -9,7 +9,7 @@ module Window::Health
     before_action :require_can_add_case_management_notes!, only: [:new, :create, :edit, :update]
     before_action :set_client
     before_action :set_patient
-    before_action :load_template_activity, only: [:new, :edit]
+    before_action :load_template_activity, only: [:edit, :update]
 
     def show
       @note = Health::SdhCaseManagementNote.find(params[:id])
@@ -17,8 +17,10 @@ module Window::Health
     end
 
     def new
-      @note = @patient.sdh_case_management_notes.build(user: current_user)
-      @note.activities.build(user: current_user, user_full_name: current_user.name)
+      @note = @patient.sdh_case_management_notes.
+        build(user: current_user, completed_on: DateTime.current)
+      @note.save(validate: false)
+      redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
     end
 
     def create
@@ -36,38 +38,29 @@ module Window::Health
 
     def edit
       @note = Health::SdhCaseManagementNote.find(params[:id])
-      if !@note.user_can_edit?(current_user)
-        flash[:error] = "You can't edit this note."
-        redirect_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) 
-      end
+      respond_with @note
     end
 
     def update
       @note = Health::SdhCaseManagementNote.find(params[:id])
-      if !@note.user_can_edit?(current_user)
-        flash[:error] = "You can't edit this note."
-        redirect_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) 
+      @activity_count = @note.activities.size
+      if params[:commit] == 'Save Case Note'
+        @note.update_attributes(note_params)
       else
-        if @note.update_attributes(note_params)
-          flash[:notice] = "SDH Management Note Updated."
-          redirect_to polymorphic_path(careplan_path_generator)
-        else
-          flash[:error] = "Please fix the errors below."
-          load_template_activity
-          render :edit
-        end
+        @note.assign_attributes(note_params)
+        @note.save(validate: false)
+        @noteAdded = (@activity_count != @note.activities.size)
       end
+      respond_with @note, location: polymorphic_path(careplan_path_generator)
     end
 
     def form_url(opts = {})
       if @note.new_record?
         opts = opts.merge({client_id: @client.id})
         path = sdh_case_management_notes_path_generator
-        # polymorphic_path(sdh_case_management_notes_path_generator, client_id: @client.id)
       else
         opts = opts.merge({client_id: @client.id, id: @note.id})
         path = sdh_case_management_note_path_generator
-        # polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
       end
       polymorphic_path(path, opts)
     end
@@ -120,6 +113,7 @@ module Window::Health
         :notes_from_encounter,
         :next_steps,
         :client_phone_number,
+        :completed_on,
         topics: [],
         activities_attributes: [
           :id,
@@ -130,7 +124,8 @@ module Window::Health
           :reached_client,
           :reached_client_collateral_contact,
           :activity,
-          :date_of_activity
+          :date_of_activity,
+          :follow_up
         ]
       ).reject{|k, v| v.blank?}
     end

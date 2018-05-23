@@ -17,15 +17,18 @@
       return '[data-behavior="'+behavior+'"]'
     }
 
-    var removeActivity = function(event, link) {
-      event.preventDefault();
-      var activity = $(link).parents(behaviorSelector('activity'));
-      activity.remove();
-      var activities = $(behaviorSelector("activity"));
-      if(activities.length === 0) {
-        var none = $(behaviorSelector("no activities"));
-        none.show();
-      }
+    var saveNote = function(e) {
+      console.log('save note');
+      var form = $(e.target).closest('form');
+      $.ajax({
+        url: form.data('url'),
+        type: 'PATCH',
+        data: form.serialize()
+      }).done(function(e) {
+        console.log('done');
+      }).fail(function(e) {
+        console.log('fail');
+      })
     }
 
     var addActivity = function(event) {
@@ -39,29 +42,25 @@
       var newActivityContainer = $("<div class='sdh-note__activity' data-behavior='activity'></div>").appendTo(container);
       var newHeader = $("<h5 class='uppercase gray-light'>Qualifying Activity #"+(activities.length+1)+"</h5>").appendTo(newActivityContainer);
       var newActivity = $(html).appendTo(newActivityContainer);
-
-      $('<a href="#" onclick="removeActivity(event, this)">remove ×</a>').appendTo(newHeader);
       none.hide();
+      saveNote(event);
       return false
     }
 
-    $(document).ready(function() {
-      var form = $(behaviorSelector('form'));
-      var required = $(behaviorSelector('required input'));
-      $(document).on('change', behaviorSelector('sdh case management note form'), function(e) {
-        var emptyRequired = required.filter(function() {
-          console.log($(this).val().length);
-          return $(this).val().length === 0;
-        });
-        console.log(emptyRequired);
-        if(emptyRequired.length === 0) {
-          console.log('all the required inputs have stuff');
-        }
-        else {
-          console.log('required fields need filled in');
+    var init = function() {
+      var datepickers = $('.datepicker');
+      datepickers.on('changeDate', saveNote);
+      $('.sdh-cmn-form input').each(function() {
+        if(!$(this).hasClass('datepicker')) {
+          $(this).on('change', saveNote);
         }
       });
+    }
+
+    $(document).ready(function() {
+      init();
     });
+
 
 
 
