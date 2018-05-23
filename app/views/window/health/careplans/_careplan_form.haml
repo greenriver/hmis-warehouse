@@ -3,4 +3,18 @@
   = f.input :patient_signed_on, as: :date_picker
   = f.input :provider_signed_on, as: :date_picker
 
+  .health__team
+    %h3 Team
+    .health__team-members
+      - if @careplan.team_members.any?
+        - @careplan.team_members.group_by(&:member_type_name).each do |group, members|
+          = render 'window/health/team_members/group', group: group, members: members
+            
+      - else
+        %p No team members currently.
+    .links
+      = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+        %i.icon-plus
+        Add Team Member
+
   = f.button :submit, @form_button

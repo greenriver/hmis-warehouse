@@ -27,7 +27,9 @@ Rails.application.routes.draw do
       resources :self_sufficiency_matrix_forms
       resources :participation_forms
       resources :release_forms
-      resources :careplans, except: [:destroy] do
+      resources :careplans, except: [:destroy, :create] do
+        resources :team_members, except: [:index, :show]
+        resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment
         get :print
       end

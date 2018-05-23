@@ -27,14 +27,12 @@ module Window::Health
     end
 
     def new
-      @careplan = @patient.careplans.build
-      @form_url = polymorphic_path(careplans_path_generator)
-      @form_button = 'Create Care Plan'
-    end
-
-    def create
-      @careplan = @patient.careplans.create!(careplan_params)
-      respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
+      Health::Careplan.transaction do
+        @careplan = @patient.careplans.create!(user: current_user)
+      end
+      redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
+      # @form_url = polymorphic_path(careplans_path_generator)
+      # @form_button = 'Create Care Plan'
     end
 
     def print
@@ -42,7 +40,7 @@ module Window::Health
     end
 
     def update
-      @careplan.update!(careplan_params)
+      @careplan.update(careplan_params)
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
@@ -69,6 +67,10 @@ module Window::Health
           :case_manager_id,
         )
     end
+
+    def flash_interpolation_options
+    { resource_name: 'Care Plan' }
+  end
 
   end
 end

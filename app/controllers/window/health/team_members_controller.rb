@@ -1,8 +1,9 @@
-module Window::Health::Careplan::Team
-  class MembersController < ApplicationController
+module Window::Health
+  class TeamMembersController < ApplicationController
     before_action :require_can_edit_client_health!
     before_action :set_client
     before_action :set_patient
+    before_action :set_careplan
     before_action :ensure_patient_team
     before_action :set_team_member, only: [:destroy]
     before_action :set_deleted_team_member, only: [:restore]
@@ -44,29 +45,16 @@ module Window::Health::Careplan::Team
         team_id: @team.id,
         user_id: current_user.id
       })
-      begin
-        raise 'Member type not found' unless klass.present?
-        new_member = klass.create!(opts)
-        @team.update(user_id: current_user.id)
-        flash[:notice] = "Added #{new_member.full_name} to team"
-        redirect_to action: :index
-      rescue Exception => e
-        @member.validate
-        flash[:error] = "Failed to add Team Member #{e}"
-        render action: :index
-      end
+
+      raise 'Member type not found' unless klass.present?
+      @new_member = klass.create(opts)
+
     end
 
     def destroy
-      begin
-        @member.update(user_id: current_user.id)
-        @member.destroy!
-        @team.update(user_id: current_user.id)
-        flash[:notice] = "Removed #{@member.full_name} from team"
-      rescue Exception => e
-        flash[:error] = "Failed to delete Team Member"
-      end
-      redirect_to action: :index
+      @member.update(user_id: current_user.id)
+      @member.destroy!
+      @team.update(user_id: current_user.id)
     end
 
     def team_member_params
@@ -76,8 +64,17 @@ module Window::Health::Careplan::Team
         :email,
         :organization,
         :title,
-        :type
+        :type,
+        :phone
       )
+    end
+
+    def set_careplan
+      @careplan = careplan_source.find(params[:careplan_id].to_i)
+    end
+
+    def careplan_source
+      Health::Careplan
     end
     
     private def set_team_member
@@ -89,8 +86,8 @@ module Window::Health::Careplan::Team
     end
 
     private def ensure_patient_team
-      @patient.create_team unless @patient.team.present?
-      @team = @patient.team
+      @careplan.create_team unless @careplan.team.present?
+      @team = @careplan.team
     end
   end
 end

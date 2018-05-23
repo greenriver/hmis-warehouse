@@ -1,0 +1,9 @@
+.well.health__team-member
+  = f.input :type, collection: Health::Team::Member.available_types, label_method: :member_type_name, include_blank: false, label: false, input_html: {class: 'select2'}
+  = f.input :first_name
+  = f.input :last_name
+  = f.input :title, hint: 'MD, RN or Family Member, Specialist etc.'
+  = f.input :email, placeholder: 'user@domain.com', type: :email
+  = f.input :phone
+  = f.input :organization
+  = link_to_remove_association "remove member", f

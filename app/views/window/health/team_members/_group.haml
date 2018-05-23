@@ -1,0 +1,6 @@
+.health__team-member.card
+  .health__team-member--type
+    %i{class: Health::Team::Member.icon_for(group)}
+    = group
+  - members.each do |member|
+    = render 'window/health/team_members/team_member', member: member, restore: false
