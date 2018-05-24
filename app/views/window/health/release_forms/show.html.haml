@@ -4,12 +4,13 @@
   %dt Date of Signature
   %dd= @release_form.signature_on
 
-  %dt Physical location of file
-  %dd= @release_form.file_location
+  - if @release_form.file_location.present?
+    %dt Physical location of file
+    %dd= @release_form.file_location
 
-  - if @release_form.file.present?
+  - if @release_form.health_file.present?
     %dt Download File
-    %dd= link_to @release_form.file&.file&.filename, @release_form.file&.url
+    %dd= link_to @release_form.health_file&.name, polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id )
 
   %dt Supervisor Review
   %dd= yes_no @release_form.supervisor_reviewed?

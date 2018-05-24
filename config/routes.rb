@@ -34,6 +34,16 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
       end
+      resources :participation_forms do
+        member do
+          get :download
+        end
+      end
+      resources :release_forms do 
+        member do
+          get :download
+        end
+      end
       namespace :pilot do 
         resources :patient, only: [:index]
         resource :careplan, except: [:destroy] do

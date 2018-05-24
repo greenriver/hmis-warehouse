@@ -1,7 +1,7 @@
 # encoding: utf-8
 require 'carrierwave/uploader/magic_mime_whitelist'
 
-class FileUploader < CarrierWave::Uploader::Base
+class HealthFileUploader < CarrierWave::Uploader::Base
   # more robust check of the bytes in the upload using libmagic
   include CarrierWave::Uploader::MagicMimeWhitelist
   # we will use mini magics API to process attachments
