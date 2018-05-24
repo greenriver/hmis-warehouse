@@ -25,14 +25,15 @@
         .site-name
           .o-header--page__title.site-title
             = link_to root_path do
-              Boston DND <br> Warehouse
+              Boston DND Warehouse
               - unless Rails.env.production?
-                %span.d-block.mt-2{style: 'font-size:12px;'}= "[#{Rails.env}]"
+                %span.mt-2{style: 'font-size:12px;'}= "[#{Rails.env}]"
         .o-header--page__sub-title.tagline
           = _('Ending Veteran & Chronic Homelessness in Boston')
         = render 'layouts/header_nav'
 
-    .d-flex.flex-row-reverse
+    -# Adding .flex-row-reverse will make the nav menu appear on right
+    .d-flex
       - if user_signed_in?
         = render 'layouts/site_menu'
 

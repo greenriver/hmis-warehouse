@@ -1,12 +1,15 @@
 $font-size-default: 14px;
 
+// Layout
+$container-max-width: 1000px;
+$container-padding: 30px;
+$show-menu-on-left: true;
+
+// Heaader
+$header-height: 60px;
 $nav-side-width: 185px;
 $nav-side-collapsed-width: 65px;
 
-$container-max-width: 1000px;
-$container-padding: 30px;
-
-$header-height: 60px;
 
 // Footer
 $footer-logo-height: 85px;

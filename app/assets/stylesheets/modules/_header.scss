@@ -1,13 +1,9 @@
-// From medium and below: Sign In disappears
-// From
-
 .o-header--page > .container-fluid {
   width: 100%;
 }
 
 .o-header--page {
   background-color: $cob-sg-blue-003;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.50);
   height: $header-height;
   display: flex;
   align-items: stretch;
@@ -68,14 +64,24 @@
 
 .site-name {
   background-color: #fff;
-  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.30);
-  padding: 8px 10px 0;
   align-self: flex-start;
   z-index: $zIndex-2--site-name;
+  @if ($show-menu-on-left) {
+    box-shadow: inset 0 0 0 2px $cob-sg-blue-003;
+    padding: space(2) space(4);
+    margin-left: -30px;
+    display: flex;
+    align-items: stretch;
+    align-self: stretch;
+  }
 }
 
 .o-header--page__title {
-  margin: 0 0 10px;
+  @if ($show-menu-on-left) {
+    display: flex;
+    align-self: stretch;
+    align-items: center;
+  }
   @include montserrat-bold;
   text-transform: uppercase;
   font-size: 1.5rem;
