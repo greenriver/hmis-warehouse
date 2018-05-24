@@ -428,6 +428,7 @@ Rails.application.routes.draw do
       get :add_team_member
       get :alerts
       get :tags
+      get :client_dashboard
     end
   end
 

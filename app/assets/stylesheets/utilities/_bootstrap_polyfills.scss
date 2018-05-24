@@ -17,3 +17,9 @@
 .d-inline-block {
   display: inline-block;
 }
+
+@each $amount in 100 75 50 25 {
+  .w-#{$amount} {
+    width: percentage($amount) !important;
+  }
+}
