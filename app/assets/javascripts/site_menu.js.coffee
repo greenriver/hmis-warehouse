@@ -13,7 +13,7 @@ $ ->
   $(window).scroll ->
     action  = 'removeClass'
     scrollY = @scrollY
-    if scrollY > @innerHeight && lastPoint > scrollY
+    if scrollY > (@innerHeight / 4) && lastPoint > scrollY
       action  = 'addClass'
 
     $('.js-back-to-top')[action]('active')

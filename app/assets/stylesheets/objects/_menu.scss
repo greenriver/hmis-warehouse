@@ -61,7 +61,7 @@
 
 .o-menu__to-top {
   position: fixed;
-  bottom: space(4);
+  bottom: space(8);
   right: $nav-side-width / 2;
   transform: translateX(50%);
   color: $white;
@@ -74,5 +74,8 @@
     opacity: 1;
     visibility: visible;
     pointer-events: all;
+  }
+  &::before {
+    display: none;
   }
 }
