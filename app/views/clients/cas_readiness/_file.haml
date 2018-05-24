@@ -26,14 +26,7 @@
 
   .row
     .col-lg-8.col-xl-6
-      = render 'consent_form', f: f
-      %p.o-text--semibold The following attributes are determined based exclusively on the existance of an uploaded file.
-      %p
-        = checkmark_or_x(@client.ha_eligible)
-        %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
-      %p
-        = checkmark_or_x(@client.disability_verified_on.present?)
-        %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
+      = render 'consent_form', f: f, show_file_existence: true
 
   .row
     .col-lg-8.col-xl-6
