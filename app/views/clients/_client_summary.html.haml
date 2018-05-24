@@ -28,7 +28,7 @@
         - else
           %p None
 
-    .d-flex.flex-column.align-items-center.justify-content-center.flex-wrap
+    .d-flex.flex-column.align-items-center.flex-wrap
       .mr-8.mb-6.d-none--empty<
         = render 'chronic_flags', client: @client
         = render 'cas_housed'
@@ -36,7 +36,7 @@
       .client-consent-status.d-none--empty.mr-8<
         = render 'window/clients/consent_form_flags'
 
-      .d-none--empty.mr-8<
+      .d-none--empty.mr-8.mb-6<
         - if can_view_vspdat? && @client.vispdats.completed.any?
           %h3.mt-0 VI-SPDAT Scores
           - @client.vispdats.completed.scores.each do |vispdat|

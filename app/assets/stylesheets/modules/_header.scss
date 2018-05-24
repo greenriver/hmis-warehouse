@@ -108,12 +108,12 @@
     color: #fff;
     @include montserrat-normal;
     text-transform: uppercase;
-    font-size: rem(16);
+    font-size: rem(14);
     line-height: 1.1;
     margin-left: space(4);
   }
   @media (min-width: $screen-lg-min) {
-    font-size: rem(19);
+    font-size: rem(16);
   }
 }
 
@@ -160,8 +160,13 @@
 }
 
 .utility {
-  @media (min-width: $screen-sm-min) {
-    @include margin(null null null 243px);
+  @if ($show-menu-on-left == false) {
+    @media (min-width: $screen-sm-min) {
+      @include margin(null null null 243px);
+    }
+  }
+  .alert {
+    margin-bottom: space(4);
   }
 }
 

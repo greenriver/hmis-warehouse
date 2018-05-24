@@ -1,8 +1,9 @@
-.crumbs
+.crumbs.d-none--empty.mt-3<
   = yield :crumbs
+
 - notice_types = {'success' => 'success', 'notice' => 'info', 'alert' => 'warning', 'error' => 'danger' }
 - flash.each do |type, msg|
-  %div{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}
+  %div.mt-2{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}
     - if msg.is_a?(String)
       = msg.html_safe unless msg.blank?
     %a.icon-cross.pull-right{href: '#', 'data-dismiss': 'alert', 'aria-label': 'close'}

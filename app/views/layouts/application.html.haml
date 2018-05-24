@@ -40,10 +40,8 @@
       .l-main__content{ class: ('with-menu' if user_signed_in?) }
         %main
           .container-fluid{class: container_classes}
-            .row
-              .col-xs-12
-                .utility
-                  = render :partial => "utility"
+            .utility.d-none--empty<
+              = render "utility"
             - if content_for? :modal_title
               %h1
                 = yield :modal_title
