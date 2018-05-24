@@ -326,17 +326,32 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def missing_disability? disabilities
       return true if disabilities.blank?
-      disabilities.map{|dis| dis[:disability_response]}.include? 99
+      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+      disabilities.select do |dis|
+        dis[:information_date] == max_information_date
+      end.map do |dis| 
+        dis[:disability_response]
+      end.include? 99
     end
 
     def refused_diability? disabilities
       return false if disabilities.blank?
-      disabilities.map{|dis| dis[:disability_response]}.include? 9
+      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+      disabilities.select do |dis|
+        dis[:information_date] == max_information_date
+      end.map do |dis| 
+        dis[:disability_response]
+      end.include? 9
     end
 
     def unknown_disability? disabilities
       return false if disabilities.blank?
-      disabilities.map{|dis| dis[:disability_response]}.include? 8
+      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+      disabilities.select do |dis|
+        dis[:information_date] == max_information_date
+      end.map do |dis| 
+        dis[:disability_response]
+      end.include? 8
     end
 
     def in_percentage numerator, denominator

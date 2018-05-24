@@ -38,7 +38,7 @@
               %span.text-muted
                 (#{counts["#{project.id}"]['total_missing']})
             - if any_clients 
-              %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+              %td.text-center{style: "background-color: #{grade&.color}; color: white; font-weight: bold;"}= grade&.grade
             - else
               %td
         - if @report.projects.count > 1 
@@ -53,7 +53,7 @@
                 = totals['total_missing_percentage']
                 %span.text-muted
                   (#{totals['total_missing']})
-              %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+              %td.text-center{style: "background-color: #{grade&.color}; color: white; font-weight: bold;"}= grade&.grade
 
     %h4 Missing Values Details
     .overflow-scroll
@@ -94,7 +94,7 @@
                     - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]["#{type}_#{word}_percentage"])
                     - key = "project_missing_#{project.id}_#{type}_#{word}"
                     - measure = counts["#{project.id}"]["#{type}_#{word}"]
-                    %td.text-center{class: odd_class, style: "color: #{grade.color};"}
+                    %td.text-center{class: odd_class, style: "color: #{grade&.color};"}
                       #{counts["#{project.id}"]["#{type}_#{word}_percentage"].try(&:round)}%
                       .text-muted
                         - if measure > 0
@@ -115,7 +115,7 @@
                   - measure = totals["#{type}_#{word}"]
                   - key = "project_missing_totals_#{type}_#{word}"
                   - grade = GrdaWarehouse::Grades::Missing.grade_from_score(totals["#{type}_#{word}_percentage"])
-                  %td.text-center{class: odd_class, style: "color: #{grade.color};"}
+                  %td.text-center{class: odd_class, style: "color: #{grade&.color};"}
                     #{totals["#{type}_#{word}_percentage"].try(&:round)}%
                     .text-muted
                       - if measure > 0
