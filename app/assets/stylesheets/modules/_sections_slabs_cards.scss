@@ -56,15 +56,20 @@
 }
 .health__team-member--type {
   padding: 4px;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1;
-  height: 44px; //hacky b/c the icons have extra white space giving them height
+  height: 2.5em; //hacky b/c the icons have extra white space giving them height
   @include open-sans-medium;
   margin-bottom: 9px;
+  clear: left;
 }
 .health__team-member--type i {
-  font-size: 44px;
+  font-size: 2.5em;
   vertical-align: middle;
+}
+.health__team-member--name
+{
+  margin-top: 2em;
 }
 .health__team-member__individual {
   min-height: 180px;

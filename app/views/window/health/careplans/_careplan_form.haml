@@ -1,7 +1,10 @@
 = simple_form_for @careplan, url: @form_url do |f|
-  
-  = f.input :patient_signed_on, as: :date_picker
-  = f.input :provider_signed_on, as: :date_picker
+  %p= _('Care Plan Summary Text')
+  .row
+    .col-sm-4
+      = f.input :initial_date, as: :date_picker, class: :jInitialDate, input_html: { value: f.object.initial_date || Date.today }
+    .col-sm-4
+      = f.input :review_date, as: :date_picker, class: :jReviewDate, label: 'Review Date (defaults to 6 months from initial Date)'
 
   .health__team
     %h3 Care Team Members
@@ -17,4 +20,35 @@
         %i.icon-plus
         Add Team Member
 
+  .row.health-care-plan__about-me
+    .col-sm-8
+      %h3 About Me
+      = f.input :patient_health_problems, label: 'My Health Problems', as: :text
+      = f.input :patient_strengths, label: 'My Strengths', as: :text
+      = f.input :patient_goals, label: 'My Goals', as: :text
+      = f.input :patient_barriers, label: 'My Barriers', as: :text
+
+  .row.health-care-plan__goals
+    .col-sm-8
+      %h3 Goals
+
+      .links
+        = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+          %i.icon-plus
+          Add Goal
+
   = f.button :submit, @form_button
+
+
+= content_for :page_js do
+  :javascript
+    $('.jInitialDate').on('change', function(e) {
+      if($('.jReviewDate').val().length > 4) {
+        return;
+      }
+      var initial_date = Date.parse($(this).val());
+      var review_date = initial_date.setMonth(initial_date.getMonth() + 6);
+      console.log(initial_date, review_date)
+      $('.jReviewDate').val(review_date);
+    });
+    $('.jInitialDate').trigger('change');
