@@ -43,7 +43,18 @@ module Admin::Health
     end
 
     def create
-      add_patient_referral
+      @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
+      if @new_patient_referral.save
+        if clean_patient_referral_params[:agency_id].present?
+          @new_patient_referral.convert_to_patient()
+        end
+        flash[:notice] = create_patient_referral_notice
+        redirect_to create_patient_referral_success_path
+      else
+        load_index_vars
+        flash[:error] = 'Unable to add patient referral.'
+        render 'index'
+      end
     end
 
     def assign_agency
