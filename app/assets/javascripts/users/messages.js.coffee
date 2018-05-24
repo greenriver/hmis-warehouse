@@ -5,17 +5,23 @@ class App.Users.Messages
   constructor: (@polling_url, @seen_url) ->
     @messages = []
     @poll()
-    setInterval @poll, 60000
+    @poller = setInterval @poll, 60000
   # look for messages to display
   poll: () =>
-    console.log 'polling for messages...'
+    @polled ||= 0
+    @polled += 1
+    if @polled > 5
+      # console.log 'Stopping poller'
+      clearInterval @poller
+      return
+    # console.log "polling for messages... count(#{@polled})"
     $.ajax
       method: 'get'
       url: @polling_url
       dataType: 'json'
       data: ids: ( n.id for n in @messages )
       success: (data) =>
-        console.log 'polled', data
+        # console.log 'polled', data
         seen = new Set()
         for n in @messages
           seen.add n.id
@@ -32,7 +38,7 @@ class App.Users.Messages
       dataType: 'json'
       data: id: id
       success: (data) =>
-        console.log 'saw', id
+        # console.log 'saw', id
   # set up the notification widget
   ringBell: () =>
     $envelope = $ '.email-messages'

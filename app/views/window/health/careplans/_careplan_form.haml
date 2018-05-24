@@ -1,7 +1,11 @@
 = simple_form_for @careplan, url: @form_url do |f|
-  
-  = f.input :patient_signed_on, as: :date_picker
-  = f.input :provider_signed_on, as: :date_picker
+  = f.error_notification
+  %p= _('Care Plan Summary Text')
+  .row
+    .col-sm-4
+      = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
+    .col-sm-4
+      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date + 6.months }
 
   .health__team
     %h3 Care Team Members
@@ -17,4 +21,44 @@
         %i.icon-plus
         Add Team Member
 
+  .row.health-care-plan__about-me
+    .col-sm-8
+      %h3 About Me
+      = f.input :patient_health_problems, label: 'My Health Problems', as: :text
+      = f.input :patient_strengths, label: 'My Strengths', as: :text
+      = f.input :patient_goals, label: 'My Goals', as: :text
+      = f.input :patient_barriers, label: 'My Barriers', as: :text
+
+  .row.health-care-plan__goals
+    .col-sm-8
+      %h3 Goals
+      .health-care-plan__goal-list
+        - @careplan.goals.each do |goal|
+          = render goal, readonly: true
+      .links
+        = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+          %i.icon-plus
+          Add Goal
+
+  %h3 Responsible Parties
+  .row
+    .col-sm-4
+      = f.input :responsible_team_member_id, label: 'Team Member', collection: @careplan.team.available_members, input_html: { class: :select2 } 
+      = f.input :responsible_team_member_signed_on, as: :date_picker, label: 'Date Signed'
+    .col-sm-4
+      = f.input :representative_id, label: 'Designated Representative', collection: @careplan.team.available_members, input_html: { class: :select2 }
+      = f.input :representative_signed_on, as: :date_picker, label: 'Date Signed'
+    .col-sm-4
+      = f.input :provider_id, label: 'Primary Care Provider', collection: @careplan.team.available_members, input_html: { class: :select2 }
+      = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
   = f.button :submit, @form_button
+
+= javascript_include_tag 'moment.min.js'
+= content_for :page_js do
+  :javascript
+   
+    $('.jInitialDate').on('change', function(e) {
+      var initial_date = moment($(this).val()).format("MMM DD, YYYY");
+      var review_date = moment(initial_date).add(6, 'months');
+      $('.jReviewDate').val(review_date.format("MMM DD, YYYY"));
+    });

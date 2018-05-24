@@ -5,8 +5,7 @@
       %h3 Person-Centered Treatment Plan
     .col-sm-4.text-right
       - unless @patient.careplans.editable.exists?
-        = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-primary' do
-          %i.icon-plus
+        = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn-primary btn-muted btn-xs' do
           Create a Care Plan
   - if @careplans.present?
     %table.table

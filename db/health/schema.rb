@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180524021249) do
+ActiveRecord::Schema.define(version: 20180524145220) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -67,6 +67,18 @@ ActiveRecord::Schema.define(version: 20180524021249) do
     t.date     "patient_signed_on"
     t.date     "provider_signed_on"
     t.boolean  "locked",                                   default: false, null: false
+    t.datetime "initial_date"
+    t.datetime "review_date"
+    t.text     "patient_health_problems"
+    t.text     "patient_strengths"
+    t.text     "patient_goals"
+    t.text     "patient_barriers"
+    t.string   "status"
+    t.integer  "responsible_team_member_id"
+    t.integer  "provider_id"
+    t.integer  "representative_id"
+    t.datetime "responsible_team_member_signed_on"
+    t.datetime "representative_signed_on"
   end
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
@@ -247,6 +259,11 @@ ActiveRecord::Schema.define(version: 20180524021249) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.text     "goal_details"
+    t.text     "problem"
+    t.date     "start_date"
+    t.text     "intervention"
+    t.string   "status"
+    t.integer  "responsible_team_member_id"
   end
 
   add_index "health_goals", ["careplan_id"], name: "index_health_goals_on_careplan_id", using: :btree

@@ -23,6 +23,7 @@ module Health
         Health::Team::CaseManager,
         Health::Team::Nurse,
         Health::Team::Behavioral,
+        Health::Team::Representative,
         Health::Team::Other,
       ]
     end
@@ -34,6 +35,7 @@ module Health
         'Nurse Care Manager' => 'icon-nurse-clipboard',
         'Other Important Contact' => 'icon-reminder',
         'Provider (MD/NP/PA)' => 'icon-medical-provider',
+        'Designated Representative' => 'icon-users',
       }[member_type_name]
     end
 
