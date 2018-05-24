@@ -287,6 +287,7 @@ ActiveRecord::Schema.define(version: 20180524021249) do
     t.boolean  "rejected",                         default: false, null: false
     t.integer  "rejected_reason",                  default: 0,     null: false
     t.integer  "patient_id"
+    t.string   "ssn"
     t.integer  "accountable_care_organization_id"
     t.datetime "effective_date"
   end

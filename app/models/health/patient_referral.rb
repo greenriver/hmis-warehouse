@@ -15,7 +15,8 @@ module Health
 
     # TODO: What needs to be validated here?
     # TODO: how to validate medicaid id?
-    validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
+    validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id, :ssn
+    validates_size_of :ssn, is: 9
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
