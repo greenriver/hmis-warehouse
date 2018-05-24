@@ -1,0 +1,69 @@
+.o-menu.js-menu.off-canvas
+  -# Match related items
+  %ul.o-menu__group.list-unstyled
+    %li.o-menu__item
+      = link_to active_matches_path, class: 'o-menu__link' do
+        Matches in Progress
+    - if Client.parked.any?
+      %li.o-menu__item
+        = link_to reports_parked_clients_path, class: 'o-menu__link' do
+          Parked Clients
+  -# Inventory and HMIS related items
+  - if can_view_opportunities? || can_view_contacts? || can_view_programs? || can_view_buildings?
+    %ul.o-menu__group.list-unstyled
+      - if can_view_all_clients?
+        %li.o-menu__item
+          = link_to clients_path, class: 'o-menu__link' do
+            All Clients
+      - if can_enter_deidentified_clients? || can_manage_deidentified_clients?
+        %li.o-menu__item
+          = link_to deidentified_clients_path, class: 'o-menu__link' do
+            Deidentified Clients
+      - if can_view_contacts?
+        %li.o-menu__item
+          = link_to contacts_path, class: 'o-menu__link' do
+            Contacts
+      - if can_view_opportunities?
+        %li.o-menu__item
+          = link_to opportunities_path, class: 'o-menu__link' do
+            Vacancies
+      - if can_view_programs?
+        %li.o-menu__item
+          = link_to programs_path, class: 'o-menu__link' do
+            Programs
+      - if can_view_funding_sources?
+        %li.o-menu__item
+          = link_to funding_sources_path, class: 'o-menu__link' do
+            Funding Sources
+      - if can_view_subgrantees?
+        %li.o-menu__item
+          = link_to subgrantees_path, class: 'o-menu__link' do
+            Sub-Grantees
+      - if can_view_buildings?
+        %li.o-menu__item
+          = link_to buildings_path, class: 'o-menu__link' do
+            = "#{Building.model_name.human.pluralize}"
+      - if can_view_rule_list?
+        %li.o-menu__item
+          = link_to rules_path, class: 'o-menu__link' do
+            Rules List
+      - if can_view_available_services?
+        %li.o-menu__item
+          = link_to services_path, class: 'o-menu__link' do
+            Services List
+  -# Account related items
+  %ul.o-menu__group.list-unstyled
+    - if can_edit_users? || can_edit_translations?
+      = render 'menus/admin_dashboard'
+
+  %ul.o-menu__group.no-border.list-unstyled
+    %li.o-menu__item
+      = link_to edit_account_path, class: 'o-menu__link' do
+        Edit Account
+    %li.o-menu__item
+      = link_to destroy_user_session_path, :method => :delete, class: 'o-menu__link' do
+        %span.mr-2 Sign Out
+        %i{class: "icon-exit"}
+
+  %a.js-back-to-top.o-menu__to-top.o-menu__link{ href:'#' }
+    Back to Top

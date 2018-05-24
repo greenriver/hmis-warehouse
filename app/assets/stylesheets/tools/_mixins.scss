@@ -6,7 +6,6 @@
   border: 1px solid $gray-020;
 }
 
-
 @mixin poppins {
   font-family: 'Poppins', sans-serif;
 }
@@ -256,4 +255,12 @@
   background-color: $fallback-color;
   background-image: -webkit-linear-gradient($pos-degree $full); // Safari 5.1+, Chrome
   background-image: unquote("linear-gradient(#{$pos-spec}#{$full})");
+}
+
+@mixin header-menu-link {
+  color: $white;
+  &:hover,
+  &:focus {
+    color: $gray-030;
+  }
 }

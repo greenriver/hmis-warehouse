@@ -1,5 +1,5 @@
 - if can_view_censuses?
-  .vsm-group.vsm-group__group-a
-    = link_to censuses_path, class: 'vsm-item-link' do
-      .vsm-item-link--description
+  %ul.o-menu__group.list-unstyled
+    %li.o-menu__item
+      = link_to censuses_path, class: 'o-menu__link' do
         = "Dashboards"

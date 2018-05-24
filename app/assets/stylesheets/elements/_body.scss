@@ -9,3 +9,8 @@ body.show {
   min-height: 100vh !important;
   flex-direction: column !important;
 }
+
+body.not-signed-in .l-main__content {
+  max-width: 100%;
+  flex: 0 0 100%;
+}

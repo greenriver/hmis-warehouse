@@ -1,21 +1,10 @@
-#vsm-container.outboard
-  .vsm-group.vsm-group-toggle
-    .vsm-item-link{class: 'jToggleVsm'}
-      .vsm-item-link--description.vsm-item-link--description__collapse.show-open
-        Collapse Menu
-      .menu-icon.menu-link
-        .show-closed
-          %span.menu-link--word Menu
-          %span.icon-menu
-        .show-open
-          %span.icon-arrow-right2
+.o-menu.js-menu.off-canvas
   = render 'menus/dashboards'
   = render 'menus/reports'
   = render 'menus/clients'
   = render 'menus/admin'
   = render 'menus/admin_dashboard'
   = render 'menus/accounts'
-  
-  
-  
-  
+
+  %a.js-back-to-top.o-menu__to-top.o-menu__link{ href:'#' }
+    Back to Top

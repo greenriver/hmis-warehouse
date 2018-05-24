@@ -1,8 +1,16 @@
+.d-block {
+  display: block !important;
+}
+
 .d-flex {
   display: flex !important;
 }
 
-.align-self-center {
+.d-inline-block {
+  display: inline-block !important;
+}
+
+.align-items-center {
   align-items: center !important;
 }
 
@@ -10,12 +18,16 @@
   align-self: baseline !important;
 }
 
-.flex-wrap {
-  flex-wrap: wrap !important;
+.justify-content-center {
+  justify-content: center !important;
 }
 
-.d-inline-block {
-  display: inline-block;
+.flex-row-reverse {
+  flex-direction: row-reverse !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
 }
 
 @each $amount in 100 75 50 25 {

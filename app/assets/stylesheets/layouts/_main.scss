@@ -1,6 +1,9 @@
-@media (min-width: 1200px) {
-  .l-main__content  {
-    padding-right: $nav-side-width;
+.l-main__content  {
+  transition: .35s max-width ease-in-out;
+  max-width: 100%;
+  flex: 0 0 100%;
+  @include media-breakpoint-up(lg) {
+    flex: 0 0 calc(100vw - #{$nav-side-width});
+    max-width: calc(100vw - #{$nav-side-width});
   }
-
 }

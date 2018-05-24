@@ -1,10 +1,42 @@
 $font-size-default: 14px;
 
 $nav-side-width: 185px;
+$nav-side-collapsed-width: 65px;
 
 $container-max-width: 1000px;
+$container-padding: 30px;
+
+$header-height: 60px;
+
+// Footer
+$footer-logo-height: 85px;
+$footer-logo-padding: 15px;
+$footer-height: $footer-logo-height + $footer-logo-padding;
 
 $border-radius-default: .35rem;
+
+$directions: (
+ 't': top,
+ 'l': left,
+ 'b': bottom,
+ 'r': right
+) !default;
+
+// Z-index scale
+$zIndex-1:   100;
+$zIndex-2:   200;
+$zIndex-3:   300;
+$zIndex-4:   400;
+$zIndex-5:   500;
+$zIndex-6:   600;
+$zIndex-7:   700;
+$zIndex-8:   800;
+$zIndex-9:   900;
+$zIndex-10: 1000;
+
+// Z-index applications Assigning specific and listing here as handy reference
+$zIndex-2--site-name: $zIndex-2;
+$zIndex-3--notice: $zIndex-3;
 
 $directions: (
  't': top,

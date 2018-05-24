@@ -1,25 +1,23 @@
 - if current_user.can_see_admin_menu?
-  .row
-    %ul.nav.nav-tabs.margin-bottom-02
+  %ul.o-menu__group.list-unstyled
       -if can_edit_users?
-        %li{role: "presentation", class: ('active' if current_page?(admin_users_path))}
-          = link_to 'User Accounts', admin_users_path
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_users_path))}
+          = link_to 'User Accounts', admin_users_path, class: 'o-menu__link'
       -if can_manage_config?
-        %li{role: "presentation", class: ('active' if current_page?(admin_configs_path))}
-          = link_to 'Site Configuration', admin_configs_path
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_configs_path))}
+          = link_to 'Site Configuration', admin_configs_path, class: 'o-menu__link'
       -if can_edit_translations?
-        %li{role: "presentation", class: ('active' if current_page?(admin_translation_keys_path))}
-          = link_to 'Manage Translations', admin_translation_keys_path
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_translation_keys_path))}
+          = link_to 'Manage Translations', admin_translation_keys_path, class: 'o-menu__link'
       -if can_view_imports?
-        %li{role: "presentation", class: ('active' if current_page?(admin_dashboard_imports_path))}
-          = link_to 'Import Dashboard', admin_dashboard_imports_path
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_dashboard_imports_path))}
+          = link_to 'Import Dashboard', admin_dashboard_imports_path, class: 'o-menu__link'
       -if can_administer_health? && GrdaWarehouse::Config.get(:healthcare_available)
-        %li{role: "presentation", class: ('active' if current_page?(admin_health_admin_index_path))}
-          = link_to 'Healthcare Administration', admin_health_admin_index_path
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_health_admin_index_path))}
+          = link_to 'Healthcare Administration', admin_health_admin_index_path, class: 'o-menu__link'
       -if can_edit_dq_grades?
-        %li{role: "presentation", class: ('active' if current_page?(admin_data_quality_grades_path))}
-          = link_to 'Grade Scale', admin_data_quality_grades_path
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_data_quality_grades_path))}
+          = link_to 'Grade Scale', admin_data_quality_grades_path, class: 'o-menu__link'
       -if can_add_administrative_event?
-        %li{role: "presentation", class: ('active' if current_page?(admin_administrative_events_path))}
-          = link_to 'Administrative Events', admin_administrative_events_path
-      
+        %li.o-menu__item{role: "presentation", class: ('active' if current_page?(admin_administrative_events_path))}
+          = link_to 'Administrative Events', admin_administrative_events_path, class: 'o-menu__link'
