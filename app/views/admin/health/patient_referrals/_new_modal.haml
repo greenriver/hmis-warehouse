@@ -15,14 +15,9 @@
               = f.input :first_name, label: 'First Name'
               = f.input :last_name, label: 'Last Name'
               = f.input :birthdate, as: :date_picker, label: 'Date of Birth'
-              = f.input :ssn, label: 'SNN'
               = f.input :medicaid_id, label: 'Medicaid ID'
-              - if can_manage_health_agency?
-                = f.simple_fields_for :relationships do |r|
-                  = r.input :agency_id, as: :hidden
-                  = r.input :claimed, as: :hidden
-              - elsif can_administer_health?
-                = f.input :agency_id, collection: @agencies, label_menthod: :name, value_method: :id, label: 'Assign Agency'
+              = f.input :accountable_care_organization_id, collection: Health::AccountableCareOrganization.all, label_method: :name, value_method: :id, label: 'Accountable Care Organization'
+              = f.input :agency_id, collection: @agencies, label_menthod: :name, value_method: :id, label: 'Assign Agency'
               = f.submit 'Add Patient', class: 'btn btn-secondary'
 
 - if state == 'open'

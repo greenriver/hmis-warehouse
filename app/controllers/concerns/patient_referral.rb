@@ -92,18 +92,18 @@ module PatientReferral
     end
   end
 
-  def clean_patient_referral_params
-    clean_params = patient_referral_params
-    clean_params[:ssn] = clean_params[:ssn].gsub(/\D/, '')
-    clean_params
-  end
+  # def clean_patient_referral_params
+  #   clean_params = patient_referral_params
+  #   clean_params[:ssn] = clean_params[:ssn].gsub(/\D/, '')
+  #   clean_params
+  # end
 
   def patient_referral_params
     params.require(:health_patient_referral).permit(
       :first_name,
       :last_name,
       :birthdate,
-      :ssn,
+      :accountable_care_organization_id,
       :medicaid_id,
       :agency_id,
       relationships_attributes: [:agency_id, :claimed]

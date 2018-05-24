@@ -43,9 +43,9 @@ module Admin::Health
     end
 
     def create
-      @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
+      @new_patient_referral = Health::PatientReferral.new(patient_referral_params)
       if @new_patient_referral.save
-        if clean_patient_referral_params[:agency_id].present?
+        if patient_referral_params[:agency_id].present?
           @new_patient_referral.convert_to_patient()
         end
         flash[:notice] = create_patient_referral_notice

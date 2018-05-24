@@ -19,6 +19,11 @@ namespace :health do
     ds.save!
   end
 
+  desc "Create Health::AccountableCareOrganization"
+  task setup_initial_aco: [:environment, "log:info_to_stdout"] do
+    Health::AccountableCareOrganization.create!(name: 'MassHealth')
+  end
+
   desc "Generate HPC Patient Referrals for development/staging"
   task dev_create_patient_referrals: [:environment, "log:info_to_stdout"] do
     require 'faker'
