@@ -28,13 +28,13 @@ module Health
     PLACE_OF_CONTACT_OTHER = 'Other'
 
     HOUSING_STATUS = [
-      'Doubling up',
+      'Doubling Up',
       'Shelter',
       'Street',
       'Transitional Housing / Residential Treatment Program',
       'Motel',
-      'Supportive housing',
-      'Housing with no supports',
+      'Supportive Housing',
+      'Housing with No Supports',
       'Assisted Living / Nursing Home / Rest Home',
       'Unknown',
       'Other'
