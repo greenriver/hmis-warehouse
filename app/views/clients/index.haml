@@ -6,7 +6,7 @@
     - @prompt = t '.search_prompt'
 .row
   .col-sm-4
-    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results'
+    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
   .col-sm-5.sort-filter
     = render 'filter'
     = render 'sort', sort_options: sort_options

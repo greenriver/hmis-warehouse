@@ -1,3 +1,10 @@
+.l-main__wrapper {
+  display: flex;
+  @if ($show-menu-on-left == false) {
+    flex-direction: row-reverse;
+  }
+}
+
 .l-main__content  {
   transition: .35s max-width ease-in-out;
   max-width: 100%;
