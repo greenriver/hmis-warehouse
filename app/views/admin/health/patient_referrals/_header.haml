@@ -6,6 +6,7 @@
   .pull-left
     %h3 Add and Review Patient Assignments
     %p Patients added here can be claimed by agencies, subject to BHCHP approval.
-  .pull-right.margin-top-02
-    %button.btn.btn-secondary{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
+  - if current_user.can_administer_health?
+    .pull-right.margin-top-02
+      %button.btn.btn-secondary{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
 = render 'admin/health/patient_referrals/filter'

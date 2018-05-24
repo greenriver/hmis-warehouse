@@ -110,18 +110,18 @@ module Admin::Health
     end
     helper_method :show_filters?
 
-    def add_patient_referral_path
-      add_admin_health_agency_patient_referrals_path
-    end
-    helper_method :add_patient_referral_path
+    # def add_patient_referral_path
+    #   add_admin_health_agency_patient_referrals_path
+    # end
+    # helper_method :add_patient_referral_path
 
-    def create_patient_referral_notice
-      "New patient added and claimed by #{@agency.name}"
-    end
+    # def create_patient_referral_notice
+    #   "New patient added and claimed by #{@agency.name}"
+    # end
 
-    def create_patient_referral_success_path
-      reviewed_admin_health_agency_patient_referrals_path(group: 'our patient')
-    end
+    # def create_patient_referral_success_path
+    #   reviewed_admin_health_agency_patient_referrals_path(group: 'our patient')
+    # end
 
   end
 end

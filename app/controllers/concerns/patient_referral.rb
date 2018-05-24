@@ -9,21 +9,6 @@ module PatientReferral
     :sort_by
   )
 
-  def add_patient_referral
-    @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
-    if @new_patient_referral.save
-      if clean_patient_referral_params[:agency_id].present?
-        @new_patient_referral.convert_to_patient()
-      end
-      flash[:notice] = create_patient_referral_notice
-      redirect_to create_patient_referral_success_path
-    else
-      load_index_vars
-      flash[:error] = 'Unable to add patient referral.'
-      render 'index'
-    end
-  end
-
   private
 
   def load_index_vars
@@ -101,10 +86,7 @@ module PatientReferral
   end
 
   def load_new_patient_referral
-    @new_patient_referral = Health::PatientReferral.new()  
-    if can_manage_health_agency? && @agency.present?
-      @new_patient_referral.relationships.build(agency: @agency, claimed: true)
-    end
+    @new_patient_referral = Health::PatientReferral.new(effective_date: DateTime.current.at_beginning_of_month.next_month)
   end
 
   def clean_patient_referral_params
@@ -118,8 +100,10 @@ module PatientReferral
       :first_name,
       :last_name,
       :birthdate,
-      :ssn,
+      :accountable_care_organization_id,
       :medicaid_id,
+      :ssn,
+      :effective_date,
       :agency_id,
       relationships_attributes: [:agency_id, :claimed]
     )

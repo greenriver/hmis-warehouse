@@ -434,7 +434,6 @@ Rails.application.routes.draw do
       end
       resources :agency_patient_referrals, only: [:create, :update] do
         collection do
-          post :add_patient_referral, as: :add
           get :review
           get :reviewed
         end

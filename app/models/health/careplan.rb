@@ -21,7 +21,14 @@ module Health
     end 
     scope :editable, -> do
       where(locked: false)
-    end     
+    end
+
+    scope :approved, -> do
+      where(status: :approved)
+    end
+    scope :rejected, -> do
+      where(status: :rejected)
+    end
     # End Scopes 
 
     # TODO

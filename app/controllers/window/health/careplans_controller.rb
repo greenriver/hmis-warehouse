@@ -62,9 +62,17 @@ module Window::Health
     def careplan_params
       params.require(:health_careplan).
         permit(
+          :initial_date,
+          :review_date,
           :patient_signed_on,
           :provider_signed_on,
           :case_manager_id,
+          :responsible_team_member_id,
+          :responsible_team_member_signed_on,
+          :representative_id,
+          :representative_signed_on,
+          :provider_id,
+          :provider_signed_on
         )
     end
 

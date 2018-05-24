@@ -1,0 +1,64 @@
+
+- goal = hpc
+- if goal.id.present?
+  - url = polymorphic_path(careplan_path_generator + [:goal], id: goal.id, careplan_id: @careplan)
+- else
+  - url = polymorphic_path(careplan_path_generator + [:goals])
+
+- well_class = ''
+- if readonly
+  - well_class = 'well'
+- if readonly
+  .jGoal{class: well_class, data: {id: goal.id}}
+    .health-careplan__goal
+      .row.margin-bottom-02
+        .col-xs-6
+          .health-careplan__goal-action.health-careplan__goal-delete
+            = link_to polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), data: { loads_in_pjax_modal: true } do 
+              %span.icon-pencil
+        .col-xs-6
+          .health-careplan__goal-action.health-careplan__goal-delete.pull-right
+            = link_to polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do 
+              %span.icon-cross
+      .row.margin-bottom-02
+        .col-xs-4
+          %label Responsible Care Team Member
+          .health-careplan__goal-responsible
+            = @careplan.team.available_members.to_h.invert[goal.responsible_team_member_id]
+        .col-xs-4
+          %label Start Date
+          .health-careplan__goal-start-date
+            = goal.start_date
+        .col-xs-4
+          %label Status
+          .health-careplan__goal-status
+            = goal.status
+      .margin-bottom-02
+        %label Problem
+        .health-careplan__goal-problem
+          = goal.problem          
+      .margin-bottom-02
+        %label Goal Description
+        .health-careplan__goal-details
+          = goal.goal_details
+      .margin-bottom-02
+        %label Intervention
+        .health-careplan__goal-intervention
+          = goal.intervention
+      
+- else
+  = simple_form_for(goal, as: :goal, url: url, remote: request.xhr?, class: :jGoal) do |f|
+    = f.error_notification
+    = f.input :problem
+    .row
+      .col-sm-6
+        = f.input :start_date, as: :date_picker
+    = f.input :goal_details, label: 'Goal Description'
+    = f.input :intervention
+    .row
+      .col-sm-6
+        = f.input :status, collection: goal.class.available_stati, input_html: { class: :select2 }
+        = f.input :responsible_team_member_id, collection: @careplan.team.available_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
+    .form-actions
+      = f.submit value: 'Save Goal', class: 'btn btn-primary'
+
