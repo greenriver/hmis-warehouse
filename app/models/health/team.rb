@@ -8,5 +8,14 @@ module Health
 
     accepts_nested_attributes_for :members, allow_destroy: true
 
+    # Used for select options
+    def available_members
+      members.map do |member|
+        [
+          member.full_name, member.id
+        ]
+      end
+    end
+
   end
 end

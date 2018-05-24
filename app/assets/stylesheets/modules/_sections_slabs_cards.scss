@@ -74,16 +74,23 @@
 .health__team-member__individual {
   min-height: 180px;
 }
-.health__team-member__action {
+.health__team-member__action,
+.health-careplan__goal-action 
+{
   display: inline-block;
   padding-left: 12px;
 }
-.health__team-member__action a {
+.health__team-member__action a,
+.health-careplan__goal-action a
+{
   color: $cob-sg-blue-006;
 }
 .health__team-member__action a:hover,
 .health__team-member__action a:active,
-.health__team-member__action a:focus
+.health__team-member__action a:focus,
+.health-careplan__goal-action a:hover,
+.health-careplan__goal-action a:active,
+.health-careplan__goal-action a:focus
  {
   color: darken($cob-sg-blue-006, 20);
 }
