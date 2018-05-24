@@ -4,11 +4,11 @@
   = f.input :provider_signed_on, as: :date_picker
 
   .health__team
-    %h3 Team
-    .health__team-members
+    %h3 Care Team Members
+    .row.health__team-members
       - if @careplan.team_members.any?
-        - @careplan.team_members.group_by(&:member_type_name).each do |group, members|
-          = render 'window/health/team_members/group', group: group, members: members
+        - @careplan.team_members.each do |member|
+          = render 'window/health/team_members/team_member', member: member, restore: false
             
       - else
         %p No team members currently.
