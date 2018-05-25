@@ -77,7 +77,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :visible_in_window_to, -> (user) do
     if user&.can_see_clients_in_window_for_assigned_data_sources?
-      ds_ids = user.data_sources.pluck(:entity_id)
+      ds_ids = user.data_sources.pluck(:id)
       where(arel_table[:id].in(ds_ids).or(arel_table[:visible_in_window].eq(true)))
     else
       where(visible_in_window: true)
