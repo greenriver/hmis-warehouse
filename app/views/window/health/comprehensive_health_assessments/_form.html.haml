@@ -1,0 +1,43 @@
+- path = @cha.new_record? ? polymorphic_path(chas_path_generator, client_id: @client.id) : polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id)
+
+= simple_form_for @cha, url: path, as: :form, remote: true do |f|
+  
+  = f.error_notification
+
+  .col-sm-12
+
+    - if @cha.user
+      .form-group
+        %label Case Manager
+        %p.form-control-static= @cha.user&.name
+
+    .row
+      .col-sm-6
+        = f.input :file, as: :file 
+      .col-sm-6
+        - if @cha.health_file.present?
+          .form-group
+            %label Existing File
+            %div
+              .btn-group.existing-file
+                = link_to polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-default' do
+                  = @cha.health_file&.name
+                = link_to polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                  %span.icon-cross{ style: "color:white; margin:0" }
+
+    %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
+
+
+    / - if @cha.reviewed_by.present?
+    /   .form-group
+    /     %label Reviewed by Supervisor
+    /     %p.form-control-static= @cha.reviewed_by&.name
+    / - else
+    /   = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
+
+    .form-group
+      = f.input :completed, as: :boolean, label: 'Complete?', checked_value: 'yes', unchecked_value: 'no', input_html: { checked: @cha.complete? }
+
+  .col-sm-12
+    .text-right
+      = f.button :submit, 'Save'

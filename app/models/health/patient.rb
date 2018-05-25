@@ -22,6 +22,7 @@ module Health
     has_many :sdh_case_management_notes
     has_many :participation_forms
     has_many :release_forms
+    has_many :comprehensive_health_assessments
     has_many :careplans
 
     scope :pilot, -> { where pilot: true }
@@ -43,6 +44,10 @@ module Health
       else
         none
       end
+    end
+
+    def chas
+      comprehensive_health_assessments
     end
     
     def accessible_by_user user

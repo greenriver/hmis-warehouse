@@ -11,7 +11,7 @@ module Window::Health
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
 
     def new
-      @release_form = @patient.release_forms.build(user: current_user)
+      @release_form = @patient.release_forms.build
       render :new
     end
 
