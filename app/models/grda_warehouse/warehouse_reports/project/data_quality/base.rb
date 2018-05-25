@@ -107,6 +107,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    def disabilities
+      project_entry_ids = enrollments.values.flatten.map{|en| en[:project_entry_id]}.uniq
+      @disabilities ||= disability_source.joins(enrollment: :client).
+        where(d_t[:InformationDate].lteq(self.end)).
+        where(ProjectEntryID: project_entry_ids).
+        order(InformationDate: :asc).
+        pluck(*disability_columns.values).map do |row|
+          Hash[disability_columns.keys.zip(row)]
+        end.group_by do |row|
+          [row[:client_id], row[:project_id], row[:project_entry_id], row[:data_source_id]]
+        end
+    end
+
+    def disabilities_for_enrollment enrollment
+      key = [
+        enrollment[:id],
+        enrollment[:project_id],
+        enrollment[:project_entry_id],
+        enrollment[:data_source_id],
+      ]
+      disabilities.try(:[], key)
+    end
+
     def leavers_for_project project_id, data_source_id
       leavers = Set.new
       enrollments_in_project = enrollments_for_project(project_id, data_source_id)
@@ -149,12 +172,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def income_columns
-      @income_columns||= [
+      @income_columns ||= [
         :TotalMonthlyIncome, 
         :IncomeFromAnySource, 
         :InformationDate, 
         :DataCollectionStage
       ] + amount_columns
+    end
+
+    def disability_columns
+      @disability_columns ||= {
+        client_id: c_t[:id].to_sql,
+        project_id: e_t[:ProjectID].to_sql,
+        project_entry_id: d_t[:ProjectEntryID].to_sql,
+        data_source_id: d_t[:data_source_id].to_sql,
+        disability_type: d_t[:DisabilityType].to_sql,
+        disability_response: d_t[:DisabilityResponse].to_sql,
+        information_date: d_t[:InformationDate].to_sql,
+      }
     end
 
     def amount_columns
@@ -180,64 +215,65 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def enrollment_columns
       @enrollment_columns ||= {
-        id: c_t[:id].as('id').to_sql,
-        project_id: she_t[:project_id].as('project_id').to_sql,
-        project_name: she_t[:project_name].as('project_name').to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        destination: she_t[:destination].as('destination').to_sql,
-        household_id: she_t[:household_id].as('household_id').to_sql,
-        personal_id: c_t[:PersonalID].as('personal_id').to_sql,
-        data_source_id: c_t[:data_source_id].as('data_source_id').to_sql,
-        residence_prior: e_t[:ResidencePrior].as('residence_prior').to_sql,
-        disabling_condition: e_t[:DisablingCondition].as('disabling_condition').to_sql,
-        last_permanent_zip: e_t[:LastPermanentZIP].as('last_permanent_zip').to_sql,
-        first_name: c_t[:FirstName].as('first_name').to_sql,
-        last_name: c_t[:LastName].as('last_name').to_sql,
-        name_data_quality: c_t[:NameDataQuality].as('name_data_quality').to_sql,
-        ssn: c_t[:SSN].as('ssn').to_sql,
-        ssn_data_quality: c_t[:SSNDataQuality].as('ssn_data_quality').to_sql,
-        dob: c_t[:DOB].as('dob').to_sql,
-        dob_data_quality: c_t[:DOBDataQuality].as('dob_data_quality').to_sql,
-        destination_id: she_t[:client_id].as('destination_id').to_sql,
+        id: c_t[:id].to_sql,
+        project_id: she_t[:project_id].to_sql,
+        project_name: she_t[:project_name].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
+        destination: she_t[:destination].to_sql,
+        household_id: she_t[:household_id].to_sql,
+        personal_id: c_t[:PersonalID].to_sql,
+        data_source_id: e_t[:data_source_id].to_sql,
+        residence_prior: e_t[:ResidencePrior].to_sql,
+        disabling_condition: e_t[:DisablingCondition].to_sql,
+        last_permanent_zip: e_t[:LastPermanentZIP].to_sql,
+        project_entry_id: e_t[:ProjectEntryID].to_sql,
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+        name_data_quality: c_t[:NameDataQuality].to_sql,
+        ssn: c_t[:SSN].to_sql,
+        ssn_data_quality: c_t[:SSNDataQuality].to_sql,
+        dob: c_t[:DOB].to_sql,
+        dob_data_quality: c_t[:DOBDataQuality].to_sql,
+        destination_id: she_t[:client_id].to_sql,
       }
     end
 
     def client_columns
       @client_columns ||= {
-        id: c_t[:id].as('id').to_sql,
-        first_name: c_t[:FirstName].as('first_name').to_sql,
-        last_name: c_t[:LastName].as('last_name').to_sql,
-        name_data_quality: c_t[:NameDataQuality].as('name_data_quality').to_sql,
-        ssn: c_t[:SSN].as('ssn').to_sql,
-        ssn_data_quality: c_t[:SSNDataQuality].as('ssn_data_quality').to_sql,
-        dob: c_t[:DOB].as('dob').to_sql,
-        dob_data_quality: c_t[:DOBDataQuality].as('dob_data_quality').to_sql,
-        veteran_status: c_t[:VeteranStatus].as('veteran_status').to_sql, 
-        ethnicity: c_t[:Ethnicity].as('ethnicity').to_sql,
-        gender: c_t[:Gender].as('gender').to_sql,
-        race_none: c_t[:RaceNone].as('race_none').to_sql,
-        am_ind_ak_native: c_t[:AmIndAKNative].as('am_ind_ak_native').to_sql,
-        asian: c_t[:Asian].as('asian').to_sql,
-        black_af_american: c_t[:BlackAfAmerican].as('black_af_american').to_sql,
-        native_hi_other_pacific: c_t[:NativeHIOtherPacific].as('native_hi_other_pacific').to_sql,
-        white: c_t[:White].as('white').to_sql,
-        destination_id: she_t[:client_id].as('destination_id').to_sql,
+        id: c_t[:id].to_sql,
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+        name_data_quality: c_t[:NameDataQuality].to_sql,
+        ssn: c_t[:SSN].to_sql,
+        ssn_data_quality: c_t[:SSNDataQuality].to_sql,
+        dob: c_t[:DOB].to_sql,
+        dob_data_quality: c_t[:DOBDataQuality].to_sql,
+        veteran_status: c_t[:VeteranStatus].to_sql, 
+        ethnicity: c_t[:Ethnicity].to_sql,
+        gender: c_t[:Gender].to_sql,
+        race_none: c_t[:RaceNone].to_sql,
+        am_ind_ak_native: c_t[:AmIndAKNative].to_sql,
+        asian: c_t[:Asian].to_sql,
+        black_af_american: c_t[:BlackAfAmerican].to_sql,
+        native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
+        white: c_t[:White].to_sql,
+        destination_id: she_t[:client_id].to_sql,
       }
     end
 
     def service_columns
       @service_columns ||= {
-        id: c_t[:id].as('client_client_id').to_sql,
-        client_id: she_t[:client_id].as('client_id').to_sql,
-        first_name: c_t[:FirstName].as('first_name').to_sql,
-        last_name: c_t[:LastName].as('last_name').to_sql,
-        project_name: she_t[:project_name].as('project_name').to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+        id: c_t[:id].to_sql,
+        client_id: she_t[:client_id].to_sql,
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+        project_name: she_t[:project_name].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
         # date: shs_t[:date].as('date').to_sql,
-        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
       }
     end
 
@@ -286,6 +322,36 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def missing?(value)
       return true if value.blank?
       [99].include?(value.to_i)
+    end
+
+    def missing_disability? disabilities
+      return true if disabilities.blank?
+      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+      disabilities.select do |dis|
+        dis[:information_date] == max_information_date
+      end.map do |dis| 
+        dis[:disability_response]
+      end.include? 99
+    end
+
+    def refused_diability? disabilities
+      return false if disabilities.blank?
+      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+      disabilities.select do |dis|
+        dis[:information_date] == max_information_date
+      end.map do |dis| 
+        dis[:disability_response]
+      end.include? 9
+    end
+
+    def unknown_disability? disabilities
+      return false if disabilities.blank?
+      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+      disabilities.select do |dis|
+        dis[:information_date] == max_information_date
+      end.map do |dis| 
+        dis[:disability_response]
+      end.include? 8
     end
 
     def in_percentage numerator, denominator
@@ -357,6 +423,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def income_source
       GrdaWarehouse::Hud::IncomeBenefit
+    end
+
+    def disability_source
+      GrdaWarehouse::Hud::Disability
     end
   end
 end
