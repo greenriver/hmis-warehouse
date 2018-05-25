@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  
+
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -105,12 +105,12 @@ Rails.application.routes.draw do
       collection do
         get :download
       end
-    end 
+    end
     resources :confidential_touch_point_exports, only: [:index] do
       collection do
         get :download
       end
-    end 
+    end
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
@@ -225,7 +225,7 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
-    resources :files, controller: 'clients/files' do 
+    resources :files, controller: 'clients/files' do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
@@ -261,7 +261,7 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
-      resources :files, controller: 'clients/files' do 
+      resources :files, controller: 'clients/files' do
         get :preview, on: :member
         get :thumb, on: :member
         get :has_thumb, on: :member
@@ -427,6 +427,8 @@ Rails.application.routes.draw do
       get :add_goal
       get :add_team_member
       get :alerts
+      get :tags
+      get :client_dashboard
     end
   end
 

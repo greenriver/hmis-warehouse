@@ -3,6 +3,9 @@
     .m#{$direction}-#{$num} {
       margin-#{$directionName}: $space;
     }
+    .p#{$direction}-#{$num} {
+      padding-#{$directionName}: $space;
+    }
   }
 }
 

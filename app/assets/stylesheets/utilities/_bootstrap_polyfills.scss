@@ -1,0 +1,41 @@
+.d-block {
+  display: block !important;
+}
+
+.d-flex {
+  display: flex !important;
+}
+
+.d-inline-block {
+  display: inline-block !important;
+}
+
+.align-items-center {
+  align-items: center !important;
+}
+
+.align-self-baseline {
+  align-self: baseline !important;
+}
+
+.align-items-start {
+  align-items: flex-start !important;
+}
+
+.justify-content-center {
+  justify-content: center !important;
+}
+
+.flex-row-reverse {
+  flex-direction: row-reverse !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+@each $amount in 100 75 50 25 {
+  .w-#{$amount} {
+    width: #{$amount}% !important;
+  }
+}

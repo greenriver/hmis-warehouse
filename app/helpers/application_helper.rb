@@ -108,6 +108,7 @@ module ApplicationHelper
     [].tap do |result|
       result << params[:controller]
       result << params[:action]
+      result << 'not-signed-in' if current_user.blank?
     end
   end
 

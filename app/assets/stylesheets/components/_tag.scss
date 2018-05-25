@@ -1,0 +1,125 @@
+$tag-height: 35px;
+$tag-font-size: rem(14px);
+$tag-font-weight: 600;
+$tag-text-color: $gray-080;
+$tag-correction: $tag-height / 2;
+$tag-padding-left: 20px;
+$tag-icon-space: rem($tag-padding-left + $tag-correction);
+$tag-has-min-width: false;
+
+$tag-icon-shadow: $white;
+
+.c-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 0 0 auto;
+  margin-bottom: space(1);
+}
+
+.c-tag__title {
+  @include open-sans-light;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.c-tag__wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.c-tag__icon {
+  flex: 0 0 auto;
+  height: $tag-height;
+  width: $tag-height;
+  box-shadow: 0 0 0 2px $tag-icon-shadow;
+  background: $brand-success-l;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  font-size: rem($tag-height - 15);
+  &--sm {
+    font-size: rem($tag-height - 21);
+  }
+}
+
+.c-tag__content {
+  min-height: $tag-height;
+  @if ($tag-has-min-width) {
+    min-width: rem(175px);
+  }
+  @include open-sans;
+  font-weight: $tag-font-weight;
+  font-size: $tag-font-size;
+  background: $brand-success-l;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: space(3);
+  padding-left: $tag-icon-space;
+  padding-top: space(1);
+  padding-bottom: space(1);
+  transform: translateX($tag-correction * -1);
+  z-index: 1;
+  border-radius: rem(2px);
+  margin-right: (-$tag-correction);
+
+}
+
+.c-tag__content--shout {
+  text-transform: uppercase;
+  font-size: 18px;
+}
+
+.c-tag__content a {
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.c-tag__icon,
+.c-tag__content span,
+.c-tag__content a {
+  color: rgba($black, .8);
+}
+
+$tag-types: (
+  success: $brand-success-l,
+  warning: $brand-warning-l,
+  danger: $brand-danger-l,
+  info: $brand-info,
+);
+
+
+.c-tag-pill {
+  border-radius: 10px;
+  padding: space(1) space(3);
+  font-size: 0.7rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.c-tag-pill--lg {
+  @extend .c-tag-pill;
+  border-radius: 15px;
+  padding: space(3) space(6);
+  font-size: rem(14px);
+}
+
+@each $type, $color in $tag-types {
+  .c-tag--#{$type} {
+    .c-tag__content,
+    .c-tag__icon {
+      background-color: $color;
+    }
+  }
+  .c-tag-pill--#{$type} {
+    background-color: $color;
+    color: rgba($black, .95);
+  }
+}

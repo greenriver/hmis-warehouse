@@ -1,29 +1,41 @@
-.row.mb-5.mt-3
-  .col-md-6
-    %dt Release Type
-    %dd
-      - if @client.housing_release_status.present?
-        %i.icon-unlocked
-        = @client.housing_release_status 
-      - else
-        %i.icon-lock
-        Not Signed
-    %dt Consent Form Confirmed
-    %dd
-      - confirmed = @client.consent_confirmed?
-      = checkmark_or_x confirmed
-      - unless confirmed
-        Form Not Confirmed
-    %dt Consent Form Signed On
-    %dd
-      - signed_date = @client.consent_form_signed_on
-      - if signed_date
-        %i.icon-calendar
-        = signed_date
-      - else
-        %i.fa.fa-times-circle.o-color--warning.inline-icon
-        Form Not Signed
-  .col-md-6
-    = render 'window/clients/consent_form_flags'
-
-    
+%section.o-section-card
+  %h3 Consent Form
+  .c-card.c-card--block.c-card--padded.c-card--flush
+    .d-flex.flex-wrap
+      %dl.mr-10.mb-2
+        %dd.d-inline-block
+          = render 'window/clients/consent_form_status_tags'
+      %dl.mr-8.mb-2
+        %dt Release Type
+        %dd
+          - if @client.housing_release_status.present?
+            %i.icon-unlocked
+            = @client.housing_release_status
+          - else
+            %i.icon-lock
+            Not Signed
+      %dl.mr-8.mb-2
+        %dt Consent Form Confirmed
+        %dd
+          - confirmed = @client.consent_confirmed?
+          = checkmark_or_x confirmed
+          - unless confirmed
+            Form Not Confirmed
+      %dl
+        %dt Consent Form Signed On
+        %dd
+          - signed_date = @client.consent_form_signed_on
+          - if signed_date
+            %i.icon-calendar
+            = signed_date
+          - else
+            %i.fa.fa-times-circle.o-color--warning.inline-icon
+            Form Not Signed
+    - if show_file_existence
+      %p.o-text--semibold The following attributes are determined based exclusively on the existance of an uploaded file.
+      %p
+        = checkmark_or_x(@client.ha_eligible)
+        %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
+      %p
+        = checkmark_or_x(@client.disability_verified_on.present?)
+        %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]

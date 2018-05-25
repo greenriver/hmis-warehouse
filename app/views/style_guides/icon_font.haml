@@ -2,9 +2,82 @@
   .col-sm-8
     %h1 Icon Font from icomoon
     %p See the readme.md in /app/assets/fonts for instructions on adding additional characters
+    %p Char codes associated with class-names located in app/assets/stylesheets/settings/_icons.scss
     %h4.margin-bottom-03 Icons Currently Available in This App
 
+:ruby
+  # Char codes located in app/assets/stylesheets/settings/_icons.scss
+  icons = %W(
+    settings_backup_restore
+    move
+    home3
+    pencil
+    copy
+    bell
+    calendar
+    printer
+    database
+    user
+    users
+    enlarge2
+    shrink2
+    lock
+    unlocked
+    cog
+    menu
+    download2
+    upload2
+    flag
+    eye
+    eye-blocked
+    warning
+    notification
+    question
+    plus
+    minus
+    info
+    cross
+    checkmark
+    checkmark2
+    enter
+    exit
+    arrow-right2
+    checkbox-checked
+    checkbox-unchecked
+    filter
+    arrow-circled-down
+    arrow-circled-right
+    helping-hands
+    medical-provider
+    mental-health
+    nurse-clipboard
+    reminder
+    team
+    envelope-o
+    wheelchair
+    equalizer
+    guages
+    arrow-up
+    arrow-down
+    arrow-left
+    arrow-right
+    group
+    individual
+    child
+    clock
+    stop
+    minus-circle
+    house
+    step-back
+  )
 .row
+  %ol.style-guide__icon-list
+    - icons.each do |icon|
+      .col-sm-6.mb-6
+        %i{ class: "icon-#{icon}" }
+        = icon
+
+-# .row
   .col-sm-6
     %ol.style-guide__icon-list
       %li
@@ -27,7 +100,7 @@
         icon-arrow-circled-right
       %li
         %i.icon-helping-hands
-        icon-helping-hands (case manager) 
+        icon-helping-hands (case manager)
         -# noun project: hands by Round Pixel
       %li
         %i.icon-medical-provider
@@ -180,4 +253,3 @@
       %li
         %i.icon-child
         icon-child
-        

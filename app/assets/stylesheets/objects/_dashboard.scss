@@ -5,3 +5,16 @@
 .o-dashboard__block--secondary {
   margin-bottom: space(7);
 }
+
+.o-dashboard__block header {
+  display: flex;
+  align-items: center;
+  margin-bottom: space(3);
+
+  h1 {
+    margin: 0;
+  }
+  .ml-auto {
+    margin-left: auto;
+  }
+}
