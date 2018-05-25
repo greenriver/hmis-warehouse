@@ -18,6 +18,7 @@ module Window::Health
     def create
       @release_form = @patient.release_forms.build(form_params)
       validate_form
+      @release_form.user = current_user
       save_file if @release_form.errors.none? && @release_form.save
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
@@ -32,6 +33,7 @@ module Window::Health
     
     def update
       validate_form unless @release_form.health_file.present?
+      @release_form.reviewed_by = current_user if reviewed?
       save_file if @release_form.errors.none? && @release_form.update(form_params)
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
@@ -58,7 +60,7 @@ module Window::Health
       params.require(:form).permit( 
         :signature_on,
         :file_location,
-        :supervisor_reviewed
+        :reviewed_by_supervisor
       )
     end
 
@@ -84,6 +86,10 @@ module Window::Health
       if params.dig(:form, :file).blank? && form_params[:file_location].blank?
         @release_form.errors.add :file_location, "Please include either a file location or upload."
       end
+    end
+
+    def reviewed?
+      form_params[:reviewed_by_supervisor]=='yes'
     end
 
   end

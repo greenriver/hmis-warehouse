@@ -6,6 +6,12 @@
 
   .col-sm-12
     = f.input :signature_on, as: :date_picker
+
+    - if @participation_form.case_manager
+      .form-group
+        %label Case Manager
+        %p.form-control-static= @participation_form.case_manager&.name
+
     = f.input :location
     .row
       .col-sm-6
@@ -22,6 +28,14 @@
                   %span.icon-cross{ style: "color:white; margin:0" }
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
+
+
+    - if @participation_form.reviewed_by.present?
+      .form-group
+        %label Reviewed by Supervisor
+        %p.form-control-static= @participation_form.reviewed_by&.name
+    - else
+      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
   .col-sm-12
     .text-right

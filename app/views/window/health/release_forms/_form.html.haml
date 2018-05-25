@@ -21,7 +21,14 @@
                 = link_to polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-danger', method: :delete, remote: true do
                   %span.icon-cross{ style: "color:white; margin:0" }
           
-    = f.input :supervisor_reviewed, as: :boolean
+
+    - if @release_form.reviewed_by.present?
+      .form-group
+        %label Reviewed by Supervisor
+        %p.form-control-static= @release_form.reviewed_by&.name
+    - else
+      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
+
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
   .col-sm-12

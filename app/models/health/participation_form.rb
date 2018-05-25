@@ -9,5 +9,7 @@ module Health
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }
 
+    attr_accessor :reviewed_by_supervisor
+
   end
 end

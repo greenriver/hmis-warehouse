@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180524175356) do
+ActiveRecord::Schema.define(version: 20180525155355) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -387,12 +387,13 @@ ActiveRecord::Schema.define(version: 20180524175356) do
     t.integer "user_id"
     t.date    "signature_on"
     t.string  "file_location"
-    t.boolean "supervisor_reviewed"
     t.integer "health_file_id"
+    t.integer "reviewed_by_id"
   end
 
   add_index "release_forms", ["health_file_id"], name: "index_release_forms_on_health_file_id", using: :btree
   add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
+  add_index "release_forms", ["reviewed_by_id"], name: "index_release_forms_on_reviewed_by_id", using: :btree
   add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "sdh_case_management_notes", force: :cascade do |t|

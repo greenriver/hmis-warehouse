@@ -11,13 +11,14 @@ module Window::Health
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
 
     def new
-      @participation_form = @patient.participation_forms.build(case_manager: current_user)
+      @participation_form = @patient.participation_forms.build
       render :new
     end
 
     def create
       @participation_form = @patient.participation_forms.build(form_params)
       validate_form
+      @participation_form.case_manager = current_user
       save_file if @participation_form.errors.none? && 
       @participation_form.save
       respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
@@ -33,6 +34,7 @@ module Window::Health
     
     def update
       validate_form unless @participation_form.health_file.present?
+      @participation_form.reviewed_by = current_user if reviewed?
       save_file if @participation_form.errors.none? && @participation_form.update(form_params)
       respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
@@ -58,8 +60,7 @@ module Window::Health
     def form_params
       params.require(:form).permit( 
         :signature_on,
-        :case_manager_id,
-        :reviewed_by_id,
+        :reviewed_by_supervisor,
         :location
       )
     end
@@ -86,6 +87,10 @@ module Window::Health
       if params.dig(:form, :file).blank? && form_params[:location].blank?
         @participation_form.errors.add :location, "Please include either a file location or upload."
       end
+    end
+
+    def reviewed?
+      form_params[:reviewed_by_supervisor]=='yes'
     end
 
   end
