@@ -553,7 +553,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         disabling_condition: ['Client ID', 'First Name', 'Last Name', 'Disability Type', 'Disability Response'],
         residence_prior: ['Client ID', 'First Name', 'Last Name', 'Prior Residence'],
         destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
-        last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
+        # last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
       }
     end
     
@@ -645,11 +645,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       ]
     end
 
-    def columns_for_last_permanent_zip_support enrollment
-      base_colums_for_support(enrollment) + [
-        enrollment[:last_permanent_zip]
-      ]
-    end
+    # def columns_for_last_permanent_zip_support enrollment
+    #   base_colums_for_support(enrollment) + [
+    #     enrollment[:last_permanent_zip]
+    #   ]
+    # end
 
     def columns_for_race_support enrollment
       base_colums_for_support(enrollment) + [
@@ -690,11 +690,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts['missing_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 99)
       end
       if missing?(enrollment[:residence_prior])
-        counts['missing_residence_prior'] << columns_for_last_permanent_zip_support(enrollment)
+        counts['missing_residence_prior'] << columns_for_residence_prior_support(enrollment)
       end
-      if missing?(enrollment[:last_permanent_zip])
-        counts['missing_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
-      end
+      # if missing?(enrollment[:last_permanent_zip])
+      #   counts['missing_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
+      # end
       return counts
     end
 
@@ -706,9 +706,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if refused?(enrollment[:residence_prior])
         counts['refused_residence_prior'] << columns_for_residence_prior_support(enrollment)
       end
-      if refused?(enrollment[:last_permanent_zip])
-        counts['refused_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
-      end
+      # if refused?(enrollment[:last_permanent_zip])
+      #   counts['refused_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
+      # end
       return counts
     end
 
@@ -720,9 +720,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if unknown?(enrollment[:residence_prior])
         counts['unknown_residence_prior'] << columns_for_residence_prior_support(enrollment)
       end
-      if unknown?(enrollment[:last_permanent_zip])
-        counts['unknown_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
-      end
+      # if unknown?(enrollment[:last_permanent_zip])
+      #   counts['unknown_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
+      # end
       return counts
     end
 
