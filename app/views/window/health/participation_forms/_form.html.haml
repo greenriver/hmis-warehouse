@@ -1,11 +1,26 @@
-= simple_form_for @participation_form, url: polymorphic_path(participation_forms_path_generator, client_id: @client.id), as: :form, remote: true do |f|
+- path = @participation_form.new_record? ? polymorphic_path(participation_forms_path_generator, client_id: @client.id) : polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @participation_form.id)
+
+= simple_form_for @participation_form, url: path, as: :form, remote: true do |f|
   
   = f.error_notification
 
   .col-sm-12
     = f.input :signature_on, as: :date_picker
     = f.input :location
-    = f.input :file, as: :file
+    .row
+      .col-sm-6
+        = f.input :file, as: :file 
+      .col-sm-6
+        - if @participation_form.health_file.present?
+          .form-group
+            %label Existing File
+            %div
+              .btn-group.existing-file
+                = link_to polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ), class: 'btn btn-default' do
+                  = @participation_form.health_file&.name
+                = link_to polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                  %span.icon-cross{ style: "color:white; margin:0" }
+
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
   .col-sm-12
