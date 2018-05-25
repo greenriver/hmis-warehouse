@@ -1,0 +1,33 @@
+.o-page__header,
+.o-page__title {
+  display: flex;
+  align-items: center;
+  margin-bottom: space(4);
+  flex-wrap: wrap;
+}
+
+.o-page__title h1 {
+  margin-bottom: space(2);
+}
+
+.o-page__title .btn {
+  width: 100%;
+  margin-top: space(2);
+  margin-bottom: space(2);
+  @include media-breakpoint-up(md) {
+    margin-bottom: none;
+    width: auto;
+  }
+}
+
+.o-page__action {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.o-page__action--stacked {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

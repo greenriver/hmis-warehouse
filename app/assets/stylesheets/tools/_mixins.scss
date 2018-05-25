@@ -6,7 +6,6 @@
   border: 1px solid $gray-020;
 }
 
-
 @mixin poppins {
   font-family: 'Poppins', sans-serif;
 }
@@ -60,6 +59,11 @@
   @include open-sans;
   font-style: normal;
   font-weight: 400;
+}
+@mixin open-sans-light {
+  @include open-sans;
+  font-style: normal;
+  font-weight: 300;
 }
 @mixin open-sans-normal-italic {
   @include open-sans;
@@ -251,4 +255,12 @@
   background-color: $fallback-color;
   background-image: -webkit-linear-gradient($pos-degree $full); // Safari 5.1+, Chrome
   background-image: unquote("linear-gradient(#{$pos-spec}#{$full})");
+}
+
+@mixin header-menu-link {
+  color: $white;
+  &:hover,
+  &:focus {
+    color: $gray-030;
+  }
 }

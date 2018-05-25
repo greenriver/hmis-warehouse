@@ -1,0 +1,5 @@
+.d-none--empty {
+  &:empty {
+    display: none;
+  }
+}

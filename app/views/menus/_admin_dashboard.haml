@@ -1,11 +1,15 @@
-- if can_edit_users? || can_edit_translations? || can_view_imports? || can_administer_health?
-  .vsm-group.vsm-group__group-a
-    = link_to current_user.admin_dashboard_landing_path, class: 'vsm-item-link' do
-      .vsm-item-link--description
-        Admin Dashboard
-- if GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency?)
-  .vsm-group.vsm-group__group-a
-    - path = can_manage_health_agency? ? review_admin_health_agency_patient_referrals_path : admin_health_admin_index_path
-    = link_to path, class: 'vsm-item-link' do
-      .vsm-item-link--description
-        Healthcare Admin
+- show_admin = can_edit_users? || can_edit_translations? || can_view_imports? || can_administer_health?
+- show_health = GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency?)
+- if show_admin || show_health
+  %ul.o-menu__group.list-unstyled
+    - if show_admin
+      %li.o-menu__item
+        = link_to current_user.admin_dashboard_landing_path, class: 'o-menu__link' do
+          .o-menu__link--description
+            Admin Dashboard
+    - if show_health
+      %li.o-menu__item
+        - path = can_manage_health_agency? ? review_admin_health_agency_patient_referrals_path : admin_health_admin_index_path
+        = link_to path, class: 'o-menu__link' do
+          .o-menu__link--description
+            Healthcare Admin

@@ -1,0 +1,4 @@
+- if can_view_vspdat? && @client.vispdats.completed.any?
+  %h3.mt-0 VI-SPDAT Scores
+  - @client.vispdats.completed.scores.each do |vispdat|
+    %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score

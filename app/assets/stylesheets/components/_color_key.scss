@@ -1,0 +1,33 @@
+$color-key-swatch-size: 20px;
+$swatch-colors: (
+  positive: $table-cell-bg-positive,
+  warning: $table-cell-bg-warning,
+  danger: $table-cell-bg-danger,
+);
+
+.c-color-key {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: space(2);
+  flex: 0 0 auto;
+  border-radius: 3px;
+  border: 1px solid $gray-020;
+}
+
+.c-color-key__swatch {
+  height: $color-key-swatch-size;
+  width: $color-key-swatch-size;
+  background: $table-cell-bg-positive;
+  margin-right: space(2);
+  border: 1px solid $table-border-color;
+  @each $name, $color in $swatch-colors {
+    &--#{$name} {
+      background-color: $color;
+    }
+  }
+}
+
+.c-color-key__title {
+  font-size: 14px;
+}

@@ -46,7 +46,7 @@
         %td.nobr
           %span.id-sqr{ 'data-id' => e[:client_source_id]}
           .enrollment__project_type{class: e[:class]}
-            %em.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
+            %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]
           - if e[:confidential_project] && @include_confidential_names
             .confidential_project{data: {toggle: :tooltip, title: "Confidential Project"}}

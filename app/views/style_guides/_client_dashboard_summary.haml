@@ -1,0 +1,124 @@
+%header
+  %h1 Ettori Abrahams
+  %ul.client__aliases.d-flex.list-unstyled
+    %li
+      %em.ds-bm BM
+      John Abramson
+    %li
+      %em.ds-grda GRDA
+      John Abramson
+    %li
+      %em.ds-grda GRDA
+      John L. Abramson
+   
+%section.o-dashboard__block--primary.client__summary
+  -# Column 1
+  .client__main-details
+    .client__image{ style: "background-image: url(http://i.pravatar.cc/300)" }
+    %section.o-section-card.mb-0
+      %header
+      .c-card.c-card--block.c-card--padded.c-card--flush.mb-6
+        %ul.client__summary-details.list-unstyled
+          %li
+            %h4 Last Seen
+            %span.detail 9 months ago
+          %li
+            %h4 Last seen Location
+            %span.detail Quality Weeknight House
+          %li
+            %h4 Days Homeless
+            %div.detail
+              %span 359
+              %span in ES, SO, TH, and SH
+              %span between Dec  9, 2015 and Sep  1, 2017
+          %li
+            %h4 Enrolled in
+            .detail
+              .enrollment__project_type.client__service_type_1
+                %em.service-type__program-type ES
+              .enrollment__project_type.client__service_type_4
+                %em.service-type__program-type SO
+
+      .d-flex.flex-column.align-items-center.justify-content-center.flex-wrap
+        .mr-8.mb-6
+          %h3.mt-0 Chronic Status
+          .c-tag.c-tag--warning.client-flag.mb-2
+            .c-tag__wrapper
+              .c-tag__icon
+                .icon-clock
+              .c-tag__content
+                %span Long-term Stayer
+          .c-tag.c-tag--info.client-flag
+            .c-tag__wrapper
+              .c-tag__icon
+                .icon-clock
+              .c-tag__content
+                %span
+                  Chronically Homeless &amp; in CAS
+                  %a{:href => "http://localhost:3001/clients/487", :target => "_blank"}
+                    View in CAS
+
+        .client-consent-status.mr-8.mb-6
+          %h3.mt-0 Consent Form
+          .c-tag.c-tag--success
+            .c-tag__wrapper
+              .c-tag__icon
+                .icon-checkmark
+              .c-tag__content
+                %span Valid Until Apr 29, 2019
+        %div
+          %h3.mt-0 VI-SPDAT Scores
+          %span.label.label-success 3
+
+  .row.align-items-start
+    -# Column 2
+    .col-md-12.col-lg-6
+      %div.mb-6
+        %h3.mt-0 Cohorts
+        .c-card.c-card--padded.c-card--flush
+          %ul
+            %li Cohort 1
+            %li Cohort 2
+      %div.mb-6
+        %h3.mt-0 Housing Matches
+        .c-card.c-card--padded.c-card--flush
+          %ul
+            %li
+              CoC confirms match success
+              on
+              Nov  9, 2017
+
+    .col-md-12.col-lg-6.mb-6
+      .d-flex.mb-2.align-items-center
+        %h3.mb-0.mt-0.mr-4 Document Readiness
+        %a.btn.btn-default.align-self-center{:href => "/clients/6768/files"}
+          View File Uploads
+      .c-card.c-card--block.c-card--flush
+        %table.table.table-condensed
+          %thead
+            %tr
+              %th File
+              %th Uploaded
+          %tbody
+            %tr
+              %td
+                Birth Certificate
+              %td
+                %span.icon-checkmark.o-color--positive
+                Oct 27, 2017
+            %tr
+              %td
+                Chronic Homelessness Verification
+              %td
+            %tr
+              %td
+                DD-214
+              %td
+            %tr
+              %td
+                Government ID
+              %td
+            %tr
+              %td
+                Social Security Card
+              %td

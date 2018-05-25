@@ -499,28 +499,74 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def currently_disabled?
+      d_t1 = GrdaWarehouse::Hud::Disability.arel_table
+      d_t2 = Arel::Table.new(d_t1.table_name)
+      d_t2.table_alias = 'disability2'
+      c_t1 = GrdaWarehouse::Hud::Client.arel_table
+      c_t2 = Arel::Table.new(c_t1.table_name)
+      c_t2.table_alias = 'source_clients'
+      GrdaWarehouse::Hud::Client.destination.
+        where(id: id).
+        joins(:source_enrollment_disabilities).
+        where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).
+        where(
+          d_t2.project(Arel.star).where(
+            d_t2[:DateDeleted].eq(nil)
+          ).where(
+            d_t2[:DisabilityType].eq(d_t1[:DisabilityType])
+          ).where(
+            d_t2[:InformationDate].gt(d_t1[:InformationDate])
+          ).join(e_t).on(
+            e_t[:PersonalID].eq(d_t2[:PersonalID]).
+            and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
+            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:DateDeleted].eq(nil))
+          ).join(c_t2).on(
+             e_t[:PersonalID].eq(c_t2[:PersonalID]).
+             and(e_t[:data_source_id].eq(c_t2[:data_source_id]))
+          ).join(wc_t).on(
+            c_t2[:id].eq(wc_t[:source_id]).
+            and(wc_t[:deleted_at].eq(nil))
+          ).where(
+            wc_t[:destination_id].eq(c_t1[:id])
+          ).
+          exists.not 
+        ).distinct.exists?
+    end
+
     def self.disabled_client_ids
-      at1 = GrdaWarehouse::Hud::Disability.arel_table
-      at2 = Arel::Table.new(at1.table_name)
-      at2.table_alias = 'disability2'
-      GrdaWarehouse::Hud::Client.joins(:source_enrollment_disabilities).where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).where(
-        at2.project(Arel.star).where(
-          at2[:DateDeleted].eq(nil)
-        ).where(
-          at2[:PersonalID].eq(at1[:PersonalID])
-        ).where(
-          at2[:data_source_id].eq(at1[:data_source_id])
-        ).where(
-          at2[:DisabilityType].eq(at1[:DisabilityType])
-        ).where(
-          at2[:InformationDate].gt(at1[:InformationDate])
-        ).join(e_t).on(
-          e_t[:PersonalID].eq(at2[:PersonalID]).
-          and(e_t[:data_source_id].eq(at2[:data_source_id])).
-          and(e_t[:ProjectEntryID].eq(at2[:ProjectEntryID])).
-          and(e_t[:DateDeleted].eq(nil))
-        ).exists.not  
-      ).pluck(:id)
+      d_t1 = GrdaWarehouse::Hud::Disability.arel_table
+      d_t2 = Arel::Table.new(d_t1.table_name)
+      d_t2.table_alias = 'disability2'
+      c_t1 = GrdaWarehouse::Hud::Client.arel_table
+      c_t2 = Arel::Table.new(c_t1.table_name)
+      c_t2.table_alias = 'source_clients'
+      GrdaWarehouse::Hud::Client.destination.joins(:source_enrollment_disabilities).
+        where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).
+        where(
+          d_t2.project(Arel.star).where(
+            d_t2[:DateDeleted].eq(nil)
+          ).where(
+            d_t2[:DisabilityType].eq(d_t1[:DisabilityType])
+          ).where(
+            d_t2[:InformationDate].gt(d_t1[:InformationDate])
+          ).join(e_t).on(
+            e_t[:PersonalID].eq(d_t2[:PersonalID]).
+            and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
+            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:DateDeleted].eq(nil))
+          ).join(c_t2).on(
+             e_t[:PersonalID].eq(c_t2[:PersonalID]).
+             and(e_t[:data_source_id].eq(c_t2[:data_source_id]))
+          ).join(wc_t).on(
+            c_t2[:id].eq(wc_t[:source_id]).
+            and(wc_t[:deleted_at].eq(nil))
+          ).where(
+            wc_t[:destination_id].eq(c_t1[:id])
+          ).
+          exists.not 
+        ).distinct.pluck(:id)
     end
 
     def deceased?
