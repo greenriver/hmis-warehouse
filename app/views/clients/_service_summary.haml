@@ -24,7 +24,10 @@
           = enrolled(@client)
       %li
         %h4 Veteran:
-        %span= yes_no @client.source_clients.visible_in_window.map(&:veteran?).include?(true)
+        - if window
+          %span= yes_no @client.source_clients.visible_in_window_to(current_user).map(&:veteran?).include?(true)
+        - else
+          %span= yes_no @client.source_clients.map(&:veteran?).include?(true)
       %li
         %h4 Disabled:
         %span= yes_no @client.disabled?

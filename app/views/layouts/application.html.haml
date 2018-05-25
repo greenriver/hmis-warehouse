@@ -22,10 +22,10 @@
   %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
     %header.o-header--page
       .container-fluid.d-flex.align-items-center{class: container_classes}
-        .site-name
+        .site-name.d-flex
           .o-header--page__title.site-title
             = link_to root_path do
-              Boston DND Warehouse
+              = _('Boston DND Warehouse')
               - unless Rails.env.production?
                 %span.mt-2{style: 'font-size:12px;'}= "[#{Rails.env}]"
         .o-header--page__sub-title.tagline

@@ -63,13 +63,13 @@
 }
 
 .site-name {
-  background-color: #fff;
-  z-index: $zIndex-2--site-name;
-  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.30);
-  position: absolute;
-  top: 0;
-  padding: 8px 10px 0;
+  min-height: 6rem;
   width: 228px;
+  background-color: #fff;
+  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.30);
+  padding: 8px 10px;
+  align-self: flex-start;
+  z-index: $zIndex-2--site-name;
 }
 
 .o-header--page__title {
@@ -97,7 +97,7 @@
 
 .o-header--page__sub-title {
   display: none;
-  margin-left: 250px;
+  margin-left: 1rem;
   @media (min-width: $screen-sm-min) {
     display: block;
     color: #fff;
@@ -154,6 +154,7 @@
 }
 
 .utility {
+  margin-left: 250px;
   .alert {
     margin-bottom: space(4);
   }

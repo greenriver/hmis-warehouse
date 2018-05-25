@@ -18,6 +18,10 @@
   align-self: baseline !important;
 }
 
+.align-items-start {
+  align-items: flex-start !important;
+}
+
 .justify-content-center {
   justify-content: center !important;
 }
@@ -32,6 +36,6 @@
 
 @each $amount in 100 75 50 25 {
   .w-#{$amount} {
-    width: percentage($amount) !important;
+    width: #{$amount}% !important;
   }
 }

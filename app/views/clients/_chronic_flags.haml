@@ -1,3 +1,5 @@
+- if client.processed_service_history.present? && client.longterm_stayer? || client.sync_with_cas? || client.chronically_homeless_for_cas?
+  %h3.mt-0 CAS
 - cas_id = client.cas_client&.id
 - if client.processed_service_history.present? && client.longterm_stayer?
   .c-tag.c-tag--warning.client-flag.mb-2

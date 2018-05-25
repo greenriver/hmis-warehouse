@@ -3,10 +3,10 @@
   - if @client.image
     .client__image{ style: "background-image: url(#{ image_client_path })" }
   %section.o-section-card.mb-0
-    .c-card.c-card--block.c-card--padded.c-card--flush.mb-6
+    .c-card.c-card--block.c-card--padded.c-card--flush.mb-4
       = render 'clients/service_summary', window: false
       
-    .d-flex.flex-column.align-items-center.flex-wrap
+    .d-flex.flex-column.align-items-start.flex-wrap
       .client-consent-status.d-none--empty.mb-3.mr-8<
         = render 'window/clients/consent_form_flags'
       .mr-8.mb-3.d-none--empty<
@@ -17,7 +17,7 @@
         = render 'clients/vispdat'
         
       .row.align-items-start.d-flex.flex-wrap
-        .d-none--empty.col-md-12.col-lg-6<
+        .d-none--empty
           .row
             .col-sm-6
               - if @client.active_cohorts.any?
@@ -28,5 +28,5 @@
             .col-sm-6
               = render 'cas_matches'
 
-        .d-none--empty.col-md-12.col-lg-6.mb-6.w-100<
+        .d-none--empty.mb-6.w-100<
           = render 'window/clients/required_documents'
