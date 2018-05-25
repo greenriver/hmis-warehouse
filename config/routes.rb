@@ -26,13 +26,23 @@ Rails.application.routes.draw do
       resources :metrics, only: [:index]
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
-      resources :participation_forms
-      resources :release_forms
       resources :careplans, except: [:destroy, :create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment
         get :print
+      end
+      resources :participation_forms do
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
+      resources :release_forms do 
+        member do
+          delete :remove_file
+          get :download
+        end
       end
       namespace :pilot do 
         resources :patient, only: [:index]

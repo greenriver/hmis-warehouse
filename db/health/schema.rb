@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180524145220) do
+ActiveRecord::Schema.define(version: 20180525155355) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -49,7 +49,7 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id",   default: 1, null: false
+    t.integer  "data_source_id",   default: 6, null: false
   end
 
   create_table "careplans", force: :cascade do |t|
@@ -216,10 +216,27 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.datetime "goal_created_at"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
-    t.integer  "data_source_id",           default: 1, null: false
+    t.integer  "data_source_id",           default: 6, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
+
+  create_table "health_files", force: :cascade do |t|
+    t.string   "type",         null: false
+    t.string   "file"
+    t.string   "content_type"
+    t.binary   "content"
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+    t.string   "note"
+    t.string   "name"
+    t.float    "size"
+  end
+
+  add_index "health_files", ["type"], name: "index_health_files_on_type", using: :btree
 
   create_table "health_goals", force: :cascade do |t|
     t.integer  "careplan_id"
@@ -278,7 +295,7 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
 
   create_table "participation_forms", force: :cascade do |t|
@@ -287,9 +304,11 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.integer "case_manager_id"
     t.integer "reviewed_by_id"
     t.string  "location"
+    t.integer "health_file_id"
   end
 
   add_index "participation_forms", ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
+  add_index "participation_forms", ["health_file_id"], name: "index_participation_forms_on_health_file_id", using: :btree
   add_index "participation_forms", ["patient_id"], name: "index_participation_forms_on_patient_id", using: :btree
   add_index "participation_forms", ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id", using: :btree
 
@@ -297,6 +316,7 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.string   "first_name"
     t.string   "last_name"
     t.date     "birthdate"
+    t.string   "ssn"
     t.string   "medicaid_id"
     t.datetime "created_at",                                       null: false
     t.datetime "updated_at",                                       null: false
@@ -304,7 +324,6 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.boolean  "rejected",                         default: false, null: false
     t.integer  "rejected_reason",                  default: 0,     null: false
     t.integer  "patient_id"
-    t.string   "ssn"
     t.integer  "accountable_care_organization_id"
     t.datetime "effective_date"
   end
@@ -332,7 +351,7 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 1,     null: false
+    t.integer  "data_source_id",           default: 6,     null: false
   end
 
   create_table "problems", force: :cascade do |t|
@@ -345,7 +364,7 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -368,10 +387,13 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.integer "user_id"
     t.date    "signature_on"
     t.string  "file_location"
-    t.boolean "supervisor_reviewed"
+    t.integer "health_file_id"
+    t.integer "reviewed_by_id"
   end
 
+  add_index "release_forms", ["health_file_id"], name: "index_release_forms_on_health_file_id", using: :btree
   add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
+  add_index "release_forms", ["reviewed_by_id"], name: "index_release_forms_on_reviewed_by_id", using: :btree
   add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "sdh_case_management_notes", force: :cascade do |t|
@@ -495,7 +517,9 @@ ActiveRecord::Schema.define(version: 20180524145220) do
     t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
-    t.integer  "data_source_id",  default: 1, null: false
+    t.integer  "data_source_id",  default: 6, null: false
   end
 
+  add_foreign_key "participation_forms", "health_files"
+  add_foreign_key "release_forms", "health_files"
 end

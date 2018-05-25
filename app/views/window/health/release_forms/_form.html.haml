@@ -1,11 +1,35 @@
-= simple_form_for @release_form, url: polymorphic_path(release_forms_path_generator, client_id: @client.id), as: :form, remote: true do |f|
+- path = @release_form.new_record? ? polymorphic_path(release_forms_path_generator, client_id: @client.id) : polymorphic_path(release_form_path_generator, client_id: @client.id, id: @release_form.id)
+
+= simple_form_for @release_form, url: path, as: :form, remote: true do |f|
   
   = f.error_notification
 
   .col-sm-12
     = f.input :signature_on, as: :date_picker
     = f.input :file_location
-    = f.input :supervisor_reviewed, as: :boolean
+    .row
+      .col-sm-6
+        = f.input :file, as: :file 
+      .col-sm-6
+        - if @release_form.health_file.present?
+          .form-group
+            %label Existing File
+            %div
+              .btn-group.existing-file
+                = link_to polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-default' do
+                  = @release_form.health_file&.name
+                = link_to polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                  %span.icon-cross{ style: "color:white; margin:0" }
+          
+
+    - if @release_form.reviewed_by.present?
+      .form-group
+        %label Reviewed by Supervisor
+        %p.form-control-static= @release_form.reviewed_by&.name
+    - else
+      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
+
+    %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
   .col-sm-12
     .text-right
