@@ -47,6 +47,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    def source_clients_for_source_client source_client_id:, data_source_id:
+      @source_clients ||= begin
+        destination_ids = client_scope.entry.select(:client_id)
+        client_source.joins(:warehouse_client_source).
+          merge(GrdaWarehouse::WarehouseClient.where(destination_id: destination_ids)).
+          distinct.
+          pluck(*source_client_columns.values).
+          map do |row|
+            Hash[source_client_columns.keys.zip(row)]
+          end.group_by do |row|
+            [
+              row[:data_source_id],
+              row[:destination_id],
+            ]
+          end
+      end
+      key = [data_source_id, source_client_id]
+      @source_clients[key]
+    end
+
     def clients_for_project project_id
       client_scope.entry.where(Project: {id: project_id}).
         select(*client_columns.values).
@@ -259,8 +279,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         black_af_american: c_t[:BlackAfAmerican].to_sql,
         native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
         white: c_t[:White].to_sql,
+        data_source_id:  c_t[:data_source_id].to_sql,
         destination_id: she_t[:client_id].to_sql,
       }
+    end
+
+    def source_client_columns
+      @source_client_columns ||= begin
+        columns = client_columns.deep_dup
+        columns[:destination_id] = wc_t[:destination_id].to_sql
+        columns
+      end
     end
 
     def service_columns
