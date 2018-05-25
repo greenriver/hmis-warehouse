@@ -13,6 +13,7 @@
   margin: 0.2em 0;
   font-size: 0.7em;
   display: inline-block;
+  padding: 0.75rem;
 }
 .service-type__entry
 {
@@ -55,6 +56,8 @@
 .client__month_of_service-table td
 {
   vertical-align: top;
+  border-left: 1px solid $body-bg;
+  border-right: 1px solid $body-bg;
 }
 
 
@@ -358,7 +361,7 @@ $client-image-height: 300px;
 }
 .enrollment__new-episode {
   > td {
-    background: $table-cell-bg-positive;
+    border-bottom: 8px solid $table-cell-bg-positive;
   }
 }
 .assessment__new-type:not(:first-child) {

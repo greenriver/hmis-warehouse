@@ -9,11 +9,15 @@
 = render 'tab_navigation', current: client_path(@client)
 .o-page
   .o-page__header
-    %h1= title
-    .o-page__action
-      - if can_track_anomalies?
-        = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
-          Track Issues
+    .row
+      .col-sm-8
+        %h1= title
+      .col-sm-4.text-right
+        .o-page__action
+          - if can_track_anomalies?
+            = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
+              Track Issues
+    
     = render 'window/clients/aliases'
 
   %section.o-dashboard__block--primary.client__summary

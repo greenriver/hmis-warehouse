@@ -1,55 +1,32 @@
 - eto_available = GrdaWarehouse::Config.get(:eto_api_available)
 .client__main-details
   - if @client.image
-    .client__image{ style: "background-image: url(#{ @client.image })" }
+    .client__image{ style: "background-image: url(#{ image_client_path })" }
   %section.o-section-card.mb-0
-    %header
     .c-card.c-card--block.c-card--padded.c-card--flush.mb-6
-      - if @client.service_history.empty?
-        = "There is no service record for #{@client.name}"
-      - else
-        - if @client.date_of_last_service.present?
-          %ul.client__summary-details.list-unstyled
-            %li
-              %h4 Last Seen
-              %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"
-            - if ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
-              %li
-                %h4 Last Seen Location
-                %span=projects.to_sentence
-            %li
-              %h4 Days Homeless
-              %span= "#{@client.days_homeless} in ES, SO, TH, and SH"
-              %span= "between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
-            - if @client.service_history_enrollments.ongoing.residential.any?
-              %li
-                %h4 Enrolled in
-                = enrolled(@client)
-        - else
-          %p None
-
+      = render 'clients/service_summary', window: false
+      
     .d-flex.flex-column.align-items-center.flex-wrap
-      .mr-8.mb-6.d-none--empty<
-        = render 'chronic_flags', client: @client
-        = render 'cas_housed'
-
-      .client-consent-status.d-none--empty.mr-8<
+      .client-consent-status.d-none--empty.mb-3.mr-8<
         = render 'window/clients/consent_form_flags'
+      .mr-8.mb-3.d-none--empty<
+        = render 'clients/chronic_flags', client: @client
+        = render 'clients/cas_housed'
 
       .d-none--empty.mr-8.mb-6<
-        - if can_view_vspdat? && @client.vispdats.completed.any?
-          %h3.mt-0 VI-SPDAT Scores
-          - @client.vispdats.completed.scores.each do |vispdat|
-            %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
-
+        = render 'clients/vispdat'
+        
       .row.align-items-start.d-flex.flex-wrap
         .d-none--empty.col-md-12.col-lg-6<
-          - if @client.active_cohorts.any?
-            %div.mb-6
-              %h3.mt-0 Cohorts
-              .c-card.c-card--padded.c-card--flush
-                = render 'clients/rollup/cohorts'
-          = render 'cas_matches'
+          .row
+            .col-sm-6
+              - if @client.active_cohorts.any?
+                %div.mb-6
+                  %h3.mt-0 Cohorts
+                  .c-card.c-card--padded.c-card--flush
+                    = render 'clients/rollup/cohorts'
+            .col-sm-6
+              = render 'cas_matches'
 
         .d-none--empty.col-md-12.col-lg-6.mb-6.w-100<
           = render 'window/clients/required_documents'

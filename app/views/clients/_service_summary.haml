@@ -1,0 +1,36 @@
+- seen_before = ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?
+- unless window
+  - seen_before = ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
+
+- if @client.service_history.empty?
+  = "There is no service record for #{@client.name}"
+- else
+  - if @client.date_of_last_service.present?
+    %ul.client__summary-details.list-unstyled
+      %li
+        %h4 Last Seen
+        %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"
+      - if seen_before
+        %li
+          %h4 Last Seen Location
+          %span=projects.to_sentence
+      %li
+        %h4 Days Homeless
+        %span= "#{@client.days_homeless} in ES, SO, TH, and SH"
+        %span= "between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
+      - if @client.service_history_enrollments.ongoing.residential.any?
+        %li
+          %h4 Enrolled in
+          = enrolled(@client)
+      %li
+        %h4 Veteran:
+        %span= yes_no @client.source_clients.visible_in_window.map(&:veteran?).include?(true)
+      %li
+        %h4 Disabled:
+        %span= yes_no @client.disabled?
+      - if @client.source_hmis_forms.triage.any?
+        %li
+          %h4 Preferred Language:
+          %span= = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
+  - else
+    %p None
