@@ -30,7 +30,7 @@
           %span= yes_no @client.source_clients.map(&:veteran?).include?(true)
       %li
         %h4 Disabled:
-        %span= yes_no @client.disabled?
+        %span= yes_no @client.currently_disabled?
       - if @client.source_hmis_forms.triage.any?
         %li
           %h4 Preferred Language:

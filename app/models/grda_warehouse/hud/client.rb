@@ -498,7 +498,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def disabled?
+    def currently_disabled?
       d_t1 = GrdaWarehouse::Hud::Disability.arel_table
       d_t2 = Arel::Table.new(d_t1.table_name)
       d_t2.table_alias = 'disability2'
