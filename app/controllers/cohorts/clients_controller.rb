@@ -393,6 +393,7 @@ module Cohorts
 
     # only clients who have at least one source client
     # that is visible in the window
+    # This is more strict than visible_in_window_to(user)
     def client_scope
       if @cohort.only_window
         client_source.destination.

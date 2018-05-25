@@ -33,11 +33,11 @@ module Window
     end
 
     private def client_scope
-      client_source.joins(source_clients: :data_source).where(data_sources: {visible_in_window: true})
+      client_source.joins(source_clients: :data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
     end
 
     def client_search_scope
-      client_source.searchable.joins(:data_source).where(data_sources: {visible_in_window: true})
+      client_source.searchable.joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
     end
 
     def set_client_from_client_id
