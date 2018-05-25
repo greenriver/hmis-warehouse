@@ -110,3 +110,23 @@ table.dataTable thead .sorting_desc:after {
   content: "\ea36"
   /* sort-by-attributes-alt */
 }
+
+.table .table__actions {
+  a {
+    &,
+    i {
+      color: $gray-060;
+      font-size: 1.5rem;
+      &:hover {
+        color: $black;
+      }
+    }
+    &.btn-link--danger {
+      color: $brand-danger-d;
+      font-size: 1.75rem;
+      &:hover {
+        color: darken($brand-danger-d, 10%);
+      }
+    }
+  }
+}

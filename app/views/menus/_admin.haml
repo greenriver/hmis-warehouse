@@ -1,10 +1,10 @@
 - if can_view_imports? || can_view_projects? || can_edit_project_groups? || can_view_organizations?
-  .vsm-group.vsm-group__group-a
+  %ul.o-menu__group.list-unstyled
     - if can_view_projects? || can_view_organizations?
-      = link_to data_sources_path, class: 'vsm-item-link' do
-        .vsm-item-link--description
+      %li.o-menu__item
+        = link_to data_sources_path, class: 'o-menu__link' do
           = _('Data Sources')
     - if can_edit_project_groups?
-      = link_to project_groups_path, class: 'vsm-item-link' do
-        .vsm-item-link--description
+      %li.o-menu__item
+        = link_to project_groups_path, class: 'o-menu__link' do
           = _('Project Groups')

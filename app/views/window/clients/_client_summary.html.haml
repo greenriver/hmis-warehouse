@@ -1,53 +1,20 @@
 - eto_available = GrdaWarehouse::Config.get(:eto_api_available)
 - required_documents = GrdaWarehouse::AvailableFileTag.document_ready
-.client__summary
-  .row
-    .col-sm-4
-      %br
-      - if @client.date_of_first_service.present?
-        First Seen:
-        %strong=@client.date_of_first_service
-      %br
-      - if @client.date_of_last_service.present?
-        Last Seen:
-        %strong
-          = time_ago_in_words(@client.date_of_last_service)
-          ago
-        - if ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?
-          %br
-          Last Seen At:
-          %strong
-            = projects.to_sentence
-        - if @client.service_history_enrollments.residential.any?
-          %br
-          Enrolled in: 
-          = enrolled(@client, window_only: true) 
-      %br
-      Veteran:
-      %strong
-        - if @client.source_clients.visible_in_window.map(&:veteran?).include?(true)
-          Yes
-        - else
-          No
-      %br
-      Disabling Condition:
-      %strong
-        - if @client.source_enrollments.map(&:DisablingCondition).include?(1)
-          Yes
-        - else
-          No
-      - if @client.source_hmis_forms.triage.any?
-        %br
-        Preferred Language:
-        %strong
-          = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
-      = render 'clients/chronic_flags', client: @client
-      = render 'window/clients/consent_form_flags'
-    - if required_documents.any?
-      .col-sm-4
-        = render 'window/clients/required_documents'
+.client__main-details
+  - if @client.image
+    .client__image{ style: "background-image: url(#{ image_client_path })" }
 
-    - if @client.image
-      .col-sm-4
-        .client__image
-          = image_tag(image_client_path(@client))
+  %section.o-section-card.mb-0
+    .c-card.c-card--block.c-card--padded.c-card--flush.mb-4
+      = render 'clients/service_summary', window: true
+
+    .d-flex.flex-column.align-items-start.flex-wrap
+      .client-consent-status.d-none--empty.mb-3.mr-8<
+        = render 'window/clients/consent_form_flags'
+      .mr-8.mb-3.d-none--empty<
+        = render 'clients/chronic_flags', client: @client
+      .d-none--empty.mr-8.mb-6<
+        = render 'clients/vispdat'
+
+      .d-none--empty.mb-6.w-100<
+        = render 'window/clients/required_documents'

@@ -1,21 +1,42 @@
+- if client.processed_service_history.present? && client.longterm_stayer? || client.sync_with_cas? || client.chronically_homeless_for_cas?
+  %h3.mt-0 CAS
 - cas_id = client.cas_client&.id
 - if client.processed_service_history.present? && client.longterm_stayer?
-  .alert.alert-warning.client-flag.client-flag__longterm-stayer
-    Long-term Stayer
+  .c-tag.c-tag--warning.client-flag.mb-2
+    .c-tag__wrapper
+      .c-tag__icon
+        .icon-clock
+      .c-tag__content
+        %span Long-term Stayer
+
 - if client.sync_with_cas? && client.chronically_homeless_for_cas?
-  .alert.alert-warning.client-flag.client-flag__cas
-    - if cas_id.present? 
-      = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
-        = _('Chronically Homeless and in CAS')
-    - else
-      = _('Chronically Homeless and in CAS')
+  .c-tag.c-tag--info.client-flag
+    .c-tag__wrapper
+      .c-tag__icon
+        .icon-clock
+      .c-tag__content
+        %span
+          Chronically Homeless &amp; in CAS
+          - if cas_id.present?
+            = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+              View in CAS
+
 - elsif client.chronically_homeless_for_cas?
-  .alert.alert-warning.client-flag.client-flag__cas
-    = _('Chronically Homeless for CAS')
+  .c-tag.c-tag--warning.client-flag
+    .c-tag__wrapper
+      .c-tag__icon
+        .icon-clock
+      .c-tag__content
+        %span Chronically Homeless for CAS
+
 - elsif client.sync_with_cas?
-  .alert.alert-warning.client-flag.client-flag__cas
-    - if cas_id.present?
-      = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
-        = _('Available in CAS')
-    - else
-      = _('Available in CAS')
+  .c-tag.c-tag--warning.client-flag
+    .c-tag__wrapper
+      .c-tag__icon
+        .icon-user
+      .c-tag__content
+        %span
+          Available in CAS
+          - if cas_id.present?
+            = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+              View in CAS

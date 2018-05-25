@@ -6,6 +6,7 @@
 @import
   'settings/colors',
   'settings/variables',
+  'settings/icons',
   'settings/spacing',
   'settings/stack_order';
 
@@ -37,7 +38,8 @@
   'elements/body',
   'elements/dl',
   'elements/html',
-  'elements/main';
+  'elements/main',
+  'elements/section';
 
 // Layouts
 // (Super high-level structural layout)
@@ -51,12 +53,17 @@
   'objects/container',
   'objects/dashboard',
   'objects/list',
+  'objects/menu',
+  'objects/pagination',
+  'objects/section_card',
   'objects/text';
 
 // Components
 // ()
 @import
-  'components/card';
+  'components/card',
+  'components/color_key',
+  'components/tag';
 
 // @import 'base/grid_framework';
 @import
@@ -89,6 +96,8 @@
   'overrides/bootstrap';
 
 @import
+  'utilities/bootstrap_polyfills',
+  'utilities/display',
   'utilities/general',
   'utilities/helper_classes',
   'utilities/tables',

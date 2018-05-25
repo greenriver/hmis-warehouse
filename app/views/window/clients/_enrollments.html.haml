@@ -1,7 +1,7 @@
 :ruby
   only_ongoing ||= false
   include_links ||= can_view_projects?
-  enrollments = @client.enrollments_for(scope.visible_in_window, include_confidential_names: false)
+  enrollments = @client.enrollments_for(scope.visible_in_window_to(current_user), include_confidential_names: false)
   enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
   any_homeless = enrollments.any?{ |e| e[:homeless] }
 - if enrollments.any?
@@ -46,7 +46,7 @@
         %td.nobr
           %span.id-sqr{ 'data-id' => e[:client_source_id]}
           .enrollment__project_type{class: e[:class]}
-            %em.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
+            %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]
           - if e[:confidential_project] && @include_confidential_names
             .confidential_project{data: {toggle: :tooltip, title: "Confidential Project"}}

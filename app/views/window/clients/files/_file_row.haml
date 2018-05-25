@@ -2,12 +2,6 @@
   %td.text-center
     %input.jDownload{type: :checkbox, value: file.id, checked: @pre_checked&.include?(file.id)}
   %td.text-center.jThumb{data: {file: file.id}}
-  %td.text-center
-    - if file.content.present?
-      = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-lg btn-secondary' do
-        %i.icon-download2
-    - else
-      = file.name
   %td
     - file.tag_list.each do |tag|
       - included_info = @available_tags[tag]&.included_info
@@ -21,10 +15,11 @@
     %td.text-center= checkmark file.visible_in_window
   %td
     = file.created_at
+    %br
     by
     = mail_to file.user&.email, subject: file.tag_list.join(', ') do
       = file.user&.name
-    
+
 
   - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list) && @consent_editable
     %td
@@ -46,14 +41,17 @@
             = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
         - else
           = checkmark file.consent_form_confirmed
-    
+
   - else
     %td= file.effective_date
     - if consent
       %td.text-center= file.consent_type
       %td.text-center= checkmark file.consent_form_confirmed
 
-  %td
+  %td.text-right.table__actions
+    - if file.content.present?
+      = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-link' do
+        %i.icon-download2
     - if file.editable_by?(current_user)
-      = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-secondary btn-small') do
+      = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-link btn-link--danger') do
         %span.icon-cross

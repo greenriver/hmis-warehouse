@@ -1,0 +1,19 @@
+.o-section-card {
+  margin-bottom: space(4);
+}
+
+.o-section-card__header {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: space(3);
+}
+
+.o-section-card__header h1,
+.o-section-card__header h3 {
+  margin-bottom: 0;
+  margin-right: space(3);
+}
+
+.o-section-card__header-actions {
+  margin-left: auto;
+}
