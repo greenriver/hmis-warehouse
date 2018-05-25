@@ -14,18 +14,18 @@
         %td
           - if info[:callback].present?
             - if has_support
-              = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+              = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                 = @report.public_send(info[:callback], value)
             - else
               = @report.public_send(info[:callback], value)
 
           - else
             - if has_support
-              = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
+              = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                 = value
             - else
               = value
         %td
           - if has_support
-            = link_to support_project_data_quality_report_path(@project, @report, {key: key, format: :xlsx}) do
+            = link_to polymorphic_path(support_path, {key: key, format: :xlsx}) do
               %span.icon-download2

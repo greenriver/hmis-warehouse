@@ -139,7 +139,7 @@ module ApplicationHelper
   # generates a list of HTML snippets representing the names the user is known by in different data sources
   def client_aliases(client)
 
-    names = client.client_names(window: controller_path.include?('window'))
+    names = client.client_names(window: controller_path.include?('window'), user: current_user)
     names.map do |name|
       sn = name[:ds]
       id = name[:ds_id]

@@ -1,4 +1,4 @@
-- aliases = @client.client_names.uniq.select{|m| m[:name] != @client.full_name}
+- aliases = @client.client_names(window: true, user: current_user).uniq.select{|m| m[:name] != @client.full_name}
 - if @client.deceased?
   .alert.alert-danger
     = "Marked deceased on: #{@client.deceased_on}"
