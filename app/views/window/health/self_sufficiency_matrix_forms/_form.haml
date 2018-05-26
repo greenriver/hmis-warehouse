@@ -4,6 +4,7 @@
 
   .well.col-sm-8
     = f.input :point_completed, collection: Health::SelfSufficiencyMatrixForm.point_completed_options, as: :radio_buttons
+    = f.input :collection_location
 
   - Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |section_key|
     .well.col-sm-8

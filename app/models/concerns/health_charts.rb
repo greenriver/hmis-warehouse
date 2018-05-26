@@ -120,29 +120,88 @@ module HealthCharts
       health_housing_outcomes.select{|_,v| ! v[:positive]}.keys
     end
 
+    def load_health_self_sufficiency_objects
+      old_objects = self_sufficiency_assessments.order(collected_at: :desc).limit(4)
+      new_objects = patient.self_sufficiency_matrix_forms.order(completed_at: :desc).limit(4)
+      (old_objects + new_objects).sort_by do |o|
+        if o.is_a?(GrdaWarehouse::HmisForm)
+          o.collected_at
+        elsif o.is_a?(Health::SelfSufficiencyMatrixForm)
+          o.completed_at
+        end
+      end.reverse.first(4)
+    end
+
+    def load_health_self_sufficiency_old_object_scores(assessment)
+      # client.self_sufficiency_assessments
+      scores = []
+      if assessment.answers[:sections].count > 0
+        scores = assessment.answers[:sections].first[:questions].select do |row|
+          ssm_question_titles.include?(row[:question])
+        end.map do |row|
+          title = row[:question].gsub('SCORE', '').titleize
+          value = row[:answer].to_f.round
+          [title, value]
+        end
+        total = scores.select{|m| m.first == 'Total'}.first.last
+        scores.delete_if{|m|  m.first == 'Total'}
+      end
+      {
+        collected_at: assessment.collected_at,
+        collection_location: assessment.collection_location,
+        scores: scores.reverse,
+        total: total,
+      }
+    end
+
+    def load_health_self_sufficiency_new_object_scores(assessment)
+      # patient.self_sufficiency_matrix_forms
+      scores = []
+      scores = assessment.attributes.select do |k, v|
+        k.split('_').last == 'score'
+      end.map do |k, v|
+        [assessment.ssm_question_title(k), v]
+      end
+      # new self_sufficiency_matrix_forms don't have this item
+      scores.push(["Parenting Skills ", 0])
+      {
+        collected_at: assessment.completed_at,
+        collection_location: assessment.collection_location || '',
+        scores: scores.reverse,
+        total: assessment.total_score
+      }
+    end
+
 
     def health_self_sufficiency_scores
-      self_sufficiency_assessments.order(collected_at: :desc).limit(4).map do |assessment|
-        # these should only have one section at this time
-        scores = []
-        if assessment.answers[:sections].count > 0
-          scores = assessment.answers[:sections].first[:questions].select do |row|
-            ssm_question_titles.include?(row[:question])
-          end.map do |row|
-            title = row[:question].gsub('SCORE', '').titleize
-            value = row[:answer].to_f.round
-            [title, value]
-          end
-          total = scores.select{|m| m.first == 'Total'}.first.last
-          scores.delete_if{|m|  m.first == 'Total'}
+      load_health_self_sufficiency_objects.map do |object|
+        if object.is_a?(GrdaWarehouse::HmisForm)
+          load_health_self_sufficiency_old_object_scores(object)
+        elsif object.is_a?(Health::SelfSufficiencyMatrixForm)
+          load_health_self_sufficiency_new_object_scores(object)
         end
-        {
-          collected_at: assessment.collected_at,
-          collection_location: assessment.collection_location,
-          scores: scores.reverse,
-          total: total,
-        }
       end.compact
+      # self_sufficiency_assessments.order(collected_at: :desc).limit(4).map do |assessment|
+      #   # these should only have one section at this time
+      #   scores = []
+      #   if assessment.answers[:sections].count > 0
+      #     scores = assessment.answers[:sections].first[:questions].select do |row|
+      #       ssm_question_titles.include?(row[:question])
+      #     end.map do |row|
+      #       title = row[:question].gsub('SCORE', '').titleize
+      #       value = row[:answer].to_f.round
+      #       [title, value]
+      #     end
+      #     total = scores.select{|m| m.first == 'Total'}.first.last
+      #     scores.delete_if{|m|  m.first == 'Total'}
+      #   end
+      #   {
+      #     collected_at: assessment.collected_at,
+      #     collection_location: assessment.collection_location,
+      #     scores: scores.reverse,
+      #     total: total,
+      #   }
+      # end.compact
     end
 
     def health_income_benefits_over_time

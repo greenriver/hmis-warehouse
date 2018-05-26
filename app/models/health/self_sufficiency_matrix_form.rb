@@ -214,6 +214,30 @@ module Health
       risk: "Work with guest (and other staff as applicable) around safety planning. Complete the CRIT and/or Suicide assessment after safety planning session."
     }
 
+    # for health_charts (match with old for charts code)
+    SSM_QUESTION_TITLE = {
+      housing_score: "Housing ",
+      income_score: "Income/Money Management ",
+      benefits_score: "Non Cash Benefits ",
+      disabilities_score: "Disabilities ",
+      food_score: "Food ",
+      employment_score: "Employment ",
+      education_score: "Adult Education/Training ",
+      mobility_score: "Mobility/Transportation ",
+      life_score: "Life Skills & Ad Ls ",
+      healthcare_score: "Health Care Coverage ",
+      physical_health_score: "Physical Health ",
+      mental_health_score: "Mental Health ",
+      substance_abuse_score: "Substance Use ",
+      criminal_score: "Criminal Justice ",
+      legal_score: "Legal Non Criminal ",
+      safety_score: "Safety ",
+      risk_score: "Risk ",
+      family_score: "Family & Social Relationships ",
+      community_score: "Community Involvement ",
+      time_score: "Daily Time Management "
+    }
+
     belongs_to :patient
     belongs_to :user
 
@@ -253,6 +277,11 @@ module Health
 
     def average_score
       (total_score / SECTIONS.keys.size.to_f).round(1)
+    end
+
+    # for health_charts
+    def ssm_question_title(attr)
+      SSM_QUESTION_TITLE[attr.to_sym]
     end
 
   end

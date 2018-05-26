@@ -27,7 +27,6 @@
   :javascript
     $(document).ready(function() {
       var data = #{@client.health_housing_stati.to_json}
-      console.log(data);
       hsChart = {
         margin: {top: 25, right: 45, bottom: 70, left: 150},
         selector: '.d3-housing-status__chart',
