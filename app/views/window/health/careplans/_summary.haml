@@ -24,11 +24,14 @@
             %td= careplan.patient_signed_on&.to_date
             %td= careplan.provider_signed_on&.to_date
             %td= careplan.updated_at.to_date
-            %td TODO
+            %td= careplan.responsible_team_member.full_name
             %td
               - if careplan.editable?
                 = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
                   Edit
+              - else
+                = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
+                  Revise
 
 
   - else

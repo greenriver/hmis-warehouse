@@ -8,7 +8,7 @@ module Window::Health
     before_action :require_can_edit_client_health!
     before_action :set_client
     before_action :set_patient
-    before_action :set_careplan, only: [:show, :edit, :update]
+    before_action :set_careplan, only: [:show, :edit, :update, :revise]
     
     def index
       @goal = Health::Goal::Base.new
@@ -39,8 +39,15 @@ module Window::Health
       @readonly = true
     end
 
+    def revise
+      new_id = @careplan.revise!
+      flash[:notice] = "Careplan revised"
+      redirect_to polymorphic_path([:edit] + careplan_path_generator, id: new_id)
+    end
+
     def update
-      @careplan.update(careplan_params)
+
+      @careplan.update!(careplan_params)
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 

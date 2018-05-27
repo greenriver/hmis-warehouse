@@ -5,7 +5,7 @@
     .col-sm-4
       = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
     .col-sm-4
-      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date + 6.months }
+      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }
 
   .health__team
     %h3 Care Team Members
@@ -33,7 +33,7 @@
     .col-sm-8
       %h3 Goals
       .health-care-plan__goal-list
-        - @careplan.goals.each do |goal|
+        - @careplan.hpc_goals.each do |goal|
           = render goal, readonly: true
       .links
         = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
@@ -42,13 +42,19 @@
 
   %h3 Responsible Parties
   .row
-    .col-sm-4
+    .col-sm-3
+      .form-group
+        %label.control-label.optional Patient
+        .controls
+          = @patient.name
+      = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
+    .col-sm-3
       = f.input :responsible_team_member_id, label: 'Team Member', collection: @careplan.team.available_members, input_html: { class: :select2 } 
       = f.input :responsible_team_member_signed_on, as: :date_picker, label: 'Date Signed'
-    .col-sm-4
+    .col-sm-3
       = f.input :representative_id, label: 'Designated Representative', collection: @careplan.team.available_members, input_html: { class: :select2 }
       = f.input :representative_signed_on, as: :date_picker, label: 'Date Signed'
-    .col-sm-4
+    .col-sm-3
       = f.input :provider_id, label: 'Primary Care Provider', collection: @careplan.team.available_members, input_html: { class: :select2 }
       = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
   = f.button :submit, @form_button

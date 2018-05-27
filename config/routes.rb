@@ -31,6 +31,7 @@ Rails.application.routes.draw do
         resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment
         get :print
+        get :revise, on: :member
       end
       resources :participation_forms do
         member do
