@@ -14,6 +14,11 @@ module Health
     belongs_to :provider, class_name: Health::Team::Member
     belongs_to :representative, class_name: Health::Team::Member
 
+    attr_accessor :revising
+
+    def revising
+      @revising || false
+    end
 
     # accepts_nested_attributes_for :goals
     # accepts_nested_attributes_for :team_members, reject_if: :all_blank, allow_destroy: true
@@ -46,12 +51,14 @@ module Health
 
 
     def ensure_team_exists
+      return if self.revising
       if team.blank?
         create_team!(patient: patient, editor: user)
       end
     end
 
     def set_lock
+      return if self.revising
       if self.patient_signed_on.present? && self.provider_signed_on.present?
         self.locked = true
       else
@@ -64,14 +71,15 @@ module Health
       original_team_members = self.team_members
       original_goals = self.goals
 
+      new_careplan = self.class.new(revsion_attributes)
       self.class.transaction do
-        new_careplan = self.class.new(revsion_attributes)
+        new_careplan.revising = true
+        new_careplan.locked = false
+        new_careplan.save!
         team_attrs = original_team.attributes.except('id')
         team_attrs['careplan_id'] = new_careplan.id
-        new_team = original_team.class.new(team_attrs)
-        new_careplan.team = new_team
-        binding.pry
-        new_careplan.save!
+        new_team = original_team.class.create(team_attrs)
+        
         original_team_members.each do |member|
           member_attrs = member.attributes.except('id')
           member_attrs['team_id'] = new_team.id

@@ -46,8 +46,9 @@ module Window::Health
     end
 
     def update
-
-      @careplan.update!(careplan_params)
+      attributes = careplan_params
+      attributes[:user_id] = current_user.id
+      @careplan.update!(attributes)
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
@@ -56,10 +57,7 @@ module Window::Health
     end
     
     def set_careplan
-      @careplan = careplan_source.where(patient_id: @patient.id).first_or_create do |cp|
-        cp.user = current_user
-        cp.save!
-      end
+      @careplan = careplan_source.find(params[:id].to_i)
     end
 
     def careplan_source
