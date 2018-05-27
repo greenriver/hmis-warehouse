@@ -3,11 +3,18 @@ module Health
 
     before_validation :update_rejected_from_reason
 
-    # TODO: this needs to be updated with list provided by bhchp 
-    # example {rejected_reason_none: 0, rejected_reason_refused_consent: 1}
     # rejected_reason_none: 0 always needs to be there
     # this is the default and means that the patient referral is not rejected
-    enum rejected_reason: {rejected_reason_none: 0, rejected_reason_reason_1: 1, rejected_reason_reason_2: 2}
+    enum rejected_reason: {
+      Remove_Rejection: 0, 
+      Declined: 1,
+      Unreachable: 2,
+      Moved_out_of_Geographic_Area: 3,
+      Graduated: 4,
+      Enrollee_requested_change: 5,
+      'ACO/MCO requested change' => 6,
+      Medical_exception: 2,
+    }
 
     scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
@@ -52,29 +59,18 @@ module Health
 
     def age
       if birthdate.present?
-        ((Time.now - birthdate.to_time)/1.year.seconds).floor
+        GrdaWarehouse::Hud::Client.age(dob: birthdate.to_date, date: Date.today)
       else
         'Unknown'
       end
+    end
+
+    def rejected_reason_none?
+      rejected_reason == 'Remove_Rejection'
     end
 
     def self.display_rejected_reason(reason)
-      r = reason.split('_')
-      r.shift(2)
-      result = r.join(' ').capitalize
-      if result == 'None'
-        'Remove Rejection'
-      else
-        result
-      end
-    end
-
-    def display_ssn
-      if ssn
-        "XXX-XX-#{ssn.chars.last(4).join}"
-      else
-        'Unknown'
-      end
+      reason.gsub('_', ' ')
     end
 
     def display_claimed_by_other(agency)
