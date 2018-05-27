@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180527115601) do
+ActiveRecord::Schema.define(version: 20180527173419) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -50,6 +50,16 @@ ActiveRecord::Schema.define(version: 20180527115601) do
     t.string   "id_in_source"
     t.string   "patient_id"
     t.integer  "data_source_id",   default: 6, null: false
+  end
+
+  create_table "careplan_equipment", force: :cascade do |t|
+    t.integer "careplan_id"
+    t.integer "equipment_id"
+  end
+
+  create_table "careplan_services", force: :cascade do |t|
+    t.integer "careplan_id"
+    t.integer "service_id"
   end
 
   create_table "careplans", force: :cascade do |t|
@@ -221,6 +231,17 @@ ActiveRecord::Schema.define(version: 20180527115601) do
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
+
+  create_table "equipment", force: :cascade do |t|
+    t.string   "item"
+    t.string   "provider"
+    t.integer  "quantity"
+    t.date     "effective_date"
+    t.string   "comments"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+  end
 
   create_table "health_files", force: :cascade do |t|
     t.string   "type",         null: false
@@ -463,6 +484,19 @@ ActiveRecord::Schema.define(version: 20180527115601) do
     t.integer  "time_score"
     t.text     "time_notes"
     t.datetime "completed_at"
+  end
+
+  create_table "services", force: :cascade do |t|
+    t.string   "service_type"
+    t.string   "provider"
+    t.string   "hours"
+    t.string   "days"
+    t.date     "date_requested"
+    t.date     "effective_date"
+    t.date     "end_date"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
   end
 
   create_table "team_members", force: :cascade do |t|

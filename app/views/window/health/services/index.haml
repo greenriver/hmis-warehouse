@@ -1,0 +1,5 @@
+= render 'window/clients/breadcrumbs'
+
+= content_for(:title, "Services for #{@patient.name}")
+%h1= content_for(:title)
+= render 'window/clients/tab_navigation', current: polymorphic_path(health_path_generator + [:services], client_id: @client.id)

@@ -10,6 +10,12 @@ module Health
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
 
+    has_many :careplan_services, dependent: :destroy
+    has_many :services, through: :careplan_services
+
+    has_many :careplan_equipments, dependent: :destroy
+    has_many :equipments, through: :careplan_equipments
+
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
     belongs_to :representative, class_name: Health::Team::Member.name
