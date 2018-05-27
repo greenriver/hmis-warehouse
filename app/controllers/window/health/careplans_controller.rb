@@ -8,7 +8,7 @@ module Window::Health
     before_action :require_can_edit_client_health!
     before_action :set_client
     before_action :set_patient
-    before_action :set_careplan, only: [:show, :edit, :update, :revise]
+    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
     
     def index
       @goal = Health::Goal::Base.new
@@ -19,6 +19,11 @@ module Window::Health
     def show
       @goal = Health::Goal::Base.new
       @readonly = false
+      file_name = 'care_plan'
+      
+      # debugging
+      # render layout: false
+      render pdf: file_name, layout: false, encoding: "UTF-8", page_size: 'Letter'
     end
 
     def edit
@@ -29,10 +34,16 @@ module Window::Health
     def new
       Health::Careplan.transaction do
         @careplan = @patient.careplans.create!(user: current_user)
+        @careplan.ensure_team_exists
       end
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
       # @form_url = polymorphic_path(careplans_path_generator)
       # @form_button = 'Create Care Plan'
+    end
+
+    def destroy
+      @careplan.destroy
+      respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
     def print
@@ -48,7 +59,14 @@ module Window::Health
     def update
       attributes = careplan_params
       attributes[:user_id] = current_user.id
-      @careplan.update!(attributes)
+      @careplan.class.transaction do
+        @careplan.update(attributes)
+        @careplan.set_lock
+      end
+      # for errors
+      @form_url = polymorphic_path(careplan_path_generator) 
+      @form_button = 'Save Care Plan'
+      
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
@@ -77,7 +95,11 @@ module Window::Health
           :representative_id,
           :representative_signed_on,
           :provider_id,
-          :provider_signed_on
+          :provider_signed_on,
+          :patient_health_problems,
+          :patient_strengths,
+          :patient_goals,
+          :patient_barriers,
         )
     end
 

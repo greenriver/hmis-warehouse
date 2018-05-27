@@ -26,7 +26,7 @@ Rails.application.routes.draw do
       resources :metrics, only: [:index]
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
-      resources :careplans, except: [:destroy, :create] do
+      resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment

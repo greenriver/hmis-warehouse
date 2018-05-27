@@ -1,0 +1,85 @@
+= wicked_pdf_stylesheet_link_tag 'print', media: 'print'
+
+- title = "Care Plan for #{@patient.name} as of #{Date.today}"
+- content_for :title, title
+%h1= title
+
+%table
+  %thead
+    %tr
+      %th Initial Date
+      %th Review Date
+  %tbody
+    %tr
+      %td= @careplan.initial_date
+      %td= @careplan.review_date
+
+%h3 Care Team Members
+%table.health__team
+  %thead
+    %tr
+      %th Capacity
+      %th Name
+      %th Organization
+      %th Contact
+  %tbody
+    - @careplan.team_members.each do |member|
+      %tr
+        %td= member.member_type_name
+        %td= member.full_name
+        %td= member.organization
+        %td
+          = member.email
+          %br
+          = member.phone
+      
+
+.health-care-plan__about-me
+  %h3 About Me
+  %h4 My Health Problems
+  = simple_format @careplan.patient_health_problems
+  %h4 My Strengths
+  = simple_format @careplan.patient_strengths
+  %h4 My Goals
+  = simple_format @careplan.patient_goals
+  %h4 My Barriers
+  = simple_format @careplan.patient_barriers
+
+.health-care-plan__goals
+  %h3 Goals
+  %table.health-care-plan__goal-list
+    %thead
+      %tr
+        %th Responsible Care Team Member
+        %th Start Date
+        %th Status
+        %th Problem
+        %th Goal Description
+        %th Intervention
+            
+    %tbody
+      - @careplan.goals.each do |goal|
+        %tr
+          %td= @careplan.team.available_members.to_h.invert[goal.responsible_team_member_id]
+          %td= goal.start_date
+          %td= goal.status
+          %td= simple_format goal.problem
+          %td= simple_format goal.goal_details
+          %td= simple_format goal.intervention
+
+.health-care-plan__responsible-parties
+  %h3 Responsible Parties
+  %table
+    %body
+      %tr
+        %th Party:
+        %td= @patient.name
+        %td= @careplan.responsible_team_member&.full_name
+        %td= @careplan.representative&.full_name
+        %td= @careplan.provider&.full_name
+      %tr
+        %th Signed On:
+        %td= @careplan.patient_signed_on
+        %td= @careplan.responsible_team_member_signed_on
+        %td= @careplan.representative_signed_on
+        %td= @careplan.provider_signed_on

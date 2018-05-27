@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180525155355) do
+ActiveRecord::Schema.define(version: 20180527115601) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -79,6 +79,7 @@ ActiveRecord::Schema.define(version: 20180525155355) do
     t.integer  "representative_id"
     t.datetime "responsible_team_member_signed_on"
     t.datetime "representative_signed_on"
+    t.text     "service_archive"
   end
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree

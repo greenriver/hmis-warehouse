@@ -10,23 +10,13 @@ module Health
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
 
-    belongs_to :responsible_team_member, class_name: Health::Team::Member
-    belongs_to :provider, class_name: Health::Team::Member
-    belongs_to :representative, class_name: Health::Team::Member
+    belongs_to :responsible_team_member, class_name: Health::Team::Member.name
+    belongs_to :provider, class_name: Health::Team::Member.name
+    belongs_to :representative, class_name: Health::Team::Member.name
 
-    attr_accessor :revising
+    serialize :service_archive, Array
 
-    def revising
-      @revising || false
-    end
-
-    # accepts_nested_attributes_for :goals
-    # accepts_nested_attributes_for :team_members, reject_if: :all_blank, allow_destroy: true
-
-    # Callbacks
-    after_create :ensure_team_exists
-    before_save :set_lock
-    # End Callbacks 
+    validates_presence_of :provider_id, if: -> { self.provider_signed_on.present? }
 
     # Scopes
     scope :locked, -> do
@@ -44,26 +34,29 @@ module Health
     end
     # End Scopes 
 
-    # TODO
     def editable?
       ! locked
     end
 
-
     def ensure_team_exists
-      return if self.revising
       if team.blank?
         create_team!(patient: patient, editor: user)
       end
     end
 
     def set_lock
-      return if self.revising
       if self.patient_signed_on.present? && self.provider_signed_on.present?
         self.locked = true
+        archive_services
       else
         self.locked = false
       end
+      self.save
+    end
+
+    # TODO
+    def archive_services
+      # Copy current services into service_archive
     end
 
     def revise!
@@ -73,7 +66,6 @@ module Health
 
       new_careplan = self.class.new(revsion_attributes)
       self.class.transaction do
-        new_careplan.revising = true
         new_careplan.locked = false
         new_careplan.save!
         team_attrs = original_team.attributes.except('id')
