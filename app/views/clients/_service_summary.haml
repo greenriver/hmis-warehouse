@@ -17,11 +17,11 @@
       %li
         %h4 Days in Last 3 Years
         .client__days-homeless
-          = "#{@client.processed_service_history&.days_homeless_last_three_years} homeless"
+          = "#{@client.processed_service_history&.days_homeless_last_three_years || 0} homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH'}}
           
         .client__days-literally-homeless
-          = "#{@client.processed_service_history&.literally_homeless_last_three_years} literally homeless"
+          = "#{@client.processed_service_history&.literally_homeless_last_three_years || 0} literally homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH'}}
           
       - if @client.service_history_enrollments.ongoing.residential.any?
