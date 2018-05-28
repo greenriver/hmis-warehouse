@@ -15,10 +15,15 @@
           %h4 Last Seen Location
           %span=projects.to_sentence
       %li
-        %h4 Past Three Years
-        %span= "#{@client.processed_service_history&.days_homeless_last_three_years} days homeless (ES, SO, SH, and TH)"
-        %br
-        %span= "#{@client.processed_service_history&.literally_homeless_last_three_years} days literally homeless (ES, SO, and SH)"
+        %h4 Days in Last 3 Years
+        .client__days-homeless
+          = "#{@client.processed_service_history&.days_homeless_last_three_years} homeless"
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH'}}
+          
+        .client__days-literally-homeless
+          = "#{@client.processed_service_history&.literally_homeless_last_three_years} literally homeless"
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH'}}
+          
       - if @client.service_history_enrollments.ongoing.residential.any?
         %li
           %h4 Enrolled in
