@@ -98,7 +98,7 @@ module GrdaWarehouse::Tasks
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
         active_cohort_ids: :active_cohort_ids,
-        # assessment_score: :most_recent_coc_assessment_score, 
+        # assessment_score: :rrh_assessment_score, 
       }
     end
   end

@@ -35,14 +35,14 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
         Delayed::Worker.new.work_off(2)
       end
       it 'generate two entry records in the service history' do
-        expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(2)
+        expect(GrdaWarehouse::ServiceHistoryEnrollment.entry.count).to eq(2)
       end
       # First two enrollments are TrackingMethod = 3 (night-by-night)
       it 'generate 20 service records' do
-        expect(GrdaWarehouse::ServiceHistory.service.count).to eq(20)
+        expect(GrdaWarehouse::ServiceHistoryService.service.count).to eq(20)
       end
       it 'generate 10 unique dates of service' do
-        expect(GrdaWarehouse::ServiceHistory.service.select(:date).distinct.count).to eq(10)
+        expect(GrdaWarehouse::ServiceHistoryService.service.select(:date).distinct.count).to eq(10)
       end
     end
   end # end describe when processing
@@ -66,10 +66,10 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
     end
     it 'there should be three service history entry records' do
-      expect(GrdaWarehouse::ServiceHistory.entry.count).to eq(3)
+      expect(GrdaWarehouse::ServiceHistoryEnrollment.entry.count).to eq(3)
     end
     it 'there should be two service history exit records' do
-      expect(GrdaWarehouse::ServiceHistory.exit.count).to eq(2)
+      expect(GrdaWarehouse::ServiceHistoryEnrollment.exit.count).to eq(2)
     end
     it 'it should import all source services regardless of enrollment start and end' do
       client = GrdaWarehouse::Hud::Client.destination.where(PersonalID: '1-1').first
