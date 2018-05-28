@@ -1693,7 +1693,16 @@ module GrdaWarehouse::Hud
       self.class.days_homeless_in_last_three_years(client_id: id, on_date: on_date)
     end
 
-    def self.dates_homeless_scope(client_id:, on_date: Date.today)
+    def self.literally_homeless_last_three_years(client_id:, on_date: Date.today)
+      dates_literally_homeless_in_last_three_years_scope(client_id: client_id, on_date: on_date).count
+    end
+
+    def literally_homeless_last_three_years(on_date: Date.today)
+      self.class.literally_homeless_last_three_years(client_id: id, on_date: on_date)
+    end
+
+
+    def self.dates_homeless_scope client_id:, on_date: Date.today 
       GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
         homeless.
         where(shs_t[:date].lteq(on_date)).
@@ -1701,7 +1710,7 @@ module GrdaWarehouse::Hud
         select(:date).distinct
     end
 
-    def self.dates_in_hud_chronic_homeless_last_three_years_scope(client_id:, on_date: Date.today, chronic_only: true)
+    def self.dates_in_hud_chronic_homeless_last_three_years_scope client_id:, on_date: Date.today, chronic_only: true
       Rails.cache.fetch([client_id, "dates_in_hud_chronic_homeless_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
         end_date = on_date.to_date
         start_date = end_date - 3.years
@@ -1714,29 +1723,60 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.dates_homeless_in_last_three_years_scope(client_id:, on_date: Date.today)
+    # ES, SO, SH, or TH with no overlapping PH
+    def self.dates_homeless_in_last_three_years_scope client_id:, on_date: Date.today
       Rails.cache.fetch([client_id, "dates_homeless_in_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
         end_date = on_date.to_date
         start_date = end_date - 3.years
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           homeless.
           where(date: start_date..end_date).
-          where.not(date: dates_hud_non_chronic_residential_scope(client_id: client_id)).
+          where.not(date: dates_in_ph_last_three_years_scope(client_id: client_id, on_date: on_date)).
           select(:date).distinct
       end
     end
 
-    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date:
+    # ES, SO, or SH with no overlapping TH or PH
+    def self.dates_literally_homeless_in_last_three_years_scope client_id:, on_date: Date.today
+      Rails.cache.fetch([client_id, "dates_literally_homeless_in_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
+        end_date = on_date.to_date
+        start_date = end_date - 3.years
+        GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
+          homeless.
+          where(date: start_date..end_date).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
+          select(:date).distinct
+      end
+    end
+
+    # TH or PH
+    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date: Date.today
       end_date = on_date.to_date
       start_date = end_date - 3.years
+
+      dates_hud_non_chronic_residential_scope(client_id: client_id).
+        where(date: start_date..end_date)
+    end
+
+    # TH or PH
+    def self.dates_hud_non_chronic_residential_scope client_id:
       GrdaWarehouse::ServiceHistoryService.hud_residential_non_homeless.
-        where(date: start_date..end_date).
-        where(client_id: client_id).
+      where(client_id: client_id).
         select(:date).distinct
     end
 
-    def self.dates_hud_non_chronic_residential_scope client_id:
-      GrdaWarehouse::ServiceHistoryService.hud_residential_non_homeless.
+    # PH
+    def self.dates_in_ph_last_three_years_scope client_id:, on_date:
+      end_date = on_date.to_date
+      start_date = end_date - 3.years
+
+      dates_in_ph_residential_scope(client_id: client_id).
+        where(date: start_date..end_date)
+    end
+
+    # PH
+    def self.dates_in_ph_residential_scope client_id:
+      GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
       where(client_id: client_id).
         select(:date).distinct
     end

@@ -11,12 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180521173754) do
+ActiveRecord::Schema.define(version: 20180528174021) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
   enable_extension "pgcrypto"
+  enable_extension "pg_stat_statements"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -103,6 +104,12 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.boolean  "congregate_housing",                                 default: false
     t.boolean  "sober_housing",                                      default: false
     t.integer  "consent_form_id"
+    t.integer  "rrh_assessment_score"
+    t.boolean  "ssvf_eligible",                                      default: false, null: false
+    t.boolean  "rrh_desired",                                        default: false, null: false
+    t.boolean  "youth_rrh_desired",                                  default: false, null: false
+    t.string   "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -785,6 +792,19 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.boolean  "full_release",         default: false, null: false
   end
 
+  create_table "cas_enrollments", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "enrollment_id"
+    t.date     "entry_date"
+    t.date     "exit_date"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.json     "history"
+  end
+
+  add_index "cas_enrollments", ["client_id"], name: "index_cas_enrollments_on_client_id", using: :btree
+  add_index "cas_enrollments", ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id", using: :btree
+
   create_table "cas_houseds", force: :cascade do |t|
     t.integer "client_id",                     null: false
     t.integer "cas_client_id",                 null: false
@@ -948,10 +968,10 @@ ActiveRecord::Schema.define(version: 20180521173754) do
   add_index "cohort_client_notes", ["deleted_at"], name: "index_cohort_client_notes_on_deleted_at", using: :btree
 
   create_table "cohort_clients", force: :cascade do |t|
-    t.integer  "cohort_id",                                               null: false
-    t.integer  "client_id",                                               null: false
-    t.datetime "created_at",                                              null: false
-    t.datetime "updated_at",                                              null: false
+    t.integer  "cohort_id",                                                         null: false
+    t.integer  "client_id",                                                         null: false
+    t.datetime "created_at",                                                        null: false
+    t.datetime "updated_at",                                                        null: false
     t.datetime "deleted_at"
     t.string   "agency"
     t.string   "case_manager"
@@ -961,7 +981,7 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.boolean  "sif_eligible",                            default: false
+    t.boolean  "sif_eligible",                                      default: false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -971,13 +991,13 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
     t.string   "va_eligible"
-    t.boolean  "vash_eligible",                           default: false
+    t.boolean  "vash_eligible",                                     default: false
     t.string   "chapter_115"
     t.date     "first_date_homeless"
     t.date     "last_date_approached"
-    t.boolean  "chronic",                                 default: false
+    t.boolean  "chronic",                                           default: false
     t.string   "dnd_rank"
-    t.boolean  "veteran",                                 default: false
+    t.boolean  "veteran",                                           default: false
     t.string   "housing_track_suggested"
     t.string   "housing_track_enrolled"
     t.integer  "adjusted_days_homeless"
@@ -987,20 +1007,21 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.string   "location"
     t.string   "location_type"
     t.string   "vet_squares_confirmed"
-    t.boolean  "active",                                  default: true,  null: false
+    t.boolean  "active",                                            default: true,  null: false
     t.string   "provider"
     t.string   "next_step"
     t.text     "housing_plan"
     t.date     "document_ready_on"
     t.string   "new_lease_referral"
     t.string   "vulnerability_rank"
-    t.boolean  "ineligible",                              default: false, null: false
-    t.integer  "adjusted_days_homeless_last_three_years", default: 0,     null: false
-    t.boolean  "original_chronic",                        default: false, null: false
+    t.boolean  "ineligible",                                        default: false, null: false
+    t.integer  "adjusted_days_homeless_last_three_years",           default: 0,     null: false
+    t.boolean  "original_chronic",                                  default: false, null: false
     t.string   "not_a_vet"
     t.string   "primary_housing_track_suggested"
     t.integer  "minimum_bedroom_size"
     t.string   "special_needs"
+    t.integer  "adjusted_days_literally_homeless_last_three_years"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1375,15 +1396,6 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.boolean "individual_elder",                            default: false, null: false
     t.boolean "head_of_household",                           default: false, null: false
   end
-
-  add_index "new_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
-  add_index "new_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
-  add_index "new_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
-  add_index "new_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
-  add_index "new_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
-  add_index "new_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
-  add_index "new_service_history", ["first_date_in_program"], name: "index_new_service_history_on_first_date_in_program", using: :brin
-  add_index "new_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
 
   create_table "project_data_quality", force: :cascade do |t|
     t.integer  "project_id"
@@ -2715,42 +2727,48 @@ ActiveRecord::Schema.define(version: 20180521173754) do
   add_index "vispdats", ["user_id"], name: "index_vispdats_on_user_id", using: :btree
 
   create_table "warehouse_client_service_history", force: :cascade do |t|
-    t.integer "client_id",                           null: false
+    t.integer "client_id",                                                   null: false
     t.integer "data_source_id"
-    t.date    "date",                                null: false
-    t.date    "first_date_in_program",               null: false
+    t.date    "date",                                                        null: false
+    t.date    "first_date_in_program",                                       null: false
     t.date    "last_date_in_program"
-    t.string  "enrollment_group_id",     limit: 50
+    t.string  "enrollment_group_id",             limit: 50
     t.integer "age"
     t.integer "destination"
-    t.string  "head_of_household_id",    limit: 50
-    t.string  "household_id",            limit: 50
-    t.string  "project_id",              limit: 50
-    t.string  "project_name",            limit: 150
+    t.string  "head_of_household_id",            limit: 50
+    t.string  "household_id",                    limit: 50
+    t.string  "project_name",                    limit: 150
     t.integer "project_type"
     t.integer "project_tracking_method"
-    t.string  "organization_id",         limit: 50
-    t.string  "record_type",             limit: 50,  null: false
+    t.string  "organization_id",                 limit: 50
+    t.string  "record_type",                     limit: 50,                  null: false
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
     t.integer "service_type"
     t.integer "computed_project_type"
     t.boolean "presented_as_individual"
+    t.integer "other_clients_over_25",                       default: 0,     null: false
+    t.integer "other_clients_under_18",                      default: 0,     null: false
+    t.integer "other_clients_between_18_and_25",             default: 0,     null: false
+    t.boolean "unaccompanied_youth",                         default: false, null: false
+    t.boolean "parenting_youth",                             default: false, null: false
+    t.boolean "parenting_juvenile",                          default: false, null: false
+    t.boolean "children_only",                               default: false, null: false
+    t.boolean "individual_adult",                            default: false, null: false
+    t.boolean "individual_elder",                            default: false, null: false
+    t.boolean "head_of_household",                           default: false, null: false
+    t.string  "project_id",                      limit: 50
   end
 
-  add_index "warehouse_client_service_history", ["client_id"], name: "index_service_history_on_client_id", using: :btree
-  add_index "warehouse_client_service_history", ["computed_project_type"], name: "index_warehouse_client_service_history_on_computed_project_type", using: :btree
-  add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type", using: :btree
-  add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
-  add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], name: "sh_date_ds_id_org_id_proj_id_proj_type", using: :btree
-  add_index "warehouse_client_service_history", ["date"], name: "date_index", using: :btree
-  add_index "warehouse_client_service_history", ["enrollment_group_id"], name: "index_warehouse_client_service_history_on_enrollment_group_id", using: :btree
-  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
-  add_index "warehouse_client_service_history", ["household_id"], name: "index_warehouse_client_service_history_on_household_id", using: :btree
-  add_index "warehouse_client_service_history", ["last_date_in_program"], name: "index_warehouse_client_service_history_on_last_date_in_program", using: :btree
-  add_index "warehouse_client_service_history", ["project_tracking_method"], name: "index_sh_tracking_method", using: :btree
-  add_index "warehouse_client_service_history", ["project_type"], name: "index_warehouse_client_service_history_on_project_type", using: :btree
-  add_index "warehouse_client_service_history", ["record_type"], name: "index_warehouse_client_service_history_on_record_type", using: :btree
+  add_index "warehouse_client_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
+  add_index "warehouse_client_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
+  add_index "warehouse_client_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
+  add_index "warehouse_client_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
+  add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
+  add_index "warehouse_client_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
+  add_index "warehouse_client_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
+  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :brin
+  add_index "warehouse_client_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
 
   create_table "warehouse_clients", force: :cascade do |t|
     t.string   "id_in_source",    null: false
@@ -2776,8 +2794,8 @@ ActiveRecord::Schema.define(version: 20180521173754) do
   create_table "warehouse_clients_processed", force: :cascade do |t|
     t.integer  "client_id"
     t.string   "routine"
-    t.datetime "created_at",                     null: false
-    t.datetime "updated_at",                     null: false
+    t.datetime "created_at",                          null: false
+    t.datetime "updated_at",                          null: false
     t.datetime "last_service_updated_at"
     t.integer  "days_served"
     t.date     "first_date_served"
@@ -2789,6 +2807,7 @@ ActiveRecord::Schema.define(version: 20180521173754) do
     t.date     "last_chronic_date"
     t.integer  "chronic_days"
     t.integer  "days_homeless_last_three_years"
+    t.integer  "literally_homeless_last_three_years"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
@@ -2984,6 +3003,417 @@ ActiveRecord::Schema.define(version: 20180521173754) do
        JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
        JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
     WHERE ("Client"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_enrollments",  sql_definition: <<-SQL
+      SELECT "Enrollment"."ProjectEntryID",
+      "Enrollment"."PersonalID",
+      "Enrollment"."ProjectID",
+      "Enrollment"."EntryDate",
+      "Enrollment"."HouseholdID",
+      "Enrollment"."RelationshipToHoH",
+      "Enrollment"."ResidencePrior",
+      "Enrollment"."OtherResidencePrior",
+      "Enrollment"."ResidencePriorLengthOfStay",
+      "Enrollment"."DisablingCondition",
+      "Enrollment"."EntryFromStreetESSH",
+      "Enrollment"."DateToStreetESSH",
+      "Enrollment"."ContinuouslyHomelessOneYear",
+      "Enrollment"."TimesHomelessPastThreeYears",
+      "Enrollment"."MonthsHomelessPastThreeYears",
+      "Enrollment"."MonthsHomelessThisTime",
+      "Enrollment"."StatusDocumented",
+      "Enrollment"."HousingStatus",
+      "Enrollment"."DateOfEngagement",
+      "Enrollment"."InPermanentHousing",
+      "Enrollment"."ResidentialMoveInDate",
+      "Enrollment"."DateOfPATHStatus",
+      "Enrollment"."ClientEnrolledInPATH",
+      "Enrollment"."ReasonNotEnrolled",
+      "Enrollment"."WorstHousingSituation",
+      "Enrollment"."PercentAMI",
+      "Enrollment"."LastPermanentStreet",
+      "Enrollment"."LastPermanentCity",
+      "Enrollment"."LastPermanentState",
+      "Enrollment"."LastPermanentZIP",
+      "Enrollment"."AddressDataQuality",
+      "Enrollment"."DateOfBCPStatus",
+      "Enrollment"."FYSBYouth",
+      "Enrollment"."ReasonNoServices",
+      "Enrollment"."SexualOrientation",
+      "Enrollment"."FormerWardChildWelfare",
+      "Enrollment"."ChildWelfareYears",
+      "Enrollment"."ChildWelfareMonths",
+      "Enrollment"."FormerWardJuvenileJustice",
+      "Enrollment"."JuvenileJusticeYears",
+      "Enrollment"."JuvenileJusticeMonths",
+      "Enrollment"."HouseholdDynamics",
+      "Enrollment"."SexualOrientationGenderIDYouth",
+      "Enrollment"."SexualOrientationGenderIDFam",
+      "Enrollment"."HousingIssuesYouth",
+      "Enrollment"."HousingIssuesFam",
+      "Enrollment"."SchoolEducationalIssuesYouth",
+      "Enrollment"."SchoolEducationalIssuesFam",
+      "Enrollment"."UnemploymentYouth",
+      "Enrollment"."UnemploymentFam",
+      "Enrollment"."MentalHealthIssuesYouth",
+      "Enrollment"."MentalHealthIssuesFam",
+      "Enrollment"."HealthIssuesYouth",
+      "Enrollment"."HealthIssuesFam",
+      "Enrollment"."PhysicalDisabilityYouth",
+      "Enrollment"."PhysicalDisabilityFam",
+      "Enrollment"."MentalDisabilityYouth",
+      "Enrollment"."MentalDisabilityFam",
+      "Enrollment"."AbuseAndNeglectYouth",
+      "Enrollment"."AbuseAndNeglectFam",
+      "Enrollment"."AlcoholDrugAbuseYouth",
+      "Enrollment"."AlcoholDrugAbuseFam",
+      "Enrollment"."InsufficientIncome",
+      "Enrollment"."ActiveMilitaryParent",
+      "Enrollment"."IncarceratedParent",
+      "Enrollment"."IncarceratedParentStatus",
+      "Enrollment"."ReferralSource",
+      "Enrollment"."CountOutreachReferralApproaches",
+      "Enrollment"."ExchangeForSex",
+      "Enrollment"."ExchangeForSexPastThreeMonths",
+      "Enrollment"."CountOfExchangeForSex",
+      "Enrollment"."AskedOrForcedToExchangeForSex",
+      "Enrollment"."AskedOrForcedToExchangeForSexPastThreeMonths",
+      "Enrollment"."WorkPlaceViolenceThreats",
+      "Enrollment"."WorkplacePromiseDifference",
+      "Enrollment"."CoercedToContinueWork",
+      "Enrollment"."LaborExploitPastThreeMonths",
+      "Enrollment"."HPScreeningScore",
+      "Enrollment"."VAMCStation",
+      "Enrollment"."DateCreated",
+      "Enrollment"."DateUpdated",
+      "Enrollment"."UserID",
+      "Enrollment"."DateDeleted",
+      "Enrollment"."ExportID",
+      "Enrollment".data_source_id,
+      "Enrollment".id,
+      "Enrollment"."LOSUnderThreshold",
+      "Enrollment"."PreviousStreetESSH",
+      "Enrollment"."UrgentReferral",
+      "Enrollment"."TimeToHousingLoss",
+      "Enrollment"."ZeroIncome",
+      "Enrollment"."AnnualPercentAMI",
+      "Enrollment"."FinancialChange",
+      "Enrollment"."HouseholdChange",
+      "Enrollment"."EvictionHistory",
+      "Enrollment"."SubsidyAtRisk",
+      "Enrollment"."LiteralHomelessHistory",
+      "Enrollment"."DisabledHoH",
+      "Enrollment"."CriminalRecord",
+      "Enrollment"."SexOffender",
+      "Enrollment"."DependentUnder6",
+      "Enrollment"."SingleParent",
+      "Enrollment"."HH5Plus",
+      "Enrollment"."IraqAfghanistan",
+      "Enrollment"."FemVet",
+      "Enrollment"."ThresholdScore",
+      "Enrollment"."ERVisits",
+      "Enrollment"."JailNights",
+      "Enrollment"."HospitalNights",
+      "Enrollment"."RunawayYouth",
+      "Enrollment".processed_hash,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM ((("Enrollment"
+       JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE ("Enrollment"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_disabilities",  sql_definition: <<-SQL
+      SELECT "Disabilities"."DisabilitiesID",
+      "Disabilities"."ProjectEntryID",
+      "Disabilities"."PersonalID",
+      "Disabilities"."InformationDate",
+      "Disabilities"."DisabilityType",
+      "Disabilities"."DisabilityResponse",
+      "Disabilities"."IndefiniteAndImpairs",
+      "Disabilities"."DocumentationOnFile",
+      "Disabilities"."ReceivingServices",
+      "Disabilities"."PATHHowConfirmed",
+      "Disabilities"."PATHSMIInformation",
+      "Disabilities"."TCellCountAvailable",
+      "Disabilities"."TCellCount",
+      "Disabilities"."TCellSource",
+      "Disabilities"."ViralLoadAvailable",
+      "Disabilities"."ViralLoad",
+      "Disabilities"."ViralLoadSource",
+      "Disabilities"."DataCollectionStage",
+      "Disabilities"."DateCreated",
+      "Disabilities"."DateUpdated",
+      "Disabilities"."UserID",
+      "Disabilities"."DateDeleted",
+      "Disabilities"."ExportID",
+      "Disabilities".data_source_id,
+      "Disabilities".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Disabilities"
+       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Disabilities"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_employment_educations",  sql_definition: <<-SQL
+      SELECT "EmploymentEducation"."EmploymentEducationID",
+      "EmploymentEducation"."ProjectEntryID",
+      "EmploymentEducation"."PersonalID",
+      "EmploymentEducation"."InformationDate",
+      "EmploymentEducation"."LastGradeCompleted",
+      "EmploymentEducation"."SchoolStatus",
+      "EmploymentEducation"."Employed",
+      "EmploymentEducation"."EmploymentType",
+      "EmploymentEducation"."NotEmployedReason",
+      "EmploymentEducation"."DataCollectionStage",
+      "EmploymentEducation"."DateCreated",
+      "EmploymentEducation"."DateUpdated",
+      "EmploymentEducation"."UserID",
+      "EmploymentEducation"."DateDeleted",
+      "EmploymentEducation"."ExportID",
+      "EmploymentEducation".data_source_id,
+      "EmploymentEducation".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("EmploymentEducation"
+       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_exits",  sql_definition: <<-SQL
+      SELECT "Exit"."ExitID",
+      "Exit"."ProjectEntryID",
+      "Exit"."PersonalID",
+      "Exit"."ExitDate",
+      "Exit"."Destination",
+      "Exit"."OtherDestination",
+      "Exit"."AssessmentDisposition",
+      "Exit"."OtherDisposition",
+      "Exit"."HousingAssessment",
+      "Exit"."SubsidyInformation",
+      "Exit"."ConnectionWithSOAR",
+      "Exit"."WrittenAftercarePlan",
+      "Exit"."AssistanceMainstreamBenefits",
+      "Exit"."PermanentHousingPlacement",
+      "Exit"."TemporaryShelterPlacement",
+      "Exit"."ExitCounseling",
+      "Exit"."FurtherFollowUpServices",
+      "Exit"."ScheduledFollowUpContacts",
+      "Exit"."ResourcePackage",
+      "Exit"."OtherAftercarePlanOrAction",
+      "Exit"."ProjectCompletionStatus",
+      "Exit"."EarlyExitReason",
+      "Exit"."FamilyReunificationAchieved",
+      "Exit"."DateCreated",
+      "Exit"."DateUpdated",
+      "Exit"."UserID",
+      "Exit"."DateDeleted",
+      "Exit"."ExportID",
+      "Exit".data_source_id,
+      "Exit".id,
+      "Exit"."ExchangeForSex",
+      "Exit"."ExchangeForSexPastThreeMonths",
+      "Exit"."CountOfExchangeForSex",
+      "Exit"."AskedOrForcedToExchangeForSex",
+      "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+      "Exit"."WorkPlaceViolenceThreats",
+      "Exit"."WorkplacePromiseDifference",
+      "Exit"."CoercedToContinueWork",
+      "Exit"."LaborExploitPastThreeMonths",
+      "Exit"."CounselingReceived",
+      "Exit"."IndividualCounseling",
+      "Exit"."FamilyCounseling",
+      "Exit"."GroupCounseling",
+      "Exit"."SessionCountAtExit",
+      "Exit"."PostExitCounselingPlan",
+      "Exit"."SessionsInPlan",
+      "Exit"."DestinationSafeClient",
+      "Exit"."DestinationSafeWorker",
+      "Exit"."PosAdultConnections",
+      "Exit"."PosPeerConnections",
+      "Exit"."PosCommunityConnections",
+      "Exit"."AftercareDate",
+      "Exit"."AftercareProvided",
+      "Exit"."EmailSocialMedia",
+      "Exit"."Telephone",
+      "Exit"."InPersonIndividual",
+      "Exit"."InPersonGroup",
+      "Exit"."CMExitReason",
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Exit"
+       JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Exit"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Exit"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_health_and_dvs",  sql_definition: <<-SQL
+      SELECT "HealthAndDV"."HealthAndDVID",
+      "HealthAndDV"."ProjectEntryID",
+      "HealthAndDV"."PersonalID",
+      "HealthAndDV"."InformationDate",
+      "HealthAndDV"."DomesticViolenceVictim",
+      "HealthAndDV"."WhenOccurred",
+      "HealthAndDV"."CurrentlyFleeing",
+      "HealthAndDV"."GeneralHealthStatus",
+      "HealthAndDV"."DentalHealthStatus",
+      "HealthAndDV"."MentalHealthStatus",
+      "HealthAndDV"."PregnancyStatus",
+      "HealthAndDV"."DueDate",
+      "HealthAndDV"."DataCollectionStage",
+      "HealthAndDV"."DateCreated",
+      "HealthAndDV"."DateUpdated",
+      "HealthAndDV"."UserID",
+      "HealthAndDV"."DateDeleted",
+      "HealthAndDV"."ExportID",
+      "HealthAndDV".data_source_id,
+      "HealthAndDV".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("HealthAndDV"
+       JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("HealthAndDV"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("HealthAndDV"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_income_benefits",  sql_definition: <<-SQL
+      SELECT "IncomeBenefits"."IncomeBenefitsID",
+      "IncomeBenefits"."ProjectEntryID",
+      "IncomeBenefits"."PersonalID",
+      "IncomeBenefits"."InformationDate",
+      "IncomeBenefits"."IncomeFromAnySource",
+      "IncomeBenefits"."TotalMonthlyIncome",
+      "IncomeBenefits"."Earned",
+      "IncomeBenefits"."EarnedAmount",
+      "IncomeBenefits"."Unemployment",
+      "IncomeBenefits"."UnemploymentAmount",
+      "IncomeBenefits"."SSI",
+      "IncomeBenefits"."SSIAmount",
+      "IncomeBenefits"."SSDI",
+      "IncomeBenefits"."SSDIAmount",
+      "IncomeBenefits"."VADisabilityService",
+      "IncomeBenefits"."VADisabilityServiceAmount",
+      "IncomeBenefits"."VADisabilityNonService",
+      "IncomeBenefits"."VADisabilityNonServiceAmount",
+      "IncomeBenefits"."PrivateDisability",
+      "IncomeBenefits"."PrivateDisabilityAmount",
+      "IncomeBenefits"."WorkersComp",
+      "IncomeBenefits"."WorkersCompAmount",
+      "IncomeBenefits"."TANF",
+      "IncomeBenefits"."TANFAmount",
+      "IncomeBenefits"."GA",
+      "IncomeBenefits"."GAAmount",
+      "IncomeBenefits"."SocSecRetirement",
+      "IncomeBenefits"."SocSecRetirementAmount",
+      "IncomeBenefits"."Pension",
+      "IncomeBenefits"."PensionAmount",
+      "IncomeBenefits"."ChildSupport",
+      "IncomeBenefits"."ChildSupportAmount",
+      "IncomeBenefits"."Alimony",
+      "IncomeBenefits"."AlimonyAmount",
+      "IncomeBenefits"."OtherIncomeSource",
+      "IncomeBenefits"."OtherIncomeAmount",
+      "IncomeBenefits"."OtherIncomeSourceIdentify",
+      "IncomeBenefits"."BenefitsFromAnySource",
+      "IncomeBenefits"."SNAP",
+      "IncomeBenefits"."WIC",
+      "IncomeBenefits"."TANFChildCare",
+      "IncomeBenefits"."TANFTransportation",
+      "IncomeBenefits"."OtherTANF",
+      "IncomeBenefits"."RentalAssistanceOngoing",
+      "IncomeBenefits"."RentalAssistanceTemp",
+      "IncomeBenefits"."OtherBenefitsSource",
+      "IncomeBenefits"."OtherBenefitsSourceIdentify",
+      "IncomeBenefits"."InsuranceFromAnySource",
+      "IncomeBenefits"."Medicaid",
+      "IncomeBenefits"."NoMedicaidReason",
+      "IncomeBenefits"."Medicare",
+      "IncomeBenefits"."NoMedicareReason",
+      "IncomeBenefits"."SCHIP",
+      "IncomeBenefits"."NoSCHIPReason",
+      "IncomeBenefits"."VAMedicalServices",
+      "IncomeBenefits"."NoVAMedReason",
+      "IncomeBenefits"."EmployerProvided",
+      "IncomeBenefits"."NoEmployerProvidedReason",
+      "IncomeBenefits"."COBRA",
+      "IncomeBenefits"."NoCOBRAReason",
+      "IncomeBenefits"."PrivatePay",
+      "IncomeBenefits"."NoPrivatePayReason",
+      "IncomeBenefits"."StateHealthIns",
+      "IncomeBenefits"."NoStateHealthInsReason",
+      "IncomeBenefits"."HIVAIDSAssistance",
+      "IncomeBenefits"."NoHIVAIDSAssistanceReason",
+      "IncomeBenefits"."ADAP",
+      "IncomeBenefits"."NoADAPReason",
+      "IncomeBenefits"."DataCollectionStage",
+      "IncomeBenefits"."DateCreated",
+      "IncomeBenefits"."DateUpdated",
+      "IncomeBenefits"."UserID",
+      "IncomeBenefits"."DateDeleted",
+      "IncomeBenefits"."ExportID",
+      "IncomeBenefits".data_source_id,
+      "IncomeBenefits".id,
+      "IncomeBenefits"."IndianHealthServices",
+      "IncomeBenefits"."NoIndianHealthServicesReason",
+      "IncomeBenefits"."OtherInsurance",
+      "IncomeBenefits"."OtherInsuranceIdentify",
+      "IncomeBenefits"."ConnectionWithSOAR",
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("IncomeBenefits"
+       JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("IncomeBenefits"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_services",  sql_definition: <<-SQL
+      SELECT "Services"."ServicesID",
+      "Services"."ProjectEntryID",
+      "Services"."PersonalID",
+      "Services"."DateProvided",
+      "Services"."RecordType",
+      "Services"."TypeProvided",
+      "Services"."OtherTypeProvided",
+      "Services"."SubTypeProvided",
+      "Services"."FAAmount",
+      "Services"."ReferralOutcome",
+      "Services"."DateCreated",
+      "Services"."DateUpdated",
+      "Services"."UserID",
+      "Services"."DateDeleted",
+      "Services"."ExportID",
+      "Services".data_source_id,
+      "Services".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Services"
+       JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Services"."DateDeleted" IS NULL);
   SQL
 
   create_view "service_history",  sql_definition: <<-SQL
