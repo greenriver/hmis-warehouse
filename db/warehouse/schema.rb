@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180528155555) do
+ActiveRecord::Schema.define(version: 20180528174021) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,6 +104,12 @@ ActiveRecord::Schema.define(version: 20180528155555) do
     t.boolean  "congregate_housing",                                 default: false
     t.boolean  "sober_housing",                                      default: false
     t.integer  "consent_form_id"
+    t.integer  "rrh_assessment_score"
+    t.boolean  "ssvf_eligible",                                      default: false, null: false
+    t.boolean  "rrh_desired",                                        default: false, null: false
+    t.boolean  "youth_rrh_desired",                                  default: false, null: false
+    t.string   "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
