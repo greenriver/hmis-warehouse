@@ -24,6 +24,9 @@ module Health
     has_many :release_forms
     has_many :careplans
 
+    has_many :services
+    has_many :equipments
+
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
 

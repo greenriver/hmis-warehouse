@@ -4,6 +4,7 @@ module Health
     acts_as_paranoid
 
     has_many :careplans
+    belongs_to :patient, required: true
 
   end
 end

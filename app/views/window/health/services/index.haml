@@ -1,5 +1,23 @@
 = render 'window/clients/breadcrumbs'
 
-= content_for(:title, "Services for #{@patient.name}")
+= content_for(:title, "Services and Equipment for #{@patient.name}")
 %h1= content_for(:title)
 = render 'window/clients/tab_navigation', current: polymorphic_path(health_path_generator + [:services], client_id: @client.id)
+
+.row.mb-2
+  .col-sm-8
+    %h2.mt-0 Services
+  .col-sm-4.text-right
+    = link_to polymorphic_path([:new] + health_path_generator + [:service]), class: 'btn-primary btn-muted btn-sm', data: { loads_in_pjax_modal: true } do 
+      %i.icon-plus
+      Add Service
+= render 'service_list'
+
+.row.mb-2
+  .col-sm-8
+    %h2.mt-0 Durable Medical Equipment (DME)
+  .col-sm-4.text-right
+    = link_to polymorphic_path([:new] + health_path_generator + [:durable_equipment]), class: 'btn-primary btn-muted btn-sm', data: { loads_in_pjax_modal: true } do 
+      %i.icon-plus
+      Add Equipment Item
+= render 'equipment_list'
