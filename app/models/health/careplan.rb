@@ -10,17 +10,15 @@ module Health
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
 
-    has_many :careplan_services, dependent: :destroy
-    has_many :services, through: :careplan_services
-
-    has_many :careplan_equipments, dependent: :destroy
-    has_many :equipments, through: :careplan_equipments
+    has_many :services, through: :patient, class_name: Health::Service.name
+    has_many :equipments, through: :patient, class_name: Health::Equipment.name
 
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
     belongs_to :representative, class_name: Health::Team::Member.name
 
     serialize :service_archive, Array
+    serialize :equipment_archive, Array
 
     validates_presence_of :provider_id, if: -> { self.provider_signed_on.present? }
 
@@ -54,6 +52,7 @@ module Health
       if self.patient_signed_on.present? && self.provider_signed_on.present?
         self.locked = true
         archive_services
+        archive_equipment
       else
         self.locked = false
       end
@@ -62,7 +61,11 @@ module Health
 
     # TODO
     def archive_services
-      # Copy current services into service_archive
+      self.service_archive = self.services.map(&:attributes)
+    end
+
+    def archive_equipment
+      self.equipment_archive = self.equipments.map(&:attributes)
     end
 
     def revise!

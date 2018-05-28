@@ -5,7 +5,6 @@ module Window::Health
     before_action :set_patient
     before_action :set_service, only: [:edit, :destroy, :update]
     
-
     include PjaxModalController
     include HealthPatient
     include WindowClientPathGenerator

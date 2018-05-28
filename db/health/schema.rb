@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180528002944) do
+ActiveRecord::Schema.define(version: 20180528144412) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -74,8 +74,8 @@ ActiveRecord::Schema.define(version: 20180528002944) do
     t.datetime "deleted_at"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.date     "patient_signed_on"
-    t.date     "provider_signed_on"
+    t.datetime "patient_signed_on"
+    t.datetime "provider_signed_on"
     t.boolean  "locked",                                   default: false, null: false
     t.datetime "initial_date"
     t.datetime "review_date"
@@ -90,6 +90,7 @@ ActiveRecord::Schema.define(version: 20180528002944) do
     t.datetime "responsible_team_member_signed_on"
     t.datetime "representative_signed_on"
     t.text     "service_archive"
+    t.text     "equipment_archive"
   end
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
