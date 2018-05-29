@@ -28,12 +28,22 @@ module Window
       log_item(@client)
     end
 
+    # display an assessment form in a modal
+    def assessment
+      @form = assessment_scope.find(params.require(:id).to_i)
+      render 'assessment_form'
+    end
+
     private def client_source
       GrdaWarehouse::Hud::Client
     end
 
     private def client_scope
       client_source.joins(source_clients: :data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+    end
+
+    private def assessment_scope
+      GrdaWarehouse::HmisForm.window_with_details
     end
 
     def client_search_scope
