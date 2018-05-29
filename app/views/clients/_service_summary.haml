@@ -44,6 +44,6 @@
       - if @client.source_hmis_forms.triage.any?
         %li
           %h4 Preferred Language:
-          %span= = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
+          %span= @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
   - else
     %p None

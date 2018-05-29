@@ -17,16 +17,8 @@
         = render 'clients/vispdat'
         
       .row.align-items-start.d-flex.flex-wrap
-        .d-none--empty
-          .row
-            .col-sm-6
-              - if @client.active_cohorts.any?
-                %div.mb-6
-                  %h3.mt-0 Cohorts
-                  .c-card.c-card--padded.c-card--flush
-                    = render 'clients/rollup/cohorts'
-            .col-sm-6
-              = render 'cas_matches'
+        = render 'clients/rollup/cohorts'
+        = render 'cas_matches'
 
-        .d-none--empty.mb-6.w-100<
-          = render 'window/clients/required_documents'
+      .d-none--empty.mb-6.w-100<
+        = render 'window/clients/required_documents'
