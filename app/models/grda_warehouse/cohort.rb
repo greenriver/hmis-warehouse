@@ -142,6 +142,11 @@ module GrdaWarehouse
         ::CohortColumns::HouseholdMembers.new(),
         ::CohortColumns::MinimumBedroomSize.new(),
         ::CohortColumns::SpecialNeeds.new(),
+        ::CohortColumns::RrhDesired.new(),
+        ::CohortColumns::YouthRrhDesired.new(),
+        ::CohortColumns::RrhAssessmentContactInfo.new(),
+        ::CohortColumns::RrhSsvfEligible.new(),
+        
       ]
     end
 
