@@ -3,7 +3,7 @@
   = f.error_notification
   .form-inputs
     %h3 What Does This File Contain?
-    .well.row.client-file
+    .c-card.c-card--flush.client-file.mb-6
       - @file.class.available_tags.keys.in_groups(2, false) do |batch|
         .col-sm-6
           - batch.each do |group_name|
@@ -31,13 +31,13 @@
     - if can_confirm_housing_release?
       .consent-form-fields.hidden
         = f.input :consent_form_confirmed, as: :boolean
-    = f.input :note, as: :string, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
+    .row
+      .col-sm-6
+        = f.input :note, as: :text, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
     - if can_manage_client_files?
       = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
-    = f.input :file, as: :file, :required => true            
-  .row
-    .col-sm-6
-      = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
-    .col-sm-6.text-right
-      = link_to polymorphic_path(files_path_generator, client_id: @client.id) do
-        &laquo; Return to File List
+    = f.input :file, as: :file, :required => true
+  .form__actions
+    = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
+    = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-default' do
+      Cancel &amp; Return to File List

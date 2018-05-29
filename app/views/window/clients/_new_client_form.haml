@@ -21,7 +21,7 @@
           %tr
             %td
               - sn = client.data_source.short_name
-              %em{class: "ds-#{sn.downcase}"}
+              %span{class: "ds-#{sn.downcase}"}
                 = sn
             %td
               = link_to polymorphic_path(client_path_generator, id: client.warehouse_client_source.destination_id) do

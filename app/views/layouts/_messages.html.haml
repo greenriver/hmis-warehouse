@@ -1,15 +1,15 @@
 - if user_signed_in? && current_user.in_app_messages?
-  .email-messages.dropdown
-    %a.btn.dropdow-toggle.email-messages-envelope{ href: '#', role: 'button', data: { toggle: 'dropdown' } }
+  .email-messages.dropdown.c-header-nav__link
+    %a.dropdown-toggle.email-messages-envelope.c-header-nav__link{ href: '#', role: 'button', data: { toggle: 'dropdown' } }
       %i.icon-envelope-o
-        %span.message-count.badge.hide
+      %span.message-count.badge.hide
     %ul.dropdown-menu.dropdown-menu-right
-      %li.text-center
-        .btn-group.btn-group-xs{role: :group}
-          = link_to messages_path(search: :all), class: 'btn btn-default show-all' do
-            all messages
-          = link_to messages_path, class: 'btn btn-default show-all' do
-            new messages
+      %li.d-flex.justify-content-center
+        .btn-group{role: :group}
+          = link_to messages_path(search: :all), class: 'btn btn-primary show-all' do
+            All messages
+          = link_to messages_path, class: 'btn btn-primary show-all' do
+            New messages
 
   - content_for :page_js do
     :javascript

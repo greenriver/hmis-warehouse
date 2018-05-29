@@ -1,4 +1,5 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
+  include ActionView::Helpers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
   serialize :response, Hash
@@ -27,6 +28,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(arel_table[:collection_location].matches('Social Determinants of Health%'))
   end
 
+  scope :rrh_assessment, -> do
+    where(name: rrh_assessment_name)
+  end
+
   scope :newest_first, -> do
     order(collected_at: :desc)
   end
@@ -46,6 +51,84 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     name == 'Triage Assessment'
   end
 
+  def veteran_score
+    return nil unless name == self.class.rrh_assessment_name
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase == 'assessment score'
+    end&.first
+    return nil unless relevant_section.present?
+    
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('veterans score')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def rrh_desired?
+    return false unless name == self.class.rrh_assessment_name
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase == 'housing resources'
+    end&.first
+    return false unless relevant_section.present?
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('would you like to be considered for rapid re-housing')
+    end&.first.try(:[], :answer)
+    relevant_question&.downcase == 'yes' || false
+  end
+
+  def rrh_assessment_score
+    return nil unless name == self.class.rrh_assessment_name
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase == 'assessment score'
+    end&.first
+    return nil unless relevant_section.present?
+    
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase == 'boston coordinated entry assessment total score'
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def youth_rrh_desired?
+    return false unless name == self.class.rrh_assessment_name
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase == 'housing resources'
+    end&.first
+    return false unless relevant_section.present?
+    
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.include? "it looks like you have a head of household who is 24 years old"
+    end&.first.try(:[], :answer)
+    relevant_question&.downcase&.include?('youth') || false
+  end
+
+  def income_maximization_assistance_requested?
+    return false unless name == self.class.rrh_assessment_name
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase == 'housing resources'
+    end&.first
+    return false unless relevant_section.present?
+    
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.include? "increase and maximize all income sources"
+    end&.first.try(:[], :answer)
+    relevant_question&.downcase == 'yes' || false
+  end
+
+  def rrh_contact_info
+    return nil unless name == self.class.rrh_assessment_name
+    return nil unless income_maximization_assistance_requested?
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase == 'next steps and contact information'
+    end&.first
+    return nil unless relevant_section.present?
+    relevant_section[:questions].map do |question|
+      "<div><strong>#{question[:question]}</strong> #{question[:answer]}</div>"
+    end.join(' ')
+  end
+
+
+
   # a display order we use on the client dashboard
   def <=>(other)
     if triage? ^ other.triage?
@@ -54,5 +137,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     c = assessment_type <=> other.assessment_type
     c = other.collected_at <=> collected_at if c == 0
     c
+  end
+
+  def self.rrh_assessment_name
+    'Boston CoC Coordinated Entry Assessment'
   end
 end

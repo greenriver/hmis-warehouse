@@ -1,9 +1,3 @@
-.client-consent-status
-  %h3 Consent Form
-  - status = @client.release_current_status
-  - if status == 'None on file'
-    .alert.alert-warning= status
-  - elsif status == 'Expired'
-    .alert.alert-danger= status
-  - else
-    .alert.alert-success=status
+.client-consent-status.mb-4
+  %h3.mt-0 Consent Form
+  = render 'window/clients/consent_form_status_tags'

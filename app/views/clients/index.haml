@@ -6,7 +6,7 @@
     - @prompt = t '.search_prompt'
 .row
   .col-sm-4
-    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results'
+    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
   .col-sm-5.sort-filter
     = render 'filter'
     = render 'sort', sort_options: sort_options
@@ -35,8 +35,8 @@
       .client__details.client__details--identity
         .clients__client-name.h4= main_client_name
         .clients__client-additional-names
-          .client__client-name
-            - akas.each_with_index do | aka, i |
+          - akas.each_with_index do | aka, i |
+            .client__client-name
               .client-aka
                 = aka
       .client__details.client__details--demographics

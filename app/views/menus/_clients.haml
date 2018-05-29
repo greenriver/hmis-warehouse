@@ -1,17 +1,17 @@
 - if can_view_clients? || can_edit_clients? || can_search_window?
-  .vsm-group.vsm-group__group-a
-    = link_to assigned_clients_path, class: 'vsm-item-link' do
-      .vsm-item-link--description 
+  %ul.o-menu__group.list-unstyled
+    %li.o-menu__item
+      = link_to assigned_clients_path, class: 'o-menu__link' do
         = _('My Clients')
     - if can_view_clients? || can_edit_clients?
-      = link_to clients_path, class: 'vsm-item-link' do
-        .vsm-item-link--description
+      %li.o-menu__item
+        = link_to clients_path, class: 'o-menu__link' do
           = _('Clients')
     - if can_search_window?
-      = link_to window_clients_path, class: 'vsm-item-link' do
-        .vsm-item-link--description 
+      %li.o-menu__item
+        = link_to window_clients_path, class: 'o-menu__link' do
           = _('Window into the Warehouse')
     - if can_manage_cohorts? || can_edit_cohort_clients? || can_edit_assigned_cohorts? || can_view_assigned_cohorts?
-      = link_to cohorts_path, class: 'vsm-item-link' do
-        .vsm-item-link--description 
+      %li.o-menu__item
+        = link_to cohorts_path, class: 'o-menu__link' do
           = _('Cohorts')

@@ -195,9 +195,10 @@ module Cohorts
       end
       counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.select(:id)).
-        pluck(:client_id, :homeless_days, :days_homeless_last_three_years)
-      @days_homeless = counts.map{|client_id, days_homeless, _| [client_id, days_homeless]}.to_h
-      @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years| [client_id, days_homeless_last_three_years]}.to_h
+        pluck(:client_id, :homeless_days, :days_homeless_last_three_years, :literally_homeless_last_three_years)
+      @days_homeless = counts.map{|client_id, days_homeless, _, _| [client_id, days_homeless]}.to_h
+      @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years]}.to_h
+      @days_literally_homeless_three_years = counts.map{|client_id, _, _, literally_homeless_last_three_years| [client_id, literally_homeless_last_three_years]}.to_h
       Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
@@ -393,6 +394,7 @@ module Cohorts
 
     # only clients who have at least one source client
     # that is visible in the window
+    # This is more strict than visible_in_window_to(user)
     def client_scope
       if @cohort.only_window
         client_source.destination.

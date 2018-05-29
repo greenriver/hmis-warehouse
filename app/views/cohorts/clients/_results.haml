@@ -24,6 +24,9 @@
         %th
           %i.icon-info{data: {toggle: :tooltip, title: 'Days Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
           Days Homeless in Past 3 Years
+        %th
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days Literally Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
+          Days Literally Homeless
           
     %tbody
       - @clients.each do |client|
@@ -52,3 +55,5 @@
             = @days_homeless[client[:id]]
           %td
             = @days_homeless_three_years[client[:id]]
+          %td
+            = @days_literally_homeless_three_years[client[:id]]

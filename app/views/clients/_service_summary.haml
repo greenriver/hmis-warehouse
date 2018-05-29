@@ -1,0 +1,49 @@
+- seen_before = ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?
+- unless window
+  - seen_before = ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
+
+- if @client.service_history.empty?
+  = "There is no service record for #{@client.name}"
+- else
+  - if @client.date_of_last_service.present?
+    %ul.client__summary-details.list-unstyled
+      %li
+        %h4 Last Seen
+        %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"
+      - if seen_before
+        %li
+          %h4 Last Seen Location
+          %span=projects.to_sentence
+      %li
+        %h4 Days in Last 3 Years
+        .client__days-homeless
+          = "#{@client.processed_service_history&.days_homeless_last_three_years} homeless"
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH'}}
+          
+        .client__days-literally-homeless
+          = "#{@client.processed_service_history&.literally_homeless_last_three_years} literally homeless"
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH'}}
+          
+      - if @client.service_history_enrollments.ongoing.residential.any?
+        %li
+          %h4 Enrolled in
+          = enrolled(@client)
+      %li
+        %h4 Homeless Span
+        %span= "#{@client.date_of_first_service} to #{@client.date_of_last_service}"
+        %span= "#{@client.days_homeless} in total ES, SO, TH, and SH"
+      %li
+        %h4 Veteran:
+        - if window
+          %span= yes_no @client.source_clients.visible_in_window_to(current_user).map(&:veteran?).include?(true)
+        - else
+          %span= yes_no @client.source_clients.map(&:veteran?).include?(true)
+      %li
+        %h4 Disabled:
+        %span= yes_no @client.currently_disabled?
+      - if @client.source_hmis_forms.triage.any?
+        %li
+          %h4 Preferred Language:
+          %span= = @client.source_hmis_forms.triage.map(&:primary_language).uniq.first
+  - else
+    %p None

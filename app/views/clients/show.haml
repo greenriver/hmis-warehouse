@@ -1,4 +1,4 @@
-- title = "Client Dashboard for #{@client.full_name}"
+- title = "#{@client.full_name}"
 - content_for :title, title
 :css
   .rollup-container:empty:after {
@@ -7,66 +7,87 @@
 
 = render 'breadcrumbs'
 = render 'tab_navigation', current: client_path(@client)
-%section.row
-  .col-sm-8
-    %h1= title
-  .col-sm-4
-    - if can_track_anomalies?
-      = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
-        Track Issues
+.o-page
+  .o-page__header
+    .row
+      .col-sm-8
+        %h1= title
+      .col-sm-4.text-right
+        .o-page__action
+          - if can_track_anomalies?
+            = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
+              Track Issues
+    
+    = render 'window/clients/aliases'
 
-%section.row.o-dashboard__block--primary
-  = render 'client_summary'
+  %section.o-dashboard__block--primary.client__summary
+    = render 'client_summary'
 
-%hr
-%section.row.o-dashboard__block--primary
-  .col-sm-12
-    %article.rollup.o-dashboard__block--secondary{data: {partial: :demographics}}
-      %h3 Demographics
-    %article.rollup.o-dashboard__block--secondary{data: {partial: 'special-populations'}}
-      %h3 Special Populations
-    %article.rollup.o-dashboard__block--secondary{data: {partial: :residential_enrollments}}
-      %h3 Residential Enrollments
-    %article.rollup.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
-      %h3 Other Enrollments
-    - if GrdaWarehouse::Config.get(:eto_api_available)
-      %article.rollup.o-dashboard__block--secondary{data: {partial: :assessments}}
-        %h3 Assessments
+  %section.row.o-dashboard__block--primary
+    .col-sm-12
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :demographics}}
+        %header
+          %h1.h3 Demographics
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'special-populations'}}
+        %header
+          %h1.h3 Special Populations
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :residential_enrollments}}
+        %header
+          %h1.h3 Residential Enrollments
+          .c-color-key.ml-auto
+            %span.c-color-key__swatch.c-color-key__swatch--positive
+            %span.c-color-key__title New Episode
 
-%section.row.o-dashboard__block--primary
-  .col-sm-6
-    - if GrdaWarehouse::Config.get(:eto_api_available)
-      %article.rollup.o-dashboard__block--secondary{data: {partial: :contact_information}}
-        %h3 Contact Information
-    %article.rollup.o-dashboard__block--secondary{data: {partial: :services}}
-      %h3 Services &mdash; Aggregated Bed Register
-    %article.rollup.o-dashboard__block--secondary{data: {partial: 'services-full'}}
-      %h3 Services &mdash; Full Bed Register
-  .col-sm-6
-    - if GrdaWarehouse::Config.get(:eto_api_available)
-      %article.rollup.o-dashboard__block--secondary{data: {partial: 'case_manager'}}
-        %h3 Case Manager
-    %article.rollup.o-dashboard__block--secondary{data: {partial: 'zip-map'}}
-      %h3 Zip Code of Last Permanent Address
-    %article.rollup.o-dashboard__block--secondary{data: {partial: 'zip-details'}}
-      %h3 Zip Details
-    %article.rollup.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
-      %h3 Income and Benefits
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
+        %header
+          %h1.h3 Other Enrollments
+      - if GrdaWarehouse::Config.get(:eto_api_available)
+        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :assessments}}
+          %header
+            %h1.h3 Assessments
+
+  %section.row.o-dashboard__block--primary
+    .col-sm-6
+      - if GrdaWarehouse::Config.get(:eto_api_available)
+        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :contact_information}}
+          %header
+            %h1.h3 Contact Information
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :services}}
+        %header
+          %h1.h3 Services &mdash; Aggregated Bed Register
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-full'}}
+        %header
+          %h1.h3 Services &mdash; Full Bed Register
+    .col-sm-6
+      - if GrdaWarehouse::Config.get(:eto_api_available)
+        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'case_manager'}}
+          %header
+            %h1.h3 Case Manager
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'zip-map'}}
+        %header
+          %h1.h3 Zip Code of Last Permanent Address
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'zip-details'}}
+        %header
+          %h1.h3 Zip Details
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
+        %header
+          %h1.h3 Income and Benefits
 
 
-%section.row.o-dashboard__block--primary
-  .col-sm-12
-    %article.rollup.o-dashboard__block--secondary{data: {partial: 'disability-types'}}
-      %h3 Disability Types
-#scratchpad
+  %section.row.o-dashboard__block--primary
+    .col-sm-12
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'disability-types'}}
+        %header
+          %h1.h3 Disability Types
+  #scratchpad
 
--# load in all the bits of aggregate statistics via ajax
-= content_for :page_js do
-  - source_clients = @client.source_clients.preload(:data_source, :organizations)
-  :javascript
-    var rollupPath = #{rollup_client_path(@client).to_json};
-    var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json};
-    var manyClients = #{source_clients.many?.to_json};
-    var high = #{@client.source_clients.size + 1};
-    var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
-    rollups.collapsible('.jAssessmentTypeToggle');
+  -# load in all the bits of aggregate statistics via ajax
+  = content_for :page_js do
+    - source_clients = @client.source_clients.preload(:data_source, :organizations)
+    :javascript
+      var rollupPath = #{rollup_client_path(@client).to_json};
+      var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json};
+      var manyClients = #{source_clients.many?.to_json};
+      var high = #{@client.source_clients.size + 1};
+      var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
+      rollups.collapsible('.jAssessmentTypeToggle');

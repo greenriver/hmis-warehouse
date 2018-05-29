@@ -11,8 +11,8 @@
           %td
             = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
               -# What are topics for old notes?
-              %span &nbsp;
-              .padding-left-02= form.assessment_type
+              %div= form.assessment_type
+              .padding-left-02 From ETO
           %td= form.collected_at.to_date
           %td= form.staff
       - @patient.sdh_case_management_notes.each do |note|

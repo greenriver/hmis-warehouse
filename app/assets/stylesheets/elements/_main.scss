@@ -1,6 +1,6 @@
 main {
   flex: 1 0 auto;
-  /* @include media-breakpoint-up(xl) {
-    flex: 1 0 83.3333333%;
-  } */
+  padding-bottom: space(4);
+  padding-top: space(4);
+  min-height: calc(100vh - #{$footer-height} - #{$header-height});
 }

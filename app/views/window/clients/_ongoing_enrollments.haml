@@ -1,4 +1,4 @@
-- enrollments = @client.service_history_entries.visible_in_window.joins(:project).residential.ongoing
+- enrollments = @client.service_history_entries.visible_in_window_to(current_user).joins(:project).residential.ongoing
 - if enrollments.any?
   %table.table
     %thead

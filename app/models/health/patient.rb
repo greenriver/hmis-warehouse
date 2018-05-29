@@ -25,6 +25,9 @@ module Health
     has_many :comprehensive_health_assessments
     has_many :careplans
 
+    has_many :services
+    has_many :equipments
+
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
 

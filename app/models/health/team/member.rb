@@ -44,7 +44,7 @@ module Health
     end
 
     def full_name
-      ["#{first_name} #{last_name}", title].join(', ')
+      ["#{first_name} #{last_name}", title.presence].compact.join(', ')
     end
   end
 end

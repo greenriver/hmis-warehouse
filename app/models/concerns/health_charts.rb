@@ -25,6 +25,18 @@ module HealthCharts
           status: patient.housing_status,
         }
       end
+      if patient.sdh_case_management_notes.any?
+        stati = stati + patient.sdh_case_management_notes.
+          select do |note|
+            note.housing_status.present? && note.date_of_contact.present?
+          end.map do |note|
+            {
+              date: note.date_of_contact.to_date,
+              score: self.class.health_housing_score(note.housing_status),
+              status: note.housing_status
+            }
+          end
+      end
       stati.sort_by{|m| m[:date]}
     end
 
