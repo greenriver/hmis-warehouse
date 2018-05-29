@@ -98,7 +98,12 @@ module GrdaWarehouse::Tasks
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
         active_cohort_ids: :active_cohort_ids,
-        # assessment_score: :rrh_assessment_score, 
+        assessment_score: :rrh_assessment_score,
+        ssvf_eligible: :ssvf_eligible,
+        rrh_desired: :rrh_desired,
+        youth_rrh_desired: :youth_rrh_desired,
+        rrh_assessment_contact_info: :contact_info_for_rrh_assessment
+        rrh_assessment_collected_at: :rrh_assessment_collected_at,
       }
     end
   end

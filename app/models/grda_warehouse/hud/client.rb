@@ -688,6 +688,10 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def contact_info_for_rrh_assessment
+      rrh_assessment_contact_info if consent_form_valid?
+    end
+
     ##############################
     # NOTE: this section deals with the release/consent form as uploaded
     # and maintained in the warehouse
