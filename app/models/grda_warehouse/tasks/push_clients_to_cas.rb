@@ -102,7 +102,7 @@ module GrdaWarehouse::Tasks
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired,
-        rrh_assessment_contact_info: :contact_info_for_rrh_assessment
+        rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
         rrh_assessment_collected_at: :rrh_assessment_collected_at,
       }
     end
