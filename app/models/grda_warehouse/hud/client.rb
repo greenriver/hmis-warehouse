@@ -693,6 +693,14 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def contact_info_for_rrh_assessment
+      rrh_assessment_contact_info if consent_form_valid?
+    end
+
+    def score_for_rrh_assessment
+      rrh_assessment_score || 0
+    end
+
     ##############################
     # NOTE: this section deals with the release/consent form as uploaded
     # and maintained in the warehouse
@@ -1951,6 +1959,23 @@ module GrdaWarehouse::Hud
 
     def ongoing_enrolled_project_ids
       service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
+    end
+
+    def ongoing_enrolled_project_types
+      @ongoing_enrolled_project_types ||= service_history_enrollments.ongoing.distinct.pluck(GrdaWarehouse::ServiceHistoryEnrollment.project_type_column)
+    end
+
+    def enrolled_in_th
+     (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] & ongoing_enrolled_project_types).present?
+    end
+    def enrolled_in_sh
+      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh] & ongoing_enrolled_project_types).present?
+    end
+    def enrolled_in_so
+      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so] & ongoing_enrolled_project_types).present?
+    end
+    def enrolled_in_es
+      (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es] & ongoing_enrolled_project_types).present?
     end
 
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false

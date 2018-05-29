@@ -16,5 +16,12 @@
       .d-none--empty.mr-8.mb-6<
         = render 'clients/vispdat'
 
+      .d-none--empty
+        - if @client.active_cohorts.any?
+          %div.mb-6
+            %h3.mt-0 Cohorts
+            .c-card.c-card--padded.c-card--flush
+              = render 'clients/rollup/cohorts'
+
       .d-none--empty.mb-6.w-100<
         = render 'window/clients/required_documents'

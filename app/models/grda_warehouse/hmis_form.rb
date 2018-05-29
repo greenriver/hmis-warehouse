@@ -5,6 +5,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   serialize :response, Hash
   serialize :answers, Hash
 
+  delegate :details_in_window_with_release?, to: :hmis_assessment
+
   scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
   scope :triage, -> { where name: 'Triage Assessment'}
   scope :confidential, -> do
@@ -15,6 +17,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
   scope :window, -> do
     joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
+  end
+
+  scope :window_with_details, -> do
+    window.merge(GrdaWarehouse::HMIS::Assessment.window)
   end
 
   scope :self_sufficiency, -> do
@@ -35,6 +41,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   scope :newest_first, -> do
     order(collected_at: :desc)
   end
+
 
   def primary_language
     return 'Unknown' unless answers.present?

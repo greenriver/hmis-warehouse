@@ -25,11 +25,10 @@
     .col-sm-6
       .rollup{data: {partial: 'case_manager'}}
         %h3 Case Manager
-    .col-sm-6
-      .rollup{data: {partial: :assessments_without_data}}
-        %h3 Assessments
 .row
   .col-sm-12
+    .rollup{data: {partial: :assessments_without_data}}
+      %h3 Assessments
     .rollup{data: {partial: :residential_enrollments}}
       %h3 Residential Enrollments
     .rollup{data: {partial: :other_enrollments}}

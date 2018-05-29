@@ -28,12 +28,29 @@ module Window
       log_item(@client)
     end
 
+    # display an assessment form in a modal
+    # for the window, we require both a full release for the client
+    # and details visible in the window on the assessment
+    def assessment
+      @client = client_scope.find(params[:client_id].to_i)
+      if @client&.consent_form_valid?
+        @form = assessment_scope.find(params.require(:id).to_i)
+      else
+        @form = assessment_scope.new
+      end
+      render 'assessment_form'
+    end
+
     private def client_source
       GrdaWarehouse::Hud::Client
     end
 
     private def client_scope
       client_source.joins(source_clients: :data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+    end
+
+    private def assessment_scope
+      GrdaWarehouse::HmisForm.window_with_details
     end
 
     def client_search_scope

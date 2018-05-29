@@ -11,6 +11,7 @@
       %th Fetch into Warehouse
       %th Display as confidential
       %th Exclude from Window
+      %th Details visible in the window with release
   %tbody
     - @assessments.each do |assessment|
       %tr
@@ -28,3 +29,5 @@
           = checkmark(assessment.confidential)
         %td
           = checkmark(assessment.exclude_from_window)
+        %td
+          = checkmark(assessment.details_in_window_with_release)

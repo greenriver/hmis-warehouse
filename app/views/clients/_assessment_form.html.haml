@@ -1,0 +1,32 @@
+- if @form[:answers].present?
+  - form_name = (@form.assessment_type == @form.name) ? @form.name : "#{@form.assessment_type} < #{@form.name}"
+  - content_for :modal_title, form_name
+  
+  %p.text-right(style="font-size:smaller;font-style:italic;")
+    Only answered questions are shown.
+
+  %strong Name:
+  %span= @client.name
+  %br
+  %strong Date Completed:
+  %span= @form.collected_at.to_date
+  %br
+  %strong Case Worker:
+  %span= @form.staff
+
+  - @form.answers.with_indifferent_access[:sections].each do |section|
+    %h3.client__assessment-section-heading
+      = section[:section_title]
+    - section[:questions].each do |question|
+      - if question[:answer].present?
+        .client__assessment-question
+          = question[:question].downcase.capitalize
+        .client__assessment-answer= question[:answer]
+- else
+  - content_for :modal_title, "Assessment Form Not Found"
+
+
+
+
+
+

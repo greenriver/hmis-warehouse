@@ -87,6 +87,7 @@ module GrdaWarehouse::Tasks
         child_in_household: :child_in_household,
         days_homeless: :days_homeless,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
+        days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
         vispdat_length_homeless_in_days: :days_homeless_for_vispdat_prioritization,
         vispdat_priority_score: :calculate_vispdat_priority_score,
@@ -98,7 +99,16 @@ module GrdaWarehouse::Tasks
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
         active_cohort_ids: :active_cohort_ids,
-        # assessment_score: :rrh_assessment_score, 
+        assessment_score: :score_for_rrh_assessment,
+        ssvf_eligible: :ssvf_eligible,
+        rrh_desired: :rrh_desired,
+        youth_rrh_desired: :youth_rrh_desired,
+        rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
+        rrh_assessment_collected_at: :rrh_assessment_collected_at,
+        enrolled_in_th: :enrolled_in_th,
+        enrolled_in_sh: :enrolled_in_sh,
+        enrolled_in_so: :enrolled_in_so,
+        enrolled_in_es: :enrolled_in_es,
       }
     end
   end
