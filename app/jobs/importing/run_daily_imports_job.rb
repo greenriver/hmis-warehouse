@@ -26,9 +26,7 @@ module Importing
       GrdaWarehouse::CasHoused.inactivate_clients
       
       # Maintain ETO based CAS flags
-      @notifier.ping('Updating clients from HMIS Forms...') if @send_notifications
       GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new().run!
-      @notifier.ping('Updated clients from HMIS Forms') if @send_notifications
 
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       @notifier.ping('Pushed Clients to CAS') if @send_notifications
