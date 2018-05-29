@@ -34,6 +34,17 @@
                     = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
                       Release Form
 
+                %li
+                  - cha = @patient.chas.recent.first
+                  - if cha
+                    = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
+                      - if cha.complete?
+                        %span.icon-checkmark.o-color--positive
+                      Comprehensive Health Assessment
+                  - else
+                    = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+                      Comprehensive Health Assessment
+
       .ho-patient__details
         .row
           .col-md-6

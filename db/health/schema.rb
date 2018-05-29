@@ -211,6 +211,21 @@ ActiveRecord::Schema.define(version: 20180528144412) do
 
   add_index "claims_top_providers", ["medicaid_id"], name: "index_claims_top_providers_on_medicaid_id", using: :btree
 
+  create_table "comprehensive_health_assessments", force: :cascade do |t|
+    t.integer  "patient_id"
+    t.integer  "user_id"
+    t.integer  "health_file_id"
+    t.integer  "status",         default: 0
+    t.integer  "reviewed_by_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "comprehensive_health_assessments", ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id", using: :btree
+  add_index "comprehensive_health_assessments", ["patient_id"], name: "index_comprehensive_health_assessments_on_patient_id", using: :btree
+  add_index "comprehensive_health_assessments", ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id", using: :btree
+  add_index "comprehensive_health_assessments", ["user_id"], name: "index_comprehensive_health_assessments_on_user_id", using: :btree
+
   create_table "data_sources", force: :cascade do |t|
     t.string   "name"
     t.datetime "deleted_at"
@@ -558,6 +573,8 @@ ActiveRecord::Schema.define(version: 20180528144412) do
     t.integer  "data_source_id",  default: 6, null: false
   end
 
+  add_foreign_key "comprehensive_health_assessments", "health_files"
+  add_foreign_key "comprehensive_health_assessments", "patients"
   add_foreign_key "participation_forms", "health_files"
   add_foreign_key "release_forms", "health_files"
 end

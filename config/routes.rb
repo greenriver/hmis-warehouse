@@ -47,6 +47,12 @@ Rails.application.routes.draw do
           get :download
         end
       end
+      resources :comprehensive_health_assessments, path: :chas, as: :chas do 
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
       namespace :pilot do 
         resources :patient, only: [:index]
         resource :careplan, except: [:destroy] do
