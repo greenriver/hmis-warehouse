@@ -20,7 +20,13 @@ module Window::Health
       @goal = Health::Goal::Base.new
       @readonly = false
       file_name = 'care_plan'
-      
+      # make sure we have the most recent-services and DME if
+      # the plan is editable
+      if @careplan.editable?
+        @careplan.archive_services
+        @careplan.archive_equipment
+        @careplan.save
+      end
       # debugging
       # render layout: false
       render pdf: file_name, layout: false, encoding: "UTF-8", page_size: 'Letter'
@@ -29,6 +35,15 @@ module Window::Health
     def edit
       @form_url = polymorphic_path(careplan_path_generator)
       @form_button = 'Save Care Plan'
+      @services = @patient.services
+      @equipments = @patient.equipments
+      # make sure we have the most recent-services and DME if
+      # the plan is editable
+      if @careplan.editable?
+        @careplan.archive_services
+        @careplan.archive_equipment
+        @careplan.save
+      end
     end
 
     def new

@@ -68,48 +68,10 @@
           %td= simple_format goal.intervention
 
 .health-care-plan__services
-  %h3 Services
-  %table.health-care-plan__services-list
-    %thead
-      %tr
-        %th Type
-        %th Provider
-        %th Hours
-        %th Days
-        %th Requested On
-        %th Effective Date
-        %th End Date
-    %tbody
-      - @careplan.service_archive.each do |service|
-        - service = service.with_indifferent_access
-        %tr
-          %td= service[:service_type]
-          %td= service[:provider]
-          %td= service[:hours]
-          %td= service[:days]
-          %td= service[:date_requested]
-          %td= service[:effective_date]
-          %td= service[:end_date]
+  = render 'window/health/careplans/service_list'
 
 .health-care-plan__equipments
-  %h3 Durable Medical Equipment
-  %table.health-care-plan__equipment-list
-    %thead
-      %tr
-        %th Item
-        %th Provider
-        %th Quantity
-        %th Effective Date
-        %th Comments
-    %tbody
-      - @careplan.equipment_archive.each do |equipment|
-        - equipment = equipment.with_indifferent_access
-        %tr
-          %td= equipment[:item]
-          %td= equipment[:provider]
-          %td= equipment[:quantity]
-          %td= equipment[:effective_date]
-          %td= simple_format equipment[:comments]
+  = render 'window/health/careplans/equipment_list'
 
 .health-care-plan__responsible-parties
   %h3 Responsible Parties

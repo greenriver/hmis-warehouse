@@ -59,7 +59,6 @@ module Health
       self.save
     end
 
-    # TODO
     def archive_services
       self.service_archive = self.services.map(&:attributes)
     end
