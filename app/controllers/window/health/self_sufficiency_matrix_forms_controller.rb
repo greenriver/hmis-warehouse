@@ -29,7 +29,7 @@ module Window::Health
         @form.completed_at = Time.current
       end
       @form.update(form_params)
-      respond_with @form, location: polymorphic_path(careplan_path_generator)
+      respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
 
     private
