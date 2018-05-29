@@ -18,6 +18,7 @@ module Window::Health
     def create
       @participation_form = @patient.participation_forms.build(form_params)
       validate_form
+      @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.case_manager = current_user
       save_file if @participation_form.errors.none? && 
       @participation_form.save

@@ -18,6 +18,7 @@ module Window::Health
     def create
       @release_form = @patient.release_forms.build(form_params)
       validate_form
+      @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
       save_file if @release_form.errors.none? && @release_form.save
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
