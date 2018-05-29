@@ -2,7 +2,7 @@
   %div.mb-6
     %h3.mt-0 Housing Matches
     .c-card.c-card--padded.c-card--flush
-      %ul
+      %ul.list-unstyled
         - decisions.each do |decision|
           %li
             = decision.decision_status.sub('Dnd', 'DND')

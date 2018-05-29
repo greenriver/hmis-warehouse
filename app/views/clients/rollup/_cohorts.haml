@@ -1,5 +1,9 @@
 = cache(['clients', 'cohorts', @client, @client.active_cohorts.count, can_view_projects?, controller_path], expires_in: 4.hours) do
-  - if @client.active_cohorts.any?
-    %ul.client-cohorts.list-unstyled
-      - @client.active_cohorts.distinct.each do |cohort|
-        %li= link_to_if cohort.class.has_some_cohort_access(current_user), cohort.name, cohort_path(cohort)
+  .d-none--empty.mr-6
+    - if @client.active_cohorts.any?
+      .mb-6
+        %h3.mt-0 Cohorts
+        .c-card.c-card--padded.c-card--flush
+          %ul.client-cohorts.list-unstyled
+            - @client.active_cohorts.distinct.each do |cohort|
+              %li= link_to_if cohort.class.has_some_cohort_access(current_user), cohort.name, cohort_path(cohort)
