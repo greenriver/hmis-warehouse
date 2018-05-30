@@ -19,7 +19,8 @@
   padding: 0;
   margin-bottom: space(2);
   h1,
-  h2 {
+  h2,
+  h3 {
     margin: 0;
     padding-right: space(4);
   }
@@ -93,5 +94,13 @@
   thead tr th:last-of-type,
   tbody tr td:last-of-type {
     padding-right: space(4);
+  }
+}
+
+.c-card__content .dataTables_wrapper {
+  .row:last-of-type {
+    padding-left: space(4);
+    padding-right: space(4);
+    margin-top: space(2);
   }
 }

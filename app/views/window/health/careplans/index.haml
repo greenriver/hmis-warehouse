@@ -1,14 +1,15 @@
 - title = 'Collaborative Care Plan'
 = content_for(:title, title)
-%h1= "#{content_for(:title)} for #{@client.full_name}"
-= render 'window/clients/breadcrumbs'
-= render 'window/clients/tab_navigation', current: polymorphic_path(careplans_path_generator)
-= render 'window/health/patient/patient_status'
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
+  = render 'window/clients/breadcrumbs'
+  = render 'window/clients/tab_navigation', current: polymorphic_path(careplans_path_generator)
+  = render 'window/health/patient/patient_status'
 
-.row
-  .col-sm-5
-    - unless @readonly
-      = render 'assessments'
-  .col-sm-7
-    = render 'summary'
-
+  .o-page__main-content.row
+    .col-sm-5
+      - unless @readonly
+        = render 'assessments'
+    .col-sm-7
+      = render 'summary'

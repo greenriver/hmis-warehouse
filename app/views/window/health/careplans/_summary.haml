@@ -1,43 +1,41 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
-.slab
-  .row
-    .col-sm-8
-      %h3 Person-Centered Treatment Plan
-    .col-sm-4.text-right
-      - unless @patient.careplans.editable.exists?
-        = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn-primary btn-muted btn-xs' do
-          Create a Care Plan
-  - if @careplans.present?
-    %table.table
-      %thead
-        %tr
-          %th Initiated
-          %th Patient Signed
-          %th Provider Signed
-          %th Updated
-          %th Case Manager
-          %th
-          %th
-      %tbody
-        - @careplans.each do |careplan|
+%section.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h3 Person-Centered Treatment Plan
+    - unless @patient.careplans.editable.exists?
+      = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn-primary btn-muted btn-xs' do
+        Create a Care Plan
+  .c-card__content.c-card__content--flush
+    - if @careplans.present?
+      %table.table
+        %thead
           %tr
-            %td= careplan.created_at.to_date
-            %td= careplan.patient_signed_on&.to_date
-            %td= careplan.provider_signed_on&.to_date
-            %td= careplan.updated_at.to_date
-            %td= careplan.responsible_team_member&.full_name
-            %td
-              - if careplan.editable?
-                = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
-                  Edit
-              - else
-                = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
-                  Revise
-            %td
-              = link_to polymorphic_path(careplan_path_generator, id: careplan) do
-                %i.icon-download2
+            %th Initiated
+            %th Patient Signed
+            %th Provider Signed
+            %th Updated
+            %th Case Manager
+            %th
+            %th
+        %tbody
+          - @careplans.each do |careplan|
+            %tr
+              %td= careplan.created_at.to_date
+              %td= careplan.patient_signed_on&.to_date
+              %td= careplan.provider_signed_on&.to_date
+              %td= careplan.updated_at.to_date
+              %td= careplan.responsible_team_member&.full_name
+              %td
+                - if careplan.editable?
+                  = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
+                    Edit
+                - else
+                  = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
+                    Revise
+              %td
+                = link_to polymorphic_path(careplan_path_generator, id: careplan) do
+                  %i.icon-download2
 
 
-  - else
-    = render 'no_careplan_on_file'
-  
+    - else
+      = render 'no_careplan_on_file'

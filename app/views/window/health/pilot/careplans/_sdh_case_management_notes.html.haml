@@ -8,7 +8,7 @@
     %tbody
       - @client.health_touch_points.case_management_notes.order(collected_at: :desc).each do |form|
         %tr
-          %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+          %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-xs', data: { loads_in_pjax_modal: true }
           %td= form.collected_at.to_date
           %td= form.staff
 - else
