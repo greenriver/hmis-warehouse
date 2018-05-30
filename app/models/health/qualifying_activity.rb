@@ -40,7 +40,7 @@ module Health
     validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT}, allow_blank: true
     validates :reached_client, inclusion: {in: REACHED_CLIENT}, allow_blank: true
     validates :activity, inclusion: {in: ACTIVITY}, allow_blank: true 
-    validates_presence_of :user, :user_full_name, :source
+    validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 
