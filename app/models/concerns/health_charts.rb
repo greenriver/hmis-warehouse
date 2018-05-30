@@ -9,6 +9,7 @@ module HealthCharts
           answer = form.answers[:sections].first[:questions].select do |question|
             question[:question] == "A-6. Where did you sleep last night?"
           end.first[:answer]
+          answer = self.class.clean_health_housing_outcome_answer(answer)
           if self.class.health_housing_outcome(answer)
             {
               date: form.collected_at.to_date,
@@ -94,6 +95,21 @@ module HealthCharts
         # 'Unknown',
         # 'Other',
       }.freeze
+    end
+
+    def self.clean_health_housing_outcome_answer(answer)
+      # February 2018, the wording of two of the options for our housing status question was changed by OCHIN 
+      # "Doubling up" was changed to "Doubled up"
+      # "Housing with no support services" was changed to "Housing with no supportive services"
+      changes = {
+        "Doubled up" => "Doubling up",
+        "Housing with no supportive services" => "Housing with no support services"
+      }
+      if changes.keys.include?(answer)
+        changes[answer]
+      else
+        answer
+      end
     end
 
     def self.health_housing_outcome(answer)
