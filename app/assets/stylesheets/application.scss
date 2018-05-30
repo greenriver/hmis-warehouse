@@ -62,6 +62,7 @@
 // Components
 // ()
 @import
+  'components/btn_group',
   'components/card',
   'components/color_key',
   'components/tag';
@@ -94,9 +95,12 @@
   'modules/anomalies',
   'modules/cohorts';
 
+// Overrides
 @import
+  'overrides/select2',
   'overrides/bootstrap';
 
+// Utilities
 @import
   'utilities/bootstrap_polyfills',
   'utilities/display',

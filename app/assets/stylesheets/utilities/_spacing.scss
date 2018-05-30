@@ -1,14 +1,3 @@
-@each $direction, $directionName in $directions {
-  @each $num, $space in $spacers {
-    .m#{$direction}-#{$num} {
-      margin-#{$directionName}: $space;
-    }
-    .p#{$direction}-#{$num} {
-      padding-#{$directionName}: $space;
-    }
-  }
-}
-
 .margin-left-01 {
   margin-left: .5rem;
 }

@@ -8,14 +8,6 @@ button.close {
   @include open-sans-bold;
 }
 
-.btn {
-  [class^="icon-"],
-  [class*=" icon-"] {
-    font-size: 90%;
-    margin-right: 3px;
-  }
-}
-
 .btn-default {
   color: $gray-060;
 }
@@ -94,12 +86,18 @@ button.close {
 }
 .btn [class^="icon-"],
 .btn [class*=" icon-"] {
-  font-size: rem(12);
+  font-size: 95%;
 }
 
-.btn-lg [class^="icon-"],
+/* .btn-lg [class^="icon-"],
 .btn-lg [class*=" icon-"] {
   font-size: rem(24);
+} */
+
+.btn-icon-left,
+.btn-icon-right {
+  display: inline-flex;
+  align-items: center;
 }
 
 .btn-icon-left [class^="icon-"],

@@ -39,3 +39,17 @@
     width: #{$amount}% !important;
   }
 }
+
+@each $direction, $directionName in $directions {
+  @each $num, $space in $spacers {
+    .m#{$direction}-#{$num} {
+      margin-#{$directionName}: $space;
+    }
+    .p#{$direction}-#{$num} {
+      padding-#{$directionName}: $space;
+    }
+  }
+  .m#{$direction}-auto {
+    margin-#{$directionName}: auto;
+  }
+}
