@@ -4,8 +4,11 @@ button.close {
 }
 
 .btn {
-  text-transform: uppercase;
   @include open-sans-bold;
+}
+
+.btn-shout {
+  text-transform: uppercase;
 }
 
 .btn-default {
