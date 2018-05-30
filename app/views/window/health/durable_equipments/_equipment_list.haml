@@ -20,6 +20,6 @@
           %td= equipment.effective_date
           %td= simple_format equipment.comments
           %td.text-right
-            = link_to polymorphic_path([:edit] + health_path_generator + [:durable_equipment], id: equipment.id), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary btn-sm' do
+            = link_to polymorphic_path([:edit] + health_path_generator + [:durable_equipment], id: equipment.id), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary btn-sm btn-icon-left' do
               %i.icon-pencil
               Edit
