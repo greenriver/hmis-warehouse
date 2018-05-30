@@ -28,6 +28,9 @@ module Health
     has_many :services
     has_many :equipments
 
+    has_one :patient_referral, required: false
+    has_one :health_agency, through: :patient_referral, source: :assigned_agency
+
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
 
