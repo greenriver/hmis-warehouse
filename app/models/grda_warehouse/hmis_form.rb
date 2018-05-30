@@ -27,6 +27,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(name: 'Self-Sufficiency Matrix')
   end
 
+  scope :collected, -> do
+    where.not(collected_at: nil)
+  end
+
   scope :case_management_notes, -> do 
     where(name: 'SDH Case Management Note')
   end

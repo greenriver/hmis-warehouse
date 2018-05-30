@@ -242,6 +242,7 @@ module Health
     belongs_to :user
 
     scope :in_progress, -> { where(completed_at: nil) }
+    scope :completed, -> {where.not completed_at: nil }
 
     def completed?
       completed_at.present?

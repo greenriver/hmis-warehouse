@@ -137,8 +137,8 @@ module HealthCharts
     end
 
     def load_health_self_sufficiency_objects
-      old_objects = self_sufficiency_assessments.order(collected_at: :desc).limit(4)
-      new_objects = patient.self_sufficiency_matrix_forms.order(completed_at: :desc).limit(4)
+      old_objects = self_sufficiency_assessments.collected.order(collected_at: :desc).limit(4)
+      new_objects = patient.self_sufficiency_matrix_forms.completed.order(completed_at: :desc).limit(4)
       (old_objects + new_objects).sort_by do |o|
         if o.is_a?(GrdaWarehouse::HmisForm)
           o.collected_at
