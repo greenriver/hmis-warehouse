@@ -36,7 +36,7 @@
                           %label{for: id}
                             = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
                             = role.name
-                    - if user.can_manage_health_agency?
+                    - if can_manage_health_agency?
                       %label Health Agency Manager For:
                       %div 
                         - agency_user = user.agency_user
