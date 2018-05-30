@@ -9,7 +9,12 @@
             Admin Dashboard
     - if show_health
       %li.o-menu__item
-        - path = can_manage_health_agency? ? review_admin_health_agency_patient_referrals_path : admin_health_admin_index_path
+        - path = admin_health_admin_index_path
+        - if can_administer_health?
+          - path = review_admin_health_patient_referrals_path
+        - elsif can_manage_health_agency? && current_user.health_agency.present?
+          - path = review_admin_health_agency_patient_referrals_path
+        
         = link_to path, class: 'o-menu__link' do
           .o-menu__link--description
             Healthcare Admin
