@@ -23,12 +23,12 @@ module Health
       'G9005' => 'Care coordination',
       'T2024' => 'Care planning',
       'G0506' => 'Comprehensive Health Assessment',
-      'G9007' => 'Follow-up within 3 days of hospital discharge (with client)', # required modifier of U5
+      'G9007 U5' => 'Follow-up within 3 days of hospital discharge (with client)',
       'G9007' => 'Care transitions (working with care team)',
       'G9006' => 'Health and wellness coaching',
       'G9004' => 'Connection to community and social services',
       'T1023' => 'Social services screening completed',
-      'T1023' => 'Referral to ACO for Flexible Services' # required modifer of U6
+      'T1023 U6' => 'Referral to ACO for Flexible Services'
     }
 
     scope :submitted, -> {where.not(claim_submitted_on: nil)}
@@ -103,8 +103,18 @@ module Health
       section
     end
 
-    def procedure_code_and_modifier
-      # Lookup MODE_OF_CONTACT, REACHED_CLIENT, ACTIVITY
+    def procedure_code
+      # ignore any modifiers
+      ACTIVITY.invert[activity].split(' ')[0]
+    end
+
+    def modifiers
+      modifiers = []
+      # attach modifiers from activity
+      modifiers << ACTIVITY.invert[activity].split(' ')[1]
+      modifiers << MODE_OF_CONTACT.invert[mode_of_contact] 
+      modifiers << REACHED_CLIENT.invert[reached_client]
+      return modifiers.reject(&:blank?).compact
     end
   end
 end
