@@ -6,7 +6,7 @@ module Health
       'U3' => 'Phone call',
       'U3' => 'Email',
       'U3' => 'Video call',
-      'Other'
+      '' => 'Other'
     }
     MODE_OF_CONTACT_OTHER = 'Other'
 
