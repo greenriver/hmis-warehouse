@@ -235,3 +235,9 @@ label {
 .form-group[data-other-value] {
   margin-left: space(6);
 }
+
+textarea.form-control {
+  &.sized {
+    min-height: $textarea-min-height;
+  }
+}

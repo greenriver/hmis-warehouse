@@ -1,10 +1,10 @@
-.c-card {
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-}
+.c-card { }
 
 .c-card--block {
+  display: block;
+}
+
+.c-card--flex {
   display: block;
 }
 
@@ -53,6 +53,10 @@
       padding-right: rem(15px);
     }
   }
+}
+
+.c-card__content {
+  padding: space(4);
 }
 
 .c-card--padded {

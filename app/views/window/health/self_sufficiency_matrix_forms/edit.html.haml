@@ -1,18 +1,19 @@
 - title = 'Self Sufficiency Matrix Form'
 = content_for(:title, title)
-%h1
-  = "#{content_for(:title)} for #{@client.full_name}"
-= render 'window/clients/breadcrumbs'
-= render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
+.o-page
+  .o-page__header
+    %h1
+      = "#{content_for(:title)} for #{@client.full_name}"
+  = render 'window/clients/breadcrumbs'
+  = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
 
-.row
-  .col-sm-12
-    %h2= "#{content_for(:title)} for #{@client.full_name}"
-    %small
-      Entered by
-      = @form.user.name
-    %hr
+  .o-page__main-content
+    .mb-6
+      %h2= "#{content_for(:title)} for #{@client.full_name}"
+      %small
+        Entered by
+        = @form.user.name
 
-.row
-  .col-sm-12
-    = render 'form'
+    .row
+      .col-sm-12
+        = render 'form'
