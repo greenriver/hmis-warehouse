@@ -13,7 +13,7 @@
       %thead
         %tr
           %th User
-          %th email
+          %th Email
           %th Health roles
       %tbody
         - @users.each do |user|
@@ -43,7 +43,7 @@
                     - else
                       = link_to 'Assign Agency', new_admin_health_user_agency_user_path(user), class: 'btn btn-default btn-xs', data: {behavior: 'assign agency user'}
   .form-actions
-    = f.button :submit, class: 'btn btn-primary'
+    = f.button :submit, 'Save Changes', class: 'btn btn-primary'
 
 = render 'agency_user_modal'
 
