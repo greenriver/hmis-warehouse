@@ -90,7 +90,7 @@ class Role < ActiveRecord::Base
       :can_edit_patient_items_for_own_agency,
       :can_create_care_plans_for_own_agency, # unused
       :can_view_all_patients, # Read-only - unused
-      :can_view_patients_for_own_agency, # Read-only - unused
+      :can_view_patients_for_own_agency, # Read-only - not implemented as such yet
       :can_add_case_management_notes, # unused
     ]
   end
