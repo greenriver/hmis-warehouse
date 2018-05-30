@@ -13,9 +13,30 @@
   padding: space(3) space(3) 0 space(3);
 }
 
-.c-card > .c-card__content {
+.c-card__header--external {
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  margin-bottom: space(2);
+  h1,
+  h2 {
+    margin: 0;
+    padding-right: space(4);
+  }
+  a,
+  button {
+    margin-left: auto;
+  }
+}
+
+.c-card__content {
   @include card;
   width: 100%;
+}
+
+.c-card__content--flush {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .c-card--flush {
@@ -43,8 +64,7 @@
   padding: 0;
 }
 
-.c-card--linked,
-.c-card > .c-card__content {
+.c-card--linked {
   cursor: pointer;
   &:focus,
   &:hover {
@@ -63,4 +83,15 @@
 }
 
 .c-card__description {
+}
+
+.c-card__content table {
+  thead tr th:first-of-type,
+  tbody tr td:first-of-type {
+    padding-left: space(4);
+  }
+  thead tr th:last-of-type,
+  tbody tr td:last-of-type {
+    padding-right: space(4);
+  }
 }

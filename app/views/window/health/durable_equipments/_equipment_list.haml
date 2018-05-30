@@ -1,7 +1,7 @@
 - if @equipments.blank?
   %p No DME listed.
 - else
-  %table.table.equipment__list
+  %table.table.equipment__list.mb-0
     %thead
       %tr
         %th Item
@@ -9,8 +9,7 @@
         %th Quantity
         %th Effective Date
         %th Comments
-        %th 
-
+        %th
 
     %tbody
       - @equipments.each do |equipment|
@@ -20,8 +19,7 @@
           %td= equipment.quantity
           %td= equipment.effective_date
           %td= simple_format equipment.comments
-          %td
-            = link_to polymorphic_path([:edit] + health_path_generator + [:durable_equipment], id: equipment.id), data: { loads_in_pjax_modal: true }, class: 'btn-primary btn-muted btn-sm' do 
+          %td.text-right
+            = link_to polymorphic_path([:edit] + health_path_generator + [:durable_equipment], id: equipment.id), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary btn-sm' do
               %i.icon-pencil
               Edit
-          
