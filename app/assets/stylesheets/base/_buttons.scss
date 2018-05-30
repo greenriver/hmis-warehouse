@@ -5,6 +5,11 @@ button.close {
 
 .btn {
   @include open-sans-bold;
+  padding: $input-btn-padding-y $input-btn-padding-x;
+}
+
+.btn-sm {
+  padding: $input-btn-sm-padding-y $input-btn-sm-padding-x;
 }
 
 .btn-shout {

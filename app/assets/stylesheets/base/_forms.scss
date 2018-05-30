@@ -241,3 +241,13 @@ textarea.form-control {
     min-height: $textarea-min-height;
   }
 }
+
+.form-group--hanging-label label {
+  white-space: nowrap;
+}
+
+.form-control-faux {
+  display: flex;
+  align-items: center;
+  border-color: $gray-020;
+}

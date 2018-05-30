@@ -5,6 +5,19 @@
   border: 1px solid $gray-020;
 }
 
+@mixin internal_card_heading {
+  border-top: $gray-020 1px solid;
+  border-bottom: $gray-020 1px solid;
+  background: $gray-015;
+  color: $gray-080;
+  margin-bottom: space(4);
+  margin-top: 0;
+  margin-left: -16px;
+  margin-right: -16px;
+  padding: 16px;
+  font-size: rem(16px);
+}
+
 @mixin poppins {
   font-family: 'Poppins', sans-serif;
 }

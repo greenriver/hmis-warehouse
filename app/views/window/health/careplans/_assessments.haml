@@ -2,7 +2,7 @@
   .c-card__header.c-card__header--external
     %h3.section-expander-block__header SDH Case Management Notes
     - if current_user.can_edit_patient_items_for_own_agency?
-      = link_to 'Add Case Note', polymorphic_path([:new] + sdh_case_management_note_path_generator), class: 'btn btn-primary btn-xs ml-auto'
+      = link_to 'Add Case Note', polymorphic_path([:new] + sdh_case_management_note_path_generator), class: 'btn btn-primary btn-sm ml-auto'
   .c-card__content.c-card__content--flush
     - if status = @client.api_status
       - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])

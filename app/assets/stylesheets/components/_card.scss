@@ -103,3 +103,37 @@
     margin-top: space(2);
   }
 }
+
+.c-card__item {
+  padding-bottom: space(6);
+  &:first-of-type {
+    margin-top: -16px;
+    .c-card__item-header {
+      border-top-left-radius: $border-radius-default;
+      border-top-right-radius: $border-radius-default;
+      border-top: 0;
+    }
+  }
+}
+
+.c-card__internal-primary-action,
+.c-card__item-header {
+  @include internal-card-heading;
+}
+
+.c-card__item-header {
+  display: flex;
+  align-items: center;
+  h4 {
+    margin: 0;
+    padding-right: space(4);
+  }
+}
+
+.c-card__internal-primary-action {
+  margin-top: space(3);
+  margin-bottom: -16px;
+  border-bottom: 0;
+  border-bottom-left-radius: $border-radius-default;
+  border-bottom-right-radius: $border-radius-default;
+}

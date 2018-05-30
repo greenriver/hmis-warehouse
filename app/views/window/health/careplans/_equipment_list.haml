@@ -1,18 +1,24 @@
-%h3 Durable Medical Equipment
-%table.table.health-care-plan__equipment-list
-  %thead
-    %tr
-      %th Item
-      %th Provider
-      %th Quantity
-      %th Effective Date
-      %th Comments
-  %tbody
-    - @careplan.equipment_archive.each do |equipment|
-      - equipment = equipment.with_indifferent_access
-      %tr
-        %td= equipment[:item]
-        %td= equipment[:provider]
-        %td= equipment[:quantity]
-        %td= equipment[:effective_date]
-        %td= simple_format equipment[:comments]
+.c-card
+  .c-card__header.c-card__header--external
+    %h3 Durable Medical Equipment
+  .c-card__content.c-card__content--flush
+    - if @careplan.equipment_archive.any?
+      %table.table.health-care-plan__equipment-list
+        %thead
+          %tr
+            %th Item
+            %th Provider
+            %th Quantity
+            %th Effective Date
+            %th Comments
+        %tbody
+          - @careplan.equipment_archive.each do |equipment|
+            - equipment = equipment.with_indifferent_access
+            %tr
+              %td= equipment[:item]
+              %td= equipment[:provider]
+              %td= equipment[:quantity]
+              %td= equipment[:effective_date]
+              %td= simple_format equipment[:comments]
+    - else
+      %p.no-data Currently no equipment.

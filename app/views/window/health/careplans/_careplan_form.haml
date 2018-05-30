@@ -1,83 +1,105 @@
 = simple_form_for @careplan, url: @form_url do |f|
   = f.error_notification
-  %p= _('Care Plan Summary Text')
-  .row
-    .col-sm-4
+
+  %p.mb-6= _('Care Plan Summary Text')
+
+  %section.row
+    .col-sm-6.col-lg-4
       = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
-    .col-sm-4
-      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }
+    .col-md-6.col-lg-4
+      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }, wrapper_html: {class: 'form-group--hanging-label'}
 
-  .health__team
-    %h3 Care Team Members
-    .row.health__team-members
-      - if @careplan.team_members.any?
-        - @careplan.team_members.each do |member|
-          = render 'window/health/team_members/team_member', member: member, restore: false
-            
-      - else
-        .col-sm-12
-          %p No team members currently.
-    .links
-      = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
-        %i.icon-plus
-        Add Team Member
+  %section.health__team.row
+    .col-sm-10.col-lg-8
+      .c-card
+        .c-card__header.c-card__header--external
+          %h3 Care Team Members
+          = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+            %i.icon-plus
+            Add Team Member
+        .c-card__content
+          .row.health__team-members
+            - if @careplan.team_members.any?
+              - @careplan.team_members.each do |member|
+                = render 'window/health/team_members/team_member', member: member, restore: false
 
-  .row.health-care-plan__about-me
-    .col-sm-8
+            - else
+              %p.no-data
+                No team members currently.
+                = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), data: { loads_in_pjax_modal: true } do
+                  Add team member
+
+  %section.row.health-care-plan__about-me.row
+    .col-sm-10.col-lg-8
+      - sized_textarea_html = {class: 'sized'}
       %h3 About Me
-      = f.input :patient_health_problems, label: 'My Health Problems', as: :text
-      = f.input :patient_strengths, label: 'My Strengths', as: :text
-      = f.input :patient_goals, label: 'My Goals', as: :text
-      = f.input :patient_barriers, label: 'My Barriers', as: :text
+      = f.input :patient_health_problems, label: 'My Health Problems', as: :text, input_html: sized_textarea_html
+      = f.input :patient_strengths, label: 'My Strengths', as: :text, input_html: sized_textarea_html
+      = f.input :patient_goals, label: 'My Goals', as: :text, input_html: sized_textarea_html
+      = f.input :patient_barriers, label: 'My Barriers', as: :text, input_html: sized_textarea_html
 
-  .row.health-care-plan__goals
-    .col-sm-8
-      %h3 Goals
-      .health-care-plan__goal-list
-        - @careplan.hpc_goals.each do |goal|
-          = render goal, readonly: true
-      .links
-        = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
-          %i.icon-plus
-          Add Goal
+  %section.health-care-plan__goals.row
+    .col-sm-10.col-lg-8
+      .c-card
+        .c-card__header.c-card__header--external
+          %h3 Goals
+          = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+            %i.icon-plus
+            Add Goal
+        .c-card__content.health-care-plan__goal-list
+          - if @careplan.hpc_goals.any?
+            - @careplan.hpc_goals.each_with_index do |goal, index|
+              = render goal, readonly: true, index: index + 1
+          - else
+            %p.no-data
+              No goals currently.
+          .c-card__internal-primary-action
+            = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+              %i.icon-plus
+              Add Goal
 
-  .health-care-plan__services
+
+  %section.health-care-plan__services
     = render 'window/health/careplans/service_list'
 
-  .health-care-plan__equipments
+  %section.health-care-plan__equipments
     = render 'window/health/careplans/equipment_list'
 
-  %h3 Responsible Parties
-  .row
-    .col-sm-3
-      .form-group
-        %label.control-label.optional Patient
-        .controls
-          = @patient.name
-      = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
-    .col-sm-3
-      = f.input :responsible_team_member_id, label: 'Team Member', collection: @careplan.team.available_members, input_html: { class: :select2 } 
-      = f.input :responsible_team_member_signed_on, as: :date_picker, label: 'Date Signed'
-    .col-sm-3
-      = f.input :representative_id, label: 'Designated Representative', collection: @careplan.team.available_members, input_html: { class: :select2 }
-      = f.input :representative_signed_on, as: :date_picker, label: 'Date Signed'
-    .col-sm-3
-      = f.input :provider_id, label: 'Primary Care Provider', collection: @careplan.team.available_members, input_html: { class: :select2 }
-      = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
-  .row
-    .col-sm-6
-      = link_to polymorphic_path(careplan_path_generator, id: @careplan), method: :delete, class: 'btn btn-danger', data: {confirm: "Would you really like to delete the Care Plan?"} do
-        %i.icon-cross
-        Delete Care Plan
-    .col-sm-6.text-right
-      = f.button :submit, @form_button
-      
+  %section.c-card
+    .c-card__header.c-card__header--external
+      %h3 Responsible Parties
+    .c-card__content
+      .row
+        .col-md-3
+          .form-group
+            %label.control-label.optional Patient
+            .controls.form-control.form-control-faux
+              = @patient.name
+          = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
+        .col-md-3
+          = f.input :responsible_team_member_id, label: 'Team Member', collection: @careplan.team.available_members, input_html: { class: :select2 }
+          = f.input :responsible_team_member_signed_on, as: :date_picker, label: 'Date Signed'
+        .col-md-3
+          = f.input :representative_id, label: 'Designated Representative', collection: @careplan.team.available_members, input_html: { class: :select2 }
+          = f.input :representative_signed_on, as: :date_picker, label: 'Date Signed'
+        .col-md-3
+          = f.input :provider_id, label: 'Primary Care Provider', collection: @careplan.team.available_members, input_html: { class: :select2 }
+          = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+
+    .form__actions.mt-6.mb-8
+      .c-btn-group
+        = link_to polymorphic_path(careplan_path_generator, id: @careplan), method: :delete, class: 'btn btn-danger', data: {confirm: "Would you really like to delete the Care Plan?"} do
+          %i.icon-cross
+          Delete Care Plan
+      .c-btn-group.ml-auto
+        = f.button :submit, @form_button
+
 
 
 = javascript_include_tag 'moment.min.js'
 = content_for :page_js do
   :javascript
-   
+
     $('.jInitialDate').on('change', function(e) {
       var initial_date = moment($(this).val()).format("MMM DD, YYYY");
       var review_date = moment(initial_date).add(6, 'months');
