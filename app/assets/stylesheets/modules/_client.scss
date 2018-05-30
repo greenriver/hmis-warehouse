@@ -485,9 +485,40 @@ $file-thumbnail-size: 75px;
   }
 }
 
+.sdh-note__activity {
+  &:first-of-type {
+    margin-top: -16px;
+    .sdh-note__activity h5 {
+      border-top-left-radius: $border-radius-default;
+      border-top-right-radius: $border-radius-default;
+    }
+  }
+}
+
+.sdh-note__action,
+.sdh-note__activity h3 {
+  border-top: $gray-020 1px solid;
+  border-bottom: $gray-020 1px solid;
+  background: $gray-015;
+  color: $gray-080;
+  margin-bottom: space(4);
+  margin-top: 0;
+  margin-left: -16px;
+  margin-right: -16px;
+  padding: 16px;
+  font-size: rem(16px);
+}
+
+.sdh-note__action {
+  margin-top: space(4);
+  margin-bottom: -16px;
+  border-bottom: 0;
+  border-bottom-left-radius: $border-radius-default;
+  border-bottom-right-radius: $border-radius-default;
+}
+
 .sdh-note__activity h5 a {
   text-transform: none;
   @include open-sans-normal;
   padding-left: 20px;
-  font-size: 90%;
 }

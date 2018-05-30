@@ -1,0 +1,21 @@
+label {
+  color: $gray-070;
+  @include open-sans-medium;
+}
+
+.label-helper {
+  font-style: italic;
+  font-size: 95%;
+  font-weight: normal;
+  &--info,
+  &--optional {
+    color: $brand-primary;
+  }
+  &--required {
+    color: $brand-danger;
+  }
+}
+
+.label--minor {
+  font-weight: normal;
+}
