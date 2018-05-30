@@ -31,6 +31,7 @@
 
 .c-card__content {
   @include card;
+  padding: space(4);
   width: 100%;
 }
 
@@ -53,10 +54,6 @@
       padding-right: rem(15px);
     }
   }
-}
-
-.c-card__content {
-  padding: space(4);
 }
 
 .c-card--padded {

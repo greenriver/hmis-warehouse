@@ -3,7 +3,7 @@
   .c-card__header.c-card__header--external
     %h3 Person-Centered Treatment Plan
     - unless @patient.careplans.editable.exists?
-      = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn-primary btn-muted btn-xs' do
+      = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn-primary btn-sm' do
         Create a Care Plan
   .c-card__content.c-card__content--flush
     - if @careplans.present?
