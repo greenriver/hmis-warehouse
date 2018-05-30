@@ -77,7 +77,7 @@ class Role < ActiveRecord::Base
   def self.health_permissions
     [
       :can_administer_health,
-      :can_edit_client_health,
+      :can_edit_client_health, # This is a safety net.  Without this permission, you can't see any health data
       :can_view_client_health,
       :can_view_aggregate_health,
       :can_manage_health_agency,
@@ -85,12 +85,13 @@ class Role < ActiveRecord::Base
       :can_manage_claims,
       :can_manage_all_patients,
       :can_manage_patients_for_own_agency,
+      :can_approve_patient_items_for_agency,
       :can_edit_all_patient_items,
       :can_edit_patient_items_for_own_agency,
-      :can_create_care_plans_for_own_agency,
-      :can_view_all_patients, # Read-only
-      :can_view_patients_for_own_agency, # Read-only
-      :can_add_case_management_notes,
+      :can_create_care_plans_for_own_agency, # unused
+      :can_view_all_patients, # Read-only - unused
+      :can_view_patients_for_own_agency, # Read-only - unused
+      :can_add_case_management_notes, # unused
     ]
   end
 

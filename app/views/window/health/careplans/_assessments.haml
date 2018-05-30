@@ -1,7 +1,7 @@
 .client__assessments.slab
   .clearfix.margin-bottom-02
     %h4.section-expander-block__header.pull-left SDH Case Management Notes
-    - if current_user.can_add_case_management_notes?
+    - if current_user.can_edit_patient_items_for_own_agency?
       .pull-right
         = link_to 'Add Case Note', polymorphic_path([:new] + sdh_case_management_note_path_generator), class: 'btn-primary btn-muted btn-xs'
   - if status = @client.api_status
