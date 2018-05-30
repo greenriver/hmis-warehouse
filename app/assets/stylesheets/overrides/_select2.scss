@@ -52,3 +52,9 @@
     flex: 1 1 auto;
   }
 }
+
+.select2-container--default {
+  &:empty {
+    display: none !important;
+  }
+}
