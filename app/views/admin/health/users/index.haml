@@ -1,49 +1,52 @@
 - content_for :title,  'Manage Healthcare Window Access'
-%h1= content_for :title
-= render 'breadcrumbs'
-= render 'menus/health_admin_tabs'
-%p Use this form to grant access to the healthcare sections of the window into the warehouse to users. 
-
-= simple_form_for :users, url: admin_health_users_path do |f|
-  = f.error_notification
-  .form-inputs
-    %p= page_entries_info @users
-    %p= paginate @users
-    %table.table.table-striped
-      %thead
-        %tr
-          %th User
-          %th email
-          %th Health roles
-      %tbody
-        - @users.each do |user|
-          %tr
-            = simple_fields_for user do |t|
-              %td
-                = user.name
-                = t.input :id, as: :hidden, input_html: { id: "users[#{user.id}]id", name: "users[#{user.id}]id"}
-              %td
-                = user.email
-              %td
-                .form-group.check_boxes.optional.user_roles               
-                  - Role.health.each do |role|
-                    - id = "users[#{user.id}]roles[#{role.id}]"
-                    - name = "users[#{user.id}]roles[]"
-                    %span.checkbox
-                      %label{for: id}
-                        = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
-                        = role.name
-                - if user.can_manage_health_agency?
-                  %label Health Agency Manager For:
-                  %div 
-                    - agency_user = user.agency_user
-                    - if agency_user.present?
-                      = user.health_agency.name
-                      = link_to 'Edit', edit_admin_health_user_agency_user_path(user, agency_user), data: {behavior: 'assign agency user'}
-                    - else
-                      = link_to 'Assign Agency', new_admin_health_user_agency_user_path(user), class: 'btn btn-default btn-xs', data: {behavior: 'assign agency user'}
-  .form-actions
-    = f.button :submit, class: 'btn btn-primary'
+.row
+  .col-sm-12
+    %h1= content_for :title
+    = render 'breadcrumbs'
+    = render 'menus/health_admin_tabs'
+    %p Use this form to grant access to the healthcare sections of the window into the warehouse to users. 
+.row
+  .col-sm-10
+    = simple_form_for :users, url: admin_health_users_path do |f|
+      = f.error_notification
+      .form-inputs
+        %p= page_entries_info @users
+        %p= paginate @users
+        %table.table.table-striped
+          %thead
+            %tr
+              %th User
+              %th Email
+              %th Health roles
+          %tbody
+            - @users.each do |user|
+              %tr
+                = simple_fields_for user do |t|
+                  %td
+                    = user.name
+                    = t.input :id, as: :hidden, input_html: { id: "users[#{user.id}]id", name: "users[#{user.id}]id"}
+                  %td
+                    = user.email
+                  %td
+                    .form-group.check_boxes.optional.user_roles               
+                      - Role.health.each do |role|
+                        - id = "users[#{user.id}]roles[#{role.id}]"
+                        - name = "users[#{user.id}]roles[]"
+                        %span.checkbox
+                          %label{for: id}
+                            = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
+                            = role.name
+                    - if can_manage_health_agency?
+                      %label Health Agency:
+                      %div 
+                        - agency_user = user.agency_user
+                        - if agency_user.present?
+                          = user.health_agency.name
+                          = link_to 'Edit', edit_admin_health_user_agency_user_path(user, agency_user), data: {behavior: 'assign agency user'}
+                        - else
+                          = link_to 'Assign Agency', new_admin_health_user_agency_user_path(user), class: 'btn btn-default btn-xs', data: {behavior: 'assign agency user'}
+      .form-actions.pull-right
+        = f.button :submit, 'Save Changes', class: 'btn btn-primary'
 
 = render 'agency_user_modal'
 

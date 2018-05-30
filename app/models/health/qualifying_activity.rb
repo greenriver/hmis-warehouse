@@ -1,35 +1,35 @@
 module Health
   class QualifyingActivity < HealthBase
 
-    MODE_OF_CONTACT = [
-      'In Person',
-      'Phone call',
-      'Email',
-      'Video call',
-      'Other'
-    ]
+    MODE_OF_CONTACT = {
+      'U2' => 'In Person',
+      'U3' => 'Phone call',
+      'U3' => 'Email',
+      'U3' => 'Video call',
+      '' => 'Other'
+    }
     MODE_OF_CONTACT_OTHER = 'Other'
 
-    REACHED_CLIENT = [
-      'Yes (face to face, phone call answered, response to email)',
-      'Group session',
-      'Did not reach',
-      'Collateral contact - not with client directly'
-    ]
+    REACHED_CLIENT = {
+      'U1' => 'Yes (face to face, phone call answered, response to email)',
+      'HQ' => 'Group session',
+      '' => 'Did not reach',
+      'UK' => 'Collateral contact - not with client directly'
+    }
     REACHED_CLIENT_OTHER = 'Collateral contact - not with client directly'
 
-    ACTIVITY = [
-      'Outreach for enrollment',
-      'Care coordination',
-      'Care planning',
-      'Comprehensive Health Assessment',
-      'Follow-up within 3 days of hospital discharge (with client)',
-      'Care transitions (working with care team)',
-      'Health and wellness coaching',
-      'Connection to community and social services',
-      'Social services screening completed',
-      'Referral to ACO for Flexible Services'
-    ]
+    ACTIVITY = {
+      'G9011' => 'Outreach for enrollment',
+      'G9005' => 'Care coordination',
+      'T2024' => 'Care planning',
+      'G0506' => 'Comprehensive Health Assessment',
+      'G9007 U5' => 'Follow-up within 3 days of hospital discharge (with client)',
+      'G9007' => 'Care transitions (working with care team)',
+      'G9006' => 'Health and wellness coaching',
+      'G9004' => 'Connection to community and social services',
+      'T1023' => 'Social services screening completed',
+      'T1023 U6' => 'Referral to ACO for Flexible Services'
+    }
 
     scope :submitted, -> {where.not(claim_submitted_on: nil)}
     scope :unsubmitted, -> {where(claim_submitted_on: nil)}
@@ -37,10 +37,10 @@ module Health
     belongs_to :source, polymorphic: true
     belongs_to :user
 
-    validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT}, allow_blank: true
-    validates :reached_client, inclusion: {in: REACHED_CLIENT}, allow_blank: true
-    validates :activity, inclusion: {in: ACTIVITY}, allow_blank: true 
-    validates_presence_of :user, :user_full_name, :source
+    validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT.values}, allow_blank: true
+    validates :reached_client, inclusion: {in: REACHED_CLIENT.values}, allow_blank: true
+    validates :activity, inclusion: {in: ACTIVITY.values}, allow_blank: true 
+    validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 
@@ -59,15 +59,15 @@ module Health
     end
 
     def self.mode_of_contact_collection
-      self.load_string_collection(MODE_OF_CONTACT)
+      self.load_string_collection(MODE_OF_CONTACT.values)
     end
 
     def self.reached_client_collection
-      self.load_string_collection(REACHED_CLIENT)
+      self.load_string_collection(REACHED_CLIENT.values)
     end
 
     def self.activity_collection
-      self.load_string_collection(ACTIVITY)
+      self.load_string_collection(ACTIVITY.values)
     end
 
     def mode_of_contact_is_other?
@@ -103,5 +103,18 @@ module Health
       section
     end
 
+    def procedure_code
+      # ignore any modifiers
+      ACTIVITY.invert[activity].split(' ')[0]
+    end
+
+    def modifiers
+      modifiers = []
+      # attach modifiers from activity
+      modifiers << ACTIVITY.invert[activity].split(' ')[1]
+      modifiers << MODE_OF_CONTACT.invert[mode_of_contact] 
+      modifiers << REACHED_CLIENT.invert[reached_client]
+      return modifiers.reject(&:blank?).compact
+    end
   end
 end
