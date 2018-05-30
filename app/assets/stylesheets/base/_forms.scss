@@ -78,18 +78,18 @@ label {
 }
 
 .has-error {
-  @include form-control-validation($cas-red, $cas-red, $cas-red);
+  @include form-control-validation($brand-danger, $brand-danger, $brand-danger);
 }
 
 .error .form-control {
-  border-color: $cas-red;
+  border-color: $brand-danger;
+  background: rgba($brand-danger-l, .1);
 }
 
 .errors,
 .error label,
 .error-block {
-  color: $cas-red;
-  @include open-sans-medium;
+  color: $brand-danger;
 }
 
 .form-group .form-group {

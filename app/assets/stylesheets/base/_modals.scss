@@ -23,6 +23,14 @@
   }
 }
 
+.modal-dialog {
+  @include media-breakpoint-down(sm) {
+    width: calc(100vw - 30px) !important;
+    margin-right: 15px !important;
+    margin-left: 15px !important;
+  }
+}
+
 .modal-dialog input[type=submit] {
   float: right;
   min-width: 120px;
