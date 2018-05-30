@@ -111,6 +111,16 @@ module CombinedClientPathsGenerator
     end
     helper_method :release_form_path_generator
 
+    def chas_path_generator
+      health_path_generator + [:chas]
+    end
+    helper_method :chas_path_generator
+
+    def cha_path_generator
+      health_path_generator + [:cha]
+    end
+    helper_method :cha_path_generator
+
     def edit_cas_readiness_path_generator
       [:edit] + client_path_generator + [:cas_readiness]
     end

@@ -25,6 +25,9 @@ module Importing
       # Disable CAS for anyone who's been housed in CAS
       GrdaWarehouse::CasHoused.inactivate_clients
       
+      # Maintain ETO based CAS flags
+      GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new().run!
+
       GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
       @notifier.ping('Pushed Clients to CAS') if @send_notifications
 

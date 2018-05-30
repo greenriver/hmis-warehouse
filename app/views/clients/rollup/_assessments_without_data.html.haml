@@ -14,7 +14,11 @@
       - assessments.each_with_index do |(type, (form, *rest)), i|
         - cz = "assessment_type_#{i}"
         %tr{ class: ( 'assessment__new-type' if any_buttons )}
-          %td= form.assessment_type
+          %td
+            - if form.details_in_window_with_release? && @client.consent_form_valid?
+              = link_to type, window_client_assessment_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            - else
+              = form.assessment_type
           %td= form.collected_at.to_date
           %td= GrdaWarehouse::Hud::Project.confidentialize(name: form.collection_location)
           %td= form.staff

@@ -1,6 +1,10 @@
-%h3= "Add Chronic Justification"
-= simple_form_for @note, as: :note, url: client_notes_path(@client) do |f|
-  -# = f.input :type, label: 'Note type', collection: GrdaWarehouse::ClientNotes::Base.available_types(), label_method: :type_name
-  = f.input :note, label: 'Note'
-  = f.hidden_field :type, value: 'GrdaWarehouse::ClientNotes::ChronicJustification'
-  = f.submit value: 'Add Note', class: 'btn btn-secondary'
+%article.o-dashboard__block.o-dashboard__block--secondary
+  %header
+    %h1.h3= "Add Chronic Justification"
+  .c-card.c-card--no-padding
+    .c-card__content.c-card__content--no-hover
+      = simple_form_for @note, as: :note, url: client_notes_path(@client) do |f|
+        -# = f.input :type, label: 'Note type', collection: GrdaWarehouse::ClientNotes::Base.available_types(), label_method: :type_name
+        = f.input :note, label: 'Note'
+        = f.hidden_field :type, value: 'GrdaWarehouse::ClientNotes::ChronicJustification'
+        = f.submit value: 'Add Note', class: 'btn btn-secondary'

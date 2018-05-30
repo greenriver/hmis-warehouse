@@ -85,5 +85,9 @@ module Window::Health
       @form = @patient.self_sufficiency_matrix_forms.where(id: params[:id]).first
     end
 
+    def flash_interpolation_options
+      { resource_name: 'Self-Sufficiency Matrix' }
+    end
+
   end
 end

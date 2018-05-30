@@ -1,17 +1,14 @@
 [class^='ds'] {
-  display: inline-block;
-  font-size: 0.75rem;
+  @extend .c-tag-pill;
   text-decoration: none;
   background-color: $gray-065;
   color: white;
-  min-width: 4.2em;
+  min-width: 3.75rem;
   text-align: center;
   align-self: stretch;
   align-items: center;
   justify-content: center;
   margin-right: rem(6px);
-  margin-top: rem(4px);
-  border-radius: rem(2px);
 }
 // FIXME: The following should be stored on the data source
 // with a color picker and a random default set when seeded

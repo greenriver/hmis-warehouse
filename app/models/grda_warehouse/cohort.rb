@@ -77,6 +77,7 @@ module GrdaWarehouse
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
+        ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new(),
         ::CohortColumns::FirstDateHomeless.new(),
         ::CohortColumns::Chronic.new(),
         ::CohortColumns::Agency.new(),
@@ -118,6 +119,7 @@ module GrdaWarehouse
         ::CohortColumns::HousingPlan.new(),
         ::CohortColumns::DateDocumentReady.new(),
         ::CohortColumns::DaysHomelessLastThreeYears.new(),
+        ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new(),
         ::CohortColumns::EnrolledHomelessShelter.new(),
         ::CohortColumns::EnrolledHomelessUnsheltered.new(),
         ::CohortColumns::EnrolledPermanentHousing.new(),
@@ -140,6 +142,11 @@ module GrdaWarehouse
         ::CohortColumns::HouseholdMembers.new(),
         ::CohortColumns::MinimumBedroomSize.new(),
         ::CohortColumns::SpecialNeeds.new(),
+        ::CohortColumns::RrhDesired.new(),
+        ::CohortColumns::YouthRrhDesired.new(),
+        ::CohortColumns::RrhAssessmentContactInfo.new(),
+        ::CohortColumns::RrhSsvfEligible.new(),
+        
       ]
     end
 

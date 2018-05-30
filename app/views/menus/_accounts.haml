@@ -1,10 +1,9 @@
-.vsm-group.vsm-group__account
-  = link_to edit_account_path, class: 'vsm-item-link' do
-    .vsm-item-link--description
+%ul.o-menu__group.list-unstyled
+  %li.o-menu__item
+    = link_to edit_account_path, class: 'o-menu__link' do
       Edit Account
   -# = current_user.name
-  = link_to destroy_user_session_path, method: :delete, class: 'vsm-item-link' do
-    .vsm-item-link--description
+  %li.o-menu__item
+    = link_to destroy_user_session_path, method: :delete, class: 'o-menu__link' do
       Sign Out
-    .menu-icon
-      %i{class: "icon-exit"}
+      %i.ml-2{class: "icon-exit"}

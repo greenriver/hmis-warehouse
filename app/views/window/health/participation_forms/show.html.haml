@@ -11,5 +11,10 @@
   %dt Reviewed by Supervisor
   %dd= @participation_form.reviewed_by&.name
 
-  %dt Location
-  %dd= @participation_form.location
+  - if @participation_form.health_file.present?
+    %dt Download File
+    %dd= link_to @participation_form.health_file&.name, polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id )
+
+  - if @participation_form.location.present?
+    %dt Location
+    %dd= @participation_form.location

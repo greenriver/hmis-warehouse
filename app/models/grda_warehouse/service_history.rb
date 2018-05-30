@@ -179,8 +179,8 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(project_type_column => project_types)
   end
 
-  scope :visible_in_window, -> do
-    joins(:data_source).where(data_sources: {visible_in_window: true})
+  scope :visible_in_window_to, -> (user) do
+    joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
   end
 
   #################################

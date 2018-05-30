@@ -36,15 +36,15 @@
       .margin-bottom-02
         %label Problem
         .health-careplan__goal-problem
-          = goal.problem          
+          = simple_format goal.problem          
       .margin-bottom-02
         %label Goal Description
         .health-careplan__goal-details
-          = goal.goal_details
+          = simple_format goal.goal_details
       .margin-bottom-02
         %label Intervention
         .health-careplan__goal-intervention
-          = goal.intervention
+          = simple_format goal.intervention
       
 - else
   = simple_form_for(goal, as: :goal, url: url, remote: request.xhr?, class: :jGoal) do |f|

@@ -1,3 +1,7 @@
-- @client.cas_houseds.each do |housed| 
-  .alert.alert-success.client-flag
-    Housed in CAS on #{housed.housed_on}
+- @client.cas_houseds.each do |housed|
+  .c-tag.c-tag--success.client-flag
+    .c-tag__wrapper
+      .c-tag__icon
+        .icon-house
+      .c-tag__content
+        %span Housed in CAS on #{housed.housed_on}

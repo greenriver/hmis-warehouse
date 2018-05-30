@@ -1,0 +1,19 @@
+= simple_form_for @equipment, url: @form_url do |f|
+  = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2}
+  = f.input :provider
+  = f.input :quantity
+  = f.input :effective_date, as: :date_picker
+  = f.input :comments
+  .row
+    .col-sm-6
+      - if @equipment.persisted?
+        = link_to polymorphic_path(health_path_generator + [:durable_equipment], id: @equipment.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{@equipment.item}."}, class: 'btn btn-danger btn-sm' do
+          %i.icon-cross
+          Delete
+    .col-sm-6
+      = f.button :submit, class: 'btn-primary btn-muted btn-sm', value: @button_label
+
+
+= content_for :page_js do
+  :javascript
+    $('.select2').select2().css('width: 100%;');

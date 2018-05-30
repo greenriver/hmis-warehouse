@@ -1,43 +1,24 @@
 - eto_available = GrdaWarehouse::Config.get(:eto_api_available)
-.client__summary.col-sm-12
-  .row
-    .col-sm-12
-      = render 'window/clients/aliases'
-  .row
-    .col-sm-4
-      %h3 Service Summary
-      - if @client.service_history.empty?
-        = "There is no service record for #{@client.name}"
-      - else
-        - if @client.date_of_last_service.present?
-          %ul
-            %li
-              = "Last seen #{time_ago_in_words(@client.date_of_last_service)} ago"
-            - if ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
-              %li= "Last seen at #{projects.to_sentence}"
-            %li
-              = "#{@client.days_homeless} days homeless in ES, SO, TH, and SH between #{@client.date_of_first_service} and #{@client.date_of_last_service}"
-            - if @client.service_history_enrollments.ongoing.residential.any?
-              %li
-                Enrolled in: 
-                = enrolled(@client) 
-        - else
-          %p None
+.client__main-details
+  - if @client.image
+    .client__image{ style: "background-image: url(#{ image_client_path })" }
+  %section.o-section-card.mb-0
+    .c-card.c-card--block.c-card--padded.c-card--flush.mb-4
+      = render 'clients/service_summary', window: false
+      
+    .d-flex.flex-column.align-items-start.flex-wrap
+      .client-consent-status.d-none--empty.mb-3.mr-8<
+        = render 'window/clients/consent_form_flags'
+      .mr-8.mb-3.d-none--empty<
+        = render 'clients/chronic_flags', client: @client
+        = render 'clients/cas_housed'
 
-      = render 'chronic_flags', client: @client
-      = render 'cas_housed'
-      = render 'clients/rollup/cohorts'
+      .d-none--empty.mr-8.mb-6<
+        = render 'clients/vispdat'
+        
+      .row.align-items-start.d-flex.flex-wrap
+        = render 'clients/rollup/cohorts'
+        = render 'cas_matches'
 
-    .col-sm-4
-      = render 'window/clients/consent_form_flags'
-
-      = render 'window/clients/required_documents'
-    .col-sm-4
-      - if @client.image
-        .client__image
-          = image_tag(image_client_path)
-      - if can_view_vspdat? && @client.vispdats.completed.any?
-        %h3 VI-SPDAT Scores
-        - @client.vispdats.completed.scores.each do |vispdat|
-          %span.label{ class: "label-#{vispdat.score_class}" }= vispdat.score
-      = render 'cas_matches'
+      .d-none--empty.mb-6.w-100<
+        = render 'window/clients/required_documents'

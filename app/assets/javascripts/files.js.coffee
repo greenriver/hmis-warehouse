@@ -7,9 +7,9 @@ $('.jThumb').each (e) ->
     thumb_url = url_base + '/thumb'
     preview_url = url_base + '/preview'
     if(textStatus == 'success')
-      link = '<a href="' + preview_url + '" target="_blank"><img src="' + thumb_url + '" class="file-thumbnail" /></a>'
-    else 
-      link = '<a href="' + preview_url + '" target="_blank"><i class="icon-eye btn btn-secondary btn-lg"/></a>'
+      link = '<a href="' + preview_url + '" target="_blank"><div style="background-image: url(' + thumb_url + ')" class="file-thumbnail file-thumbnail--image"></div></a>'
+    else
+      link = '<a href="' + preview_url + '" target="_blank"><div class="file-thumbnail"></div></a>'
     $(thumb).html(link)
 
 $(document).on 'change', '.jFileTag', (e) ->
@@ -25,7 +25,7 @@ $(document).on 'change', '.jFileTag', (e) ->
     $('.consent-form-fields').removeClass('hidden')
   else
     $('.consent-form-fields').addClass('hidden')
-  
+
 $(document).on 'change', '.jDownload', (e) ->
   ids = $('.jDownload:checked').map ->
     $(this).val()

@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  
+
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -26,13 +26,32 @@ Rails.application.routes.draw do
       resources :metrics, only: [:index]
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
-      resources :participation_forms
-      resources :release_forms
-      resources :careplans, except: [:destroy, :create] do
+      resources :services
+      resources :durable_equipments, except: [:index]
+      resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment
         get :print
+        get :revise, on: :member
+      end
+      resources :participation_forms do
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
+      resources :release_forms do 
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
+      resources :comprehensive_health_assessments, path: :chas, as: :chas do 
+        member do
+          delete :remove_file
+          get :download
+        end
       end
       namespace :pilot do 
         resources :patient, only: [:index]
@@ -118,12 +137,12 @@ Rails.application.routes.draw do
       collection do
         get :download
       end
-    end 
+    end
     resources :confidential_touch_point_exports, only: [:index] do
       collection do
         get :download
       end
-    end 
+    end
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
@@ -238,7 +257,7 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
-    resources :files, controller: 'clients/files' do 
+    resources :files, controller: 'clients/files' do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
@@ -274,7 +293,7 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
-      resources :files, controller: 'clients/files' do 
+      resources :files, controller: 'clients/files' do
         get :preview, on: :member
         get :thumb, on: :member
         get :has_thumb, on: :member
@@ -458,6 +477,8 @@ Rails.application.routes.draw do
       get :add_goal
       get :add_team_member
       get :alerts
+      get :tags
+      get :client_dashboard
     end
   end
 

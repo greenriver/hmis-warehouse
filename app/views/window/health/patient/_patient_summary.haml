@@ -13,21 +13,37 @@
                 %span.caret
               %ul.dropdown-menu
                 %li
-                  - if @patient.participation_forms.none?
-                    = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }, style: 'margin-left: 20px' do
+                  - participation = @patient.participation_forms.recent.first
+                  - if participation
+                    = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
+                      - if participation.reviewed_by.present?
+                        %span.icon-checkmark.o-color--positive
                       Participation Form
-                  - else 
-                    = link_to polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @patient.participation_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
-                      %span.icon-checkmark.o-color--positive
+                  - else
+                    = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
                       Participation Form
+
                 %li
-                  - if @patient.release_forms.none?
-                    = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true }, style: 'margin-left: 20px' do
+                  - release = @patient.release_forms.recent.first
+                  - if release
+                    = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
+                      - if release.reviewed_by.present?
+                        %span.icon-checkmark.o-color--positive
                       Release Form
-                  - else 
-                    = link_to polymorphic_path(release_form_path_generator, client_id: @client.id, id: @patient.release_forms.recent.first&.id), data: { loads_in_pjax_modal: true } do
-                      %span.icon-checkmark.o-color--positive
+                  - else
+                    = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
                       Release Form
+
+                %li
+                  - cha = @patient.chas.recent.first
+                  - if cha
+                    = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
+                      - if cha.complete?
+                        %span.icon-checkmark.o-color--positive
+                      Comprehensive Health Assessment
+                  - else
+                    = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+                      Comprehensive Health Assessment
 
       .ho-patient__details
         .row

@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def description
-      'Days homeless in past 3 years for the client as calculated when added to the cohort'
+      'Days homeless in past 3 years for the client as calculated when added to the cohort (ES, SH, SO, or TH  with no overlapping TH or PH)'
     end
 
     def default_value client_id
