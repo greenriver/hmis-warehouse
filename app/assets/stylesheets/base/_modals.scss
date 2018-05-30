@@ -25,3 +25,7 @@
 .import__errors {
   overflow: scroll;
 }
+
+[data-pjax-modal-loading] {
+  min-height: 300px;
+}
