@@ -1,6 +1,6 @@
 %section.client__assessments.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
-    %h3.section-expander-block__header SDH Case Management Notes
+    %h2.section-expander-block__header SDH Case Management Notes
     - if current_user.can_edit_patient_items_for_own_agency?
       = link_to 'Add Case Note', polymorphic_path([:new] + sdh_case_management_note_path_generator), class: 'btn btn-primary btn-sm ml-auto'
   .c-card__content.c-card__content--flush
@@ -27,7 +27,7 @@
 
 %section.client__assessments.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
-    %h3.section-expander-block__header
+    %h2.section-expander-block__header
       Assessments
     %select.new-assessment.ml-auto
       %option{ value: 0 } Add New...

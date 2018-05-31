@@ -14,6 +14,11 @@ button.close {
   min-height: auto;
 }
 
+.btn-xs {
+  padding: $input-btn-xs-padding-y $input-btn-xs-padding-x;
+  min-height: auto;
+}
+
 .btn-shout {
   text-transform: uppercase;
 }

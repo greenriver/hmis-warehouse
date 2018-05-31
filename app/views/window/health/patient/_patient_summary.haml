@@ -1,14 +1,14 @@
 #summary
   = render 'patient_status'
   .ho-patient__container
-    .ho-patient__header
+    .ho-patient__header.mb-2
       %h3.ho-patient__name
         .row
           .col-sm-6
             = @patient.client.name
           .col-sm-6.text-right
             .btn-group
-              %button{ type: 'button', class: 'btn btn-default dropdown-toggle', :'data-toggle' => 'dropdown' }
+              %button{ type: 'button', class: 'btn btn-secondary btn-sm dropdown-toggle', :'data-toggle' => 'dropdown' }
                 Engagement Readiness & Forms
                 %span.caret
               %ul.dropdown-menu
