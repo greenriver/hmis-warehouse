@@ -40,7 +40,13 @@
   display: flex;
 }
 
+.input-group-addon,
+.input-group-btn {
+  width: auto;
+}
+
 .input-group-addon {
+  width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
