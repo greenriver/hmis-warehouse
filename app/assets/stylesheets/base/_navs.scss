@@ -48,10 +48,22 @@ $nav-tab-active-color: darken($tab-bg, 40%);
 
 .sub-nav-tabs {
   border-top: 1px solid $gray-020;
+  transition: .25s;
+  &.affix {
+    width: 100%;
+    top: 0;
+    margin-top: 0;
+    z-index: 400;
+    border-bottom: 1px solid $cob-sg-charles-blue;
+    li a {
+      padding: space(4) space(4);
+    }
+  }
 }
 
 .sub-nav-tabs li {
   display: inline-block;
+  background: $white;
 }
 
 .sub-nav-tabs li:first-child a {
@@ -59,17 +71,20 @@ $nav-tab-active-color: darken($tab-bg, 40%);
 }
 
 .sub-nav-tabs li a {
+  transition: .25s padding;
   padding: space(2) space(4);
+  border-bottom: 1px solid transparent;
 }
 
 .sub-nav-tabs li a:hover,
 .sub-nav-tabs li a:active,
 .sub-nav-tabs li a:focus,
 .sub-nav-tabs li.active a {
-  background-color: $nav-tab-active-active-bg;
+  background-color: $body-bg;
   border-bottom: 1px solid $nav-tab-active-border-color;
   color: $nav-tab-active-color;
 }
 .sub-nav-tabs li.active a {
   font-weight: bold;
+  background-color: $nav-tab-active-active-bg;
 }
