@@ -33,7 +33,7 @@ $brand-success-l:       #81e7a7 !default;
 $brand-success-d:       #68c27f !default;
 $brand-positive: $brand-success;
 $brand-positive-l: $brand-success-l;
-$brand-info:            $brand-primary-l !default;
+$brand-info:            $brand-primary-ll !default;
 $brand-warning:         #bc6923 !default;
 $brand-warning-l:       #ffcb9b !default;
 $brand-warning-d:       #e5b17e !default;
@@ -80,3 +80,14 @@ $table-cell-bg-danger: lighten($brand-danger-l, 25%);
 
 // Tabs
 $tab-bg: #88A6C9; // Primary in HMIS
+
+$theme-colors: (
+  "primary":    $brand-primary,
+  "secondary":  $brand-secondary,
+  "success":    $brand-success,
+  "info":       $brand-info,
+  "warning":    $brand-warning,
+  "danger":     $brand-danger,
+  "light":      $white,
+  "dark":       $gray-080
+);

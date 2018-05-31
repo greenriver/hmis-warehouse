@@ -176,3 +176,132 @@ button.close {
   color: #fff;
 
 }
+
+// From CAS
+
+.btn-primary {
+  background: $brand-primary;
+  border-color: $brand-primary-d;
+  color: $white;
+  &:hover {
+    background: darken($brand-primary-l, 25%);
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-primary-l, 80%);
+    border-color: desaturate($brand-primary, 80%);
+    color: rgba($black, .55);
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-primary-l, 25%);
+    }
+  }
+}
+
+.btn-secondary {
+  background: $white;
+  border-color: $brand-primary;
+  color: $brand-primary;
+  &:hover {
+    background: darken($brand-primary-l, 25%);
+    border-color: $brand-primary-d;
+    color: $white;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-primary-l, 80%);
+    border-color: desaturate($brand-primary, 80%);
+    color: rgba($black, .55);
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-primary-l, 25%);
+    }
+  }
+}
+
+.btn-success {
+  background: $brand-success-l;
+  border-color: $brand-success;
+  color: rgba($black, .75);
+  &:hover {
+    background: $brand-success-d;
+    border-color: $brand-primary-d;
+    color: $black;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-success-l, 80%);
+    border-color: desaturate($brand-success, 80%);
+    color: rgba($black, .55);
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-success-l, 25%);
+    }
+  }
+}
+
+.btn-warning {
+  background: $brand-warning-l;
+  border-color: $brand-warning;
+  color: rgba($black, 55%);
+  &:hover {
+    background: $brand-warning-d;
+    color: rgba($black, 1);
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-warning-l, 80%);
+    border-color: desaturate($brand-warning, 80%);
+    color: $black;
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-warning-l, 25%);
+    }
+  }
+}
+
+.btn-danger {
+  background: $brand-danger-l;
+  border-color: $brand-danger;
+  color: rgba($black, 1);
+  &:hover {
+    background: $brand-danger-d;
+    color: $black;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-danger-l, 80%);
+    border-color: desaturate($brand-danger, 80%);
+    color: rgba($black, .55);
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-danger-l, 25%);
+    }
+  }
+}
+
+.btn[class*='--outline'] {
+  background: none;
+  border-width: 2px;
+}
+
+.btn-light {
+  &:hover {
+    background: $brand-primary-l;
+  }
+  &:not(:disabled):not(.disabled):active,
+  &:not(:disabled):not(.disabled).active {
+    background: darken($brand-primary-l, 25%);
+    color: $white;
+  }
+}
