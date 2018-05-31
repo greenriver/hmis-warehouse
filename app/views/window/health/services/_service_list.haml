@@ -1,7 +1,11 @@
 - if @services.blank?
-  %p No services listed.
+  %p.no-data
+    No services listed.
+    = link_to polymorphic_path([:new] + health_path_generator + [:service]), data: { loads_in_pjax_modal: true } do
+      Add Service
+
 - else
-  %table.table.service__list
+  %table.table.service__list.mb-0
     %thead
       %tr
         %th Type
@@ -11,8 +15,7 @@
         %th Requested On
         %th Effective Date
         %th End Date
-        %th 
-
+        %th
 
     %tbody
       - @services.each do |service|
@@ -24,8 +27,7 @@
           %td= service.date_requested
           %td= service.effective_date
           %td= service.end_date
-          %td
-            = link_to polymorphic_path([:edit] + health_path_generator + [:service], id: service.id), data: { loads_in_pjax_modal: true }, class: 'btn-primary btn-muted btn-sm' do 
+          %td.text-right
+            = link_to polymorphic_path([:edit] + health_path_generator + [:service], id: service.id), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary btn-sm btn-icon-left' do
               %i.icon-pencil
               Edit
-          

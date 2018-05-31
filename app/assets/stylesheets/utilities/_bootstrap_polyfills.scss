@@ -34,8 +34,48 @@
   flex-wrap: wrap !important;
 }
 
+// Fix addon for deprecation in Bootstrap 4
+
+.input-group {
+  display: flex;
+}
+
+.input-group-addon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: $input-padding-y $input-padding-x;
+  border: 1px solid $input-border-color;
+  border-top-right-radius: $input-border-radius;
+  border-bottom-right-radius: $input-border-radius;
+  border-left: 0;
+  background: $brand-primary-ll;
+  &:hover {
+    background: $brand-primary;
+    color: $white;
+  }
+}
+
+
 @each $amount in 100 75 50 25 {
   .w-#{$amount} {
     width: #{$amount}% !important;
+  }
+}
+
+// Spacing
+
+@each $direction, $directionName in $directions {
+  @each $num, $space in $spacers {
+    .m#{$direction}-#{$num} {
+      margin-#{$directionName}: $space;
+    }
+    .p#{$direction}-#{$num} {
+      padding-#{$directionName}: $space;
+    }
+  }
+  .m#{$direction}-auto {
+    margin-#{$directionName}: auto;
   }
 }

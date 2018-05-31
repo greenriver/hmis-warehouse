@@ -267,12 +267,6 @@ $client-image-height: 200px;
   }
 }
 
-.clients__client {
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
-  background-color: $white;
-}
-
 .client__details{
   padding-right: space(4);
   flex: 0 0 33%;
@@ -485,9 +479,31 @@ $file-thumbnail-size: 75px;
   }
 }
 
+.sdh-note__activity {
+  &:first-of-type {
+    margin-top: -16px;
+    .sdh-note__activity h5 {
+      border-top-left-radius: $border-radius-default;
+      border-top-right-radius: $border-radius-default;
+    }
+  }
+}
+
+.sdh-note__action,
+.sdh-note__activity h3 {
+  @include internal-card-heading;
+}
+
+.sdh-note__action {
+  margin-top: space(4);
+  margin-bottom: -16px;
+  border-bottom: 0;
+  border-bottom-left-radius: $border-radius-default;
+  border-bottom-right-radius: $border-radius-default;
+}
+
 .sdh-note__activity h5 a {
   text-transform: none;
   @include open-sans-normal;
   padding-left: 20px;
-  font-size: 90%;
 }

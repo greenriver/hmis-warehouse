@@ -1,24 +1,21 @@
-
+- index ||= 1
 - goal = hpc
 - if goal.id.present?
   - url = polymorphic_path(careplan_path_generator + [:goal], id: goal.id, careplan_id: @careplan)
 - else
   - url = polymorphic_path(careplan_path_generator + [:goals])
 
-- well_class = ''
 - if readonly
-  - well_class = 'well'
-- if readonly
-  .jGoal{class: well_class, data: {id: goal.id}}
-    .health-careplan__goal
-      .row.margin-bottom-02
-        .col-xs-6
-          .health-careplan__goal-action.health-careplan__goal-delete
-            = link_to polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), data: { loads_in_pjax_modal: true } do 
+  .jGoal{data: {id: goal.id}}
+    .c-card__item.health-careplan__goal
+      .c-card__item-header
+        %h4 Goal ##{index}
+        .d-flex.ml-auto
+          .health-careplan__goal-action.health-careplan__goal-delete.mr-3
+            = link_to polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), data: { loads_in_pjax_modal: true } do
               %span.icon-pencil
-        .col-xs-6
-          .health-careplan__goal-action.health-careplan__goal-delete.pull-right
-            = link_to polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do 
+          .health-careplan__goal-action.health-careplan__goal-delete
+            = link_to polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do
               %span.icon-cross
       .row.margin-bottom-02
         .col-xs-4
@@ -36,7 +33,7 @@
       .margin-bottom-02
         %label Problem
         .health-careplan__goal-problem
-          = simple_format goal.problem          
+          = simple_format goal.problem
       .margin-bottom-02
         %label Goal Description
         .health-careplan__goal-details
@@ -45,20 +42,20 @@
         %label Intervention
         .health-careplan__goal-intervention
           = simple_format goal.intervention
-      
+
 - else
   = simple_form_for(goal, as: :goal, url: url, remote: request.xhr?, class: :jGoal) do |f|
+    - sized_input_html = {class: 'sized'}
     = f.error_notification
-    = f.input :problem
+    = f.input :problem, as: :text, input_html: sized_input_html
     .row
       .col-sm-6
         = f.input :start_date, as: :date_picker
-    = f.input :goal_details, label: 'Goal Description'
-    = f.input :intervention
+    = f.input :goal_details, label: 'Goal Description', as: :text, input_html: sized_input_html
+    = f.input :intervention, as: :text, input_html: sized_input_html
     .row
       .col-sm-6
         = f.input :status, collection: goal.class.available_stati, input_html: { class: :select2 }
         = f.input :responsible_team_member_id, collection: @careplan.team.available_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
-    .form-actions
+    .form__actions.form__actions--right
       = f.submit value: 'Save Goal', class: 'btn btn-primary'
-

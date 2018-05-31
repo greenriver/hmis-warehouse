@@ -1,11 +1,3 @@
-@mixin list-item-style-1 {
-  padding: 10px 20px;
-  background-color: #FFFFFF;
-  -webkit-box-shadow: 0px 0px 2px 0px rgba(119,119,119,0.3);
-  -moz-box-shadow: 0px 0px 2px 0px rgba(119,119,119,0.3);
-  box-shadow: 0px 0px 2px 0px rgba(119,119,119,0.3);
-}
-
 .style-guide__icon-list,
 .draggable-list {
   list-style: none;
@@ -54,9 +46,3 @@
 .active .goal-list__name {
   font-weight: 700;
 }
-
-.patient-referral {
-  @include list-item-style-1;
-}
-
-

@@ -11,21 +11,21 @@
           %td
             = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
               -# What are topics for old notes?
-              %div= form.assessment_type
+              %h4= form.assessment_type
               .padding-left-02 From ETO
           %td= form.collected_at.to_date
           %td= form.staff
       - @patient.sdh_case_management_notes.each do |note|
         %tr
           %td
-            = link_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: note.id), data: {loads_in_pjax_modal: true} do 
+            = link_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: note.id), data: {loads_in_pjax_modal: true} do
               %div= (note.topics.any? ? note.topics.join(', ') : "&nbsp;").html_safe
               .padding-left-02= note.title || 'No Title'
           %td= note.completed_on&.to_date
           %td= note.user.name
-      
+
 - else
-  No SDH Case Management Notes on file
+  %p.no-data No SDH Case Management Notes on file
 
 = content_for :page_js do
   :javascript

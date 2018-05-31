@@ -1,14 +1,14 @@
 #summary
   = render 'patient_status'
   .ho-patient__container
-    .ho-patient__header
+    .ho-patient__header.mb-2
       %h3.ho-patient__name
         .row
           .col-sm-6
             = @patient.client.name
           .col-sm-6.text-right
             .btn-group
-              %button{ type: 'button', class: 'btn btn-default dropdown-toggle', :'data-toggle' => 'dropdown' } 
+              %button{ type: 'button', class: 'btn btn-secondary btn-sm dropdown-toggle', :'data-toggle' => 'dropdown' }
                 Engagement Readiness & Forms
                 %span.caret
               %ul.dropdown-menu
@@ -17,10 +17,11 @@
                   - if participation
                     = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
                       - if participation.reviewed_by.present?
-                        %span.icon-checkmark.o-color--positive
+                        %span.icon-checkmark.o-color--positive.mr-1
                       Participation Form
                   - else
                     = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.mr-1.o-color--gray-l
                       Participation Form
 
                 %li
@@ -28,10 +29,11 @@
                   - if release
                     = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
                       - if release.reviewed_by.present?
-                        %span.icon-checkmark.o-color--positive
+                        %span.icon-checkmark.o-color--positive.mr-1
                       Release Form
                   - else
                     = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.mr-1.o-color--gray-l
                       Release Form
 
                 %li
@@ -39,10 +41,11 @@
                   - if cha
                     = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
                       - if cha.complete?
-                        %span.icon-checkmark.o-color--positive
+                        %span.icon-checkmark.o-color--positive.mr-1
                       Comprehensive Health Assessment
                   - else
                     = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.mr-1.o-color--gray-l
                       Comprehensive Health Assessment
 
       .ho-patient__details
@@ -53,7 +56,7 @@
                 %span= "#{detail[0]}: "
                 = detail[1]
 
-          .col-md-6.text-right  
+          .col-md-6.text-right
             .row
               .col-sm-6.text-right
                 PREFERRED COMMUNICATION:
@@ -76,7 +79,7 @@
                 = td[1]
       .row
         .col-sm-6
-          %h4 
+          %h4
             Allergies
         .col-sm-6
           %h4
@@ -86,4 +89,3 @@
           = @patient.allergy_list.presence || 'none'
         .col-sm-6
           (provided by CHA)
-

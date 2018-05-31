@@ -1,63 +1,62 @@
-.client__assessments.slab
-  .clearfix.margin-bottom-02
-    %h4.section-expander-block__header.pull-left SDH Case Management Notes
+%section.client__assessments.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2.section-expander-block__header SDH Case Management Notes
     - if current_user.can_edit_patient_items_for_own_agency?
-      .pull-right
-        = link_to 'Add Case Note', polymorphic_path([:new] + sdh_case_management_note_path_generator), class: 'btn-primary btn-muted btn-xs'
-  - if status = @client.api_status
-    - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
-    - if status[:updating]
-      .row
-        .col-sm-10
-          .api-status-status.jApiStatus
-            Updating since
-            = status[:started_at]
-        .col-sm-2.pull-right
-          = render 'spinner'
-    - else
-      .row
-        .col-xs-8
-          Last updated: 
-          = status[:updated_at]
-        .col-xs-4
-          = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
+      = link_to 'Add Case Note', polymorphic_path([:new] + sdh_case_management_note_path_generator), class: 'btn btn-primary btn-sm ml-auto'
+  .c-card__content.c-card__content--flush
+    - if status = @client.api_status
+      - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
+      - if status[:updating]
+        .row
+          .col-sm-10
+            .api-status-status.jApiStatus
+              Updating since
+              = status[:started_at]
+          .col-sm-2.pull-right
+            = render 'spinner'
+      - else
+        .row
+          .col-xs-8
+            Last updated:
+            = status[:updated_at]
+          .col-xs-4
+            = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
 
-  / # = render 'touch_points_table'
-  = render 'sdh_case_management_notes'
+    / # = render 'touch_points_table'
+    = render 'sdh_case_management_notes'
 
-.client__assessments.slab
-  .row
-    .col-md-6
-      %h4.section-expander-block__header
-        Assessments
-    .col-md-6
-      %select.col-sm-12.new-assessment
-        %option{ value: 0 } Add New...
-        - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
-          %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
-        %option{ value: '' } Comprehensive Health Assessment
+%section.client__assessments.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2.section-expander-block__header
+      Assessments
+    %select.new-assessment.ml-auto
+      %option{ value: 0 } Add New...
+      - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
+        %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
+      %option{ value: '' } Comprehensive Health Assessment
 
-  - if status = @client.api_status
-    - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
-    - if status[:updating]
-      .row
-        .col-sm-10
-          .api-status-status.jApiStatus
-            Updating since
-            = status[:started_at]
-        .col-sm-2.pull-right
-          = render 'spinner'
-    - else
-      .row
-        .col-xs-8
-          Last updated: 
-          = status[:updated_at]
-        .col-xs-4
-          = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
+  .c-card__content.c-card__content--flush
+    - if status = @client.api_status
+      - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
+      - if status[:updating]
+        .row
+          .col-sm-10
+            .api-status-status.jApiStatus
+              Updating since
+              = status[:started_at]
+          .col-sm-2.pull-right
+            = render 'spinner'
+      - else
+        .row
+          .col-xs-8
+            Last updated:
+            = status[:updated_at]
+          .col-xs-4
+            = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
 
-  .row
-    .col-md-12
-      = render 'touch_points_table'
+    .row
+      .col-md-12
+        = render 'touch_points_table'
 
 = content_for :page_js do
   :javascript
@@ -68,8 +67,3 @@
     $(document).on 'change', '.new-assessment', (e) ->
       path = $(e.target).val()
       window.location.href = path unless path == '0'
-
-
-
-
-
