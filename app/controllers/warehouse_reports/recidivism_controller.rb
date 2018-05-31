@@ -11,9 +11,8 @@ module WarehouseReports
           Hash[columns.zip(row)]
         end.
         group_by{|row| row[:client_id]}
-      # ignore service that would happen on the last day of the homeless enrollment, sometimes that matches up 
-      # with the first day of a PH enrollment
-      @homeless_clients = homeless_source.with_service_between(start_date: @filter.start, end_date: @filter.end - 1.day).distinct.
+
+      @homeless_clients = homeless_source.with_service_between(start_date: @filter.start, end_date: @filter.end).distinct.
         pluck(*columns).
         map do |row|
           Hash[columns.zip(row)]
