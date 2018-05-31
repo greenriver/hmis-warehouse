@@ -32,7 +32,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     # Replace 5.1 versions with 6.11
     # ProjectEntryID with EnrollmentID etc.
-    def self.clean_headers(headers)
+    def clean_headers(headers)
       headers.map do |k|
         case k
         when :ProjectEntryID
