@@ -16,10 +16,22 @@ label {
   }
 }
 
+.label {
+  color: rgba(0, 0, 0, .9);
+}
+
 .label--minor {
   font-weight: normal;
 }
 
 .label-danger {
-  color: $white;
+  background: $brand-danger-l;
+}
+
+.label-success {
+  background: $brand-success-l;
+}
+
+.label-warning {
+  background: $brand-warning-l;
 }
