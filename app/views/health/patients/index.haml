@@ -4,8 +4,9 @@
 - if @patients.any?
   - @patients.each do |patient|
     .c-card.clients__client-card
-      .patient__name
-        = link_to patient.name, window_client_health_patient_index_path(patient.client)
-      .patient__dob.ml-6
-        %strong DOB:
-        = patient.birthdate
+      .c-card__content
+        .patient__name
+          = link_to patient.name, window_client_health_patient_index_path(patient.client)
+        .patient__dob.ml-6
+          %strong DOB:
+          = patient.birthdate
