@@ -250,7 +250,9 @@ module Exporters::Tableau::EntryExit
                 GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(enrollment['prog_type'].to_i) &&
                 enrollment['entry_exit_entry_date'].to_date > exit_date
               end.sort_by do |enrollment|
-                enrollment['entry_exit_entry_date']
+                # order by entry date and project type, this will put ES in front of PH/TH 
+                # if they start on the same day
+                [enrollment['entry_exit_entry_date'], enrollment['prog_type'].to_i]
               end
               if newer_residential_enrollments.size == 0
                 -1
