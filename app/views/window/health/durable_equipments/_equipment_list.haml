@@ -1,5 +1,9 @@
 - if @equipments.blank?
-  %p.no-data No DME listed.
+  %p.no-data
+    No DME listed.
+    = link_to polymorphic_path([:new] + health_path_generator + [:durable_equipment]), data: { loads_in_pjax_modal: true } do
+      Add Equipment Item
+
 - else
   %table.table.equipment__list.mb-0
     %thead

@@ -1,5 +1,9 @@
 - if @services.blank?
-  %p.no-data No services listed.
+  %p.no-data
+    No services listed.
+    = link_to polymorphic_path([:new] + health_path_generator + [:service]), data: { loads_in_pjax_modal: true } do
+      Add Service
+
 - else
   %table.table.service__list.mb-0
     %thead
