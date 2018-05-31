@@ -4,6 +4,7 @@ module Window::Health
     before_action :set_client, only: [:index]
     before_action :set_hpc_patient, only: [:index]
     include PjaxModalController
+    include WindowClientPathGenerator
     
     def index
       @visits = @patient.visits.order(date_of_service: :desc)

@@ -1,7 +1,7 @@
 module Window::Health
   class CareplansController < IndividualPatientController
     include PjaxModalController
-
+    include WindowClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]

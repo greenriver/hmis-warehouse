@@ -6,7 +6,7 @@ module Window::Health
     before_action :set_service, only: [:edit, :destroy, :update]
     
     include PjaxModalController
-
+    include WindowClientPathGenerator
     def index
       # For errors in new/edit forms
       @service = service_source.new

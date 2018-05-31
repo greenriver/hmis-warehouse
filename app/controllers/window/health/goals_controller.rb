@@ -7,7 +7,7 @@ module Window::Health
     before_action :set_goal, only: [:destroy, :edit, :update]
 
     include PjaxModalController
-
+    include WindowClientPathGenerator
     def index
       @goal = Health::Goal::Hpc.new
 

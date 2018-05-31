@@ -42,7 +42,7 @@
                 = patient.gender
               %td
                 - if patient.client.present?
-                  = link_to client_health_patient_index_path(client_id: patient.client_id) do
+                  = link_to client_health_pilot_patient_index_path(client_id: patient.client_id) do
                     = patient.client.name
               %td
                 = patient&.client&.DOB

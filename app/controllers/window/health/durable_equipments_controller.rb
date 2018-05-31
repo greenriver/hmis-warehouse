@@ -6,7 +6,7 @@ module Window::Health
     before_action :set_equipment, only: [:edit, :destroy, :update]
 
     include PjaxModalController
-    
+    include WindowClientPathGenerator
     def new
       @equipment = equipment_source.new
       @button_label = 'Add Equipment Item'

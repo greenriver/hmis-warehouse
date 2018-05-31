@@ -4,7 +4,7 @@ module Window::Health
     before_action :set_client, only: [:index]
     before_action :set_hpc_patient, only: [:index]
     include PjaxModalController
-
+    include WindowClientPathGenerator
     include ActionView::Helpers::NumberHelper
 
     helper HealthOverviewHelper

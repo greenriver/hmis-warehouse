@@ -8,7 +8,7 @@ module Window::Health::Careplan::Team
     before_action :set_deleted_team_member, only: [:restore]
 
     include PjaxModalController
-
+    include WindowClientPathGenerator
     def index
       @member = Health::Team::Member.new
 

@@ -1,10 +1,10 @@
 module Window::Health::Pilot
-  class PatientController < HealthController
+  class PatientController < IndividualPatientController
     before_action :require_can_edit_client_health!
     before_action :set_client, only: [:index]
     before_action :set_patient, only: [:index]
     include PjaxModalController
-
+    include WindowClientPathGenerator
     include ActionView::Helpers::NumberHelper
     
     helper HealthOverviewHelper

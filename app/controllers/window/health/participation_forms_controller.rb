@@ -2,7 +2,7 @@ module Window::Health
   class ParticipationFormsController < IndividualPatientController
 
     include PjaxModalController
-
+    include WindowClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
