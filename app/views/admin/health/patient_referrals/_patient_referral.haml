@@ -1,19 +1,19 @@
-.patient-referral.margin-bottom-02
-  .row
-    .col-xs-12.col-md-2
-      - if client = pr.client
-        = link_to pr.name, window_client_path(client)
-      - else
-        = pr.name
-    .col-xs-12.col-md-3
-      %div
-        %strong DOB:
-        = pr.birthdate
-      %div
-        %strong Age:
-        = pr.age
-      %div
-        %strong Medicaid ID:
-        = pr.medicaid_id
-    = render 'patient_referral_actions', pr: pr
-    
+.c-card.mb-2
+  .c-card__content
+    .row
+      .col-xs-12.col-md-2
+        - if client = pr.client
+          = link_to pr.name, window_client_path(client)
+        - else
+          = pr.name
+      .col-xs-12.col-md-3
+        %div
+          %strong DOB:
+          = pr.birthdate
+        %div
+          %strong Age:
+          = pr.age
+        %div
+          %strong Medicaid ID:
+          = pr.medicaid_id
+      = render 'patient_referral_actions', pr: pr

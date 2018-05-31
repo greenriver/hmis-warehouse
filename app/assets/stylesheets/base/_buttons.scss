@@ -6,10 +6,12 @@ button.close {
 .btn {
   @include open-sans-bold;
   padding: $input-btn-padding-y $input-btn-padding-x;
+  min-height: rem(40px);
 }
 
 .btn-sm {
   padding: $input-btn-sm-padding-y $input-btn-sm-padding-x;
+  min-height: auto;
 }
 
 .btn-shout {
