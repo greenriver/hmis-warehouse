@@ -1,13 +1,9 @@
 module Window::Health
-  class CareplansController < ApplicationController
+  class CareplansController < IndividualPatientController
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
-    
 
-    before_action :require_can_edit_client_health!
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
     
     def index

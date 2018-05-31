@@ -1,11 +1,7 @@
 module Window::Health::Careplan
-  class PreviousController < ApplicationController
-    include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
-    
+  class PreviousController < IndividualPatientController
+    include PjaxModalController   
 
-    before_action :require_can_edit_client_health!
     before_action :set_client
     before_action :set_patient
     before_action :set_careplan

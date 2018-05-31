@@ -1,18 +1,15 @@
 module Window::Health
-  class TeamMembersController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class TeamMembersController < IndividualPatientController
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_careplan
     before_action :ensure_patient_team
     before_action :set_team_member, only: [:destroy]
     before_action :set_deleted_team_member, only: [:restore]
 
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
     
-
     def index
       @member = Health::Team::Member.new
 

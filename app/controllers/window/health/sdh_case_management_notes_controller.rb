@@ -1,14 +1,11 @@
 module Window::Health
-  class SdhCaseManagementNotesController < ApplicationController
+  class SdhCaseManagementNotesController < IndividualPatientController
 
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
 
-    before_action :require_can_edit_client_health!
     before_action :require_can_edit_patient_items_for_own_agency!, only: [:new, :create, :edit, :update]
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
 
     def show

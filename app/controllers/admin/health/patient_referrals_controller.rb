@@ -1,11 +1,11 @@
 module Admin::Health
-  class PatientReferralsController < ApplicationController
+  class PatientReferralsController < HealthController
+    before_action :require_has_administartive_access_to_health!
+    before_action :require_can_review_patient_assignments!
+    before_action :require_can_approve_patient_assignments!
+    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
 
     include PatientReferral
-    include HealthAuthorization
-
-    before_action :require_can_review_patient_assignments!
-    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
 
     def review
       @active_patient_referral_tab = 'review'

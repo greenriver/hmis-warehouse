@@ -1,5 +1,6 @@
 module Admin::Health
-  class UsersController < ApplicationController
+  class UsersController < HealthController
+    before_action :require_has_administartive_access_to_health!
     before_action :require_can_administer_health!
     
     def index

@@ -1,14 +1,12 @@
 module Window::Health
-  class ServicesController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class ServicesController < IndividualPatientController
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_service, only: [:edit, :destroy, :update]
     
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
-    
+
     def index
       # For errors in new/edit forms
       @service = service_source.new

@@ -1,14 +1,11 @@
 module Window::Health
-  class DurableEquipmentsController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class DurableEquipmentsController < IndividualPatientController
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_equipment, only: [:edit, :destroy, :update]
-    
 
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
     
     def new
       @equipment = equipment_source.new

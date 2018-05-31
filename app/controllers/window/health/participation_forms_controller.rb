@@ -1,13 +1,10 @@
 module Window::Health
-  class ParticipationFormsController < ApplicationController
+  class ParticipationFormsController < IndividualPatientController
 
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
-    
-    before_action :require_can_edit_client_health!
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
 
     def new
@@ -59,11 +56,16 @@ module Window::Health
     end
 
     def form_params
-      params.require(:form).permit( 
+      local_params = params.require(:form).permit( 
         :signature_on,
         :reviewed_by_supervisor,
         :location
       )
+      if ! current_user.can_approve_patient_items_for_agency?
+        local_params.execpt(:reviewed_by_supervisor)
+      else
+        local_params
+      end
     end
 
     def set_form
@@ -91,7 +93,7 @@ module Window::Health
     end
 
     def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes'
+      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_patient_items_for_agency?
     end
 
   end

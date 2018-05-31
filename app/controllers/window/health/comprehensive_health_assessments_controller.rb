@@ -1,13 +1,9 @@
 module Window::Health
-  class ComprehensiveHealthAssessmentsController < ApplicationController
-
+  class ComprehensiveHealthAssessmentsController < IndividualPatientController
     include PjaxModalController
-    include HealthPatient
-    include WindowClientPathGenerator
-    
-    before_action :require_can_edit_client_health!
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
 
     def new
@@ -18,6 +14,7 @@ module Window::Health
     def create
       @cha = @patient.chas.build(form_params)
       validate_form
+      @cha.reviewed_by = current_user if reviewed?
       @cha.user = current_user
       save_file if @cha.errors.none? && @cha.save
       respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
@@ -58,10 +55,15 @@ module Window::Health
     end
 
     def form_params
-      params.require(:form).permit( 
+      local_params = params.require(:form).permit( 
         :reviewed_by_supervisor,
         :completed
       )
+      if ! current_user.can_approve_patient_items_for_agency?
+        local_params.execpt(:reviewed_by_supervisor)
+      else
+        local_params
+      end
     end
 
     def set_form
@@ -89,7 +91,7 @@ module Window::Health
     end
 
     def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes'
+      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_patient_items_for_agency?
     end
 
     def completed?

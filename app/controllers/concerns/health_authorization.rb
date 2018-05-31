@@ -2,8 +2,13 @@ module HealthAuthorization
   extend ActiveSupport::Concern
 
   included do
+    def require_has_administartive_access_to_health!
+      return true  if current_user.has_administartive_access_to_health?
+      not_authorized!
+    end
+    
     def require_can_review_patient_assignments!
-      return true if current_user.can_approve_patient_assignments? || current_user.can_manage_patients_for_own_agency?
+      return true if current_user.has_patient_referral_review_access?
       not_authorized!
     end 
 
@@ -18,6 +23,11 @@ module HealthAuthorization
         current_user.can_manage_health_agency?
         return true
       end
+      not_authorized!
+    end
+
+    def require_some_patient_access!
+      return true if current_user.has_some_patient_access?
       not_authorized!
     end
   end

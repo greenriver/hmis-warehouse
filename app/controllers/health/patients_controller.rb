@@ -1,5 +1,5 @@
 module Health
-  class PatientsController < ApplicationController
+  class PatientsController < HealthController
     before_action :require_can_view_patients_for_own_agency!
     before_action :require_user_has_health_agency!
     before_action :set_patients
