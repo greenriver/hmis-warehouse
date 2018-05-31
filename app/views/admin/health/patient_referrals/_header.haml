@@ -1,12 +1,16 @@
 - title = 'Healthcare Administration'
 - content_for(:title, title)
-%h1= title
-= render 'menus/health_admin_tabs'
-.clearfix
-  .pull-left
-    %h3 Add and Review Patient Assignments
-    %p Patients added here can be claimed by agencies, subject to BHCHP approval.
-  - if current_user.can_administer_health?
-    .pull-right.margin-top-02
-      %button.btn.btn-secondary{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
-= render 'admin/health/patient_referrals/filter'
+.o-page
+  .o-page__header
+    %h1= title
+
+  = render 'menus/health_admin_tabs'
+
+  .o-page__main-content.mt-0
+    .d-flex.align-items-center.mb-3
+      %div
+        %h3 Add and Review Patient Assignments
+        %p Patients added here can be claimed by agencies, subject to BHCHP approval.
+      - if current_user.can_administer_health?
+        %button.btn.btn-secondary.ml-auto{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
+    = render 'admin/health/patient_referrals/filter'

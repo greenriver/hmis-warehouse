@@ -1,52 +1,54 @@
 = simple_form_for :filters, url: filters_path, html: {id: 'filter-form'}, method: :get do |f|
   - if @active_patient_referral_group.present?
     = hidden_field_tag :group, @active_patient_referral_group
-  .d-flex
-    .input-group.mr-4
-      = f.input :search, label: false, wrapper_html: {class: 'mb-0'}
-      %span.input-group-btn
-        %button.btn.btn-default{type: :submit} Search
+  .o-page__controls
+    .o-page__search
+      .input-group
+        = f.input :search, label: false, wrapper_html: {class: 'mb-0 w-100'}
+        %span.input-group-btn
+          %button.btn.btn-default{type: :submit} Search
     - if show_filters?
-      .dropdown.mr-2
-        %button.btn.btn-default{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
-          Filter
-          %span.caret
-        .dropdown-menu{style: 'padding: 10px;'}
-          %div{style: 'width: 500px;'}
-            .row
-              .col-sm-6
-                = f.input :added_before, as: :date_picker, required: false
-            .row
-              .col-sm-6
-                = label_tag 'Claimed?'
-                .radio-button-buttons__container
-                  - [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]].each do |btn|
-                    = f.label :relationship, value: btn.last do
-                      = f.radio_button :relationship, btn.last
-                      %span= btn.first
-              .col-sm-6
-                .form-group
-                  = label_tag :agency_id, 'Claimed by', class: 'control-label'
-                  .controls.ui-front
-                    = f.hidden_field :agency_id
-                    = text_field_tag :agency_id, @filter_agency&.name, class: 'form-control'
-            .text-right
-              = link_to filters_path, class: 'btn btn-secondary margin-right-02' do
-                %i.icon-cross
-                Clear Filters
-              %button.btn.btn-action-2{type: 'submit'}
-                %i.icon-filter
-                Filter
-    .dropdown
-      %button.btn.btn-default#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
-        Sort By
-        %span.caret
-      .dropdown-menu
-        .radio-button-list__container
-          - [['Referral Date', 'created_at'], ['Last Name', 'last_name']].each do |item|
-            = f.label :sort_by, value: item.last do
-              = f.radio_button :sort_by, item.last, onclick: "$(this).parents('form').submit()"
-              %span= item.first
+      .o-page__sort
+        .dropdown.mr-2
+          %button.btn.btn-default{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+            Filter
+            %span.caret
+          .dropdown-menu{style: 'padding: 10px;'}
+            %div{style: 'width: 500px;'}
+              .row
+                .col-sm-6
+                  = f.input :added_before, as: :date_picker, required: false
+              .row
+                .col-sm-6
+                  = label_tag 'Claimed?'
+                  .radio-button-buttons__container
+                    - [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]].each do |btn|
+                      = f.label :relationship, value: btn.last do
+                        = f.radio_button :relationship, btn.last
+                        %span= btn.first
+                .col-sm-6
+                  .form-group
+                    = label_tag :agency_id, 'Claimed by', class: 'control-label'
+                    .controls.ui-front
+                      = f.hidden_field :agency_id
+                      = text_field_tag :agency_id, @filter_agency&.name, class: 'form-control'
+              .text-right
+                = link_to filters_path, class: 'btn btn-secondary margin-right-02' do
+                  %i.icon-cross
+                  Clear Filters
+                %button.btn.btn-action-2{type: 'submit'}
+                  %i.icon-filter
+                  Filter
+        .dropdown
+          %button.btn.btn-default#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+            Sort By
+            %span.caret
+          .dropdown-menu
+            .radio-button-list__container
+              - [['Referral Date', 'created_at'], ['Last Name', 'last_name']].each do |item|
+                = f.label :sort_by, value: item.last do
+                  = f.radio_button :sort_by, item.last, onclick: "$(this).parents('form').submit()"
+                  %span= item.first
 
 - agency_data = @agencies.map{|a| {label: a.name, value: a.id}}.to_json
 - content_for :page_js do
