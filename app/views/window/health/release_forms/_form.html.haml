@@ -26,7 +26,7 @@
       .form-group
         %label Reviewed by Supervisor
         %p.form-control-static= @release_form.reviewed_by&.name
-    - else
+    - elsif current_user.can_approve_patient_items_for_agency?
       = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }

@@ -72,6 +72,17 @@ class User < ActiveRecord::Base
     end
   end
 
+  def has_administartive_access_to_health?
+      can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
+  end
+
+  def has_patient_referral_review_access?
+    can_approve_patient_assignments? || can_manage_patients_for_own_agency?
+  end
+
+  def has_some_patient_access?
+    can_approve_patient_items_for_agency? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
+  end
 
 
   # def role_keys
@@ -161,7 +172,6 @@ class User < ActiveRecord::Base
     return admin_configs_path if can_manage_config?
     return admin_translation_keys_path if can_edit_translations?
     return admin_dashboard_imports_path if can_view_imports?
-    return admin_health_admin_index_path if can_administer_health?
   end
 
   def subordinates

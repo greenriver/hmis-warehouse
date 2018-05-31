@@ -77,8 +77,8 @@ class Role < ActiveRecord::Base
   def self.health_permissions
     [
       :can_administer_health,
-      :can_edit_client_health, # This is a safety net.  Without this permission, you can't see any health data
-      :can_view_client_health,
+      :can_edit_client_health, # Pilot Permission
+      :can_view_client_health, # Pilot Permission
       :can_view_aggregate_health,
       :can_manage_health_agency,
       :can_approve_patient_assignments,

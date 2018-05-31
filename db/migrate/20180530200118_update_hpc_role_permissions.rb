@@ -15,7 +15,7 @@ class UpdateHpcRolePermissions < ActiveRecord::Migration
       attributes[:can_manage_health_agency] = true
       attributes[:can_approve_patient_assignments] = true
       attributes[:can_manage_claims] = true
-      attributes[:can_edit_client_health] = true
+
       role.assign_attributes(attributes)
       role.save!
 
@@ -27,7 +27,7 @@ class UpdateHpcRolePermissions < ActiveRecord::Migration
       end
       role = Role.where(name: 'Health agency manager').first_or_initialize
       attributes[:can_manage_patients_for_own_agency] = true
-      attributes[:can_edit_client_health] = true
+
       role.assign_attributes(attributes)
       role.save!
 
@@ -41,7 +41,7 @@ class UpdateHpcRolePermissions < ActiveRecord::Migration
       attributes[:can_approve_patient_items_for_agency] = true
       attributes[:can_edit_patient_items_for_own_agency] = true
       attributes[:can_view_patients_for_own_agency] = true
-      attributes[:can_edit_client_health] = true
+
       role.assign_attributes(attributes)
       role.save!
 
@@ -55,7 +55,7 @@ class UpdateHpcRolePermissions < ActiveRecord::Migration
       attributes[:name] = 'Health Case Manager'
       attributes[:can_edit_patient_items_for_own_agency] = true
       attributes[:can_view_patients_for_own_agency] = true
-      attributes[:can_edit_client_health] = true
+
       role.assign_attributes(attributes)
       role.save!
 
