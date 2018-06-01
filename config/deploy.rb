@@ -37,8 +37,8 @@ set :rvm_custom_path, ENV.fetch('RVM_CUSTOM_PATH') { '/usr/share/rvm' }
 
 task :group_writable_and_owned_by_ubuntu do
   on roles(:web) do
-    execute "chmod --quiet g+w -R  #{fetch(:deploy_to)} || echo ok"
-    execute "sudo chown --quiet ubuntu:ubuntu -R #{fetch(:deploy_to)} || echo ok"
+    execute "sudo chmod --quiet g+w -R  #{fetch(:deploy_to)}"
+    execute "sudo chown --quiet ubuntu:ubuntu -R #{fetch(:deploy_to)}"
   end
 end
 before 'passenger:restart',  :group_writable_and_owned_by_ubuntu

@@ -1,12 +1,7 @@
 - content_for(:title, "Patients for #{current_user.health_agency.name}")
 %h1= content_for(:title)
-
+= render 'search'
+= render 'filter'
 - if @patients.any?
   - @patients.each do |patient|
-    .c-card.clients__client-card
-      .c-card__content
-        .patient__name
-          = link_to patient.name, window_client_health_patient_index_path(patient.client)
-        .patient__dob.ml-6
-          %strong DOB:
-          = patient.birthdate
+    = render 'patient_card'

@@ -32,7 +32,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :case_management_notes, -> do 
-    where(name: 'SDH Case Management Note')
+    where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
   end
   scope :health_touch_points, -> do
     where(arel_table[:collection_location].matches('Social Determinants of Health%'))

@@ -121,6 +121,7 @@ module Health
     def convert_to_patient
       # nothing to do if we have a client already
       return if client.present?
+      update(effective_date: Date.today)
       source_client = create_source_client
       destination_client = connect_destination_client(source_client)
       create_patient(destination_client)
