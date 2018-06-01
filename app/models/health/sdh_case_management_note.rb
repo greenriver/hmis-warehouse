@@ -54,7 +54,7 @@ module Health
 
     serialize :topics, Array
 
-    accepts_nested_attributes_for :activities
+    accepts_nested_attributes_for :activities, reject_if: :all_blank
     validates_associated :activities
 
     validates_presence_of :patient, :user, :title, :date_of_contact

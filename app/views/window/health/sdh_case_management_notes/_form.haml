@@ -5,6 +5,7 @@
 .row
   .col-md-12.col-lg-10.col-xl-8
     = simple_form_for @note, url: form_url, html: {class: 'sdh-cmn-form', data: {url: form_url({format: :js})}} do |f|
+      = f.object.errors.full_messages
       .padding-top-02
         = f.error_notification
       - form_sections = @note.display_note_form_sections

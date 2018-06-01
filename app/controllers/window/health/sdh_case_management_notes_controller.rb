@@ -36,12 +36,20 @@ module Window::Health
     def edit
       @note = Health::SdhCaseManagementNote.find(params[:id])
       @activities = @note.activities.sort_by(&:id)
+      if @activities.empty?
+        a = @note.activities.build
+        @activities.push(a)
+      end
       respond_with @note
     end
 
     def update
       @note = Health::SdhCaseManagementNote.find(params[:id])
       @activity_count = @note.activities.size
+      @note.activities.update_all(
+        user_id: current_user.id, 
+        user_full_name: current_user.name
+      )
       if params[:commit] == 'Save Case Note'
         @note.update_attributes(note_params)
       else

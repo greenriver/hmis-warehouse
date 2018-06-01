@@ -19,7 +19,7 @@
         %tr
           %td
             = link_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: note.id), data: {loads_in_pjax_modal: true} do
-              %div= (note.topics.any? ? note.topics.join(', ') : "&nbsp;").html_safe
+              %div= note.topics.join(', ').html_safe
               .padding-left-02= note.title || 'No Title'
           %td= note.completed_on&.to_date
           %td= note.user.name

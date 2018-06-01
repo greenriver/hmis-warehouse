@@ -49,7 +49,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id",   default: 6, null: false
+    t.integer  "data_source_id",   default: 1, null: false
   end
 
   create_table "careplan_equipment", force: :cascade do |t|
@@ -243,7 +243,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.datetime "goal_created_at"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
-    t.integer  "data_source_id",           default: 6, null: false
+    t.integer  "data_source_id",           default: 1, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
@@ -334,7 +334,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 6, null: false
+    t.integer  "data_source_id", default: 1, null: false
   end
 
   create_table "participation_forms", force: :cascade do |t|
@@ -355,7 +355,6 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.string   "first_name"
     t.string   "last_name"
     t.date     "birthdate"
-    t.string   "ssn"
     t.string   "medicaid_id"
     t.datetime "created_at",                                       null: false
     t.datetime "updated_at",                                       null: false
@@ -363,6 +362,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.boolean  "rejected",                         default: false, null: false
     t.integer  "rejected_reason",                  default: 0,     null: false
     t.integer  "patient_id"
+    t.string   "ssn"
     t.integer  "accountable_care_organization_id"
     t.datetime "effective_date"
   end
@@ -390,7 +390,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 6,     null: false
+    t.integer  "data_source_id",           default: 1,     null: false
   end
 
   create_table "problems", force: :cascade do |t|
@@ -403,7 +403,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 6, null: false
+    t.integer  "data_source_id", default: 1, null: false
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -573,7 +573,7 @@ ActiveRecord::Schema.define(version: 20180601010922) do
     t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
-    t.integer  "data_source_id",  default: 6, null: false
+    t.integer  "data_source_id",  default: 1, null: false
   end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"
