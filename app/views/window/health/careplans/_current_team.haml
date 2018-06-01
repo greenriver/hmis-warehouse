@@ -3,7 +3,7 @@
     %h2 Current Care Team
   
   - team = @patient.careplans.order(id: :desc).limit(1).first.team
-  - if team.members.blank?
+  - if team&.members&.blank?
     %p No team listed.
   - else
     - team.members.each do |member|
