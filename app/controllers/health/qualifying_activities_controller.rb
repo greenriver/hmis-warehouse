@@ -1,5 +1,5 @@
-module Window::Health
-  class QualifyingActivitiesController < Window::Health::QualifyingActivities
+module Health
+  class QualifyingActivitiesController < Window::Health::QualifyingActivitiesController
     include ClientPathGenerator
 
   end
