@@ -13,6 +13,7 @@
             %th Requested On
             %th Effective Date
             %th End Date
+            %th Status
         %tbody
           - @careplan.service_archive.each do |service|
             - service = service.with_indifferent_access
@@ -24,5 +25,6 @@
               %td= service[:date_requested]
               %td= service[:effective_date]
               %td= service[:end_date]
+              %td= service[:status]
     - else
       %p.no-data Currently no services.

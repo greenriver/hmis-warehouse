@@ -34,7 +34,7 @@
       .form-group
         %label Reviewed by Supervisor
         %p.form-control-static= @participation_form.reviewed_by&.name
-    - elsif current_user.can_approve_patient_items_for_agency?
+    - elsif current_user.can_approve_participation?
       = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
   .col-sm-12

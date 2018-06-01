@@ -20,6 +20,9 @@
   .row
     .col-sm-6
       = f.input :end_date, as: :date_picker
+  .row
+    .col-sm-6
+      = f.input :status, collection: @service.class.available_stati
   .form__actions
     - if @service.persisted?
       .c-btn_group

@@ -15,6 +15,7 @@
         %th Requested On
         %th Effective Date
         %th End Date
+        %th Status
         %th
 
     %tbody
@@ -27,6 +28,7 @@
           %td= service.date_requested
           %td= service.effective_date
           %td= service.end_date
+          %td= service.status
           %td.text-right
             = link_to polymorphic_path([:edit] + health_path_generator + [:service], id: service.id), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary btn-sm btn-icon-left' do
               %i.icon-pencil
