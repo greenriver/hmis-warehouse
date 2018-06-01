@@ -186,18 +186,31 @@ button.close {
 
 // From CAS
 
+.btn-default,
 .btn-primary {
   background: $brand-primary;
   border-color: $brand-primary-d;
   color: $white;
   &:hover {
     background: darken($brand-primary-l, 25%);
+    border-color: $brand-primary-d;
+    color: $white;
   }
   &:disabled,
   &.disabled {
     background: desaturate($brand-primary-l, 80%);
     border-color: desaturate($brand-primary, 80%);
     color: rgba($black, .55);
+    outline: 0;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-primary-l, 35%);
+    box-shadow: 0 0 0 3px rgba($brand-primary, .5);
+    outline: 0;
   }
   &--outline {
     &:hover,
@@ -210,7 +223,7 @@ button.close {
 .btn-secondary {
   background: $white;
   border-color: $brand-primary;
-  color: $brand-primary;
+  color: $brand-primary-d;
   &:hover {
     background: darken($brand-primary-l, 25%);
     border-color: $brand-primary-d;
@@ -221,6 +234,15 @@ button.close {
     background: desaturate($brand-primary-l, 80%);
     border-color: desaturate($brand-primary, 80%);
     color: rgba($black, .55);
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-primary-l, 35%);
+    box-shadow: 0 0 0 3px rgba($brand-primary, .5);
+    color: $white;
+    outline: 0;
   }
   &--outline {
     &:hover,
@@ -237,7 +259,16 @@ button.close {
   &:hover {
     background: $brand-success-d;
     border-color: $brand-primary-d;
-    color: $black;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-success-l, 35%);
+    box-shadow: 0 0 0 3px rgba($brand-success, .5);
+    outline: 0;
+    color: $white;
   }
   &:disabled,
   &.disabled {
@@ -259,7 +290,16 @@ button.close {
   color: rgba($black, 55%);
   &:hover {
     background: $brand-warning-d;
-    color: rgba($black, 1);
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-warning-l, 35%);
+    box-shadow: 0 0 0 3px rgba($brand-warning, .5);
+    outline: 0;
+    color: $white;
   }
   &:disabled,
   &.disabled {
@@ -281,7 +321,16 @@ button.close {
   color: rgba($black, 1);
   &:hover {
     background: $brand-danger-d;
-    color: $black;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-danger-l, 35%);
+    box-shadow: 0 0 0 3px rgba($brand-danger, .5);
+    outline: 0;
+    color: $white;
   }
   &:disabled,
   &.disabled {
