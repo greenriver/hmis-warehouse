@@ -2,8 +2,8 @@
   .c-card__header.c-card__header--external
     %h2 Current Care Team
   
-  - team = @patient.careplans.order(id: :desc).limit(1).first.team
-  - if team&.members&.blank?
+  - team = @patient.careplans.order(id: :desc).limit(1).first&.team
+  - if team.blank? || team&.members&.blank?
     %p No team listed.
   - else
     - team.members.each do |member|
