@@ -1,0 +1,25 @@
+.patient__remaining_requirements.ml-4
+  .patient__remaining_requirement
+    - if patient.ssms? 
+      %span.icon-checkmark.o-color--positive.mr-1
+    - else
+      %span.icon-checkmark.mr-1.o-color--gray-l
+    Self-Sufficiency Matrix
+  .patient__remaining_requirement
+    - if patient.participation_forms.reviewed.exists? 
+      %span.icon-checkmark.o-color--positive.mr-1
+    - else
+      %span.icon-checkmark.mr-1.o-color--gray-l
+    Participation Form
+  .patient__remaining_requirement
+    - if patient.release_forms.reviewed.exists?
+      %span.icon-checkmark.o-color--positive.mr-1
+    - else
+      %span.icon-checkmark.mr-1.o-color--gray-l
+    Release Form
+  .patient__remaining_requirement
+    - if patient.comprehensive_health_assessments.reviewed.exists?
+      %span.icon-checkmark.o-color--positive.mr-1
+    - else
+      %span.icon-checkmark.mr-1.o-color--gray-l
+    Comprehensive Health Assessment

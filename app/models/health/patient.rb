@@ -87,6 +87,16 @@ module Health
       self_sufficiency_matrix_forms.completed.exists? || hmis_ssms.exists?
     end
 
+    def ssms
+      @ssms ||= (hmis_ssms.order(collected_at: :desc).to_a + self_sufficiency_matrix_forms.order(completed_at: :desc).to_a).sort_by do |f|
+        if f.is_a? Health::SelfSufficiencyMatrixForm
+          f.completed_at
+        elsif f.is_a? GrdaWarehouse::HmisForm
+          f.collected_at
+        end
+      end
+    end
+
     def qualified_activities_since date: 1.months.ago
       qualifying_activities.in_range (date..Date.today)
     end

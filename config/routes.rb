@@ -27,6 +27,7 @@ Rails.application.routes.draw do
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
       resources :services
+      resources :qualifying_activities, only: [:index]
       resources :durable_equipments, except: [:index]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]

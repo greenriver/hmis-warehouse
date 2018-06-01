@@ -7,6 +7,9 @@
         DOB:
         = patient.birthdate
     .ml-auto
+      - if ! patient.engaged?
+        = render 'window/health/patient/remaining_to_engage', patient: patient
+    .ml-4
       = render 'window/health/patient/engagement', patient: patient
-    .patient__link.ml-5
+    .patient__link.ml-4
       = link_to 'View', window_client_health_patient_index_path(patient.client), class: 'btn btn-sm btn-secondary'

@@ -1,8 +1,10 @@
 .patient__engagement.mr-2
   - if ! patient.engaged?
     .patient__engagement-countdown
-      = pluralize(patient.days_to_engage, 'day')
-      to required engagement
-  - elsif patient.qualified_activities_since(date: 1.months.ago)
-
+      = "#{pluralize(patient.days_to_engage, 'day')} to required engagement"
+  - elsif patient.qualified_activities_since(date: 1.months.ago).count == 0
+    .patient__engagement-countdown
+      = link_to "#{pluralize(0, 'Qualifying Activities')} this month", window_client_health_qualifying_activities_path(client_id: patient.client.id)
   - else
+    .patient__engagement-engaged
+      = link_to "#{pluralize(0, 'Qualifying Activities')} this month", window_client_health_qualifying_activities_path(client_id: patient.client.id)
