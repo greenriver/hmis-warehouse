@@ -36,6 +36,7 @@ module Health
 
     belongs_to :source, polymorphic: true
     belongs_to :user
+    belongs_to :patient
 
     validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT.keys}, allow_blank: true
     validates :reached_client, inclusion: {in: REACHED_CLIENT.keys}, allow_blank: true

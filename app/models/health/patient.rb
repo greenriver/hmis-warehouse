@@ -30,6 +30,7 @@ module Health
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
+    has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
@@ -40,6 +41,7 @@ module Health
 
     delegate :days_to_engage, to: :patient_referral
     delegate :engagement_date, to: :patient_referral
+    delegate :effective_date, to: :patient_referral
 
     self.source_key = :PAT_ID
 

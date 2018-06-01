@@ -1,0 +1,7 @@
+.c-card.clients__client-card
+  .c-card__content
+    .patient__name
+      = link_to patient.name, window_client_health_patient_index_path(patient.client)
+    .patient__dob.ml-6
+      %strong DOB:
+      = patient.birthdate
