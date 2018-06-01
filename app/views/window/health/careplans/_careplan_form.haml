@@ -1,8 +1,5 @@
 = simple_form_for @careplan, url: @form_url do |f|
   = f.error_notification
-
-  %p.mb-6= _('Care Plan Summary Text')
-
   %section.row
     .col-sm-6.col-lg-4
       = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
