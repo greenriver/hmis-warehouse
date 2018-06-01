@@ -49,9 +49,6 @@
     width: 50%;
     margin-right: space(4);
   }
-  @include media-breakpoint-up(lg) {
-    width: 33%;
-  }
 }
 
 .o-page__sort {
