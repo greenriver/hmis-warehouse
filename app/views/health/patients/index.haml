@@ -4,4 +4,4 @@
 = render 'filter'
 - if @patients.any?
   - @patients.each do |patient|
-    = render 'patient_card'
+    = render 'patient_card', patient: patient

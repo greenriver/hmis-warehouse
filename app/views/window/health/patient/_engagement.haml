@@ -1,4 +1,8 @@
-.patient__engagement-countdown.mr-2
-  - if ! @patient.engaged?
-    = pluralize(@patient.days_to_engage, 'day')
-    to required engagement
+.patient__engagement.mr-2
+  - if ! patient.engaged?
+    .patient__engagement-countdown
+      = pluralize(patient.days_to_engage, 'day')
+      to required engagement
+  - elsif patient.qualified_activities_since(date: 1.months.ago)
+
+  - else

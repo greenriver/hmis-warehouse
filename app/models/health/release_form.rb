@@ -9,6 +9,7 @@ module Health
     validates :signature_on, presence: true
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }
+    scope :reviewed, -> { where.not(reviewed_by_id: nil) }
 
     attr_accessor :reviewed_by_supervisor
 

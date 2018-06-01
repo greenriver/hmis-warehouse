@@ -34,6 +34,8 @@ module Health
     scope :submitted, -> {where.not(claim_submitted_on: nil)}
     scope :unsubmitted, -> {where(claim_submitted_on: nil)}
 
+    scope :in_range, -> (range) { where(date_of_activity: range)}
+
     belongs_to :source, polymorphic: true
     belongs_to :user
     belongs_to :patient

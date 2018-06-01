@@ -1,7 +1,12 @@
 .c-card.clients__client-card
   .c-card__content
-    .patient__name
-      = link_to patient.name, window_client_health_patient_index_path(patient.client)
-    .patient__dob.ml-6
-      %strong DOB:
-      = patient.birthdate
+    .patient__demographics
+      %h4.patient__name.mt-0
+        = link_to patient.name, window_client_health_patient_index_path(patient.client)
+      .patient__dob
+        DOB:
+        = patient.birthdate
+    .ml-auto
+      = render 'window/health/patient/engagement', patient: patient
+    .patient__link.ml-5
+      = link_to 'View', window_client_health_patient_index_path(patient.client), class: 'btn btn-sm btn-secondary'

@@ -19,6 +19,9 @@ module Health
     has_one :claims_roster, class_name: Health::Claims::Roster.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :amount_paids, class_name: Health::Claims::AmountPaid.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :self_sufficiency_matrix_forms
+    has_many :hmis_ssms, -> do
+      merge(GrdaWarehouse::HmisForm.self_sufficiency)
+    end, class_name: GrdaWarehouse::HmisForm.name, through: :client, source: :source_hmis_forms
     has_many :sdh_case_management_notes
     has_many :participation_forms
     has_many :release_forms
@@ -77,7 +80,15 @@ module Health
     end
 
     def engaged?
-      false
+      ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
+    end
+
+    def ssms?
+      self_sufficiency_matrix_forms.completed.exists? || hmis_ssms.exists?
+    end
+
+    def qualified_activities_since date: 1.months.ago
+      qualifying_activities.in_range (date..Date.today)
     end
 
     def consented? # Pilot
