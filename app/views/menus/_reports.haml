@@ -9,7 +9,7 @@
         = link_to warehouse_reports_path, class: 'o-menu__link' do
           = _("Reports")
 
-- if can_view_aggregate_health?
+- if GrdaWarehouse::Config.get(:healthcare_available) && can_view_aggregate_health?
   %ul.o-menu__group.list-unstyled
     %li.o-menu__item
       = link_to warehouse_reports_health_overview_index_path, class: 'o-menu__link' do
