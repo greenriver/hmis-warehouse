@@ -1,4 +1,4 @@
-- content_for(:title, "Patients for #{current_user.health_agency.name}")
+- content_for(:title, "Patients for #{current_user.health_agency&.name}")
 %h1= content_for(:title)
 = render 'search'
 = render 'filter'
