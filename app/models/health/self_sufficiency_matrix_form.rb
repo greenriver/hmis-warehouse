@@ -243,6 +243,7 @@ module Health
 
     scope :in_progress, -> { where(completed_at: nil) }
     scope :completed, -> {where.not completed_at: nil }
+    scope :recent, -> { order(created_at: :desc).limit(1) }
 
     def completed?
       completed_at.present?

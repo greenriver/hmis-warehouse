@@ -53,6 +53,21 @@ module Health
       agency_id.present?
     end
 
+    def days_to_engage 
+      return 0 unless effective_date.present?
+      (engagement_date - Date.today).to_i.clamp(0, 180)
+    end
+
+    def engagement_date
+      return nil unless effective_date.present?
+      next_month = effective_date.at_beginning_of_month.next_month
+      if effective_date < '2018-09-01'.to_date
+        (next_month + 120.days).to_date
+      else
+        (next_month + 90.days).to_date
+      end
+    end
+
     def name
       "#{first_name} #{last_name}"
     end

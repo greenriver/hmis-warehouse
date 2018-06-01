@@ -4,9 +4,10 @@
     .ho-patient__header.mb-2
       %h3.ho-patient__name
         .row
-          .col-sm-6
+          .col-sm-4
             = @patient.client.name
-          .col-sm-6.text-right
+          .col-sm-8.text-right
+            = render 'engagement'
             .btn-group
               %button{ type: 'button', class: 'btn btn-secondary btn-sm dropdown-toggle', :'data-toggle' => 'dropdown' }
                 Engagement Readiness & Forms
@@ -18,6 +19,8 @@
                     = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
                       - if participation.reviewed_by.present?
                         %span.icon-checkmark.o-color--positive.mr-1
+                      - else
+                        %span.icon-checkmark.mr-1.o-color--gray-l
                       Participation Form
                   - else
                     = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
@@ -47,6 +50,18 @@
                     = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
                       %span.icon-checkmark.mr-1.o-color--gray-l
                       Comprehensive Health Assessment
+                %li
+                  - completed_ssm = @patient.self_sufficiency_matrix_forms.completed.recent.first
+                  - if completed_ssm 
+                    = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: completed_ssm.id) do
+                      %span.icon-checkmark.o-color--positive.mr-1
+                      Self-Sufficiency Matrix
+                  - elsif ssm = @patient.self_sufficiency_matrix_forms.recent.first
+                    = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: ssm.id) do
+                      Self-Sufficiency Matrix
+                  - else
+                    = link_to polymorphic_path([:new] + self_sufficiency_matrix_form_path_generator) do
+                      Self-Sufficiency Matrix
 
       .ho-patient__details
         .row

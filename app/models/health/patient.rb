@@ -38,6 +38,9 @@ module Health
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
 
+    delegate :days_to_engage, to: :patient_referral
+    delegate :engagement_date, to: :patient_referral
+
     self.source_key = :PAT_ID
 
     def self.accessible_by_user user
@@ -67,23 +70,27 @@ module Health
       pilot == true
     end
 
-    def hpc_patient?
+    def hpc_patient? # also referred to as BH CP
       ! pilot_patient?
     end
 
-    def consented?
+    def engaged?
+      false
+    end
+
+    def consented? # Pilot
       consent_revoked.blank?
     end
 
-    def consent_revoked?
+    def consent_revoked? # Pilot
       consent_revoked.present?
     end
 
-    def self.revoke_consent
+    def self.revoke_consent # Pilot
       update_all(consent_revoked: Time.now)
     end
 
-    def self.restore_consent
+    def self.restore_consent # Pilot
       update_all(consent_revoked: nil)
     end
 

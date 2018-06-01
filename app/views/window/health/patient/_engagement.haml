@@ -1,0 +1,4 @@
+.patient__engagement-countdown.mr-2
+  - if ! @patient.engaged?
+    = pluralize(@patient.days_to_engage, 'day')
+    to required engagement
