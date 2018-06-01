@@ -35,7 +35,8 @@
         %option{ value: 0 } Add New...
         - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
           %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
-        %option{ value: '' } Comprehensive Health Assessment
+        - if @client.patient.chas.in_progress.none?
+          %option{ value: polymorphic_path( [:new] + cha_path_generator) } Comprehensive Health Assessment
 
   - if status = @client.api_status
     - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])

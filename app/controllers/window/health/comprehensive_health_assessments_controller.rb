@@ -1,5 +1,6 @@
 module Window::Health
   class ComprehensiveHealthAssessmentsController < ApplicationController
+    helper ChaHelper
 
     include PjaxModalController
     include HealthPatient
@@ -11,32 +12,43 @@ module Window::Health
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
 
     def new
+      @cha = @patient.chas.build(user: current_user)
+      @cha.save(validate: false)
+      redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
+    end
+    
+    def update
+      @cha.update(form_params)
+      respond_with @cha
+    end
+
+    def edit
+      respond_with @cha
+    end
+
+    def new_upload
       @cha = @patient.chas.build
       render :new
     end
 
-    def create
+    def create_upload
       @cha = @patient.chas.build(form_params)
       validate_form
       @cha.user = current_user
       save_file if @cha.errors.none? && @cha.save
       respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
-
-    def show
-      render :show
-    end
-
-    def edit
-      respond_with @cha
-    end
     
-    def update
+    def update_upload
       validate_form unless @cha.health_file.present?
       @cha.reviewed_by = current_user if reviewed?
       @cha.status = completed? ? :complete : :in_progress
       save_file if @cha.errors.none? && @cha.update(form_params)
       respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+    end
+
+    def show
+      render :show
     end
 
     def download
@@ -58,9 +70,10 @@ module Window::Health
     end
 
     def form_params
-      params.require(:form).permit( 
+      params.require(:form).permit(
         :reviewed_by_supervisor,
-        :completed
+        :completed,
+        *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
       )
     end
 

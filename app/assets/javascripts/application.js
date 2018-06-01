@@ -47,6 +47,7 @@
 //= require util
 //= require site_menu
 //= require ssm
+//= require cha
 //= require vispdats
 //= require files
 //= require_directory ./census

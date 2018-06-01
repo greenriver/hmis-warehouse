@@ -1,43 +1,445 @@
-- path = @cha.new_record? ? polymorphic_path(chas_path_generator, client_id: @client.id) : polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id)
+- url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
+- cha_options = Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS
 
-= simple_form_for @cha, url: path, as: :form, remote: true do |f|
+= simple_form_for @cha, url: url, as: :form, html: { data: { url: url }} do |f|
   
   = f.error_notification
 
-  .col-sm-12
+  .row
+    .col-sm-8
 
-    - if @cha.user
-      .form-group
-        %label Case Manager
-        %p.form-control-static= @cha.user&.name
+      %h3
+        = _('CHA A_TITLE')
+        %small= _('CHA A_SUBTITLE') 
+      .well
+        = cha_string     f, :a_q1, input_html: { disabled: true, value: @client.name }
+        = cha_radios     f, :a_q2
+        = cha_datepicker f, :a_q3, input_html: { disabled: true, value: @client.DOB }
+        = cha_radios     f, :a_q4
+        .form-group
+          %label.control-label= _('CHA A_Q5')
+          %div{ style: 'margin: 0 1em' }
+            = cha_string f, :a_q5a
+            = cha_string f, :a_q5b
+            = cha_string f, :a_q5c, input_html: { disabled: true, value: @patient.medicaid_id }
+        = cha_text       f, :a_q6
+        = cha_radios     f, :a_q7
+        = cha_datepicker f, :a_q8
+        = cha_text       f, :a_q9
+        = cha_string     f, :a_q10
+        = cha_radios     f, :a_q11
+        = cha_radios     f, :a_q12
 
-    .row
-      .col-sm-6
-        = f.input :file, as: :file 
-      .col-sm-6
-        - if @cha.health_file.present?
-          .form-group
-            %label Existing File
-            %div
-              .btn-group.existing-file
-                = link_to polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-default' do
-                  = @cha.health_file&.name
-                = link_to polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-danger', method: :delete, remote: true do
-                  %span.icon-cross{ style: "color:white; margin:0" }
+      %h3
+        = _('CHA B_TITLE')
+        %small= _('CHA B_SUBTITLE')
+      .well
+        = cha_datepicker f, :b_q1
+        = cha_checkboxes f, :b_q2
+        = cha_radios     f, :b_q3
+        = cha_checkboxes f, :b_q4
 
-    %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
+      %h3
+        = _('CHA C_TITLE')
+        %small= _('CHA C_SUBTITLE')
+      .well
+        = cha_radios     f, :c_q1
+        = cha_radios     f, :c_q2
+        = cha_radios     f, :c_q3
+
+      %h3
+        = _('CHA D_TITLE')
+        %small= _('CHA D_SUBTITLE')
+      .well
+        = cha_radios     f, :d_q1
+        = cha_radios     f, :d_q2
+        = cha_radios     f, :d_q3
+        = cha_radios     f, :d_q4
+
+      %h3
+        = _('CHA E_TITLE')
+        %small= _('CHA E_SUBTITLE')
+      .well
+        = cha_radios     f, :e_q1a
+        = cha_radios     f, :e_q1b
+        = cha_radios     f, :e_q1c
+        = cha_radios     f, :e_q1d
+        = cha_radios     f, :e_q1e
+        = cha_radios     f, :e_q1f
+        = cha_radios     f, :e_q1g
+        = cha_radios     f, :e_q1h
+        = cha_radios     f, :e_q1i
+
+        = cha_radios     f, :e_q2a
+        = cha_radios     f, :e_q2b
+        = cha_radios     f, :e_q2c
+
+      %h3
+        = _('CHA F_TITLE')
+        %small= _('CHA F_SUBTITLE')
+      .well
+        = cha_radios     f, :f_q1a
+        = cha_radios     f, :f_q1b
+        = cha_radios     f, :f_q1c
+        = cha_radios     f, :f_q1d
+        = cha_radios     f, :f_q1e
+        = cha_radios     f, :f_q1f
+        = cha_radios     f, :f_q2
+        = cha_radios     f, :f_q3
+        = cha_radios     f, :f_q4
+        = cha_radios     f, :f_q5
+
+      %h3
+        = _('CHA G_TITLE')
+        %small= _('CHA G_SUBTITLE')
+      .well
+        .row
+          .col-sm-12
+            %h4= _('CHA G_Q1_HEADER')
+            %p.help-text= _('CHA G_Q1_SUBHEADER')
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1A_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1ap
+          .col-sm-6
+            = cha_select     f, :g_q1ac
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1B_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1bp
+          .col-sm-6
+            = cha_select     f, :g_q1bc
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1C_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1cp
+          .col-sm-6
+            = cha_select     f, :g_q1cc
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1D_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1dp
+          .col-sm-6
+            = cha_select     f, :g_q1dc
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1E_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1ep
+          .col-sm-6
+            = cha_select     f, :g_q1ec
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1F_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1fp
+          .col-sm-6
+            = cha_select     f, :g_q1fc
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1G_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1gp
+          .col-sm-6
+            = cha_select     f, :g_q1gc
+        .row
+          .col-sm-12
+            %p
+              %strong= _("CHA G_Q1H_HEADER")
+        .row
+          .col-sm-6
+            = cha_select     f, :g_q1hp
+          .col-sm-6
+            = cha_select     f, :g_q1hc
+
+        .row
+          .col-sm-12
+            %h4= _('CHA G_Q2_HEADER')
+            %p.help-text= _('CHA G_Q2_SUBHEADER')
+
+        = cha_radios     f, :g_q2a
+        = cha_radios     f, :g_q2b
+        = cha_radios     f, :g_q2c
+        = cha_radios     f, :g_q2d
+        = cha_radios     f, :g_q2e
+        = cha_radios     f, :g_q2f
+
+        = cha_radios     f, :g_q3
+        = cha_radios     f, :g_q4a
+        = cha_radios     f, :g_q4b
+        = cha_radios     f, :g_q5
+        = cha_radios     f, :g_q6a
+        = cha_radios     f, :g_q6b
+
+      %h3
+        = _('CHA H_TITLE')
+        %small= _('CHA H_SUBTITLE')
+      .well
+        = cha_radios     f, :h_q1
+
+      %h3
+        = _('CHA I_TITLE')
+        %small= _('CHA I_SUBTITLE')
+      .well
+        = cha_radios     f, :i_q1a
+        = cha_radios     f, :i_q1b
+        = cha_radios     f, :i_q1c
+        = cha_radios     f, :i_q1d
+        = cha_radios     f, :i_q1e
+        = cha_radios     f, :i_q1f
+        = cha_radios     f, :i_q1g
+        = cha_radios     f, :i_q1h
+        = cha_radios     f, :i_q1i
+        = cha_radios     f, :i_q1j
+        = cha_radios     f, :i_q1k
+        = cha_radios     f, :i_q1l
+        = cha_radios     f, :i_q1m
+        = cha_radios     f, :i_q1n
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA I_Q2_HEADER')
+        .row
+          .col-sm-4
+            = cha_string     f, :i_q2a1
+          .col-sm-4
+            = cha_select     f, :i_q2a2
+          .col-sm-4
+            = cha_string     f, :i_q2a3
+        .row
+          .col-sm-4
+            = cha_string     f, :i_q2b1
+          .col-sm-4
+            = cha_select     f, :i_q2b2
+          .col-sm-4
+            = cha_string     f, :i_q2b3
+        .row
+          .col-sm-4
+            = cha_string     f, :i_q2c1
+          .col-sm-4
+            = cha_select     f, :i_q2c2
+          .col-sm-4
+            = cha_string     f, :i_q2c3
+        .row
+          .col-sm-4
+            = cha_string     f, :i_q2d1
+          .col-sm-4
+            = cha_select     f, :i_q2d2
+          .col-sm-4
+            = cha_string     f, :i_q2d3
+        .row
+          .col-sm-4
+            = cha_string     f, :i_q2e1
+          .col-sm-4
+            = cha_select     f, :i_q2e2
+          .col-sm-4
+            = cha_string     f, :i_q2e3
+        .row
+          .col-sm-4
+            = cha_string     f, :i_q2f1
+          .col-sm-4
+            = cha_select     f, :i_q2f2
+          .col-sm-4
+            = cha_string     f, :i_q2f3
+
+      %h3
+        = _('CHA J_TITLE')
+        %small= _('CHA J_SUBTITLE')
+      .well
+        = cha_radios     f, :j_q1
+        = cha_radios     f, :j_q2
+
+        = cha_radios     f, :j_q3a
+        = cha_radios     f, :j_q3b
+        = cha_radios     f, :j_q3c
+        = cha_radios     f, :j_q3d
+        = cha_radios     f, :j_q3e
+        = cha_radios     f, :j_q3f
+        = cha_radios     f, :j_q3g
+        = cha_radios     f, :j_q3h
+        = cha_radios     f, :j_q3i
+        = cha_radios     f, :j_q3j
+        = cha_radios     f, :j_q3k
+        = cha_radios     f, :j_q3l
+
+        = cha_radios     f, :j_q4
+        = cha_radios     f, :j_q5
+
+        = cha_radios     f, :j_q6a
+        = cha_radios     f, :j_q6b
+        = cha_radios     f, :j_q6c
+        = cha_radios     f, :j_q6d
+        = cha_radios     f, :j_q6e
+
+        = cha_radios     f, :j_q7a
+        = cha_radios     f, :j_q7b
+
+        = cha_radios     f, :j_q8
+        = cha_radios     f, :j_q9a
+        = cha_radios     f, :j_q9b
+
+      %h3
+        = _('CHA K_TITLE')
+        %small= _('CHA K_SUBTITLE')
+      .well
+        = cha_radios     f, :k_q1a
+        = cha_radios     f, :k_q1b
+        = cha_radios     f, :k_q1c
+        = cha_radios     f, :k_q1d
+
+      %h3
+        = _('CHA L_TITLE')
+        %small= _('CHA L_SUBTITLE')
+      .well
+        .row
+          .col-sm-12
+            = cha_string f, :l_q1s1a
+        .row
+          .col-sm-2
+            = cha_string f, :l_q1s1b
+          .col-sm-2
+            = cha_select f, :l_q1s1c
+          .col-sm-2
+            = cha_select f, :l_q1s1d
+          .col-sm-2
+            = cha_select f, :l_q1s1e
+          .col-sm-2
+            = cha_select f, :l_q1s1f
+          .col-sm-2
+            = cha_string f, :l_q1s1g
+        .row
+          .col-sm-12
+            = cha_string f, :l_q1s2a
+        .row
+          .col-sm-2
+            = cha_string f, :l_q1s2b
+          .col-sm-2
+            = cha_select f, :l_q1s2c
+          .col-sm-2
+            = cha_select f, :l_q1s2d
+          .col-sm-2
+            = cha_select f, :l_q1s2e
+          .col-sm-2
+            = cha_select f, :l_q1s2f
+          .col-sm-2
+            = cha_string f, :l_q1s2g
+        .row
+          .col-sm-12
+            = cha_string f, :l_q1s3a
+        .row
+          .col-sm-2
+            = cha_string f, :l_q1s3b
+          .col-sm-2
+            = cha_select f, :l_q1s3c
+          .col-sm-2
+            = cha_select f, :l_q1s3d
+          .col-sm-2
+            = cha_select f, :l_q1s3e
+          .col-sm-2
+            = cha_select f, :l_q1s3f
+          .col-sm-2
+            = cha_string f, :l_q1s3g
+        .row
+          .col-sm-12
+            = cha_string f, :l_q1s4a
+        .row
+          .col-sm-2
+            = cha_string f, :l_q1s4b
+          .col-sm-2
+            = cha_select f, :l_q1s4c
+          .col-sm-2
+            = cha_select f, :l_q1s4d
+          .col-sm-2
+            = cha_select f, :l_q1s4e
+          .col-sm-2
+            = cha_select f, :l_q1s4f
+          .col-sm-2
+            = cha_string f, :l_q1s4g
+        .row
+          .col-sm-12
+            = cha_string f, :l_q1s5a
+        .row
+          .col-sm-2
+            = cha_string f, :l_q1s5b
+          .col-sm-2
+            = cha_select f, :l_q1s5c
+          .col-sm-2
+            = cha_select f, :l_q1s5d
+          .col-sm-2
+            = cha_select f, :l_q1s5e
+          .col-sm-2
+            = cha_select f, :l_q1s5f
+          .col-sm-2
+            = cha_string f, :l_q1s5g
+
+        = cha_radios f, :l_q2
+
+      %h3
+        = _('CHA M_TITLE')
+        %small= _('CHA M_SUBTITLE')
+      .well
+        = cha_radios f, :m_q1a
+        = cha_radios f, :m_q1b
+        = cha_radios f, :m_q1c
+        = cha_radios f, :m_q1d
+        = cha_radios f, :m_q1e
+        = cha_radios f, :m_q1f
+        = cha_radios f, :m_q1g
+        = cha_radios f, :m_q1h
+
+        = cha_string f, :m_q2a
+        = cha_string f, :m_q2b
+        = cha_string f, :m_q2c
+
+      %h3
+        = _('CHA N_TITLE')
+        %small= _('CHA N_SUBTITLE')
+      .well
+        = cha_radios f, :n_q1
+
+      %h3
+        = _('CHA O_TITLE')
+        %small= _('CHA O_SUBTITLE')
+      .well
+        = cha_radios f, :o_q1
+
+      %h3
+        = _('CHA P_TITLE')
+        %small= _('CHA P_SUBTITLE')
+      .well
+        = cha_datepicker f, :p_q1
+        = cha_radios     f, :p_q2
+
+      %h3
+        = _('CHA Q_TITLE')
+        %small= _('CHA Q_SUBTITLE')
+      .well
+        = cha_string     f, :q_q1, input_html: { disabled: true, value: @cha.user&.name }
+        = cha_datepicker f, :q_q2
 
 
-    / - if @cha.reviewed_by.present?
-    /   .form-group
-    /     %label Reviewed by Supervisor
-    /     %p.form-control-static= @cha.reviewed_by&.name
-    / - else
-    /   = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
-    .form-group
-      = f.input :completed, as: :boolean, label: 'Complete?', checked_value: 'yes', unchecked_value: 'no', input_html: { checked: @cha.complete? }
 
-  .col-sm-12
-    .text-right
-      = f.button :submit, 'Save'
+
+  .row
+    .col-sm-8
+      .text-right
+        = f.button :submit, 'Save'
