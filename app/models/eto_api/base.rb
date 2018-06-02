@@ -80,8 +80,12 @@ module EtoApi
       body_text = body.to_json
       debug_log "=> POST #{url}"
       debug_log "   #{body_text}"
-
-      r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/json')) rescue '[]'
+      begin
+        r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/json'))
+      rescue Exception => e
+        debug_log "<= FAILED - ERROR #{e.message}"
+        return false
+      end
       debug_log "<= #{r.body}"
       JSON.parse(r.body)
     end
