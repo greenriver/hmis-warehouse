@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-18 20:34-0400\n"
-"PO-Revision-Date: 2018-05-18 20:34-0400\n"
+"POT-Creation-Date: 2018-06-02 07:14-0400\n"
+"PO-Revision-Date: 2018-06-02 07:14-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -27,9 +27,6 @@ msgstr ""
 msgid "Available for matching in CAS"
 msgstr ""
 
-msgid "Available in CAS"
-msgstr ""
-
 msgid "Bed Utilization Percentages"
 msgstr ""
 
@@ -42,13 +39,13 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
+msgid "BostonHMIS Data Warehouse"
+msgstr ""
+
 msgid "CSPECH Eligible"
 msgstr ""
 
 msgid "Children under age 18 in household"
-msgstr ""
-
-msgid "Chronically Homeless and in CAS"
 msgstr ""
 
 msgid "Chronically Homeless for CAS"

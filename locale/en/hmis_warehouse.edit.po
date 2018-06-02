@@ -26,9 +26,6 @@ msgstr ""
 msgid "Available for matching in CAS"
 msgstr ""
 
-msgid "Available in CAS"
-msgstr ""
-
 msgid "Bed Utilization Percentages"
 msgstr ""
 
@@ -41,13 +38,13 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
+msgid "BostonHMIS Data Warehouse"
+msgstr ""
+
 msgid "CSPECH Eligible"
 msgstr ""
 
 msgid "Children under age 18 in household"
-msgstr ""
-
-msgid "Chronically Homeless and in CAS"
 msgstr ""
 
 msgid "Chronically Homeless for CAS"
