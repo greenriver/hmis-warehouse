@@ -59,7 +59,7 @@ module ViewableEntities
     private def coc_viewability(base)
       collection = %w[ ProjectCoc EnrollmentCoc ].flat_map do |c|
         "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck :CoCCode
-      end.uniq.compact.sort
+      end.uniq&.compact&.sort
       {
         label:       'CoC codes',
         selected:    @user.coc_codes,
