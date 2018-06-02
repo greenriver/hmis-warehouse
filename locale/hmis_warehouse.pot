@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-02 07:14-0400\n"
-"PO-Revision-Date: 2018-06-02 07:14-0400\n"
+"POT-Creation-Date: 2018-06-02 17:12-0400\n"
+"PO-Revision-Date: 2018-06-02 17:12-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -37,9 +37,6 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
-msgstr ""
-
-msgid "BostonHMIS Data Warehouse"
 msgstr ""
 
 msgid "CSPECH Eligible"
@@ -88,6 +85,9 @@ msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
+msgstr ""
+
+msgid "HMIS Data Warehouse"
 msgstr ""
 
 msgid "HSA Contacts"
