@@ -26,9 +26,6 @@ msgstr ""
 msgid "Available for matching in CAS"
 msgstr ""
 
-msgid "Available in CAS"
-msgstr ""
-
 msgid "Bed Utilization Percentages"
 msgstr ""
 
@@ -45,9 +42,6 @@ msgid "CSPECH Eligible"
 msgstr ""
 
 msgid "Children under age 18 in household"
-msgstr ""
-
-msgid "Chronically Homeless and in CAS"
 msgstr ""
 
 msgid "Chronically Homeless for CAS"
@@ -90,6 +84,9 @@ msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
+msgstr ""
+
+msgid "HMIS Data Warehouse"
 msgstr ""
 
 msgid "HSA Contacts"
