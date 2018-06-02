@@ -89,6 +89,7 @@ module EtoApi::Tasks
         #   fetch_assessments(client)
         # end
       end
+      return true
     end
 
     def fetch_assessments client
@@ -119,24 +120,24 @@ module EtoApi::Tasks
 
     def fetch_demographics client
       hmis_client = nil
-      response = @api.client_demographic(client_id: client.id_in_data_source.gsub(',',''), site_id: client.site_id_in_data_source) rescue nil
-      if response
+      api_response = @api.client_demographic(client_id: client.id_in_data_source.gsub(',',''), site_id: client.site_id_in_data_source) rescue nil
+      if api_response
         hmis_client = GrdaWarehouse::HmisClient.where(client_id: client.client_id).first_or_initialize
-        hmis_client.response = response.to_json
+        hmis_client.response = api_response.to_json
 
-        hmis_client.subject_id = response['SubjectID']
-        hmis_client.consent_form_status = defined_value(client: client, response: response, label: 'Consent Form:')
-        hmis_client.outreach_counselor_name = defined_value(client: client, response: response, label: 'Main Outreach Conselor')
+        hmis_client.subject_id = api_response['SubjectID']
+        hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
+        hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Conselor')
         
-        cm = entity(client: client, response: response, entity_label: 'Case Manager/Advocate')
+        cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
         hmis_client.case_manager_name = cm.try(:[], 'EntityName')
         hmis_client.case_manager_attributes = cm if hmis_client.case_manager_name.present?
 
-        staff = entity(client: client, response: response, entity_label: 'AssignedStaffID')
+        staff = entity(client: client, response: api_response, entity_label: 'AssignedStaffID')
         hmis_client.assigned_staff_name = staff.try(:[], 'EntityName')
         hmis_client.assigned_staff_attributes = staff if hmis_client.assigned_staff_name.present?
 
-        counselor = entity(client: client, response: response, entity_label: 'Assigned Counselor')
+        counselor = entity(client: client, response: api_response, entity_label: 'Assigned Counselor')
         hmis_client.counselor_name = staff.try(:[], 'EntityName')
         hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
 
@@ -153,9 +154,9 @@ module EtoApi::Tasks
       # Fetch assessment structure
       assessment = @api.touch_point(site_id: site_id, id: touch_point_id)
       assessment_name = assessment['TouchPointName']
-      responses.each do |response|
-        response_id = response["TouchPointResponseID"]
-        program_id = response["ProgramID"]
+      responses.each do |api_response|
+        response_id = api_response["TouchPointResponseID"]
+        program_id = api_response["ProgramID"]
         hmis_form = GrdaWarehouse::HmisForm.where(
           client_id: client_id, 
           subject_id: subject_id, 
@@ -183,7 +184,7 @@ module EtoApi::Tasks
         # 2: TextArea  
         answers = {}
         answers[:assessment_title] = assessment_name
-        answers[:assessment_identifier] = response['TouchPointIdentifier']
+        answers[:assessment_identifier] = api_response['TouchPointIdentifier']
         answers[:sections] = []
         section = nil
         assessment['TouchPointElement'].each do |element|
@@ -192,7 +193,7 @@ module EtoApi::Tasks
             answers[:sections] << section if section.present?
             section = {section_title: element['Stimulus'], questions: []}
           else
-            value = response_element(element_id: element['ElementID'], response: response).try(:[], 'Value')
+            value = response_element(element_id: element['ElementID'], response: api_response).try(:[], 'Value')
             section[:questions] << {
               question: element['Stimulus'],
               answer: value,
@@ -206,12 +207,12 @@ module EtoApi::Tasks
         end
         # Save off the last section
         answers[:sections] << section if section.present?
-        staff = @api.staff(site_id: site_id, id: response['AuditStaffID'])
+        staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
         hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
-        hmis_form.collected_at = @api.parse_date(response['ResponseCreatedDate'])
+        hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])
         hmis_form.name = assessment_name
         hmis_form.collection_location = @api.program(site_id: site_id, id: program_id)
-        hmis_form.response = response
+        hmis_form.response = api_response
         hmis_form.answers = answers
         hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
         begin
