@@ -218,8 +218,8 @@ module EtoApi::Tasks
         begin
           hmis_form.save
         rescue Exception => e
-          msg = "Failed to save, probably dirty: #{e.message}"
-          notifier.ping msg if send_notifications
+          # msg = "Failed to save, probably dirty: #{e.message}"
+          # notifier.ping msg if send_notifications
         end
       end
     end
