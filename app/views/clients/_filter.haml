@@ -3,7 +3,7 @@
 - else
   - filter_class = 'client__filter'
 .btn-group{class: filter_class}
-  %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
+  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
     Filter
     %span.caret
   .dropdown-menu.dropdown-menu-left.options
@@ -53,12 +53,12 @@
           %h4 Population
           = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population]), class: 'select2', style: 'width: 100%;')
       .row
-        .col-xs-6
+        .col-sm-6
           %p
             %button.btn.btn-primary{type: :submit}
               %span.icon-filter.icon-inline
               Filter
-        .col-xs-6.text-right
+        .col-sm-5.text-right
           = link_to clients_path, class:'btn btn-secondary' do
             %span.icon-cross.icon-inline
             Clear Filters

@@ -1,0 +1,65 @@
+- if @active_filter
+  - filter_class = 'client__filter-active'
+- else
+  - filter_class = 'client__filter'
+.btn-group{class: filter_class}
+  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
+    Filter
+    %span.caret
+  .dropdown-menu.dropdown-menu-left.options
+    = form_tag(nil, method: "get") do
+      -# preserve search for filtering
+      - if params[:q] && params[:q][:full_text_search]
+        = hidden_field_tag 'q[full_text_search]', params[:q][:full_text_search]
+      %h4 Status
+      .btn-group{data: {toggle: :buttons}}
+        - active = params[:filter].blank? || params[:filter][:population] == 'all'
+        %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
+          %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active} All
+        - active = params[:filter].present? && params[:filter][:population] == 'not_engaged'
+        %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
+          %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active} Not yet engaged
+        - active = params[:filter].present? && params[:filter][:population] == 'no_activities'
+        %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
+          %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 0 Qualified activities this month
+      
+      .row.mt-6
+        .col-xs-6
+          %p
+            %button.btn.btn-primary{type: :submit}
+              %span.icon-filter.icon-inline
+              Filter
+        .col-xs-6.text-right
+          = link_to health_patients_path, class:'btn btn-secondary' do
+            %span.icon-cross.icon-inline
+            Clear Filters
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var filter_class = '.#{filter_class}'
+      function toggle_clickable(e) {
+        if($(e.target).closest(filter_class).length == 0 ) {
+          $(filter_class).data('closeable', true);
+        }
+      }
+      $(filter_class).on('hide.bs.dropdown', function (e) {
+        var closable = $(this).data('closeable');
+        if(closable) {
+          $('body').off('click', toggle_clickable);
+        }
+        return closable;
+      });
+      $(filter_class).on('show.bs.dropdown', function (e) {
+        $(this).data('closeable', false);
+        // Make clicking outside of the menu close the menu
+        $('body').on('click', toggle_clickable);
+      });
+      $(filter_class).on('click', '*', function(e) {
+        var $target = $(e.target);
+        var closeable = $target.parent().data('closeable');
+        if($target.hasClass('dropdown-toggle') && closeable == false) {
+          $target.parent().data('closeable', true);
+        }
+      });
+    })(jQuery);

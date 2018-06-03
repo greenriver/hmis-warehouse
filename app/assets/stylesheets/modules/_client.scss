@@ -325,10 +325,11 @@ $client-image-height: 200px;
   list-style-type: none;
   padding-left: 0.25em;
 }
-.client__filter-active .btn-default {
+.client__filter-active>.btn, {
   background-color: $cob-sg-blue-004;
   color: white;
 }
+
 .client__assessment-question,
 .client__assessment-answer
 {

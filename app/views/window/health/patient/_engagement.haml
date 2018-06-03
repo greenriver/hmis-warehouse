@@ -11,4 +11,4 @@
       = link_to "#{pluralize(0, 'Qualifying Activities')} this month", url
   - else
     .patient__engagement-engaged
-      = link_to "#{pluralize(0, 'Qualifying Activities')} this month", url
+      = link_to "#{pluralize(patient.qualified_activities_since(date: 1.months.ago).count, 'Qualifying Activities')} this month", url
