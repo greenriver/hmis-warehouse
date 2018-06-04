@@ -17,7 +17,8 @@ module Window::Health
       validate_form
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
-      save_file if @release_form.errors.none? && @release_form.save
+      saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+      save_file if @release_form.errors.none? && saved
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
@@ -32,7 +33,9 @@ module Window::Health
     def update
       validate_form unless @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
-      save_file if @release_form.errors.none? && @release_form.update(form_params)
+      @release_form.assign_attributes(form_params)
+      saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+      save_file if @release_form.errors.none? && saved
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 

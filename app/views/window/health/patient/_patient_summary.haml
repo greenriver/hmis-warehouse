@@ -58,9 +58,11 @@
                       Self-Sufficiency Matrix
                   - elsif ssm = @patient.self_sufficiency_matrix_forms.recent.first
                     = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: ssm.id) do
+                      %span.icon-checkmark.mr-1.o-color--gray-l
                       Self-Sufficiency Matrix
                   - else
                     = link_to polymorphic_path([:new] + self_sufficiency_matrix_form_path_generator) do
+                      %span.icon-checkmark.mr-1.o-color--gray-l
                       Self-Sufficiency Matrix
 
       .ho-patient__details
