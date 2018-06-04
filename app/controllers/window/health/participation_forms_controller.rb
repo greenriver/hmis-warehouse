@@ -17,8 +17,8 @@ module Window::Health
       validate_form
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.case_manager = current_user
-      save_file if @participation_form.errors.none? && 
-      @participation_form.save
+      saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
+      save_file if @participation_form.errors.none? && saved
       respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
@@ -33,7 +33,9 @@ module Window::Health
     def update
       validate_form unless @participation_form.health_file.present?
       @participation_form.reviewed_by = current_user if reviewed?
-      save_file if @participation_form.errors.none? && @participation_form.update(form_params)
+      @participation_form.assign_attributes(form_params)
+      saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
+      save_file if @participation_form.errors.none? && saved
       respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
