@@ -38,9 +38,6 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
-msgid "BostonHMIS Data Warehouse"
-msgstr ""
-
 msgid "CSPECH Eligible"
 msgstr ""
 
@@ -87,6 +84,9 @@ msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
+msgstr ""
+
+msgid "HMIS Data Warehouse"
 msgstr ""
 
 msgid "HSA Contacts"
