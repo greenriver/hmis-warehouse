@@ -5,6 +5,9 @@
       - if f2.object.unsubmitted?
         %h3
           = "Qualifying Activity ##{f2.index+1}"
+        - if f2.object.unsubmitted?
+          .pull-right
+            = link_to 'Remove Activity', form_url({commit: 'Remove Activity', format: :js}), class: 'btn btn-sm btn-danger', data: {behavior: 'remove activity'}
         = render 'fields_for_activity', f: f2, activity: activity
       - else
         = render 'display_note_section', section: f2.object.display_sections(f2.index)

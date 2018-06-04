@@ -1,4 +1,5 @@
 var noteAdded = "<%= j @noteAdded.to_json %>"
+console.log(noteAdded);
 if(noteAdded === 'true') {
   var container = $(behaviorSelector('container'));
   container.empty();

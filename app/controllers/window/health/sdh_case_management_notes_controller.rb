@@ -16,6 +16,7 @@ module Window::Health
     def new
       @note = @patient.sdh_case_management_notes.
         build(user: current_user, completed_on: DateTime.current)
+      @note.activities.build
       @note.save(validate: false)
       redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
     end
@@ -36,27 +37,19 @@ module Window::Health
     def edit
       @note = Health::SdhCaseManagementNote.find(params[:id])
       @activities = @note.activities.sort_by(&:id)
-      if @activities.empty?
-        a = @note.activities.build
-        @activities.push(a)
-      end
       respond_with @note
     end
 
     def update
       @note = Health::SdhCaseManagementNote.find(params[:id])
       @activity_count = @note.activities.size
-      @note.activities.update_all(
-        user_id: current_user.id, 
-        user_full_name: current_user.name
-      )
       if params[:commit] == 'Save Case Note'
         @note.update_attributes(note_params)
       else
         @note.assign_attributes(note_params)
         @note.save(validate: false)
-        @noteAdded = (@activity_count != @note.activities.size)
       end
+      @noteAdded = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end
@@ -101,13 +94,30 @@ module Window::Health
       # Let me know if there is a better solution @meborn
       # COPY is used to add activities via js see health/sdh_case_management_note/form_js addActivity
       (params[:health_sdh_case_management_note][:activities_attributes]||{}).reject!{|k,v| k == "COPY"}
+      # remove :_destroy on ajax
+      if params[:commit] != 'Save Case Note' && params[:commit] != 'Remove Activity'
+        (params[:health_sdh_case_management_note][:activities_attributes]||{}).keys.each do |key|
+          (params[:health_sdh_case_management_note][:activities_attributes]||{})[key].reject!{|k,v| k == "_destroy"}
+        end
+      end
       # remove empty element from topics array
       (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
     end
 
+    def add_user_and_patient_to_activities!(permitted_params)
+      (permitted_params[:activities_attributes]||{}).keys.each do |key|
+        permitted_params[:activities_attributes][key].merge!({
+          user_id: current_user.id,
+          user_full_name: current_user.name,
+          patient_id: @patient.id
+        })
+      end
+      permitted_params
+    end
+
     def note_params
       clean_note_params!
-      params.require(:health_sdh_case_management_note).permit(
+      permitted_params = params.require(:health_sdh_case_management_note).permit(
         :title,
         :total_time_spent_in_minutes,
         :date_of_contact,
@@ -124,17 +134,17 @@ module Window::Health
         topics: [],
         activities_attributes: [
           :id,
-          :user_id,
-          :user_full_name,
           :mode_of_contact, 
           :mode_of_contact_other, 
           :reached_client,
           :reached_client_collateral_contact,
           :activity,
           :date_of_activity,
-          :follow_up
+          :follow_up,
+          :_destroy
         ]
       ).reject{|k, v| v.blank?}
+      add_user_and_patient_to_activities!(permitted_params)
     end
 
     def flash_interpolation_options

@@ -54,7 +54,8 @@ module Health
 
     serialize :topics, Array
 
-    accepts_nested_attributes_for :activities, reject_if: :all_blank
+    # proc {|attrs| !attrs['_destroy'] && attrs['mode_of_contact'].blank? && attrs['reached_client'].blank? && attrs['activity'].blank? && attrs['claim_submitted_on'].blank? && attrs['date_of_activity'].blank? && attrs['follow_up'].blank? }
+    accepts_nested_attributes_for :activities, allow_destroy: true 
     validates_associated :activities
 
     validates_presence_of :patient, :user, :title, :date_of_contact

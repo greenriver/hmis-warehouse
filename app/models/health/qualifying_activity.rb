@@ -41,7 +41,7 @@ module Health
     validates :mode_of_contact, inclusion: {in: MODE_OF_CONTACT.keys}, allow_blank: true
     validates :reached_client, inclusion: {in: REACHED_CLIENT.keys}, allow_blank: true
     validates :activity, inclusion: {in: ACTIVITY.keys}, allow_blank: true 
-    validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity
+    validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity, :patient_id
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 
@@ -51,6 +51,15 @@ module Health
 
     def unsubmitted?
       !submitted?
+    end
+
+    def empty?
+      mode_of_contact.blank? && 
+      reached_client.blank? && 
+      activity.blank? && 
+      claim_submitted_on.blank? && 
+      date_of_activity.blank? && 
+      follow_up.blank?
     end
 
     def self.load_string_collection(collection)
