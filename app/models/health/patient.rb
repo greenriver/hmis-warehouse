@@ -153,7 +153,8 @@ module Health
     end
 
     def engaged?
-      ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
+      self.class.engaged.where(id: id).exists?
+      # ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
     end
 
     def ssms?
@@ -171,7 +172,7 @@ module Health
     end
 
     def qualified_activities_since date: 1.months.ago
-      qualifying_activities.in_range (date..Date.today)
+      qualifying_activities.in_range(date..Date.tomorrow)
     end
 
     def consented? # Pilot

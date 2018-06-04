@@ -9,7 +9,8 @@ module Window::Health
 
     def new
       @form = @patient.self_sufficiency_matrix_forms.build(user: current_user)
-      @form.save(validate: false)
+      Health::SsmSaver.new(ssm: @form, user: current_user).create
+      
       redirect_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
     end
 
@@ -22,10 +23,8 @@ module Window::Health
     end
     
     def update
-      if params[:commit]=='Save'
-        @form.completed_at = Time.current
-      end
-      @form.update(form_params)
+      @form.assign_attributes(form_params)
+      Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
 

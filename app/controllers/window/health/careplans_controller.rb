@@ -43,10 +43,8 @@ module Window::Health
     end
 
     def new
-      Health::Careplan.transaction do
-        @careplan = @patient.careplans.create!(user: current_user)
-        @careplan.ensure_team_exists
-      end
+      @careplan = @patient.careplans.new(user: current_user)
+      Health::CareplanSaver.new(careplan: @careplan, user: current_user).create
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
       # @form_url = polymorphic_path(careplans_path_generator)
       # @form_button = 'Create Care Plan'
@@ -70,10 +68,8 @@ module Window::Health
     def update
       attributes = careplan_params
       attributes[:user_id] = current_user.id
-      @careplan.class.transaction do
-        @careplan.update(attributes)
-        @careplan.set_lock
-      end
+      @careplan.assign_attributes(attributes)
+      Health::CareplanSaver.new(careplan: @careplan, user: current_user).update
       # for errors
       @form_url = polymorphic_path(careplan_path_generator) 
       @form_button = 'Save Care Plan'
