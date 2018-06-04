@@ -4,7 +4,12 @@
     %h1= content_for :title
     = render 'breadcrumbs'
     = render 'menus/health_admin_tabs'
-    %p Use this form to grant access to the healthcare sections of the window into the warehouse to users. 
+    .row
+      .col-sm-6
+        .margin-top-04.margin-bottom-03
+          = render 'search_form' 
+    %p Use this form to grant access to the healthcare sections of the window into the warehouse to users.
+
 .row
   .col-sm-10
     = simple_form_for :users, url: admin_health_users_path do |f|
