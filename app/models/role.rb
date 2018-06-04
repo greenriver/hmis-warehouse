@@ -85,7 +85,10 @@ class Role < ActiveRecord::Base
       :can_manage_claims,
       :can_manage_all_patients,
       :can_manage_patients_for_own_agency,
-      :can_approve_patient_items_for_agency,
+      :can_approve_cha,
+      :can_approve_ssm,
+      :can_approve_release,
+      :can_approve_participation,
       :can_edit_all_patient_items,
       :can_edit_patient_items_for_own_agency,
       :can_create_care_plans_for_own_agency, # unused

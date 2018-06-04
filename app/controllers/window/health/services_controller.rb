@@ -55,6 +55,7 @@ module Window::Health
         :date_requested,
         :effective_date,
         :end_date,
+        :status,
       )
     end
 

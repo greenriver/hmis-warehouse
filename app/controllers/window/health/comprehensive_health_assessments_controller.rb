@@ -59,7 +59,7 @@ module Window::Health
         :reviewed_by_supervisor,
         :completed
       )
-      if ! current_user.can_approve_patient_items_for_agency?
+      if ! current_user.can_approve_cha?
         local_params.execpt(:reviewed_by_supervisor)
       else
         local_params
@@ -91,7 +91,7 @@ module Window::Health
     end
 
     def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_patient_items_for_agency?
+      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_cha?
     end
 
     def completed?

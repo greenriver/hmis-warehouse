@@ -19,6 +19,9 @@ module Health
     has_one :claims_roster, class_name: Health::Claims::Roster.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :amount_paids, class_name: Health::Claims::AmountPaid.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :self_sufficiency_matrix_forms
+    has_many :hmis_ssms, -> do
+      merge(GrdaWarehouse::HmisForm.self_sufficiency)
+    end, class_name: GrdaWarehouse::HmisForm.name, through: :client, source: :source_hmis_forms
     has_many :sdh_case_management_notes
     has_many :participation_forms
     has_many :release_forms
@@ -38,6 +41,79 @@ module Health
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
+
+    scope :full_text_search, -> (text) do
+      text_search(text, patient_scope: current_scope)
+    end
+
+    # at least one of the following is true
+    # No SSM
+    # No Participation Form
+    # No Release Form
+    # No CHA
+    scope :not_engaged, -> do
+      # This lives in the warehouse DB and must be materialized
+      hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
+
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      where(
+        arel_table[:client_id].not_in(hmis_ssm_client_ids).
+        and(
+          arel_table[:id].not_in(Arel.sql ssm_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].not_in(Arel.sql participation_form_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].not_in(Arel.sql release_form_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].not_in(Arel.sql cha_patient_id_scope.to_sql)
+        )
+      )
+    end
+
+    # all must be true
+    # Has SSM
+    # Has Participation Form
+    # Has Release Form
+    # Has CHA
+    scope :engaged, -> do
+      # This lives in the warehouse DB and must be materialized
+      hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
+
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+
+      where(
+        arel_table[:client_id].in(hmis_ssm_client_ids).
+        or(
+          arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql)
+        ).
+        and(
+          arel_table[:id].in(Arel.sql participation_form_patient_id_scope.to_sql)
+        ).
+        and(
+          arel_table[:id].in(Arel.sql release_form_patient_id_scope.to_sql)
+        ).
+        and(
+          arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql)
+        )
+      )
+    end
+
+    # patients with no qualifying activities in the past month
+    scope :no_recent_qualifying_activities, -> do
+      where.not(
+        id: Health::QualifyingActivity.in_range(1.months.ago..Date.today).
+          distinct.select(:patient_id)
+      )
+    end
 
     delegate :days_to_engage, to: :patient_referral
     delegate :engagement_date, to: :patient_referral
@@ -77,7 +153,25 @@ module Health
     end
 
     def engaged?
-      false
+      ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
+    end
+
+    def ssms?
+      self_sufficiency_matrix_forms.completed.exists? || hmis_ssms.exists?
+    end
+
+    def ssms
+      @ssms ||= (hmis_ssms.order(collected_at: :desc).to_a + self_sufficiency_matrix_forms.order(completed_at: :desc).to_a).sort_by do |f|
+        if f.is_a? Health::SelfSufficiencyMatrixForm
+          f.completed_at
+        elsif f.is_a? GrdaWarehouse::HmisForm
+          f.collected_at
+        end
+      end
+    end
+
+    def qualified_activities_since date: 1.months.ago
+      qualifying_activities.in_range (date..Date.today)
     end
 
     def consented? # Pilot
@@ -181,7 +275,11 @@ module Health
       :asc
     end
 
-    def self.text_search(text)
+    def self.ransackable_scopes(auth_object = nil)
+      [:full_text_search]
+    end
+
+    def self.text_search(text, patient_scope:)
       return none unless text.present?
       text.strip!
       patient_t = arel_table
@@ -203,7 +301,7 @@ module Health
           or(patient_t[:first_name].lower.matches(query)).
           or(patient_t[:id_in_source].lower.matches(query))
       end
-      where(where)
+      patient_scope.where(where)
     end
   end
 end

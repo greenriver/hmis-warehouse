@@ -81,7 +81,7 @@ class User < ActiveRecord::Base
   end
 
   def has_some_patient_access?
-    can_approve_patient_items_for_agency? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
+    can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
   end
 
 

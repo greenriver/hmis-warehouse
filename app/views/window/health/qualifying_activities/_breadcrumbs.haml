@@ -1,0 +1,4 @@
+= content_for :crumbs do
+  = link_to polymorphic_path(health_path_generator + [:patient, :index]) do
+    &laquo; 
+    #{@patient.name} Health

@@ -3,7 +3,7 @@
 - else
   - filter_class = 'client__filter'
 .btn-group{class: filter_class}
-  %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
+  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
     Filter
     %span.caret
   .dropdown-menu.dropdown-menu-right.options
@@ -40,7 +40,7 @@
             %button.btn.btn-primary{type: :submit}
               %span.icon-filter.icon-inline
               Filter
-        .col-xs-6.text-right
+        .col-xs-5.text-right
           = link_to window_clients_path, class: 'btn btn-secondary' do
             %span.icon-cross
             Clear Filters

@@ -41,7 +41,7 @@
                       %div 
                         - agency_user = user.agency_user
                         - if agency_user.present?
-                          = user.health_agency.name
+                          = user.health_agency&.name
                           = link_to 'Edit', edit_admin_health_user_agency_user_path(user, agency_user), data: {behavior: 'assign agency user'}
                         - else
                           = link_to 'Assign Agency', new_admin_health_user_agency_user_path(user), class: 'btn btn-default btn-xs', data: {behavior: 'assign agency user'}

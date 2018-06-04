@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180601152640) do
+ActiveRecord::Schema.define(version: 20180601185402) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -356,15 +356,15 @@ ActiveRecord::Schema.define(version: 20180601152640) do
     t.string   "last_name"
     t.date     "birthdate"
     t.string   "medicaid_id"
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false, null: false
-    t.integer  "rejected_reason",                  default: 0,     null: false
+    t.boolean  "rejected",                         default: false,   null: false
+    t.integer  "rejected_reason",                  default: 0,       null: false
     t.integer  "patient_id"
     t.string   "ssn"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date"
+    t.datetime "effective_date",                   default: "now()"
   end
 
   create_table "patients", force: :cascade do |t|
@@ -519,6 +519,7 @@ ActiveRecord::Schema.define(version: 20180601152640) do
     t.datetime "updated_at"
     t.datetime "deleted_at"
     t.integer  "patient_id"
+    t.string   "status"
   end
 
   create_table "team_members", force: :cascade do |t|
