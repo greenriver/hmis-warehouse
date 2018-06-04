@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180510130324) do
+ActiveRecord::Schema.define(version: 20180529122603) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,6 +104,12 @@ ActiveRecord::Schema.define(version: 20180510130324) do
     t.boolean  "congregate_housing",                                 default: false
     t.boolean  "sober_housing",                                      default: false
     t.integer  "consent_form_id"
+    t.integer  "rrh_assessment_score"
+    t.boolean  "ssvf_eligible",                                      default: false, null: false
+    t.boolean  "rrh_desired",                                        default: false, null: false
+    t.boolean  "youth_rrh_desired",                                  default: false, null: false
+    t.string   "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -962,10 +968,10 @@ ActiveRecord::Schema.define(version: 20180510130324) do
   add_index "cohort_client_notes", ["deleted_at"], name: "index_cohort_client_notes_on_deleted_at", using: :btree
 
   create_table "cohort_clients", force: :cascade do |t|
-    t.integer  "cohort_id",                                               null: false
-    t.integer  "client_id",                                               null: false
-    t.datetime "created_at",                                              null: false
-    t.datetime "updated_at",                                              null: false
+    t.integer  "cohort_id",                                                         null: false
+    t.integer  "client_id",                                                         null: false
+    t.datetime "created_at",                                                        null: false
+    t.datetime "updated_at",                                                        null: false
     t.datetime "deleted_at"
     t.string   "agency"
     t.string   "case_manager"
@@ -975,7 +981,7 @@ ActiveRecord::Schema.define(version: 20180510130324) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.boolean  "sif_eligible",                            default: false
+    t.boolean  "sif_eligible",                                      default: false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -985,13 +991,13 @@ ActiveRecord::Schema.define(version: 20180510130324) do
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
     t.string   "va_eligible"
-    t.boolean  "vash_eligible",                           default: false
+    t.boolean  "vash_eligible",                                     default: false
     t.string   "chapter_115"
     t.date     "first_date_homeless"
     t.date     "last_date_approached"
-    t.boolean  "chronic",                                 default: false
+    t.boolean  "chronic",                                           default: false
     t.string   "dnd_rank"
-    t.boolean  "veteran",                                 default: false
+    t.boolean  "veteran",                                           default: false
     t.string   "housing_track_suggested"
     t.string   "housing_track_enrolled"
     t.integer  "adjusted_days_homeless"
@@ -1001,17 +1007,21 @@ ActiveRecord::Schema.define(version: 20180510130324) do
     t.string   "location"
     t.string   "location_type"
     t.string   "vet_squares_confirmed"
-    t.boolean  "active",                                  default: true,  null: false
+    t.boolean  "active",                                            default: true,  null: false
     t.string   "provider"
     t.string   "next_step"
     t.text     "housing_plan"
     t.date     "document_ready_on"
     t.string   "new_lease_referral"
     t.string   "vulnerability_rank"
-    t.boolean  "ineligible",                              default: false, null: false
-    t.integer  "adjusted_days_homeless_last_three_years", default: 0,     null: false
-    t.boolean  "original_chronic",                        default: false, null: false
+    t.boolean  "ineligible",                                        default: false, null: false
+    t.integer  "adjusted_days_homeless_last_three_years",           default: 0,     null: false
+    t.boolean  "original_chronic",                                  default: false, null: false
     t.string   "not_a_vet"
+    t.string   "primary_housing_track_suggested"
+    t.integer  "minimum_bedroom_size"
+    t.string   "special_needs"
+    t.integer  "adjusted_days_literally_homeless_last_three_years"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1204,16 +1214,17 @@ ActiveRecord::Schema.define(version: 20180510130324) do
   add_index "grades", ["type"], name: "index_grades_on_type", using: :btree
 
   create_table "hmis_assessments", force: :cascade do |t|
-    t.integer  "assessment_id",                       null: false
-    t.integer  "site_id",                             null: false
+    t.integer  "assessment_id",                                  null: false
+    t.integer  "site_id",                                        null: false
     t.string   "site_name"
-    t.string   "name",                                null: false
-    t.boolean  "fetch",               default: false, null: false
-    t.boolean  "active",              default: true,  null: false
+    t.string   "name",                                           null: false
+    t.boolean  "fetch",                          default: false, null: false
+    t.boolean  "active",                         default: true,  null: false
     t.datetime "last_fetched_at"
-    t.integer  "data_source_id",                      null: false
-    t.boolean  "confidential",        default: false, null: false
-    t.boolean  "exclude_from_window", default: false, null: false
+    t.integer  "data_source_id",                                 null: false
+    t.boolean  "confidential",                   default: false, null: false
+    t.boolean  "exclude_from_window",            default: false, null: false
+    t.boolean  "details_in_window_with_release", default: false, null: false
   end
 
   add_index "hmis_assessments", ["assessment_id"], name: "index_hmis_assessments_on_assessment_id", using: :btree
@@ -2784,8 +2795,8 @@ ActiveRecord::Schema.define(version: 20180510130324) do
   create_table "warehouse_clients_processed", force: :cascade do |t|
     t.integer  "client_id"
     t.string   "routine"
-    t.datetime "created_at",                     null: false
-    t.datetime "updated_at",                     null: false
+    t.datetime "created_at",                          null: false
+    t.datetime "updated_at",                          null: false
     t.datetime "last_service_updated_at"
     t.integer  "days_served"
     t.date     "first_date_served"
@@ -2797,6 +2808,7 @@ ActiveRecord::Schema.define(version: 20180510130324) do
     t.date     "last_chronic_date"
     t.integer  "chronic_days"
     t.integer  "days_homeless_last_three_years"
+    t.integer  "literally_homeless_last_three_years"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree

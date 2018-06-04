@@ -85,7 +85,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     # Replace 5.1 versions with 6.11
     # ProjectEntryID with EnrollmentID etc.
-    def self.clean_headers(headers)
+    def clean_headers(headers)
       headers.map do |k|
         case k
         when :ProjectEntryID
@@ -104,7 +104,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       end
     end
 
-    def self.export! enrollment_scope:, project_scope:, path:, export:
+    def export! enrollment_scope:, project_scope:, path:, export:
       case export.period_type
       when 3
         export_scope = enrollment_scope

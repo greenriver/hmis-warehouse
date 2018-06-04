@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-09 15:41-0500\n"
-"PO-Revision-Date: 2018-03-09 15:41-0500\n"
+"POT-Creation-Date: 2018-06-02 07:14-0400\n"
+"PO-Revision-Date: 2018-06-02 07:14-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -18,13 +18,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "Appropriate for sober supportive housing"
+msgstr ""
+
 msgid "Asylee, Refugee"
 msgstr ""
 
 msgid "Available for matching in CAS"
-msgstr ""
-
-msgid "Available in CAS"
 msgstr ""
 
 msgid "Bed Utilization Percentages"
@@ -39,13 +39,13 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
+msgid "BostonHMIS Data Warehouse"
+msgstr ""
+
 msgid "CSPECH Eligible"
 msgstr ""
 
 msgid "Children under age 18 in household"
-msgstr ""
-
-msgid "Chronically Homeless and in CAS"
 msgstr ""
 
 msgid "Chronically Homeless for CAS"
@@ -207,7 +207,7 @@ msgstr ""
 msgid "Update Data Source"
 msgstr ""
 
-msgid "Upload failed to queue."
+msgid "Upload failed to queue, did you attach a file?"
 msgstr ""
 
 msgid "Upload queued to start."
@@ -228,6 +228,9 @@ msgstr ""
 msgid "Warehouse Reports"
 msgstr ""
 
+msgid "Willing to live in congregate housing"
+msgstr ""
+
 msgid "Window into the Warehouse"
 msgstr ""
 
@@ -238,6 +241,9 @@ msgid "You can only see files you upload."
 msgstr ""
 
 msgid "You can only see notes you add."
+msgstr ""
+
+msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"

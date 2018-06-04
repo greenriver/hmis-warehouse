@@ -53,7 +53,7 @@ RSpec.shared_context "multi-project tests", shared_context: :metadata do
         if item[:klass].column_names.include?('ProjectID')
           it "hud keys in CSV should match source data" do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
-            current_hud_key = item[:klass].clean_headers([item[:klass].hud_key]).first.to_s
+            current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
             csv_keys = csv.map{|m| m[current_hud_key]}.sort
             projects_project_ids = GrdaWarehouse::Hud::Project.where(id: involved_project_ids).pluck(:ProjectID)
             source_keys = send(item[:list]).select do |m| 
@@ -71,7 +71,7 @@ RSpec.shared_context "multi-project tests", shared_context: :metadata do
         elsif item[:klass].column_names.include?('OrganizationID')
           it "hud keys in CSV should match source data" do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
-            current_hud_key = item[:klass].clean_headers([item[:klass].hud_key]).first.to_s
+            current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
             csv_keys = csv.map{|m| m[current_hud_key]}.sort
             projects_org_ids = GrdaWarehouse::Hud::Project.where(id: involved_project_ids).pluck(:OrganizationID)
             source_keys = send(item[:list]).select do |m| 

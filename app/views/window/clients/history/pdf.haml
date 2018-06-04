@@ -1,7 +1,49 @@
-= wicked_pdf_stylesheet_link_tag 'print', media: 'print'
-- title = "Service History for #{@client.name} as of #{Date.today}"
-- content_for :title, title
-%h1= title
-= render 'history_key'
+.history__pdf
+  = wicked_pdf_stylesheet_link_tag 'print', media: 'print'
+  - title = "#{_('HMIS Data Warehouse')} Homeless History for Residential Programs"
+  - content_for :title, title
+  - if ENV['LOGO'].present?
+    .history__logo
+      = wicked_pdf_image_tag "theme/logo/print_#{ENV['LOGO']}", width: 100, height: 100
+  .history__title
+    %h1= content_for :title
+  .history__summary
+    %p Snapshot for #{@client.name} (#{@client.id}) taken on #{Date.today}
+    %ul
+      %li= "Days Homeless in the past three years: #{@client.days_homeless_in_last_three_years} (seen in ES, SO, SH, TH with no overlapping PH)"
+      %li= "Days Literally Homeless in the past three years: #{@client.literally_homeless_last_three_years} (seen in ES, SO, SH with no overlapping TH or PH)"
+    .history__counts
+      .history__counts-by-org
+        %strong Total number of Bed Nights across all Residential Programs at each organization
+        %ul
+          - @organization_counts.each do |org_name, count|
+            %li
+              = "#{org_name}: #{pluralize count, 'days'}"
+      .history__counts-by-type
+        %strong Total number of Bed Nights across all Residential Programs in each project type
+        %ul
+          - @project_type_counts.each do |type, count|
+            %li
+              = "#{type}: #{pluralize count, 'days'}"
 
-= render 'service_calendar'
+  .history__dates
+    - if @dates.present?
+      %table.history__dates-table
+        %thead
+          %tr
+            %th Organization
+            %th Project Name
+            %th Project Type
+            %th Date
+            %th Entry?
+            %th Exit?
+        %tbody
+          - @ordered_dates.each do |date|
+            - @dates[date].each do |en|
+              %tr
+                %td= en[:organization_name]
+                %td= en[:project_name]
+                %td= HUD.project_type en[:project_type]
+                %td= date
+                %td= date if en[:record_type] == 'entry'
+                %td= date if en[:record_type] == 'exit'

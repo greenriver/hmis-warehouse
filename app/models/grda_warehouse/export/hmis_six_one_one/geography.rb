@@ -27,7 +27,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
     belongs_to :project_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :sites
 
     # Replace SiteID with GeographyID
-    def self.clean_headers(headers)
+    def clean_headers(headers)
       headers.map do |k|
         if k == :SiteID
           :GeographyID

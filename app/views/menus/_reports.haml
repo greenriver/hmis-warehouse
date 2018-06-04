@@ -1,14 +1,16 @@
-.vsm-group.vsm-group__group-a
-  - if can_view_all_reports?
-    = link_to reports_path, class: 'vsm-item-link' do
-      .vsm-item-link--description
-        = _("HUD Reports")
-  - if can_view_assigned_reports? || can_view_all_reports?
-    = link_to warehouse_reports_path, class: 'vsm-item-link' do
-      .vsm-item-link--description
-        = _("Reports")
-- if can_view_aggregate_health?
-  .vsm-group.vsm-group__group-a
-    = link_to warehouse_reports_health_overview_index_path, class: 'vsm-item-link' do
-      .vsm-item-link--description
+- if can_view_all_reports? || can_view_assigned_reports? || can_view_all_reports?
+  %ul.o-menu__group.list-unstyled
+    - if can_view_all_reports?
+      %li.o-menu__item
+        = link_to reports_path, class: 'o-menu__link' do
+          = _("HUD Reports")
+    - if can_view_assigned_reports? || can_view_all_reports?
+      %li.o-menu__item
+        = link_to warehouse_reports_path, class: 'o-menu__link' do
+          = _("Reports")
+
+- if GrdaWarehouse::Config.get(:healthcare_available) && can_view_aggregate_health?
+  %ul.o-menu__group.list-unstyled
+    %li.o-menu__item
+      = link_to warehouse_reports_health_overview_index_path, class: 'o-menu__link' do
         = _("Health Report")

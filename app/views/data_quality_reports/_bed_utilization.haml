@@ -6,27 +6,23 @@
     .col-sm-8
       = render 'bed_utilization_description'  
   .well.overflow-scroll
-    %table.table.table-condensed
+    %table.table.data-quality__table
       %thead
         %tr
           %th{colspan: 4}
-          %th.page-bg-color{colspan: 2} Average Daily
-          %th{colspan: 2}= @report.start
-          %th.page-bg-color{colspan: 2} 15th of Month
-          %th{colspan: 2}= @report.end
+          %th.data-quality__odd-columns Average Daily
+          %th= @report.start
+          %th.data-quality__odd-columns 15th of Month
+          %th= @report.end
         %tr
           %th Project Name
           %th Project Type
           %th Grade
-          %th Capacity
-          %th.page-bg-color Persons
-          %th.page-bg-color % Capacity
-          %th Persons
-          %th % Capacity
-          %th.page-bg-color Persons
-          %th.page-bg-color % Capacity
-          %th Persons
-          %th % Capacity
+          %th.text-center Capacity
+          %th.text-center.data-quality__odd-columns % of Capacity
+          %th.text-center % of Capacity
+          %th.text-center.data-quality__odd-columns % of Capacity
+          %th.text-center % of Capacity
       %tbody
         - @report.report.with_indifferent_access[:bed_utilization].each do |project|
           - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project[:average_daily_percentage])
@@ -40,14 +36,31 @@
                   %em.service-type__program-type= p_type
             %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
             
-            %td= project[:capacity]
+            %td.text-center= project[:capacity]
             - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
-              - odd_class = if index % 2 == 1 then '' else 'page-bg-color' end
-              %td{class: odd_class}
-                - key = "bed_utilization_#{project[:id]}_#{measure}"
-                - if project[measure] > 0
-                  = link_to support_project_data_quality_report_path(@project, @report, {key: key}), data: {loads_in_pjax_modal: true} do
-                    = project[measure]
+              - odd_class = if index % 2 == 1 then '' else 'data-quality__odd-columns' end
               - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project["#{measure}_percentage"])
-              %td{class: odd_class, style: "border-top-width: 3px; border-top-color: #{grade.color};"}
-                = project["#{measure}_percentage"]
+              - key = "bed_utilization_#{project[:id]}_#{measure}"
+              %td.text-center{class: odd_class, style: "color: #{grade.color};"}
+                = project["#{measure}_percentage"] || 0
+                %span.text-muted
+                  - if project[measure] > 0
+                    = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                      (#{project[measure]})
+        - if @report.projects.count > 1
+          %tr
+            - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts][:average_daily_percentage])
+            %th.text-right{colspan: 2} Totals
+            %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
+            %td.text-center= totals[:counts][:capacity]
+            - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
+              - key = "bed_utilization_totals_#{measure}"
+              - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts]["#{measure}_percentage"])
+              - odd_class = if index % 2 == 1 then '' else 'data-quality__odd-columns' end 
+              %td.text-center{class: odd_class, style: "color: #{grade.color};"}
+                = totals[:counts]["#{measure}_percentage"] || 0
+                %span.text-muted
+                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                    (#{totals[:counts][measure]})
+
+                

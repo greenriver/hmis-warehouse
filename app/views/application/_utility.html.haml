@@ -1,5 +1,6 @@
 .crumbs
   = yield :crumbs
+
 - notice_types = {'success' => 'success', 'notice' => 'info', 'alert' => 'warning', 'error' => 'danger' }
 - flash.each do |type, msg|
   %div{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}

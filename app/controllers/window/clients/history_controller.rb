@@ -4,7 +4,8 @@ module Window::Clients
     
     before_action :require_can_see_this_client_demographics!
     before_action :set_client, :check_release
-    before_action :set_dates, only: [:show, :pdf]
+    before_action :set_dates, only: [:show]
+    before_action :set_pdf_dates, only: :pdf
     skip_before_action :require_can_see_this_client_demographics!, only: [:pdf]
     skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_client_needing_processing!, only: [:pdf]
@@ -22,8 +23,23 @@ module Window::Clients
     def pdf
       show
       setup_system_user()
+      # Limit to Residential Homeless programs
+      @dates = @dates.map do |date, data|
+        [
+          date,
+          data.select{|en| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(en[:project_type])}
+        ]
+      end.to_h
+      @organization_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:organization_name]}.map{|org, ens| [org, ens.count]}.to_h
+      @project_type_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:project_type]}.map{|project_type, ens| [project_type, ens.count]}.to_h
       file_name = "service_history.pdf"
       # or from your controller, using views & templates and all wicked_pdf options as normal
+      
+      # DEBUGGING
+      # render pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
+      # return
+      # END DEBUGGING
+      
       pdf = render_to_string pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
       @file = GrdaWarehouse::ClientFile.new
       begin
@@ -69,6 +85,7 @@ module Window::Clients
           project_name = name_for_project(enrollment.project_name)
           @dates[enrollment.date] ||= []
           record = {
+            date: enrollment.date,
             record_type: enrollment.record_type,
             project_type: project_type,
             project_name: project_name,
@@ -81,6 +98,7 @@ module Window::Clients
           enrollment.service_history_services.each do |service|
             @dates[service.date] ||= []
             @dates[service.date] << {
+              date: service.date,
               record_type: service.record_type,
               project_type: project_type,
               project_name: project_name,
@@ -90,12 +108,54 @@ module Window::Clients
         end
     end
 
+    def set_pdf_dates
+      @dates = {}
+      enrollment_scope.homeless.enrollments_open_in_last_three_years.
+        includes(:service_history_services, :organization).
+        each do |enrollment|
+          project_type = enrollment.send(enrollment.class.project_type_column)
+          project_name = name_for_project(enrollment.project_name)
+          @dates[enrollment.date] ||= []
+          record = {
+            record_type: enrollment.record_type,
+            project_type: project_type,
+            project_name: project_name,
+            organization_name: nil,
+            entry_date: enrollment.first_date_in_program,
+            exit_date: enrollment.last_date_in_program,
+          }
+          if project_name == GrdaWarehouse::Hud::Project.confidential_project_name
+            record[:organization_name] = 'Confidential'
+          else
+            record[:organization_name] = enrollment.organization.OrganizationName
+          end
+          @dates[enrollment.date] << record
+          enrollment.service_history_services.service_in_last_three_years.
+          each do |service|
+            @dates[service.date] ||= []
+            record = {
+              record_type: service.record_type,
+              project_type: project_type,
+              project_name: project_name,
+              organization_name: nil,
+              exit_date: enrollment.last_date_in_program,
+            }
+            if project_name == GrdaWarehouse::Hud::Project.confidential_project_name
+              record[:organization_name] = 'Confidential'
+            else
+              record[:organization_name] = enrollment.organization.OrganizationName
+            end
+            @dates[service.date] << record
+          end
+        end
+    end
+
     def name_for_project project_name
       GrdaWarehouse::Hud::Project.confidentialize(name: project_name)
     end
 
     def enrollment_scope
-      @client.service_history_enrollments.visible_in_window
+      @client.service_history_enrollments.visible_in_window_to(current_user)
     end
     
     def set_client
@@ -117,7 +177,7 @@ module Window::Clients
     def client_scope
       client_source.destination.
         joins(source_clients: :data_source).
-        where(data_sources: {visible_in_window: true})
+        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
     end
   end
 end

@@ -5,17 +5,23 @@ class App.Users.Messages
   constructor: (@polling_url, @seen_url) ->
     @messages = []
     @poll()
-    setInterval @poll, 60000
+    @polled_count = 0
+    @interval = setInterval @poll, 60000
   # look for messages to display
   poll: () =>
-    console.log 'polling for messages...'
+    # console.log "polling for messages...(#{@polled_count})"
+    @polled_count += 1
+    if @polled_count > 5
+      console.log "No longer polling for messages after #{@polled_count} times polling"
+      clearInterval(@interval)
+      return
     $.ajax
       method: 'get'
       url: @polling_url
       dataType: 'json'
       data: ids: ( n.id for n in @messages )
       success: (data) =>
-        console.log 'polled', data
+        # console.log 'polled', data
         seen = new Set()
         for n in @messages
           seen.add n.id

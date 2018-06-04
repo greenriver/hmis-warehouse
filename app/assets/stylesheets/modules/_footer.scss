@@ -1,18 +1,29 @@
 footer {
-  margin-top: 54px;
-  padding: 27px 0 54px;
-  // border-top: 4px solid $cob-sg-blue-004;
+  min-height: $footer-height;
+  display: flex;
+  align-items: center;
   background-color: $cob-sg-charles-blue;
-  min-height: 180px;
+  /* box-shadow: inset 0 0 0 2px rgba(0,0,0,0.50); */
   color: #fff;
+  z-index: 1000;
 }
+
+footer p {
+  margin: 0;
+  font-size: rem(12px);
+  @include media-breakpoint-up(lg) {
+    width: 50%;
+  }
+}
+
 .seal-image {
-  width: 85px;
-  height: 85px;
+  width: auto;
+  height: $footer-logo-height;
   display: block;
-  margin: 0 auto 18px;
+  margin-right: space(4);
 }
+
 .seal {
-  width: 100%;
+  width: auto;
   height: 100%;
 }

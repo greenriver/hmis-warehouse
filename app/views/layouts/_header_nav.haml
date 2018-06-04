@@ -1,0 +1,15 @@
+%nav.o-header__nav.c-header-nav
+  %ul.list-unstyled
+    - if user_signed_in?
+      %li.c-header-nav__item
+        = render 'layouts/messages'
+
+      %li.c-header-nav__mobile-link
+        = link_to '#', class: 'c-header-nav__link js-toggle-menu' do
+          %i.icon-menu
+
+    - else
+      %li.c-header-nav__item
+        = link_to(new_user_session_path, :class => 'c-header-nav__link user-state--link') do
+          Sign In
+          %span.icon-enter

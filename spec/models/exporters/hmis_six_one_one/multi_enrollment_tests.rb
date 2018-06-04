@@ -83,7 +83,7 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
         end
         it "hud keys in CSV should match ids of first three items in list" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
-          current_hud_key = item[:klass].clean_headers([item[:klass].hud_key]).first.to_s
+          current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
           csv_ids = csv.map{|m| m[current_hud_key]}.sort
           # source_ids = send(item[:list]).first(3).map(&:id).map(&:to_s).sort
 

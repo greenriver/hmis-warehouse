@@ -15,6 +15,10 @@ module GrdaWarehouse::HMIS
     scope :window, -> do
       active.where(exclude_from_window: false)
     end
+    scope :window_with_details, -> do
+      window.where(details_in_window_with_release: true)
+    end
+
     scope :active, -> do
       where(active: true)
     end

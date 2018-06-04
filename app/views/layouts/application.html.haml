@@ -7,7 +7,7 @@
     %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
     %title= [(strip_tags content_for(:title)).presence, _('Boston DND Warehouse')].compact.join(' :: ')
     %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
-    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
     = stylesheet_link_tag 'application', media: 'all'
     = stylesheet_link_tag 'print', media: 'print'
 
@@ -20,48 +20,42 @@
     = csrf_meta_tags
 
   %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
-    %header
-      .container-fluid{class: container_classes}
-        .row
-          .col-xs-10
-            = render 'layouts/messages'
-            .site-name
-              .site-title
-                = link_to root_path do
-                  = _('Boston DND Warehouse')
-                  - unless Rails.env.production?
-                    %span{style: 'font-size:12px;'}= "[#{Rails.env}]"
-            .tagline
-              = _('Ending Veteran & Chronic Homelessness in Boston')
-          .col-xs-2
-            - if user_signed_in?
-              = render 'layouts/site_menu'
-            - else
-              .user-state
-                = link_to(new_user_session_path, :class => 'user-state--link') do
-                  Sign In
-                  %span.icon-enter
+    %header.o-header--page
+      .container-fluid.d-flex.align-items-center{class: container_classes}
+        .site-name.d-flex
+          .o-header--page__title.site-title
+            = link_to root_path do
+              = _('Boston DND Warehouse')
+              - unless Rails.env.production?
+                %span.mt-2{style: 'font-size:12px;'}= "[#{Rails.env}]"
+        .o-header--page__sub-title.tagline
+          = _('Ending Veteran & Chronic Homelessness in Boston')
+        = render 'layouts/header_nav'
 
-    %main.l-main__content
-      .container-fluid{class: container_classes}
-        .row
-          .col-xs-12
-            .utility
-              = render :partial => "utility"
-        - if content_for? :modal_title
-          %h1
-            = yield :modal_title
-        = yield
-        - if content_for? :modal_footer
-          .row
-            = yield :modal_footer
-    %footer
-      .container-fluid{class: container_classes}
-        .row
-          .col-sm-8.col-sm-offset-2
-            %p.text-center
-              = render 'layouts/footer_seal'
-              = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
+    .l-main__wrapper
+      - if user_signed_in?
+        = render 'layouts/site_menu'
+
+      .l-main__content{ class: ('with-menu' if user_signed_in?) }
+        %main
+          .container-fluid{class: container_classes}
+            .utility.d-none--empty<
+              = render "utility"
+            - if content_for? :modal_title
+              %h1
+                = yield :modal_title
+            = yield
+            - if content_for? :modal_footer
+              .row
+                = yield :modal_footer
+
+    %footer{ class: ('with-menu' if user_signed_in?) }
+      .container-fluid.w-100{class: container_classes}
+        .d-flex.flex-column.align-items-center
+          = render 'layouts/footer_seal'
+          %p
+            = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
+
     #d3-tooltip
     = render 'pjax_modal_frame'
     = javascript_include_tag 'application'

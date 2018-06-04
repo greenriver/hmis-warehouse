@@ -69,3 +69,36 @@ footer {
   display: inline-block;
   padding: 0.2em 0.4em;
 }
+
+.history__pdf
+{
+  font-family: sans-serif;
+}
+.history__logo
+{
+  float: left;
+  width: 100px;
+}
+.history__title h1
+{
+  padding-left: 120px;
+  padding-top: 40px;
+  font-size: 1rem;
+}
+.history__summary
+{
+  padding-left: 120px;
+  font-size: 0.7rem;
+}
+.history__dates
+{
+  margin-top: 2em;
+}
+.history__dates-table
+{
+  width: 100%;
+  font-size: 0.7rem;
+  tr    { page-break-inside:avoid; page-break-after:auto }
+  thead { display:table-header-group }
+  tfoot { display:table-footer-group }
+}

@@ -30,7 +30,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     belongs_to :organization_with_delted, class_name: GrdaWarehouse::Hud::WithDeleted::Organization.name, primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id]
 
-    def self.export! project_scope:, path:, export:
+    def export! project_scope:, path:, export:
       case export.period_type
       when 3
         export_scope = project_scope

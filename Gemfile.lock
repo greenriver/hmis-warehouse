@@ -33,6 +33,7 @@ GEM
       erubis (~> 2.7.0)
       rails-dom-testing (~> 1.0, >= 1.0.5)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
+    active_record_query_trace (1.5.4)
     activejob (4.2.8)
       activesupport (= 4.2.8)
       globalid (>= 0.3.0)
@@ -117,9 +118,6 @@ GEM
     capistrano-rvm (0.1.2)
       capistrano (~> 3.0)
       sshkit (~> 1.2)
-    capistrano3-delayed-job (1.7.3)
-      capistrano (~> 3.0, >= 3.0.0)
-      daemons (~> 1.2.4)
     capybara (2.11.0)
       addressable
       mime-types (>= 1.16)
@@ -545,6 +543,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  active_record_query_trace
   activerecord-import
   activerecord-session_store
   acts-as-taggable-on (~> 4.0)
@@ -564,7 +563,6 @@ DEPENDENCIES
   capistrano-passenger
   capistrano-rails
   capistrano-rvm
-  capistrano3-delayed-job (~> 1.0)
   capybara
   carrierwave
   carrierwave-i18n

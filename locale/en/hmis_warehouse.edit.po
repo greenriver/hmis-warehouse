@@ -17,13 +17,13 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "\n"
 
+msgid "Appropriate for sober supportive housing"
+msgstr ""
+
 msgid "Asylee, Refugee"
 msgstr ""
 
 msgid "Available for matching in CAS"
-msgstr ""
-
-msgid "Available in CAS"
 msgstr ""
 
 msgid "Bed Utilization Percentages"
@@ -38,13 +38,13 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
+msgid "BostonHMIS Data Warehouse"
+msgstr ""
+
 msgid "CSPECH Eligible"
 msgstr ""
 
 msgid "Children under age 18 in household"
-msgstr ""
-
-msgid "Chronically Homeless and in CAS"
 msgstr ""
 
 msgid "Chronically Homeless for CAS"
@@ -206,7 +206,7 @@ msgstr ""
 msgid "Update Data Source"
 msgstr ""
 
-msgid "Upload failed to queue."
+msgid "Upload failed to queue, did you attach a file?"
 msgstr ""
 
 msgid "Upload queued to start."
@@ -227,6 +227,9 @@ msgstr ""
 msgid "Warehouse Reports"
 msgstr ""
 
+msgid "Willing to live in congregate housing"
+msgstr ""
+
 msgid "Window into the Warehouse"
 msgstr ""
 
@@ -237,6 +240,9 @@ msgid "You can only see files you upload."
 msgstr ""
 
 msgid "You can only see notes you add."
+msgstr ""
+
+msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"

@@ -118,7 +118,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: temporary_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31].include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevena1_c4][:value] = permanent_leavers.size
       @support[:sevena1_c4][:support] = {
         headers: ['Client ID', 'Destination'],
@@ -190,7 +190,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevenb1_c3][:value] = permanent_leavers.size
       @support[:sevenb1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
@@ -244,7 +244,8 @@ module ReportGenerators::SystemPerformance::Fy2017
         group_by(&:first).each do |_, stays|
           (client_id, entry_date, move_in_date) = stays.last
           # remove anyone who hasn't moved in to housing yet
-          next if move_in_date.blank? || move_in_date > @report_end
+          # Some old enrollments don't have move-in-dates
+          next if (move_in_date.blank? || move_in_date > @report_end) && entry_date.to_date > '2015-01-01'.to_date
           stayers << client_id
         end
       
@@ -278,7 +279,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         headers: ['Client ID', 'Destination'],
         counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
-      permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31].include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevenb2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sevenb2_c3][:support] = {
         headers: ['Client ID', 'Destination'],

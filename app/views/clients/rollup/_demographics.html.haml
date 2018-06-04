@@ -15,7 +15,7 @@
         %th
     %tbody
       %tr
-        %td.id_sqr.rollup__square.destination-data-source-tag{data: {toggle: :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
+        %td.id_sqr.destination-data-source-tag{data: {toggle: :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
           .destination-sqr Warehouse
         %td= @client.name
         %td
@@ -31,7 +31,7 @@
         %td= HUD::ethnicity @client.Ethnicity
         %td= HUD::no_yes_reasons_for_missing_data @client.VeteranStatus
       - if controller_path.include?('window')
-        - source_clients = @client.source_clients.visible_in_window
+        - source_clients = @client.source_clients.visible_in_window_to(current_user)
       - else
         - source_clients = @client.source_clients
       - source_clients.each do |client|

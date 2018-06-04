@@ -1,12 +1,12 @@
 module Window::Clients
   class FilesController < ApplicationController
     include WindowClientPathGenerator
-    
+
     before_action :require_window_file_access!
     before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :destroy]
     before_action :set_files, only: [:index]
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
-    
+
     def index
       @consent_editable = consent_editable?
       @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
@@ -17,15 +17,15 @@ module Window::Clients
         @pre_checked = params[:file_ids].split(',').map(&:to_i)
       end
     end
-    
+
     def show
       download
     end
-    
+
     def new
       @file = file_source.new
     end
-    
+
     def create
       @file = file_source.new
       if !file_params[:file]
@@ -49,9 +49,9 @@ module Window::Clients
           effective_date: allowed_params[:effective_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
         }
-        
+
         @file.assign_attributes(attrs)
-        
+
         @file.tag_list.add(tag_list)
         @file.save!
 
@@ -62,7 +62,7 @@ module Window::Clients
         render action: :new
         return
       end
-      redirect_to action: :index 
+      redirect_to action: :index
     end
 
     def destroy
@@ -114,8 +114,8 @@ module Window::Clients
         head :no_content and return
       end
     end
-    
-    def download 
+
+    def download
       send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
     end
 
@@ -143,7 +143,7 @@ module Window::Clients
       @lookup ||= Rack::Mime::MIME_TYPES.invert
       @lookup[mime_type]
     end
-    
+
     def file_params
       params.require(:grda_warehouse_client_file).
         permit(
@@ -168,31 +168,31 @@ module Window::Clients
     def window_visible? visibility
       true
     end
-    
+
     def set_client
       @client = client_scope.find(params[:client_id].to_i)
     end
-    
+
     def set_file
       @file = all_file_scope.find(params[:id].to_i)
     end
-    
+
     def set_files
       @files = file_scope
     end
-    
+
     def client_source
       GrdaWarehouse::Hud::Client
     end
-    
+
     def file_source
       GrdaWarehouse::ClientFile
     end
-      
+
     def client_scope
       client_source.destination
     end
-    
+
     def all_file_scope
       file_source.window.where(client_id: @client.id).
         visible_by?(current_user)
@@ -213,6 +213,6 @@ module Window::Clients
       file_source.window.where(client_id: @client.id).
         editable_by?(current_user)
     end
-    
+
   end
 end
