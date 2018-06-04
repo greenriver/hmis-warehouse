@@ -1,4 +1,4 @@
-# A wrapper around careplan changes to ease Qualifying Activities creation
+# A wrapper around CHA changes to ease Qualifying Activities creation
 module Health
   class ChaSaver
 
