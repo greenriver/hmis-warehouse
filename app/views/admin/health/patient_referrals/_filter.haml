@@ -6,11 +6,11 @@
       .input-group
         = f.input :search, label: false, wrapper_html: {class: 'mb-0 w-100'}
         %span.input-group-btn
-          %button.btn.btn-default{type: :submit} Search
+          %button.btn.btn-secondary{type: :submit} Search
     - if show_filters?
       .o-page__sort
         .dropdown.mr-2
-          %button.btn.btn-default{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+          %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
             Filter
             %span.caret
           .dropdown-menu{style: 'padding: 10px;'}
@@ -40,7 +40,7 @@
                   %i.icon-filter
                   Filter
         .dropdown
-          %button.btn.btn-default#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+          %button.btn.btn-secondary#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
             Sort By
             %span.caret
           .dropdown-menu

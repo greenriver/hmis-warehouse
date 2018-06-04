@@ -30,14 +30,16 @@ module Window::Health
     def update
       @button_label = 'Save Service'
       @form_url = polymorphic_path(health_path_generator + [:service], client_id: @client.id)
-      @service.update(service_params)
+      @service.assign_attributes(service_params)
+      Health::ServiceSaver.new(service: @service, user: current_user).update
       respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
     end
   
     def create
       @button_label = 'Add Service'
       @form_url = polymorphic_path(health_path_generator + [:services], client_id: @client.id)
-      @service = @patient.services.create(service_params)
+      @service = @patient.services.build(service_params)
+      Health::ServiceSaver.new(service: @service, user: current_user).update
       respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
     end
 

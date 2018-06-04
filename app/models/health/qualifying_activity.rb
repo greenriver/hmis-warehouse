@@ -22,6 +22,7 @@ module Health
       'Outreach for enrollment' => 'G9011',
       'Care coordination' => 'G9005',
       'Care planning' => 'T2024',
+      'Person-Centered Treatment Plan signed' => 'T2024 U4',
       'Comprehensive Health Assessment' => 'G0506',
       'Follow-up within 3 days of hospital discharge (with client)' => 'G9007 U5',
       'Care transitions (working with care team)' => 'G9007',
