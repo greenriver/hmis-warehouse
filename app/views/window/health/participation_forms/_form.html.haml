@@ -5,7 +5,9 @@
   = f.error_notification
 
   .col-sm-12
-    = f.input :signature_on, as: :date_picker
+    .row
+      .col-sm-6
+        = f.input :signature_on, as: :date_picker
 
     - if @participation_form.case_manager
       .form-group
@@ -35,7 +37,7 @@
         %label Reviewed by Supervisor
         %p.form-control-static= @participation_form.reviewed_by&.name
     - elsif current_user.can_approve_participation?
-      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
+      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark reviewed by supervisor', checked_value: 'yes', unchecked_value: 'no'
 
   .col-sm-12
     .text-right
