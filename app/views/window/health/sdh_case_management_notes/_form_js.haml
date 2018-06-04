@@ -19,7 +19,6 @@
 
     var saveNote = function(e) {
       var form = $(e.target).closest('form');
-      console.log('save note', form)
       $.ajax({
         url: form.data('url'),
         type: 'PATCH',
@@ -49,22 +48,24 @@
 
     var removeActivity = function(event) {
       event.preventDefault();
-      var activity = $(this).parents('.sdh-note__activity');
-      var removeInput = activity.find(behaviorSelector('remove activity input'))
-      removeInput.prop('checked', true);
-      var form = $(event.target).closest('form');
-      var url = $(event.target).attr('href');
-      console.log(url);
-      $.ajax({
-        url: url,
-        type: 'PATCH',
-        data: form.serialize()
-      }).done(function(e) {
-        activity.slideUp();
-        activity.remove();
-      }).fail(function(e) {
-        console.log('fail');
-      })
+      var confirm = window.confirm("Are you sure?");
+      if(confirm) {
+        var activity = $(this).parents('.sdh-note__activity');
+        var removeInput = activity.find(behaviorSelector('remove activity input'))
+        removeInput.prop('checked', true);
+        var form = $(event.target).closest('form');
+        var url = $(event.target).attr('href');
+        $.ajax({
+          url: url,
+          type: 'PATCH',
+          data: form.serialize()
+        }).done(function(e) {
+          activity.slideUp();
+          activity.remove();
+        }).fail(function(e) {
+          console.log('fail');
+        })
+      }
     }
 
     var loadInput = function(i) {

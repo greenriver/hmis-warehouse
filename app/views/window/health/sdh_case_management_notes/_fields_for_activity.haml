@@ -1,6 +1,9 @@
-%div{style: 'display:none;'}
-  - delete_checked = f.object.new_record? ? false : f.object.empty?
-  = f.input :_destroy, as: :boolean, input_html: {checked: delete_checked, data: {behavior: 'remove activity input'}}
+- if f.object.unsubmitted?
+  .pull-right
+    = link_to 'Remove Activity', form_url({commit: 'Remove Activity', format: :js}), class: 'btn btn-sm btn-danger', data: {behavior: 'remove activity'}
+  %div{style: 'display:none;'}
+    - delete_checked = f.object.new_record? ? false : f.object.empty?
+    = f.input :_destroy, as: :boolean, input_html: {checked: delete_checked, data: {behavior: 'remove activity input'}}
 .row
   .col-sm-6
     = render 'string_collection_with_other', object: activity, f: f, note_attr: 'mode_of_contact', label: 'Mode of Contact', other_label: 'Please Specify:', other: 'other'
