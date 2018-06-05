@@ -6,6 +6,3 @@
       = @role.name
   .col-sm-8
     = render 'form'
-= link_to admin_health_role_path(@role), method: :delete, data: {confirm: "Would you really like to delete #{@role.name}?"} do
-  %span.icon-cross
-  Delete

@@ -2,10 +2,6 @@
 .row
   .col-sm-8
     %h1 Healthcare Related Roles
-  .col-sm-4
-    = link_to new_admin_role_path, class: 'btn btn-primary pull-right margin-bottom-02' do
-      %span.icon-plus
-      Add a role
 .row.table-utilities
   .col-sm-8
     %p= page_entries_info @roles, entry_name: _('role')
