@@ -30,12 +30,14 @@ module Cohorts
               @cohort_clients = @cohort.cohort_clients.where(active: true)
             end
             case params[:population]&.to_sym
-            when :housed
-              @cohort_clients = @cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false])
-            when :active
-              @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
-            when :ineligible
-              @cohort_clients = @cohort_clients.where(ineligible: true)
+              when :housed 
+                @cohort_clients = @cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false])
+              when nil
+                @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
+              when :active
+                @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
+              when :ineligible
+                @cohort_clients = @cohort_clients.where(ineligible: true)
             end
             # Allow for individual refresh
             if params[:cohort_client_id].present?
@@ -59,12 +61,14 @@ module Cohorts
           end
           
           case params[:population]&.to_sym
-          when :housed
-            @cohort_clients = @cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false])
-          when :active
-            @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
-          when :ineligible
-            @cohort_clients = @cohort_clients.where(ineligible: true)
+            when :housed
+              @cohort_clients = @cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false])
+            when nil
+              @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
+            when :active 
+              @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
+            when :ineligible
+              @cohort_clients = @cohort_clients.where(ineligible: true)
           end
                     
           @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)

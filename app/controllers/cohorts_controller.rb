@@ -13,6 +13,7 @@ class CohortsController < ApplicationController
   end
 
   def show
+    params[:population] ||= :active
     load_cohort_names
     cohort_with_preloads = cohort_scope.where(id: cohort_id).
       preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
@@ -20,24 +21,22 @@ class CohortsController < ApplicationController
     @cohort = cohort_with_preloads.first
     
     if params[:inactive].present?
-      case params[:population]&.to_sym
-        when :housed
-          @cohort_clients = @cohort.cohort_clients.joins(:client).where.not(housed_date: nil).where(ineligible: [nil, false])
-        when :active
-          @cohort_clients = @cohort.cohort_clients.joins(:client).where(housed_date: nil, ineligible: [nil, false])
-        when :ineligible
-          @cohort_clients = @cohort.cohort_clients.joins(:client).where(ineligible: true)
-      end
-    else    
-      case params[:population]&.to_sym
-        when :housed
-          @cohort_clients = @cohort.cohort_clients.joins(:client).where(active: true).where.not(housed_date: nil).where(ineligible: [nil, false])
-        when :active
-          @cohort_clients = @cohort.cohort_clients.joins(:client).where(active: true).where(housed_date: nil, ineligible: [nil, false])
-        when :ineligible
-          @cohort_clients = @cohort.cohort_clients.joins(:client).where(active: true).where(ineligible: true)
-      end
+      @cohort_clients = @cohort.cohort_clients
+    else
+      @cohort_clients = @cohort.cohort_clients.where(active: true)
     end
+    
+    case params[:population]&.to_sym
+      when :housed
+        @cohort_clients = @cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false])
+      when nil
+        @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
+      when :active
+        @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
+      when :ineligible
+        @cohort_clients = @cohort_clients.where(ineligible: true)
+    end
+  
     @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
     @population = params[:population]
     respond_to do |format|
