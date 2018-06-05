@@ -1,9 +1,18 @@
 module Admin::Health
-  class RolesController < ApplicationController
+  class RolesController < Admin::RolesController
     before_action :require_can_administer_health!
     
-    def index
-      @roles = Role.health
-    end
+    private
+      def role_scope
+        Role.health
+      end
+      
+      def role_params
+        params.require(:role).
+          permit(
+            :name,
+            Role.health_permissions
+          )
+      end
   end
 end

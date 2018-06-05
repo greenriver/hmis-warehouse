@@ -1,0 +1,10 @@
+= simple_form_for [:admin, :health, @role] do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :name, label: 'Role name'
+    - Role.health_permissions.each do |permission|
+      = f.input permission, as: :boolean
+
+  .form-actions
+    = f.button :submit, class: 'btn btn-primary'
