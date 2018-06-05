@@ -322,7 +322,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       projects.each do |project|
         dob_entry[project.id] ||= Set.new
         enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id).values.flatten(1)
-        if enrollments_in_project.any?
+        if enrollments_in_project.present? && enrollments_in_project.any?
           enrollments_in_project.each do |enrollment|
             if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
               dob_entry[project.id] << [
@@ -466,7 +466,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           counts = add_unknown_demo(client: client, counts: counts)
         end
         enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)
-        if enrollments_in_project.any?
+        if enrollments_in_project.present? && enrollments_in_project.any?
           enrollments_in_project.each do |client_id, enrollments|
             if enrollments.present?
               enrollments.each do |enrollment|
@@ -476,7 +476,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               end
             end
             leavers_in_project = leavers_for_project(project.ProjectID, project.data_source_id)
-            if leavers_in_project.any?
+            if leavers_in_project.present? && leavers_in_project.any?
               leavers_in_project.each do |client_id|
                 enrollments_in_project[client_id].each do |enrollment|
                   counts = add_missing_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
