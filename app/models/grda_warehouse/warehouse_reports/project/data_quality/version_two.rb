@@ -321,7 +321,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       dob_entry = {}
       projects.each do |project|
         dob_entry[project.id] ||= Set.new
-        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id).values.flatten(1)
+        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)&.values&.flatten(1)
         if enrollments_in_project.present? && enrollments_in_project.any?
           enrollments_in_project.each do |enrollment|
             if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
