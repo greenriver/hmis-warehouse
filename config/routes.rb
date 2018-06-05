@@ -401,7 +401,7 @@ Rails.application.routes.draw do
       resources :users, only: [:index] do
         post :update, on: :collection
       end
-      resources :roles, only: [:index]
+      resources :roles, only: [:index, :edit, :update]
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
