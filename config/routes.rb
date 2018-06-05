@@ -456,7 +456,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
         resources :agency_users, only: [:new, :edit, :create, :update]
       end
-      resources :roles, only: [:index]
+      resources :roles, only: [:index, :edit, :update]
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]

@@ -45,6 +45,7 @@
                 %th Project
                 %th Entry Date
                 %th Exit Date
+                %th Last Service
                 %th Days Served
             %tbody
               - @homeless_clients[client.id].each do |enrollment|
@@ -52,6 +53,7 @@
                   %td= enrollment[:project_name]
                   %td= enrollment[:first_date_in_program]
                   %td= enrollment[:last_date_in_program]
+                  %td= @homeless_service_dates[enrollment[:id]]
                   %td= @homeless_service[enrollment[:id]]
 - else
   %p.text-center No clients found.

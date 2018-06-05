@@ -66,7 +66,7 @@ SimpleForm.setup do |config|
   # Method used to tidy up errors. Specify any Rails Array method.
   # :first lists the first message for each field.
   # Use :to_sentence to list all errors for each field.
-  # config.error_method = :first
+  config.error_method = :to_sentence
 
   # Default tag used for error notification helper.
   config.error_notification_tag = :div
