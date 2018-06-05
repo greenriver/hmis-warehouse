@@ -177,7 +177,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             flatten(1)&.
             group_by do |m| 
               [m[:data_source_id], m[:household_id]]
-            end.select do |(_, hh_id), m|
+            end&.select do |(_, hh_id), m|
               unique_clients = m.map do |enrollment|
                 enrollment[:id]
               end.uniq
