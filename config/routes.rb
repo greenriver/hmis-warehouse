@@ -412,7 +412,7 @@ Rails.application.routes.draw do
     resources :missing_grades, only: [:create, :update, :destroy]
     resources :utilization_grades, only: [:create, :update, :destroy]
     namespace :eto_api do
-      resources :assessments, only: [:index, :update]
+      resources :assessments, only: [:index, :edit, :update]
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
