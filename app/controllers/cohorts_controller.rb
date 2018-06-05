@@ -1,6 +1,7 @@
 class CohortsController < ApplicationController
   include PjaxModalController
   include CohortAuthorization
+  include CohortClients
   before_action :some_cohort_access!
   before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
@@ -19,24 +20,9 @@ class CohortsController < ApplicationController
       preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
     # missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
     @cohort = cohort_with_preloads.first
-    
-    if params[:inactive].present?
-      @cohort_clients = @cohort.cohort_clients
-    else
-      @cohort_clients = @cohort.cohort_clients.where(active: true)
-    end
-    
-    case params[:population]&.to_sym
-      when :housed
-        @cohort_clients = @cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false])
-      when nil
-        @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
-      when :active
-        @cohort_clients = @cohort_clients.where(housed_date: nil, ineligible: [nil, false])
-      when :ineligible
-        @cohort_clients = @cohort_clients.where(ineligible: true)
-    end
   
+    set_cohort_clients
+    
     @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
     @population = params[:population]
     respond_to do |format|
