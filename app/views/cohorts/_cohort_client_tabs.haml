@@ -1,0 +1,17 @@
+:ruby
+  tabs = {
+    cohort_path(@cohort, population: :active) => {
+      title: 'Active Clients',
+      permission: true,
+    },
+    cohort_path(@cohort, population: :housed) => {
+      title: 'Housed Clients',
+      permission: true,
+    },
+    cohort_path(@cohort, population: :ineligible) => {
+      title: 'Ineligible Clients',
+      permission: true,
+    },
+  }
+
+= render "tabs", tabs: tabs, current: current

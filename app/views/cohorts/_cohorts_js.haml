@@ -23,7 +23,8 @@
         input_selector: '.jCohortClientInput',
         updated_ats: #{@cohort_client_updates.to_json},
         search_selector: '#cohort-search',
-        search_actions_selector: '.jSearchActions'
+        search_actions_selector: '.jSearchActions',
+        population: "#{@population}"
       }
       $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
       
