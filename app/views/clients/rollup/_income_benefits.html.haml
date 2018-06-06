@@ -12,17 +12,23 @@
         %tr
           %th
           %th Program Entry Date
+          %th Collection Date
           %th Source
           %th Amounts
           %th Total
+          %th Collection Stage
+           
       %tbody
         - incomes.each do |benefit|
           %tr
             %td.id-sqr{ 'data-id' => benefit.client.id }
             %td= l benefit.enrollment.EntryDate
+            %td= benefit.InformationDate
             %td= benefit.sources.join ', '
             %td= benefit.amounts.map(&:to_f).map{ |v| format( '$%.2f', v.round(2)) }.join ', '
-            %td.num-cell= format '$%.2f', benefit.amounts.compact.sum.round(2)
+            %td= format '$%.2f', benefit.amounts.compact.sum.round(2)
+            %td= HUD.data_collection_stage(benefit.DataCollectionStage)
+            
   - else
     .no-data
       No income or benefits on file

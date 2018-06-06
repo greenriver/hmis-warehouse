@@ -4,6 +4,7 @@ module Cohorts
     include ArelHelper
     include Chronic
     include CohortAuthorization
+    include CohortClients
 
 
     before_action :require_can_access_cohort!
@@ -24,11 +25,7 @@ module Cohorts
       respond_to do |format|
         format.json do
           if params[:content].present?
-            if params[:inactive].present?
-              @cohort_clients = @cohort.cohort_clients
-            else
-              @cohort_clients = @cohort.cohort_clients.where(active: true)
-            end
+            set_cohort_clients
             # Allow for individual refresh
             if params[:cohort_client_id].present?
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
@@ -44,11 +41,7 @@ module Cohorts
           end
         end
         format.html do
-          if params[:inactive].present?
-            @cohort_clients = @cohort.cohort_clients
-          else
-            @cohort_clients = @cohort.cohort_clients.where(active: true)
-          end
+          set_cohort_clients
                     
           @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
           render layout: false
