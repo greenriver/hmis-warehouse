@@ -33,31 +33,3 @@
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary btn-sm'}) do
       %i.icon-download2
       Download
-
-.row.margin-top-02
-  .col-sm-6
-    - if @cohort.effective_date
-      %p.margin-top-02
-        %strong
-          *
-        Data pulled from the client record and shown here will be pulled using the effective date
-        %strong
-          = @cohort.effective_date
-        where appropriate.
-  .col-sm-6.text-right
-    Text size:
-    - button_class = 'btn-secondary'
-    - if params[:size].blank? || params[:size].to_sym == :md
-      - button_class = 'btn-primary' 
-    = link_to(params.merge({size: :md}),{class: ['btn', 'btn-sm', button_class]}) do
-      Default
-    - button_class = 'btn-secondary'
-    - if params[:size].present? && params[:size].to_sym == :lg
-      - button_class = 'btn-primary' 
-    = link_to(params.merge({size: :lg}),{class: ['btn', 'btn-sm', button_class]}) do
-      Large
-    - button_class = 'btn-secondary'
-    - if params[:size].present? && params[:size].to_sym == :xl
-      - button_class = 'btn-primary' 
-    = link_to(params.merge({size: :xl}),{class: ['btn', 'btn-sm', button_class]}) do
-      XL
