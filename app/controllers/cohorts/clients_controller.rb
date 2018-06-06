@@ -211,7 +211,8 @@ module Cohorts
     end
 
     def create
-      RunCohortClientJob.perform_later(params.merge(client_ids: cohort_params[:client_ids], cohort_id: @cohort.id))
+      client_ids = cohort_params[:client_ids]
+      RunCohortClientJob.perform_later(@cohort.id, client_ids, current_user.id)
       flash[:notice] = "Clients updated for #{@cohort.name}"
       respond_with(@cohort, location: cohort_path(@cohort))
     end
@@ -258,22 +259,6 @@ module Cohorts
         end        
       else
         render json: {alert: :danger, message: 'Unable to save change'}
-      end
-    end
-
-    def create_cohort_client(cohort_id, client_id)
-      ch = cohort_client_source.with_deleted.
-        where(cohort_id: cohort_id, client_id: client_id).first_or_initialize
-      ch.deleted_at = nil
-      cohort_source.available_columns.each do |column|
-        if column.has_default_value?
-          column.cohort = @cohort
-          ch[column.column] = column.default_value(client_id)
-        end
-      end
-      if ch.changed? || ch.new_record?
-        ch.save
-        log_create(cohort_id, ch.id)
       end
     end
 
