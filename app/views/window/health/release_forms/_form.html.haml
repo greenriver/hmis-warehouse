@@ -8,7 +8,7 @@
     .col-sm-6
       = f.input :signature_on, as: :date_picker
       = f.input :file_location
-    - if @blank_participation_form_url.present?
+    - if @blank_release_form_url.present?
       .col-sm-6.text-right
         = link_to @blank_release_form_url, class: 'btn btn-secondary' do
           %i.icon-download2

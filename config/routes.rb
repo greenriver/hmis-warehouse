@@ -471,7 +471,7 @@ Rails.application.routes.draw do
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
-    resources :public_files, except: [:update, :show]
+    resources :public_files, only: [:index, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
   resources :public_files, only: [:show]
