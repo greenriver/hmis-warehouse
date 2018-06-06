@@ -5,14 +5,14 @@ module Exporters::Tableau::Pathways
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       # make the recurring boilerplate
-      # why is this here? we do not know
+      # why is this here? This is used to create the sankey in Tableau (sigmoid)
       path1 = (0..48).to_a
       path2 = 97.step( 49, -1 ).to_a
       t     = -6.0.step( 6, 0.25 ).to_a
       mins  = %w[min]  * 49
       maxs  = %w[max]  * 49
-      links = %w[link] * 49
-      boilerplate = ( path1 + path2 ).zip( t + t ).zip( mins + maxs ).zip( links + links ).map(&:flatten)
+
+      boilerplate = ( path1 + path2 ).zip( t + t ).zip( mins + maxs ).map(&:flatten)
       # get the real data which will be cross-producted with the boilerplate
       data = pathways_common start_date: start_date, end_date: end_date, coc_code: coc_code
       # add boilerplate headers

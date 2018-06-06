@@ -15,7 +15,7 @@ module GrdaWarehouse::Tasks
       @projects.each do |project|
 
         if should_update?(project)
-          debug_log("Updating #{project.ProjectName} << #{project.organization.OrganizationName} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}")
+          debug_log("Updating #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}")
           project_type = project.compute_project_type()
           project_source.transaction do
             # Update any service records with this project
