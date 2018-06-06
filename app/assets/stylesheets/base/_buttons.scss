@@ -7,6 +7,16 @@ button.close {
   @include open-sans-bold;
   padding: $input-btn-padding-y $input-btn-padding-x;
   min-height: rem(40px);
+  display: inline-flex;
+  align-items: center;
+  [class^='icon'],
+  span {
+    margin-right: space(2);
+  }
+  .caret {
+    margin-left: space(2);
+    margin-right: 0;
+  }
 }
 
 .btn-sm {

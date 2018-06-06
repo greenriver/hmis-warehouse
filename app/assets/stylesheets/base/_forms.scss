@@ -174,7 +174,7 @@ label {
   span {
     display: inline-block;
     padding: 6px 12px;
-    background-color: $gray-030;
+    background-color: $gray-020;
     color: $text-color;
     text-transform: uppercase;
   }
@@ -194,7 +194,7 @@ label {
     }
   }
   label input:checked ~ span {
-    background-color: $cob-sg-blue-006;
+    background-color: $brand-primary;
     color: #FFFFFF;
   }
 }
@@ -215,12 +215,12 @@ label {
     padding: 6px 12px;
   }
   label input:checked ~ span {
-    background-color: $cob-sg-blue-006;
+    background-color: $brand-primary;
     color: #FFFFFF;
   }
   label input:hover ~ span,
   label input:focus ~ span {
-    background-color: $cob-sg-blue-006;
+    background-color: $brand-primary;
     color: #FFFFFF;
   }
 }
