@@ -1,8 +1,10 @@
-$fitration-sizes: (
+$filtration-sizes: (
+  xs: rem(225px),
   sm: rem(325px),
+  md: rem(525px),
   lg: rem(725px),
 );
-$filtration-default-min-width: rem(525px);
+$filtration-default-min-width: map-get($filtration-sizes, md);
 $filtrationn-container-padding: space(4);
 $filtrationn-container-offset: -16px;
 
@@ -40,9 +42,16 @@ $filtrationn-container-offset: -16px;
   padding: $filtrationn-container-padding;
   @include media-breakpoint-up(md) {
     min-width: $filtration-default-min-width;
-    @each $size-name, $width in $fitration-sizes {
-      &--#{$size-name} {
-        min-width: $width;
+  }
+}
+
+@each $size-name, $width in $filtration-sizes {
+  .o-filtration {
+    &--#{$size-name} {
+      .o-filtration__container {
+        @include media-breakpoint-up(md) {
+          min-width: $width;
+        }
       }
     }
   }
@@ -55,7 +64,7 @@ $filtrationn-container-offset: -16px;
   padding-left: $filtrationn-container-padding;
   padding-bottom: space(2);
   border-bottom: 1px solid $gray-030;
-  margin-bottom: $filtrationn-container-padding;
+  margin-bottom: space(5);
 }
 
 .o-filtration__header h3 {
@@ -64,7 +73,7 @@ $filtrationn-container-offset: -16px;
 
 .o-filtration__separator {
   display: flex;
-  aling-items: center;
+  align-items: center;
   padding-left: space(4);
   padding-right: space(4);
 }
