@@ -373,8 +373,12 @@ button.close {
 }
 
 // Dropdown toggle buttons
-.open > .btn-light.dropdown-toggle, .open > .dropdown-toggle.btn-default,
-.show > .btn-light.dropdown-toggle, .show > .dropdown-toggle.btn-default {
-  background: darken($brand-primary-l, 35%);
+.open > .btn-light.dropdown-toggle,
+.open > .btn-secondary.dropdown-toggle,
+.open > .dropdown-toggle.btn-default,
+.show > .btn-secondary.dropdown-toggle,
+.show > .btn-light.dropdown-toggle,
+.show > .dropdown-toggle.btn-default {
+  background: $brand-primary;
   color: $white;
 }
