@@ -16,7 +16,7 @@ module Exporters::Tableau::Pathways
       # get the real data which will be cross-producted with the boilerplate
       data = pathways_common start_date: start_date, end_date: end_date, coc_code: coc_code
       # add boilerplate headers
-      headers = %i( path t minmax link ) + data.shift
+      headers = %i( path t minmax ) + data.shift
       # do the cross product
       
       if path.present?
