@@ -1,0 +1,88 @@
+$filtration-sizes: (
+  xs: rem(225px),
+  sm: rem(325px),
+  md: rem(525px),
+  lg: rem(725px),
+);
+$filtration-default-min-width: map-get($filtration-sizes, md);
+$filtrationn-container-padding: space(4);
+$filtrationn-container-offset: -16px;
+
+.o-filtration {
+}
+
+.o-filtration__option {
+  margin-bottom: space(6);
+}
+
+.o-filtration__option-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  @include media-breakpoint-down(sm) {
+    .input-group {
+      width: 100%;
+    }
+    .o-filtration__separator {
+      width: 100%;
+      text-align: center;
+      margin-top: space(2);
+      margin-bottom: space(2);
+      justify-content: center;
+    }
+  }
+  @include media-breakpoint-up(sm) {
+    flex-wrap: nowrap;
+  }
+}
+
+.o-filtration__container {
+  min-width: 80vw;
+  padding: $filtrationn-container-padding;
+  @include media-breakpoint-up(md) {
+    min-width: $filtration-default-min-width;
+  }
+}
+
+@each $size-name, $width in $filtration-sizes {
+  .o-filtration {
+    &--#{$size-name} {
+      .o-filtration__container {
+        @include media-breakpoint-up(md) {
+          min-width: $width;
+        }
+      }
+    }
+  }
+}
+
+.o-filtration__header {
+  margin-right: $filtrationn-container-offset;
+  margin-left: $filtrationn-container-offset;
+  padding-right: $filtrationn-container-padding;
+  padding-left: $filtrationn-container-padding;
+  padding-bottom: space(2);
+  border-bottom: 1px solid $gray-030;
+  margin-bottom: space(5);
+}
+
+.o-filtration__header h3 {
+  margin-bottom: 0;
+}
+
+.o-filtration__separator {
+  display: flex;
+  align-items: center;
+  padding-left: space(4);
+  padding-right: space(4);
+}
+
+.o-filtration__actions {
+  margin-top: space(6);
+  margin-right: $filtrationn-container-offset;
+  margin-left: $filtrationn-container-offset;
+  margin-bottom: $filtrationn-container-offset;
+  padding: $filtrationn-container-padding;
+  border-top: 1px solid $gray-030;
+}

@@ -306,28 +306,24 @@ $client-image-height: 200px;
   margin-bottom: 0;
 }
 
-.client__filter .dropdown-menu.options,
+/* .client__filter .dropdown-menu.options,
 .client__filter-active .dropdown-menu.options {
-  width: 38em;
+  width: 100%;
   padding: 1em;
-}
+  @include media-breakpoint-up(sm) {
+    width: 38em;
+  }
+} */
+
 .client__filter-header
 {
   margin-top: 0;
 }
+
 .client__sort .dropdown-menu.options
 {
   width: 15em;
   padding: 1em;
-}
-.client__sort ul
-{
-  list-style-type: none;
-  padding-left: 0.25em;
-}
-.client__filter-active>.btn, {
-  background-color: $cob-sg-blue-004;
-  color: white;
 }
 
 .client__assessment-question,

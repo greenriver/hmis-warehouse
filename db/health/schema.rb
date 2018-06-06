@@ -355,16 +355,16 @@ ActiveRecord::Schema.define(version: 20180601185402) do
     t.string   "first_name"
     t.string   "last_name"
     t.date     "birthdate"
-    t.string   "medicaid_id"
-    t.datetime "created_at",                                         null: false
-    t.datetime "updated_at",                                         null: false
-    t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false,   null: false
-    t.integer  "rejected_reason",                  default: 0,       null: false
-    t.integer  "patient_id"
     t.string   "ssn"
+    t.string   "medicaid_id"
+    t.datetime "created_at",                                       null: false
+    t.datetime "updated_at",                                       null: false
+    t.integer  "agency_id"
+    t.boolean  "rejected",                         default: false, null: false
+    t.integer  "rejected_reason",                  default: 0,     null: false
+    t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date",                   default: "now()"
+    t.datetime "effective_date"
   end
 
   create_table "patients", force: :cascade do |t|

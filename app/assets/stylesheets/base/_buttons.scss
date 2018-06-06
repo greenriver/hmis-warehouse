@@ -7,6 +7,16 @@ button.close {
   @include open-sans-bold;
   padding: $input-btn-padding-y $input-btn-padding-x;
   min-height: rem(40px);
+  display: inline-flex;
+  align-items: center;
+  [class^='icon'],
+  span {
+    margin-right: space(2);
+  }
+  .caret {
+    margin-left: space(2);
+    margin-right: 0;
+  }
 }
 
 .btn-sm {
@@ -209,7 +219,7 @@ button.close {
   &:focus,
   &:focus:active {
     background: darken($brand-primary-l, 35%);
-    box-shadow: 0 0 0 3px rgba($brand-primary, .5);
+    box-shadow: 0 0 0 2px rgba($brand-primary, .5);
     outline: 0;
   }
   &--outline {
@@ -240,7 +250,7 @@ button.close {
   &:focus,
   &:focus:active {
     background: darken($brand-primary-l, 35%);
-    box-shadow: 0 0 0 3px rgba($brand-primary, .5);
+    box-shadow: 0 0 0 2px rgba($brand-primary, .5);
     color: $white;
     outline: 0;
   }
@@ -266,7 +276,7 @@ button.close {
   &:focus,
   &:focus:active {
     background: darken($brand-success-l, 35%);
-    box-shadow: 0 0 0 3px rgba($brand-success, .5);
+    box-shadow: 0 0 0 2px rgba($brand-success, .5);
     outline: 0;
     color: $white;
   }
@@ -297,7 +307,7 @@ button.close {
   &:focus,
   &:focus:active {
     background: darken($brand-warning-l, 35%);
-    box-shadow: 0 0 0 3px rgba($brand-warning, .5);
+    box-shadow: 0 0 0 2px rgba($brand-warning, .5);
     outline: 0;
     color: $white;
   }
@@ -328,7 +338,7 @@ button.close {
   &:focus,
   &:focus:active {
     background: darken($brand-danger-l, 35%);
-    box-shadow: 0 0 0 3px rgba($brand-danger, .5);
+    box-shadow: 0 0 0 2px rgba($brand-danger, .5);
     outline: 0;
     color: $white;
   }
@@ -360,4 +370,11 @@ button.close {
     background: darken($brand-primary-l, 25%);
     color: $white;
   }
+}
+
+// Dropdown toggle buttons
+.open > .btn-light.dropdown-toggle, .open > .dropdown-toggle.btn-default,
+.show > .btn-light.dropdown-toggle, .show > .dropdown-toggle.btn-default {
+  background: darken($brand-primary-l, 35%);
+  color: $white;
 }

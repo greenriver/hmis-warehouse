@@ -53,7 +53,7 @@
 
 .o-page__sort {
   display: flex;
-  div {
+  > div {
     margin-right: space(2);
   }
 }
