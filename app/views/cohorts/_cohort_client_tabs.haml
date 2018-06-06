@@ -6,11 +6,11 @@
     },
     cohort_path(@cohort, population: :housed) => {
       title: 'Housed Clients',
-      permission: true,
+      permission: @all_cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false]).any?,
     },
     cohort_path(@cohort, population: :ineligible) => {
       title: 'Ineligible Clients',
-      permission: true,
+      permission: @all_cohort_clients.where(ineligible: true).any?,
     },
   }
 
