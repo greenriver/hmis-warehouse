@@ -9,7 +9,7 @@ module Window::Health
     
     helper HealthOverviewHelper
 
-    def index
+    def index      
       load_patient_metrics
       render layout: !request.xhr?      
     end

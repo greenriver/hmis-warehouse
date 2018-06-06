@@ -4,30 +4,37 @@
 
   = f.error_notification
 
-  .col-sm-8
-    = f.input :signature_on, as: :date_picker
-    = f.input :file_location
-    .row
-      .col-sm-6
-        = f.input :file, as: :file
-      .col-sm-6
-        - if @release_form.health_file.present?
-          .form-group
-            %label Existing File
-            %div
-              .btn-group.existing-file
-                = link_to polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-default' do
-                  = @release_form.health_file&.name
-                = link_to polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-danger', method: :delete, remote: true do
-                  %span.icon-cross{ style: "color:white; margin:0" }
+  .row
+    .col-sm-6
+      = f.input :signature_on, as: :date_picker
+      = f.input :file_location
+    - if @blank_participation_form_url.present?
+      .col-sm-6.text-right
+        = link_to @blank_release_form_url, class: 'btn btn-secondary' do
+          %i.icon-download2
+          Blank Release Form
+  .row
+    .col-sm-6
+      = f.input :file, as: :file
+    .col-sm-6
+      - if @release_form.health_file.present?
+        .form-group
+          %label Existing File
+          %div
+            .btn-group.existing-file
+              = link_to polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-default' do
+                = @release_form.health_file&.name
+              = link_to polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                %span.icon-cross{ style: "color:white; margin:0" }
 
-
-    - if @release_form.reviewed_by.present?
-      .form-group
-        %label Reviewed by Supervisor
-        %p.form-control-static= @release_form.reviewed_by&.name
-    - elsif current_user.can_approve_release?
-      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
+  .row
+    .col-sm-8
+      - if @release_form.reviewed_by.present?
+        .form-group
+          %label Reviewed by Supervisor
+          %p.form-control-static= @release_form.reviewed_by&.name
+      - elsif current_user.can_approve_release?
+        = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 

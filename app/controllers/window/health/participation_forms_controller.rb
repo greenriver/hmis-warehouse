@@ -6,6 +6,7 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
+    before_action :set_blank_form, only: [:edit, :new]
 
     def new
       @participation_form = @patient.participation_forms.build
@@ -72,6 +73,10 @@ module Window::Health
 
     def set_form
       @participation_form = @patient.participation_forms.where(id: params[:id]).first
+    end
+
+    def set_blank_form
+      @blank_participation_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/participation'
     end
 
     def save_file

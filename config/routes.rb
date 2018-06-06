@@ -471,8 +471,10 @@ Rails.application.routes.draw do
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
+    resources :public_files, except: [:update, :show]
   end
   resource :account, only: [:edit, :update]
+  resources :public_files, only: [:show]
 
   unless Rails.env.production?
     resource :style_guide, only: :none do

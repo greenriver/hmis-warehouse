@@ -8,13 +8,18 @@
     .row
       .col-sm-6
         = f.input :signature_on, as: :date_picker
+        - if @participation_form.case_manager
+          .form-group
+            %label Case Manager
+            %p.form-control-static= @participation_form.case_manager&.name
 
-    - if @participation_form.case_manager
-      .form-group
-        %label Case Manager
-        %p.form-control-static= @participation_form.case_manager&.name
+        = f.input :location
+      - if @blank_participation_form_url.present?
+        .col-sm-6.text-right
+          = link_to @blank_participation_form_url, class: 'btn btn-secondary' do
+            %i.icon-download2
+            Blank Participation Form
 
-    = f.input :location
     .row
       .col-sm-6
         = f.input :file, as: :file 
