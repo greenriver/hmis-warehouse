@@ -218,13 +218,7 @@ module Cohorts
     end
 
     def create
-      if cohort_params[:client_ids].present?
-        cohort_params[:client_ids].split(',').map(&:strip).compact.each do |id|
-          create_cohort_client(@cohort.id, id.to_i)
-        end
-      elsif cohort_params[:client_id].present?
-        create_cohort_client(@cohort.id, cohort_params[:client_id].to_i)
-      end
+      RunCohortClientJob.perform_later(params.merge(client_ids: cohort_params[:client_ids], cohort_id: @cohort.id))
       flash[:notice] = "Clients updated for #{@cohort.name}"
       respond_with(@cohort, location: cohort_path(@cohort))
     end
