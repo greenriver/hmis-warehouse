@@ -10,6 +10,8 @@ module CohortClients
       end
       
       @all_cohort_clients = @cohort_clients
+      @show_housed = @all_cohort_clients.where.not(housed_date: nil).where(ineligible: [nil, false]).exists?
+      @show_inactive = @all_cohort_clients.where(ineligible: true).exists?
       
       case params[:population]&.to_sym
         when :housed
