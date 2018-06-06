@@ -66,34 +66,3 @@
         %button.btn.btn-primary.ml-auto{type: :submit}
           %span.icon-filter.icon-inline.mr-1
           Filter
-
-
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var filter_class = '.#{filter_class}'
-      function toggle_clickable(e) {
-        if($(e.target).closest(filter_class).length == 0 ) {
-          $(filter_class).data('closeable', true);
-        }
-      }
-      $(filter_class).on('hide.bs.dropdown', function (e) {
-        var closable = $(this).data('closeable');
-        if(closable) {
-          $('body').off('click', toggle_clickable);
-        }
-        return closable;
-      });
-      $(filter_class).on('show.bs.dropdown', function (e) {
-        $(this).data('closeable', false);
-        // Make clicking outside of the menu close the menu
-        $('body').on('click', toggle_clickable);
-      });
-      $(filter_class).on('click', '*', function(e) {
-        var $target = $(e.target);
-        var closeable = $target.parent().data('closeable');
-        if($target.hasClass('dropdown-toggle') && closeable == false) {
-          $target.parent().data('closeable', true);
-        }
-      });
-    })(jQuery);
