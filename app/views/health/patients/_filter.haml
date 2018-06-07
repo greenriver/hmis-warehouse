@@ -16,16 +16,20 @@
       -# preserve search for filtering
       - if params[:q] && params[:q][:full_text_search]
         = hidden_field_tag 'q[full_text_search]', params[:q][:full_text_search]
-      .btn-group{data: {toggle: :buttons}}
+      .filters
         - active = params[:filter].blank? || params[:filter][:population] == 'all'
-        %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active} All
+      .input-group
+        %label.control-label.w-100{class: "#{active ? :active : ''}"}
+          %input.form-control{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active} All
         - active = params[:filter].present? && params[:filter][:population] == 'not_engaged'
-        %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active} Not yet engaged
+        %label.control-label.w-100{class: "#{active ? :active : ''}"}
+          %input.form-control{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active} Not engaged
         - active = params[:filter].present? && params[:filter][:population] == 'no_activities'
-        %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 0 Qualified activities this month
+        %label.control-label.w-100{class: "#{active ? :active : ''}"}
+          %input.form-control{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 0 Recent Qualifying Activities
+        - active = params[:filter].present? && params[:filter][:population] == 'engagement_ending'
+        %label.control-label.w-100{class: "#{active ? :active : ''}"}
+          %input.form-control{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active} Engagement Period Ending
 
       .o-filtration__actions.form__actions
         = link_to health_patients_path, class:'btn btn-secondary' do

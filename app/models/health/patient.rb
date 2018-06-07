@@ -107,6 +107,14 @@ module Health
       )
     end
 
+    scope :engagement_required_by, -> (date) do
+      not_engaged.where(arel_table[:engagement_date].lteq(date))
+    end
+
+    scope :engagement_ending, -> do
+      engagement_required_by(1.months.from_now)
+    end
+
     # patients with no qualifying activities in the past month
     scope :no_recent_qualifying_activities, -> do
       where.not(
@@ -115,8 +123,6 @@ module Health
       )
     end
 
-    delegate :days_to_engage, to: :patient_referral
-    delegate :engagement_date, to: :patient_referral
     delegate :effective_date, to: :patient_referral
 
     self.source_key = :PAT_ID
@@ -131,6 +137,11 @@ module Health
       else
         none
       end
+    end
+
+    def days_to_engage 
+      return 0 unless engagement_date.present?
+      (engagement_date - Date.today).to_i.clamp(0, 180)
     end
 
     def chas

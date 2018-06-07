@@ -12,7 +12,5 @@
 - if @patients.any?
   - @patients.each do |patient|
     = render 'patient_card', patient: patient
-- else
-  %p No patients found
 
 = paginate @patients

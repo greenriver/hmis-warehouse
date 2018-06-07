@@ -17,6 +17,8 @@ module Health
           @patients = @patients.not_engaged
         when 'no_activities'
           @patients = @patients.engaged.no_recent_qualifying_activities
+        when 'engagement_ending'
+          @patients = @patients.engagement_ending
         end
       end
       @patients = @patients.order(last_name: :asc, first_name: :asc).

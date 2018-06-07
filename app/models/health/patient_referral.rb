@@ -53,11 +53,6 @@ module Health
       agency_id.present?
     end
 
-    def days_to_engage 
-      return 0 unless effective_date.present?
-      (engagement_date - Date.today).to_i.clamp(0, 180)
-    end
-
     def engagement_date
       return nil unless effective_date.present?
       next_month = effective_date.at_beginning_of_month.next_month
@@ -184,6 +179,7 @@ module Health
         client_id: destination_client.id,
         medicaid_id: medicaid_id,
         pilot: false,
+        engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
 
