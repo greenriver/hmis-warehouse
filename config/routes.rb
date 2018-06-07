@@ -491,6 +491,7 @@ Rails.application.routes.draw do
 
   namespace :system_status do
     get :operational
+    get :cache_status
   end
   root 'root#index'
 end
