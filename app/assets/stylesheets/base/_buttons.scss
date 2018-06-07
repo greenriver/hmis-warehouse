@@ -19,6 +19,15 @@ button.close {
   }
 }
 
+.btn-icon-only {
+  @include open-sans-bold;
+  display: inline-flex;
+  align-items: center;
+  [class^='icon'] {
+    margin-right: 0;
+  }
+}
+
 .btn-sm {
   padding: $input-btn-sm-padding-y $input-btn-sm-padding-x;
   min-height: auto;

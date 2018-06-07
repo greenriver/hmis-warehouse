@@ -19,22 +19,14 @@
     %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: dashed_group_name}
       %h3
         #{group_name}
-      %div{class: "o-card-grid warehouse-reports__#{dashed_group_name}"}
+      %div.o-card-grid{class: "warehouse-reports__#{dashed_group_name}"}
         - reports.each do |report|
           - if report
-            %article.c-card
+            %article.c-card.c-card--padded.c-card--flex
               = link_to report.url, class: 'c-card__content' do
                 .c-card__title= report.name
                 .c-card__description= report.description.html_safe
 
-  - if false #can_view_aggregate_health?
-    #health-reports.tab-pane{role: :tabpanel}
-      .warehouse-reports__health-reports
-        %h3 Health Reports
-        .o-card-grid
-          %article.c-card
-            = link_to warehouse_reports_health_overview_index_path, class: 'c-card__content' do
-              Health Dashboard
 
 = content_for :page_js do
   :javascript

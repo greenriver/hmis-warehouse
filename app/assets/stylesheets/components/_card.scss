@@ -4,6 +4,10 @@
   display: block;
 }
 
+.c-card--flex {
+  display: flex;
+}
+
 .c-card__header {
   padding: space(3) space(3) 0 space(3);
 }

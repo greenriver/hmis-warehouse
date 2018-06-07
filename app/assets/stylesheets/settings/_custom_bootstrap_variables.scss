@@ -70,3 +70,7 @@ $heading-color: $gray-070;
 // Links
 $link-color: $cob-sg-optimistic-blue;
 $link-hover-decoration: none;
+
+// Labels
+$label-default-bg: lighten($gray-light, 30%);
+$label-primary-bg: $brand-primary-l;
