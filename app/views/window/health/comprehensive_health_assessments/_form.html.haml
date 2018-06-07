@@ -1,7 +1,7 @@
 - url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
 - cha_options = Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS
 
-= simple_form_for @cha, url: url, as: :form, html: { data: { url: url }} do |f|
+= simple_form_for @cha, url: polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id), as: :form, html: { data: { url: url }} do |f|
   
   = f.error_notification
 
@@ -435,11 +435,456 @@
         = cha_string     f, :q_q1, input_html: { disabled: true, value: @cha.user&.name }
         = cha_datepicker f, :q_q2
 
+      %h3
+        = _('CHA R_TITLE')
+        %small= _('CHA R_SUBTITLE')
+      .well
+        = cha_radios f, :r_q1
+        = cha_radios f, :r_q2
+        = cha_radios f, :r_q3
+        = cha_radios f, :r_q4
+        = cha_radios f, :r_q5
+        = cha_string f, :r_q6a
+        = cha_string f, :r_q6b
+        = cha_string f, :r_q6c
+        = cha_string f, :r_q6d
+        = cha_text   f, :r_q6e
+        = cha_radios f, :r_q7
+        = cha_checkboxes f, :r_q8
 
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q9_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q9a
+          .col-sm-4
+            = cha_string f, :r_q9b
+          .col-sm-4
+            = cha_string f, :r_q9c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q9d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q10_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q10a
+          .col-sm-4
+            = cha_string f, :r_q10b
+          .col-sm-4
+            = cha_string f, :r_q10c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q10d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q11_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q11a
+          .col-sm-4
+            = cha_string f, :r_q11b
+          .col-sm-4
+            = cha_string f, :r_q11c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q11d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q12_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q12a
+          .col-sm-4
+            = cha_string f, :r_q12b
+          .col-sm-4
+            = cha_string f, :r_q12c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q12d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q13_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q13a
+          .col-sm-4
+            = cha_string f, :r_q13b
+          .col-sm-4
+            = cha_string f, :r_q13c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q13d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q14_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q14a
+          .col-sm-4
+            = cha_string f, :r_q14b
+          .col-sm-4
+            = cha_string f, :r_q14c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q14d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q15_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q15a
+          .col-sm-4
+            = cha_string f, :r_q15b
+          .col-sm-4
+            = cha_string f, :r_q15c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q15d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q16_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q16a
+          .col-sm-4
+            = cha_string f, :r_q16b
+          .col-sm-4
+            = cha_string f, :r_q16c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q16d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q17_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q17a
+          .col-sm-4
+            = cha_string f, :r_q17b
+          .col-sm-4
+            = cha_string f, :r_q17c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q17d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q18_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q18a
+          .col-sm-4
+            = cha_string f, :r_q18b
+          .col-sm-4
+            = cha_string f, :r_q18c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q18d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q19_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q19a
+          .col-sm-4
+            = cha_string f, :r_q19b
+          .col-sm-4
+            = cha_string f, :r_q19c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q19d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q20_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q20a
+          .col-sm-4
+            = cha_string f, :r_q20b
+          .col-sm-4
+            = cha_string f, :r_q20c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q20d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q21_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q21a
+          .col-sm-4
+            = cha_string f, :r_q21b
+          .col-sm-4
+            = cha_string f, :r_q21c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q21d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q22_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q22a
+          .col-sm-4
+            = cha_string f, :r_q22b
+          .col-sm-4
+            = cha_string f, :r_q22c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q22d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q23_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q23a
+          .col-sm-4
+            = cha_string f, :r_q23b
+          .col-sm-4
+            = cha_string f, :r_q23c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q23d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q24_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q24a
+          .col-sm-4
+            = cha_string f, :r_q24b
+          .col-sm-4
+            = cha_string f, :r_q24c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q24d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q25_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q25a
+          .col-sm-4
+            = cha_string f, :r_q25b
+          .col-sm-4
+            = cha_string f, :r_q25c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q25d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q26_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q26a
+          .col-sm-4
+            = cha_string f, :r_q26b
+          .col-sm-4
+            = cha_string f, :r_q26c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q26d
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q27_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q27a
+          .col-sm-4
+            = cha_string f, :r_q27b
+          .col-sm-4
+            = cha_string f, :r_q27c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q27d
 
+        .row
+          .col-sm-12
+            %h4= _('CHA R_Q28_TITLE')
 
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q28_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q28a
+          .col-sm-4
+            = cha_string f, :r_q28b
+          .col-sm-4
+            = cha_datepicker f, :r_q28c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q28d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q29_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q29a
+          .col-sm-4
+            = cha_string f, :r_q29b
+          .col-sm-4
+            = cha_datepicker f, :r_q29c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q29d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q30_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q30a
+          .col-sm-4
+            = cha_string f, :r_q30b
+          .col-sm-4
+            = cha_datepicker f, :r_q30c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q30d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q31_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q31a
+          .col-sm-4
+            = cha_string f, :r_q31b
+          .col-sm-4
+            = cha_datepicker f, :r_q31c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q31d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q32_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q32a
+          .col-sm-4
+            = cha_string f, :r_q32b
+          .col-sm-4
+            = cha_datepicker f, :r_q32c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q32d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q33_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q33a
+          .col-sm-4
+            = cha_string f, :r_q33b
+          .col-sm-4
+            = cha_datepicker f, :r_q33c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q33d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q34_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q34a
+          .col-sm-4
+            = cha_string f, :r_q34b
+          .col-sm-4
+            = cha_datepicker f, :r_q34c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q34d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q35_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q35a
+          .col-sm-4
+            = cha_string f, :r_q35b
+          .col-sm-4
+            = cha_datepicker f, :r_q35c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q35d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q36_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q36a
+          .col-sm-4
+            = cha_string f, :r_q36b
+          .col-sm-4
+            = cha_datepicker f, :r_q36c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q36d
+
+        .row
+          .col-sm-12
+            %p
+              %strong= _('CHA R_Q37_HEADER')
+        .row
+          .col-sm-4
+            = cha_string f, :r_q37a
+          .col-sm-4
+            = cha_string f, :r_q37b
+          .col-sm-4
+            = cha_datepicker f, :r_q37c
+        .row
+          .col-sm-12
+            = cha_text f, :r_q37d
+
+      %h3
+        Review
+      .well
+        - if @cha.reviewed_by.present?
+          .form-group
+            %label Reviewed by Supervisor
+            %p.form-control-static= @cha.reviewed_by&.name
+        - else
+          = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
   .row
     .col-sm-8
       .text-right
-        = f.button :submit, 'Save'
+        = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default'
+        = f.button :submit, 'Complete', data: { disable_with: 'Saving...' }

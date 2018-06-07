@@ -2,7 +2,7 @@
 
 - if @cha.editable_by?(current_user)
   .pull-right
-    = link_to 'Edit', polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-primary btn-primary__reverse'
+    = link_to 'Edit', polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-primary btn-primary__reverse', data: { disable_with: 'Loading...' }
 
 %strong Name:
 %span= @client.name
@@ -15,3 +15,29 @@
 
 %p.text-right(style="font-size:smaller;font-style:italic;")
   Only answered questions are shown.
+
+- Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS.keys.each do |section_question_key|
+  .client__assessment-question
+    - section_key, question_key = section_question_key.to_s.upcase.split('_')
+    - section = _("CHA #{section_key}_TITLE")
+    - question = _("CHA #{section_question_key.upcase}")
+    = question
+  .client__assessment-answer
+    - answer = @cha.answers[section][question]
+    - case question
+    - when /1. Name/
+      = @cha.patient&.client&.name
+    - when /3. Birthdate/
+      = @cha.patient&.client&.DOB
+    - when /medicaid number/i
+      = @cha.patient&.medicaid_id
+    - when /social security number/i
+      = masked_ssn( answer )
+    - when /ethnicity and race/i
+      = answer.join(", ")
+    - when /residential history/i
+      = answer.join(", ")
+    - when /current services/i
+      = answer.join(", ")
+    - else
+      = answer

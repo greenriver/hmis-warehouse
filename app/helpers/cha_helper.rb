@@ -21,11 +21,15 @@ module ChaHelper
   end
 
   def cha_checkboxes f, field
-    f.input field, 
-      label: _("CHA #{field.upcase}"), 
-      as: :check_boxes, 
-      collection: cha_options[field], 
-      checked: f.object.answer(field)
+    capture do
+      concat content_tag(:strong, header_for(field))
+      concat content_tag(:p, subheader_for(field), class: 'help-text')
+      concat f.input field, 
+        label: _("CHA #{field.upcase}"), 
+        as: :check_boxes, 
+        collection: cha_options[field], 
+        checked: f.object.answer(field)
+    end
   end
 
   def cha_datepicker f, field, input_html_options={}
@@ -303,6 +307,170 @@ module ChaHelper
   _("CHA P_Q2")
   _("CHA Q_Q1")
   _("CHA Q_Q2")
+  _("CHA R_Q1")
+  _("CHA R_Q2")
+  _("CHA R_Q3")
+  _("CHA R_Q4")
+  _("CHA R_Q5")
+  _("CHA R_Q6A_HEADER")
+  _("CHA R_Q6A")
+  _("CHA R_Q6B")
+  _("CHA R_Q6C")
+  _("CHA R_Q6D")
+  _("CHA R_Q6E")
+  _("CHA R_Q7")
+  _("CHA R_Q8_HEADER")
+  _("CHA R_Q8")
+
+  _("CHA R_Q9A")
+  _("CHA R_Q9B")
+  _("CHA R_Q9C")
+  _("CHA R_Q9D")
+
+  _("CHA R_Q10A")
+  _("CHA R_Q10B")
+  _("CHA R_Q10C")
+  _("CHA R_Q10D")
+
+  _("CHA R_Q11A")
+  _("CHA R_Q11B")
+  _("CHA R_Q11C")
+  _("CHA R_Q11D")
+
+  _("CHA R_Q12A")
+  _("CHA R_Q12B")
+  _("CHA R_Q12C")
+  _("CHA R_Q12D")
+
+  _("CHA R_Q13A")
+  _("CHA R_Q13B")
+  _("CHA R_Q13C")
+  _("CHA R_Q13D")
+
+  _("CHA R_Q14A")
+  _("CHA R_Q14B")
+  _("CHA R_Q14C")
+  _("CHA R_Q14D")
+
+  _("CHA R_Q15A")
+  _("CHA R_Q15B")
+  _("CHA R_Q15C")
+  _("CHA R_Q15D")
+
+  _("CHA R_Q16A")
+  _("CHA R_Q16B")
+  _("CHA R_Q16C")
+  _("CHA R_Q16D")
+
+  _("CHA R_Q17A")
+  _("CHA R_Q17B")
+  _("CHA R_Q17C")
+  _("CHA R_Q17D")
+
+  _("CHA R_Q18A")
+  _("CHA R_Q18B")
+  _("CHA R_Q18C")
+  _("CHA R_Q18D")
+
+  _("CHA R_Q19A")
+  _("CHA R_Q19B")
+  _("CHA R_Q19C")
+  _("CHA R_Q19D")
+
+  _("CHA R_Q20A")
+  _("CHA R_Q20B")
+  _("CHA R_Q20C")
+  _("CHA R_Q20D")
+
+  _("CHA R_Q21A")
+  _("CHA R_Q21B")
+  _("CHA R_Q21C")
+  _("CHA R_Q21D")
+
+  _("CHA R_Q22A")
+  _("CHA R_Q22B")
+  _("CHA R_Q22C")
+  _("CHA R_Q22D")
+
+  _("CHA R_Q23A")
+  _("CHA R_Q23B")
+  _("CHA R_Q23C")
+  _("CHA R_Q23D")
+
+  _("CHA R_Q24A")
+  _("CHA R_Q24B")
+  _("CHA R_Q24C")
+  _("CHA R_Q24D")
+
+  _("CHA R_Q25A")
+  _("CHA R_Q25B")
+  _("CHA R_Q25C")
+  _("CHA R_Q25D")
+
+  _("CHA R_Q26A")
+  _("CHA R_Q26B")
+  _("CHA R_Q26C")
+  _("CHA R_Q26D")
+
+  _("CHA R_Q27A")
+  _("CHA R_Q27B")
+  _("CHA R_Q27C")
+  _("CHA R_Q27D")
+
+  _("CHA R_Q28A")
+  _("CHA R_Q28B")
+  _("CHA R_Q28C")
+  _("CHA R_Q28D")
+
+  _("CHA R_Q29A")
+  _("CHA R_Q29B")
+  _("CHA R_Q29C")
+  _("CHA R_Q29D")
+
+  _("CHA R_Q30A")
+  _("CHA R_Q30B")
+  _("CHA R_Q30C")
+  _("CHA R_Q30D")
+
+  _("CHA R_Q31A")
+  _("CHA R_Q31B")
+  _("CHA R_Q31C")
+  _("CHA R_Q31D")
+
+  _("CHA R_Q32A")
+  _("CHA R_Q32B")
+  _("CHA R_Q32C")
+  _("CHA R_Q32D")
+
+  _("CHA R_Q33A")
+  _("CHA R_Q33B")
+  _("CHA R_Q33C")
+  _("CHA R_Q33D")
+
+  _("CHA R_Q34A")
+  _("CHA R_Q34B")
+  _("CHA R_Q34C")
+  _("CHA R_Q34D")
+
+  _("CHA R_Q35A")
+  _("CHA R_Q35B")
+  _("CHA R_Q35C")
+  _("CHA R_Q35D")
+
+  _("CHA R_Q36A")
+  _("CHA R_Q36B")
+  _("CHA R_Q36C")
+  _("CHA R_Q36D")
+
+  _("CHA R_Q37A")
+  _("CHA R_Q37B")
+  _("CHA R_Q37C")
+  _("CHA R_Q37D")
+
+  _("CHA R_Q38A")
+  _("CHA R_Q38B")
+  _("CHA R_Q38C")
+  _("CHA R_Q38D")
 
   _("CHA A_Q2_A1")
   _("CHA A_Q2_A2")
@@ -1172,5 +1340,31 @@ module ChaHelper
   _("CHA P_Q2_A13")
   _("CHA P_Q2_A14")
   _("CHA P_Q2_A15")
+
+  _("CHA R_Q1_A1")
+  _("CHA R_Q1_A2")
+  _("CHA R_Q1_A3")
+  _("CHA R_Q1_A4")
+  _("CHA R_Q2_A1")
+  _("CHA R_Q2_A2")
+  _("CHA R_Q3_A1")
+  _("CHA R_Q3_A2")
+  _("CHA R_Q4_A1")
+  _("CHA R_Q4_A2")
+  _("CHA R_Q5_A1")
+  _("CHA R_Q5_A2")
+  _("CHA R_Q5_A3")
+  _("CHA R_Q5_A4")
+  _("CHA R_Q7_A1")
+  _("CHA R_Q7_A2")
+  _("CHA R_Q8_A1")
+  _("CHA R_Q8_A2")
+  _("CHA R_Q8_A3")
+  _("CHA R_Q8_A4")
+  _("CHA R_Q8_A5")
+  _("CHA R_Q8_A6")
+  _("CHA R_Q8_A7")
+  _("CHA R_Q8_A8")
+  _("CHA R_Q8_A9")
 
 end

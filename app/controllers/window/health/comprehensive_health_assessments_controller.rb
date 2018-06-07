@@ -18,8 +18,12 @@ module Window::Health
     end
     
     def update
+      if params[:commit]=='Save'
+        @cha.completed_at = Time.current
+      end
+      @cha.reviewed_by = current_user if reviewed?
       @cha.update(form_params)
-      respond_with @cha
+      respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end
 
     def edit
