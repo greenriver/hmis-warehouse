@@ -28,15 +28,12 @@
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
 
-    / - if @cha.reviewed_by.present?
-    /   .form-group
-    /     %label Reviewed by Supervisor
-    /     %p.form-control-static= @cha.reviewed_by&.name
-    / - else
-    /   = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
-
-    .form-group
-      = f.input :completed, as: :boolean, label: 'Complete?', checked_value: 'yes', unchecked_value: 'no', input_html: { checked: @cha.complete? }
+    - if @cha.reviewed_by.present?
+      .form-group
+        %label Reviewed by Supervisor
+        %p.form-control-static= @cha.reviewed_by&.name
+    - else
+      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
   .col-sm-12
     .text-right
