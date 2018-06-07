@@ -33,6 +33,8 @@
                     = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
                       - if release.reviewed_by.present?
                         %span.icon-checkmark.o-color--positive.mr-1
+                      - else
+                        %span.icon-checkmark.mr-1.o-color--gray-l
                       Release Form
                   - else
                     = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do

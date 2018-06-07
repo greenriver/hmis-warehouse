@@ -5,6 +5,7 @@
     %h1= "#{content_for(:title)} for #{@client.full_name}"
   = render 'window/clients/breadcrumbs'
   = render 'window/clients/tab_navigation', current: polymorphic_path(careplans_path_generator)
+  = render 'window/health/patient_release_status'
   = render 'window/health/patient/patient_status'
 
   .o-page__main-content.row

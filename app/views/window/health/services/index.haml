@@ -3,7 +3,7 @@
 = content_for(:title, "Services and Equipment for #{@patient.name}")
 %h1= content_for(:title)
 = render 'window/clients/tab_navigation', current: polymorphic_path(health_path_generator + [:services], client_id: @client.id)
-
+= render 'window/health/patient_release_status'
 %section.c-card.c-card--block
   .c-card__header.c-card__header--external
     %h2 Services
