@@ -97,3 +97,27 @@
     margin-#{$directionName}: auto;
   }
 }
+
+.pagination .page-item { }
+
+.pagination > li > a,
+.pagination > li > span,
+.pagination .page-link {
+  padding: $pagination-padding-y $pagination-padding-x;
+}
+
+.pagination .page-link {
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba(69, 118, 135, 0.25)
+  }
+}
+
+.pagination > .active > a,
+.pagination > .active > a:hover,
+.pagination > .active > a:focus,
+.pagination > .active > span,
+.pagination > .active > span:hover,
+.pagination > .active > span:focus {
+  background: $brand-primary-d;
+  border-color: $brand-primary-d;
+}
