@@ -11,6 +11,15 @@ $filtrationn-container-offset: -16px;
 .o-filtration {
 }
 
+.o-filtration.filter-active > .btn,
+.o-filtration.client__filter-active > .btn 
+{
+  background-color: $brand-primary-ll;
+  &:hover {
+    color: $gray-darker;
+  }
+}
+
 .o-filtration__option {
   margin-bottom: space(6);
 }

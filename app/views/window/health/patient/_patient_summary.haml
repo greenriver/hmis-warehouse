@@ -40,20 +40,6 @@
                     = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
                       %span.icon-checkmark.mr-1.o-color--gray-l
                       Release Form
-
-                %li
-                  - cha = @patient.chas.recent.first
-                  - if cha
-                    = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
-                      - if cha.reviewed_by.present?
-                        %span.icon-checkmark.o-color--positive.mr-1
-                      - else
-                        %span.icon-checkmark.mr-1.o-color--gray-l
-                      Comprehensive Health Assessment
-                  - else
-                    = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
-                      %span.icon-checkmark.mr-1.o-color--gray-l
-                      Comprehensive Health Assessment
                 %li
                   - completed_ssm = @patient.self_sufficiency_matrix_forms.completed.recent.first
                   - if completed_ssm 
@@ -68,6 +54,20 @@
                     = link_to polymorphic_path([:new] + self_sufficiency_matrix_form_path_generator) do
                       %span.icon-checkmark.mr-1.o-color--gray-l
                       Self-Sufficiency Matrix
+                %li
+                  - cha = @patient.chas.recent.first
+                  - if cha
+                    = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
+                      - if cha.reviewed_by.present?
+                        %span.icon-checkmark.o-color--positive.mr-1
+                      - else
+                        %span.icon-checkmark.mr-1.o-color--gray-l
+                      Comprehensive Health Assessment
+                  - else
+                    = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+                      %span.icon-checkmark.mr-1.o-color--gray-l
+                      Comprehensive Health Assessment
+                
 
       .ho-patient__details
         .row

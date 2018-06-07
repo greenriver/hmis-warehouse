@@ -2,16 +2,20 @@
   - filter_class = 'client__filter-active'
 - else
   - filter_class = 'client__filter'
-.btn-group{class: filter_class}
+
+.dropdown.o-filtration{class: filter_class}
   %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
     Filter
     %span.caret
-  .dropdown-menu.dropdown-menu-left.options
+
+  .o-filtration__container.dropdown-menu.dropdown-menu-left.options
+    .o-filtration__header
+      %h3.client__filter-header Status
+
     = form_tag(nil, method: "get") do
       -# preserve search for filtering
       - if params[:q] && params[:q][:full_text_search]
         = hidden_field_tag 'q[full_text_search]', params[:q][:full_text_search]
-      %h4 Status
       .btn-group{data: {toggle: :buttons}}
         - active = params[:filter].blank? || params[:filter][:population] == 'all'
         %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
@@ -23,16 +27,14 @@
         %label.btn.btn-secondary{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 0 Qualified activities this month
 
-      .row.mt-6
-        .col-xs-6
-          %p
-            %button.btn.btn-primary{type: :submit}
-              %span.icon-filter.icon-inline
-              Filter
-        .col-xs-6.text-right
-          = link_to health_patients_path, class:'btn btn-secondary' do
-            %span.icon-cross.icon-inline
-            Clear Filters
+      .o-filtration__actions.form__actions
+        = link_to health_patients_path, class:'btn btn-secondary' do
+          %span.icon-cross.icon-inline
+          Clear Filters
+        %button.btn.btn-primary.ml-auto{type: :submit}
+          %span.icon-filter.icon-inline.mr-1
+          Filter
+
 
 
 = content_for :page_js do
