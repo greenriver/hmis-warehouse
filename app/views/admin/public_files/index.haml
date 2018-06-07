@@ -19,7 +19,7 @@
                 = link_to public_file_path(id: file.id) do
                   = file.class.known_locations[file.name]
               %td
-                = link_to admin_public_file_path(id: file.id), method: :delete, data: {confirm: 'Are you sure you want to delete this file? It will no longer be accessible.'}, class: 'btn btn-danger btn-sm' do
+                = link_to admin_public_file_path(id: file.id), method: :delete, data: {confirm: 'Are you sure you want to delete this file? It will no longer be accessible.'}, class: 'btn btn-danger btn-sm btn-icon-only' do
                   %i.icon-cross
   .col-sm-4
     %h4 Upload

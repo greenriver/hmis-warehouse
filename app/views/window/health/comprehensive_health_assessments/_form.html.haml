@@ -22,7 +22,7 @@
               .btn-group.existing-file
                 = link_to polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-default' do
                   = @cha.health_file&.name
-                = link_to polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                = link_to polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-danger btn-icon-only', method: :delete, remote: true do
                   %span.icon-cross{ style: "color:white; margin:0" }
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
