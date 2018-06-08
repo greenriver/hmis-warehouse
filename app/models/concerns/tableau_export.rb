@@ -30,7 +30,6 @@ module TableauExport
           14, #=> 'Coordinated Assessment',
         ]
       end
-      private_class_method :default_end
 
       def null
         lit 'NULL'
@@ -47,8 +46,9 @@ module TableauExport
         entry:       she_t[:first_date_in_program], # in use
         exit:        she_t[:last_date_in_program], # in use
         destination: she_t[:destination], # in use
+        coc_code:    ec_t[:CoCCode], # in use
       }
-      repeaters     = %i( prog entry exit destination )
+      repeaters     = %i( prog entry exit destination coc_code )
       non_repeaters = spec.keys - repeaters
 
       scope = model.
@@ -120,11 +120,8 @@ module TableauExport
       # pad the rows
       rows.each do |row|
         row.concat Array.new headers.length - row.length, nil
-        row << 'link'
       end
 
-      # add pointless link header
-      headers << :link
       rows.unshift headers.to_a
       rows
     end

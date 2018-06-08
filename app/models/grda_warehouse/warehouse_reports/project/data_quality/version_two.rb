@@ -87,13 +87,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if project.TrackingMethod == 3
           enrollments_in_project = enrollments_for_project(
             project.ProjectID, project.data_source_id
-          ).values.flatten(1).group_by do |row|
-            [row[:data_source_id], row[:enrollment_group_id]]
+          )&.values&.flatten(1)
+          if enrollments_in_project.present? && enrollments_in_project.any?
+            enrollments_in_project = enrollments_in_project.group_by do |row|
+              [row[:data_source_id], row[:enrollment_group_id]]
+            end
+            enrollment_groups = enrollments_in_project.keys.map(&:last)
+            services = GrdaWarehouse::Hud::Service.where(ProjectEntryID: enrollment_groups).distinct.pluck(:data_source_id, :ProjectEntryID)
+            empties = enrollments_in_project.keys - services
+            empty_enrollments[project.id] = enrollments_in_project.values_at(*empties)
+          else
+            empty_enrollments[project.id] = []
           end
-          enrollment_groups = enrollments_in_project.keys.map(&:last)
-          services = GrdaWarehouse::Hud::Service.where(ProjectEntryID: enrollment_groups).distinct.pluck(:data_source_id, :ProjectEntryID)
-          empties = enrollments_in_project.keys - services
-          empty_enrollments[project.id] = enrollments_in_project.values_at(*empties)
         else
           empty_enrollments[project.id] = []
         end
@@ -129,16 +134,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       individuals = {}
       projects.each do |project|
         if project.serves_families?
-          family_enrollments = enrollments_for_project(
+          enrollments_in_project = enrollments_for_project(
             project.ProjectID, project.data_source_id
-          ).values.
-            flatten(1).
-            group_by do |m| 
-              [m[:data_source_id], m[:household_id]]
-            end.select do |(_, hh_id), m| 
-              hh_id.nil? || m.size == 1
-            end
-          individuals[project.id] = family_enrollments.values.flatten(1)
+          )&.values&.flatten(1)
+          if enrollments_in_project.present? && enrollments_in_project.any?
+            family_enrollments = enrollments_in_project.
+              group_by do |m| 
+                [m[:data_source_id], m[:household_id]]
+              end.select do |(_, hh_id), m| 
+                hh_id.nil? || m.size == 1
+              end
+            individuals[project.id] = family_enrollments.values.flatten(1)
+          else
+            individuals[project.id] = []
+          end
         else
           individuals[project.id] = []
         end
@@ -171,19 +180,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       families = {}
       projects.each do |project|
         if project.serves_only_individuals?
-          family_enrollments = enrollments_for_project(
-            project.ProjectID, project.data_source_id
-          ).values.
-            flatten(1).
-            group_by do |m| 
-              [m[:data_source_id], m[:household_id]]
-            end.select do |(_, hh_id), m|
-              unique_clients = m.map do |enrollment|
-                enrollment[:id]
-              end.uniq
-              hh_id.present? && unique_clients.size > 1
-            end
+          enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)&.values&.flatten(1)
+          if enrollments_in_project.present? && enrollments_in_project.any?
+            family_enrollments = enrollments_in_project.
+              group_by do |m| 
+                [m[:data_source_id], m[:household_id]]
+              end.select do |(_, hh_id), m|
+                unique_clients = m.map do |enrollment|
+                  enrollment[:id]
+                end.uniq
+                hh_id.present? && unique_clients.size > 1
+              end
             families[project.id] = family_enrollments.values.flatten(1)
+          else
+            families[project.id] = []
+          end
         else
           families[project.id] = []
         end
@@ -321,8 +332,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       dob_entry = {}
       projects.each do |project|
         dob_entry[project.id] ||= Set.new
-        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id).values.flatten(1)
-        if enrollments_in_project.any?
+        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)&.values&.flatten(1)
+        if enrollments_in_project.present? && enrollments_in_project.any?
           enrollments_in_project.each do |enrollment|
             if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
               dob_entry[project.id] << [
@@ -466,7 +477,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           counts = add_unknown_demo(client: client, counts: counts)
         end
         enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)
-        if enrollments_in_project.any?
+        if enrollments_in_project.present? && enrollments_in_project.any?
           enrollments_in_project.each do |client_id, enrollments|
             if enrollments.present?
               enrollments.each do |enrollment|
@@ -476,7 +487,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               end
             end
             leavers_in_project = leavers_for_project(project.ProjectID, project.data_source_id)
-            if leavers_in_project.any?
+            if leavers_in_project.present? && leavers_in_project.any?
               leavers_in_project.each do |client_id|
                 enrollments_in_project[client_id].each do |enrollment|
                   counts = add_missing_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
