@@ -12,32 +12,29 @@
 %br
 %strong Case Worker:
 %span= @cha.user&.name
+%br
+
+- if @cha.reviewed_by
+  %strong Supervisor Review:
+  %span= @cha.reviewed_by&.name
 
 %p.text-right(style="font-size:smaller;font-style:italic;")
   Only answered questions are shown.
 
-- Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS.keys.each do |section_question_key|
-  .client__assessment-question
-    - section_key, question_key = section_question_key.to_s.upcase.split('_')
-    - section = _("CHA #{section_key}_TITLE")
-    - question = _("CHA #{section_question_key.upcase}")
-    = question
-  .client__assessment-answer
-    - answer = @cha.answers[section][question]
-    - case question
-    - when /1. Name/
-      = @cha.patient&.client&.name
-    - when /3. Birthdate/
-      = @cha.patient&.client&.DOB
-    - when /medicaid number/i
-      = @cha.patient&.medicaid_id
-    - when /social security number/i
-      = masked_ssn( answer )
-    - when /ethnicity and race/i
-      = answer.join(", ")
-    - when /residential history/i
-      = answer.join(", ")
-    - when /current services/i
-      = answer.join(", ")
-    - else
-      = answer
+- @cha.answers.each do |section, questions|
+  %h4= section
+
+  - questions.each do |question, answer|
+    - next if answer.blank?
+    .client__assessment-question
+      = question
+    .client__assessment-answer
+      - case answer
+      - when Array
+        = answer.compact.join(', ')
+      - else
+        - case question
+        - when /social security number/i
+          = masked_ssn answer
+        - else
+          = answer
