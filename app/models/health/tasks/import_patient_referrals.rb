@@ -6,13 +6,16 @@ module Health::Tasks
     attr_accessor :directory, :referrals_file 
     def initialize(directory: 'var/health/referrals')
       @directory = directory
+      @logger = Rails.logger
     end
 
     def import!
-      # TODO: fetch via sftp available files
       fetch_files()
       load_unprocessed
-      return if @unprocessed.empty?
+      if @unprocessed.empty?
+        remove_files()
+        return
+      end
       @unprocessed.each do |file_path|
         file = load_file(File.join(directory, file_path))
         validate_headers(file, file_path)
@@ -34,7 +37,6 @@ module Health::Tasks
         Health::PatientReferralImport.create(file_name: file_path)
       end
 
-      # TODO: Delete files from local storage
       remove_files()
     end
 
@@ -65,18 +67,27 @@ module Health::Tasks
       configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
       configs.each do |_, config|
         
-      sftp = Net::SFTP.start(
-        @config['host'], 
-        @config['username'],
-        password: @config['password'],
-        # verbose: :debug,
-        auth_methods: ['publickey','password']
-      )
-      sftp.download!(@config['path'], @config['destination'], recursive: true)
+        sftp = Net::SFTP.start(
+          config['host'], 
+          config['username'],
+          password: config['password'],
+          # verbose: :debug,
+          auth_methods: ['publickey','password']
+        )
+        source_path = File.join(config['path'], 'referrals')
+        sftp.download!(source_path, @directory, recursive: true)
 
-      notify "Health data downloaded"
+        notify "Health data downloaded"
+      end
     end
 
-    
+    def remove_files
+      FileUtils.rmtree(@directory)
+    end
+
+    def notify msg
+      @logger.info msg
+      @notifier.ping msg if @send_notifications
+    end  
   end
 end
