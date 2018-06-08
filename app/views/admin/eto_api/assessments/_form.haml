@@ -1,0 +1,14 @@
+= f.error_notification
+
+.row
+  .col-sm-6
+    .form-inputs
+      = f.input :fetch
+      = f.input :active
+      = f.input :confidential
+      = f.input :exclude_from_window
+      = f.input :health
+                 
+
+    .form-actions
+      = f.button :submit, "Submit", class: 'btn btn-primary'
