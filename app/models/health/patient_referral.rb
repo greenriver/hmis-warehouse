@@ -1,6 +1,6 @@
 module Health
   class PatientReferral < HealthBase
-
+    include PatientReferralImporter
     before_validation :update_rejected_from_reason
 
     # rejected_reason_none: 0 always needs to be there
@@ -22,8 +22,8 @@ module Health
 
     # TODO: What needs to be validated here?
     # TODO: how to validate medicaid id?
-    validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id, :ssn
-    validates_size_of :ssn, is: 9
+    validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
+    validates_size_of :ssn, is: 9, allow_blank: true
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'

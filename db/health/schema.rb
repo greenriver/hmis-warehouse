@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180607151108) do
+ActiveRecord::Schema.define(version: 20180607180418) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -371,6 +371,51 @@ ActiveRecord::Schema.define(version: 20180607151108) do
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
     t.datetime "effective_date",                   default: "now()"
+    t.string   "middle_initial"
+    t.string   "suffix"
+    t.string   "gender"
+    t.string   "aco_name"
+    t.integer  "aco_mco_pid"
+    t.string   "aco_mco_sl"
+    t.string   "health_plan_id"
+    t.string   "cp_assignment_plan"
+    t.string   "cp_name_dsrip"
+    t.string   "cp_name_official"
+    t.integer  "cp_pid"
+    t.string   "cp_sl"
+    t.date     "enrollment_start_date"
+    t.string   "start_reason_description"
+    t.string   "address_line_1"
+    t.string   "address_line_2"
+    t.string   "address_city"
+    t.string   "address_state"
+    t.string   "address_zip"
+    t.string   "address_zip_plus_4"
+    t.string   "email"
+    t.string   "phone_cell"
+    t.string   "phone_day"
+    t.string   "phone_night"
+    t.string   "primary_language"
+    t.string   "primary_diagnosis"
+    t.string   "secondary_diagnosis"
+    t.string   "pcp_last_name"
+    t.string   "pcp_first_name"
+    t.string   "pcp_npi"
+    t.string   "pcp_address_line_1"
+    t.string   "pcp_address_line_2"
+    t.string   "pcp_address_city"
+    t.string   "pcp_address_state"
+    t.string   "pcp_address_zip"
+    t.string   "pcp_address_phone"
+    t.string   "dmh"
+    t.string   "dds"
+    t.string   "eoea"
+    t.string   "ed_visits"
+    t.string   "snf_discharge"
+    t.string   "identification"
+    t.string   "record_status"
+    t.date     "updated_on"
+    t.date     "exported_on"
   end
 
   create_table "patients", force: :cascade do |t|
