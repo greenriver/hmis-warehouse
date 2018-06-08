@@ -24,6 +24,7 @@ class App.Cohorts.Cohort
     @updated_ats = options['updated_ats']
     @search_selector = options['search_selector']
     @search_actions_selector = options['search_actions_selector']
+    @population = options['population']
 
     # Testing
     # @client_count = 15
@@ -221,6 +222,9 @@ class App.Cohorts.Cohort
     url =  "#{@client_path}.json?page=#{@current_page}&per=#{@batch_size}&content=true"
     if @include_inactive
       url += "&inactive=true"
+    if @population?
+      url += "&population=#{@population}"
+      
     if @current_page > @pages + 1 
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
@@ -354,4 +358,3 @@ class App.Cohorts.Cohort
           @format_cells(row, col, prop, @cell_metadata, @table)
         columnSorting: sorting
       @table.render()
-

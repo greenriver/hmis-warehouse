@@ -11,7 +11,11 @@
   %p.alert.alert-warning.text-center
     %i.icon-warning
     This cohort is inactive.  Changes will not be reflected on client dashboards.
-= render 'buttons'
+
+= render 'buttons'    
+= render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
+= render 'text_size_options'
+
 
 .row
   .col-sm-4.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.margin-top-02
