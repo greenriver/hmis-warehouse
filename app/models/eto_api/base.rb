@@ -8,7 +8,7 @@ module EtoApi
     extend Memoist
     attr_accessor :trace
 
-    def initialize(trace: true, api_connection: 'dnd_eto')
+    def initialize(trace: false, api_connection: 'dnd_eto')
       @trace = trace
       @endpoints = {
         security: 'https://services.etosoftware.com/API/Security.svc',

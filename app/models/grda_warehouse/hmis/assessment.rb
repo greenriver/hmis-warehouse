@@ -124,7 +124,7 @@ module GrdaWarehouse::HMIS
       touch_points = {}
       api_config.each do |connection_key, config|
         data_source_id = config['data_source_id']
-        api = EtoApi::Base.new(trace: true, api_connection: connection_key)
+        api = EtoApi::Base.new(trace: false, api_connection: connection_key)
         api.connect
         api.sites.each do |site_id, name|
           touch_points.merge!(hud_touch_point(site_id: site_id, data_source_id: data_source_id, site_name: name))
