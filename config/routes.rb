@@ -42,19 +42,19 @@ Rails.application.routes.draw do
           get :download
         end
       end
-      resources :release_forms do 
+      resources :release_forms do
         member do
           delete :remove_file
           get :download
         end
       end
-      resources :comprehensive_health_assessments, path: :chas, as: :chas do 
+      resources :comprehensive_health_assessments, path: :chas, as: :chas do
         member do
           delete :remove_file
           get :download
         end
       end
-      namespace :pilot do 
+      namespace :pilot do
         resources :patient, only: [:index]
         resource :careplan, except: [:destroy] do
           get :self_sufficiency_assessment
@@ -486,6 +486,8 @@ Rails.application.routes.draw do
       get :alerts
       get :tags
       get :client_dashboard
+      get :buttons
+      get :pagination
     end
   end
 
