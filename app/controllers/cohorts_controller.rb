@@ -1,6 +1,7 @@
 class CohortsController < ApplicationController
   include PjaxModalController
   include CohortAuthorization
+  include CohortClients
   before_action :some_cohort_access!
   before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
@@ -13,18 +14,17 @@ class CohortsController < ApplicationController
   end
 
   def show
+    params[:population] ||= :active
     load_cohort_names
     cohort_with_preloads = cohort_scope.where(id: cohort_id).
       preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
     # missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
     @cohort = cohort_with_preloads.first
+  
+    set_cohort_clients
     
-    if params[:inactive].present?
-      @cohort_clients = @cohort.cohort_clients.joins(:client)
-    else
-      @cohort_clients = @cohort.cohort_clients.joins(:client).where(active: true)
-    end
     @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
+    @population = params[:population]
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
