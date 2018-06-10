@@ -25,13 +25,15 @@
   %h4= section
 
   - questions.each do |question, answer|
-    - next if answer.blank?
+    - next if answer.blank? || (answer.is_a?(Array) && answer.compact.all?(&:blank?))
     .client__assessment-question
       = question
     .client__assessment-answer
       - case answer
       - when Array
-        = answer.compact.join(', ')
+        %ul
+        - answer.compact.reject(&:blank?).each do |a|
+          %li= a
       - else
         - case question
         - when /social security number/i
