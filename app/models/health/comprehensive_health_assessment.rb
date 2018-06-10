@@ -360,10 +360,6 @@ module Health
       r_q37b: nil,
       r_q37c: nil,
       r_q37d: nil,
-      r_q38a: nil,
-      r_q38b: nil,
-      r_q38c: nil,
-      r_q38d: nil,
 
     }
 
