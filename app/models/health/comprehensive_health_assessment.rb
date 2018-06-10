@@ -392,6 +392,7 @@ module Health
         value = send(section_question)
         hash[section][question] = value if value
       end
+      hash[_("CHA A_TITLE")][_("CHA A_Q3")] = patient.client.DOB
       self.answers = hash
     end
 
