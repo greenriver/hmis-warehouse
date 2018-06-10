@@ -21,10 +21,12 @@
 %p.text-right(style="font-size:smaller;font-style:italic;")
   Only answered questions are shown.
 
-- @cha.answers.each do |section, questions|
-  %h4= section
+- @cha.answers.each do |section, section_hash|
+  %h4= section_hash['title']
 
-  - questions.each do |question, answer|
+  - section_hash['answers'].each do |code, question_answer|
+    - question = question_answer['question']
+    - answer   = question_answer['answer']
     - next if answer.blank? || (answer.is_a?(Array) && answer.compact.all?(&:blank?))
     .client__assessment-question
       = question
@@ -38,5 +40,10 @@
         - case question
         - when /social security number/i
           = masked_ssn answer
+        - when /birthdate/i
+          =l answer&.to_date
         - else
           = answer
+
+
+

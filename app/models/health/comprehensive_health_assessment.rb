@@ -384,11 +384,17 @@ module Health
         section_code  = section_question.to_s.upcase.split('_').first
         section       = _("CHA #{section_code}_TITLE")
         question      = _("CHA #{section_question.upcase}")
-        hash[section] ||= {}
+        hash[section_code] ||= {}
+        hash[section_code][:title] = section
+        hash[section_code][:answers] ||= {}
+        hash[section_code][:answers][section_question] ||= {}
+        hash[section_code][:answers][section_question][:question] ||= question
         value = send(section_question)
-        hash[section][question] = value if value
+        hash[section_code][:answers][section_question][:answer] = value if value
       end
-      hash[_("CHA A_TITLE")][_("CHA A_Q3")] = patient.client.DOB
+      hash['A'][:answers][:a_q1][:answer] = patient.client&.name
+      hash['A'][:answers][:a_q3][:answer] = patient.client&.DOB
+      hash['A'][:answers][:a_q5c][:answer] = patient.medicaid_id
       self.answers = hash
     end
 
@@ -396,9 +402,10 @@ module Health
       super || {}
     end
 
-    def answer question
-      section, question = question.to_s.upcase.split('_')
-      answers.dig(_("CHA #{section}_TITLE"), _("CHA #{section}_#{question}"))
+    def answer question_code
+      section, question = question_code.to_s.upcase.split('_')
+
+      answers.dig(section, 'answers', question_code.to_s, 'answer')
     end
 
     def editable_by? editor
