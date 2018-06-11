@@ -24,6 +24,12 @@ module Window::Health
     end
 
     def edit
+      # For errors in new/edit forms
+      @service = Health::Service.new
+      @equipment = Health::Equipment.new
+      @services = @patient.services.order(date_requested: :desc)
+      @equipments = @patient.equipments
+      
       respond_with @cha
     end
     

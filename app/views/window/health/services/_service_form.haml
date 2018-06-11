@@ -1,4 +1,4 @@
-= simple_form_for @service, url: @form_url do |f|
+= simple_form_for @service, url: @form_url, remote: true do |f|
   .row
     .col-sm-8
       = f.input :service_type, collection: @service.class.available_types, input_html: {class: :select2}
@@ -26,7 +26,7 @@
   .form__actions
     - if @service.persisted?
       .c-btn_group
-        = link_to polymorphic_path(health_path_generator + [:service], id: @service.id), method: :delete, data: {confirm: "Please confirm you intend to delete the #{@service.service_type} service."}, class: 'btn btn-danger btn-icon-left' do
+        = link_to polymorphic_path(health_path_generator + [:service], id: @service.id), method: :delete, remote: true, data: {confirm: "Please confirm you intend to delete the #{@service.service_type} service."}, class: 'btn btn-danger btn-icon-left' do
           %i.icon-cross
           Delete
     .c-btn-group.ml-auto

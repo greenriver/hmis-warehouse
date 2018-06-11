@@ -23,7 +23,9 @@ module Window::Health
       @form_url = polymorphic_path(health_path_generator + [:durable_equipment], client_id: @client.id)
       @equipment.assign_attributes(equipment_params)
       Health::DmeSaver.new(equipment: @equipment, user: current_user).update
-      respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      unless request.xhr?
+        respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      end
     end
   
     def create
@@ -31,12 +33,16 @@ module Window::Health
       @form_url = polymorphic_path(health_path_generator + [:durable_equipments], client_id: @client.id)
       @equipment = @patient.equipments.build(equipment_params)
       Health::DmeSaver.new(equipment: @equipment, user: current_user).create
-      respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      unless request.xhr?
+        respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      end
     end
 
     def destroy
       @equipment.destroy
-      respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      unless request.xhr?
+        respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      end
     end
 
     def equipment_params
