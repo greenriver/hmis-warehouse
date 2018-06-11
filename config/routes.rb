@@ -52,6 +52,7 @@ Rails.application.routes.draw do
         member do
           delete :remove_file
           get :download
+          patch :upload
         end
       end
       namespace :pilot do

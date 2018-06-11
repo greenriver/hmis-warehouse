@@ -17,6 +17,18 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "\n"
 
+msgid "\"CHA #{field.upcase}\""
+msgstr ""
+
+msgid "\"CHA #{section_code}_TITLE\""
+msgstr ""
+
+msgid "\"CHA #{section_question.upcase}\""
+msgstr ""
+
+msgid "\"CHA #{section}_Q#{question}_A#{n}\""
+msgstr ""
+
 msgid "Appropriate for sober supportive housing"
 msgstr ""
 
@@ -36,6 +48,2289 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "CHA A_Q1"
+msgstr ""
+
+msgid "CHA A_Q10"
+msgstr ""
+
+msgid "CHA A_Q11"
+msgstr ""
+
+msgid "CHA A_Q11_A1"
+msgstr ""
+
+msgid "CHA A_Q11_A10"
+msgstr ""
+
+msgid "CHA A_Q11_A11"
+msgstr ""
+
+msgid "CHA A_Q11_A12"
+msgstr ""
+
+msgid "CHA A_Q11_A13"
+msgstr ""
+
+msgid "CHA A_Q11_A14"
+msgstr ""
+
+msgid "CHA A_Q11_A2"
+msgstr ""
+
+msgid "CHA A_Q11_A3"
+msgstr ""
+
+msgid "CHA A_Q11_A4"
+msgstr ""
+
+msgid "CHA A_Q11_A5"
+msgstr ""
+
+msgid "CHA A_Q11_A6"
+msgstr ""
+
+msgid "CHA A_Q11_A7"
+msgstr ""
+
+msgid "CHA A_Q11_A8"
+msgstr ""
+
+msgid "CHA A_Q11_A9"
+msgstr ""
+
+msgid "CHA A_Q12"
+msgstr ""
+
+msgid "CHA A_Q12_A1"
+msgstr ""
+
+msgid "CHA A_Q12_A2"
+msgstr ""
+
+msgid "CHA A_Q12_A3"
+msgstr ""
+
+msgid "CHA A_Q12_A4"
+msgstr ""
+
+msgid "CHA A_Q12_A5"
+msgstr ""
+
+msgid "CHA A_Q12_A6"
+msgstr ""
+
+msgid "CHA A_Q12_A7"
+msgstr ""
+
+msgid "CHA A_Q12_A8"
+msgstr ""
+
+msgid "CHA A_Q2"
+msgstr ""
+
+msgid "CHA A_Q2_A1"
+msgstr ""
+
+msgid "CHA A_Q2_A2"
+msgstr ""
+
+msgid "CHA A_Q3"
+msgstr ""
+
+msgid "CHA A_Q4"
+msgstr ""
+
+msgid "CHA A_Q4_A1"
+msgstr ""
+
+msgid "CHA A_Q4_A2"
+msgstr ""
+
+msgid "CHA A_Q4_A3"
+msgstr ""
+
+msgid "CHA A_Q4_A4"
+msgstr ""
+
+msgid "CHA A_Q4_A5"
+msgstr ""
+
+msgid "CHA A_Q4_A6"
+msgstr ""
+
+msgid "CHA A_Q5"
+msgstr ""
+
+msgid "CHA A_Q5A"
+msgstr ""
+
+msgid "CHA A_Q5B"
+msgstr ""
+
+msgid "CHA A_Q5C"
+msgstr ""
+
+msgid "CHA A_Q6"
+msgstr ""
+
+msgid "CHA A_Q7"
+msgstr ""
+
+msgid "CHA A_Q7_A1"
+msgstr ""
+
+msgid "CHA A_Q7_A2"
+msgstr ""
+
+msgid "CHA A_Q7_A3"
+msgstr ""
+
+msgid "CHA A_Q7_A4"
+msgstr ""
+
+msgid "CHA A_Q7_A5"
+msgstr ""
+
+msgid "CHA A_Q7_A6"
+msgstr ""
+
+msgid "CHA A_Q7_A7"
+msgstr ""
+
+msgid "CHA A_Q8"
+msgstr ""
+
+msgid "CHA A_Q9"
+msgstr ""
+
+msgid "CHA A_SUBTITLE"
+msgstr ""
+
+msgid "CHA A_TITLE"
+msgstr ""
+
+msgid "CHA B_Q1"
+msgstr ""
+
+msgid "CHA B_Q2"
+msgstr ""
+
+msgid "CHA B_Q2_A1"
+msgstr ""
+
+msgid "CHA B_Q2_A2"
+msgstr ""
+
+msgid "CHA B_Q2_A3"
+msgstr ""
+
+msgid "CHA B_Q2_A4"
+msgstr ""
+
+msgid "CHA B_Q2_A5"
+msgstr ""
+
+msgid "CHA B_Q2_A6"
+msgstr ""
+
+msgid "CHA B_Q3"
+msgstr ""
+
+msgid "CHA B_Q3_A1"
+msgstr ""
+
+msgid "CHA B_Q3_A2"
+msgstr ""
+
+msgid "CHA B_Q3_A3"
+msgstr ""
+
+msgid "CHA B_Q3_A4"
+msgstr ""
+
+msgid "CHA B_Q4"
+msgstr ""
+
+msgid "CHA B_Q4_A1"
+msgstr ""
+
+msgid "CHA B_Q4_A2"
+msgstr ""
+
+msgid "CHA B_Q4_A3"
+msgstr ""
+
+msgid "CHA B_Q4_A4"
+msgstr ""
+
+msgid "CHA B_Q4_A5"
+msgstr ""
+
+msgid "CHA B_SUBTITLE"
+msgstr ""
+
+msgid "CHA B_TITLE"
+msgstr ""
+
+msgid "CHA C_Q1"
+msgstr ""
+
+msgid "CHA C_Q1_A1"
+msgstr ""
+
+msgid "CHA C_Q1_A2"
+msgstr ""
+
+msgid "CHA C_Q1_A3"
+msgstr ""
+
+msgid "CHA C_Q1_A4"
+msgstr ""
+
+msgid "CHA C_Q1_A5"
+msgstr ""
+
+msgid "CHA C_Q1_A6"
+msgstr ""
+
+msgid "CHA C_Q2"
+msgstr ""
+
+msgid "CHA C_Q2_A1"
+msgstr ""
+
+msgid "CHA C_Q2_A2"
+msgstr ""
+
+msgid "CHA C_Q2_A3"
+msgstr ""
+
+msgid "CHA C_Q2_A4"
+msgstr ""
+
+msgid "CHA C_Q2_A5"
+msgstr ""
+
+msgid "CHA C_Q3"
+msgstr ""
+
+msgid "CHA C_Q3_A1"
+msgstr ""
+
+msgid "CHA C_Q3_A2"
+msgstr ""
+
+msgid "CHA C_Q3_A3"
+msgstr ""
+
+msgid "CHA C_Q3_A4"
+msgstr ""
+
+msgid "CHA C_Q3_A5"
+msgstr ""
+
+msgid "CHA C_Q4_A1"
+msgstr ""
+
+msgid "CHA C_Q4_A2"
+msgstr ""
+
+msgid "CHA C_Q4_A3"
+msgstr ""
+
+msgid "CHA C_Q4_A4"
+msgstr ""
+
+msgid "CHA C_Q4_A5"
+msgstr ""
+
+msgid "CHA C_SUBTITLE"
+msgstr ""
+
+msgid "CHA C_TITLE"
+msgstr ""
+
+msgid "CHA D_Q1"
+msgstr ""
+
+msgid "CHA D_Q1_A1"
+msgstr ""
+
+msgid "CHA D_Q1_A2"
+msgstr ""
+
+msgid "CHA D_Q1_A3"
+msgstr ""
+
+msgid "CHA D_Q1_A4"
+msgstr ""
+
+msgid "CHA D_Q1_A5"
+msgstr ""
+
+msgid "CHA D_Q2"
+msgstr ""
+
+msgid "CHA D_Q2_A1"
+msgstr ""
+
+msgid "CHA D_Q2_A2"
+msgstr ""
+
+msgid "CHA D_Q2_A3"
+msgstr ""
+
+msgid "CHA D_Q2_A4"
+msgstr ""
+
+msgid "CHA D_Q2_A5"
+msgstr ""
+
+msgid "CHA D_Q3"
+msgstr ""
+
+msgid "CHA D_Q3_A1"
+msgstr ""
+
+msgid "CHA D_Q3_A2"
+msgstr ""
+
+msgid "CHA D_Q3_A3"
+msgstr ""
+
+msgid "CHA D_Q3_A4"
+msgstr ""
+
+msgid "CHA D_Q3_A5"
+msgstr ""
+
+msgid "CHA D_Q4"
+msgstr ""
+
+msgid "CHA D_Q4_A1"
+msgstr ""
+
+msgid "CHA D_Q4_A2"
+msgstr ""
+
+msgid "CHA D_Q4_A3"
+msgstr ""
+
+msgid "CHA D_Q4_A4"
+msgstr ""
+
+msgid "CHA D_Q4_A5"
+msgstr ""
+
+msgid "CHA D_SUBTITLE"
+msgstr ""
+
+msgid "CHA D_TITLE"
+msgstr ""
+
+msgid "CHA E_Q1A"
+msgstr ""
+
+msgid "CHA E_Q1A_A1"
+msgstr ""
+
+msgid "CHA E_Q1A_A2"
+msgstr ""
+
+msgid "CHA E_Q1A_A3"
+msgstr ""
+
+msgid "CHA E_Q1A_A4"
+msgstr ""
+
+msgid "CHA E_Q1A_HEADER"
+msgstr ""
+
+msgid "CHA E_Q1A_SUBHEADER"
+msgstr ""
+
+msgid "CHA E_Q1B"
+msgstr ""
+
+msgid "CHA E_Q1C"
+msgstr ""
+
+msgid "CHA E_Q1D"
+msgstr ""
+
+msgid "CHA E_Q1E"
+msgstr ""
+
+msgid "CHA E_Q1F"
+msgstr ""
+
+msgid "CHA E_Q1G"
+msgstr ""
+
+msgid "CHA E_Q1H"
+msgstr ""
+
+msgid "CHA E_Q1I"
+msgstr ""
+
+msgid "CHA E_Q2A"
+msgstr ""
+
+msgid "CHA E_Q2A_A1"
+msgstr ""
+
+msgid "CHA E_Q2A_A2"
+msgstr ""
+
+msgid "CHA E_Q2A_A3"
+msgstr ""
+
+msgid "CHA E_Q2A_A4"
+msgstr ""
+
+msgid "CHA E_Q2A_A5"
+msgstr ""
+
+msgid "CHA E_Q2A_HEADER"
+msgstr ""
+
+msgid "CHA E_Q2B"
+msgstr ""
+
+msgid "CHA E_Q2C"
+msgstr ""
+
+msgid "CHA E_SUBTITLE"
+msgstr ""
+
+msgid "CHA E_TITLE"
+msgstr ""
+
+msgid "CHA F_Q1A"
+msgstr ""
+
+msgid "CHA F_Q1A_A1"
+msgstr ""
+
+msgid "CHA F_Q1A_A2"
+msgstr ""
+
+msgid "CHA F_Q1A_A3"
+msgstr ""
+
+msgid "CHA F_Q1A_A4"
+msgstr ""
+
+msgid "CHA F_Q1A_A5"
+msgstr ""
+
+msgid "CHA F_Q1A_A6"
+msgstr ""
+
+msgid "CHA F_Q1A_HEADER"
+msgstr ""
+
+msgid "CHA F_Q1A_SUBHEADER"
+msgstr ""
+
+msgid "CHA F_Q1B"
+msgstr ""
+
+msgid "CHA F_Q1C"
+msgstr ""
+
+msgid "CHA F_Q1D"
+msgstr ""
+
+msgid "CHA F_Q1E"
+msgstr ""
+
+msgid "CHA F_Q1F"
+msgstr ""
+
+msgid "CHA F_Q2"
+msgstr ""
+
+msgid "CHA F_Q2_A1"
+msgstr ""
+
+msgid "CHA F_Q2_A2"
+msgstr ""
+
+msgid "CHA F_Q2_HEADER"
+msgstr ""
+
+msgid "CHA F_Q3"
+msgstr ""
+
+msgid "CHA F_Q3_A1"
+msgstr ""
+
+msgid "CHA F_Q3_A2"
+msgstr ""
+
+msgid "CHA F_Q3_A3"
+msgstr ""
+
+msgid "CHA F_Q3_HEADER"
+msgstr ""
+
+msgid "CHA F_Q3_SUBHEADER"
+msgstr ""
+
+msgid "CHA F_Q4"
+msgstr ""
+
+msgid "CHA F_Q4_A1"
+msgstr ""
+
+msgid "CHA F_Q4_A2"
+msgstr ""
+
+msgid "CHA F_Q4_A3"
+msgstr ""
+
+msgid "CHA F_Q4_A4"
+msgstr ""
+
+msgid "CHA F_Q5"
+msgstr ""
+
+msgid "CHA F_Q5_A1"
+msgstr ""
+
+msgid "CHA F_Q5_A2"
+msgstr ""
+
+msgid "CHA F_SUBTITLE"
+msgstr ""
+
+msgid "CHA F_TITLE"
+msgstr ""
+
+msgid "CHA G_Q1AC"
+msgstr ""
+
+msgid "CHA G_Q1AP"
+msgstr ""
+
+msgid "CHA G_Q1AP_A1"
+msgstr ""
+
+msgid "CHA G_Q1AP_A2"
+msgstr ""
+
+msgid "CHA G_Q1AP_A3"
+msgstr ""
+
+msgid "CHA G_Q1AP_A4"
+msgstr ""
+
+msgid "CHA G_Q1AP_A5"
+msgstr ""
+
+msgid "CHA G_Q1AP_A6"
+msgstr ""
+
+msgid "CHA G_Q1AP_A7"
+msgstr ""
+
+msgid "CHA G_Q1AP_A8"
+msgstr ""
+
+msgid "CHA G_Q1A_A1"
+msgstr ""
+
+msgid "CHA G_Q1A_A2"
+msgstr ""
+
+msgid "CHA G_Q1A_A3"
+msgstr ""
+
+msgid "CHA G_Q1A_A4"
+msgstr ""
+
+msgid "CHA G_Q1A_A5"
+msgstr ""
+
+msgid "CHA G_Q1A_A6"
+msgstr ""
+
+msgid "CHA G_Q1A_A7"
+msgstr ""
+
+msgid "CHA G_Q1A_A8"
+msgstr ""
+
+msgid "CHA G_Q1A_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1BC"
+msgstr ""
+
+msgid "CHA G_Q1BP"
+msgstr ""
+
+msgid "CHA G_Q1B_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1CC"
+msgstr ""
+
+msgid "CHA G_Q1CP"
+msgstr ""
+
+msgid "CHA G_Q1C_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1DC"
+msgstr ""
+
+msgid "CHA G_Q1DP"
+msgstr ""
+
+msgid "CHA G_Q1D_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1EC"
+msgstr ""
+
+msgid "CHA G_Q1EP"
+msgstr ""
+
+msgid "CHA G_Q1E_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1FC"
+msgstr ""
+
+msgid "CHA G_Q1FP"
+msgstr ""
+
+msgid "CHA G_Q1F_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1GC"
+msgstr ""
+
+msgid "CHA G_Q1GP"
+msgstr ""
+
+msgid "CHA G_Q1G_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1HC"
+msgstr ""
+
+msgid "CHA G_Q1HP"
+msgstr ""
+
+msgid "CHA G_Q1H_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1_HEADER"
+msgstr ""
+
+msgid "CHA G_Q1_SUBHEADER"
+msgstr ""
+
+msgid "CHA G_Q2A"
+msgstr ""
+
+msgid "CHA G_Q2A_A1"
+msgstr ""
+
+msgid "CHA G_Q2A_A2"
+msgstr ""
+
+msgid "CHA G_Q2A_A3"
+msgstr ""
+
+msgid "CHA G_Q2A_A4"
+msgstr ""
+
+msgid "CHA G_Q2A_A5"
+msgstr ""
+
+msgid "CHA G_Q2A_A6"
+msgstr ""
+
+msgid "CHA G_Q2A_A7"
+msgstr ""
+
+msgid "CHA G_Q2A_A8"
+msgstr ""
+
+msgid "CHA G_Q2B"
+msgstr ""
+
+msgid "CHA G_Q2C"
+msgstr ""
+
+msgid "CHA G_Q2D"
+msgstr ""
+
+msgid "CHA G_Q2E"
+msgstr ""
+
+msgid "CHA G_Q2F"
+msgstr ""
+
+msgid "CHA G_Q2_HEADER"
+msgstr ""
+
+msgid "CHA G_Q2_SUBHEADER"
+msgstr ""
+
+msgid "CHA G_Q3"
+msgstr ""
+
+msgid "CHA G_Q3_A1"
+msgstr ""
+
+msgid "CHA G_Q3_A2"
+msgstr ""
+
+msgid "CHA G_Q3_A3"
+msgstr ""
+
+msgid "CHA G_Q3_A4"
+msgstr ""
+
+msgid "CHA G_Q4A"
+msgstr ""
+
+msgid "CHA G_Q4A_A1"
+msgstr ""
+
+msgid "CHA G_Q4A_A2"
+msgstr ""
+
+msgid "CHA G_Q4A_A3"
+msgstr ""
+
+msgid "CHA G_Q4A_A4"
+msgstr ""
+
+msgid "CHA G_Q4A_A5"
+msgstr ""
+
+msgid "CHA G_Q4A_HEADER"
+msgstr ""
+
+msgid "CHA G_Q4B"
+msgstr ""
+
+msgid "CHA G_Q4B_A1"
+msgstr ""
+
+msgid "CHA G_Q4B_A2"
+msgstr ""
+
+msgid "CHA G_Q4B_A3"
+msgstr ""
+
+msgid "CHA G_Q4B_A4"
+msgstr ""
+
+msgid "CHA G_Q5"
+msgstr ""
+
+msgid "CHA G_Q5_A1"
+msgstr ""
+
+msgid "CHA G_Q5_A2"
+msgstr ""
+
+msgid "CHA G_Q5_A3"
+msgstr ""
+
+msgid "CHA G_Q5_A4"
+msgstr ""
+
+msgid "CHA G_Q5_HEADER"
+msgstr ""
+
+msgid "CHA G_Q6A"
+msgstr ""
+
+msgid "CHA G_Q6A_A1"
+msgstr ""
+
+msgid "CHA G_Q6A_A2"
+msgstr ""
+
+msgid "CHA G_Q6B"
+msgstr ""
+
+msgid "CHA G_Q6B_A1"
+msgstr ""
+
+msgid "CHA G_Q6B_A2"
+msgstr ""
+
+msgid "CHA G_SUBTITLE"
+msgstr ""
+
+msgid "CHA G_TITLE"
+msgstr ""
+
+msgid "CHA H_Q1"
+msgstr ""
+
+msgid "CHA H_Q1_A1"
+msgstr ""
+
+msgid "CHA H_Q1_A2"
+msgstr ""
+
+msgid "CHA H_Q1_A3"
+msgstr ""
+
+msgid "CHA H_Q1_A4"
+msgstr ""
+
+msgid "CHA H_Q1_A5"
+msgstr ""
+
+msgid "CHA H_Q1_A6"
+msgstr ""
+
+msgid "CHA H_Q1_A7"
+msgstr ""
+
+msgid "CHA H_SUBTITLE"
+msgstr ""
+
+msgid "CHA H_TITLE"
+msgstr ""
+
+msgid "CHA I_Q1A"
+msgstr ""
+
+msgid "CHA I_Q1A_A1"
+msgstr ""
+
+msgid "CHA I_Q1A_A2"
+msgstr ""
+
+msgid "CHA I_Q1A_A3"
+msgstr ""
+
+msgid "CHA I_Q1A_A4"
+msgstr ""
+
+msgid "CHA I_Q1A_SUBHEADER"
+msgstr ""
+
+msgid "CHA I_Q1B"
+msgstr ""
+
+msgid "CHA I_Q1C"
+msgstr ""
+
+msgid "CHA I_Q1C_SUBHEADER"
+msgstr ""
+
+msgid "CHA I_Q1D"
+msgstr ""
+
+msgid "CHA I_Q1E"
+msgstr ""
+
+msgid "CHA I_Q1F"
+msgstr ""
+
+msgid "CHA I_Q1F_SUBHEADER"
+msgstr ""
+
+msgid "CHA I_Q1G"
+msgstr ""
+
+msgid "CHA I_Q1H"
+msgstr ""
+
+msgid "CHA I_Q1I"
+msgstr ""
+
+msgid "CHA I_Q1I_SUBHEADER"
+msgstr ""
+
+msgid "CHA I_Q1J"
+msgstr ""
+
+msgid "CHA I_Q1K"
+msgstr ""
+
+msgid "CHA I_Q1L"
+msgstr ""
+
+msgid "CHA I_Q1M"
+msgstr ""
+
+msgid "CHA I_Q1M_SUBHEADER"
+msgstr ""
+
+msgid "CHA I_Q1N"
+msgstr ""
+
+msgid "CHA I_Q2A1"
+msgstr ""
+
+msgid "CHA I_Q2A2"
+msgstr ""
+
+msgid "CHA I_Q2A3"
+msgstr ""
+
+msgid "CHA I_Q2B1"
+msgstr ""
+
+msgid "CHA I_Q2B2"
+msgstr ""
+
+msgid "CHA I_Q2B3"
+msgstr ""
+
+msgid "CHA I_Q2C1"
+msgstr ""
+
+msgid "CHA I_Q2C2"
+msgstr ""
+
+msgid "CHA I_Q2C3"
+msgstr ""
+
+msgid "CHA I_Q2D1"
+msgstr ""
+
+msgid "CHA I_Q2D2"
+msgstr ""
+
+msgid "CHA I_Q2D3"
+msgstr ""
+
+msgid "CHA I_Q2E1"
+msgstr ""
+
+msgid "CHA I_Q2E2"
+msgstr ""
+
+msgid "CHA I_Q2E3"
+msgstr ""
+
+msgid "CHA I_Q2F1"
+msgstr ""
+
+msgid "CHA I_Q2F2"
+msgstr ""
+
+msgid "CHA I_Q2F3"
+msgstr ""
+
+msgid "CHA I_Q2_HEADER"
+msgstr ""
+
+msgid "CHA I_SUBTITLE"
+msgstr ""
+
+msgid "CHA I_TITLE"
+msgstr ""
+
+msgid "CHA J_Q1"
+msgstr ""
+
+msgid "CHA J_Q1_A1"
+msgstr ""
+
+msgid "CHA J_Q1_A2"
+msgstr ""
+
+msgid "CHA J_Q1_A3"
+msgstr ""
+
+msgid "CHA J_Q1_A4"
+msgstr ""
+
+msgid "CHA J_Q2"
+msgstr ""
+
+msgid "CHA J_Q2_A1"
+msgstr ""
+
+msgid "CHA J_Q2_A2"
+msgstr ""
+
+msgid "CHA J_Q2_A3"
+msgstr ""
+
+msgid "CHA J_Q3A"
+msgstr ""
+
+msgid "CHA J_Q3A_A1"
+msgstr ""
+
+msgid "CHA J_Q3A_A2"
+msgstr ""
+
+msgid "CHA J_Q3A_A3"
+msgstr ""
+
+msgid "CHA J_Q3A_A4"
+msgstr ""
+
+msgid "CHA J_Q3A_A5"
+msgstr ""
+
+msgid "CHA J_Q3B"
+msgstr ""
+
+msgid "CHA J_Q3C"
+msgstr ""
+
+msgid "CHA J_Q3D"
+msgstr ""
+
+msgid "CHA J_Q3E"
+msgstr ""
+
+msgid "CHA J_Q3F"
+msgstr ""
+
+msgid "CHA J_Q3G"
+msgstr ""
+
+msgid "CHA J_Q3H"
+msgstr ""
+
+msgid "CHA J_Q3I"
+msgstr ""
+
+msgid "CHA J_Q3J"
+msgstr ""
+
+msgid "CHA J_Q3K"
+msgstr ""
+
+msgid "CHA J_Q3L"
+msgstr ""
+
+msgid "CHA J_Q4"
+msgstr ""
+
+msgid "CHA J_Q4_A1"
+msgstr ""
+
+msgid "CHA J_Q4_A2"
+msgstr ""
+
+msgid "CHA J_Q4_A3"
+msgstr ""
+
+msgid "CHA J_Q4_A4"
+msgstr ""
+
+msgid "CHA J_Q5"
+msgstr ""
+
+msgid "CHA J_Q5_A1"
+msgstr ""
+
+msgid "CHA J_Q5_A2"
+msgstr ""
+
+msgid "CHA J_Q5_A3"
+msgstr ""
+
+msgid "CHA J_Q5_A4"
+msgstr ""
+
+msgid "CHA J_Q5_A5"
+msgstr ""
+
+msgid "CHA J_Q6A"
+msgstr ""
+
+msgid "CHA J_Q6A_A1"
+msgstr ""
+
+msgid "CHA J_Q6A_A2"
+msgstr ""
+
+msgid "CHA J_Q6A_A3"
+msgstr ""
+
+msgid "CHA J_Q6A_A4"
+msgstr ""
+
+msgid "CHA J_Q6A_HEADER"
+msgstr ""
+
+msgid "CHA J_Q6A_SUBHEADER"
+msgstr ""
+
+msgid "CHA J_Q6B"
+msgstr ""
+
+msgid "CHA J_Q6B_A1"
+msgstr ""
+
+msgid "CHA J_Q6B_A2"
+msgstr ""
+
+msgid "CHA J_Q6B_A3"
+msgstr ""
+
+msgid "CHA J_Q6B_A4"
+msgstr ""
+
+msgid "CHA J_Q6B_A5"
+msgstr ""
+
+msgid "CHA J_Q6C"
+msgstr ""
+
+msgid "CHA J_Q6C_A1"
+msgstr ""
+
+msgid "CHA J_Q6C_A2"
+msgstr ""
+
+msgid "CHA J_Q6C_A3"
+msgstr ""
+
+msgid "CHA J_Q6C_A4"
+msgstr ""
+
+msgid "CHA J_Q6D"
+msgstr ""
+
+msgid "CHA J_Q6D_A1"
+msgstr ""
+
+msgid "CHA J_Q6D_A2"
+msgstr ""
+
+msgid "CHA J_Q6E"
+msgstr ""
+
+msgid "CHA J_Q6E_A1"
+msgstr ""
+
+msgid "CHA J_Q6E_A2"
+msgstr ""
+
+msgid "CHA J_Q6E_A3"
+msgstr ""
+
+msgid "CHA J_Q6E_A4"
+msgstr ""
+
+msgid "CHA J_Q6E_A5"
+msgstr ""
+
+msgid "CHA J_Q6E_A6"
+msgstr ""
+
+msgid "CHA J_Q7A"
+msgstr ""
+
+msgid "CHA J_Q7A_A1"
+msgstr ""
+
+msgid "CHA J_Q7A_A2"
+msgstr ""
+
+msgid "CHA J_Q7A_HEADER"
+msgstr ""
+
+msgid "CHA J_Q7B"
+msgstr ""
+
+msgid "CHA J_Q8"
+msgstr ""
+
+msgid "CHA J_Q8_A1"
+msgstr ""
+
+msgid "CHA J_Q8_A2"
+msgstr ""
+
+msgid "CHA J_Q8_A3"
+msgstr ""
+
+msgid "CHA J_Q8_A4"
+msgstr ""
+
+msgid "CHA J_Q8_A5"
+msgstr ""
+
+msgid "CHA J_Q8_HEADER"
+msgstr ""
+
+msgid "CHA J_Q9A"
+msgstr ""
+
+msgid "CHA J_Q9A_A1"
+msgstr ""
+
+msgid "CHA J_Q9A_A2"
+msgstr ""
+
+msgid "CHA J_Q9A_A3"
+msgstr ""
+
+msgid "CHA J_Q9A_HEADER"
+msgstr ""
+
+msgid "CHA J_Q9B"
+msgstr ""
+
+msgid "CHA J_Q9B_A1"
+msgstr ""
+
+msgid "CHA J_Q9B_A2"
+msgstr ""
+
+msgid "CHA J_Q9B_A3"
+msgstr ""
+
+msgid "CHA J_Q9B_A4"
+msgstr ""
+
+msgid "CHA J_SUBTITLE"
+msgstr ""
+
+msgid "CHA J_TITLE"
+msgstr ""
+
+msgid "CHA K_Q1A"
+msgstr ""
+
+msgid "CHA K_Q1A_A1"
+msgstr ""
+
+msgid "CHA K_Q1A_A2"
+msgstr ""
+
+msgid "CHA K_Q1A_HEADER"
+msgstr ""
+
+msgid "CHA K_Q1B"
+msgstr ""
+
+msgid "CHA K_Q1C"
+msgstr ""
+
+msgid "CHA K_Q1D"
+msgstr ""
+
+msgid "CHA K_SUBTITLE"
+msgstr ""
+
+msgid "CHA K_TITLE"
+msgstr ""
+
+msgid "CHA L_Q1S1A"
+msgstr ""
+
+msgid "CHA L_Q1S1A_HEADER"
+msgstr ""
+
+msgid "CHA L_Q1S1A_SUBHEADER"
+msgstr ""
+
+msgid "CHA L_Q1S1B"
+msgstr ""
+
+msgid "CHA L_Q1S1C"
+msgstr ""
+
+msgid "CHA L_Q1S1D"
+msgstr ""
+
+msgid "CHA L_Q1S1E"
+msgstr ""
+
+msgid "CHA L_Q1S1F"
+msgstr ""
+
+msgid "CHA L_Q1S1G"
+msgstr ""
+
+msgid "CHA L_Q1S2A"
+msgstr ""
+
+msgid "CHA L_Q1S2B"
+msgstr ""
+
+msgid "CHA L_Q1S2C"
+msgstr ""
+
+msgid "CHA L_Q1S2D"
+msgstr ""
+
+msgid "CHA L_Q1S2E"
+msgstr ""
+
+msgid "CHA L_Q1S2F"
+msgstr ""
+
+msgid "CHA L_Q1S2G"
+msgstr ""
+
+msgid "CHA L_Q1S3A"
+msgstr ""
+
+msgid "CHA L_Q1S3B"
+msgstr ""
+
+msgid "CHA L_Q1S3C"
+msgstr ""
+
+msgid "CHA L_Q1S3D"
+msgstr ""
+
+msgid "CHA L_Q1S3E"
+msgstr ""
+
+msgid "CHA L_Q1S3F"
+msgstr ""
+
+msgid "CHA L_Q1S3G"
+msgstr ""
+
+msgid "CHA L_Q1S4A"
+msgstr ""
+
+msgid "CHA L_Q1S4B"
+msgstr ""
+
+msgid "CHA L_Q1S4C"
+msgstr ""
+
+msgid "CHA L_Q1S4D"
+msgstr ""
+
+msgid "CHA L_Q1S4E"
+msgstr ""
+
+msgid "CHA L_Q1S4F"
+msgstr ""
+
+msgid "CHA L_Q1S4G"
+msgstr ""
+
+msgid "CHA L_Q1S5A"
+msgstr ""
+
+msgid "CHA L_Q1S5B"
+msgstr ""
+
+msgid "CHA L_Q1S5C"
+msgstr ""
+
+msgid "CHA L_Q1S5D"
+msgstr ""
+
+msgid "CHA L_Q1S5E"
+msgstr ""
+
+msgid "CHA L_Q1S5F"
+msgstr ""
+
+msgid "CHA L_Q1S5G"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A1"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A10"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A11"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A12"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A2"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A3"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A4"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A5"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A6"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A7"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A8"
+msgstr ""
+
+msgid "CHA L_Q1_1C_A9"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A1"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A10"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A11"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A12"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A13"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A2"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A3"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A4"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A5"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A6"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A7"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A8"
+msgstr ""
+
+msgid "CHA L_Q1_1D_A9"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A1"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A10"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A11"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A12"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A13"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A14"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A15"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A16"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A17"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A18"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A19"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A2"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A20"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A21"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A3"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A4"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A5"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A6"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A7"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A8"
+msgstr ""
+
+msgid "CHA L_Q1_1E_A9"
+msgstr ""
+
+msgid "CHA L_Q1_1F_A1"
+msgstr ""
+
+msgid "CHA L_Q1_1F_A2"
+msgstr ""
+
+msgid "CHA L_Q2"
+msgstr ""
+
+msgid "CHA L_Q2_A1"
+msgstr ""
+
+msgid "CHA L_Q2_A2"
+msgstr ""
+
+msgid "CHA L_SUBTITLE"
+msgstr ""
+
+msgid "CHA L_TITLE"
+msgstr ""
+
+msgid "CHA M_Q1A"
+msgstr ""
+
+msgid "CHA M_Q1A_A1"
+msgstr ""
+
+msgid "CHA M_Q1A_A2"
+msgstr ""
+
+msgid "CHA M_Q1A_HEADER"
+msgstr ""
+
+msgid "CHA M_Q1B"
+msgstr ""
+
+msgid "CHA M_Q1C"
+msgstr ""
+
+msgid "CHA M_Q1D"
+msgstr ""
+
+msgid "CHA M_Q1E"
+msgstr ""
+
+msgid "CHA M_Q1F"
+msgstr ""
+
+msgid "CHA M_Q1G"
+msgstr ""
+
+msgid "CHA M_Q1H"
+msgstr ""
+
+msgid "CHA M_Q2A"
+msgstr ""
+
+msgid "CHA M_Q2A_HEADER"
+msgstr ""
+
+msgid "CHA M_Q2A_SUBHEADER"
+msgstr ""
+
+msgid "CHA M_Q2B"
+msgstr ""
+
+msgid "CHA M_Q2C"
+msgstr ""
+
+msgid "CHA M_SUBTITLE"
+msgstr ""
+
+msgid "CHA M_TITLE"
+msgstr ""
+
+msgid "CHA N_Q1"
+msgstr ""
+
+msgid "CHA N_Q1_A1"
+msgstr ""
+
+msgid "CHA N_Q1_A2"
+msgstr ""
+
+msgid "CHA N_SUBTITLE"
+msgstr ""
+
+msgid "CHA N_TITLE"
+msgstr ""
+
+msgid "CHA O_Q1"
+msgstr ""
+
+msgid "CHA O_Q1_A1"
+msgstr ""
+
+msgid "CHA O_Q1_A2"
+msgstr ""
+
+msgid "CHA O_Q1_HEADER"
+msgstr ""
+
+msgid "CHA O_SUBTITLE"
+msgstr ""
+
+msgid "CHA O_TITLE"
+msgstr ""
+
+msgid "CHA P_Q1"
+msgstr ""
+
+msgid "CHA P_Q2"
+msgstr ""
+
+msgid "CHA P_Q2_A1"
+msgstr ""
+
+msgid "CHA P_Q2_A10"
+msgstr ""
+
+msgid "CHA P_Q2_A11"
+msgstr ""
+
+msgid "CHA P_Q2_A12"
+msgstr ""
+
+msgid "CHA P_Q2_A13"
+msgstr ""
+
+msgid "CHA P_Q2_A14"
+msgstr ""
+
+msgid "CHA P_Q2_A15"
+msgstr ""
+
+msgid "CHA P_Q2_A2"
+msgstr ""
+
+msgid "CHA P_Q2_A3"
+msgstr ""
+
+msgid "CHA P_Q2_A4"
+msgstr ""
+
+msgid "CHA P_Q2_A5"
+msgstr ""
+
+msgid "CHA P_Q2_A6"
+msgstr ""
+
+msgid "CHA P_Q2_A7"
+msgstr ""
+
+msgid "CHA P_Q2_A8"
+msgstr ""
+
+msgid "CHA P_Q2_A9"
+msgstr ""
+
+msgid "CHA P_SUBTITLE"
+msgstr ""
+
+msgid "CHA P_TITLE"
+msgstr ""
+
+msgid "CHA Q_Q1"
+msgstr ""
+
+msgid "CHA Q_Q2"
+msgstr ""
+
+msgid "CHA Q_SUBTITLE"
+msgstr ""
+
+msgid "CHA Q_TITLE"
+msgstr ""
+
+msgid "CHA R_Q1"
+msgstr ""
+
+msgid "CHA R_Q10A"
+msgstr ""
+
+msgid "CHA R_Q10B"
+msgstr ""
+
+msgid "CHA R_Q10C"
+msgstr ""
+
+msgid "CHA R_Q10D"
+msgstr ""
+
+msgid "CHA R_Q10_HEADER"
+msgstr ""
+
+msgid "CHA R_Q11A"
+msgstr ""
+
+msgid "CHA R_Q11B"
+msgstr ""
+
+msgid "CHA R_Q11C"
+msgstr ""
+
+msgid "CHA R_Q11D"
+msgstr ""
+
+msgid "CHA R_Q11_HEADER"
+msgstr ""
+
+msgid "CHA R_Q12A"
+msgstr ""
+
+msgid "CHA R_Q12B"
+msgstr ""
+
+msgid "CHA R_Q12C"
+msgstr ""
+
+msgid "CHA R_Q12D"
+msgstr ""
+
+msgid "CHA R_Q12_HEADER"
+msgstr ""
+
+msgid "CHA R_Q13A"
+msgstr ""
+
+msgid "CHA R_Q13B"
+msgstr ""
+
+msgid "CHA R_Q13C"
+msgstr ""
+
+msgid "CHA R_Q13D"
+msgstr ""
+
+msgid "CHA R_Q13_HEADER"
+msgstr ""
+
+msgid "CHA R_Q14A"
+msgstr ""
+
+msgid "CHA R_Q14B"
+msgstr ""
+
+msgid "CHA R_Q14C"
+msgstr ""
+
+msgid "CHA R_Q14D"
+msgstr ""
+
+msgid "CHA R_Q14_HEADER"
+msgstr ""
+
+msgid "CHA R_Q15A"
+msgstr ""
+
+msgid "CHA R_Q15B"
+msgstr ""
+
+msgid "CHA R_Q15C"
+msgstr ""
+
+msgid "CHA R_Q15D"
+msgstr ""
+
+msgid "CHA R_Q15_HEADER"
+msgstr ""
+
+msgid "CHA R_Q16A"
+msgstr ""
+
+msgid "CHA R_Q16B"
+msgstr ""
+
+msgid "CHA R_Q16C"
+msgstr ""
+
+msgid "CHA R_Q16D"
+msgstr ""
+
+msgid "CHA R_Q16_HEADER"
+msgstr ""
+
+msgid "CHA R_Q17A"
+msgstr ""
+
+msgid "CHA R_Q17B"
+msgstr ""
+
+msgid "CHA R_Q17C"
+msgstr ""
+
+msgid "CHA R_Q17D"
+msgstr ""
+
+msgid "CHA R_Q17_HEADER"
+msgstr ""
+
+msgid "CHA R_Q18A"
+msgstr ""
+
+msgid "CHA R_Q18B"
+msgstr ""
+
+msgid "CHA R_Q18C"
+msgstr ""
+
+msgid "CHA R_Q18D"
+msgstr ""
+
+msgid "CHA R_Q18_HEADER"
+msgstr ""
+
+msgid "CHA R_Q19A"
+msgstr ""
+
+msgid "CHA R_Q19B"
+msgstr ""
+
+msgid "CHA R_Q19C"
+msgstr ""
+
+msgid "CHA R_Q19D"
+msgstr ""
+
+msgid "CHA R_Q19_HEADER"
+msgstr ""
+
+msgid "CHA R_Q1_A1"
+msgstr ""
+
+msgid "CHA R_Q1_A2"
+msgstr ""
+
+msgid "CHA R_Q1_A3"
+msgstr ""
+
+msgid "CHA R_Q1_A4"
+msgstr ""
+
+msgid "CHA R_Q2"
+msgstr ""
+
+msgid "CHA R_Q20A"
+msgstr ""
+
+msgid "CHA R_Q20B"
+msgstr ""
+
+msgid "CHA R_Q20C"
+msgstr ""
+
+msgid "CHA R_Q20D"
+msgstr ""
+
+msgid "CHA R_Q20_HEADER"
+msgstr ""
+
+msgid "CHA R_Q21A"
+msgstr ""
+
+msgid "CHA R_Q21B"
+msgstr ""
+
+msgid "CHA R_Q21C"
+msgstr ""
+
+msgid "CHA R_Q21D"
+msgstr ""
+
+msgid "CHA R_Q21_HEADER"
+msgstr ""
+
+msgid "CHA R_Q22A"
+msgstr ""
+
+msgid "CHA R_Q22B"
+msgstr ""
+
+msgid "CHA R_Q22C"
+msgstr ""
+
+msgid "CHA R_Q22D"
+msgstr ""
+
+msgid "CHA R_Q22_HEADER"
+msgstr ""
+
+msgid "CHA R_Q23A"
+msgstr ""
+
+msgid "CHA R_Q23B"
+msgstr ""
+
+msgid "CHA R_Q23C"
+msgstr ""
+
+msgid "CHA R_Q23D"
+msgstr ""
+
+msgid "CHA R_Q23_HEADER"
+msgstr ""
+
+msgid "CHA R_Q24A"
+msgstr ""
+
+msgid "CHA R_Q24B"
+msgstr ""
+
+msgid "CHA R_Q24C"
+msgstr ""
+
+msgid "CHA R_Q24D"
+msgstr ""
+
+msgid "CHA R_Q24_HEADER"
+msgstr ""
+
+msgid "CHA R_Q25A"
+msgstr ""
+
+msgid "CHA R_Q25B"
+msgstr ""
+
+msgid "CHA R_Q25C"
+msgstr ""
+
+msgid "CHA R_Q25D"
+msgstr ""
+
+msgid "CHA R_Q25_HEADER"
+msgstr ""
+
+msgid "CHA R_Q26A"
+msgstr ""
+
+msgid "CHA R_Q26B"
+msgstr ""
+
+msgid "CHA R_Q26C"
+msgstr ""
+
+msgid "CHA R_Q26D"
+msgstr ""
+
+msgid "CHA R_Q26_HEADER"
+msgstr ""
+
+msgid "CHA R_Q27A"
+msgstr ""
+
+msgid "CHA R_Q27B"
+msgstr ""
+
+msgid "CHA R_Q27C"
+msgstr ""
+
+msgid "CHA R_Q27D"
+msgstr ""
+
+msgid "CHA R_Q27_HEADER"
+msgstr ""
+
+msgid "CHA R_Q28A"
+msgstr ""
+
+msgid "CHA R_Q28B"
+msgstr ""
+
+msgid "CHA R_Q28C"
+msgstr ""
+
+msgid "CHA R_Q28D"
+msgstr ""
+
+msgid "CHA R_Q28_HEADER"
+msgstr ""
+
+msgid "CHA R_Q28_TITLE"
+msgstr ""
+
+msgid "CHA R_Q29A"
+msgstr ""
+
+msgid "CHA R_Q29B"
+msgstr ""
+
+msgid "CHA R_Q29C"
+msgstr ""
+
+msgid "CHA R_Q29D"
+msgstr ""
+
+msgid "CHA R_Q29_HEADER"
+msgstr ""
+
+msgid "CHA R_Q2_A1"
+msgstr ""
+
+msgid "CHA R_Q2_A2"
+msgstr ""
+
+msgid "CHA R_Q3"
+msgstr ""
+
+msgid "CHA R_Q30A"
+msgstr ""
+
+msgid "CHA R_Q30B"
+msgstr ""
+
+msgid "CHA R_Q30C"
+msgstr ""
+
+msgid "CHA R_Q30D"
+msgstr ""
+
+msgid "CHA R_Q30_HEADER"
+msgstr ""
+
+msgid "CHA R_Q31A"
+msgstr ""
+
+msgid "CHA R_Q31B"
+msgstr ""
+
+msgid "CHA R_Q31C"
+msgstr ""
+
+msgid "CHA R_Q31D"
+msgstr ""
+
+msgid "CHA R_Q31_HEADER"
+msgstr ""
+
+msgid "CHA R_Q32A"
+msgstr ""
+
+msgid "CHA R_Q32B"
+msgstr ""
+
+msgid "CHA R_Q32C"
+msgstr ""
+
+msgid "CHA R_Q32D"
+msgstr ""
+
+msgid "CHA R_Q32_HEADER"
+msgstr ""
+
+msgid "CHA R_Q33A"
+msgstr ""
+
+msgid "CHA R_Q33B"
+msgstr ""
+
+msgid "CHA R_Q33C"
+msgstr ""
+
+msgid "CHA R_Q33D"
+msgstr ""
+
+msgid "CHA R_Q33_HEADER"
+msgstr ""
+
+msgid "CHA R_Q34A"
+msgstr ""
+
+msgid "CHA R_Q34B"
+msgstr ""
+
+msgid "CHA R_Q34C"
+msgstr ""
+
+msgid "CHA R_Q34D"
+msgstr ""
+
+msgid "CHA R_Q34_HEADER"
+msgstr ""
+
+msgid "CHA R_Q35A"
+msgstr ""
+
+msgid "CHA R_Q35B"
+msgstr ""
+
+msgid "CHA R_Q35C"
+msgstr ""
+
+msgid "CHA R_Q35D"
+msgstr ""
+
+msgid "CHA R_Q35_HEADER"
+msgstr ""
+
+msgid "CHA R_Q36A"
+msgstr ""
+
+msgid "CHA R_Q36B"
+msgstr ""
+
+msgid "CHA R_Q36C"
+msgstr ""
+
+msgid "CHA R_Q36D"
+msgstr ""
+
+msgid "CHA R_Q36_HEADER"
+msgstr ""
+
+msgid "CHA R_Q37A"
+msgstr ""
+
+msgid "CHA R_Q37B"
+msgstr ""
+
+msgid "CHA R_Q37C"
+msgstr ""
+
+msgid "CHA R_Q37D"
+msgstr ""
+
+msgid "CHA R_Q37_HEADER"
+msgstr ""
+
+msgid "CHA R_Q38A"
+msgstr ""
+
+msgid "CHA R_Q38B"
+msgstr ""
+
+msgid "CHA R_Q38C"
+msgstr ""
+
+msgid "CHA R_Q38D"
+msgstr ""
+
+msgid "CHA R_Q3_A1"
+msgstr ""
+
+msgid "CHA R_Q3_A2"
+msgstr ""
+
+msgid "CHA R_Q4"
+msgstr ""
+
+msgid "CHA R_Q4_A1"
+msgstr ""
+
+msgid "CHA R_Q4_A2"
+msgstr ""
+
+msgid "CHA R_Q5"
+msgstr ""
+
+msgid "CHA R_Q5_A1"
+msgstr ""
+
+msgid "CHA R_Q5_A2"
+msgstr ""
+
+msgid "CHA R_Q5_A3"
+msgstr ""
+
+msgid "CHA R_Q5_A4"
+msgstr ""
+
+msgid "CHA R_Q6A"
+msgstr ""
+
+msgid "CHA R_Q6A_HEADER"
+msgstr ""
+
+msgid "CHA R_Q6B"
+msgstr ""
+
+msgid "CHA R_Q6C"
+msgstr ""
+
+msgid "CHA R_Q6D"
+msgstr ""
+
+msgid "CHA R_Q6E"
+msgstr ""
+
+msgid "CHA R_Q7"
+msgstr ""
+
+msgid "CHA R_Q7_A1"
+msgstr ""
+
+msgid "CHA R_Q7_A2"
+msgstr ""
+
+msgid "CHA R_Q8"
+msgstr ""
+
+msgid "CHA R_Q8_A1"
+msgstr ""
+
+msgid "CHA R_Q8_A2"
+msgstr ""
+
+msgid "CHA R_Q8_A3"
+msgstr ""
+
+msgid "CHA R_Q8_A4"
+msgstr ""
+
+msgid "CHA R_Q8_A5"
+msgstr ""
+
+msgid "CHA R_Q8_A6"
+msgstr ""
+
+msgid "CHA R_Q8_A7"
+msgstr ""
+
+msgid "CHA R_Q8_A8"
+msgstr ""
+
+msgid "CHA R_Q8_A9"
+msgstr ""
+
+msgid "CHA R_Q8_HEADER"
+msgstr ""
+
+msgid "CHA R_Q9A"
+msgstr ""
+
+msgid "CHA R_Q9B"
+msgstr ""
+
+msgid "CHA R_Q9C"
+msgstr ""
+
+msgid "CHA R_Q9D"
+msgstr ""
+
+msgid "CHA R_Q9_HEADER"
+msgstr ""
+
+msgid "CHA R_SUBTITLE"
+msgstr ""
+
+msgid "CHA R_TITLE"
 msgstr ""
 
 msgid "CSPECH Eligible"
@@ -107,6 +2402,9 @@ msgstr ""
 msgid "Housing Release Status"
 msgstr ""
 
+msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
+msgstr ""
+
 msgid "Import Dashboard"
 msgstr ""
 
@@ -144,6 +2442,9 @@ msgid "Meth Production Conviction"
 msgstr ""
 
 msgid "Missing Data Percentages"
+msgstr ""
+
+msgid "My Agency's Patients"
 msgstr ""
 
 msgid "My Clients"
@@ -243,6 +2544,9 @@ msgid "You can only see notes you add."
 msgstr ""
 
 msgid "You must attach a file in the form."
+msgstr ""
+
+msgid "assignments"
 msgstr ""
 
 msgid "client"

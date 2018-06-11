@@ -1,39 +1,46 @@
 module Window::Health
   class ComprehensiveHealthAssessmentsController < IndividualPatientController
+    helper ChaHelper
+
     include PjaxModalController
     include WindowClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
+    before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
 
     def new
-      @cha = @patient.chas.build
-      render :new
+      @cha = @patient.chas.build(user: current_user)
+      @cha.save(validate: false)
+      redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
-    def create
-      @cha = @patient.chas.build(form_params)
-      validate_form
+    def update
+      if params[:commit]=='Save'
+        @cha.completed_at = Time.current
+      end
       @cha.reviewed_by = current_user if reviewed?
-      @cha.user = current_user
-      save_file if @cha.errors.none? && @cha.save
-      respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      @cha.update(form_params)
+      respond_with @cha, location: polymorphic_path(careplans_path_generator)
+    end
+
+    def edit
+      # For errors in new/edit forms
+      @service = Health::Service.new
+      @equipment = Health::Equipment.new
+      @services = @patient.services.order(date_requested: :desc)
+      @equipments = @patient.equipments
+      
+      respond_with @cha
+    end
+    
+    def upload
+      validate_form
+      save_file if @cha.errors.none? && @cha.update(form_params)
+      respond_with @cha, location: polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
     def show
       render :show
-    end
-
-    def edit
-      respond_with @cha
-    end
-    
-    def update
-      validate_form unless @cha.health_file.present?
-      @cha.reviewed_by = current_user if reviewed?
-      @cha.status = completed? ? :complete : :in_progress
-      save_file if @cha.errors.none? && @cha.update(form_params)
-      respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     def download
@@ -57,7 +64,8 @@ module Window::Health
     def form_params
       local_params = params.require(:form).permit( 
         :reviewed_by_supervisor,
-        :completed
+        :completed,
+        *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
       )
       if ! current_user.can_approve_cha?
         local_params.execpt(:reviewed_by_supervisor)
@@ -86,7 +94,7 @@ module Window::Health
 
     def validate_form
       if params.dig(:form, :file).blank?
-        @cha.errors.add :file, "Please include a file upload."
+        @cha.errors.add :file, "Please select a file to upload."
       end
     end
 

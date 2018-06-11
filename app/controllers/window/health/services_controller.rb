@@ -32,7 +32,9 @@ module Window::Health
       @form_url = polymorphic_path(health_path_generator + [:service], client_id: @client.id)
       @service.assign_attributes(service_params)
       Health::ServiceSaver.new(service: @service, user: current_user).update
-      respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      unless request.xhr?
+        respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      end
     end
   
     def create
@@ -40,12 +42,16 @@ module Window::Health
       @form_url = polymorphic_path(health_path_generator + [:services], client_id: @client.id)
       @service = @patient.services.build(service_params)
       Health::ServiceSaver.new(service: @service, user: current_user).update
-      respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      unless request.xhr?
+        respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      end
     end
 
     def destroy
       @service.destroy
-      respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      unless request.xhr?
+        respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
+      end
     end
 
     def service_params

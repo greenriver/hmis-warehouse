@@ -9,7 +9,7 @@
 %p
   Once you've identified the clients you would like to add, click "add selected clients" on the right.
 .row
-  .col-sm-10
+  .col-sm-9
     #client-search-options.panel-group.panel-collapsible
       
       = render 'search_form'
@@ -19,7 +19,7 @@
       = render 'batch_add'
     = render 'results'
     
-  .col-sm-2
+  .col-sm-3
     = simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
       = f.input :client_ids, as: :hidden, input_html: {class: 'jClientIDs'} # Eventually, this will be a hidden field
       = f.submit value: 'Add Selected Clients', class: 'btn btn-primary', disabled: @clients.empty?

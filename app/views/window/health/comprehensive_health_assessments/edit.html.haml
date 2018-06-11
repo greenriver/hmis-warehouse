@@ -1,4 +1,9 @@
-- content_for :modal_title, 'Comprehensive Health Assessment'
+%h1
+  = "Comprehensive Health Assessment for #{@client.full_name}"
+  
+= render 'window/clients/breadcrumbs'
+= render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
 
-.cha-form
+.cha-form.autosave
+  = render 'upload'
   = render 'form'

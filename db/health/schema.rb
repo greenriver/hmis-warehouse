@@ -219,6 +219,8 @@ ActiveRecord::Schema.define(version: 20180607180418) do
     t.integer  "reviewed_by_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.json     "answers"
+    t.datetime "completed_at"
   end
 
   add_index "comprehensive_health_assessments", ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id", using: :btree

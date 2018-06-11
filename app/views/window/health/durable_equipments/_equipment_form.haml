@@ -1,4 +1,4 @@
-= simple_form_for @equipment, url: @form_url do |f|
+= simple_form_for @equipment, url: @form_url, remote: true do |f|
   .row
     .col-sm-8
       = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2}
@@ -17,7 +17,7 @@
   .form__actions
     - if @equipment.persisted?
       .c-btn_group
-        = link_to polymorphic_path(health_path_generator + [:durable_equipment], id: @equipment.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{@equipment.item}."}, class: 'btn btn-danger btn-icon-left' do
+        = link_to polymorphic_path(health_path_generator + [:durable_equipment], id: @equipment.id), method: :delete, remote: true, data: {confirm: "Please confirm you intend to delete #{@equipment.item}."}, class: 'btn btn-danger btn-icon-left' do
           %i.icon-cross
           Delete
     .c-btn-group.ml-auto
