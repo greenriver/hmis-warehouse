@@ -6,6 +6,8 @@ module Health
     has_many :careplans
     belongs_to :patient, required: true
 
+    validates_presence_of :service_type
+
     def self.available_types
       [ 
         'Primary Care Physician (PCP)',

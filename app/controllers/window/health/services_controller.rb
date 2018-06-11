@@ -31,8 +31,14 @@ module Window::Health
       @button_label = 'Save Service'
       @form_url = polymorphic_path(health_path_generator + [:service], client_id: @client.id)
       @service.assign_attributes(service_params)
-      Health::ServiceSaver.new(service: @service, user: current_user).update
-      unless request.xhr?
+      if request.xhr?
+        begin
+          Health::ServiceSaver.new(service: @service, user: current_user).update
+        rescue ActiveRecord::RecordInvalid => e
+          j render 'create' 
+        end
+      else
+        Health::ServiceSaver.new(service: @service, user: current_user).update
         respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
       end
     end
@@ -41,8 +47,14 @@ module Window::Health
       @button_label = 'Add Service'
       @form_url = polymorphic_path(health_path_generator + [:services], client_id: @client.id)
       @service = @patient.services.build(service_params)
-      Health::ServiceSaver.new(service: @service, user: current_user).update
-      unless request.xhr?
+      if request.xhr?
+        begin
+          Health::ServiceSaver.new(service: @service, user: current_user).update
+        rescue ActiveRecord::RecordInvalid => e
+          j render 'create' 
+        end
+      else
+        Health::ServiceSaver.new(service: @service, user: current_user).update
         respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
       end
     end

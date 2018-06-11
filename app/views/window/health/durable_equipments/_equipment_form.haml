@@ -1,28 +1,29 @@
 = simple_form_for @equipment, url: @form_url, remote: true do |f|
-  .row
-    .col-sm-8
-      = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2}
-  .row
-    .col-sm-8
-      = f.input :provider
-  .row
-    .col-sm-2
-      = f.input :quantity
-  .row
-    .col-sm-6
-      = f.input :effective_date, as: :date_picker
-  .row
-    .col-sm-10
-      = f.input :comments, as: :text
-  .form__actions
-    - if @equipment.persisted?
-      .c-btn_group
-        = link_to polymorphic_path(health_path_generator + [:durable_equipment], id: @equipment.id), method: :delete, remote: true, data: {confirm: "Please confirm you intend to delete #{@equipment.item}."}, class: 'btn btn-danger btn-icon-left' do
-          %i.icon-cross
-          Delete
-    .c-btn-group.ml-auto
-      %button.btn.btn-secondary{'pjax-modal-close' => ''} Cancel
-      = f.button :submit, class: 'btn btn-primary', value: @button_label
+  .jEquipmentForm
+    .row
+      .col-sm-8
+        = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2}
+    .row
+      .col-sm-8
+        = f.input :provider
+    .row
+      .col-sm-2
+        = f.input :quantity
+    .row
+      .col-sm-6
+        = f.input :effective_date, as: :date_picker
+    .row
+      .col-sm-10
+        = f.input :comments, as: :text
+    .form__actions
+      - if @equipment.persisted?
+        .c-btn_group
+          = link_to polymorphic_path(health_path_generator + [:durable_equipment], id: @equipment.id), method: :delete, remote: true, data: {confirm: "Please confirm you intend to delete #{@equipment.item}."}, class: 'btn btn-danger btn-icon-left' do
+            %i.icon-cross
+            Delete
+      .c-btn-group.ml-auto
+        %button.btn.btn-secondary{'pjax-modal-close' => ''} Cancel
+        = f.button :submit, class: 'btn btn-primary', value: @button_label
 
 
 = content_for :page_js do

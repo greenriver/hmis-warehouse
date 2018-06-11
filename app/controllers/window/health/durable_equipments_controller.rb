@@ -22,8 +22,14 @@ module Window::Health
       @button_label = 'Save Equipment Item'
       @form_url = polymorphic_path(health_path_generator + [:durable_equipment], client_id: @client.id)
       @equipment.assign_attributes(equipment_params)
-      Health::DmeSaver.new(equipment: @equipment, user: current_user).update
-      unless request.xhr?
+      if request.xhr?
+        begin
+          Health::DmeSaver.new(equipment: @equipment, user: current_user).update
+        rescue ActiveRecord::RecordInvalid => e
+          j render 'create' 
+        end
+      else
+        Health::DmeSaver.new(equipment: @equipment, user: current_user).update
         respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
       end
     end
@@ -32,8 +38,14 @@ module Window::Health
       @button_label = 'Add Equipment Item'
       @form_url = polymorphic_path(health_path_generator + [:durable_equipments], client_id: @client.id)
       @equipment = @patient.equipments.build(equipment_params)
-      Health::DmeSaver.new(equipment: @equipment, user: current_user).create
-      unless request.xhr?
+      if request.xhr?
+        begin
+          Health::DmeSaver.new(equipment: @equipment, user: current_user).create
+        rescue ActiveRecord::RecordInvalid => e
+          j render 'create' 
+        end
+      else
+        Health::DmeSaver.new(equipment: @equipment, user: current_user).create
         respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
       end
     end

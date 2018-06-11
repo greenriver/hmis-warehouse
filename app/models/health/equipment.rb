@@ -6,7 +6,8 @@ module Health
     has_many :careplans
     belongs_to :patient, required: true
 
-    validates :quantity, numericality: { only_integer: true }
+    validates_presence_of :item 
+    validates :quantity, numericality: { only_integer: true, allow_blank: true }
     def self.available_items
       [ 
         'Diapers',
