@@ -74,3 +74,8 @@ a.icon-cross:link {
 .label {
   @extend .c-tag-pill;
 }
+
+.dropdown-menu
+{
+  z-index: 1500;
+}

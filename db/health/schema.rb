@@ -11,13 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180607180418) do
+ActiveRecord::Schema.define(version: 20180611145227) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "accountable_care_organizations", force: :cascade do |t|
-    t.string "name"
+    t.string  "name"
+    t.string  "short_name"
+    t.integer "mco_pid"
+    t.string  "mco_sl"
+    t.boolean "active",     default: true, null: false
   end
 
   create_table "agencies", force: :cascade do |t|
@@ -28,9 +32,11 @@ ActiveRecord::Schema.define(version: 20180607180418) do
   end
 
   create_table "agency_patient_referrals", force: :cascade do |t|
-    t.integer "agency_id",                           null: false
-    t.integer "patient_referral_id",                 null: false
-    t.boolean "claimed",             default: false, null: false
+    t.integer  "agency_id",                           null: false
+    t.integer  "patient_referral_id",                 null: false
+    t.boolean  "claimed",             default: false, null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "agency_users", force: :cascade do |t|

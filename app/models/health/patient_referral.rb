@@ -6,7 +6,7 @@ module Health
     # rejected_reason_none: 0 always needs to be there
     # this is the default and means that the patient referral is not rejected
     enum rejected_reason: {
-      Remove_Rejection: 0, 
+      Remove_Removal: 0, 
       Declined: 1,
       Unreachable: 2,
       Moved_out_of_Geographic_Area: 3,
@@ -76,7 +76,7 @@ module Health
     end
 
     def rejected_reason_none?
-      rejected_reason == 'Remove_Rejection'
+      rejected_reason == 'Remove_Removal'
     end
 
     def self.display_rejected_reason(reason)

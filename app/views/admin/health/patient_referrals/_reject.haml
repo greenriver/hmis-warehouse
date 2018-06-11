@@ -1,7 +1,7 @@
 - dropdown_id = "reject-pr-#{pr.id}"
-- label = pr.rejected? ? 'Remove/Change Rejection' : 'Reject'
+- label = pr.rejected? ? 'Remove/Change Removal' : 'Remove'
 - if pr.rejected?
-  %strong Rejection Reason
+  %strong Removal Reason
   %br
   = Health::PatientReferral.display_rejected_reason(pr.rejected_reason)
 .patient-referral__reject

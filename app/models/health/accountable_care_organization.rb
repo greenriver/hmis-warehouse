@@ -5,5 +5,7 @@ module Health
 
     has_many :patient_referrals
 
+    scope :active, -> { where active: true }
+
   end
 end
