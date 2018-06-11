@@ -61,7 +61,7 @@ module GrdaWarehouse
       # clear caches
       @last_activity_by_client_id = nil
 
-      @client_search_result = scope.page(page).per(per).preload(
+      @client_search_result = scope.order(id: :asc).page(page).per(per).preload(
         :cohort_client_notes, {
           client: :processed_service_history
         }
