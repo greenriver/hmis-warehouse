@@ -13,7 +13,7 @@ module Window::Health
       # most-recent careplan
       @careplan = @careplans.sorted.first
       @disable_goal_actions = true
-      @goals = @careplan.hpc_goals
+      @goals = @careplan&.hpc_goals
     end
 
     def show
