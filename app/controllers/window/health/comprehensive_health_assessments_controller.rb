@@ -9,7 +9,7 @@ module Window::Health
     before_action :require_can_edit_client_health!
     before_action :set_client
     before_action :set_patient
-    before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
+    before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
 
     def new
       @cha = @patient.chas.build(user: current_user)
@@ -29,26 +29,11 @@ module Window::Health
     def edit
       respond_with @cha
     end
-
-    def new_upload
-      @cha = @patient.chas.build
-      render :new
-    end
-
-    def create_upload
-      @cha = @patient.chas.build(form_params)
-      validate_form
-      @cha.user = current_user
-      save_file if @cha.errors.none? && @cha.save
-      respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-    end
     
-    def update_upload
-      validate_form unless @cha.health_file.present?
-      @cha.reviewed_by = current_user if reviewed?
-      @cha.status = completed? ? :complete : :in_progress
+    def upload
+      validate_form
       save_file if @cha.errors.none? && @cha.update(form_params)
-      respond_with @cha, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      respond_with @cha, location: polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
     def show
@@ -101,7 +86,7 @@ module Window::Health
 
     def validate_form
       if params.dig(:form, :file).blank?
-        @cha.errors.add :file, "Please include a file upload."
+        @cha.errors.add :file, "Please select a file to upload."
       end
     end
 

@@ -1,10 +1,7 @@
-- url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
-- cha_options = Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS
 
+- url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
 = simple_form_for @cha, url: polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id), as: :form, html: { data: { url: url }} do |f|
   
-  = f.error_notification
-
   .row
     .col-sm-8
 
