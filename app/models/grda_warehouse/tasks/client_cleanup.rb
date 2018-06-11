@@ -7,7 +7,7 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed=200, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false)
+    def initialize(max_allowed=200, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false)
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
@@ -15,6 +15,7 @@ module GrdaWarehouse::Tasks
       @soft_delete_date = Time.now
       @changed_client_date = changed_client_date
       @dry_run = dry_run
+      @show_progress = show_progress
     end
     def run!
       remove_unused_warehouse_clients_processed()
@@ -235,8 +236,9 @@ module GrdaWarehouse::Tasks
       client_source = GrdaWarehouse::Hud::Client
       total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
-      progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C')
-      
+      if @show_progress
+        progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C')
+      end
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         batch.each do |dest_id|
@@ -262,7 +264,9 @@ module GrdaWarehouse::Tasks
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
-          progress.progress += 1
+          if @show_progress
+            progress.progress += 1
+          end
         end
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"
