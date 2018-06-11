@@ -44,9 +44,9 @@ module Window::Health
       @note = Health::SdhCaseManagementNote.find(params[:id])
       @activity_count = @note.activities.size
       if params[:commit] == 'Save Case Note'
-        @note.update_attributes(note_params)
+        @note.update_attributes(note_params.merge(updated_at: Time.now))
       else
-        @note.assign_attributes(note_params)
+        @note.assign_attributes(note_params.merge(updated_at: Time.now))
         @note.save(validate: false)
       end
       @noteAdded = (@activity_count != @note.activities.size)
