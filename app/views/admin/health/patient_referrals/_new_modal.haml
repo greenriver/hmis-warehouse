@@ -2,25 +2,40 @@
 .modal.fade#new-patient-referral__modal{role: 'dialog'}
   .modal-dialog{role: 'document'}
     .modal-content
-      .modal-body
-        .pull-right
-          %button.close{type: 'button', data: {dismiss: 'modal'}}
-            %span &times;
+      .modal-header
         %h3 Add Patient Referral
+        %button.close{type: 'button', data: {dismiss: 'modal'}}
+          %i.modal-icon-close
+      .modal-body
         - if flash[:error].present?
           .alert.alert-danger.error= flash[:error]
-        .row
-          .col-xs-12.col-md-6
-            = simple_form_for @new_patient_referral, url: add_patient_referral_path do |f|
+        = simple_form_for @new_patient_referral, url: add_patient_referral_path do |f|
+          .row
+            .col-sm-8
               = f.input :first_name, label: 'First Name'
+          .row
+            .col-sm-8
               = f.input :last_name, label: 'Last Name'
+          .row
+            .col-sm-6.col-lg-4
               = f.input :birthdate, as: :date_picker, label: 'Date of Birth'
+          .row
+            .col-sm-3
               = f.input :ssn, label: 'SSN'
+          .row
+            .col-sm-3
               = f.input :medicaid_id, label: 'Medicaid ID'
+          .row
+            .col-sm-6.col-lg-4
               = f.input :effective_date, as: :date_picker
+          .row
+            .col-sm-8.col-lg-6
               = f.input :accountable_care_organization_id, collection: Health::AccountableCareOrganization.all, label_method: :name, value_method: :id, label: 'Accountable Care Organization'
+          .row
+            .col-sm-8.col-lg-6
               = f.input :agency_id, collection: @agencies, label_menthod: :name, value_method: :id, label: 'Assign Agency'
-              = f.submit 'Add Patient', class: 'btn btn-secondary'
+          .form__actions.form__actions--right
+            = f.submit 'Add Patient', class: 'btn btn-secondary'
 
 - if state == 'open'
   - content_for :page_js do

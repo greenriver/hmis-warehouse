@@ -44,11 +44,11 @@ namespace :gettext do
   end
  
   desc "Bootstrap CHA Questions"
-  task :bootstrap_cha_translations => :environment do
+  task bootstrap_cha_translations: :environment do
     file = "config/cha_translations.yml"
     if !File.exists?( file )
       puts "You are missing #{file}"
-      return
+      exit
     end
     puts "Reading #{file}"
     chas = YAML::load_file( file ).symbolize_keys
@@ -61,10 +61,11 @@ namespace :gettext do
   end
 
   desc "sync translation keys to po files then sync po files with db"
-  task :sync_to_po_and_db => :environment do
+  task sync_to_po_and_db: :environment do
     Rake::Task["gettext:find"].invoke
     Rake::Task['gettext:sync_po_to_db'].invoke
-    Rake::Task["gettext:bootstrap_cha_translations"].invoke
+    cha_translations = "config/cha_translations.yml"
+    Rake::Task["gettext:bootstrap_cha_translations"].invoke if File.exists?( cha_translations )
   end
 
 end

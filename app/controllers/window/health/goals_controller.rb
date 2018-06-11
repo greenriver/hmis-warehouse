@@ -1,16 +1,13 @@
 module Window::Health
-  class GoalsController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class GoalsController < IndividualPatientController
+    
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_careplan
     before_action :set_goal, only: [:destroy, :edit, :update]
 
     include PjaxModalController
-    include HealthPatient
     include WindowClientPathGenerator
-    
-
     def index
       @goal = Health::Goal::Hpc.new
 

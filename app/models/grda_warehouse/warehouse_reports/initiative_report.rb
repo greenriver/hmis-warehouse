@@ -855,9 +855,14 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def complete
-      self.support = @support
       self.data = @data
       self.finished_at = Time.now
+      save!
+      begin
+        # Sometimes the supporting data is too big, this should fail gracefully such that the report appears complete, and just doesn't have the support
+        self.support = @support
+      rescue
+      end
       save!
     end
 

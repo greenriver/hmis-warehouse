@@ -39,6 +39,7 @@
   'elements/body',
   'elements/dl',
   'elements/html',
+  'elements/label',
   'elements/main',
   'elements/section';
 
@@ -53,8 +54,10 @@
   'objects/card_grid',
   'objects/container',
   'objects/dashboard',
+  'objects/filtration',
   'objects/list',
   'objects/menu',
+  'objects/page',
   'objects/pagination',
   'objects/section_card',
   'objects/text';
@@ -62,12 +65,14 @@
 // Components
 // ()
 @import
+  'components/btn_group',
   'components/card',
   'components/color_key',
   'components/tag';
 
 // @import 'base/grid_framework';
 @import
+  'base/alerts',
   'base/typography',
   'base/buttons',
   'base/forms',
@@ -92,11 +97,16 @@
   'modules/health_forms',
   'modules/health_charts',
   'modules/anomalies',
-  'modules/cohorts';
+  'modules/cohorts',
+  'modules/patient';
 
+// Overrides
 @import
-  'overrides/bootstrap';
+  'overrides/data_table',
+  'overrides/bootstrap',
+  'overrides/select2';
 
+// Utilities
 @import
   'utilities/bootstrap_polyfills',
   'utilities/display',

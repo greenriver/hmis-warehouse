@@ -3,7 +3,7 @@
   = f.simple_fields_for :activities, @activities do |f2|
     .sdh-note__activity{data: {behavior: 'activity'}}
       - if f2.object.unsubmitted?
-        %h5.uppercase.gray-light
+        %h3
           = "Qualifying Activity ##{f2.index+1}"
         = render 'fields_for_activity', f: f2, activity: activity
       - else

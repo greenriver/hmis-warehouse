@@ -879,7 +879,6 @@
             %p.form-control-static= @cha.reviewed_by&.name
         - else
           = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
-
   .row
     .col-sm-8
       .text-right

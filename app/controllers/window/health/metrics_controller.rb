@@ -1,10 +1,9 @@
 module Window::Health
-  class MetricsController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class MetricsController < IndividualPatientController
+
     before_action :set_client, only: [:index]
-    before_action :set_patient, only: [:index]
+    before_action :set_hpc_patient, only: [:index]
     include PjaxModalController
-    include HealthPatient
     include WindowClientPathGenerator
     include ActionView::Helpers::NumberHelper
 

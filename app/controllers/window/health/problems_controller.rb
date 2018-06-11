@@ -1,11 +1,10 @@
 module Window::Health
-  class ProblemsController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class ProblemsController < IndividualPatientController
+
     before_action :set_client, only: [:index]
-    before_action :set_patient, only: [:index]
+    before_action :set_hpc_patient, only: [:index]
     include PjaxModalController
-    include HealthPatient
-    
+    include WindowClientPathGenerator
     def index
       @problems = @patient.problems.order(onset_date: :desc)
       

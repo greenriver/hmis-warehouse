@@ -4,23 +4,23 @@
 = content_for :page_js do
   :javascript
     $('body').css('position', 'relative');
-    
+
 = content_for :body_data_scrollspy, true
 
 %h1= "#{title} for #{@client.full_name}"
 = render 'window/clients/breadcrumbs'
 = render 'window/clients/tab_navigation', current: window_client_health_patient_index_path(@client)
-%h2 Patient Summary
-.row
-  .col-sm-9
-    - if @patient.present?
-      = render 'patient_summary'
-      = render 'simplified_metrics'
-      = render 'patient_dashboard'
-      = render 'patient_details'
 
-      = render 'patient_js'
-    - else
-      %p No patient record found.
-  .col-sm-3.scrollspy
-    = render 'on_page_nav'
+.scrollspy
+  = render 'on_page_nav'
+
+%h2 Patient Summary
+- if @patient.present?
+  = render 'patient_summary'
+  = render 'simplified_metrics'
+  = render 'patient_dashboard'
+  = render 'patient_details'
+
+  = render 'patient_js'
+- else
+  %p No patient record found.

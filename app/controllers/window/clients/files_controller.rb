@@ -9,7 +9,7 @@ module Window::Clients
 
     def index
       @consent_editable = consent_editable?
-      @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
+      @consent_form_url = GrdaWarehouse::PublicFile.url_for_location 'client/hmis_consent'
       @consent_files = consent_scope
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
@@ -28,6 +28,11 @@ module Window::Clients
 
     def create
       @file = file_source.new
+      if !file_params[:file]
+        @file.errors.add :file, "No uploaded file found"   
+        render :new
+        return
+      end
       begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
         file = allowed_params[:file]
@@ -53,7 +58,7 @@ module Window::Clients
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
       rescue Exception => e
-        flash[:error] = e.message
+        # flash[:error] = e.message
         render action: :new
         return
       end

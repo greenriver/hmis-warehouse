@@ -29,7 +29,7 @@ if environment == 'production'
   end
 
   every 4.hours do
-    # rake "grda_warehouse:save_service_history_snapshots"
+    rake "grda_warehouse:save_service_history_snapshots"
   end
 
   every 1.day, at: '4:00 am' do

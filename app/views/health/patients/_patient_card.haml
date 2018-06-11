@@ -1,0 +1,18 @@
+- url = window_client_health_patient_index_path(patient.client)
+- if current_user.can_edit_clients?
+  - url = client_health_patient_index_path(patient.client)
+.c-card.clients__client-card
+  .c-card__content
+    .patient__demographics
+      %h4.patient__name.mt-0
+        = link_to patient.name, url
+      .patient__dob
+        DOB:
+        = patient.birthdate
+    .ml-auto
+      - if ! patient.engaged?
+        = render 'window/health/patient/remaining_to_engage', patient: patient
+    .ml-4
+      = render 'window/health/patient/engagement', patient: patient
+    .patient__link.ml-4
+      = link_to 'View', url, class: 'btn btn-sm btn-secondary'

@@ -1,6 +1,7 @@
 - content_for :title,  'Healthcare Related Roles'
 %h1= content_for :title
 = render 'breadcrumbs'
+
 = render 'menus/health_admin_tabs'
 .table-responsive
   %table.table.table-condensed
@@ -8,12 +9,16 @@
       %th Permission:
       - @roles.each do |role|
         %th
-          = role.name
+          = link_to role.name, action: :edit, id: role
+    
     %tbody
-      - Role.permissions.each do |permission|
+      - Role.health_permissions.each do |permission|
         %tr
           %td
             =permission.to_s.humanize
           - @roles.each do |role|
             %td
               =checkmark(role.send(permission))
+
+
+    %p= paginate @roles

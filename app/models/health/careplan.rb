@@ -48,6 +48,11 @@ module Health
       end
     end
 
+    def just_signed?
+      self.patient_signed_on.present? && self.patient_signed_on_changed? || 
+      self.provider_signed_on.present? && self.provider_signed_on_changed?
+    end
+
     def set_lock
       if self.patient_signed_on.present? && self.provider_signed_on.present?
         self.locked = true

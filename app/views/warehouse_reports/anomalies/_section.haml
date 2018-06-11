@@ -14,7 +14,10 @@
         - object = anomaly.versions.where(event: :update).first&.reify || anomaly
         %tr
           %td
-            = link_to anomaly.client.name, client_path(anomaly.client)
+            - if anomaly.client.present?
+              = link_to anomaly.client.name, client_path(anomaly.client)
+            - else
+              Client no longer available
           %td
             = object.description
           %td
@@ -22,5 +25,5 @@
           %td
             = anomaly.updated_at
           %td
-            = User.find(anomaly.versions.first.whodunnit).name
+            = User.find(anomaly.versions.first.whodunnit)&.name
 

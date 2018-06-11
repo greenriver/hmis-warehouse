@@ -1,0 +1,31 @@
+= render 'breadcrumbs'
+- content_for(:title, "Qualifying Activities for #{@patient.name}")
+%h1= content_for :title
+
+- if @qualifying_activities.present?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Date of activity
+        %th Claim submitted?
+        %th Activity
+        %th Mode of contact
+        %th Client reached
+        %th Follow-up
+        %th Owner
+        %th Procedure Code
+        %th Modifiers
+    %tbody
+      - @qualifying_activities.each do |qa|
+        %tr
+          %td= qa.date_of_activity.to_date
+          %td= qa.claim_submitted_on
+          %td= qa.activity
+          %td= qa.mode_of_contact
+          %td= qa.reached_client
+          %td= qa.follow_up
+          %td= qa.user_full_name
+          %td= qa.procedure_code
+          %td= qa.modifiers.join('>')
+- else
+  %p None on file.

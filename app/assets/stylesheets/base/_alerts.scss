@@ -1,0 +1,27 @@
+$alerts: (
+  success: $brand-success-l,
+  info: $brand-info,
+  danger: $brand-danger-l,
+  warning: $brand-warning-l,
+);
+
+.alert {
+  color: rgba(0,0,0, .9);
+  a {
+    font-weight: bold;
+  }
+}
+
+@each $name, $color in $alerts {
+  $lighten-factor: 15%;
+  $desaturation-factor: 35%;
+  @if ($name == info) {
+    $lighten-factor: 5%;
+    $desaturation-factor: 5%;
+  }
+  $bg-color: desaturate(lighten($color, $lighten-factor), $desaturation-factor);
+  .alert-#{$name} {
+    background: $bg-color;
+    border-color: desaturate($color, 10%);
+  }
+}

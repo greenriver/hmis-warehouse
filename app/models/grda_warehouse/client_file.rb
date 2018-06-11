@@ -179,7 +179,7 @@ module GrdaWarehouse
 
     def file_exists_and_not_too_large
       errors.add :file, "No uploaded file found" if (content&.size || 0) < 100
-      errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes
+      errors.add :file, "File size should be less than 2 MB" if (content&.size || 0) > 2.megabytes
     end
 
     def note_if_other

@@ -371,6 +371,7 @@ module Health
     enum status: [:not_started, :in_progress, :complete]
 
     scope :recent, -> { order(created_at: :desc).limit(1) }
+    scope :reviewed, -> { where.not(reviewed_by_id: nil) }
 
     attr_accessor :reviewed_by_supervisor, :completed
 

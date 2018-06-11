@@ -39,8 +39,8 @@
 .warehouse-reports__parameters .parameter-value
 {
   border-radius: 0px 5px 5px 0px;
-  white-space: wrap;
-  max-width: 50%;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .warehouse-reports__hmis_export
 {
@@ -81,6 +81,7 @@
 
 .report-parameters__parameter
 {
+  display: flex;
   margin-bottom: 0.5em;
   margin-right: 0.5em;
 }

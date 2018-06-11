@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180601124144) do
+ActiveRecord::Schema.define(version: 20180607180418) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -353,20 +353,71 @@ ActiveRecord::Schema.define(version: 20180601124144) do
   add_index "participation_forms", ["patient_id"], name: "index_participation_forms_on_patient_id", using: :btree
   add_index "participation_forms", ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id", using: :btree
 
+  create_table "patient_referral_imports", force: :cascade do |t|
+    t.string   "file_name",  null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "patient_referrals", force: :cascade do |t|
     t.string   "first_name"
     t.string   "last_name"
     t.date     "birthdate"
     t.string   "ssn"
     t.string   "medicaid_id"
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false, null: false
-    t.integer  "rejected_reason",                  default: 0,     null: false
+    t.boolean  "rejected",                         default: false,   null: false
+    t.integer  "rejected_reason",                  default: 0,       null: false
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date"
+    t.datetime "effective_date",                   default: "now()"
+    t.string   "middle_initial"
+    t.string   "suffix"
+    t.string   "gender"
+    t.string   "aco_name"
+    t.integer  "aco_mco_pid"
+    t.string   "aco_mco_sl"
+    t.string   "health_plan_id"
+    t.string   "cp_assignment_plan"
+    t.string   "cp_name_dsrip"
+    t.string   "cp_name_official"
+    t.integer  "cp_pid"
+    t.string   "cp_sl"
+    t.date     "enrollment_start_date"
+    t.string   "start_reason_description"
+    t.string   "address_line_1"
+    t.string   "address_line_2"
+    t.string   "address_city"
+    t.string   "address_state"
+    t.string   "address_zip"
+    t.string   "address_zip_plus_4"
+    t.string   "email"
+    t.string   "phone_cell"
+    t.string   "phone_day"
+    t.string   "phone_night"
+    t.string   "primary_language"
+    t.string   "primary_diagnosis"
+    t.string   "secondary_diagnosis"
+    t.string   "pcp_last_name"
+    t.string   "pcp_first_name"
+    t.string   "pcp_npi"
+    t.string   "pcp_address_line_1"
+    t.string   "pcp_address_line_2"
+    t.string   "pcp_address_city"
+    t.string   "pcp_address_state"
+    t.string   "pcp_address_zip"
+    t.string   "pcp_address_phone"
+    t.string   "dmh"
+    t.string   "dds"
+    t.string   "eoea"
+    t.string   "ed_visits"
+    t.string   "snf_discharge"
+    t.string   "identification"
+    t.string   "record_status"
+    t.date     "updated_on"
+    t.date     "exported_on"
   end
 
   create_table "patients", force: :cascade do |t|
@@ -393,6 +444,7 @@ ActiveRecord::Schema.define(version: 20180601124144) do
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
     t.integer  "data_source_id",           default: 6,     null: false
+    t.date     "engagement_date"
   end
 
   create_table "problems", force: :cascade do |t|
@@ -421,6 +473,7 @@ ActiveRecord::Schema.define(version: 20180601124144) do
     t.integer  "user_id"
     t.string   "user_full_name"
     t.string   "follow_up"
+    t.integer  "patient_id"
   end
 
   create_table "release_forms", force: :cascade do |t|
@@ -504,6 +557,8 @@ ActiveRecord::Schema.define(version: 20180601124144) do
     t.text     "time_notes"
     t.datetime "completed_at"
     t.string   "collection_location"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "services", force: :cascade do |t|
@@ -518,6 +573,7 @@ ActiveRecord::Schema.define(version: 20180601124144) do
     t.datetime "updated_at"
     t.datetime "deleted_at"
     t.integer  "patient_id"
+    t.string   "status"
   end
 
   create_table "team_members", force: :cascade do |t|

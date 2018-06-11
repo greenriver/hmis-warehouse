@@ -108,5 +108,4 @@ module PatientReferral
       relationships_attributes: [:agency_id, :claimed]
     )
   end
-
 end

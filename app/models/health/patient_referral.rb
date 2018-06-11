@@ -1,6 +1,6 @@
 module Health
   class PatientReferral < HealthBase
-
+    include PatientReferralImporter
     before_validation :update_rejected_from_reason
 
     # rejected_reason_none: 0 always needs to be there
@@ -22,8 +22,8 @@ module Health
 
     # TODO: What needs to be validated here?
     # TODO: how to validate medicaid id?
-    validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id, :ssn
-    validates_size_of :ssn, is: 9
+    validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
+    validates_size_of :ssn, is: 9, allow_blank: true
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
@@ -51,6 +51,16 @@ module Health
 
     def assigned?
       agency_id.present?
+    end
+
+    def engagement_date
+      return nil unless effective_date.present?
+      next_month = effective_date.at_beginning_of_month.next_month
+      if effective_date < '2018-09-01'.to_date
+        (next_month + 120.days).to_date
+      else
+        (next_month + 90.days).to_date
+      end
     end
 
     def name
@@ -106,6 +116,7 @@ module Health
     def convert_to_patient
       # nothing to do if we have a client already
       return if client.present?
+      update(effective_date: Date.today)
       source_client = create_source_client
       destination_client = connect_destination_client(source_client)
       create_patient(destination_client)
@@ -168,6 +179,7 @@ module Health
         client_id: destination_client.id,
         medicaid_id: medicaid_id,
         pilot: false,
+        engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
 

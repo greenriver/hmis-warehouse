@@ -1,15 +1,12 @@
 module Window::Health
-  class DurableEquipmentsController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class DurableEquipmentsController < IndividualPatientController
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_equipment, only: [:edit, :destroy, :update]
-    
 
     include PjaxModalController
-    include HealthPatient
     include WindowClientPathGenerator
-    
     def new
       @equipment = equipment_source.new
       @button_label = 'Add Equipment Item'
@@ -24,14 +21,16 @@ module Window::Health
     def update
       @button_label = 'Save Equipment Item'
       @form_url = polymorphic_path(health_path_generator + [:durable_equipment], client_id: @client.id)
-      @equipment.update(equipment_params)
+      @equipment.assign_attributes(equipment_params)
+      Health::DmeSaver.new(equipment: @equipment, user: current_user).update
       respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
     end
   
     def create
       @button_label = 'Add Equipment Item'
       @form_url = polymorphic_path(health_path_generator + [:durable_equipments], client_id: @client.id)
-      @equipment = @patient.equipments.create(equipment_params)
+      @equipment = @patient.equipments.build(equipment_params)
+      Health::DmeSaver.new(equipment: @equipment, user: current_user).create
       respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
     end
 

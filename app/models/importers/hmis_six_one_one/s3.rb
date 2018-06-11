@@ -73,7 +73,7 @@ module Importers::HMISSixOneOne
     end
       
     def force_standard_zip file
-      puts file.inspect
+      # puts file.inspect
       file_path = "#{Rails.root.to_s}/#{file}"
       if File.extname(file_path) == '.7z'
         dest_file = file.gsub('.7z', '.zip')

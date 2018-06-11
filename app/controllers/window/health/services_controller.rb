@@ -1,14 +1,12 @@
 module Window::Health
-  class ServicesController < ApplicationController
-    before_action :require_can_edit_client_health!
+  class ServicesController < IndividualPatientController
+
     before_action :set_client
-    before_action :set_patient
+    before_action :set_hpc_patient
     before_action :set_service, only: [:edit, :destroy, :update]
     
     include PjaxModalController
-    include HealthPatient
     include WindowClientPathGenerator
-    
     def index
       # For errors in new/edit forms
       @service = service_source.new
@@ -32,14 +30,16 @@ module Window::Health
     def update
       @button_label = 'Save Service'
       @form_url = polymorphic_path(health_path_generator + [:service], client_id: @client.id)
-      @service.update(service_params)
+      @service.assign_attributes(service_params)
+      Health::ServiceSaver.new(service: @service, user: current_user).update
       respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
     end
   
     def create
       @button_label = 'Add Service'
       @form_url = polymorphic_path(health_path_generator + [:services], client_id: @client.id)
-      @service = @patient.services.create(service_params)
+      @service = @patient.services.build(service_params)
+      Health::ServiceSaver.new(service: @service, user: current_user).update
       respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
     end
 
@@ -57,6 +57,7 @@ module Window::Health
         :date_requested,
         :effective_date,
         :end_date,
+        :status,
       )
     end
 

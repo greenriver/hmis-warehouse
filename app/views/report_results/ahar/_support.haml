@@ -2,25 +2,24 @@
   .modal-dialog
     .modal-content
       .modal-header
+        .modal-title= "Supporting Data for #{category} #{label.gsub('_', ' ')}"
         %button.close{data: {dismiss: :modal}}
           %span.icon-cross
-        .modal-title= "Supporting Data for #{category} #{label.gsub('_', ' ')}"
-        .modal-body
-          
-          %table.table.table-condensed.table-hover
-            %thead
+      .modal-body
+        %table.table.table-condensed.table-hover
+          %thead
+            %tr
+              -# See if we have a "Client ID" field, store the index and attempt to turn it into a link
+              - id_index = support['headers'].find_index('Client ID')
+              - support['headers'].each do |t|
+                %th= t
+          %tbody
+            - support['counts'].each do |row|
               %tr
-                -# See if we have a "Client ID" field, store the index and attempt to turn it into a link
-                - id_index = support['headers'].find_index('Client ID')
-                - support['headers'].each do |t|
-                  %th= t
-            %tbody
-              - support['counts'].each do |row|
-                %tr
-                  - row.each_with_index do |v, index|
-                    %td
-                      - if id_index.present? && index == id_index
-                        = link_to client_path(id: v), target: '_blank' do
-                          = v
-                      - else
+                - row.each_with_index do |v, index|
+                  %td
+                    - if id_index.present? && index == id_index
+                      = link_to client_path(id: v), target: '_blank' do
                         = v
+                    - else
+                      = v

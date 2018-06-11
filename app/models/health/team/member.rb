@@ -20,8 +20,10 @@ module Health
     def self.available_types
       [
         Health::Team::Provider,
+        Health::Team::PcpDesignee,
         Health::Team::CaseManager,
         Health::Team::Nurse,
+        Health::Team::AcoCareManager,
         Health::Team::Behavioral,
         Health::Team::Representative,
         Health::Team::Other,
@@ -36,6 +38,8 @@ module Health
         'Other Important Contact' => 'icon-reminder',
         'Provider (MD/NP/PA)' => 'icon-medical-provider',
         'Designated Representative' => 'icon-users',
+        'ACO Care Manager' => 'icon-nurse-clipboard',
+        'PCP Designee' => 'icon-medical-provider',
       }[member_type_name]
     end
 

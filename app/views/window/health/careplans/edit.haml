@@ -1,4 +1,7 @@
 = content_for(:title, 'Edit Care Plan')
-%h1= "#{content_for(:title)} for #{@client.full_name}"
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
 
-= render 'careplan_form'
+  .o-page__content
+    = render 'careplan_form'

@@ -1,11 +1,11 @@
 module Admin::Health
-  class PatientReferralsController < ApplicationController
+  class PatientReferralsController < HealthController
+    before_action :require_has_administartive_access_to_health!
+    before_action :require_can_review_patient_assignments!
+    before_action :require_can_approve_patient_assignments!
+    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
 
     include PatientReferral
-    include HealthAuthorization
-
-    before_action :require_can_review_patient_assignments!
-    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
 
     def review
       @active_patient_referral_tab = 'review'
@@ -62,7 +62,7 @@ module Admin::Health
       if @patient_referral.update_attributes(assign_agency_params)
         @patient_referral.convert_to_patient()
         if @patient_referral.assigned_agency.present?
-          flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency.name}."
+          flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
           redirect_to assigned_admin_health_patient_referrals_path
         else
           flash[:notice] = 'Patient unassigned.'
@@ -149,7 +149,7 @@ module Admin::Health
 
     def create_patient_referral_notice
       if @new_patient_referral.assigned_agency.present?
-        "New patient added and assigned to #{@new_patient_referral.assigned_agency.name}"
+        "New patient added and assigned to #{@new_patient_referral.assigned_agency&.name}"
       else
         "New patient added."
       end

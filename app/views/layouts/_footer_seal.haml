@@ -1,3 +1,3 @@
-%span.seal-image
-  -# = image_tag "theme/logo/#{ENV['LOGO']}", class: :seal
-  = image_tag "https://hmis-staging.boston.gov/assets/theme/logo/footer_seal-ee6cacb442a3835f2cf2888f496ccba3e33b2542dba2c0b725badb61e8f2f8ba.svg", class: :seal
+- if ENV['LOGO'].present?
+  %span.seal-image
+    = image_tag "theme/logo/#{ENV['LOGO']}", class: :seal

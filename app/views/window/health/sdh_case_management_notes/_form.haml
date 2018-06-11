@@ -1,24 +1,24 @@
-.underline-header.padding-bottom-02
+.underline-header.pb-2.mb-4
   %h1= "Case Management Note for #{@patient.name}"
   - unless @note.new_record?
     %small= "Entered by #{@note.user.name}, #{@note.completed_on&.strftime('%b %d, %Y')}"
-= simple_form_for @note, url: form_url, html: {class: 'sdh-cmn-form', data: {url: form_url({format: :js})}} do |f|
-  .row
-    .col-md-10
+.row
+  .col-md-12.col-lg-10.col-xl-8
+    = simple_form_for @note, url: form_url, html: {class: 'sdh-cmn-form', data: {url: form_url({format: :js})}} do |f|
       .padding-top-02
         = f.error_notification
       - form_sections = @note.display_note_form_sections
       - form_sections.each_with_index do |section, index|
-        %h4= section[:title]
-        .well
-          .row
-            .col-md-8
-              = render "fields_for_#{section[:id]}", f: f
-          - if form_sections.size == (index + 1)
-            .text-right
-            = f.submit 'Save Case Note', class: 'btn btn-action'
-        - if section[:id] == :activities
-          - btn_text = @activities.any? ? 'Add Another Qualifying Activity' : 'Add Qualifying Activity'
-          .margin-bottom-04
-            = link_to btn_text, '#', onclick: 'addActivity(event)', class: 'btn-xs btn-primary btn-primary__reverse'
+        %section.c-card.c-card--block.mb-6
+          .c-card__header.c-card__header--external
+            %h3= section[:title]
+          .c-card__content
+            = render "fields_for_#{section[:id]}", f: f
+            - if section[:id] == :activities
+              .sdh-note__action
+                - btn_text = @activities.any? ? 'Add Another Qualifying Activity' : 'Add Qualifying Activity'
+                = link_to btn_text, '#', onclick: 'addActivity(event)', class: 'btn btn-secondary'
 
+          - if form_sections.size == (index + 1)
+            .form__actions.form__actions--right.mt-4
+              = f.submit 'Save Case Note', class: 'btn btn-primary'

@@ -2,6 +2,8 @@ class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
   constructor: (container_selector, legend_selector, margin, data) ->
     super(container_selector, margin)
     @data = @_loadData(data)
+    if @data.length == 0
+      return
     @scores = [0..5]
     @range = @_loadRange()
     @domain = @_loadDomain()
@@ -137,6 +139,8 @@ class App.D3Chart.SelfSufficiencyScores extends App.D3Chart.Base
 
 
   draw: ->
+    if @data.length == 0
+      return
     @_drawAxis()
     @_drawBackgroundBars()
     @_drawBars()

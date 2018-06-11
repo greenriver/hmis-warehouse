@@ -50,7 +50,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
     has_many :enrollments_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
 
 
-    def self.export! client_scope:, path:, export:
+    def export! client_scope:, path:, export:
       case export.period_type
       when 3
         export_scope = client_scope

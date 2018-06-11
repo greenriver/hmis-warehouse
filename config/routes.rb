@@ -27,6 +27,7 @@ Rails.application.routes.draw do
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update]
       resources :services
+      resources :qualifying_activities, only: [:index]
       resources :durable_equipments, except: [:index]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
@@ -41,20 +42,20 @@ Rails.application.routes.draw do
           get :download
         end
       end
-      resources :release_forms do 
+      resources :release_forms do
         member do
           delete :remove_file
           get :download
         end
       end
-      resources :comprehensive_health_assessments, path: :chas, as: :chas do 
+      resources :comprehensive_health_assessments, path: :chas, as: :chas do
         member do
           delete :remove_file
           get :download
           patch :upload
         end
       end
-      namespace :pilot do 
+      namespace :pilot do
         resources :patient, only: [:index]
         resource :careplan, except: [:destroy] do
           get :self_sufficiency_assessment
@@ -391,6 +392,10 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :health do
+    resources :patients, only: [:index]
+  end
+
   namespace :api do
     namespace :health do
       namespace :claims do
@@ -452,7 +457,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
         resources :agency_users, only: [:new, :edit, :create, :update]
       end
-      resources :roles, only: [:index]
+      resources :roles, only: [:index, :edit, :update]
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
@@ -463,12 +468,14 @@ Rails.application.routes.draw do
     resources :missing_grades, only: [:create, :update, :destroy]
     resources :utilization_grades, only: [:create, :update, :destroy]
     namespace :eto_api do
-      resources :assessments, only: [:index, :update]
+      resources :assessments, only: [:index, :edit, :update]
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
+    resources :public_files, only: [:index, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
+  resources :public_files, only: [:show]
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
@@ -480,11 +487,14 @@ Rails.application.routes.draw do
       get :alerts
       get :tags
       get :client_dashboard
+      get :buttons
+      get :pagination
     end
   end
 
   namespace :system_status do
     get :operational
+    get :cache_status
   end
   root 'root#index'
 end

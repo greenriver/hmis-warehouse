@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-07 14:51-0500\n"
-"PO-Revision-Date: 2018-06-07 14:51-0500\n"
+"POT-Creation-Date: 2018-06-11 08:27-0400\n"
+"PO-Revision-Date: 2018-06-11 08:27-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,6 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+msgid "\"CHA #{field.upcase}\""
+msgstr ""
+
+msgid "\"CHA #{section_code}_TITLE\""
+msgstr ""
+
+msgid "\"CHA #{section_question.upcase}\""
+msgstr ""
+
+msgid "\"CHA #{section}_Q#{question}_A#{n}\""
+msgstr ""
 
 msgid "Appropriate for sober supportive housing"
 msgstr ""
@@ -2325,9 +2337,6 @@ msgstr ""
 msgid "CSPECH Eligible"
 msgstr ""
 
-msgid "Care Plan Summary Text"
-msgstr ""
-
 msgid "Children under age 18 in household"
 msgstr ""
 
@@ -2373,6 +2382,9 @@ msgstr ""
 msgid "HIV+"
 msgstr ""
 
+msgid "HMIS Data Warehouse"
+msgstr ""
+
 msgid "HSA Contacts"
 msgstr ""
 
@@ -2389,6 +2401,9 @@ msgid "Housing Authority Eligible"
 msgstr ""
 
 msgid "Housing Release Status"
+msgstr ""
+
+msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
 msgstr ""
 
 msgid "Import Dashboard"
@@ -2428,6 +2443,9 @@ msgid "Meth Production Conviction"
 msgstr ""
 
 msgid "Missing Data Percentages"
+msgstr ""
+
+msgid "My Agency's Patients"
 msgstr ""
 
 msgid "My Clients"

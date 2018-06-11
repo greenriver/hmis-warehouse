@@ -1,47 +1,48 @@
 = simple_form_for :filters, url: filters_path, html: {id: 'filter-form'}, method: :get do |f|
   - if @active_patient_referral_group.present?
     = hidden_field_tag :group, @active_patient_referral_group
-  .row
-    .col-sm-6
+  .o-page__controls
+    .o-page__search
       .input-group
-        = f.input :search, label: false
+        = f.input :search, label: false, wrapper_html: {class: 'mb-0 w-100'}
         %span.input-group-btn
-          %button.btn.btn-default{type: :submit} Search
-    .col-sm-6
-      .clearfix
-        - if show_filters?
-          .dropdown.pull-left.margin-right-04
-            %button.btn.btn-default{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
-              Filter
-              %span.caret
-            .dropdown-menu{style: 'padding: 10px;'}
-              %div{style: 'width: 500px;'}
-                .row
-                  .col-sm-6
-                    = f.input :added_before, as: :date_picker, required: false
-                .row
-                  .col-sm-6
-                    = label_tag 'Claimed?'
-                    .radio-button-buttons__container
-                      - [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]].each do |btn|
-                        = f.label :relationship, value: btn.last do
-                          = f.radio_button :relationship, btn.last
-                          %span= btn.first
-                  .col-sm-6
-                    .form-group
-                      = label_tag :agency_id, 'Claimed by', class: 'control-label'
-                      .controls.ui-front
-                        = f.hidden_field :agency_id
-                        = text_field_tag :agency_id, @filter_agency&.name, class: 'form-control'
-                .text-right
-                  = link_to filters_path, class: 'btn btn-secondary margin-right-02' do
-                    %i.icon-cross
-                    Clear Filters
-                  %button.btn.btn-action-2{type: 'submit'}
-                    %i.icon-filter
-                    Filter
-        .dropdown.pull-left
-          %button.btn.btn-default#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+          %button.btn.btn-secondary{type: :submit} Search
+    - if show_filters?
+      .o-page__sort
+        .o-filtration.dropdown.mr-2
+          %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+            Filter
+            %span.caret
+          .o-filtration__container.dropdown-menu{style: 'padding: 10px;'}
+            .o-filtration__header
+              %h3.client__filter-header Filter patients
+            .o-filtration__option.row
+              .col-sm-8
+                = f.input :added_before, as: :date_picker, required: false, wrapper_html: {class: 'mb-0'}
+            .o-filtration__option.row
+              .col-sm-12
+                = label_tag 'Claimed?'
+                .radio-button-buttons__container.mb-0
+                  - [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]].each do |btn|
+                    = f.label :relationship, value: btn.last do
+                      = f.radio_button :relationship, btn.last
+                      %span= btn.first
+            .o-filtration__option.row
+              .col-sm-10
+                .form-group.mb-0
+                  = label_tag :agency_id, 'Claimed by', class: 'control-label'
+                  .controls.ui-front
+                    = f.hidden_field :agency_id
+                    = text_field_tag :agency_id, @filter_agency&.name, class: 'form-control'
+            .o-filtration__actions.form__actions
+              = link_to filters_path, class: 'btn btn-secondary' do
+                %i.icon-cross
+                Clear Filters
+              %button.btn.btn-primary.ml-auto{type: 'submit'}
+                %i.icon-filter
+                Filter
+        .dropdown
+          %button.btn.btn-secondary#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
             Sort By
             %span.caret
           .dropdown-menu

@@ -54,7 +54,7 @@ module Health
 
     serialize :topics, Array
 
-    accepts_nested_attributes_for :activities
+    accepts_nested_attributes_for :activities, allow_destroy: true 
     validates_associated :activities
 
     validates_presence_of :patient, :user, :title, :date_of_contact
@@ -113,7 +113,7 @@ module Health
     end
 
     def user_can_edit?(current_user)
-      current_user.id == user_id && current_user.can_add_case_management_notes?
+      current_user.id == user_id && current_user.can_edit_patient_items_for_own_agency?
     end
 
     def display_note_form_sections

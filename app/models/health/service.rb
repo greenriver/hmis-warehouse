@@ -30,5 +30,15 @@ module Health
       ]
     end
 
+    def self.available_stati
+      [
+        'Requested',
+        'Approved',
+        'Expired',
+        'Issue',
+        'Denied',
+      ]
+    end
+
   end
 end

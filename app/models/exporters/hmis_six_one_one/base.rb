@@ -114,7 +114,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_projects
-      project_source.export!(
+      project_source.new.export!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -122,7 +122,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_project_cocs
-      project_coc_source.export_project_related!(
+      project_coc_source.new.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -130,7 +130,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_organizations
-      organization_source.export!(
+      organization_source.new.export!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -138,7 +138,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_inventories
-      inventory_source.export_project_related!(
+      inventory_source.new.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -146,7 +146,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_geographies
-      geography_source.export_project_related!(
+      geography_source.new.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -154,7 +154,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_funders
-      funder_source.export_project_related!(
+      funder_source.new.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -162,7 +162,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_affiliations
-      affiliation_source.export_project_related!(
+      affiliation_source.new.export_project_related!(
         project_scope: project_scope, 
         path: @file_path, 
         export: @export
@@ -170,7 +170,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_enrollments
-      enrollment_source.export!(
+      enrollment_source.new.export!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -179,7 +179,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_enrollment_cocs
-      enrollment_coc_source.export_enrollment_related!(
+      enrollment_coc_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -188,7 +188,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_clients
-      client_source.export!(
+      client_source.new.export!(
         client_scope: client_scope,
         path: @file_path, 
         export: @export
@@ -196,7 +196,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_disabilities
-      disability_source.export_enrollment_related!(
+      disability_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -205,7 +205,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_employment_educations
-      employment_education_source.export_enrollment_related!(
+      employment_education_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -214,7 +214,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_exits
-      exit_source.export!(
+      exit_source.new.export!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -223,7 +223,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_health_and_dvs
-      health_and_dv_source.export_enrollment_related!(
+      health_and_dv_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -232,7 +232,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_income_benefits
-      income_benefits_source.export_enrollment_related!(
+      income_benefits_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 
@@ -241,7 +241,7 @@ module Exporters::HmisSixOneOne
     end
 
     def export_services
-      service_source.export_enrollment_related!(
+      service_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path, 

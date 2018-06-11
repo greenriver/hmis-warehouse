@@ -1,19 +1,37 @@
 = simple_form_for @service, url: @form_url do |f|
-  = f.input :service_type, collection: @service.class.available_types, input_html: {class: :select2}
-  = f.input :provider
-  = f.input :hours
-  = f.input :days
-  = f.input :date_requested, as: :date_picker
-  = f.input :effective_date, as: :date_picker
-  = f.input :end_date, as: :date_picker
+  .row
+    .col-sm-8
+      = f.input :service_type, collection: @service.class.available_types, input_html: {class: :select2}
+  .row
+    .col-sm-8
+      = f.input :provider
+  .row
+    .col-sm-2
+      = f.input :hours
+  .row
+    .col-sm-2
+      = f.input :days
   .row
     .col-sm-6
-      - if @service.persisted?
-        = link_to polymorphic_path(health_path_generator + [:service], id: @service.id), method: :delete, data: {confirm: "Please confirm you intend to delete the #{@service.service_type} service."}, class: 'btn btn-danger btn-sm' do
+      = f.input :date_requested, as: :date_picker
+  .row
+    .col-sm-6
+      = f.input :effective_date, as: :date_picker
+  .row
+    .col-sm-6
+      = f.input :end_date, as: :date_picker
+  .row
+    .col-sm-6
+      = f.input :status, collection: @service.class.available_stati
+  .form__actions
+    - if @service.persisted?
+      .c-btn_group
+        = link_to polymorphic_path(health_path_generator + [:service], id: @service.id), method: :delete, data: {confirm: "Please confirm you intend to delete the #{@service.service_type} service."}, class: 'btn btn-danger btn-icon-left' do
           %i.icon-cross
           Delete
-    .col-sm-6
-      = f.button :submit, class: 'btn-primary btn-muted btn-sm', value: @button_label
+    .c-btn-group.ml-auto
+      %button.btn.btn-secondary{'pjax-modal-close' => ''} Cancel
+      = f.button :submit, class: 'btn-primary', value: @button_label
 
 
 = content_for :page_js do

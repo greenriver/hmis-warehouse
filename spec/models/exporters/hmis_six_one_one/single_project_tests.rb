@@ -47,7 +47,7 @@ RSpec.shared_context "single-project tests", shared_context: :metadata do
         end
         it "hud key in CSV should match id of first item in list" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
-          current_hud_key = item[:klass].clean_headers([item[:klass].hud_key]).first.to_s
+          current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
           expect(csv.first[current_hud_key]).to eq send(item[:list]).first.id.to_s
         end
         if item[:klass].column_names.include?('ProjectID')

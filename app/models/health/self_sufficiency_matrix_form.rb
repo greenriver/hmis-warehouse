@@ -1,5 +1,11 @@
 module Health
   class SelfSufficiencyMatrixForm < HealthBase
+    belongs_to :patient
+    belongs_to :user
+
+    scope :in_progress, -> { where(completed_at: nil) }
+    scope :completed, -> {where.not completed_at: nil }
+    scope :recent, -> { order(created_at: :desc).limit(1) }
 
     SECTIONS = {
       housing: {
@@ -237,12 +243,6 @@ module Health
       community_score: "Community Involvement ",
       time_score: "Daily Time Management "
     }
-
-    belongs_to :patient
-    belongs_to :user
-
-    scope :in_progress, -> { where(completed_at: nil) }
-    scope :completed, -> {where.not completed_at: nil }
 
     def completed?
       completed_at.present?

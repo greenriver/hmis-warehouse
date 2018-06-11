@@ -1,3 +1,25 @@
+.form__actions,
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  &--right {
+    justify-content: flex-end;
+    input,
+    a,
+    button {
+      margin-left: space(2);
+    }
+  }
+  &--stacked {
+    display: inline-flex;
+    flex-direction: column;
+    button {
+      margin-bottom: space(3);
+    }
+  }
+}
+
 form.inline-form {
   display: inline;
 }
@@ -56,18 +78,18 @@ label {
 }
 
 .has-error {
-  @include form-control-validation($cas-red, $cas-red, $cas-red);
+  @include form-control-validation($brand-danger, $brand-danger, $brand-danger);
 }
 
 .error .form-control {
-  border-color: $cas-red;
+  border-color: $brand-danger;
+  background: rgba($brand-danger-l, .1);
 }
 
 .errors,
 .error label,
 .error-block {
-  color: $cas-red;
-  @include open-sans-medium;
+  color: $brand-danger;
 }
 
 .form-group .form-group {
@@ -152,7 +174,7 @@ label {
   span {
     display: inline-block;
     padding: 6px 12px;
-    background-color: $gray-030;
+    background-color: $gray-020;
     color: $text-color;
     text-transform: uppercase;
   }
@@ -172,7 +194,7 @@ label {
     }
   }
   label input:checked ~ span {
-    background-color: $cob-sg-blue-006;
+    background-color: $brand-primary;
     color: #FFFFFF;
   }
 }
@@ -193,12 +215,12 @@ label {
     padding: 6px 12px;
   }
   label input:checked ~ span {
-    background-color: $cob-sg-blue-006;
+    background-color: $brand-primary;
     color: #FFFFFF;
   }
   label input:hover ~ span,
   label input:focus ~ span {
-    background-color: $cob-sg-blue-006;
+    background-color: $brand-primary;
     color: #FFFFFF;
   }
 }
@@ -210,4 +232,22 @@ label {
   }
 }
 
+.form-group[data-other-value] {
+  margin-left: space(6);
+}
 
+textarea.form-control {
+  &.sized {
+    min-height: $textarea-min-height;
+  }
+}
+
+.form-group--hanging-label label {
+  white-space: nowrap;
+}
+
+.form-control-faux {
+  display: flex;
+  align-items: center;
+  border-color: $gray-020;
+}

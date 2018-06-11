@@ -1,11 +1,17 @@
 module Admin::Health
-  class UsersController < ApplicationController
+  class UsersController < HealthController
+    before_action :require_has_administartive_access_to_health!
     before_action :require_can_administer_health!
     
     def index
-      @users = User.all.
-        order(last_name: :asc, first_name: :asc).
-        page(params[:page].to_i).per(50)
+      if params[:q].present?
+        @users = User.text_search(params[:q])
+      else
+        @users = User.all
+      end
+      @users = @users.order(last_name: :asc, first_name: :asc).
+        page(params[:page].to_i).per(25)
+      
     end
 
     def update
