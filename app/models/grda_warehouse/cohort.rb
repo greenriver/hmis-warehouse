@@ -32,6 +32,79 @@ module GrdaWarehouse
       end
     end
 
+    def _scope(inactive: nil)
+      if inactive.present?
+        cohort_clients
+      else
+        cohort_clients.where(active: true)
+      end
+    end
+
+    def search_clients(page:, per:, inactive: nil, population: nil)
+      @client_search_scope = if inactive.present?
+        cohort_clients
+      else
+        cohort_clients.where(active: true)
+      end
+      scope = case population.to_sym
+      when :housed
+        @client_search_scope.where.not(housed_date: nil).where(ineligible: [nil, false])
+      when :ineligible
+        @client_search_scope.where(ineligible: true)
+      when :active
+        @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
+      when nil
+        @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
+      else
+        raise ArgumentError, 'unexpected value for population'
+      end
+      # clear caches
+      @last_activity_by_client_id = nil
+
+      @client_search_result = scope.page(page).per(per).preload(
+        :cohort_client_notes, {
+          client: :processed_service_history
+        }
+      )
+    end
+
+    private def needs_client_search
+      raise 'call #search_clients first' unless @client_search_scope.present? && @client_search_result.present?
+    end
+
+    # should we show the housed option for the last `client_search`
+    def show_housed
+      needs_client_search
+      @client_search_scope.where.not(housed_date: nil).where(ineligible: [nil, false]).exists?
+    end
+
+    # should we show the inactive option for the last `client_search`
+    def show_inactive
+      needs_client_search
+      client_search_scope.where(ineligible: true).exists?
+    end
+
+    # full un-paginated scope for the last `client_search`
+    def client_search_scope
+      needs_client_search
+      @client_search_scope
+    end
+
+    # paginated/preloaded scope for the last `client_search`
+    def client_search_result
+      needs_client_search
+      @client_search_result
+    end
+
+    # lazy loaded index of last_activity for the last `client_search`
+    def last_activity_by_client_id
+      @last_activity_by_client_id ||= begin
+        GrdaWarehouse::ServiceHistoryService.homeless.where(
+          client_id: client_search_result.map(&:id)
+        ).group(:client_id).maximum(:date).to_h
+      end
+    end
+
     def self.has_some_cohort_access user
       user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
     end
@@ -48,7 +121,7 @@ module GrdaWarehouse
           GrdaWarehouse::UserViewableEntity.where(entity_type: entity_type, entity_id: id, user_id: user_id).first_or_create
         end
       end
-      
+
     end
 
     def inactive?
@@ -146,22 +219,18 @@ module GrdaWarehouse
         ::CohortColumns::YouthRrhDesired.new(),
         ::CohortColumns::RrhAssessmentContactInfo.new(),
         ::CohortColumns::RrhSsvfEligible.new(),
-        
+
       ]
     end
 
-    def self.setup_column_accessors(cohort_columns)
-      cohort_columns.each do |column|
-        attr_accessor column.column
-      end
-    end
-
     # Attr Accessors
-    setup_column_accessors(available_columns)
+    available_columns.each do |column|
+      attr_accessor column.column
+    end
 
     def self.sort_directions
       {
-        'desc' => 'Descending', 
+        'desc' => 'Descending',
         'asc' => 'Ascending',
       }
     end

@@ -16,14 +16,9 @@ class CohortsController < ApplicationController
   def show
     params[:population] ||= :active
     load_cohort_names
-    cohort_with_preloads = cohort_scope.where(id: cohort_id).
-      preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
-    # missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
-    @cohort = cohort_with_preloads.first
-  
+    @cohort = cohort_scope.find(cohort_id)
     set_cohort_clients
-    
-    @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
+    @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map{|m| [m.id, m.updated_at.to_i]}.to_h
     @population = params[:population]
     respond_to do |format|
       format.html do
@@ -50,7 +45,7 @@ class CohortsController < ApplicationController
             options.merge!({type: m.renderer})
           else
             options.merge!({renderer: m.renderer})
-            options.merge!({readOnly: true}) unless m.editable 
+            options.merge!({readOnly: true}) unless m.editable
           end
           options
         end
@@ -114,7 +109,7 @@ class CohortsController < ApplicationController
       end.to_h
     end
 
-  
+
   def flash_interpolation_options
     { resource_name: @cohort&.name }
   end

@@ -30,11 +30,6 @@ module Cohorts
             if params[:cohort_client_id].present?
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
             end
-            @cohort_clients = @cohort_clients.
-              order(id: :asc).
-              preload(:cohort_client_notes, client: :processed_service_history).
-              page(params[:page].to_i).per(params[:per].to_i)
-
             render json: data_for_table() and return
           else
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
@@ -42,8 +37,6 @@ module Cohorts
         end
         format.html do
           set_cohort_clients
-                    
-          @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
           render layout: false
         end
       end
@@ -51,10 +44,10 @@ module Cohorts
 
     def data_for_table
       data = []
-      expires = if Rails.env.development? 
-        1.minute 
-      else 
-        8.hours 
+      expires = if Rails.env.development?
+        1.minute
+      else
+        8.hours
       end
 
       @cohort_clients.each do |cohort_client|
@@ -73,8 +66,8 @@ module Cohorts
             cohort_column.cohort_client = cohort_client
             editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
             cohort_client_data[cohort_column.column] = {
-              editable: editable, 
-              value: cohort_column.display_read_only(current_user), 
+              editable: editable,
+              value: cohort_column.display_read_only(current_user),
               renderer: cohort_column.renderer,
               cohort_client_id: cohort_client.id,
               comments: cohort_column.comments,
@@ -86,7 +79,7 @@ module Cohorts
           end
           cohort_client_data
         end
-      
+
         data << cohort_client_data
       end
       return data
@@ -100,6 +93,7 @@ module Cohorts
     def show
       respond_to do |format|
         format.json do
+          set_cohort_clients
           render json: @client.attributes.merge(updated_at_i: @client.updated_at.to_i)
         end
       end
@@ -122,7 +116,7 @@ module Cohorts
       elsif @population
         # Force service to fall within the correct age ranges for some populations
         service_scope = :current_scope
-        if ['youth', 'children'].include? @population 
+        if ['youth', 'children'].include? @population
           service_scope = @population
         elsif @population == 'parenting_children'
           service_scope = :children
@@ -157,7 +151,7 @@ module Cohorts
             population = @actives[:actives_population]
             # Force service to fall within the correct age ranges for some populations
             service_scope = :current_scope
-            if ['youth', 'children'].include? population 
+            if ['youth', 'children'].include? population
               service_scope = population
             elsif population == 'parenting_children'
               service_scope = :children
@@ -168,8 +162,8 @@ module Cohorts
             end
 
             enrollment_scope = enrollment_scope.with_service_between(
-              start_date: @actives[:start], 
-              end_date: @actives[:end], 
+              start_date: @actives[:start],
+              end_date: @actives[:end],
               service_scope: service_scope
             )
             if @actives[:actives_population].present?
@@ -178,7 +172,7 @@ module Cohorts
           end
           # Active record seems to have trouble with the complicated nature of this scope
           @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
-          
+
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map{|m| m[/\d+/].to_i}
         @clients = client_scope.where(id: @client_ids)
@@ -240,23 +234,23 @@ module Cohorts
           end
           format.js do
             @response = {
-              alert: :success, 
-              message: 'Saved', 
-              updated_at: @client.updated_at.to_i, 
+              alert: :success,
+              message: 'Saved',
+              updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
             render json: @response and return
           end
           format.json do
             @response = {
-              alert: :success, 
-              message: 'Saved', 
-              updated_at: @client.updated_at.to_i, 
+              alert: :success,
+              message: 'Saved',
+              updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
             render json: @response and return
           end
-        end        
+        end
       else
         render json: {alert: :danger, message: 'Unable to save change'}
       end
@@ -326,7 +320,7 @@ module Cohorts
         user_id: current_user.id,
         change: 'create',
         changed_at: Time.now,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -338,7 +332,7 @@ module Cohorts
         change: 'destroy',
         changed_at: Time.now,
         reason: reason,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -349,7 +343,7 @@ module Cohorts
         user_id: current_user.id,
         change: 'activate',
         changed_at: Time.now,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -360,7 +354,7 @@ module Cohorts
         user_id: current_user.id,
         change: 'deactivate',
         changed_at: Time.now,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -371,14 +365,14 @@ module Cohorts
       if @cohort.only_window
         client_source.destination.
           where(
-            GrdaWarehouse::WarehouseClient.joins(:data_source). 
+            GrdaWarehouse::WarehouseClient.joins(:data_source).
             where(ds_t[:visible_in_window].eq(true)).
             where(wc_t[:destination_id].eq(c_t[:id])).
-            exists 
+            exists
           )
       else
         client_source.destination
-      end  
+      end
     end
 
     def client_source

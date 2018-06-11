@@ -6,11 +6,11 @@
     },
     cohort_path(@cohort, population: :housed) => {
       title: 'Housed Clients',
-      permission: @show_housed,
+      permission: @cohort.show_housed,
     },
     cohort_path(@cohort, population: :ineligible) => {
       title: 'Ineligible Clients',
-      permission: @show_inactive,
+      permission: @cohort.show_inactive,
     },
   }
 

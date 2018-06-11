@@ -3,7 +3,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :meta
     attribute :title, String, lazy: true, default: 'Alerts'
-    
+
     def column_editable?
       false
     end
@@ -43,7 +43,7 @@ module CohortColumns
     end
 
     def last_activity
-      @last_activity ||= cohort_client.client.service_history_services.homeless.maximum(:date) rescue nil
+      @cohort.last_activity_by_client_id[cohort_client.client_id]
     end
 
     def inactive
@@ -65,10 +65,10 @@ module CohortColumns
 
     def metadata
       {
-        activity: inactivity_class, 
-        ineligible: cohort_client.ineligible?, 
-        cohort_client_id: cohort_client.id, 
-        client_id: cohort_client&.client&.id, 
+        activity: inactivity_class,
+        ineligible: cohort_client.ineligible?,
+        cohort_client_id: cohort_client.id,
+        client_id: cohort_client&.client&.id,
         cohort_client_updated_at: cohort_client.updated_at.to_i,
         last_activity: last_activity,
         inactive: inactive,

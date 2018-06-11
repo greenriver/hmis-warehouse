@@ -4,9 +4,9 @@
       var cohort_options = {
         wrapper_selector: '.cohorts',
         table_selector: '.datatable',
-        batch_size: 25,
+        batch_size: 500,
         static_column_count: #{@cohort.static_column_count + 1},
-        client_count: #{@cohort_clients.count},
+        client_count: #{@cohort.client_search_scope.count},
         sort_direction: '#{@cohort.default_sort_direction}',
         column_order: #{(@visible_columns.map(&:column)).to_json},
         column_headers: #{@column_headers.to_json},
@@ -27,5 +27,5 @@
         population: "#{@population}"
       }
       $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
-      
+
     })(jQuery);
