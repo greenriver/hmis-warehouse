@@ -10,13 +10,14 @@
     .c-card__item.health-careplan__goal
       .c-card__item-header
         %h4 Goal ##{index}
-        .d-flex.ml-auto
-          .health-careplan__goal-action.health-careplan__goal-delete.mr-3
-            = link_to polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), data: { loads_in_pjax_modal: true } do
-              %span.icon-pencil
-          .health-careplan__goal-action.health-careplan__goal-delete
-            = link_to polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do
-              %span.icon-cross
+        - unless @disable_goal_actions
+          .d-flex.ml-auto
+            .health-careplan__goal-action.health-careplan__goal-delete.mr-3
+              = link_to polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), data: { loads_in_pjax_modal: true } do
+                %span.icon-pencil
+            .health-careplan__goal-action.health-careplan__goal-delete
+              = link_to polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do
+                %span.icon-cross
       .row.margin-bottom-02
         .col-xs-4
           %label Responsible Care Team Member

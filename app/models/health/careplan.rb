@@ -36,6 +36,9 @@ module Health
     scope :rejected, -> do
       where(status: :rejected)
     end
+    scope :sorted, -> do
+      order(updated_at: :desc)
+    end
     # End Scopes 
 
     def editable?

@@ -2,34 +2,114 @@ module Health
   class QualifyingActivity < HealthBase
 
     MODE_OF_CONTACT = {
-      'In Person' => 'U2',
-      'Phone call' => 'U3',
-      'Email' => 'U3',
-      'Video call' => 'U3',
-      'Other' => '',
+      in_person: {
+        title: 'In person',
+        code: 'U2',
+        weight: 0,
+      },
+      phone_call: {
+        title: 'Phone call',
+        code: 'U3',
+        weight: 10,
+      },
+      email: {
+        title: 'Email',
+        code: 'U3',
+        weight: 20,
+      },
+      video_call: {
+        title: 'Video call',
+        code: 'U3',
+        weight: 30,
+      },
+      other: {
+        title: 'Other',
+        code: '',
+        weight: 40,
+      },
     }
     MODE_OF_CONTACT_OTHER = 'Other'
 
     REACHED_CLIENT = {
-      'Yes (face to face, phone call answered, response to email)' => 'U1',
-      'Group session' => 'HQ',
-      'Did not reach' => '',
-      'Collateral contact - not with client directly' => 'UK',
+      yes: {
+        title: 'Yes (face to face, phone call answered, response to email)',
+        code: 'U1',
+        weight: 0,
+      },
+      group: {
+        title: 'Group session',
+        code: 'HQ',
+        weight: 10,
+      },
+      no: {
+        title: 'Did not reach',
+        code: '',
+        weight: 20,
+      },
+      yes: {
+        title: 'Collateral contact - not with client directly',
+        code: 'UK',
+        weight: 30,
+      },
     }
     REACHED_CLIENT_OTHER = 'Collateral contact - not with client directly'
 
     ACTIVITY = {
-      'Outreach for enrollment' => 'G9011',
-      'Care coordination' => 'G9005',
-      'Care planning' => 'T2024',
-      'Person-Centered Treatment Plan signed' => 'T2024 U4',
-      'Comprehensive Health Assessment' => 'G0506',
-      'Follow-up within 3 days of hospital discharge (with client)' => 'G9007 U5',
-      'Care transitions (working with care team)' => 'G9007',
-      'Health and wellness coaching' => 'G9006',
-      'Connection to community and social services' => 'G9004',
-      'Social services screening completed' => 'T1023',
-      'Referral to ACO for Flexible Services' => 'T1023 U6',
+      outreach: { 
+        title: 'Outreach for enrollment',
+        code: 'G9011',
+        weight: 0,
+      },
+      cha: { 
+        title: 'Comprehensive Health Assessment',
+        code: 'G0506',
+        weight: 10,
+      },
+      care_planning: { 
+        title: 'Care planning',
+        code: 'T2024',
+        weight: 20,
+      },
+      care_coordination: { 
+        title: 'Care coordination',
+        code: 'G9005',
+        weight: 30,
+      },
+      care_transitions: { 
+        title: 'Care transitions (working with care team)',
+        code: 'G9007',
+        weight: 40,
+      },
+      discharge_follow_up: { 
+        title: 'Follow-up within 3 days of hospital discharge (with client)',
+        code: 'G9007 U5',
+        weight: 50,
+      },
+      health_coaching: { 
+        title: 'Health and wellness coaching',
+        code: 'G9006',
+        weight: 60,
+      },
+      community_connection: { 
+        title: 'Connection to community and social services',
+        code: 'G9004',
+        weight: 70,
+      },
+      screening_completed: { 
+        title: 'Social services screening completed',
+        code: 'T1023',
+        weight: 80,
+      },
+      referral_to_aco: { 
+        title: 'Referral to ACO for Flexible Services',
+        code: 'T1023 U6',
+        weight: 90,
+      },
+      pctp_signed: { 
+        title: 'Person-Centered Treatment Plan signed',
+        code: 'T2024 U4',
+        weight: 100,
+      },
     }
 
     scope :submitted, -> {where.not(claim_submitted_on: nil)}
@@ -66,21 +146,21 @@ module Health
     end
 
     def self.load_string_collection(collection)
-      [['None', '']] + collection.map do |c|
-        [c, c]
+      [['None', '']] + collection.map do |k, v|
+        [v, k]
       end
     end
 
     def self.mode_of_contact_collection
-      self.load_string_collection(MODE_OF_CONTACT.keys)
+      self.load_string_collection(MODE_OF_CONTACT.map{|k, mode| [k, mode[:title]] })
     end
 
     def self.reached_client_collection
-      self.load_string_collection(REACHED_CLIENT.keys)
+      self.load_string_collection(REACHED_CLIENT.map{|k, mode| [k, mode[:title]] })
     end
 
     def self.activity_collection
-      self.load_string_collection(ACTIVITY.keys)
+      self.load_string_collection(ACTIVITY.map{|k, mode| [k, mode[:title]] })
     end
 
     def mode_of_contact_is_other?

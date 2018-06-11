@@ -1,0 +1,7 @@
+%section.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2 Current Goals
+  - if @goals.present?
+    .c-card__content
+      - @goals.each do |goal|
+        = render goal, readonly: true

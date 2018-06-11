@@ -10,6 +10,10 @@ module Window::Health
       @goal = Health::Goal::Base.new
       @readonly = false
       @careplans = @patient.careplans
+      # most-recent careplan
+      @careplan = @careplans.sorted.first
+      @disable_goal_actions = true
+      @goals = @careplan.hpc_goals
     end
 
     def show
