@@ -29,12 +29,17 @@
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header
       Assessments
-    %select.new-assessment.ml-auto
-      %option{ value: 0 } Add New...
-      - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
-        %option{ value: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
-      - if @client.patient.chas.in_progress.none?
-        %option{ value: polymorphic_path( [:new] + cha_path_generator) } Comprehensive Health Assessment
+    .dropdown.ml-auto
+      %button#add-form.btn.btn-secondary.btn-sm{ data: {toggle: :dropdown } }
+        Add New...
+        .caret
+      %ul.dropdown-menu
+        - if @client.patient.self_sufficiency_matrix_forms.in_progress.none?
+          %li
+            %a{ href: polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator) } Self-Sufficiency Matrix
+        - if @client.patient.chas.in_progress.none?
+          %li
+            %a{ href: polymorphic_path( [:new] + cha_path_generator) } Comprehensive Health Assessment
 
   .c-card__content.c-card__content--flush
     - if status = @client.api_status
@@ -63,8 +68,3 @@
   :javascript
     var status_class = '.jApiStatus'
     var refresher = new App.Clients.EtoApiRefresher($(status_class), "#{eto_api_path}", document.URL, '.client__assessments');
-
-  :coffee
-    $(document).on 'change', '.new-assessment', (e) ->
-      path = $(e.target).val()
-      window.location.href = path unless path == '0'

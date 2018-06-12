@@ -30,10 +30,10 @@ module Health
         user_id: @user.id,
         user_full_name: @user.name_with_email,
         date_of_activity: Date.today,
-        activity: 'Outreach for enrollment',
+        activity: :outreach,
         follow_up: 'Engage Patient',
-        reached_client: 'Yes (face to face, phone call answered, response to email)',
-        mode_of_contact: 'In Person',
+        reached_client: :yes,
+        mode_of_contact: :in_person,
         patient_id: @form.patient_id
       )
     end

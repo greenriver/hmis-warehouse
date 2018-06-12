@@ -1,7 +1,10 @@
 %section.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2 Current Goals
-  - if @goals.present?
-    .c-card__content
-      - @goals.each do |goal|
-        = render goal, readonly: true
+  .c-card__content.c-card__content--flush
+    - if @goals.present?
+      .c-card__content
+        - @goals.each do |goal|
+          = render goal, readonly: true
+    - else
+      %p.no-data No goals on file

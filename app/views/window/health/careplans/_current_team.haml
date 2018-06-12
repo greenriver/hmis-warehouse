@@ -1,25 +1,25 @@
 %section.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2 Current Care Team
-  
-  - team = @patient.careplans.order(id: :desc).limit(1).first&.team
-  - if team.blank? || team&.members&.blank?
-    %p No team listed.
-  - else
-    - team.members.each do |member|
-      .c-card__content.mt-2
-        .health__team-members
-          .health__team-member--type
-            %i{class: Health::Team::Member.icon_for(member.member_type_name)}
-            = member.member_type_name
-          .health__team-member--name
-            = member&.full_name
-            %br
-            = member&.organization
-            %br
-            = mail_to member.email, subject: 'Collaborative Care Plan' do
-              %i.icon-envelope-o
-              = member&.email
-            - if member.phone?
+  .c-card__content.c-card__content--flush
+    - team = @patient.careplans.order(id: :desc).limit(1).first&.team
+    - if team.blank? || team&.members&.blank?
+      %p.no-data No team on file
+    - else
+      - team.members.each do |member|
+        .c-card__content.mt-2
+          .health__team-members
+            .health__team-member--type
+              %i{class: Health::Team::Member.icon_for(member.member_type_name)}
+              = member.member_type_name
+            .health__team-member--name
+              = member&.full_name
               %br
-              = member.phone
+              = member&.organization
+              %br
+              = mail_to member.email, subject: 'Collaborative Care Plan' do
+                %i.icon-envelope-o
+                = member&.email
+              - if member.phone?
+                %br
+                = member.phone

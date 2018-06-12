@@ -19,8 +19,10 @@ module Health
       @ssm.class.transaction do 
         @ssm.completed_at = Time.current if @complete
         @ssm.save!
-        @qualifying_activity.source_id = @ssm.id
-        @qualifying_activity.save
+        if @complete
+          @qualifying_activity.source_id = @ssm.id
+          @qualifying_activity.save
+        end
       end
     end
 
