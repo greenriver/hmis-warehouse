@@ -18,7 +18,7 @@ Rails.application.routes.draw do
 
   def healthcare_routes
     namespace :health do
-      resources :patient, only: [:index]
+      resources :patient, only: [:index, :update]
       resources :utilization, only: [:index]
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
