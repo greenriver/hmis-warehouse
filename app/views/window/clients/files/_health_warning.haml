@@ -1,3 +1,4 @@
 - if GrdaWarehouse::Config.get(:healthcare_available) && current_user.has_some_patient_access?
-  %p.alert.alert-warning
-    
+  .alert.alert--flex.alert-danger
+    %i.alert__icon.icon-warning
+    %p The files listed on this page relate to a client's Homeless data, and should not include any healthcare or patient data.
