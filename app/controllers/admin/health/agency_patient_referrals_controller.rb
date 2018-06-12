@@ -6,6 +6,7 @@ module Admin::Health
     before_action :load_new_patient_referral, only: [:review, :reviewed]
     
     include PatientReferral
+    include ArelHelper
 
     def review
       @active_patient_referral_tab = 'review'
@@ -15,7 +16,7 @@ module Admin::Health
           select(:patient_referral_id)
         @patient_referrals = Health::PatientReferral.
           unassigned.includes(:relationships).
-          where('agency_patient_referrals.id is null or agency_patient_referrals.patient_referral_id not in (?)', @agency_patient_referral_ids).
+          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
           references(:relationships)
         load_index_vars
       end

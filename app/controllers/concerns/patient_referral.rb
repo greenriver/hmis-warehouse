@@ -1,5 +1,6 @@
 module PatientReferral
   extend ActiveSupport::Concern
+  include ArelHelper
 
   Filters = Struct.new(
     :search, 
@@ -46,7 +47,7 @@ module PatientReferral
   end
 
   def load_sort
-    order = @filters.sort_by == 'last_name' ? 'last_name' : 'created_at desc'
+    order = @filters.sort_by == 'last_name' ? 'last_name' : hpr_t[:created_at].desc().to_sql
     @patient_referrals = @patient_referrals.order(order)
   end
 
@@ -54,7 +55,7 @@ module PatientReferral
     if @filters.added_before.present?
       date = DateTime.parse(@filters.added_before)
       added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
-      @patient_referrals = @patient_referrals.where("created_at < ?", added_before_date)
+      @patient_referrals = @patient_referrals.where(arel_table[:created_at].lt(added_before_date))
     end
   end
 
@@ -62,7 +63,7 @@ module PatientReferral
     if @filters.agency_id.present?
       @filter_agency = Health::Agency.find(@filters.agency_id)
       @patient_referrals = @patient_referrals.
-        where('agency_patient_referrals.agency_id = ?', @filters.agency_id).
+        where(hapr_t[:agency_id].eq(@filters.agency_id)).
         references(:relationships)
     end
   end
@@ -72,8 +73,8 @@ module PatientReferral
       if @filters.relationship != 'all'
         r = @filters.relationship == 'claimed'
         @patient_referrals = @patient_referrals.
-          where('agency_patient_referrals.id is not null').
-          where('agency_patient_referrals.claimed = ?', r).
+          where(hapr_t[:id].not_eq(nil)).
+          where(hapr_t[:claimed].eq(r)).
           references(:relationships)
       end
     else
