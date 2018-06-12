@@ -254,7 +254,7 @@ module Health
     end
 
     def editable_by? editor
-      !claim_submitted? && (editor == user)
+      !claim_submitted?
     end
 
     def self.point_completed_options
