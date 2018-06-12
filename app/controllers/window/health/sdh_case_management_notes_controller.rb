@@ -104,12 +104,13 @@ module Window::Health
       (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
     end
 
-    def add_user_and_patient_to_activities!(permitted_params)
+    def add_calculated_params_to_activities!(permitted_params)
       (permitted_params[:activities_attributes]||{}).keys.each do |key|
         permitted_params[:activities_attributes][key].merge!({
           user_id: current_user.id,
           user_full_name: current_user.name,
-          patient_id: @patient.id
+          patient_id: @patient.id,
+          follow_up: permitted_params[:next_steps],
         })
       end
       permitted_params
@@ -144,7 +145,7 @@ module Window::Health
           :_destroy
         ]
       ).reject{|k, v| v.blank?}
-      add_user_and_patient_to_activities!(permitted_params)
+      add_calculated_params_to_activities!(permitted_params)
     end
 
     def flash_interpolation_options

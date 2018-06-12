@@ -16,6 +16,3 @@
 .row
   .col-sm-6
     = f.input :date_of_activity, as: :date_picker, input_html: {value: f.object.date_of_activity&.to_date || Date.today.to_date}
-.row
-  .col-sm-6
-    = f.input :follow_up

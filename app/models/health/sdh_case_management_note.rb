@@ -59,7 +59,8 @@ module Health
 
     validates_presence_of :patient, :user, :title, :date_of_contact
     validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?, allow_blank: false
-    validates_presence_of :housing_status_other, if: :housing_status_is_other?, allow_blank: false 
+    validates_presence_of :housing_status_other, if: :housing_status_is_other?, allow_blank: false
+    validates_presence_of :next_steps
     validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
     validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
     validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
