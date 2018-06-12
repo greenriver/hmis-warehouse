@@ -29,6 +29,7 @@ Rails.application.routes.draw do
       resources :services
       resources :qualifying_activities, only: [:index]
       resources :durable_equipments, except: [:index]
+      resources :files, only: [:index, :show]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]

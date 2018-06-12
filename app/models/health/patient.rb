@@ -148,6 +148,10 @@ module Health
     def chas
       comprehensive_health_assessments
     end
+
+    def health_files
+      Health::HealthFile.where(client_id: client.id)
+    end
     
     def accessible_by_user user
       return false unless user.present?
