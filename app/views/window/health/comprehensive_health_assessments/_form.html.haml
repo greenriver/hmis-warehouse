@@ -214,48 +214,30 @@
           .col-sm-12
             %p
               %strong= _('CHA I_Q2_HEADER')
+        - ('a'..'ay').each_with_index do |key, index|
+          - diagnosis = "i_q2#{key}1".to_sym
+          - disease   = "i_q2#{key}2".to_sym
+          - icd       = "i_q2#{key}3".to_sym
+          .row.diagnosis-row{ class: ('hidden' if index > 0 && @cha.answer(diagnosis).blank? && @cha.answer(disease).blank? && @cha.answer(icd).blank?) }
+            .col-sm-3
+              = cha_string f, diagnosis
+            .col-sm-3
+              = cha_select f, disease
+            .col-sm-3
+              = cha_string f, icd
+            .col-sm-3
+              - if index > 0
+                .form-group
+                  %label.control-label &nbsp;
+                  .controls
+                    %a.btn.btn-link.remove-diagnosis
+                      %span.icon-cross
         .row
-          .col-sm-4
-            = cha_string     f, :i_q2a1
-          .col-sm-4
-            = cha_select     f, :i_q2a2
-          .col-sm-4
-            = cha_string     f, :i_q2a3
-        .row
-          .col-sm-4
-            = cha_string     f, :i_q2b1
-          .col-sm-4
-            = cha_select     f, :i_q2b2
-          .col-sm-4
-            = cha_string     f, :i_q2b3
-        .row
-          .col-sm-4
-            = cha_string     f, :i_q2c1
-          .col-sm-4
-            = cha_select     f, :i_q2c2
-          .col-sm-4
-            = cha_string     f, :i_q2c3
-        .row
-          .col-sm-4
-            = cha_string     f, :i_q2d1
-          .col-sm-4
-            = cha_select     f, :i_q2d2
-          .col-sm-4
-            = cha_string     f, :i_q2d3
-        .row
-          .col-sm-4
-            = cha_string     f, :i_q2e1
-          .col-sm-4
-            = cha_select     f, :i_q2e2
-          .col-sm-4
-            = cha_string     f, :i_q2e3
-        .row
-          .col-sm-4
-            = cha_string     f, :i_q2f1
-          .col-sm-4
-            = cha_select     f, :i_q2f2
-          .col-sm-4
-            = cha_string     f, :i_q2f3
+          .col-sm-12
+            %a.btn.btn-link.add-diagnosis
+              %span.icon-plus
+              Add another diagnosis
+
 
       %h3
         = _('CHA J_TITLE')
@@ -306,87 +288,46 @@
         = _('CHA L_TITLE')
         %small= _('CHA L_SUBTITLE')
       .well
-        .row
-          .col-sm-12
-            = cha_string f, :l_q1s1a
-        .row
-          .col-sm-2
-            = cha_string f, :l_q1s1b
-          .col-sm-2
-            = cha_select f, :l_q1s1c
-          .col-sm-2
-            = cha_select f, :l_q1s1d
-          .col-sm-2
-            = cha_select f, :l_q1s1e
-          .col-sm-2
-            = cha_select f, :l_q1s1f
-          .col-sm-2
-            = cha_string f, :l_q1s1g
-        .row
-          .col-sm-12
-            = cha_string f, :l_q1s2a
-        .row
-          .col-sm-2
-            = cha_string f, :l_q1s2b
-          .col-sm-2
-            = cha_select f, :l_q1s2c
-          .col-sm-2
-            = cha_select f, :l_q1s2d
-          .col-sm-2
-            = cha_select f, :l_q1s2e
-          .col-sm-2
-            = cha_select f, :l_q1s2f
-          .col-sm-2
-            = cha_string f, :l_q1s2g
-        .row
-          .col-sm-12
-            = cha_string f, :l_q1s3a
-        .row
-          .col-sm-2
-            = cha_string f, :l_q1s3b
-          .col-sm-2
-            = cha_select f, :l_q1s3c
-          .col-sm-2
-            = cha_select f, :l_q1s3d
-          .col-sm-2
-            = cha_select f, :l_q1s3e
-          .col-sm-2
-            = cha_select f, :l_q1s3f
-          .col-sm-2
-            = cha_string f, :l_q1s3g
-        .row
-          .col-sm-12
-            = cha_string f, :l_q1s4a
-        .row
-          .col-sm-2
-            = cha_string f, :l_q1s4b
-          .col-sm-2
-            = cha_select f, :l_q1s4c
-          .col-sm-2
-            = cha_select f, :l_q1s4d
-          .col-sm-2
-            = cha_select f, :l_q1s4e
-          .col-sm-2
-            = cha_select f, :l_q1s4f
-          .col-sm-2
-            = cha_string f, :l_q1s4g
-        .row
-          .col-sm-12
-            = cha_string f, :l_q1s5a
-        .row
-          .col-sm-2
-            = cha_string f, :l_q1s5b
-          .col-sm-2
-            = cha_select f, :l_q1s5c
-          .col-sm-2
-            = cha_select f, :l_q1s5d
-          .col-sm-2
-            = cha_select f, :l_q1s5e
-          .col-sm-2
-            = cha_select f, :l_q1s5f
-          .col-sm-2
-            = cha_string f, :l_q1s5g
 
+        - (1..50).each_with_index do |key, index|
+          - name  = "l_q1s#{key}a".to_sym
+          - dose  = "l_q1s#{key}b".to_sym
+          - unit  = "l_q1s#{key}c".to_sym
+          - route = "l_q1s#{key}d".to_sym
+          - freq  = "l_q1s#{key}e".to_sym
+          - prn   = "l_q1s#{key}f".to_sym
+          - code  = "l_q1s#{key}g".to_sym
+          .medication-rows{ class: ('hidden' if index > 0 && @cha.answer(name).blank? && @cha.answer(dose).blank? && @cha.answer(unit).blank? && @cha.answer(route).blank? && @cha.answer(freq).blank? && @cha.answer(prn).blank? && @cha.answer(code).blank?) }
+            .row
+              .col-sm-10
+                = cha_string f, name
+              .col-sm-2
+                - if index > 0
+                  .form-group
+                    %label.control-label &nbsp;
+                    .controls
+                      %a.btn.btn-link.remove-medication
+                        %span.icon-cross
+            .row
+              .col-sm-2
+                = cha_string f, dose
+              .col-sm-2
+                = cha_select f, unit
+              .col-sm-2
+                = cha_select f, route
+              .col-sm-2
+                = cha_select f, freq
+              .col-sm-2
+                = cha_select f, prn
+              .col-sm-2
+                = cha_string f, code
+        .row
+          .col-sm-12
+            %a.btn.btn-link.add-medication
+              %span.icon-plus
+              Add another medication
+
+      .well
         = cha_radios f, :l_q2
 
       %h3
@@ -480,5 +421,5 @@
   .row
     .col-sm-8
       .text-right
-        = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default'
+        = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default', data: { disable_with: 'Saving...' }
         = f.button :submit, 'Complete', data: { disable_with: 'Saving...' }
