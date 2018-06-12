@@ -232,6 +232,11 @@ module Health
       return full_name
     end
 
+    def available_care_coordinators
+      user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      User.where(id: user_ids)
+    end
+
     def housing_stati
       client.case_management_notes.map do |form|
         first_section = form.answers[:sections].first
