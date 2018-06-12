@@ -19,6 +19,10 @@ module Window::Health
     end
 
     def edit
+      if @patient.qualifying_activities.submitted.where(source: @form).any?
+        flash.notice = "This qualifying activity has already been submitted and cannot be edited."
+        redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return 
+      end
       respond_with @form
     end
     
