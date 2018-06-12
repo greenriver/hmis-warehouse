@@ -368,7 +368,7 @@ module Health
     belongs_to :reviewed_by, class_name: 'User'
     belongs_to :health_file, dependent: :destroy
 
-    enum status: [:not_started, :in_progress, :complete]
+    enum status: {not_started: 0, in_progress: 1, complete: 2}
 
     scope :recent, -> { order(created_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }

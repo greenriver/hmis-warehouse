@@ -10,16 +10,13 @@ module Window::Health
 
     def new
       @cha = @patient.chas.build(user: current_user)
-      @cha.save(validate: false)
+      Health::ChaSaver.new(cha: @cha, user: current_user).create
       redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
     def update
-      if params[:commit]=='Save'
-        @cha.completed_at = Time.current
-      end
-      @cha.reviewed_by = current_user if reviewed?
-      @cha.update(form_params)
+      @cha.assign_attributes(form_params)
+      Health::ChaSaver.new(cha: @cha, user: current_user, complete: params[:commit]=='Complete', reviewed: reviewed?).update
       respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end
 

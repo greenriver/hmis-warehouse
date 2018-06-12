@@ -2,28 +2,31 @@
 module Health
   class ChaSaver
 
-    def initialize user:, cha: Health::ComprehensiveHealthAssessment.new
+    def initialize user:, cha: Health::ComprehensiveHealthAssessment.new, complete: false, reviewed: false
       @user = user
       @cha = cha
+      @complete = complete
+      @reviewed = reviewed
       @qualifying_activity = setup_qualifying_activity
+
+      @cha.completed_at = Time.current if @complete
+      @cha.reviewed_by = @user if @reviewed
     end
 
     def create
       @cha.class.transaction do
-        @cha.save!
+        @cha.save(validate: false)
       end
     end
 
 
     def update
       @cha.class.transaction do
-        if @cha.just_signed?
-          @qualifying_activity.activity = 'Person-Centered Treatment Plan signed'
-        end
         @cha.save!
-        @qualifying_activity.source_id = @cha.id
-        @qualifying_activity.save
-        @cha.set_lock
+        if @complete || @reviewed
+          @qualifying_activity.source_id = @cha.id
+          @qualifying_activity.save
+        end
       end
     end
 
