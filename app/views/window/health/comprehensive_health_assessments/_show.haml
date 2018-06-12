@@ -3,7 +3,7 @@
 - if @cha.present?
   - if @cha.editable_by?(current_user)
     .pull-right
-      = link_to 'Edit', polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-primary btn-primary__reverse', data: { disable_with: 'Loading...' }
+      = link_to 'Edit', polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-primary btn-primary__reverse', data: { disable_with: 'Loading...', toggle: 'tooltip' }, disabled: @cha.reviewed_by.present?, title: ('This CHA has already been reviewed' if @cha.reviewed_by)
 
   %strong Name:
   %span= @client.name

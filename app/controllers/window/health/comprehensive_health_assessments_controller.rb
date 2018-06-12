@@ -21,6 +21,10 @@ module Window::Health
     end
 
     def edit
+      if @cha.reviewed_by
+        flash.notice = "This assessment has already been reviewed and is no longer editable."
+        redirect_to polymorphic_path(cha_path_generator, id: @cha.id) and return
+      end
       # For errors in new/edit forms
       @service = Health::Service.new
       @equipment = Health::Equipment.new
