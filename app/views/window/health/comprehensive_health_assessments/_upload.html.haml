@@ -16,30 +16,26 @@
           .panel-body
           
             %p If the Comprehensive Health Assessment was conducted on paper, you may upload a scanned version here.   
-            .row
-              .col-sm-8
-                .well
-                  = simple_form_for @cha, url: polymorphic_path([:upload] + cha_path_generator, client_id: @client.id, id: @cha.id), as: :form do |f|
-                    
-                    = f.error_notification
-                    .row
-                      .col-sm-6
-                        = f.input :file, as: :file 
-                      .col-sm-6
-                        - if @cha.health_file.present?
-                          .form-group
-                            %label Existing File
-                            %div
-                              .btn-group.existing-file
-                                = link_to polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-default' do
-                                  = @cha.health_file&.name
-                                = link_to polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-danger', method: :delete, remote: true do
-                                  %span.icon-cross{ style: "color:white; margin:0" }
 
-                    .row
-                      .col-sm-12
-                        .text-right
-                          = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }
+            = simple_form_for @cha, url: polymorphic_path([:upload] + cha_path_generator, client_id: @client.id, id: @cha.id), as: :form do |f|
+              
+              = f.error_notification
+              .row
+                .col-sm-6
+                  = f.input :file, as: :file 
+                .col-sm-6
+                  - if @cha.health_file.present?
+                    .form-group
+                      %label Existing File
+                      %div
+                        .btn-group.existing-file
+                          = link_to polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-default' do
+                            = @cha.health_file&.name
+                          = link_to polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                            %span.icon-cross{ style: "color:white; margin:0" }
+              .row
+                .col-sm-12.text-right
+                  = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }
   .col-sm-4
     - if @blank_cha_url.present?
       .col-sm-6.text-right
