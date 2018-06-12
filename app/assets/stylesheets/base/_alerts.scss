@@ -11,6 +11,10 @@ $alerts: (
     font-weight: bold;
   }
 }
+.alert--flex
+{
+  display: flex;
+}
 
 @each $name, $color in $alerts {
   $lighten-factor: 15%;
@@ -24,4 +28,11 @@ $alerts: (
     background: $bg-color;
     border-color: desaturate($color, 10%);
   }
+}
+
+.alert__icon
+{
+  font-size: 2rem;
+  margin-top: space(1);
+  margin-right: space(4);
 }

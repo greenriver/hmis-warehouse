@@ -27,6 +27,10 @@ module Window::Health
         @careplan.archive_equipment
         @careplan.save
       end
+
+      # Include most-recent SSM & CHA
+      @form = @patient.self_sufficiency_matrix_forms.recent.first
+      @cha = @patient.comprehensive_health_assessments.recent.first
       # debugging
       # render layout: false
       render pdf: file_name, layout: false, encoding: "UTF-8", page_size: 'Letter'

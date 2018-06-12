@@ -45,9 +45,9 @@
         .c-card__content.health-care-plan__goal-list
           - if @careplan.hpc_goals.any?
             - @careplan.hpc_goals.each_with_index do |goal, index|
-              = render goal, readonly: true, index: index + 1
+              = render goal, readonly: true, index: (index + 1)
           - else
-            %p.no-data
+            %p.no-data.jEmpty
               No goals currently.
           .c-card__internal-primary-action
             = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do

@@ -4,7 +4,7 @@
   .c-card__content.c-card__content--flush
     - if @goals.present?
       .c-card__content
-        - @goals.each do |goal|
-          = render goal, readonly: true
+        - @goals.each_with_index do |goal, index|
+          = render goal, readonly: true, index: (index + 1)
     - else
       %p.no-data No goals on file

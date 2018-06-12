@@ -1,0 +1,3 @@
+- if GrdaWarehouse::Config.get(:healthcare_available) && current_user.has_some_patient_access?
+  %p.alert.alert-warning
+    

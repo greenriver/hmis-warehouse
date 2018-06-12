@@ -1,6 +1,7 @@
-- if ! @patient.release_forms.reviewed.exists?
-  %p.alert.alert-danger
-    %i.icon-warning
-    #{@patient.name} does not have a release of information on file.  
-    %br
-    Patient information is still available, but you are responsible for limiting your access to only necessary content.
+- unless @patient.release_forms.reviewed.exists?
+  .alert.alert--flex.alert-danger
+    %i.alert__icon.icon-warning
+    %p
+      #{@patient.name} does not have a release of information on file.  
+      %br
+      Patient information is still available, but you are responsible for limiting your access to only necessary content.

@@ -13,6 +13,7 @@
     = _("#{@client.name} does not have a consent form on file, you can only see files you upload.")
   - else
     = _("You can only see files you upload.")
+- render 'health_warning'
 = render 'download_warning'
 - if @client.client_files.any?
   = render 'batch_download'
