@@ -1,13 +1,20 @@
 $(document).on 'change', '.cha-form.autosave', (e) ->
   form = $(e.target).closest('form')
+  $('.saving-btn').text('Saving...').removeClass('hidden')
   $.ajax
     url: form.data('url'),
     type: 'PATCH',
     data: form.serialize()
   .done (e) ->
     console.log 'done'
+    $('.saving-btn').removeClass('btn-link btn-danger').addClass('btn-success').text('Saved!')
   .fail (e) ->
     console.log 'fail'
+    $('.saving-btn').removeClass('btn-link btn-success').addClass('btn-danger').text('Error saving')
+  .always ->
+    setTimeout ->
+      $('.saving-btn').removeClass('btn-success btn-danger').addClass('btn-link hidden')
+    , 2000
 
 $(document).on 'click', '.add-diagnosis', (e) ->
   $('.diagnosis-row.hidden').first().removeClass('hidden')

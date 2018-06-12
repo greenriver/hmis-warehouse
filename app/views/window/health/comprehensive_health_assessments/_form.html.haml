@@ -2,10 +2,27 @@
 - url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
 = simple_form_for @cha, url: polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id), as: :form, html: { data: { url: url }} do |f|
   
-  .row
+  :css
+    .section-links.affix {
+      top: 0px;
+      padding: 1em;
+      background-color: #091f2f;
+      width: 100%;
+    }
+    h3 {
+      margin-top: -75px;
+      padding-top: 75px;
+    }
+
+  .row.section-links(data-spy='affix' data-offset-top='0' style="z-index: 1000")
+    .col-sm-12
+      - ('a'..'r').each do |letter|
+        = link_to letter.upcase, "#section-#{letter}", class: 'btn btn-default'
+      = link_to 'Saving...', nil, class: 'btn btn-link saving-btn hidden'
+  .row(style="margin-top: 1em;")
     .col-sm-8
 
-      %h3
+      %h3#section-a
         = _('CHA A_TITLE')
         %small= _('CHA A_SUBTITLE') 
       .well
@@ -27,7 +44,7 @@
         = cha_radios     f, :a_q11
         = cha_radios     f, :a_q12
 
-      %h3
+      %h3#section-b
         = _('CHA B_TITLE')
         %small= _('CHA B_SUBTITLE')
       .well
@@ -36,7 +53,7 @@
         = cha_radios     f, :b_q3
         = cha_checkboxes f, :b_q4
 
-      %h3
+      %h3#section-c
         = _('CHA C_TITLE')
         %small= _('CHA C_SUBTITLE')
       .well
@@ -44,7 +61,7 @@
         = cha_radios     f, :c_q2
         = cha_radios     f, :c_q3
 
-      %h3
+      %h3#section-d
         = _('CHA D_TITLE')
         %small= _('CHA D_SUBTITLE')
       .well
@@ -53,7 +70,7 @@
         = cha_radios     f, :d_q3
         = cha_radios     f, :d_q4
 
-      %h3
+      %h3#section-e
         = _('CHA E_TITLE')
         %small= _('CHA E_SUBTITLE')
       .well
@@ -71,7 +88,7 @@
         = cha_radios     f, :e_q2b
         = cha_radios     f, :e_q2c
 
-      %h3
+      %h3#section-f
         = _('CHA F_TITLE')
         %small= _('CHA F_SUBTITLE')
       .well
@@ -86,7 +103,7 @@
         = cha_radios     f, :f_q4
         = cha_radios     f, :f_q5
 
-      %h3
+      %h3#section-g
         = _('CHA G_TITLE')
         %small= _('CHA G_SUBTITLE')
       .well
@@ -186,13 +203,13 @@
         = cha_radios     f, :g_q6a
         = cha_radios     f, :g_q6b
 
-      %h3
+      %h3#section-h
         = _('CHA H_TITLE')
         %small= _('CHA H_SUBTITLE')
       .well
         = cha_radios     f, :h_q1
 
-      %h3
+      %h3#section-i
         = _('CHA I_TITLE')
         %small= _('CHA I_SUBTITLE')
       .well
@@ -239,7 +256,7 @@
               Add another diagnosis
 
 
-      %h3
+      %h3#section-j
         = _('CHA J_TITLE')
         %small= _('CHA J_SUBTITLE')
       .well
@@ -275,7 +292,7 @@
         = cha_radios     f, :j_q9a
         = cha_radios     f, :j_q9b
 
-      %h3
+      %h3#section-k
         = _('CHA K_TITLE')
         %small= _('CHA K_SUBTITLE')
       .well
@@ -284,7 +301,7 @@
         = cha_radios     f, :k_q1c
         = cha_radios     f, :k_q1d
 
-      %h3
+      %h3#section-l
         = _('CHA L_TITLE')
         %small= _('CHA L_SUBTITLE')
       .well
@@ -330,7 +347,7 @@
       .well
         = cha_radios f, :l_q2
 
-      %h3
+      %h3#section-m
         = _('CHA M_TITLE')
         %small= _('CHA M_SUBTITLE')
       .well
@@ -347,33 +364,33 @@
         = cha_string f, :m_q2b
         = cha_string f, :m_q2c
 
-      %h3
+      %h3#section-n
         = _('CHA N_TITLE')
         %small= _('CHA N_SUBTITLE')
       .well
         = cha_radios f, :n_q1
 
-      %h3
+      %h3#section-o
         = _('CHA O_TITLE')
         %small= _('CHA O_SUBTITLE')
       .well
         = cha_radios f, :o_q1
 
-      %h3
+      %h3#section-p
         = _('CHA P_TITLE')
         %small= _('CHA P_SUBTITLE')
       .well
         = cha_datepicker f, :p_q1
         = cha_radios     f, :p_q2
 
-      %h3
+      %h3#section-q
         = _('CHA Q_TITLE')
         %small= _('CHA Q_SUBTITLE')
       .well
         = cha_string     f, :q_q1, input_html: { disabled: true, value: @cha.user&.name }
         = cha_datepicker f, :q_q2
 
-      %h3
+      %h3#section-r
         = _('CHA R_TITLE')
         %small= _('CHA R_SUBTITLE')
       .well
