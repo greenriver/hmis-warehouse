@@ -19,6 +19,7 @@ module Window::Health
     end
 
     def edit
+      @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form
     end
     

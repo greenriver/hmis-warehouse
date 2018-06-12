@@ -394,6 +394,7 @@ Rails.application.routes.draw do
 
   namespace :health do
     resources :patients, only: [:index]
+    resources :my_patients, only: [:index]
   end
 
   namespace :api do

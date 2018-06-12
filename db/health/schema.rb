@@ -344,7 +344,7 @@ ActiveRecord::Schema.define(version: 20180612181410) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
 
   create_table "participation_forms", force: :cascade do |t|
