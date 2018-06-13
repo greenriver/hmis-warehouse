@@ -108,6 +108,7 @@ $print-layout-header-height: 50px;
 $pdf-default-font-size: 12px;
 $pdf-h1-font-size: 20px;
 $pdf-text-line-height: 1.25em;
+$pdf-table-border-color: darken(#f9f9f9, 3%);
 
 @mixin pdf-heading {
   font-size: $pdf-h1-font-size;
@@ -135,18 +136,29 @@ $pdf-text-line-height: 1.25em;
 
 .l-print table {
   width: 100%;
+  border-collapse: collapse;
 }
 
 .l-print table thead tr th {
+  background: $pdf-table-border-color;
   text-align: left;
+  padding: 8px 5px;
 }
 
-.l-print table tbody tr td {
-  vertical-align: top;
-  p {
-    margin: 0 0 3px 0;
-    &:last-of-type {
-      margin-bottom: 0;
+.l-print table tbody tr {
+  td {
+    vertical-align: middle;
+    padding: 8px 5px;
+    border-bottom: 1px solid $pdf-table-border-color;
+    &,
+    p {
+      line-height: $pdf-text-line-height;
+    }
+    p {
+      margin: 0 0 3px 0;
+      &:last-of-type {
+        margin-bottom: 0;
+      }
     }
   }
 }
