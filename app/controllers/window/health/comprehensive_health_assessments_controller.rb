@@ -7,6 +7,7 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
+    before_action :set_locked, only: [:show, :edit]
 
     def new
       @cha = @patient.chas.build(user: current_user)
@@ -21,6 +22,10 @@ module Window::Health
     end
 
     def edit
+      if @cha_locked
+        flash.notice = _('This CHA has already been reviewed, or a claim was submitted; it is no longer editable')
+        redirect_to polymorphic_path(cha_path_generator, id: @cha.id) and return
+      end
       # For errors in new/edit forms
       @service = Health::Service.new
       @equipment = Health::Equipment.new
@@ -70,6 +75,10 @@ module Window::Health
       else
         local_params
       end
+    end
+
+    def set_locked
+      @cha_locked = @cha.reviewed_by || @cha.qualifying_activities.submitted.exists?
     end
 
     def set_form

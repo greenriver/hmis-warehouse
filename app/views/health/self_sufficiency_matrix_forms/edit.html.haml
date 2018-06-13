@@ -4,7 +4,7 @@
   .o-page__header
     %h1
       = content_for(:title)
-  = render 'window/clients/breadcrumbs'
-  = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
+  = render 'clients/breadcrumbs'
+  = render 'clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
 
   = render 'form'

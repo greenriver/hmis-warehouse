@@ -917,6 +917,10 @@ module Health
       editor == user
     end
 
+    def qualifying_activities
+      Health::QualifyingActivity.where(source: self, patient: patient)
+    end
+
     # allow keys, but some keys need to allow multiple checkbox selections (b_q2 & b_q4)
     PERMITTED_PARAMS = QUESTION_ANSWER_OPTIONS.keys - [:b_q2, :b_q4, :r_q8] + [{ b_q2: [] }, { b_q4: [] }, { r_q8: [] }]
 
