@@ -2,7 +2,7 @@ module Health
   class QualifyingActivity < HealthBase
 
     MODE_OF_CONTACT_OTHER = 'other'
-    REACHED_CLIENT_OTHER = 'Collateral contact - not with client directly'
+    REACHED_CLIENT_OTHER = 'collateral'
 
     scope :submitted, -> {where.not(claim_submitted_on: nil)}
     scope :unsubmitted, -> {where(claim_submitted_on: nil)}

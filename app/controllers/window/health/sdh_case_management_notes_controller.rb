@@ -45,10 +45,10 @@ module Window::Health
       @activity_count = @note.activities.size
       if params[:commit] == 'Save Case Note'
         @note.update_attributes(note_params.merge(updated_at: Time.now))
-        @note = save_file if @note.errors.none?
+        save_file if @note.errors.none?
       else
         @note.assign_attributes(note_params.merge(updated_at: Time.now))
-        # @note.save(validate: false)
+        @note.save(validate: false)
         save_file
       end
       @noteAdded = (@activity_count != @note.activities.size)
@@ -106,6 +106,7 @@ module Window::Health
 
     def save_file
       file = params.dig(:health_sdh_case_management_note, :file)
+      puts "FILE #{file} ***************************"
       if file
         health_file = Health::SdhCaseManagementNoteFile.new(
           user_id: current_user.id,
@@ -150,6 +151,7 @@ module Window::Health
     end
 
     def note_params
+      puts "PARAMS #{params}"
       clean_note_params!
       permitted_params = params.require(:health_sdh_case_management_note).permit(
         :title,

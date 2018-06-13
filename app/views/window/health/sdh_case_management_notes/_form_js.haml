@@ -19,10 +19,12 @@
 
     var saveNote = function(e) {
       var form = $(e.target).closest('form');
+      var data = form.serialize();
       $.ajax({
         url: form.data('url'),
         type: 'PATCH',
-        data: form.serialize()
+        data: data,
+        processData: false
       }).done(function(e) {
         console.log('done');
       }).fail(function(e) {
@@ -55,10 +57,11 @@
         removeInput.prop('checked', true);
         var form = $(event.target).closest('form');
         var url = $(event.target).attr('href');
+        var data = form.serialize();
         $.ajax({
           url: url,
           type: 'PATCH',
-          data: form.serialize()
+          data: data
         }).done(function(e) {
           activity.slideUp();
           activity.remove();
