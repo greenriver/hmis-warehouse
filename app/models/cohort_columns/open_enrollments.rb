@@ -16,12 +16,12 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client) # FIXME: move_to_process this needs to be a serialized Hash?
+    def value(cohort_client) # OK
       cohort_client.client.processed_service_history&.open_enrollments
     end
 
     def text_value cohort_client
-      return 'FIXME'
+      return 'FIXME' # FIXME: move_to_process this needs to be a serialized Hash?
       value(cohort_client).map(&:last).join(' ')
     end
 
