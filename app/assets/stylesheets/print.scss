@@ -107,12 +107,14 @@ footer {
 $print-layout-header-height: 50px;
 $pdf-default-font-size: 12px;
 $pdf-h1-font-size: 20px;
+$pdf-text-line-height: 1.25em;
 
 @mixin pdf-heading {
   font-size: $pdf-h1-font-size;
   border-bottom: 3px solid #CCC;
   padding-bottom: 5px;
   color: #091F2F;
+  margin-top: 5px;
 }
 
 .l-print {
@@ -123,6 +125,12 @@ $pdf-h1-font-size: 20px;
 .l-print,
 .l-print table {
   font-size: $pdf-default-font-size;
+}
+
+.l-print button,
+.l-print .btn,
+.l-print a {
+  display: none;
 }
 
 .l-print table {
@@ -153,7 +161,7 @@ $pdf-h1-font-size: 20px;
 
 .l-print p {
   margin-top: 0;
-  line-height: 1.25em;
+  line-height: $pdf-text-line-height;
 }
 
 .l-print dl {
@@ -305,16 +313,69 @@ $pdf-h1-font-size: 20px;
 .l-print .client__assessment-answer--notes {
   p {
     margin-top: 3px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
 }
 
-.l-print .client__assessment-summary {
+.l-print .client__assessment-overall-summary {
   margin-top: 15px;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
+}
+
+.l-print .client__assessment-section-summary {
+  page-break-inside: avoid;
 }
 
 .l-print .client__assessment-question-summary {
   margin-top: 0;
   padding-left: 10px;
+  page-break-inside: avoid;
+}
+
+
+.l-print .client__assessment-totals {
+  padding-top: 5px;
+  page-break-inside: avoid;
+}
+
+.l-print .client__assessment-total {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 50px;
+  &:last-of-type {
+    margin: 0
+  }
+  .client__assessment-question {
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .client__assessment-answer {
+    font-weight: bold;
+    font-size: 20px;
+  }
+}
+
+.l-print .health-care-plan__cha {
+  .client__assessment-section-summary {
+    margin-bottom: 45px;
+    page-break-inside: auto;
+  }
+  .client__assessment-question {
+    line-height: $pdf-text-line-height;
+    font-weight: bold;
+  }
+  .client__assessment-answer {
+    line-height: $pdf-text-line-height;
+    margin-bottom: 15px;
+    &,
+    ul {
+      margin-top: 5px;
+      padding-left: 15px;
+    }
+  }
+  h4 {
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: bold;
+  }
 }

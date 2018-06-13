@@ -28,25 +28,26 @@
     Only answered questions are shown.
 
   - @cha.answers.each do |section, section_hash|
-    %h4= section_hash['title']
+    .client__assessment-section-summary
+      %h4= section_hash['title']
 
-    - section_hash['answers'].each do |code, question_answer|
-      - question = question_answer['question']
-      - answer   = question_answer['answer']
-      - next if answer.blank? || (answer.is_a?(Array) && answer.compact.all?(&:blank?))
-      .client__assessment-question
-        = question
-      .client__assessment-answer
-        - case answer
-        - when Array
-          %ul
-          - answer.compact.reject(&:blank?).each do |a|
-            %li= a
-        - else
-          - case question
-          - when /social security number/i
-            = masked_ssn answer
-          - when /birthdate/i
-            =l answer&.to_date
+      - section_hash['answers'].each do |code, question_answer|
+        - question = question_answer['question']
+        - answer   = question_answer['answer']
+        - next if answer.blank? || (answer.is_a?(Array) && answer.compact.all?(&:blank?))
+        .client__assessment-question
+          = question
+        .client__assessment-answer
+          - case answer
+          - when Array
+            %ul
+              - answer.compact.reject(&:blank?).each do |a|
+                %li= a
           - else
-            = answer
+            - case question
+            - when /social security number/i
+              = masked_ssn answer
+            - when /birthdate/i
+              =l answer&.to_date
+            - else
+              = answer

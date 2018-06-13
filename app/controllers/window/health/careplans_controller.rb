@@ -33,7 +33,16 @@ module Window::Health
       @cha = @patient.comprehensive_health_assessments.recent.first
       # debugging
       # render layout: false
-      render pdf: file_name, layout: false, encoding: "UTF-8", page_size: 'Letter', header: { html: { template: 'window/health/careplans/_pdf_header'}}, spacing: 20, footer: { html: { template: 'window/health/careplans/_pdf_footer'} }
+      render(
+        pdf: file_name,
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter',
+        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
+        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 2 },
+        # Show table of contents by providing the 'toc' property
+        # toc: {}
+      )
     end
 
     def edit

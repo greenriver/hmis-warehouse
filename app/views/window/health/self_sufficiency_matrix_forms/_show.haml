@@ -19,7 +19,7 @@
 
 
   - if @form.point_completed.present?
-    .client__assessment-summary
+    .client__assessment-overall-summary
       .client__assessment-question
         Point at which this assessment was completed
       .client__assessment-answer
@@ -28,31 +28,34 @@
   - Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |section_key|
     - score = @form.send "#{section_key}_score"
     - if score.present?
-      - title = Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key]
-      .client__assessment-question.client__assessment-question--title
-        = title
-      %dl.client__assessment-question-summary
-        %dt.client__assessment-question.client__assessment-question--score.inline
-          Score
-        %dd.client__assessment-question.client__assessment-question--score.inline
-          = score
-        %dd.client__assessment-answer.client__assessment-answer--text
-          = Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
-        %dt.client__assessment-question.client__assessment-answer--notes
-          = "Notes"
-        %dd.client__assessment-answer.client__assessment-answer--notes
-          = simple_format @form.send("#{section_key}_notes")
+      .client__assessment-section-summary
+        - title = Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key]
+        .client__assessment-question.client__assessment-question--title
+          = title
+        %dl.client__assessment-question-summary
+          %dt.client__assessment-question.client__assessment-question--score.inline
+            Score
+          %dd.client__assessment-question.client__assessment-question--score.inline
+            = score
+          %dd.client__assessment-answer.client__assessment-answer--text
+            = Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
+          %dt.client__assessment-question.client__assessment-answer--notes
+            = "Notes"
+          %dd.client__assessment-answer.client__assessment-answer--notes
+            = simple_format @form.send("#{section_key}_notes")
 
   %hr
 
-  .client__assessment-total
-    .client__assessment-question
-      Total Score
-    .client__assessment-answer
-      = @form.total_score
+  .client__assessment-totals
+    .client__assessment-total
+      .client__assessment-question
+        Total Score:
+      .client__assessment-answer
+        = @form.total_score
 
-  .client__assessment-average
-    .client__assessment-question
-      Average Score
-    .client__assessment-answer
-      = @form.average_score
+    .client__assessment-total
+      .client__assessment-average
+        .client__assessment-question
+          Average Score:
+        .client__assessment-answer
+          = @form.average_score
