@@ -2,7 +2,7 @@
 - if @form.present?
   - if @form.editable_by?(current_user)
     .pull-right
-      = link_to 'Edit', polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: (submitted = true || @patient.qualifying_activities.submitted.where(source: @form).any?), data: { toggle: 'tooltip' }, title: ('This qualifying activity has already been submitted and cannot be edited.' if submitted)
+      = link_to 'Edit', polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: @claim_submitted, data: { toggle: 'tooltip' }, title: (_('A claim was submitted for this SSM; it is no longer editable.') if @claim_submitted)
 
   %strong Name:
   %span= @client.name
