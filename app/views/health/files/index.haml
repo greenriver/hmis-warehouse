@@ -1,0 +1,8 @@
+- title = 'Health Files'
+- content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
+  = render 'clients/breadcrumbs'
+  = render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:files])
+  = render 'window/health/files/file_list'

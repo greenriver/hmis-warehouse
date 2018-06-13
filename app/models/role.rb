@@ -85,6 +85,7 @@ class Role < ActiveRecord::Base
       :can_manage_claims,
       :can_manage_all_patients,
       :can_manage_patients_for_own_agency,
+      :can_manage_care_coordinators,
       :can_approve_cha,
       :can_approve_ssm,
       :can_approve_release,

@@ -39,6 +39,10 @@
      title: 'Care Plan',
      permission: show_health_hpc,
     },
+    polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
+     title: 'Health Files',
+     permission: show_health_hpc,
+    },
     polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
      title: 'Health',
      permission: show_health_pilot,

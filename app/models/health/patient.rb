@@ -33,6 +33,7 @@ module Health
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
+    has_one :care_coordinator, class_name: User.name
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
@@ -146,6 +147,10 @@ module Health
 
     def chas
       comprehensive_health_assessments
+    end
+
+    def health_files
+      Health::HealthFile.where(client_id: client.id)
     end
     
     def accessible_by_user user
