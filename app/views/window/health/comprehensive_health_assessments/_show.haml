@@ -28,7 +28,7 @@
     Only answered questions are shown.
 
   - @cha.answers.each do |section, section_hash|
-    .cha__section
+    .client__assessment-section-summary.cha__section
       %h4= section_hash['title']
 
       - section_hash['answers'].sort_by{|k,_| k}.each do |code, question_answer|
