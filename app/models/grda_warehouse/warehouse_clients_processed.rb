@@ -275,17 +275,17 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         enrolled_homeless_unsheltered: client.service_history_enrollments.homeless_unsheltered.ongoing.exists?,
         enrolled_permanent_housing: client.service_history_enrollments.permanent_housing.ongoing.exists?,
         eto_coordinated_entry_assessment_score: client.most_recent_coc_assessment_score,
-        household_members: cohort_household_members(client),
-        last_homeless_visit: cohort_last_homeless_visit(client),
-        missing_documents: cohort_missing_documents(client),
-        open_enrollments: cohort_open_enrollments(client),
+        household_members: household_members,
+        last_homeless_visit: last_homeless_visit,
+        missing_documents: missing_documents,
+        open_enrollments: open_enrollments,
         rrh_desired: client.rrh_desired,
         vispdat_priority_score: client.calculate_vispdat_priority_score,
         vispdat_score: client.most_recent_vispdat_score
       }
     end
 
-    private def cohort_household_members(client)
+    private def household_members
       households = client.households
       if households.present?
         households.values.flatten.map do |member|
@@ -294,20 +294,20 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
-    private def cohort_last_homeless_visit(client)
+    private def last_homeless_visit
       client.last_homeless_visits.map do |row|
         row.join(': ')
       end.join('; ')
     end
 
-    private def cohort_missing_documents(client)
+    private def missing_documents
       required_documents = GrdaWarehouse::AvailableFileTag.document_ready
       client.document_readiness(required_documents).select do |m|
         m.available == false
       end.map(&:name).join('; ')
     end
 
-    private def cohort_open_enrollments(client)
+    private def open_enrollments
       client.service_history_enrollments.ongoing.
         distinct.residential.
         pluck(:project_type).map do |project_type|
