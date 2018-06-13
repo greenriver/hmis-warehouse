@@ -36,7 +36,13 @@
         %label{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active} 
           Engagement Period Ending
-
+      %label Care Coordinator
+      .select
+        %select{name: 'filter[user]'}
+          %option{value: ''} All
+          %option{value: current_user.id, selected: params[:filter].try(:[], :user) == current_user.id ? :selected : ''}= current_user.name
+          - current_user.care_coordinators.each do |u|
+            %option{value: u.id, selected: params[:filter].try(:[], :user) == u.id ? :selected : ''}= u.name
       .o-filtration__actions.form__actions
         = link_to health_my_patients_path, class:'btn btn-secondary' do
           %span.icon-cross.icon-inline
