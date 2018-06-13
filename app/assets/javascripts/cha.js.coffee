@@ -1,19 +1,20 @@
 $(document).on 'change', '.cha-form.autosave', (e) ->
   form = $(e.target).closest('form')
-  $('.saving-btn').text('Saving...').removeClass('hidden')
+  $savingIndicator = $('.j-saving-indicator')
+  $savingIndicator.text('Saving').removeClass('hidden').addClass('saving c-spinner')
   $.ajax
     url: form.data('url'),
     type: 'PATCH',
     data: form.serialize()
   .done (e) ->
     console.log 'done'
-    $('.saving-btn').removeClass('btn-link btn-danger').addClass('btn-success').text('Saved!')
+    $savingIndicator.removeClass('saving c-spinner').addClass('saved').text('Saved!')
   .fail (e) ->
     console.log 'fail'
-    $('.saving-btn').removeClass('btn-link btn-success').addClass('btn-danger').text('Error saving')
+    $$savingIndicator.removeClass('saving c-spinner').addClass('error').text('Error saving')
   .always ->
     setTimeout ->
-      $('.saving-btn').removeClass('btn-success btn-danger').addClass('btn-link hidden')
+      $savingIndicator.removeClass('saving').addClass('hidden')
     , 2000
 
 $(document).on 'click', '.add-diagnosis', (e) ->
