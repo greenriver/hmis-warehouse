@@ -106,7 +106,6 @@ module Window::Health
 
     def save_file
       file = params.dig(:health_sdh_case_management_note, :file)
-      puts "FILE #{file} ***************************"
       if file
         health_file = Health::SdhCaseManagementNoteFile.new(
           user_id: current_user.id,
@@ -151,7 +150,6 @@ module Window::Health
     end
 
     def note_params
-      puts "PARAMS #{params}"
       clean_note_params!
       permitted_params = params.require(:health_sdh_case_management_note).permit(
         :title,

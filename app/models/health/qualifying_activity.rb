@@ -195,7 +195,7 @@ module Health
           {key: 'Reached Client:', value: title_for_client_reached, other: (reached_client_is_collateral_contact? ? {key: 'Collateral Contact:', value: reached_client_collateral_contact} : false)},
           {key: 'Which type of activity took place?', value: title_for_activity, include_br_before: true},
           {key: 'Date of Activity:', value: date_of_activity&.strftime('%b %d, %Y')},
-          {key: 'Follow up:', value: follow_up}
+          {key: 'Follow up:', value: follow_up, text_area: true}
         ]
       }
       if claim_submitted_on.present?

@@ -11,7 +11,14 @@ module Admin::Health
       @active_patient_referral_tab = 'review'
       @patient_referrals = Health::PatientReferral.unassigned.includes(:relationships)
       load_index_vars
-      render 'index'
+      respond_to do |format|
+        format.html do
+          render 'index'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Patient Assignments to Review.xlsx"
+        end
+      end
     end
 
     def assigned
