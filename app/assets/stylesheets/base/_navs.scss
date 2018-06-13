@@ -1,3 +1,9 @@
+@mixin nav-tab-active {
+  background: $body-bg;
+  box-shadow: inset 0px 2px 0px 0px $nav-tab-active-border-color;
+  color: $black;
+}
+
 .nav-tabs,
 .sub-nav-tabs {
   background: $white;
@@ -24,9 +30,7 @@
 
 .nav-tabs > li > a:hover,
 .nav-tabs > li > a:focus {
-  background: $body-bg;
-  box-shadow: inset 0px 2px 0px 0px $nav-tab-active-border-color;
-  color: $black;
+  @include nav-tab-active;
 }
 
 .nav-tabs > li.active > a,
@@ -83,4 +87,45 @@
 .sub-nav-tabs li.active a {
   font-weight: bold;
   background-color: $nav-tab-active-active-bg;
+}
+
+.dropdown--nav .dropdown-menu {
+  border-color: $gray-020;
+  border-top: 0;
+  border-radius: 0;
+  background: $body-bg;
+  li {
+    margin-left: -1px;
+    border-left: 3px solid transparent;
+    a {
+      padding: 8px 10px;
+    }
+    &.active,
+    &:focus,
+    &:hover {
+      border-left-color: $nav-tab-active-border-color;
+    }
+    &.active {
+      a {
+        background: $body-bg;
+        color: $black;
+      }
+    }
+  }
+}
+
+.dropdown--hover {
+  &,
+  &.active {
+    &:hover {
+      @include nav-tab-active;
+      .dropdown-toggle {
+        color: $black;
+        background: $body-bg;
+      }
+      .dropdown-menu {
+        display: block;
+      }
+    }
+  }
 }
