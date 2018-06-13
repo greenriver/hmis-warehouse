@@ -16,20 +16,12 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client) # TODO: N+1 move_to_processed
-      cohort_client.client.
-        service_history_enrollments.ongoing.
-        distinct.residential.
-        pluck(:project_type).map do |project_type|
-          if project_type == 13
-            [project_type, 'RRH']
-          else
-            [project_type, HUD.project_type_brief(project_type)]
-          end
-        end
+    def value(cohort_client) # FIXME: move_to_process this needs to be a serialized Hash?
+      cohort_client.client.processed_service_history&.open_enrollments
     end
 
     def text_value cohort_client
+      return 'FIXME'
       value(cohort_client).map(&:last).join(' ')
     end
 
@@ -38,6 +30,7 @@ module CohortColumns
     end
 
     def display_read_only user
+      return 'FIXME'
       value(cohort_client).map do |project_type, text|
         content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
           content_tag(:em, class: 'service-type__program-type') do

@@ -5,6 +5,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Recent Exits from Homelessness'
 
     def value(cohort_client) # TODO: N+1 & and time dependant
+      return "FIXME"
       effective_date = cohort.effective_date || Date.today
       cohort_client.client.
         permanent_source_exits_from_homelessness.

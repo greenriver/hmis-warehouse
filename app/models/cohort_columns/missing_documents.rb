@@ -3,11 +3,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :missing_documents
     attribute :title, String, lazy: true, default: 'Missing Documents'
 
-
-
-    def value(cohort_client) # TODO: N+1 (many really) move_to_processed
-      required_documents = GrdaWarehouse::AvailableFileTag.document_ready
-      cohort_client.client.document_readiness(required_documents).select{|m| m.available == false}.map(&:name).join('; ')
+    def value(cohort_client) # OK
+      cohort_client.client.processed_service_history&.missing_documents
     end
   end
 end

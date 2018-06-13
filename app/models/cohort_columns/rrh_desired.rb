@@ -7,12 +7,12 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client) # TODO: N+1 move_to_processed
+    def value(cohort_client) # OK
       checkmark_or_x text_value(cohort_client)
     end
 
     def text_value cohort_client
-      cohort_client.client.rrh_desired # < N+1 here
+      cohort_client.client.processed_service_history&.rrh_desired
     end
   end
 end

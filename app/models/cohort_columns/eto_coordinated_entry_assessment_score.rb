@@ -7,10 +7,8 @@ module CohortColumns
       'Most recent score from ETO'
     end
 
-    def value(cohort_client) # TODO: N+1 move_to_processed
-      Rails.cache.fetch([cohort_client.client.id, 'eto_coordinated_entry_assessment_score'], expires_at: 8.hours) do
-        cohort_client.client.most_recent_coc_assessment_score
-      end
+    def value(cohort_client) # OK
+      cohort_client.client.processed_service_history&.eto_coordinated_entry_assessment_score
     end
   end
 end

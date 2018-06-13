@@ -4,10 +4,8 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'VI-SPDAT Priority Score'
 
 
-    def value(cohort_client) # TODO: N=1 move_to_processed
-      Rails.cache.fetch([cohort_client.client, 'vispdat_priority_score'], expires_at: 8.hours) do
-        cohort_client.client.calculate_vispdat_priority_score
-      end
+    def value(cohort_client) # OK
+      cohort_client.client.processed_service_history&.vispdat_priority_score
     end
   end
 end

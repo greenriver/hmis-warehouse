@@ -39,7 +39,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
         literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
       )
-      cohort_attributes(processed.client)
+      processed.assign_attributes cohort_attributes(processed.client)
       processed.save if processed.changed?
       GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
     end

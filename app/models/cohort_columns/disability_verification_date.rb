@@ -7,8 +7,8 @@ module CohortColumns
       'll'
     end
 
-    def value(cohort_client) # TODO: N+1 move_to_processed
-      cohort_client.client.most_recent_verification_of_disability&.created_at&.to_date&.to_s
+    def value(cohort_client) # OK
+      cohort_client.client.processed_service_history&.disability_verification_date&.to_s
     end
   end
 end
