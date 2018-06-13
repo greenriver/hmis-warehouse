@@ -1,19 +1,20 @@
 $(document).on 'change', '.cha-form.autosave', (e) ->
   form = $(e.target).closest('form')
-  $('.saving-btn').text('Saving...').removeClass('hidden')
+  $savingIndicator = $('.j-saving-indicator')
+  $savingIndicator.text('Saving').removeClass('hidden').addClass('saving c-spinner')
   $.ajax
     url: form.data('url'),
     type: 'PATCH',
     data: form.serialize()
   .done (e) ->
     console.log 'done'
-    $('.saving-btn').removeClass('btn-link btn-danger').addClass('btn-success').text('Saved!')
+    $savingIndicator.removeClass('saving c-spinner').addClass('saved').text('Saved!')
   .fail (e) ->
     console.log 'fail'
-    $('.saving-btn').removeClass('btn-link btn-success').addClass('btn-danger').text('Error saving')
+    $$savingIndicator.removeClass('saving c-spinner').addClass('error').text('Error saving')
   .always ->
     setTimeout ->
-      $('.saving-btn').removeClass('btn-success btn-danger').addClass('btn-link hidden')
+      $savingIndicator.removeClass('saving').addClass('hidden')
     , 2000
 
 $(document).on 'click', '.add-diagnosis', (e) ->
@@ -36,3 +37,18 @@ $(document).on 'click', '.remove-medication', (e) ->
   inputs.first().change()
   row.addClass('hidden')
 
+
+# Scroll to element with id that matches hash
+# https://css-tricks.com/snippets/jquery/smooth-scrolling/
+scrollToElement = (event, offset=0, duration=1000) ->
+  hash = $(event.currentTarget).attr('href')
+  $target = $(hash)
+  if $target.length
+    event.preventDefault()
+    $('html, body').animate { scrollTop: $target.offset().top - offset }, duration
+
+$('a[href*="#"]')
+  .not('[href="#"]')
+  .not('[href="#0"]').on 'click', (event) ->
+    scrollToElement event, 20
+    event.currentTarget.blur()

@@ -33,6 +33,11 @@
   @include card;
   padding: space(4);
   width: 100%;
+  .form-control,
+  textarea,
+  input {
+    background-color: $body-bg;
+  }
 }
 
 .c-card__content--flush {
@@ -137,4 +142,10 @@
   border-bottom: 0;
   border-bottom-left-radius: $border-radius-default;
   border-bottom-right-radius: $border-radius-default;
+}
+
+// Align Well styles with card
+.well {
+  @extend .c-card__content;
+  box-shadow: none;
 }

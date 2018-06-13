@@ -1,0 +1,17 @@
+.c-loading {
+  width: 100%;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  padding: space(2);
+  transition: background .5s;
+  &.saving {
+    background: $brand-warning-l;
+  }
+  &.saved {
+    background: $brand-success-l;
+  }
+  &.error {
+    background: $brand-danger-l;
+  }
+}
