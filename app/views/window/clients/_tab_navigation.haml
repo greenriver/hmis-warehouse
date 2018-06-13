@@ -34,34 +34,36 @@
       }
     }
 
-    health_tabs = {
-      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
-       title: 'Dashboard',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
-       title: 'Services',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(careplans_path_generator, client_id: @client.id) => {
-       title: 'Care Plan',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
-       title: 'Files',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
-       title: 'Dashboard',
-       permission: show_health_pilot,
-      },
-      polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
-       title: 'Care Plan',
-       permission: show_health_pilot,
-      },
-      polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
-        title: 'Metrics',
-        permission: show_health_pilot,
+    tab_dropdowns = {
+      'Health' => {
+        polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+         title: 'Dashboard',
+         permission: show_health_hpc,
+        },
+        polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
+         title: 'Services',
+         permission: show_health_hpc,
+        },
+        polymorphic_path(careplans_path_generator, client_id: @client.id) => {
+         title: 'Care Plan',
+         permission: show_health_hpc,
+        },
+        polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
+         title: 'Files',
+         permission: show_health_hpc,
+        },
+        polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
+         title: 'Dashboard',
+         permission: show_health_pilot,
+        },
+        polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
+         title: 'Care Plan',
+         permission: show_health_pilot,
+        },
+        polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
+          title: 'Metrics',
+          permission: show_health_pilot,
+        }
       }
     }
   - allow_click_on_current = allow_click_on_current || false
@@ -80,7 +82,7 @@
             %a.dropdown-toggle{data: {toggle: 'dropdown'}}
               = details[:title]
             %ul.dropdown-menu
-              - health_tabs.each do |action, details|
+              - tab_dropdowns[details[:title]].each do |action, details|
                 - current_sub_tab = action == current
                 - if details[:permission]
                   %li{role: 'presentation', class: ('active' if current_sub_tab)}
