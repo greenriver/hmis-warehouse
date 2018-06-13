@@ -239,6 +239,28 @@ namespace :grda_warehouse do
     end
   end
 
+  desc "Anonymize all client names in Client.csv"
+  task :anonymize_client_names, [:path] => [:environment, "log:info_to_stdout"] do |task, args|
+    raise 'path is required' unless args.path.present?
+    path = args.path
+    file = File.join(path, 'Client.csv')
+    CSV.open("#{file.gsub('.csv', '.anon.csv')}", 'wb') do |csv|
+      CSV.foreach(file, headers: true) do |row|
+        csv << row.headers() if $. == 2
+        row['FirstName'] = "First_#{row['PersonalID']}"
+        row['LastName'] = "Last_#{row['PersonalID']}"
+
+        # Cleanup Excel's nasty dates
+        unless row['DateCreated'].include?('-')
+          row['DOB'] = Date.strptime(row['DOB'], '%m/%d/%Y')&.strftime('%Y-%m-%d') if row['DOB'].present?
+          row['DateCreated'] = Date.strptime(row['DateCreated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
+          row['DateUpdated'] = Date.strptime(row['DateUpdated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
+        end
+        csv << row
+      end
+    end
+  end
+
   desc "Sanity Check Service History; defaults: n=50"
   task :sanity_check_service_history, [:n] => [:environment, "log:info_to_stdout"] do |task, args|
     n = args.n
