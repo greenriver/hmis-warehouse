@@ -261,6 +261,10 @@ $pdf-h1-font-size: 20px;
 }
 
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Specific to Care Plan PDF
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .l-print [class^='health-care-plan'] {
   h3 {
     @include pdf-heading;
@@ -281,4 +285,36 @@ $pdf-h1-font-size: 20px;
       width: 200px;
     }
   }
+}
+
+.l-print .client__assessment-question,
+.l-print .client__assessment-answer {
+  margin-bottom: 2px;
+}
+
+.l-print .client__assessment-question--title {
+  margin-bottom: 5px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.l-print .client__assessment-answer--text {
+  margin-top: 3px;
+}
+
+.l-print .client__assessment-answer--notes {
+  p {
+    margin-top: 3px;
+    margin-bottom: 25px;
+  }
+}
+
+.l-print .client__assessment-summary {
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+
+.l-print .client__assessment-question-summary {
+  margin-top: 0;
+  padding-left: 10px;
 }
