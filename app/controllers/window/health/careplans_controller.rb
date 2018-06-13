@@ -5,7 +5,7 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
-    
+
     def index
       @goal = Health::Goal::Base.new
       @readonly = false
@@ -33,7 +33,16 @@ module Window::Health
       @cha = @patient.comprehensive_health_assessments.recent.first
       # debugging
       # render layout: false
-      render pdf: file_name, layout: false, encoding: "UTF-8", page_size: 'Letter'
+      render(
+        pdf: file_name,
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter',
+        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
+        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+        # Show table of contents by providing the 'toc' property
+        # toc: {}
+      )
     end
 
     def edit
@@ -79,16 +88,16 @@ module Window::Health
       @careplan.assign_attributes(attributes)
       Health::CareplanSaver.new(careplan: @careplan, user: current_user).update
       # for errors
-      @form_url = polymorphic_path(careplan_path_generator) 
+      @form_url = polymorphic_path(careplan_path_generator)
       @form_button = 'Save Care Plan'
-      
+
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
     def self_sufficiency_assessment
       @assessment = @client.self_sufficiency_assessments.last
     end
-    
+
     def set_careplan
       @careplan = careplan_source.find(params[:id].to_i)
     end
@@ -96,7 +105,7 @@ module Window::Health
     def careplan_source
       Health::Careplan
     end
-    
+
     def careplan_params
       params.require(:health_careplan).
         permit(

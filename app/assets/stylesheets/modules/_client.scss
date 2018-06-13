@@ -327,32 +327,44 @@ $client-image-height: 200px;
 }
 
 .client__assessment-question,
-.client__assessment-answer
-{
+.client__assessment-answer {
   margin-left: 1em;
   margin-right: 1em;
+  margin-bottom: rem(2px);
 }
-.client__assessment-question
-{
+
+.client__assessment-question {
   padding-bottom: 0.5em;
   font-weight: 600;
   font-size: 15px;
   line-height: 1.2;
 }
-.client__assessment-answer
-{
+
+.client__assessment-question--title {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+
+.client__assessment-answer {
   padding-bottom: 1.5em;
   margin-left: 1em;
   text-indent: 1em;
 }
-.client__assessment-section-heading
-{
+
+.client__assessment-answer--text {
+  margin-bottom: rem(5px);
+}
+
+.client__assessment-section-heading {
   border-bottom: 1px solid $gray-040;
   font: Open Sans;
   font-size: 17px;
   font-weight: 600;
   margin-bottom: 24px;
 }
+
 .enrollment__project_type
 {
   display: inline-block;

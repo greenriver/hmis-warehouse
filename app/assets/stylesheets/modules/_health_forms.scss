@@ -7,7 +7,6 @@
   margin-left: 2em;
 }
 
-
 // CHA Form - with nav
 
 .form--with-nav {
@@ -86,3 +85,34 @@
   top: 0px;
   position: fixed
 }
+
+.cha__section
+{
+  clear: left;
+}
+.g_q,
+.i_q,
+.l_q
+{
+  float: left;
+  .client__assessment-answer
+  {
+    text-indent: 0;
+  }
+}
+
+.g_q
+{
+  width: 50%;
+}
+
+.i_q
+{
+  width: 30%;
+}
+
+.l_q
+{
+  width: 14%;
+}
+
