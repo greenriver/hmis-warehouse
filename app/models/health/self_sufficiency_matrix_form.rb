@@ -249,12 +249,11 @@ module Health
     end
 
     def claim_submitted?
-      # FIXME: need logic for this
-      false
+      qualifying_activities.submitted.exists?
     end
 
     def editable_by? editor
-      !claim_submitted? && (editor == user)
+      ! claim_submitted?
     end
 
     def self.point_completed_options
@@ -283,6 +282,10 @@ module Health
     # for health_charts
     def ssm_question_title(attr)
       SSM_QUESTION_TITLE[attr.to_sym]
+    end
+
+    def qualifying_activities
+      Health::QualifyingActivity.where(source: self, patient: patient)
     end
 
   end

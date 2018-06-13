@@ -5,5 +5,9 @@ module Health
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     
     mount_uploader :file, HealthFileUploader
+
+    def title
+      self.class.model_name.human
+    end
   end
 end  

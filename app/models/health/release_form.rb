@@ -13,5 +13,16 @@ module Health
 
     attr_accessor :reviewed_by_supervisor
 
+    before_save :set_reviewer
+
+    private
+
+    def set_reviewer
+      if reviewed_by
+        self.reviewer = reviewed_by.name
+        self.reviewed_at = DateTime.current
+      end
+    end
+
   end
 end

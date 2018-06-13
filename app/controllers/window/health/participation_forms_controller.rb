@@ -65,7 +65,7 @@ module Window::Health
         :location
       )
       if ! current_user.can_approve_participation?
-        local_params.execpt(:reviewed_by_supervisor)
+        local_params.except(:reviewed_by_supervisor)
       else
         local_params
       end
