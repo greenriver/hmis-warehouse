@@ -77,16 +77,17 @@
       - tabs.each do |action, details|
         - current_tab = action == current
         - if action == 'dropdown'
-          - current_tab = current.include? details[:title].downcase
-          %li.dropdown.dropdown--hover.dropdown--nav{class: ('active' if current_tab)}
-            %a.dropdown-toggle{data: {toggle: 'dropdown'}}
-              = details[:title]
-            %ul.dropdown-menu
-              - tab_dropdowns[details[:title]].each do |action, details|
-                - current_sub_tab = action == current
-                - if details[:permission]
-                  %li{role: 'presentation', class: ('active' if current_sub_tab)}
-                    = link_to details[:title], action
+          - if details[:permission]
+            - current_tab = current.include? details[:title].downcase
+            %li.dropdown.dropdown--hover.dropdown--nav{class: ('active' if current_tab)}
+              %a.dropdown-toggle{data: {toggle: 'dropdown'}}
+                = details[:title]
+              %ul.dropdown-menu
+                - tab_dropdowns[details[:title]].each do |action, details|
+                  - current_sub_tab = action == current
+                  - if details[:permission]
+                    %li{role: 'presentation', class: ('active' if current_sub_tab)}
+                      = link_to details[:title], action
 
         - elsif current_tab
           - if details[:permission]
