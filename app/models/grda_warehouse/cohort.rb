@@ -32,14 +32,6 @@ module GrdaWarehouse
       end
     end
 
-    def _scope(inactive: nil)
-      if inactive.present?
-        cohort_clients
-      else
-        cohort_clients.where(active: true)
-      end
-    end
-
     def search_clients(page:, per:, inactive: nil, population: nil)
       @client_search_scope = if inactive.present?
         cohort_clients
