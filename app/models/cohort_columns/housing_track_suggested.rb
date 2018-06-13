@@ -17,6 +17,7 @@ module CohortColumns
         'VWH',
         'RRH',
         'Safe Haven',
+        'Chronic Working Group',
       ]
     end
   end
