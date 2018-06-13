@@ -44,43 +44,37 @@ module Cohorts
 
     def data_for_table
       data = []
-      expires = if Rails.env.development?
-        1.minute
-      else
-        8.hours
+
+      @visible_columns = [CohortColumns::Meta.new]
+      @visible_columns += @cohort.visible_columns
+      if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+        @visible_columns << CohortColumns::Delete.new
       end
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         next if client.blank?
-        cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes, current_user.can_view_clients?, params], expires_in: expires) do
-          @visible_columns = [CohortColumns::Meta.new]
-          cohort_client_data = {}
-          @visible_columns += @cohort.visible_columns
-          if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
-            @visible_columns << CohortColumns::Delete.new
-          end
-          @visible_columns.each do |cohort_column|
-            cohort_column.cohort = @cohort
-            cohort_column.cohort_names = @cohort_names
-            cohort_column.cohort_client = cohort_client
-            editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
-            cohort_client_data[cohort_column.column] = {
-              editable: editable,
-              value: cohort_column.display_read_only(current_user),
-              renderer: cohort_column.renderer,
-              cohort_client_id: cohort_client.id,
-              comments: cohort_column.comments,
-            }
+        row = {}
+        @visible_columns.each do |cohort_column|
+          cohort_column.cohort = @cohort
+          cohort_column.cohort_names = @cohort_names
 
-            if cohort_column.column == 'meta'
-              cohort_client_data[cohort_column.column].merge!(cohort_column.metadata)
-            end
+          # set the cohort_client we want this for this column
+          # it will be used to render the corisponding cell
+          cohort_column.cohort_client = cohort_client
+          editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
+          row[cohort_column.column] = {
+            editable: editable,
+            value: cohort_column.display_read_only(current_user),
+            renderer: cohort_column.renderer,
+            cohort_client_id: cohort_client.id,
+            comments: cohort_column.comments,
+          }
+          if cohort_column.column == 'meta'
+            cohort_client_data[cohort_column.column].merge!(cohort_column.metadata)
           end
-          cohort_client_data
         end
-
-        data << cohort_client_data
+        data << row
       end
       return data
     end
