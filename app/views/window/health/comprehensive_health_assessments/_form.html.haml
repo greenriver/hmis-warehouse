@@ -18,24 +18,32 @@
           = _('CHA A_TITLE')
         %small= _('CHA A_SUBTITLE')
       .well
-        = cha_string     f, :a_q1, input_html: { disabled: true, value: @client.name }
+        .row.mb-1.pr-8
+          .col-md-6
+            = cha_string     f, :a_q1, input_html: { disabled: true, value: @client.name }
         = cha_radios     f, :a_q2
-        = cha_datepicker f, :a_q3, input_html: { disabled: true, value: @client.DOB }
+        .row.mb-1.pr-8
+          .col-md-6.col-lg-4
+            = cha_datepicker f, :a_q3, input_html: { disabled: true, value: @client.DOB }
         = cha_radios     f, :a_q4
         .form-group
           %label.control-label= _('CHA A_Q5')
-          .row.mb-1
-            .col-sm-6
+          .row.mb-1.pr-2
+            .col-md-6
               = cha_string f, :a_q5a
-          .row.mb-1
-            .col-sm-6
+          .row.mb-1.pr-2
+            .col-md-6
               = cha_string f, :a_q5b
-          .row.mb-1
-            .col-sm-6
+          .row.mb-1.pr-2
+            .col-md-6
               = cha_string f, :a_q6c, input_html: { disabled: true, value: @patient.medicaid_id }
-        = cha_string     f, :a_q6
+        .row.mb-1.pr-2
+          .col-sm-8
+            = cha_string     f, :a_q6
         = cha_radios     f, :a_q7
-        = cha_datepicker f, :a_q8
+        .row.mb-1.pr-2
+          .col-md-6.col-lg-4
+            = cha_datepicker f, :a_q8
         = cha_text       f, :a_q9
         = cha_string     f, :a_q10
         = cha_radios     f, :a_q11
@@ -46,7 +54,9 @@
           = _('CHA B_TITLE')
         %small= _('CHA B_SUBTITLE')
       .well
-        = cha_datepicker f, :b_q1
+        .row.mb-1.pr-2
+          .col-md-6.col-lg-4
+            = cha_datepicker f, :b_q1
         = cha_checkboxes f, :b_q2
         = cha_radios     f, :b_q3
         = cha_checkboxes f, :b_q4
@@ -119,7 +129,7 @@
             %p
               %strong= _("CHA G_Q1A_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1ap
             = cha_select     f, :g_q1ac
         .row
@@ -127,63 +137,63 @@
             %p
               %strong= _("CHA G_Q1B_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1bp
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1bc
         .row
           .col-sm-12
             %p
               %strong= _("CHA G_Q1C_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1cp
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1cc
         .row
           .col-sm-12
             %p
               %strong= _("CHA G_Q1D_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1dp
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1dc
         .row
           .col-sm-12
             %p
               %strong= _("CHA G_Q1E_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1ep
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1ec
         .row
           .col-sm-12
             %p
               %strong= _("CHA G_Q1F_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1fp
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1fc
         .row
           .col-sm-12
             %p
               %strong= _("CHA G_Q1G_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1gp
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1gc
         .row
           .col-sm-12
             %p
               %strong= _("CHA G_Q1H_HEADER")
         .row
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1hp
-          .col-sm-6
+          .col-md-6
             = cha_select     f, :g_q1hc
 
         .row
@@ -323,7 +333,7 @@
           - code  = "l_q1s#{key}g".to_sym
           .medication-rows{ class: ('hidden' if index > 0 && @cha.answer(name).blank? && @cha.answer(dose).blank? && @cha.answer(unit).blank? && @cha.answer(route).blank? && @cha.answer(freq).blank? && @cha.answer(prn).blank? && @cha.answer(code).blank?) }
             .row
-              .col-sm-10
+              .col-sm-10.mb-2
                 = cha_string f, name
               .col-sm-2
                 - if index > 0
@@ -368,9 +378,15 @@
         = cha_radios f, :m_q1g
         = cha_radios f, :m_q1h
 
-        = cha_string f, :m_q2a
-        = cha_string f, :m_q2b
-        = cha_string f, :m_q2c
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :m_q2a
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :m_q2b
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :m_q2c
 
       .c-card__header--external
         %h3#section-n
@@ -391,7 +407,9 @@
           = _('CHA P_TITLE')
         %small= _('CHA P_SUBTITLE')
       .well
-        = cha_datepicker f, :p_q1
+        .row.mb-1.pr-2
+          .col-md-6.col-lg-4
+            = cha_datepicker f, :p_q1
         = cha_radios     f, :p_q2
 
       .c-card__header--external
@@ -400,7 +418,9 @@
         %small= _('CHA Q_SUBTITLE')
       .well
         = cha_string     f, :q_q1, input_html: { disabled: true, value: @cha.user&.name }
-        = cha_datepicker f, :q_q2
+        .row.mb-1.pr-2
+          .col-md-6.col-lg-4
+            = cha_datepicker f, :q_q2
 
       .c-card__header--external
         %h3#section-r
@@ -412,11 +432,21 @@
         = cha_radios f, :r_q3
         = cha_radios f, :r_q4
         = cha_radios f, :r_q5
-        = cha_string f, :r_q6a
-        = cha_string f, :r_q6b
-        = cha_string f, :r_q6c
-        = cha_string f, :r_q6d
-        = cha_text   f, :r_q6e
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :r_q6a
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :r_q6b
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :r_q6c
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_string f, :r_q6d
+        .row.mb-1.pr-2
+          .col-md-6
+            = cha_text   f, :r_q6e
         = cha_radios f, :r_q7
         = cha_checkboxes f, :r_q8
 
@@ -464,5 +494,5 @@
       $tabs.find('a').each(function(i, el){
         el.textContent = sectionTitles[i - 1]
       })
-      $('.j-form').scrollspy({ target: '.j-form-nav' })
+      $('.j-form').scrollspy({ target: '.j-form-nav', offset: 20 })
     })
