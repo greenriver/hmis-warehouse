@@ -14,8 +14,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   # def chronic?
   #   chronically_homeless
   # end
-  
-  def update_cached_counts client_ids: []
+
+  def self.update_cached_counts client_ids: []
     client_ids.each do |client_id|
       processed = self.class.where(client_id: client_id, routine: :service_history).
         first_or_initialize
