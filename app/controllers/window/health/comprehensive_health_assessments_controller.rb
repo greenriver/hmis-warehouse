@@ -30,6 +30,7 @@ module Window::Health
       @equipment = Health::Equipment.new
       @services = @patient.services.order(date_requested: :desc)
       @equipments = @patient.equipments
+      @blank_cha_url = GrdaWarehouse::PublicFile.url_for_location 'patient/cha'
       
       respond_with @cha
     end

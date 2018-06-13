@@ -19,10 +19,11 @@ module Window::Health
     end
 
     def edit
-      if @patient.qualifying_activities.submitted.where(source: @form).any?
+      if @patient.qualifying_activities.submitted.where(source: @form).exists?
         flash.notice = "This qualifying activity has already been submitted and cannot be edited."
         redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return 
       end
+      @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form
     end
     

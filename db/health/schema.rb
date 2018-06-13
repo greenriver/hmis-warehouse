@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180612171146) do
+ActiveRecord::Schema.define(version: 20180612181410) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -227,6 +227,8 @@ ActiveRecord::Schema.define(version: 20180612171146) do
     t.datetime "updated_at"
     t.json     "answers"
     t.datetime "completed_at"
+    t.datetime "reviewed_at"
+    t.string   "reviewer"
   end
 
   add_index "comprehensive_health_assessments", ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id", using: :btree
@@ -346,12 +348,14 @@ ActiveRecord::Schema.define(version: 20180612171146) do
   end
 
   create_table "participation_forms", force: :cascade do |t|
-    t.integer "patient_id"
-    t.date    "signature_on"
-    t.integer "case_manager_id"
-    t.integer "reviewed_by_id"
-    t.string  "location"
-    t.integer "health_file_id"
+    t.integer  "patient_id"
+    t.date     "signature_on"
+    t.integer  "case_manager_id"
+    t.integer  "reviewed_by_id"
+    t.string   "location"
+    t.integer  "health_file_id"
+    t.datetime "reviewed_at"
+    t.string   "reviewer"
   end
 
   add_index "participation_forms", ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
@@ -486,12 +490,14 @@ ActiveRecord::Schema.define(version: 20180612171146) do
   end
 
   create_table "release_forms", force: :cascade do |t|
-    t.integer "patient_id"
-    t.integer "user_id"
-    t.date    "signature_on"
-    t.string  "file_location"
-    t.integer "health_file_id"
-    t.integer "reviewed_by_id"
+    t.integer  "patient_id"
+    t.integer  "user_id"
+    t.date     "signature_on"
+    t.string   "file_location"
+    t.integer  "health_file_id"
+    t.integer  "reviewed_by_id"
+    t.datetime "reviewed_at"
+    t.string   "reviewer"
   end
 
   add_index "release_forms", ["health_file_id"], name: "index_release_forms_on_health_file_id", using: :btree

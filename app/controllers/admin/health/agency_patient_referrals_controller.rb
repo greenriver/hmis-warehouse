@@ -20,7 +20,14 @@ module Admin::Health
           references(:relationships)
         load_index_vars
       end
-      render 'index'
+      respond_to do |format|
+        format.html do
+          render 'index'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Patient Assignments to Review.xlsx"
+        end
+      end
     end
 
     def reviewed

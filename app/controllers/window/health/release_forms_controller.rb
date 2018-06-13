@@ -65,7 +65,7 @@ module Window::Health
         :reviewed_by_supervisor
       )
       if ! current_user.can_approve_release?
-        local_params.execpt(:reviewed_by_supervisor)
+        local_params.except(:reviewed_by_supervisor)
       else
         local_params
       end
