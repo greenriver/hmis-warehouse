@@ -49,6 +49,7 @@ module Health
 
     belongs_to :patient
     belongs_to :user
+    belongs_to :health_file, dependent: :destroy
 
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
@@ -155,7 +156,8 @@ module Health
           {key: 'Housing Placement Date:', value: housing_placement_date},
           {key: 'Notes from encounter:', value: notes_from_encounter, text_area: true},
           {key: 'Next Steps:', value: next_steps, text_area: true},
-          {key: 'Client Phone:', value: client_phone_number}
+          {key: 'Client Phone:', value: client_phone_number},
+          {key: 'File:', value: health_file&.name, download: true}
         ]
       }
     end

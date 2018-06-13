@@ -15,17 +15,23 @@
         - text_area = item[:text_area] || false
         - other = item[:other]
         - include_br_before = item[:include_br_before] || false
+        - download = item[:download] || false
         %strong= label
         - if text_area && value.present?
           = simple_format(value, {class: 'padding-left-02'}, {wrapper_tag: 'div'})
-        - else
-          - if include_br_before && value.present?
-            %br
-            %span.padding-left-02= value
-            %br
+        - elsif download
+          - if value.present?
+            = link_to value, polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note)
           - else
-            %span= value
-            %br
+            %span No File
+          %br
+        - elsif include_br_before && value.present?
+          %br
+          %span.padding-left-02= value
+          %br
+        - else
+          %span= value
+          %br
       - if other.present?
         .margin-bottom-01.padding-left-02
           %strong= other[:key]

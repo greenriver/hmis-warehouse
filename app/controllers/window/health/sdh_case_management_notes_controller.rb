@@ -7,9 +7,9 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
+    before_action :load_note, only: [:show, :edit, :update, :download, :remove_file]
 
     def show
-      @note = Health::SdhCaseManagementNote.find(params[:id])
       render :show
     end
 
@@ -24,7 +24,9 @@ module Window::Health
     def create
       create_params = note_params.merge({user: current_user})
       @note = @patient.sdh_case_management_notes.build(create_params)
-      if @note.save
+      saved = @note.save
+      if saved
+        save_file
         flash[:notice] = "New SDH Management Note Created."
         redirect_to polymorphic_path(careplans_path_generator)
       else
@@ -35,23 +37,36 @@ module Window::Health
     end
 
     def edit
-      @note = Health::SdhCaseManagementNote.find(params[:id])
       @activities = @note.activities.sort_by(&:id)
       respond_with @note
     end
 
     def update
-      @note = Health::SdhCaseManagementNote.find(params[:id])
       @activity_count = @note.activities.size
       if params[:commit] == 'Save Case Note'
         @note.update_attributes(note_params.merge(updated_at: Time.now))
+        @note = save_file if @note.errors.none?
       else
         @note.assign_attributes(note_params.merge(updated_at: Time.now))
-        @note.save(validate: false)
+        # @note.save(validate: false)
+        save_file
       end
       @noteAdded = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
       respond_with @note, location: polymorphic_path(careplans_path_generator)
+    end
+
+    def download
+      @file = @note.health_file
+      send_data @file.content,
+        type: @file.content_type,
+        filename: File.basename(@file.file.to_s)
+    end
+
+    def remove_file
+      @note.health_file.destroy
+      @note.update_attributes(health_file: nil)
+      respond_with @note, location: polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
     end
 
     def form_url(opts = {})
@@ -84,6 +99,24 @@ module Window::Health
     helper_method :display_note_object
 
     private
+
+    def load_note
+      @note = Health::SdhCaseManagementNote.find(params[:id])
+    end
+
+    def save_file
+      file = params.dig(:health_sdh_case_management_note, :file)
+      if file
+        health_file = Health::SdhCaseManagementNoteFile.new(
+          user_id: current_user.id,
+          client_id: @client.id,
+          file: file,
+          content: file&.read
+        )
+        @note.health_file = health_file
+        @note.save(validate: false)
+      end
+    end
 
     def load_template_activity
       @template_activity = Health::QualifyingActivity.new(user: current_user, user_full_name: current_user.name)
