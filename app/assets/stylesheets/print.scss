@@ -391,3 +391,33 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
     font-weight: bold;
   }
 }
+
+.l-print .cha__section
+{
+  clear: left;
+}
+.l-print .g_q,
+.l-print .i_q,
+.l-print .l_q
+{
+  float: left;
+  .client__assessment-answer
+  {
+    text-indent: 0;
+  }
+}
+
+.l-print .g_q
+{
+  width: 50%;
+}
+
+.l-print .i_q
+{
+  width: 30%;
+}
+
+.l-print .l_q
+{
+  width: 14%;
+}
