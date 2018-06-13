@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Related Users'
 
 
-    def value(cohort_client)
+    def value(cohort_client) # TODO: N+1
       Rails.cache.fetch([cohort_client.client.id, :related_users], expires_at: 8.hours) do
         users = cohort_client.client.user_clients.
           non_confidential.

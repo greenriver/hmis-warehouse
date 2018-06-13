@@ -10,8 +10,8 @@ module CohortColumns
     def renderer
       'date'
     end
-    
-    def value(cohort_client)
+
+    def value(cohort_client) # OK
       cohort_client.client.first_homeless_date&.to_date&.to_s
     end
 

@@ -7,7 +7,7 @@ module CohortColumns
       'Date of last homeless service in ongoing enrollments'
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # TODO: N+1 move_to_processed
       Rails.cache.fetch([cohort_client.client.id, 'last_seen'], expires_at: 8.hours) do
         cohort_client.client.last_homeless_visits.map do |row|
           row.join(': ')

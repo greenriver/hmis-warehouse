@@ -3,7 +3,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :delete
     attribute :title, String, lazy: true, default: 'Delete'
-    
+
     def column_editable?
       false
     end
@@ -16,12 +16,12 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client)
-      nil     
+    def value(cohort_client) # OK
+      nil
     end
 
     def display_for user
-      if user.can_manage_cohorts? || user.can_edit_cohort_clients?  
+      if user.can_manage_cohorts? || user.can_edit_cohort_clients?
         display_read_only(user)
       else
         ''

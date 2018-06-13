@@ -3,7 +3,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :open_enrollments
     attribute :title, String, lazy: true, default: 'Open Residential Enrollments'
-    
+
     def column_editable?
       false
     end
@@ -16,7 +16,7 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # TODO: N+1 move_to_processed
       cohort_client.client.
         service_history_enrollments.ongoing.
         distinct.residential.

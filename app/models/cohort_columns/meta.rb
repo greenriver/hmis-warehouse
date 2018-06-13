@@ -31,7 +31,7 @@ module CohortColumns
       return comments
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # OK
       html = ''
       if inactive
         html += content_tag(:i, ' ', class: "icon-warning warning")

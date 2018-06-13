@@ -7,10 +7,8 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, :enrolled_permanent_housing], expires_at: 8.hours) do
-        checkmark_or_x text_value(cohort_client)
-      end
+    def value(cohort_client) # TODO: N+1 move_to_processed
+      checkmark_or_x text_value(cohort_client)
     end
 
     def text_value cohort_client

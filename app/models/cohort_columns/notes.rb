@@ -2,7 +2,7 @@ module CohortColumns
   class Notes < Base
     attribute :column, String, lazy: true, default: :notes
     attribute :title, String, lazy: true, default: 'Notes'
-    
+
 
     def column_editable?
       false
@@ -12,7 +12,7 @@ module CohortColumns
       :notes
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # OK
       nil
     end
 

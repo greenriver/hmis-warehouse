@@ -7,7 +7,7 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # TODO: N+1 move_to_processed
       checkmark_or_x text_value(cohort_client)
     end
 
