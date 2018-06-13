@@ -45,7 +45,7 @@ module Window::Health
       @activity_count = @note.activities.size
       if params[:commit] == 'Save Case Note'
         @note.update_attributes(note_params.merge(updated_at: Time.now))
-        @note = save_file if @note.errors.none?
+        save_file if @note.errors.none?
       else
         @note.assign_attributes(note_params.merge(updated_at: Time.now))
         # @note.save(validate: false)
