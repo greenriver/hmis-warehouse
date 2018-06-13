@@ -1,30 +1,22 @@
+= content_for :body_data_scrollspy, true
 
 - url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
 = simple_form_for @cha, url: polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id), as: :form, html: { data: { url: url }} do |f|
-  
-  :css
-    .section-links.affix {
-      top: 0px;
-      padding: 1em;
-      background-color: #091f2f;
-      width: 100%;
-    }
-    h3 {
-      margin-top: -75px;
-      padding-top: 75px;
-    }
 
-  .row.section-links(data-spy='affix' data-offset-top='0' style="z-index: 1000")
-    .col-sm-12
-      - ('a'..'r').each do |letter|
-        = link_to letter.upcase, "#section-#{letter}", class: 'btn btn-default'
+  .form.form--with-nav.j-form
+    %nav.form__nav.j-form-nav.scrollspy
       = link_to 'Saving...', nil, class: 'btn btn-link saving-btn hidden'
-  .row(style="margin-top: 1em;")
-    .col-sm-8
+      %ul.list-group.nav
+        - ('a'..'r').each do |letter|
+          %li.list-group-item.nav-item
+            = link_to "Section #{letter.upcase}", "#section-#{letter}", class: 'nav-link'
 
-      %h3#section-a
-        = _('CHA A_TITLE')
-        %small= _('CHA A_SUBTITLE') 
+    .form__questions
+
+      .c-card__header--external
+        %h3#section-a
+          = _('CHA A_TITLE')
+        %small= _('CHA A_SUBTITLE')
       .well
         = cha_string     f, :a_q1, input_html: { disabled: true, value: @client.name }
         = cha_radios     f, :a_q2
@@ -32,10 +24,15 @@
         = cha_radios     f, :a_q4
         .form-group
           %label.control-label= _('CHA A_Q5')
-          %div{ style: 'margin: 0 1em' }
-            = cha_string f, :a_q5a
-            = cha_string f, :a_q5b
-            = cha_string f, :a_q5c, input_html: { disabled: true, value: @patient.medicaid_id }
+          .row.mb-1
+            .col-sm-6
+              = cha_string f, :a_q5a
+          .row.mb-1
+            .col-sm-6
+              = cha_string f, :a_q5b
+          .row.mb-1
+            .col-sm-6
+              = cha_string f, :a_q6c, input_html: { disabled: true, value: @patient.medicaid_id }
         = cha_string     f, :a_q6
         = cha_radios     f, :a_q7
         = cha_datepicker f, :a_q8
@@ -44,8 +41,9 @@
         = cha_radios     f, :a_q11
         = cha_radios     f, :a_q12
 
-      %h3#section-b
-        = _('CHA B_TITLE')
+      .c-card__header--external
+        %h3#section-b
+          = _('CHA B_TITLE')
         %small= _('CHA B_SUBTITLE')
       .well
         = cha_datepicker f, :b_q1
@@ -53,16 +51,18 @@
         = cha_radios     f, :b_q3
         = cha_checkboxes f, :b_q4
 
-      %h3#section-c
-        = _('CHA C_TITLE')
+      .c-card__header--external
+        %h3#section-c
+          = _('CHA C_TITLE')
         %small= _('CHA C_SUBTITLE')
       .well
         = cha_radios     f, :c_q1
         = cha_radios     f, :c_q2
         = cha_radios     f, :c_q3
 
-      %h3#section-d
-        = _('CHA D_TITLE')
+      .c-card__header--external
+        %h3#section-d
+          = _('CHA D_TITLE')
         %small= _('CHA D_SUBTITLE')
       .well
         = cha_radios     f, :d_q1
@@ -70,8 +70,9 @@
         = cha_radios     f, :d_q3
         = cha_radios     f, :d_q4
 
-      %h3#section-e
-        = _('CHA E_TITLE')
+      .c-card__header--external
+        %h3#section-e
+          = _('CHA E_TITLE')
         %small= _('CHA E_SUBTITLE')
       .well
         = cha_radios     f, :e_q1a
@@ -88,8 +89,9 @@
         = cha_radios     f, :e_q2b
         = cha_radios     f, :e_q2c
 
-      %h3#section-f
-        = _('CHA F_TITLE')
+      .c-card__header--external
+        %h3#section-f
+          = _('CHA F_TITLE')
         %small= _('CHA F_SUBTITLE')
       .well
         = cha_radios     f, :f_q1a
@@ -103,22 +105,22 @@
         = cha_radios     f, :f_q4
         = cha_radios     f, :f_q5
 
-      %h3#section-g
-        = _('CHA G_TITLE')
+      .c-card__header--external
+        %h3#section-g
+          = _('CHA G_TITLE')
         %small= _('CHA G_SUBTITLE')
       .well
         .row
-          .col-sm-12
+          .col-sm-12.mb-1
             %h4= _('CHA G_Q1_HEADER')
             %p.help-text= _('CHA G_Q1_SUBHEADER')
         .row
-          .col-sm-12
+          .col-sm-12.mb-1
             %p
               %strong= _("CHA G_Q1A_HEADER")
         .row
           .col-sm-6
             = cha_select     f, :g_q1ap
-          .col-sm-6
             = cha_select     f, :g_q1ac
         .row
           .col-sm-12
@@ -203,14 +205,16 @@
         = cha_radios     f, :g_q6a
         = cha_radios     f, :g_q6b
 
-      %h3#section-h
-        = _('CHA H_TITLE')
+      .c-card__header--external
+        %h3#section-h
+          = _('CHA H_TITLE')
         %small= _('CHA H_SUBTITLE')
       .well
         = cha_radios     f, :h_q1
 
-      %h3#section-i
-        = _('CHA I_TITLE')
+      .c-card__header--external
+        %h3#section-i
+          = _('CHA I_TITLE')
         %small= _('CHA I_SUBTITLE')
       .well
         = cha_radios     f, :i_q1a
@@ -251,13 +255,14 @@
                       %span.icon-cross
         .row
           .col-sm-12
-            %a.btn.btn-link.add-diagnosis
+            %a.btn.btn-secondary.add-diagnosis
               %span.icon-plus
               Add another diagnosis
 
 
-      %h3#section-j
-        = _('CHA J_TITLE')
+      .c-card__header--external
+        %h3#section-j
+          = _('CHA J_TITLE')
         %small= _('CHA J_SUBTITLE')
       .well
         = cha_radios     f, :j_q1
@@ -292,8 +297,9 @@
         = cha_radios     f, :j_q9a
         = cha_radios     f, :j_q9b
 
-      %h3#section-k
-        = _('CHA K_TITLE')
+      .c-card__header--external
+        %h3#section-k
+          = _('CHA K_TITLE')
         %small= _('CHA K_SUBTITLE')
       .well
         = cha_radios     f, :k_q1a
@@ -301,8 +307,9 @@
         = cha_radios     f, :k_q1c
         = cha_radios     f, :k_q1d
 
-      %h3#section-l
-        = _('CHA L_TITLE')
+      .c-card__header--external
+        %h3#section-l
+          = _('CHA L_TITLE')
         %small= _('CHA L_SUBTITLE')
       .well
 
@@ -340,15 +347,16 @@
                 = cha_string f, code
         .row
           .col-sm-12
-            %a.btn.btn-link.add-medication
+            %a.btn.btn-secondary.add-medication
               %span.icon-plus
               Add another medication
 
       .well
         = cha_radios f, :l_q2
 
-      %h3#section-m
-        = _('CHA M_TITLE')
+      .c-card__header--external
+        %h3#section-m
+          = _('CHA M_TITLE')
         %small= _('CHA M_SUBTITLE')
       .well
         = cha_radios f, :m_q1a
@@ -364,34 +372,39 @@
         = cha_string f, :m_q2b
         = cha_string f, :m_q2c
 
-      %h3#section-n
-        = _('CHA N_TITLE')
+      .c-card__header--external
+        %h3#section-n
+          = _('CHA N_TITLE')
         %small= _('CHA N_SUBTITLE')
       .well
         = cha_radios f, :n_q1
 
-      %h3#section-o
-        = _('CHA O_TITLE')
+      .c-card__header--external
+        %h3#section-o
+          = _('CHA O_TITLE')
         %small= _('CHA O_SUBTITLE')
       .well
         = cha_radios f, :o_q1
 
-      %h3#section-p
-        = _('CHA P_TITLE')
+      .c-card__header--external
+        %h3#section-p
+          = _('CHA P_TITLE')
         %small= _('CHA P_SUBTITLE')
       .well
         = cha_datepicker f, :p_q1
         = cha_radios     f, :p_q2
 
-      %h3#section-q
-        = _('CHA Q_TITLE')
+      .c-card__header--external
+        %h3#section-q
+          = _('CHA Q_TITLE')
         %small= _('CHA Q_SUBTITLE')
       .well
         = cha_string     f, :q_q1, input_html: { disabled: true, value: @cha.user&.name }
         = cha_datepicker f, :q_q2
 
-      %h3#section-r
-        = _('CHA R_TITLE')
+      .c-card__header--external
+        %h3#section-r
+          = _('CHA R_TITLE')
         %small= _('CHA R_SUBTITLE')
       .well
         = cha_radios f, :r_q1
@@ -430,13 +443,26 @@
         Review
       .well
         - if @cha.reviewed_by.present?
-          .form-group
+          .form-group.mb-0
             %label Reviewed by Supervisor
             %p.form-control-static= @cha.reviewed_by&.name
         - else
           = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
-  .row
-    .col-sm-8
-      .text-right
-        = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default', data: { disable_with: 'Saving...' }
+
+      .form__actions
+        = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default mr-1', data: { disable_with: 'Saving...' }
         = f.button :submit, 'Complete', data: { disable_with: 'Saving...' }
+
+- content_for :page_js do
+  :javascript
+    $(function(){
+      var $tabs = $('.j-form-nav');
+      $tabs.affix({offset: {top: $tabs.offset().top} });
+      var sectionTitles = $("h3[id^='section']").map(function(){
+        return $(this).text().trim()
+      })
+      $tabs.find('a').each(function(i, el){
+        el.textContent = sectionTitles[i - 1]
+      })
+      $('.j-form').scrollspy({ target: '.j-form-nav' })
+    })

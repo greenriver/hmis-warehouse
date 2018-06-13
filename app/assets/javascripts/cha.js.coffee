@@ -36,3 +36,18 @@ $(document).on 'click', '.remove-medication', (e) ->
   inputs.first().change()
   row.addClass('hidden')
 
+
+# Scroll to element with id that matches hash
+# https://css-tricks.com/snippets/jquery/smooth-scrolling/
+scrollToElement = (event, offset=0, duration=1000) ->
+  hash = $(event.currentTarget).attr('href')
+  $target = $(hash)
+  if $target.length
+    event.preventDefault()
+    $('html, body').animate { scrollTop: $target.offset().top - offset }, duration
+
+$('a[href*="#"]')
+  .not('[href="#"]')
+  .not('[href="#0"]').on 'click', (event) ->
+    scrollToElement event, 20
+    event.currentTarget.blur()
