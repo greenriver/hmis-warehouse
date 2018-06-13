@@ -168,6 +168,75 @@ module Health
       ! pilot_patient?
     end
 
+    def recent_cha
+      @recent_cha ||= chas.recent&.first
+    end
+
+    def preferred_communication
+      recent_cha&.answer(:r_q1).presence || '(unknown)'
+    end
+
+    def phone
+      recent_cha
+        &.answer(:r_q1a)
+        .presence ||
+      sdh_case_management_notes
+        .recent
+        .with_phone
+        &.first
+        &.client_phone_number
+        .presence ||
+      '(unknown)'
+    end
+
+    def phone_message_ok
+      if preferred_communication == 'Phone' && 
+        recent_cha&.answer(:r_q2) == 'Yes'
+        ', message ok'
+      end
+    end
+
+    def advanced_directive?
+      advanced_directive_answer == 'Yes'
+    end
+
+    def advanced_directive_answer
+      recent_cha&.answer(:r_q4)
+    end
+
+    def advanced_directive_type
+      recent_cha&.answer(:r_q5)
+    end
+
+    def develop_advanced_directive?
+      recent_cha&.answer(:r_q7) != 'No'
+    end
+
+    def veteran_status
+      status = recent_cha&.answer(:r_q3)
+      if status == 'Yes'
+        'Veteran'
+      elsif status == 'No'
+        'Non-veteran'
+      else
+        nil
+      end
+    end
+
+    def email
+      recent_cha&.answer(:r_q1b).presence || '(unknown)'
+    end
+
+    def advanced_directive
+      {
+        name: recent_cha&.answer(:r_q6a),
+        relationship: recent_cha&.answer(:r_q6b),
+        address: recent_cha&.answer(:r_q6c),
+        phone: recent_cha&.answer(:r_q6d),
+        comments: recent_cha&.answer(:r_q6e)
+      }
+    end
+
     def engaged?
       self.class.engaged.where(id: id).exists?
       # ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
@@ -180,9 +249,9 @@ module Health
     def ssms
       @ssms ||= (hmis_ssms.order(collected_at: :desc).to_a + self_sufficiency_matrix_forms.order(completed_at: :desc).to_a).sort_by do |f|
         if f.is_a? Health::SelfSufficiencyMatrixForm
-          f.completed_at
+          f.completed_at || DateTime.current
         elsif f.is_a? GrdaWarehouse::HmisForm
-          f.collected_at
+          f.collected_at || DateTime.current
         end
       end
     end
