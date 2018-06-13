@@ -16,7 +16,7 @@ module Health
         when 'not_engaged'
           @patients = @patients.not_engaged
         when 'no_activities'
-          @patients = @patients.engaged.no_recent_qualifying_activities
+          @patients = @patients.engaged.no_qualifying_activities_this_month
         when 'engagement_ending'
           @patients = @patients.engagement_ending
         end

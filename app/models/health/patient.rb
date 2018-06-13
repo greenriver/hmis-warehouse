@@ -124,6 +124,14 @@ module Health
       )
     end
 
+    # patients with no qualifying activities in the current calendar month
+    scope :no_qualifying_activities_this_month, -> do
+      where.not(
+        id: Health::QualifyingActivity.in_range(Date.today.beginning_of_month..Date.today).
+          distinct.select(:patient_id)
+      )
+    end
+
     delegate :effective_date, to: :patient_referral
 
     self.source_key = :PAT_ID

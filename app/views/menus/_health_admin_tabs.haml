@@ -30,6 +30,12 @@
       controllers: ['roles'],
       visible: can_administer_health? ,
     },
+    {
+      title: 'Assign Team Coordinators',
+      path: admin_health_team_coordinators_path,
+      controllers: ['team_coordinators'],
+      visible: can_administer_health? ,
+    },
   ]
 
 - if GrdaWarehouse::Config.get(:healthcare_available)
