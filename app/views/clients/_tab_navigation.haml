@@ -1,88 +1,89 @@
-:ruby
-  show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
-  show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
-  tabs = {
-    client_path(@client) => {
-      title: 'Dashboard',
-      permission: can_view_clients?,
-    },
-    client_history_path(@client) => {
-      title: 'History',
-      permission: can_edit_clients?,
-    },
-    polymorphic_path(client_chronic_path_generator, client_id: @client.id) => {
-      title: 'Chronic',
-      permission: can_edit_clients?
-    },
-    polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
-      title: 'Notes',
-      permission: can_edit_client_notes?
-    },
-    polymorphic_path(edit_cas_readiness_path_generator, client_id: @client.id) => {
-      title: 'CAS Readiness',
-      permission: can_edit_clients?
-    },
-    polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
-      title: 'VI-SPDAT',
-      permission: can_view_vspdat?
-    },
-    polymorphic_path(files_path_generator, client_id: @client.id) => {
-      title: 'Files',
-      permission: can_manage_client_files?,
-    },
-    polymorphic_path(users_path_generator, client_id: @client) => {
-      title: 'Relationships',
-      permission: can_assign_users_to_clients?,
-    },
-    polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
-      title: 'Health',
-      permission: show_health_pilot,
-    },
-    polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
-      title: 'Care Plan',
-      permission: show_health_pilot,
-    },
-    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
-      title: 'Health',
-      permission: show_health_hpc,
-    },
-    polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
-     title: 'Services',
-     permission: show_health_hpc,
-    },
-    polymorphic_path(careplans_path_generator, client_id: @client.id) => {
-      title: 'Care Plan',
-      permission: show_health_hpc,
-    },
-    polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
-     title: 'Health Files',
-     permission: show_health_hpc,
-    },
-    polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
-      title: 'Metrics',
-      permission: show_health_pilot,
-    },
-    edit_client_path(@client) => {
-      title: 'Merge',
-      permission: can_edit_clients?,
-      item_class: 'pull-right'
-    },
-  }
+- unless pjax_request?
+  :ruby
+    show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
+    show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
+    tabs = {
+      client_path(@client) => {
+        title: 'Dashboard',
+        permission: can_view_clients?,
+      },
+      client_history_path(@client) => {
+        title: 'History',
+        permission: can_edit_clients?,
+      },
+      polymorphic_path(client_chronic_path_generator, client_id: @client.id) => {
+        title: 'Chronic',
+        permission: can_edit_clients?
+      },
+      polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
+        title: 'Notes',
+        permission: can_edit_client_notes?
+      },
+      polymorphic_path(edit_cas_readiness_path_generator, client_id: @client.id) => {
+        title: 'CAS Readiness',
+        permission: can_edit_clients?
+      },
+      polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
+        title: 'VI-SPDAT',
+        permission: can_view_vspdat?
+      },
+      polymorphic_path(files_path_generator, client_id: @client.id) => {
+        title: 'Files',
+        permission: can_manage_client_files?,
+      },
+      polymorphic_path(users_path_generator, client_id: @client) => {
+        title: 'Relationships',
+        permission: can_assign_users_to_clients?,
+      },
+      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
+        title: 'Health',
+        permission: show_health_pilot,
+      },
+      polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
+        title: 'Care Plan',
+        permission: show_health_pilot,
+      },
+      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+        title: 'Health',
+        permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
+       title: 'Services',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(careplans_path_generator, client_id: @client.id) => {
+        title: 'Care Plan',
+        permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
+       title: 'Health Files',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
+        title: 'Metrics',
+        permission: show_health_pilot,
+      },
+      edit_client_path(@client) => {
+        title: 'Merge',
+        permission: can_edit_clients?,
+        item_class: 'pull-right'
+      },
+    }
 
-- can_see_tabs = false
-- tabs.each do |action, details|
-  - if details[:permission]
-    - can_see_tabs = true
+  - can_see_tabs = false
+  - tabs.each do |action, details|
+    - if details[:permission]
+      - can_see_tabs = true
 
-- if can_see_tabs
-  %ul.nav.nav-tabs.margin-bottom-02
-    - tabs.each do |action, details|
-      - item_class = details[:item_class] || ''
-      - if action == current
-        - if details[:permission]
-          %li.active.active-tab{role: 'presentation'}
-            %a{href: '#'}
-              = details[:title]
-      - else
-        - if details[:permission]
-          %li{class: item_class}= link_to details[:title], action
+  - if can_see_tabs
+    %ul.nav.nav-tabs.margin-bottom-02
+      - tabs.each do |action, details|
+        - item_class = details[:item_class] || ''
+        - if action == current
+          - if details[:permission]
+            %li.active.active-tab{role: 'presentation'}
+              %a{href: '#'}
+                = details[:title]
+        - else
+          - if details[:permission]
+            %li{class: item_class}= link_to details[:title], action
