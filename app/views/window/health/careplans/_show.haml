@@ -2,97 +2,121 @@
 
 - title = "Care Plan for #{@patient.name} as of #{Date.today}"
 - content_for :title, title
-%h1= title
 
-%table
-  %thead
-    %tr
-      %th Initial Date
-      %th Review Date
-  %tbody
-    %tr
-      %td= @careplan.initial_date&.to_date
-      %td= @careplan.review_date&.to_date
+.l-print
+  %article.l-print__section
+    %ul.l-print__summary-items
+      %li
+        %dl
+          %dt Initial Date
+          %dd= @careplan.initial_date&.to_date
+      %li
+        %dl
+          %dt Review Date
+          %dd= @careplan.review_date&.to_date
 
-%h3 Care Team Members
-%table.health__team
-  %thead
-    %tr
-      %th Capacity
-      %th Name
-      %th Organization
-      %th Contact
-  %tbody
-    - @careplan.team_members.each do |member|
-      %tr
-        %td= member.member_type_name
-        %td= member.full_name
-        %td= member.organization
-        %td
-          = member.email
-          %br
-          = member.phone
-      
-
-.health-care-plan__about-me
-  %h3 About Me
-  %h4 My Health Problems
-  = simple_format @careplan.patient_health_problems
-  %h4 My Strengths
-  = simple_format @careplan.patient_strengths
-  %h4 My Goals
-  = simple_format @careplan.patient_goals
-  %h4 My Barriers
-  = simple_format @careplan.patient_barriers
-
-.health-care-plan__goals
-  %h3 Goals
-  %table.health-care-plan__goal-list
-    %thead
-      %tr
-        %th Responsible Care Team Member
-        %th Start Date
-        %th Status
-        %th Problem
-        %th Goal Description
-        %th Intervention
-            
-    %tbody
-      - @careplan.goals.each do |goal|
+  %article.l-print__section
+    %h1 Care Team Members
+    %table.health__team
+      %thead
         %tr
-          %td= @careplan.team.available_members.to_h.invert[goal.responsible_team_member_id]
-          %td= goal.start_date
-          %td= goal.status
-          %td= simple_format goal.problem
-          %td= simple_format goal.goal_details
-          %td= simple_format goal.intervention
+          %th Capacity
+          %th Name
+          %th Organization
+          %th Contact
+      %tbody
+        - @careplan.team_members.each do |member|
+          %tr
+            %td= member.member_type_name
+            %td= member.full_name
+            %td= member.organization
+            %td
+              %p= member.email
+              %p= member.phone
 
-.health-care-plan__services
-  = render 'window/health/careplans/service_list'
 
-.health-care-plan__equipments
-  = render 'window/health/careplans/equipment_list'
+  %article.health-care-plan__about-me.l-print__section--page
+    %h1 About Me
+    .l-print__item
+      %h4 My Health Problems
+      = simple_format @careplan.patient_health_problems
+    .l-print__item
+      %h4 My Strengths
+      = simple_format @careplan.patient_strengths
+    .l-print__item
+      %h4 My Goals
+      = simple_format @careplan.patient_goals
+    .l-print__item
+      %h4 My Barriers
+      = simple_format @careplan.patient_barriers
 
-.health-care-plan__responsible-parties
-  %h3 Responsible Parties
-  %table
-    %body
-      %tr
-        %th Party:
-        %td= @patient.name
-        %td= @careplan.responsible_team_member&.full_name
-        %td= @careplan.representative&.full_name
-        %td= @careplan.provider&.full_name
-      %tr
-        %th Signed On:
-        %td= @careplan.patient_signed_on&.to_date
-        %td= @careplan.responsible_team_member_signed_on
-        %td= @careplan.representative_signed_on
-        %td= @careplan.provider_signed_on&.to_date
+  %article.health-care-plan__goals.l-print__section--page
+    %h1 Goals
+    .l-print__item-wrapper
+      - @careplan.goals.each do |goal|
+        .l-print__item.l-print__item--bordered
+          %dl
+            %dt Responsible Care Team Member
+            - responsible_team_member = @careplan.team.available_members.to_h.invert[goal.responsible_team_member_id] || 'No responsible team member'
+            %dd{class: ('minor-text' unless responsible_team_member)}= responsible_team_member
 
-.health-care-plan__ssm
-  %h1 Self-Sufficiency Matrix
-  = render 'window/health/self_sufficiency_matrix_forms/show'
-.health-care-plan__cha
-  %h1 Comprehensive Health Assessment
-  = render 'window/health/comprehensive_health_assessments/show'
+            %dt Start Date
+            %dd= goal.start_date
+
+            %dt Status
+            %dd= goal.status
+
+            %dt Problem
+            %dd= simple_format goal.problem
+
+            %dt Goal Description
+            %dd= simple_format goal.goal_details
+
+            %dt Intervention
+            %dd= simple_format goal.intervention
+
+  %article.health-care-plan__services.l-print__section--page
+    = render 'window/health/careplans/service_list'
+
+  %article.health-care-plan__equipments.l-print__section--page
+    = render 'window/health/careplans/equipment_list'
+
+  %article.health-care-plan__responsible-parties.l-print__section--page
+    %h1 Responsible Parties
+
+    %dl.l-print__item
+      %dt.inline Patient:
+      %dd.inline= @patient.name
+      %dd.l-print__signature &nbsp;
+      %dt Signed On:
+      %dd= @careplan.patient_signed_on&.to_date
+
+    %dl.l-print__item
+      %dt.inline Responsible Team Member:
+      %dd.inline= @careplan.responsible_team_member&.full_name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.responsible_team_member_signed_on
+
+    %dl.l-print__item
+      %dt.inline Representative:
+      %dd.inline= @careplan.representative&.full_name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.representative_signed_on
+
+    %dl.l-print__item
+      %dt.inline Provider:
+      %dd.inline= @careplan.provider&.full_name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.provider_signed_on&.to_date
+
+
+  %article.health-care-plan__ssm.l-print__section--page.no-break
+    %h1 Self-Sufficiency Matrix
+    = render 'window/health/self_sufficiency_matrix_forms/show'
+
+  %article.health-care-plan__cha.l-print__section--page.no-break
+    %h1 Comprehensive Health Assessment
+    = render 'window/health/comprehensive_health_assessments/show'

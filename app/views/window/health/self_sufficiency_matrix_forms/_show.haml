@@ -28,14 +28,14 @@
     - score = @form.send "#{section_key}_score"
     - if score.present?
       - title = Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key]
-      .client__assessment-question
+      .client__assessment-question.client__assessment-question--score
         = "#{title} Score: "
         = score
-      .client__assessment-question
+      .client__assessment-question.client__assessment-question--title
         = title
-      .client__assessment-answer
+      .client__assessment-answer.client__assessment-answer--text
         = Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
-      .client__assessment-question
+      .client__assessment-question.client__assessment-answer--notes
         = "#{title} Notes"
       .client__assessment-answer
         = simple_format @form.send("#{section_key}_notes")

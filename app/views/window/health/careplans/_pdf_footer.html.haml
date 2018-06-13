@@ -1,0 +1,46 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    :javascript
+      function number_pages() {
+        var vars={};
+        var x=document.location.search.substring(1).split('&');
+        for(var i in x) {var z=x[i].split('=',2);vars[z[0]] = decodeURIComponent(z[1]);}
+        var x=['frompage','topage','page','webpage','section','subsection','subsubsection'];
+        for(var i in x) {
+          var y = document.getElementsByClassName(x[i]);
+          for(var j=0; j<y.length; ++j) y[j].textContent = vars[x[i]];
+        }
+      }
+  :css
+    body,
+    .l-print__footer {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .l-print__footer {
+      font-family: sans-serif;
+      width: 100%;
+      color: #999999;
+      vertical-align: middle;
+      height: 50px;
+    }
+    .l-print__footer-page-number,
+    .l-print__footer h4 {
+      display: inline-block;
+      width: 49%;
+      vertical-align: middle;
+    }
+
+    .l-print__footer-page-number {
+      text-align: right;
+    }
+
+  %body{:onload => "number_pages()"}
+    .l-print__footer
+      %h4 Boston Coordinated Care Hub
+      .l-print__footer-page-number
+        %span p.
+        %span.page

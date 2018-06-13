@@ -41,7 +41,7 @@ footer {
   font-size: 0.7em;
   display: inline-block;
 }
-.service-type__entry 
+.service-type__entry
 {
   border: 2px solid rgb(73, 95, 121);
 }
@@ -57,7 +57,7 @@ footer {
 {
   border: 2px solid rgb(45, 118, 124);
 }
-.service-type__first 
+.service-type__first
 {
   border: 2px solid rgb(86, 114, 170);
 }
@@ -101,4 +101,184 @@ footer {
   tr    { page-break-inside:avoid; page-break-after:auto }
   thead { display:table-header-group }
   tfoot { display:table-footer-group }
+}
+
+
+$print-layout-header-height: 50px;
+$pdf-default-font-size: 12px;
+$pdf-h1-font-size: 20px;
+
+@mixin pdf-heading {
+  font-size: $pdf-h1-font-size;
+  border-bottom: 3px solid #CCC;
+  padding-bottom: 5px;
+  color: #091F2F;
+}
+
+.l-print {
+  position: relative;
+  font-family: sans-serif;
+}
+
+.l-print,
+.l-print table {
+  font-size: $pdf-default-font-size;
+}
+
+.l-print table {
+  width: 100%;
+}
+
+.l-print table thead tr th {
+  text-align: left;
+}
+
+.l-print table tbody tr td {
+  vertical-align: top;
+  p {
+    margin: 0 0 3px 0;
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.l-print h1 {
+  @include pdf-heading;
+}
+
+.l-print h4 {
+  margin-bottom: 5px;
+}
+
+.l-print p {
+  margin-top: 0;
+  line-height: 1.25em;
+}
+
+.l-print dl {
+  dt {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  dd {
+    margin-bottom: 3px;
+    margin-left: 5px;
+    &:empty {
+      display: none;
+    }
+    &.l-print__signature {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      margin-left: 0;
+      width: 500px;
+      height: 50px;
+      border-bottom: 1px solid #000;
+    }
+  }
+  dt,
+  dd {
+    &.inline {
+      display: inline;
+    }
+  }
+  &.l-print__item {
+    margin-bottom: 75px;
+  }
+}
+
+.l-print .no-break {
+  page-break-inside: avoid;
+}
+
+.l-print .minor-text {
+  font-style: italic;
+  color: #999999;
+}
+
+.l-print__page-content {
+  padding: $print-layout-header-height 25px;
+}
+
+.l-print__summary-items {
+  display: flex;
+  padding: 0;
+  list-style-type: none;
+  li {
+    &:first-of-type {
+      margin-right: 50px;
+    }
+  }
+}
+
+.l-print__section {
+  margin-bottom: 40px;
+}
+
+.l-print__section--page {
+  page-break-after: always;
+  margin-bottom: 40px;
+  padding-top: 10px;
+}
+
+.l-print__item-wrapper {
+  .l-print__item {
+    margin-bottom: 20px;
+  }
+}
+
+.l-print__item {
+  margin-bottom: 20px;
+}
+
+.l-print__item--bordered {
+  border-bottom: 1px solid #CCC;
+  &:last-of-type {
+    border: 0;
+  }
+}
+
+.l-print__header,
+.l-print__footer {
+  max-height: $print-layout-header-height;
+  font-family: sans-serif;
+}
+
+.l-print__header h1 {
+  font-size: 16px;
+}
+
+.l-print__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.l-print__footer-page-number {
+  margin-left: auto;
+}
+
+
+.l-print [class^='health-care-plan'] {
+  h3 {
+    @include pdf-heading;
+  }
+}
+
+.l-print .health-care-plan__services table {
+  tr td {
+    &:first-of-type {
+      width: 125px;
+    }
+  }
+}
+
+.l-print .health-care-plan__equipments table {
+  tr td {
+    &:last-of-type {
+      width: 200px;
+    }
+  }
 }

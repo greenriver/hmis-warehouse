@@ -1,0 +1,28 @@
+- title = "Care Plan for #{@patient.name} as of #{Date.today}"
+
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+  :css
+    body,
+    .l-print__header {
+      background: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .l-print__header {
+      padding-top: 20px;
+      height: 50px;
+    }
+    .l-print__header h1 {
+      font-size: 24px;
+      font-family: sans-serif;
+      margin-bottom: 0;
+      color: #091F2F;
+    }
+
+  %body
+    .l-print__header
+      %h1= title
