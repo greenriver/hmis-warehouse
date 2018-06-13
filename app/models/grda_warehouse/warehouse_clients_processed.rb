@@ -43,6 +43,44 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
   end
 
+  def cohort_attributes(client)
+    # app/models/cohort_columns/disability_verification_date.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/enrolled_homeless_shelter.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/enrolled_homeless_unsheltered.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/enrolled_permanent_housing.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/eto_coordinated_entry_assessment_score.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/household_members.rb:
+    #     6:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/last_homeless_visit.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/missing_documents.rb:
+    #     8:     def value(cohort_client) # TODO: N+1 (many really) move_to_processed
+
+    # app/models/cohort_columns/open_enrollments.rb:
+    #    19:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/rrh_desired.rb:
+    #    10:     def value(cohort_client) # TODO: N+1 move_to_processed
+
+    # app/models/cohort_columns/vispdat_priority_score.rb:
+    #     7:     def value(cohort_client) # TODO: N=1 move_to_processed
+
+    # app/models/cohort_columns/vispdat_score.rb:
+    #     6:     def value(cohort_client) # TODO: N=1 move_to_processed
+  end
+
   def most_recent_homeless_dates client_ids: []
     @most_recent_homeless_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
       where(client_id: client_ids).
