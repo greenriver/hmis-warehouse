@@ -75,7 +75,10 @@
             - @patient_summary[:details].each do |detail|
               .ho-patient__detail
                 %span= "#{detail[0]}: "
-                = detail[1]
+                - if detail[0] == 'SSN'
+                  = @patient.most_recent_ssn || detail[1].presence || '(unknown)'
+                - else
+                  = detail[1]
 
           .col-md-6.text-right
             .row
@@ -85,7 +88,7 @@
                 = @patient.preferred_communication
                 = @patient.phone_message_ok
                 %br
-                = @patient.phone
+                = @patient.most_recent_phone || '(unknown)'
                 %br
                 = @patient.email
 

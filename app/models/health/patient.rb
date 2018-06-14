@@ -172,21 +172,28 @@ module Health
       @recent_cha ||= chas.recent&.first
     end
 
+    def recent_case_management_note
+      @recent_cmn ||= sdh_case_management_notes.recent.with_phone&.first
+    end
+
+    def most_recent_ssn
+      [
+        [self.ssn.presence, updated_at.to_i], 
+        [recent_cha&.answer(:a_q5a).presence, recent_cha&.updated_at.to_i],
+        [client.SSN.presence, client.DateUpdated.to_i]
+      ].sort_by(&:last).map(&:first).compact.reverse.first
+    end
+
     def preferred_communication
       recent_cha&.answer(:r_q1).presence || '(unknown)'
     end
 
-    def phone
-      recent_cha
-        &.answer(:r_q1a)
-        .presence ||
-      sdh_case_management_notes
-        .recent
-        .with_phone
-        &.first
-        &.client_phone_number
-        .presence ||
-      '(unknown)'
+    def most_recent_phone
+      note = recent_case_management_note
+      [
+        [recent_cha&.answer(:r_q1a).presence, recent_cha&.updated_at.to_i],
+        [note&.client_phone_number.presence, note&.updated_at.to_i]
+      ].sort_by(&:last).map(&:first).compact.reverse.first
     end
 
     def phone_message_ok
