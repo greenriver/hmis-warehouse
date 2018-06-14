@@ -1,3 +1,4 @@
+require 'json/ext'
 module Cohorts
   class ClientsController < ApplicationController
     include PjaxModalController
@@ -30,7 +31,9 @@ module Cohorts
             if params[:cohort_client_id].present?
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
             end
-            render json: data_for_table
+            render text: JSON::fast_generate(data_for_table), type: :json
+            # The above is > 50% faster then
+            # render json: data_for_table), type: :json
             return
           else
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
