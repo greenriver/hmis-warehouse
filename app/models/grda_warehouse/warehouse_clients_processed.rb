@@ -270,14 +270,14 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def as_hash
       {
-        disability_verification_date: client.most_recent_verification_of_disability&.created_at&.to_date,
+        disability_verification_date: client.most_recent_verification_of_disability&.created_at&.to_date, # sub-daily
+        missing_documents: missing_documents, # sub-daily
         enrolled_homeless_shelter: client.service_history_enrollments.homeless_sheltered.ongoing.exists?,
         enrolled_homeless_unsheltered: client.service_history_enrollments.homeless_unsheltered.ongoing.exists?,
         enrolled_permanent_housing: client.service_history_enrollments.permanent_housing.ongoing.exists?,
         eto_coordinated_entry_assessment_score: client.most_recent_coc_assessment_score,
         household_members: household_members,
         last_homeless_visit: last_homeless_visit,
-        missing_documents: missing_documents,
         open_enrollments: open_enrollments,
         rrh_desired: client.rrh_desired,
         vispdat_priority_score: client.calculate_vispdat_priority_score,

@@ -1,5 +1,7 @@
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
+    extend Memoist
+
     acts_as_paranoid
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
@@ -50,12 +52,10 @@ module GrdaWarehouse
       else
         raise ArgumentError, 'unexpected value for population'
       end
-      # clear caches
-      @last_activity_by_client_id = nil
-
       @client_search_result = scope.order(id: :asc).page(page).per(per).preload(
-        :cohort_client_notes, {
-          client: :processed_service_history
+        {
+          cohort_client_notes: :user,
+          client: [:processed_service_history, {cohort_clients: :cohort}]
         }
       )
     end
@@ -88,15 +88,6 @@ module GrdaWarehouse
       @client_search_result
     end
 
-    # lazy loaded index of last_activity for the last `client_search`
-    def last_activity_by_client_id
-      @last_activity_by_client_id ||= begin
-        GrdaWarehouse::ServiceHistoryService.homeless.where(
-          client_id: client_search_result.map(&:id)
-        ).group(:client_id).maximum(:date).to_h
-      end
-    end
-
     def self.has_some_cohort_access user
       user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
     end
@@ -104,6 +95,7 @@ module GrdaWarehouse
     def user_can_edit_cohort_clients user
       user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
     end
+    memoize :user_can_edit_cohort_clients
 
     def update_access user_ids
       GrdaWarehouse::UserViewableEntity.transaction do
@@ -117,8 +109,13 @@ module GrdaWarehouse
     end
 
     def inactive?
-      !active_cohort?
+      !active?
     end
+
+    def active?
+      active_cohort?
+    end
+
 
     def visible_columns
       return self.class.default_visible_columns unless column_state.present?

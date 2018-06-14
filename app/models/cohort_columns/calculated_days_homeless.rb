@@ -9,9 +9,9 @@ module CohortColumns
 
 
     def value(cohort_client) # TODO: N+1 & and time dependant
-      return "FIXME"
-      Rails.cache.fetch([cohort_client.client.id, 'calculated_days_homeless'], expires_at: 8.hours) do
-        cohort_client.client.days_homeless(on_date: (cohort_client.cohort.effective_date || Date.today))
+      #return "FIXME"
+      Rails.cache.fetch([cohort_client.client, effective_date, 'calculated_days_homeless'], expires_in: 8.hours) do
+        cohort_client.client.days_homeless(on_date: effective_date)
       end
     end
   end

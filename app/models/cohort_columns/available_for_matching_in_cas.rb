@@ -8,7 +8,7 @@ module CohortColumns
     end
 
 
-    def value(cohort_client) # TODO: slow in some configs
+    def value(cohort_client) # OK
       checkmark_or_x text_value(cohort_client)
     end
 

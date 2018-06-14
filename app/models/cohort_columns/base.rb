@@ -50,7 +50,7 @@ module CohortColumns
     def date_format
       nil
     end
-    
+
     def width
       100
     end
@@ -61,7 +61,7 @@ module CohortColumns
 
     def form_group
       "cohort_client[#{cohort_client.id}]"
-    end  
+    end
 
     def value cohort_client
       cohort_client.send(column)
@@ -69,6 +69,10 @@ module CohortColumns
 
     def input_class
       'jCohortClientInput'
+    end
+
+    def effective_date
+      cohort.effective_date || Date.today
     end
   end
 end

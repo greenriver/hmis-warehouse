@@ -30,7 +30,8 @@ module Cohorts
             if params[:cohort_client_id].present?
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
             end
-            render json: data_for_table() and return
+            render json: data_for_table
+            return
           else
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
           end
@@ -42,7 +43,7 @@ module Cohorts
       end
     end
 
-    def data_for_table
+    private def data_for_table
       data = []
 
       @visible_columns = [CohortColumns::Meta.new]
@@ -59,8 +60,8 @@ module Cohorts
           cohort_column.cohort = @cohort
           cohort_column.cohort_names = @cohort_names
 
-          # set the cohort_client we want this for this column
-          # it will be used to render the corisponding cell
+          # # set the cohort_client we want this for this column
+          # # it will be used to render the corisponding cell
           cohort_column.cohort_client = cohort_client
           editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
           row[cohort_column.column] = {
@@ -71,7 +72,7 @@ module Cohorts
             comments: cohort_column.comments,
           }
           if cohort_column.column == 'meta'
-            cohort_client_data[cohort_column.column].merge!(cohort_column.metadata)
+            row[cohort_column.column].merge!(cohort_column.metadata)
           end
         end
         data << row
@@ -188,7 +189,7 @@ module Cohorts
     end
 
     def load_cohort_names
-      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
       map do |id, name, short_name|
         [id, short_name.presence || name]
       end.to_h

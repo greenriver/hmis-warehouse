@@ -103,7 +103,7 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
       map do |id, name, short_name|
         [id, short_name.presence || name]
       end.to_h

@@ -21,6 +21,7 @@ module CohortColumns
     end
 
     def comments
+      return ""
       comments = ''
       if inactive
         comments += "No homeless service in #{@cohort.days_of_inactivity} days\r\n"
@@ -43,14 +44,16 @@ module CohortColumns
     end
 
     def last_activity
-      @cohort.last_activity_by_client_id[cohort_client.client_id]
+      cohort_client.client.processed_service_history&.last_homeless_date
     end
 
     def inactive
       @inactive ||= begin
-        Date.today - cohort.days_of_inactivity > last_activity.to_date
-      rescue
-        true
+        if cohort.days_of_inactivity && last_activity
+          (Date.today - cohort.days_of_inactivity) > last_activity.to_date
+        else
+          true
+        end
       end
     end
 
