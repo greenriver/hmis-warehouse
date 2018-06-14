@@ -1730,7 +1730,7 @@ module GrdaWarehouse::Hud
 
     # ES, SO, SH, or TH with no overlapping PH
     def self.dates_homeless_in_last_three_years_scope client_id:, on_date: Date.today
-      Rails.cache.fetch([client_id, "dates_homeless_in_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch([self.cache_key, "dates_homeless_in_last_three_years_scope", on_date], expires_in: CACHE_EXPIRY) do
         end_date = on_date.to_date
         start_date = end_date - 3.years
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
@@ -1743,7 +1743,7 @@ module GrdaWarehouse::Hud
 
     # ES, SO, or SH with no overlapping TH or PH
     def self.dates_literally_homeless_in_last_three_years_scope client_id:, on_date: Date.today
-      Rails.cache.fetch([client_id, "dates_literally_homeless_in_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch([self.cache_key, "dates_literally_homeless_in_last_three_years_scope", on_date], expires_in: CACHE_EXPIRY) do
         end_date = on_date.to_date
         start_date = end_date - 3.years
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).

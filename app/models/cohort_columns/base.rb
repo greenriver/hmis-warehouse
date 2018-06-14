@@ -70,9 +70,5 @@ module CohortColumns
     def input_class
       'jCohortClientInput'
     end
-
-    def effective_date
-      cohort.effective_date || Date.today
-    end
   end
 end

@@ -224,5 +224,52 @@ module GrdaWarehouse
       }
     end
 
+    # A cache of client calculations dependant
+    # on both the current time and the effective_date of this cohort
+    # intented to be called only by CohortColumns::* only
+    def time_dependant_client_data
+      Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 8.hours) do
+        {}.tap do |data_by_client_id|
+          cohort_clients.map do |cc|
+            data_by_client_id[cc.client_id] = {
+              calculated_days_homeless: calculated_days_homeless(cc.client),
+              days_homeless_last_three_years: days_homeless_last_three_years(cc.client),
+              days_literally_homeless_last_three_years: days_literally_homeless_last_three_years(cc.client),
+              destination_from_homelessness: days_homeless_last_three_years(cc.client),
+              related_users: related_users(cc.client)
+            }
+          end
+        end
+      end
+    end
+    memoize :time_dependant_client_data
+
+    private def calculated_days_homeless(client)
+      client.days_homeless(on_date: effective_date || Date.today)
+    end
+
+    private def days_homeless_last_three_years(client)
+      client.days_homeless_in_last_three_years(on_date: effective_date)
+    end
+
+    private def days_literally_homeless_last_three_years(client)
+      client.literally_homeless_last_three_years(on_date: effective_date)
+    end
+
+    private def destination_from_homelessness(client)
+      client.permanent_source_exits_from_homelessness.
+        where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
+        pluck(:ExitDate, :Destination).map do |exit_date, destination|
+          "#{exit_date} to #{HUD.destination(destination)}"
+        end.join('; ')
+    end
+
+    private def related_users(client)
+      users = client.user_clients.
+        non_confidential.
+        active.
+        pluck(:user_id, :relationship).to_h
+      User.where(id: users.keys).map{|u| "#{users[u.id]} (#{u.name})"}.join('; ')
+    end
   end
 end

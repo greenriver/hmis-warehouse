@@ -5,14 +5,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Recent Exits from Homelessness'
 
     def value(cohort_client) # TODO: N+1 & and time dependant
-      Rails.cache.fetch([cohort_client.client, 'destination_from_homelessness'], expires_in: 8.hours) do
-        cohort_client.client.
-          permanent_source_exits_from_homelessness.
-          where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
-          pluck(:ExitDate, :Destination).map do |exit_date, destination|
-            "#{exit_date} to #{HUD.destination(destination)}"
-          end.join('; ')
-      end
+      cohort.time_dependant_client_data[cohort_client.client_id][:destination_from_homelessness]
     end
   end
 end
