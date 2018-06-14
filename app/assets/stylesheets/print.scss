@@ -197,6 +197,10 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
       height: 50px;
       border-bottom: 1px solid #000;
     }
+    &.breaker {
+      display: block !important;
+      margin-bottom: 5px;
+    }
   }
   dt,
   dd {
@@ -392,32 +396,39 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
-.l-print .cha__section
-{
+.l-print .cha__section {
   clear: left;
-}
-.l-print .g_q,
-.l-print .i_q,
-.l-print .l_q
-{
-  float: left;
-  .client__assessment-answer
-  {
-    text-indent: 0;
+  page-break-inside: avoid;
+  &::after {
+    content: '';
+    display: block;
+    clear: both;
   }
 }
 
-.l-print .g_q
-{
+.l-print .g_q,
+.l-print .i_q,
+.l-print .l_q {
+  float: left;
+  page-break-inside: avoid;
+  margin-bottom: 10px;
+  .client__assessment-answer {
+    text-indent: 0;
+    padding-right: 5px;
+  }
+  &.clear-left {
+    clear: left;
+  }
+}
+
+.l-print .g_q {
   width: 50%;
 }
 
-.l-print .i_q
-{
+.l-print .i_q {
   width: 30%;
 }
 
-.l-print .l_q
-{
+.l-print .l_q {
   width: 14%;
 }
