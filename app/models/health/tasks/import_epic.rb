@@ -45,8 +45,9 @@ module Health::Tasks
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
       # CSV.foreach(path, 'r:bom|utf-8', headers: true) do |row|
         key = row[klass.source_key.to_s]
-        translated_row = row.to_h.map do |k,v| 
-          [klass.csv_map[k.to_sym], v]
+        translated_row = row.to_h.map do |k,v|
+          clean_key = klass.csv_map[k.to_sym]
+          [clean_key, klass.clean_value(clean_key, v)]
         end.to_h
         # Make note that the import of patients is only functional for the pilot
         if klass == Health::Patient

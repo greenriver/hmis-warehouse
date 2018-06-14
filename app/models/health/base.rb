@@ -21,5 +21,10 @@ module Health
         Health::EpicGoal,
       ]
     end
+
+    # override as necessary
+    def self.clean_value key, value
+      value
+    end
   end
 end

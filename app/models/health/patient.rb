@@ -236,7 +236,17 @@ module Health
         medicaid_id: :medicaid_id,
         housing_status: :housing_status,
         housing_status_timestamp: :housing_status_timestamp,
+        program: :pilot,
       }
+    end
+
+    def self.clean_value key, value
+      case key
+      when :pilot
+        value == 'SDH Pilot'
+      else
+        value
+      end
     end
 
     def name
