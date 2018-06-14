@@ -179,7 +179,7 @@ module Health
     def most_recent_ssn
       [
         [self.ssn.presence, updated_at.to_i], 
-        [recent_cha&.answer(:a_q5a).presence, recent_cha&.updated_at.to_i],
+        [recent_cha&.ssn.presence, recent_cha&.updated_at.to_i],
         [client.SSN.presence, client.DateUpdated.to_i]
       ].sort_by(&:last).map(&:first).compact.reverse.first
     end
@@ -191,7 +191,7 @@ module Health
     def most_recent_phone
       note = recent_case_management_note
       [
-        [recent_cha&.answer(:r_q1a).presence, recent_cha&.updated_at.to_i],
+        [recent_cha&.phone.presence, recent_cha&.updated_at.to_i],
         [note&.client_phone_number.presence, note&.updated_at.to_i]
       ].sort_by(&:last).map(&:first).compact.reverse.first
     end

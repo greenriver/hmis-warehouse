@@ -919,6 +919,14 @@ module Health
       editor == user
     end
 
+    def phone
+      answer(:r_q1a)
+    end
+
+    def ssn
+      answer(:a_q5a)
+    end
+
     def qualifying_activities
       Health::QualifyingActivity.where(source: self, patient: patient)
     end
