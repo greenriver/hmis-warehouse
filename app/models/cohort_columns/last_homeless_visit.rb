@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, 'last_seen'], expires_at: 8.hours) do
+      Rails.cache.fetch([cohort_client.client.id, 'last_seen'], expires_in: 8.hours) do
         cohort_client.client.last_homeless_visits.map do |row|
           row.join(': ')
         end.join('; ')

@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Household Members'
 
     def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, 'household_members'], expires_at: 8.hours) do
+      Rails.cache.fetch([cohort_client.client.id, 'household_members'], expires_in: 8.hours) do
         households = cohort_client.client.households
         if households.present?
           households.values.flatten.

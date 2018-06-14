@@ -5,7 +5,7 @@ module CohortColumns
 
 
     def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, :related_users], expires_at: 8.hours) do
+      Rails.cache.fetch([cohort_client.client.id, :related_users], expires_in: 8.hours) do
         users = cohort_client.client.user_clients.
           non_confidential.
           active.

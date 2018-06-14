@@ -5,7 +5,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Agency'
 
     def available_options
-      Rails.cache.fetch("all_project_names", expires_at: 5.minutes) do
+      Rails.cache.fetch("all_project_names", expires_in: 5.minutes) do
         agencies = Set.new
         GrdaWarehouse::Hud::Project.distinct.
           joins(:organization).

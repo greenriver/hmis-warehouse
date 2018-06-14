@@ -30,7 +30,7 @@ module WarehouseReports
           where(project_id: projects.keys, data_source_id: projects.values.first.data_source_id)
 
          
-        lengths = Rails.cache.fetch(["length_of_stay_controller", params[:mo].to_s], expires_at: 10.minutes) do
+        lengths = Rails.cache.fetch(["length_of_stay_controller", params[:mo].to_s], expires_in: 10.minutes) do
           service_history_service_source.where(service_history_enrollment_id: enrollments.select(:id)).
           where(date: (@filter.start - 3.years..@filter.end)).
           distinct.
