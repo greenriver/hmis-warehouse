@@ -3,15 +3,15 @@
 - if @cha.present?
   .d-flex
     .cha__summary
-      %strong Name:
-      = @client.name
-      %br
-      %strong Date Completed:
-      = @cha.completed_at&.to_date || 'in progress'
-      %br
-      %strong Case Worker:
-      = @cha.user&.name
-      %br
+      %dl.mb-2
+        %dt.inline Name:
+        %dd.inline= @client.name
+        %dd.breaker
+        %dt.inline Date Completed:
+        %dd.inline= @cha.completed_at&.to_date || 'in progress'
+        %dd.breaker
+        %dt.inline Case Worker:
+        %dd.inline= @cha.user&.name
 
       - if @cha.reviewed_by
         %strong Supervisor Review:
