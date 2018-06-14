@@ -6,6 +6,7 @@ module Health
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -135,6 +136,10 @@ module Health
     delegate :effective_date, to: :patient_referral
 
     self.source_key = :PAT_ID
+
+    def self.cfind client_id
+      find_by(client_id: client_id)
+    end
 
     def self.accessible_by_user user
       # health admins can see all, including consent revoked

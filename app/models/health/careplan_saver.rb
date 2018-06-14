@@ -12,6 +12,7 @@ module Health
       @careplan.class.transaction do
         @careplan.save!
         @careplan.ensure_team_exists
+        @careplan.import_team_members
       end
     end
 

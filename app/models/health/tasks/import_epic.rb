@@ -21,7 +21,6 @@ module Health::Tasks
     end
 
     def run!
-      # TODO: Ansible and the .env will need to be updated when this is deployed
       configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
       configs.each do |_, config|
         @config = config
@@ -79,19 +78,6 @@ module Health::Tasks
         revoked_consent: @to_revoke.size,
       }
     end
-
-    # def notify_health_admin_of_changes
-    #   if @new_patients.size > 0 || @to_revoke.any? || @to_restore.any?
-    #     User.can_administer_health.each do |user|
-    #       HealthConsentChangeMailer.consent_changed(
-    #         new_patients: @new_patients.size,
-    #         consented: @to_restore.size, 
-    #         revoked_consent: @to_revoke.size, 
-    #         user: user
-    #       ).deliver_later
-    #     end 
-    #   end
-    # end
 
     def update_consent
       klass = Health::Patient
