@@ -146,7 +146,7 @@ module GrdaWarehouse
         ::CohortColumns::YouthRrhDesired.new(),
         ::CohortColumns::RrhAssessmentContactInfo.new(),
         ::CohortColumns::RrhSsvfEligible.new(),
-        
+        ::CohortColumns::Reported.new(),
       ]
     end
 

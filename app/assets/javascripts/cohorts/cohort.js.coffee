@@ -316,7 +316,7 @@ class App.Cohorts.Cohort
           @table_data[physical_index][col] = current
           # console.log "saved", row, col, original, current, physical_index
 
-          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
+          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 70px; z-index: 1500;'>#{alert_text}</div>"
           $('.utility .alert').remove()
           $('.utility').append(alert)
           $('.utility .alert').delay(2000).fadeOut(250)
