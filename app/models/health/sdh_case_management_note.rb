@@ -55,6 +55,9 @@ module Health
 
     serialize :topics, Array
 
+    scope :recent, -> { order(updated_at: :desc).limit(1) }
+    scope :with_phone, -> { where.not(client_phone_number: nil) }
+
     accepts_nested_attributes_for :activities, allow_destroy: true 
     validates_associated :activities
 

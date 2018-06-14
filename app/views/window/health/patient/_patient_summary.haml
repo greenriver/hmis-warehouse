@@ -16,18 +16,22 @@
             - @patient_summary[:details].each do |detail|
               .ho-patient__detail
                 %span= "#{detail[0]}: "
-                = detail[1]
+                - if detail[0] == 'SSN'
+                  = @patient.most_recent_ssn || detail[1].presence || '(unknown)'
+                - else
+                  = detail[1]
 
           .col-md-6.text-right
             .row
               .col-sm-6.text-right
                 PREFERRED COMMUNICATION:
               .col-sm-6.text-left
-                (preference)
+                = @patient.preferred_communication
+                = @patient.phone_message_ok
                 %br
-                (phone)
+                = @patient.most_recent_phone || '(unknown)'
                 %br
-                (email)
+                = @patient.email
 
     .ho-patient__content
       %h4
@@ -38,7 +42,10 @@
             - row.each do |td|
               %td
                 %small= "#{td[0]}: "
-                = td[1]
+                - if td[0] == 'Veteran Status'
+                  = td[1] || @patient.veteran_status
+                - else
+                  = td[1]
       .row
         .col-sm-6
           %h4
@@ -50,4 +57,22 @@
         .col-sm-6
           = @patient.allergy_list.presence || 'none'
         .col-sm-6
-          (provided by CHA)
+          - if @patient.advanced_directive?
+            = @patient.advanced_directive_answer
+            %br
+            %strong= @patient.advanced_directive_type
+            %div= @patient.advanced_directive[:name]
+            %div= @patient.advanced_directive[:relationship]
+            %div= @patient.advanced_directive[:address]
+            %div= @patient.advanced_directive[:phone]
+          - else
+            %strong None
+            %br
+            - if @patient.develop_advanced_directive?
+              Would like to develop plan
+
+
+
+
+
+
