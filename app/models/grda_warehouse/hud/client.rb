@@ -1716,7 +1716,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.dates_in_hud_chronic_homeless_last_three_years_scope client_id:, on_date: Date.today, chronic_only: true
-      Rails.cache.fetch([client_id, "dates_in_hud_chronic_homeless_last_three_years_scope", on_date], expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch([client_id, "dates_in_hud_chronic_homeless_last_three_years_scope", on_date], expires_in: CACHE_EXPIRY) do
         end_date = on_date.to_date
         start_date = end_date - 3.years
         GrdaWarehouse::ServiceHistoryService.service.
@@ -1812,13 +1812,13 @@ module GrdaWarehouse::Hud
     end
 
     def self.dates_homeless(client_id:, on_date: Date.today)
-      Rails.cache.fetch([client_id, "dates_homeless", on_date], expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch([client_id, "dates_homeless", on_date], expires_in: CACHE_EXPIRY) do
         dates_homeless_scope(client_id: client_id, on_date: on_date).pluck(:date)
       end
     end
 
     def self.days_homeless(client_id:, on_date: Date.today)
-      Rails.cache.fetch([client_id, "days_homeless", on_date], expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch([client_id, "days_homeless", on_date], expires_in: CACHE_EXPIRY) do
         dates_homeless_scope(client_id: client_id, on_date: on_date).count
       end
     end
@@ -1905,7 +1905,7 @@ module GrdaWarehouse::Hud
 
     # build an array of useful hashes for the enrollments roll-ups
     def enrollments_for en_scope, include_confidential_names: false
-      Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_at: CACHE_EXPIRY) do
+      Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
         enrollments = en_scope.
           includes(:service_history_services, :project, :organization, :source_client).
