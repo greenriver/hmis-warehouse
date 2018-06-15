@@ -33,8 +33,7 @@ module Cohorts
             end
             render text: JSON::fast_generate(data_for_table), type: :json
             # The above is > 50% faster then
-            # render json: data_for_table), type: :json
-            return
+            # render json: data_for_table
           else
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
           end
@@ -68,12 +67,15 @@ module Cohorts
           cohort_column.cohort_client = cohort_client
           editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
           row[cohort_column.column] = {
-            editable: editable,
             value: cohort_column.display_read_only(current_user),
             renderer: cohort_column.renderer,
             cohort_client_id: cohort_client.id,
             comments: cohort_column.comments,
           }
+          if editable
+            # save some bytes
+            row[cohort_column.column][:editable]=true
+          end
           if cohort_column.column == 'meta'
             row[cohort_column.column].merge!(cohort_column.metadata)
           end
