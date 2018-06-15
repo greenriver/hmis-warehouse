@@ -35,7 +35,7 @@ module GrdaWarehouse
       end
     end
 
-    def search_clients(page: nil, per: nil, inactive: nil, population: nil)
+    def search_clients(page: nil, per: nil, inactive: nil, population: :active)
       @client_search_scope = if inactive.present?
         cohort_clients.joins(:client)
       else
@@ -48,10 +48,8 @@ module GrdaWarehouse
         @client_search_scope.where(ineligible: true)
       when :active
         @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
-      when nil
-        @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
       else
-        raise ArgumentError, 'unexpected value for population'
+        @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
       end
       if page.present? && per.present?
         scope = scope.order(id: :asc).page(page).per(per)
