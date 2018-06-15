@@ -60,7 +60,11 @@ module Filters
     end
 
     def earliest_year
-      @earliest_year ||= GrdaWarehouse::Hud::Inventory.order(:DateCreated).limit(1).pluck(:DateCreated).first.year
+      unless @earliest_year
+        oldest_inventory = GrdaWarehouse::Hud::Inventory.order(:DateCreated).limit(1).pluck(:DateCreated).first
+        @earliest_year = if oldest_inventory.present? then oldest_inventory.year else Date.today.year end
+      end
+      @earliest_year
     end
 
     def latest_year
