@@ -3,15 +3,15 @@
 - if @cha.present?
   .d-flex
     .cha__summary
-      %strong Name:
-      = @client.name
-      %br
-      %strong Date Completed:
-      = @cha.completed_at&.to_date || 'in progress'
-      %br
-      %strong Case Worker:
-      = @cha.user&.name
-      %br
+      %dl.mb-2
+        %dt.inline Name:
+        %dd.inline= @client.name
+        %dd.breaker
+        %dt.inline Date Completed:
+        %dd.inline= @cha.completed_at&.to_date || 'in progress'
+        %dd.breaker
+        %dt.inline Case Worker:
+        %dd.inline= @cha.user&.name
 
       - if @cha.reviewed_by
         %strong Supervisor Review:
@@ -28,25 +28,33 @@
     Only answered questions are shown.
 
   - @cha.answers.each do |section, section_hash|
-    %h4= section_hash['title']
+    .client__assessment-section-summary.cha__section
+      %h4= section_hash['title']
 
-    - section_hash['answers'].each do |code, question_answer|
-      - question = question_answer['question']
-      - answer   = question_answer['answer']
-      - next if answer.blank? || (answer.is_a?(Array) && answer.compact.all?(&:blank?))
-      .client__assessment-question
-        = question
-      .client__assessment-answer
-        - case answer
-        - when Array
-          %ul
-          - answer.compact.reject(&:blank?).each do |a|
-            %li= a
-        - else
-          - case question
-          - when /social security number/i
-            = masked_ssn answer
-          - when /birthdate/i
-            =l answer&.to_date
-          - else
-            = answer
+      - section_hash['answers'].sort_by{|k,_| k}.each do |code, question_answer|
+        - question = question_answer['question']
+        - answer   = question_answer['answer']
+        - next if answer.blank? || (answer.is_a?(Array) && answer.compact.all?(&:blank?))
+        - classes = [code]
+        - if matches = code.match(/((l_q)1s.).*/) || code.match(/((i_q)2.).*/) || code.match(/((g_q)1.).*/)
+          - classes << matches.try(:[], 1)
+          - classes << matches.try(:[], 2)
+        - if matches =  code.match(/(._q).+1$/) || code.match(/(._q).+a$/)
+          - classes << 'clear-left'
+        %div{class: classes}
+          .client__assessment-question
+            = question
+          .client__assessment-answer
+            - case answer
+            - when Array
+              %ul
+              - answer.compact.reject(&:blank?).each do |a|
+                %li= a
+            - else
+              - case code
+              - when 'a_q5a' # SSN
+                = masked_ssn answer
+              - when 'a_q3' # DOB
+                =l answer&.to_date
+              - else
+                = answer

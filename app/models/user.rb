@@ -145,6 +145,24 @@ class User < ActiveRecord::Base
     viewable GrdaWarehouse::Cohort
   end
 
+  def user_care_coordinators
+    Health::UserCareCoordinator.where(user_id: id)
+  end
+
+  def care_coordinators
+    ids = user_care_coordinators.pluck(:care_coordinator_id)
+    User.where(id: ids)
+  end
+
+  def user_team_coordinators
+    Health::UserCareCoordinator.where(care_coordinator_id: id)
+  end
+
+  def team_coordinators
+    ids = user_team_coordinators.pluck(:user_id)
+    User.where(id: ids)
+  end
+  
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::UserViewableEntity.transaction do

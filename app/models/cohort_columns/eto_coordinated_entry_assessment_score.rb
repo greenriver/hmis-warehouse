@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, 'eto_coordinated_entry_assessment_score'], expires_at: 8.hours) do
+      Rails.cache.fetch([cohort_client.client.id, 'eto_coordinated_entry_assessment_score'], expires_in: 8.hours) do
         cohort_client.client.most_recent_coc_assessment_score
       end
     end

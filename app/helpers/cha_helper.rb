@@ -771,6 +771,8 @@ module ChaHelper
   _("CHA Q_Q1")
   _("CHA Q_Q2")
   _("CHA R_Q1")
+  _("CHA R_Q1A")
+  _("CHA R_Q1B")
   _("CHA R_Q2")
   _("CHA R_Q3")
   _("CHA R_Q4")

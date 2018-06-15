@@ -3,7 +3,6 @@
 %h1= "#{content_for(:title)} for #{@client.full_name}"
 = render 'window/clients/breadcrumbs'
 = render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
-= render 'window/health/patient/patient_status'
 = render 'print_link'
 .row
   .col-sm-5

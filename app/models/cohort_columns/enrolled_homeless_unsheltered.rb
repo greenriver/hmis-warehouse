@@ -12,7 +12,7 @@ module CohortColumns
     end
 
     def text_value cohort_client
-      Rails.cache.fetch([cohort_client.client.id, :enrolled_homeless_unsheltered], expires_at: 8.hours) do
+      Rails.cache.fetch([cohort_client.client.id, :enrolled_homeless_unsheltered], expires_in: 8.hours) do
         cohort_client.client.service_history_enrollments.homeless_unsheltered.ongoing.exists?
       end
     end

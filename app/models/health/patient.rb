@@ -7,6 +7,7 @@ module Health
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -125,9 +126,21 @@ module Health
       )
     end
 
+    # patients with no qualifying activities in the current calendar month
+    scope :no_qualifying_activities_this_month, -> do
+      where.not(
+        id: Health::QualifyingActivity.in_range(Date.today.beginning_of_month..Date.today).
+          distinct.select(:patient_id)
+      )
+    end
+
     delegate :effective_date, to: :patient_referral
 
     self.source_key = :PAT_ID
+
+    def self.cfind client_id
+      find_by(client_id: client_id)
+    end
 
     def self.accessible_by_user user
       # health admins can see all, including consent revoked
@@ -169,6 +182,82 @@ module Health
       ! pilot_patient?
     end
 
+    def recent_cha
+      @recent_cha ||= chas.recent&.first
+    end
+
+    def recent_case_management_note
+      @recent_cmn ||= sdh_case_management_notes.recent.with_phone&.first
+    end
+
+    def most_recent_ssn
+      [
+        [self.ssn.presence, updated_at.to_i], 
+        [recent_cha&.ssn.presence, recent_cha&.updated_at.to_i],
+        [client.SSN.presence, client.DateUpdated.to_i]
+      ].sort_by(&:last).map(&:first).compact.reverse.first
+    end
+
+    def preferred_communication
+      recent_cha&.answer(:r_q1).presence || '(unknown)'
+    end
+
+    def most_recent_phone
+      note = recent_case_management_note
+      [
+        [recent_cha&.phone.presence, recent_cha&.updated_at.to_i],
+        [note&.client_phone_number.presence, note&.updated_at.to_i]
+      ].sort_by(&:last).map(&:first).compact.reverse.first
+    end
+
+    def phone_message_ok
+      if preferred_communication == 'Phone' && 
+        recent_cha&.answer(:r_q2) == 'Yes'
+        ', message ok'
+      end
+    end
+
+    def advanced_directive?
+      advanced_directive_answer == 'Yes'
+    end
+
+    def advanced_directive_answer
+      recent_cha&.answer(:r_q4)
+    end
+
+    def advanced_directive_type
+      recent_cha&.answer(:r_q5)
+    end
+
+    def develop_advanced_directive?
+      recent_cha&.answer(:r_q7) != 'No'
+    end
+
+    def veteran_status
+      status = recent_cha&.answer(:r_q3)
+      if status == 'Yes'
+        'Veteran'
+      elsif status == 'No'
+        'Non-veteran'
+      else
+        nil
+      end
+    end
+
+    def email
+      recent_cha&.answer(:r_q1b).presence || '(unknown)'
+    end
+
+    def advanced_directive
+      {
+        name: recent_cha&.answer(:r_q6a),
+        relationship: recent_cha&.answer(:r_q6b),
+        address: recent_cha&.answer(:r_q6c),
+        phone: recent_cha&.answer(:r_q6d),
+        comments: recent_cha&.answer(:r_q6e)
+      }
+    end
+
     def engaged?
       self.class.engaged.where(id: id).exists?
       # ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
@@ -181,9 +270,9 @@ module Health
     def ssms
       @ssms ||= (hmis_ssms.order(collected_at: :desc).to_a + self_sufficiency_matrix_forms.order(completed_at: :desc).to_a).sort_by do |f|
         if f.is_a? Health::SelfSufficiencyMatrixForm
-          f.completed_at
+          f.completed_at || DateTime.current
         elsif f.is_a? GrdaWarehouse::HmisForm
-          f.collected_at
+          f.collected_at || DateTime.current
         end
       end
     end
@@ -229,7 +318,17 @@ module Health
         medicaid_id: :medicaid_id,
         housing_status: :housing_status,
         housing_status_timestamp: :housing_status_timestamp,
+        program: :pilot,
       }
+    end
+
+    def self.clean_value key, value
+      case key
+      when :pilot
+        value == 'SDH Pilot'
+      else
+        value
+      end
     end
 
     def name

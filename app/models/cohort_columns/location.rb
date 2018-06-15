@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Location'
 
     def available_options
-      Rails.cache.fetch("all_project_names", expires_at: 5.minutes) do
+      Rails.cache.fetch("all_project_names", expires_in: 5.minutes) do
         GrdaWarehouse::Hud::Project.distinct.order(ProjectName: :asc).pluck(:ProjectName)
       end
     end

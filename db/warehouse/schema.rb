@@ -11,12 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180529122603) do
+ActiveRecord::Schema.define(version: 20180614004301) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
   enable_extension "pgcrypto"
+  enable_extension "pg_stat_statements"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -791,6 +792,19 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.boolean  "full_release",         default: false, null: false
   end
 
+  create_table "cas_enrollments", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "enrollment_id"
+    t.date     "entry_date"
+    t.date     "exit_date"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.json     "history"
+  end
+
+  add_index "cas_enrollments", ["client_id"], name: "index_cas_enrollments_on_client_id", using: :btree
+  add_index "cas_enrollments", ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id", using: :btree
+
   create_table "cas_houseds", force: :cascade do |t|
     t.integer "client_id",                     null: false
     t.integer "cas_client_id",                 null: false
@@ -967,7 +981,7 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.string   "sif_eligible"
+    t.boolean  "sif_eligible",                                      default: false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -977,7 +991,7 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
     t.string   "va_eligible"
-    t.string   "vash_eligible"
+    t.boolean  "vash_eligible",                                     default: false
     t.string   "chapter_115"
     t.date     "first_date_homeless"
     t.date     "last_date_approached"
@@ -1008,6 +1022,7 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.integer  "minimum_bedroom_size"
     t.string   "special_needs"
     t.integer  "adjusted_days_literally_homeless_last_three_years"
+    t.boolean  "reported"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1211,6 +1226,7 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.boolean  "confidential",                   default: false, null: false
     t.boolean  "exclude_from_window",            default: false, null: false
     t.boolean  "details_in_window_with_release", default: false, null: false
+    t.boolean  "health",                         default: false, null: false
   end
 
   add_index "hmis_assessments", ["assessment_id"], name: "index_hmis_assessments_on_assessment_id", using: :btree
@@ -1384,15 +1400,6 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.boolean "head_of_household",                           default: false, null: false
   end
 
-  add_index "new_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
-  add_index "new_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
-  add_index "new_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
-  add_index "new_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
-  add_index "new_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
-  add_index "new_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
-  add_index "new_service_history", ["first_date_in_program"], name: "index_new_service_history_on_first_date_in_program", using: :brin
-  add_index "new_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
-
   create_table "project_data_quality", force: :cascade do |t|
     t.integer  "project_id"
     t.string   "type"
@@ -1540,9 +1547,6 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.integer  "RunawayYouth"
     t.string   "processed_hash"
     t.string   "processed_as"
-    t.boolean  "roi_permission"
-    t.string   "last_locality"
-    t.string   "last_zipcode"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -2736,7 +2740,6 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.integer "destination"
     t.string  "head_of_household_id",            limit: 50
     t.string  "household_id",                    limit: 50
-    t.string  "project_id",                      limit: 50
     t.string  "project_name",                    limit: 150
     t.integer "project_type"
     t.integer "project_tracking_method"
@@ -2757,20 +2760,18 @@ ActiveRecord::Schema.define(version: 20180529122603) do
     t.boolean "individual_adult",                            default: false, null: false
     t.boolean "individual_elder",                            default: false, null: false
     t.boolean "head_of_household",                           default: false, null: false
+    t.string  "project_id",                      limit: 50
   end
 
-  add_index "warehouse_client_service_history", ["client_id"], name: "index_service_history_on_client_id", using: :btree
-  add_index "warehouse_client_service_history", ["computed_project_type"], name: "index_warehouse_client_service_history_on_computed_project_type", using: :btree
-  add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type", using: :btree
-  add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
-  add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], name: "sh_date_ds_id_org_id_proj_id_proj_type", using: :btree
-  add_index "warehouse_client_service_history", ["enrollment_group_id"], name: "index_warehouse_client_service_history_on_enrollment_group_id", using: :btree
-  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
-  add_index "warehouse_client_service_history", ["household_id"], name: "index_warehouse_client_service_history_on_household_id", using: :btree
-  add_index "warehouse_client_service_history", ["last_date_in_program"], name: "index_warehouse_client_service_history_on_last_date_in_program", using: :btree
-  add_index "warehouse_client_service_history", ["project_tracking_method"], name: "index_sh_tracking_method", using: :btree
-  add_index "warehouse_client_service_history", ["project_type"], name: "index_warehouse_client_service_history_on_project_type", using: :btree
-  add_index "warehouse_client_service_history", ["record_type"], name: "index_warehouse_client_service_history_on_record_type", using: :btree
+  add_index "warehouse_client_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
+  add_index "warehouse_client_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
+  add_index "warehouse_client_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
+  add_index "warehouse_client_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
+  add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
+  add_index "warehouse_client_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
+  add_index "warehouse_client_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
+  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :brin
+  add_index "warehouse_client_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
 
   create_table "warehouse_clients", force: :cascade do |t|
     t.string   "id_in_source",    null: false

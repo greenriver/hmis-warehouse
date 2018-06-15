@@ -17,6 +17,12 @@ module Health
       self.class.member_type_name
     end
 
+    def self.class_from_member_type_name name
+      return Health::Team::Provider if name == 'General'
+      names = Hash[available_types.map(&:member_type_name).zip(available_types)]
+      names[name] || Health::Team::Other
+    end
+
     def self.available_types
       [
         Health::Team::Provider,

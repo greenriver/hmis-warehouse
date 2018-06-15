@@ -4,14 +4,15 @@
     .pull-right
       = link_to 'Edit', polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: @claim_submitted, data: { toggle: 'tooltip' }, title: (_('A claim was submitted for this SSM; it is no longer editable.') if @claim_submitted)
 
-  %strong Name:
-  %span= @client.name
-  %br
-  %strong Date Completed:
-  %span= @form.completed_at&.to_date || 'in progress'
-  %br
-  %strong Case Worker:
-  %span= @form.user&.name
+  %dl
+    %dt.inline Name:
+    %dd.inline= @client.name
+    %dd.breaker
+    %dt.inline Date Completed:
+    %dd.inline= @form.completed_at&.to_date || 'in progress'
+    %dd.breaker
+    %dt.inline Case Worker:
+    %dd.inline= @form.user&.name
 
   %p.text-right(style="font-size:smaller;font-style:italic;")
     Only answered questions are shown.
@@ -19,35 +20,43 @@
 
 
   - if @form.point_completed.present?
-    .client__assessment-question
-      Point at which this assessment was completed
-    .client__assessment-answer
-      = @form.point_completed
+    .client__assessment-overall-summary
+      .client__assessment-question
+        Point at which this assessment was completed
+      .client__assessment-answer
+        = @form.point_completed
 
   - Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |section_key|
     - score = @form.send "#{section_key}_score"
     - if score.present?
-      - title = Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key]
-      .client__assessment-question
-        = "#{title} Score: "
-        = score
-      .client__assessment-question
-        = title
-      .client__assessment-answer
-        = Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
-      .client__assessment-question
-        = "#{title} Notes"
-      .client__assessment-answer
-        = simple_format @form.send("#{section_key}_notes")
+      .client__assessment-section-summary
+        - title = Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key]
+        .client__assessment-question.client__assessment-question--title
+          = title
+        %dl.client__assessment-question-summary
+          %dt.client__assessment-question.client__assessment-question--score.inline
+            Score
+          %dd.client__assessment-question.client__assessment-question--score.inline
+            = score
+          %dd.client__assessment-answer.client__assessment-answer--text
+            = Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
+          %dt.client__assessment-question.client__assessment-answer--notes
+            = "Notes"
+          %dd.client__assessment-answer.client__assessment-answer--notes
+            = simple_format @form.send("#{section_key}_notes")
 
   %hr
 
-  .client__assessment-question
-    Total Score
-  .client__assessment-answer
-    = @form.total_score
+  .client__assessment-totals
+    .client__assessment-total
+      .client__assessment-question
+        Total Score:
+      .client__assessment-answer
+        = @form.total_score
 
-  .client__assessment-question
-    Average Score
-  .client__assessment-answer
-    = @form.average_score
+    .client__assessment-total
+      .client__assessment-average
+        .client__assessment-question
+          Average Score:
+        .client__assessment-answer
+          = @form.average_score

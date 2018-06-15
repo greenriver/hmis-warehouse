@@ -728,6 +728,8 @@ module Health
       q_q2: nil,
 
       r_q1: answers_for(section: 'R', question: 1, number: 4),
+      r_q1a: nil,
+      r_q1b: nil,
       r_q2: answers_for(section: 'R', question: 2, number: 2),
       r_q3: answers_for(section: 'R', question: 3, number: 2),
       r_q4: answers_for(section: 'R', question: 4, number: 2),
@@ -867,7 +869,7 @@ module Health
 
     enum status: {not_started: 0, in_progress: 1, complete: 2}
 
-    scope :recent, -> { order(created_at: :desc).limit(1) }
+    scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
 
     attr_accessor :reviewed_by_supervisor, :completed
@@ -915,6 +917,14 @@ module Health
 
     def editable_by? editor
       editor == user
+    end
+
+    def phone
+      answer(:r_q1a)
+    end
+
+    def ssn
+      answer(:a_q5a)
     end
 
     def qualifying_activities

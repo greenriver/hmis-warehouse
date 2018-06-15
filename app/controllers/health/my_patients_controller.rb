@@ -16,11 +16,12 @@ module Health
         when 'not_engaged'
           @patients = @patients.not_engaged
         when 'no_activities'
-          @patients = @patients.engaged.no_recent_qualifying_activities
+          @patients = @patients.engaged.no_qualifying_activities_this_month
         when 'engagement_ending'
           @patients = @patients.engagement_ending
         end
         if params[:filter][:user].present?
+          @active_filter = true
           @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
         end
       end
@@ -31,7 +32,8 @@ module Health
 
     def patient_scope
       if current_user.can_manage_care_coordinators?
-        # TODO
+        ids = [current_user.id] + current_user.user_care_coordinators.pluck(:care_coordinator_id)
+        patient_source.where(care_coordinator_id: ids)
       else
         patient_source.where(care_coordinator_id: current_user.id)
       end

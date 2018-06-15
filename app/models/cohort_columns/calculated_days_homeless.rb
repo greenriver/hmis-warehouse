@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, 'calculated_days_homeless'], expires_at: 8.hours) do
+      Rails.cache.fetch([cohort_client.client.id, 'calculated_days_homeless'], expires_in: 8.hours) do
         cohort_client.client.days_homeless(on_date: (cohort_client.cohort.effective_date || Date.today))
       end
     end
