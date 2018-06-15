@@ -54,7 +54,7 @@ module EtoApi
     end
 
     private def debug_log(msg)
-      puts msg.gsub(@credentials[:security]['Password'], '') if self.trace && Rails.env.development?
+      puts msg&.gsub(@credentials[:security][:Password], '') if self.trace && Rails.env.development?
     end
 
     private def api_get_json(url, headers={})

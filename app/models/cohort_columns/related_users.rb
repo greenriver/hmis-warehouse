@@ -4,14 +4,8 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Related Users'
 
 
-    def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, :related_users], expires_in: 8.hours) do
-        users = cohort_client.client.user_clients.
-          non_confidential.
-          active.
-          pluck(:user_id, :relationship).to_h
-        User.where(id: users.keys).map{|u| "#{users[u.id]} (#{u.name})"}.join('; ')
-      end
+    def value(cohort_client) # TODO: N+1
+      cohort.time_dependant_client_data[cohort_client.client_id][:related_users]
     end
   end
 end

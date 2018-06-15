@@ -28,6 +28,10 @@ if environment == 'production'
     rake "grda_warehouse:daily"
   end
 
+  every 1.day, at: '7:15 am' do
+    rake "grda_warehouse:warm_cohort_cache"
+  end
+
   every 4.hours do
     rake "grda_warehouse:save_service_history_snapshots"
   end

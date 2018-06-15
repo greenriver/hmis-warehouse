@@ -4,10 +4,8 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Days Literally Homeless in the last 3 years*'
 
 
-    def value(cohort_client)
-      Rails.cache.fetch([cohort_client.client.id, 'days_literally_homeless_last_three_years'], expires_in: 8.hours) do
-        cohort_client.client.literally_homeless_last_three_years(on_date: (cohort_client.cohort.effective_date || Date.today))
-      end
+    def value(cohort_client) # OK
+      cohort.time_dependant_client_data[cohort_client.client_id][:days_literally_homeless_last_three_years]
     end
 
   end

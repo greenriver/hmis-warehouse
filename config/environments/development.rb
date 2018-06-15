@@ -60,8 +60,16 @@ Rails.application.configure do
 
   config.force_ssl = false
 
-  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours }
-  config.action_controller.perform_caching = true
+  config.cache_store = ActiveSupport::Cache::RedisStore.new(
+    Rails.application.config_for(:cache_store).merge(expires_in: 8.hours)
+  )
+  config.cache_store.logger = Logger.new(Rails.root.join("log/cache.log"))
+  config.cache_store.logger.level = Logger::DEBUG
+
+
+  # do gzip compressing in dev mode to simulate nginx config in production
+  config.middleware.insert_after ActionDispatch::Static, Rack::Deflater
+
 
   # config.middleware.use ExceptionNotification::Rack,
   #   :slack => {

@@ -30,19 +30,27 @@ module GrdaWarehouse
       ["Indefinite", "One Year"]
     end
 
+    def self.cache_store
+      @cache_store ||= begin
+        store = ActiveSupport::Cache::MemoryStore.new
+        store.logger = Logger.new(Rails.root.join("log/cache.log"))
+        store.logger.level = Logger::INFO
+        store
+      end
+    end
+
     def invalidate_cache
       self.class.invalidate_cache
     end
 
     def self.invalidate_cache
-      Rails.cache.delete(self.name)
+      cache_store.clear
     end
 
     def self.get(config)
-      @settings = Rails.cache.fetch(self.name) do
-        self.first_or_create
+      cache_store.fetch(config, expires_in: 10.seconds) do
+        first_or_create.public_send(config)
       end
-      @settings.public_send(config)
     end
   end
 end

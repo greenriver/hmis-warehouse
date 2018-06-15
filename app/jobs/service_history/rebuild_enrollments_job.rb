@@ -8,10 +8,10 @@ module ServiceHistory
       @log_id = log_id
     end
 
-    def perform 
+    def perform
       Rails.logger.debug "===RebuildEnrollmentsJob=== Starting to rebuild enrollments for #{@client_ids.size} clients"
       log = GrdaWarehouse::GenerateServiceHistoryBatchLog.create(
-        to_process: @client_ids.count, 
+        to_process: @client_ids.count,
         generate_service_history_log_id: @log_id,
         delayed_job_id: self.job_id
       )
@@ -53,7 +53,7 @@ module ServiceHistory
         end
         processor = GrdaWarehouse::Tasks::ServiceHistory::Base.new
         processor.ensure_there_are_no_extra_enrollments_in_service_history(client_id)
-        GrdaWarehouse::WarehouseClientsProcessed.new.update_cached_counts(client_ids: [client_id])
+        GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client_id])
 
       end
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(to_sanity_check.size, to_sanity_check).run!

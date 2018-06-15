@@ -24,7 +24,7 @@ module Importing
 
       # Disable CAS for anyone who's been housed in CAS
       GrdaWarehouse::CasHoused.inactivate_clients
-      
+
       # Maintain ETO based CAS flags
       GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new().run!
 
@@ -34,7 +34,7 @@ module Importing
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       @notifier.ping('Duplicates identified') if @send_notifications
-      # this keeps the computed project type columns in sync, previously 
+      # this keeps the computed project type columns in sync, previously
       # this was done with a coalesce query, but it ended up being too slow
       # on large data operations
       GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
@@ -42,7 +42,7 @@ module Importing
       # Sometimes client data changes in such a way as to leave behind stub
       # clients with no enrollments, this clears those out.
       # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
-      
+
       # This fixes any unused destination clients that can
       # bungle up the service history generation, among other things
       GrdaWarehouse::Tasks::ClientCleanup.new.run!
@@ -71,7 +71,7 @@ module Importing
       # Rebuild residential first dates
       GrdaWarehouse::Tasks::EarliestResidentialService.new().run!
       @notifier.ping('Earliest residential services generated') if @send_notifications
-      
+
       # Update the materialized view that we use to search by client_id and project_type
       @notifier.ping('Refreshing Service History Materialized View') if @send_notifications
       GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
@@ -83,7 +83,7 @@ module Importing
       @notifier.ping('Updating service history summaries') if @send_notifications
       client_ids = GrdaWarehouse::Hud::Enrollment.open_during_range(range).
         joins(:project, :destination_client).distinct.pluck(c_t[:id].as('client_id').to_sql)
-      GrdaWarehouse::WarehouseClientsProcessed.new.update_cached_counts(client_ids: client_ids)
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
 
       @notifier.ping('Updated service history summaries') if @send_notifications
 
@@ -96,13 +96,13 @@ module Importing
       @notifier.ping('Census imported') if @send_notifications
       GrdaWarehouse::Tasks::CensusAverages.new.run!
       @notifier.ping('Census averaged') if @send_notifications
-      
+
       # Only run the chronic calculator on the 1st and 15th
       # but run it for the past 2 of each
       if start_time.to_date.day.in?([1,15])
         months_to_build = 6
         dates = []
-        months_to_build.times do |i| 
+        months_to_build.times do |i|
           dates << i.months.ago.change(day: 15).to_date
           dates << i.months.ago.change(day: 1).to_date
         end
@@ -119,15 +119,15 @@ module Importing
       @notifier.ping('Clients cleaned (again)') if @send_notifications
 
       # The sanity check should always be last
-      # It has the potential to run for a long time since it 
+      # It has the potential to run for a long time since it
       # self-heals the warehouse for anyone it finds that is broken
       # and then re-checks itself.
-      # For now we are checking all destination clients.  This should catch any old 
+      # For now we are checking all destination clients.  This should catch any old
       # entries or exits that were added or removed.
       dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
       @notifier.ping('Sanity checked') if @send_notifications
-      
+
       # pre-populate the cache for data source date spans
       # GrdaWarehouse::DataSource.data_spans_by_id()
       # @notifier.ping('Data source date spans set') if @send_notifications
@@ -159,13 +159,13 @@ module Importing
           WarehouseReports::DashboardReportJob.perform_later(report_type.to_s, sub_population.to_s)
         end
       end
-  
+
       seconds = ((Time.now - start_time)/1.minute).round * 60
       run_time = distance_of_time_in_words(seconds)
       msg = "RunDailyImportsJob completed in #{run_time}"
       Rails.logger.info msg
       @notifier.ping(msg) if @send_notifications
-      
+
     end
 
     def active_imports?
