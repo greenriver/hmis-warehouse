@@ -5,4 +5,5 @@
     %h1= "#{content_for(:title)} for #{@client.full_name}"
   = render 'window/clients/breadcrumbs'
   = render 'window/clients/tab_navigation', current: polymorphic_path(health_path_generator + [:files])
+  = render 'window/health/patient_release_status'
   = render 'window/health/files/file_list'

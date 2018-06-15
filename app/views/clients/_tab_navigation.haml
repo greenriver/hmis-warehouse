@@ -35,6 +35,10 @@
         title: 'Relationships',
         permission: can_assign_users_to_clients?,
       },
+      'dropdown' => {
+        title: 'Health',
+        permission: show_health_hpc || show_health_pilot
+      },
       edit_client_path(@client) => {
         title: 'Merge',
         permission: can_edit_clients?,
@@ -45,7 +49,7 @@
       'Health' => {
         polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
          title: 'Dashboard',
-         permission: show_health_hpc,
+         permission: show_health_hpc || show_health_pilot,
         },
         polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
          title: 'Services',
@@ -84,29 +88,36 @@
     %ul.nav.nav-tabs.margin-bottom-02
       - tabs.each do |action, details|
         - current_tab = action == current
+        - item_classes = []
+        - item_classes << details[:item_class] || ''
         - if action == 'dropdown'
           - if details[:permission]
             - current_tab = current.include? details[:title].downcase
-            %li.dropdown.dropdown--hover.dropdown--nav{class: ('active' if current_tab)}
+            - item_classes << 'active' if current_tab
+            %li.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
               %a.dropdown-toggle{data: {toggle: 'dropdown'}}
                 = details[:title]
               %ul.dropdown-menu
                 - tab_dropdowns[details[:title]].each do |action, details|
                   - current_sub_tab = action == current
+                  - item_classes = []
+                  - item_classes << details[:item_class] || ''
+                  - item_classes << 'active' if current_sub_tab
                   - if details[:permission]
-                    %li{role: 'presentation', class: ('active' if current_sub_tab)}
+                    %li{role: 'presentation', class: item_classes}
                       = link_to details[:title], action
 
         - elsif current_tab
+          - item_classes << 'active' if current_tab
           - if details[:permission]
             - if allow_click_on_current
               -# we want the tab to appear active but we want it clickable for sub pages of a tab (example: care plan tab edit/new note)
-              %li.active{role: 'presentation'}
+              %li.active{role: 'presentation', class: item_classes}
                 = link_to details[:title], action
             - else
-              %li.active.active-tab{role: 'presentation'}
+              %li.active.active-tab{role: 'presentation', class: item_classes}
                 %a{href: '#'}
                   = details[:title]
         - else
           - if details[:permission]
-            %li= link_to details[:title], action
+            %li{class: item_classes}= link_to details[:title], action
