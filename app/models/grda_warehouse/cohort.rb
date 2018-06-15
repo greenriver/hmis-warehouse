@@ -228,11 +228,17 @@ module GrdaWarehouse
       }
     end
 
-    # A cache of client calculations dependant
+    def self.prepare_active_cohorts
+      client_ids = GrdaWarehouse::CohortClient.joins(:cohort).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
+      GrdaWarehouse::Cohort.active.each(&:time_dependant_client_data)
+    end
+
+    # A cache of client calculations dependent
     # on both the current time and the effective_date of this cohort
-    # intented to be called only by CohortColumns::* only
+    # intended to be called only by CohortColumns::* only
     def time_dependant_client_data
-      Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 8.hours) do
+      Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 10.hours) do
         {}.tap do |data_by_client_id|
           cohort_clients.map do |cc|
             data_by_client_id[cc.client_id] = {
