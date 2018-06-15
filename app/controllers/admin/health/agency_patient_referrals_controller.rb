@@ -18,10 +18,10 @@ module Admin::Health
           unassigned.includes(:relationships).
           where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
           references(:relationships)
-        load_index_vars
       end
       respond_to do |format|
         format.html do
+          load_index_vars
           render 'index'
         end
         format.xlsx do

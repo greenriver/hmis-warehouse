@@ -10,9 +10,9 @@ module Admin::Health
     def review
       @active_patient_referral_tab = 'review'
       @patient_referrals = Health::PatientReferral.unassigned.includes(:relationships)
-      load_index_vars
       respond_to do |format|
         format.html do
+          load_index_vars
           render 'index'
         end
         format.xlsx do
