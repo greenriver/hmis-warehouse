@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      # FIXME: contact_info_for_rrh_assessment already checks consent_form_valid?
+      # FIXME?: contact_info_for_rrh_assessment already checks consent_form_valid?
       cohort_client.client.contact_info_for_rrh_assessment if cohort_client.client.consent_form_valid?
     end
 
