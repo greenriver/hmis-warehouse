@@ -38,14 +38,13 @@ module Admin::Health
     def reject
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes!(reject_params)
-        client = GrdaWarehouse::Hud::Client.
-          with_deleted.
-          where(id: @patient_referral.patient&.client_id).first
+        patient = Health::Patient.with_deleted.
+          where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
-          client.destroy if client.present?
+          patient.destroy if patient.present?
           flash[:notice] = "Patient has been rejected."
         else
-          client.restore if client.present?
+          patient.restore if patient.present?
           flash[:notice] = "Patient rejection removed."
         end
       else

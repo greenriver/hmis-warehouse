@@ -182,7 +182,10 @@ module Health
         engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
-
+      if rejected?
+        # soft delete
+        patient.destroy
+      end
       update(patient_id: patient.id)
     end
 

@@ -1,6 +1,7 @@
 module Health
   class Patient < Base
 
+    acts_as_paranoid
     has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
