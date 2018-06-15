@@ -17,7 +17,11 @@ class CohortsController < ApplicationController
     params[:population] ||= :active
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
-    set_cohort_clients
+    # leave off the pagination here and return all the data
+    @cohort_clients = @cohort.search_clients(
+      inactive:  params[:inactive],
+      population: params[:population],
+    )
     @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map{|m| [m.id, m.updated_at.to_i]}.to_h
     @population = params[:population]
     respond_to do |format|

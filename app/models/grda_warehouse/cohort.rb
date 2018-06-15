@@ -1,5 +1,6 @@
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
+    include ArelHelper
     extend Memoist
 
     acts_as_paranoid
@@ -34,7 +35,7 @@ module GrdaWarehouse
       end
     end
 
-    def search_clients(page:, per:, inactive: nil, population: nil)
+    def search_clients(page: nil, per: nil, inactive: nil, population: nil)
       @client_search_scope = if inactive.present?
         cohort_clients
       else
@@ -52,7 +53,10 @@ module GrdaWarehouse
       else
         raise ArgumentError, 'unexpected value for population'
       end
-      @client_search_result = scope.order(id: :asc).page(page).per(per).preload(
+      if page.present? && per.present?
+        scope = scope.order(id: :asc).page(page).per(per)
+      end
+      @client_search_result = scope.preload(
         {
           cohort_client_notes: :user,
           client: [:processed_service_history, {cohort_clients: :cohort}]
@@ -235,7 +239,7 @@ module GrdaWarehouse
               calculated_days_homeless: calculated_days_homeless(cc.client),
               days_homeless_last_three_years: days_homeless_last_three_years(cc.client),
               days_literally_homeless_last_three_years: days_literally_homeless_last_three_years(cc.client),
-              destination_from_homelessness: days_homeless_last_three_years(cc.client),
+              destination_from_homelessness: destination_from_homelessness(cc.client),
               related_users: related_users(cc.client)
             }
           end

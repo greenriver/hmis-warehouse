@@ -2820,7 +2820,7 @@ ActiveRecord::Schema.define(version: 20180614004301) do
     t.string   "last_homeless_visit"
     t.string   "missing_documents"
     t.jsonb    "open_enrollments"
-    t.string   "rrh_desired"
+    t.boolean  "rrh_desired"
     t.decimal  "vispdat_priority_score"
     t.decimal  "vispdat_score"
   end
