@@ -35,13 +35,13 @@ module GrdaWarehouse
       end
     end
 
-    def search_clients(page: nil, per: nil, inactive: nil, population: :active)
+    def search_clients(page: nil, per: nil, inactive: nil, population: nil)
       @client_search_scope = if inactive.present?
         cohort_clients.joins(:client)
       else
         cohort_clients.joins(:client).where(active: true)
       end
-      scope = case population.to_sym
+      scope = case population&.to_sym
       when :housed
         @client_search_scope.where.not(housed_date: nil).where(ineligible: [nil, false])
       when :ineligible
