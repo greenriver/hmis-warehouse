@@ -67,6 +67,10 @@ Rails.application.configure do
   config.cache_store.logger.level = Logger::DEBUG
 
 
+  # do gzip compressing in dev mode to simulate nginx config in production
+  config.middleware.insert_after ActionDispatch::Static, Rack::Deflater
+
+
   # config.middleware.use ExceptionNotification::Rack,
   #   :slack => {
   #     :webhook_url => Rails.application.config_for(:exception_notifier)['slack']['webhook_url'],
