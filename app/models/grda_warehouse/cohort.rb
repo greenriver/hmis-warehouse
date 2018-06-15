@@ -37,9 +37,9 @@ module GrdaWarehouse
 
     def search_clients(page: nil, per: nil, inactive: nil, population: nil)
       @client_search_scope = if inactive.present?
-        cohort_clients
+        cohort_clients.joins(:client)
       else
-        cohort_clients.where(active: true)
+        cohort_clients.joins(:client).where(active: true)
       end
       scope = case population.to_sym
       when :housed
@@ -229,7 +229,7 @@ module GrdaWarehouse
     end
 
     def self.prepare_active_cohorts
-      client_ids = GrdaWarehouse::CohortClient.joins(:cohort).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
+      client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
       GrdaWarehouse::Cohort.active.each(&:time_dependant_client_data)
     end
@@ -240,7 +240,7 @@ module GrdaWarehouse
     def time_dependant_client_data
       Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 10.hours) do
         {}.tap do |data_by_client_id|
-          cohort_clients.map do |cc|
+          cohort_clients.joins(:client).map do |cc|
             data_by_client_id[cc.client_id] = {
               calculated_days_homeless: calculated_days_homeless(cc.client),
               days_homeless_last_three_years: days_homeless_last_three_years(cc.client),
