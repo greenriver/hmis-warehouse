@@ -32,9 +32,10 @@ module GrdaWarehouse
 
     def self.cache_store
       @cache_store ||= begin
-        ActiveSupport::Cache::MemoryStore.new.tap do |s|
-          s.logger.level = Logger::INFO
-        end
+        store = ActiveSupport::Cache::MemoryStore.new
+        store.logger = Logger.new(Rails.root.join("log/cache.log"))
+        store.logger.level = Logger::INFO
+        store
       end
     end
 
