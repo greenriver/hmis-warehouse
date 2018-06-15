@@ -62,8 +62,8 @@ module Cohorts
           cohort_column.cohort = @cohort
           cohort_column.cohort_names = @cohort_names
 
-          # # set the cohort_client we want this for this column
-          # # it will be used to render the corisponding cell
+          # set the cohort_client we want this for this column
+          # it will be used to render the corresponding cell
           cohort_column.cohort_client = cohort_client
           editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
           row[cohort_column.column] = {
