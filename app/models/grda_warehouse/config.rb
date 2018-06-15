@@ -47,7 +47,7 @@ module GrdaWarehouse
     end
 
     def self.get(config)
-      cache_store.fetch(config, expires_in: 1.second) do
+      cache_store.fetch(config, expires_in: 10.seconds) do
         first_or_create.public_send(config)
       end
     end
