@@ -23,7 +23,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     calcs = StatsCalculator.new(client_ids: client_ids)
     client_ids.each do |client_id|
-      puts "#{client_id}..."
       processed = existing_by_client_id[client_id] || where(
         client_id: client_id,
         routine: :service_history

@@ -8,7 +8,7 @@ class AddCohortColumnsToClientsProcessed < ActiveRecord::Migration
     add_column :warehouse_clients_processed, :household_members, :string
     add_column :warehouse_clients_processed, :last_homeless_visit, :string
     add_column :warehouse_clients_processed, :missing_documents, :string
-    add_column :warehouse_clients_processed, :open_enrollments, :string
+    add_column :warehouse_clients_processed, :open_enrollments, :jsonb
     add_column :warehouse_clients_processed, :rrh_desired, :string
     add_column :warehouse_clients_processed, :vispdat_priority_score, :decimal
     add_column :warehouse_clients_processed, :vispdat_score, :decimal

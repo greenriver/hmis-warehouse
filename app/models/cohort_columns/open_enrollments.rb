@@ -21,7 +21,6 @@ module CohortColumns
     end
 
     def text_value cohort_client
-      return 'FIXME' # FIXME: move_to_process this needs to be a serialized Hash?
       value(cohort_client).map(&:last).join(' ')
     end
 
@@ -30,7 +29,6 @@ module CohortColumns
     end
 
     def display_read_only user
-      return 'FIXME'
       value(cohort_client).map do |project_type, text|
         content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
           content_tag(:em, class: 'service-type__program-type') do
