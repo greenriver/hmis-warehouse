@@ -19,7 +19,6 @@
 //= require jquery_ujs
 //= require DataTables/datatables.min
 //= require handlebars.runtime
-//= require cocoon
 //= require select2-full
 //= require bootstrap-datepicker
 //= require Chart.bundle.min

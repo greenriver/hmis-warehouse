@@ -47,7 +47,6 @@ gem 'daemons'
 
 gem "simple_form"
 gem 'virtus'
-gem 'cocoon'
 
 # Asset related
 gem 'bootstrap-sass'
