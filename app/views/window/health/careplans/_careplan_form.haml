@@ -72,18 +72,9 @@
             .controls.form-control.form-control-faux
               = @patient.name
           = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
-        - select2_input_html = { class: [:select2, 'select2--full-width'] }
-        - select2_wrapper_html = {class: 'mb-3'}
-      .row
-        .col-md-4.border-r
-          = f.input :responsible_team_member_id, label: 'Team Member', collection: @careplan&.team&.available_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html
-          = f.input :responsible_team_member_signed_on, as: :date_picker, label: 'Date Signed'
-        .col-md-4.border-r
-          = f.input :representative_id, label: 'Designated Representative', collection: @careplan&.team&.available_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html
-          = f.input :representative_signed_on, as: :date_picker, label: 'Date Signed'
-        .col-md-4
-          = f.input :provider_id, label: 'Primary Care Provider', collection: @careplan&.team&.available_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html
-          = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+      .row.careplan-signatures
+        = render 'careplan_form_signatures', f: f
+        
 
     .form__actions.mt-6.mb-8
       .c-btn-group

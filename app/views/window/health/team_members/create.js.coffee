@@ -7,4 +7,10 @@
   $container.append(html)
   $('.modal:visible .close').trigger('click')
   $container.find('.no-data').remove()
+  <% form = nil %>
+  <% simple_form_for @careplan, url: polymorphic_path(careplan_path_generator, id: @careplan) do |f| %>
+    <% form = f %>
+  <% end %>
+  $signaturesContainer = $('.careplan-signatures')
+  $signaturesContainer.html("<%= j render('window/health/careplans/careplan_form_signatures', f: form) %>")
 <% end %>
