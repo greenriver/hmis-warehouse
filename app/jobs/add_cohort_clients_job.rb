@@ -1,4 +1,4 @@
-class RunCohortClientJob < ActiveJob::Base
+class AddCohortClientsJob < ActiveJob::Base
 
   queue_as :low_priority
 
