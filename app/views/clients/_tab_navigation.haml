@@ -97,6 +97,7 @@
             %li.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
               %a.dropdown-toggle{data: {toggle: 'dropdown'}}
                 = details[:title]
+                %span.caret
               %ul.dropdown-menu
                 - tab_dropdowns[details[:title]].each do |action, details|
                   - current_sub_tab = action == current

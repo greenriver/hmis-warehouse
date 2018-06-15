@@ -33,7 +33,6 @@
         permission: show_health_hpc || show_health_pilot
       }
     }
-
     tab_dropdowns = {
       'Health' => {
         polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
@@ -86,6 +85,7 @@
             %li.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
               %a.dropdown-toggle{data: {toggle: 'dropdown'}}
                 = details[:title]
+                %span.caret
               %ul.dropdown-menu
                 - tab_dropdowns[details[:title]].each do |action, details|
                   - current_sub_tab = action == current
