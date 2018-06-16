@@ -433,8 +433,10 @@
         %small= _('CHA R_SUBTITLE')
       .well
         = cha_radios f, :r_q1
-        = cha_string f, :r_q1a
-        = cha_string f, :r_q1b
+        .row.mb-1.pr-2
+          .col-md-8
+            = cha_string f, :r_q1a
+            = cha_string f, :r_q1b
         = cha_radios f, :r_q2
         = cha_radios f, :r_q3
         = cha_radios f, :r_q4

@@ -3254,6 +3254,12 @@ msgstr ""
 msgid "CHA R_Q19D"
 msgstr ""
 
+msgid "CHA R_Q1A"
+msgstr ""
+
+msgid "CHA R_Q1B"
+msgstr ""
+
 msgid "CHA R_Q1_A1"
 msgstr ""
 

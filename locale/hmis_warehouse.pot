@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-13 11:49-0400\n"
-"PO-Revision-Date: 2018-06-13 11:49-0400\n"
+"POT-Creation-Date: 2018-06-15 20:36-0400\n"
+"PO-Revision-Date: 2018-06-15 20:36-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3253,6 +3253,12 @@ msgid "CHA R_Q19C"
 msgstr ""
 
 msgid "CHA R_Q19D"
+msgstr ""
+
+msgid "CHA R_Q1A"
+msgstr ""
+
+msgid "CHA R_Q1B"
 msgstr ""
 
 msgid "CHA R_Q1_A1"
