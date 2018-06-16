@@ -47,7 +47,7 @@ module GrdaWarehouse
       scope = case population.to_sym
       when :housed
         @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
-          where(ineligible: [nil, false]).
+          where(ineligible: [nil, false])
       when :active
         @client_search_scope.where(
           at[:housed_date].eq(nil).
@@ -73,15 +73,16 @@ module GrdaWarehouse
         }
       )
     end
-
+    
     private def needs_client_search
-      raise 'call #search_clients first' unless @client_search_scope.present? && @client_search_result.present?
+      raise "call #search_clients first; scope: #{@client_search_scope.present?}; results: #{@client_search_result.count}" unless @client_search_scope.present? && @client_search_result.present?
     end
 
     # should we show the housed option for the last `client_search`
     def show_housed
       needs_client_search
-      @client_search_scope.where.not(housed_date: nil).where(ineligible: [nil, false]).exists?
+      @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
+        where(ineligible: [nil, false]).exists?
     end
 
     # should we show the inactive option for the last `client_search`
