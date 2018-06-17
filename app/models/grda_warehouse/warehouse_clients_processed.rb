@@ -305,13 +305,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end.join('; ')
     end
 
-    # private def missing_documents
-    #   required_documents = GrdaWarehouse::AvailableFileTag.document_ready
-    #   client.document_readiness(required_documents).select do |m|
-    #     m.available == false
-    #   end.map(&:name).join('; ')
-    # end
-
     private def open_enrollments
       client.service_history_enrollments.ongoing.
         distinct.residential.

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180617111542) do
+ActiveRecord::Schema.define(version: 20180617130414) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2819,14 +2819,12 @@ ActiveRecord::Schema.define(version: 20180617111542) do
     t.integer  "chronic_days"
     t.integer  "days_homeless_last_three_years"
     t.integer  "literally_homeless_last_three_years"
-    t.date     "disability_verification_date"
     t.boolean  "enrolled_homeless_shelter"
     t.boolean  "enrolled_homeless_unsheltered"
     t.boolean  "enrolled_permanent_housing"
     t.decimal  "eto_coordinated_entry_assessment_score"
     t.string   "household_members"
     t.string   "last_homeless_visit"
-    t.string   "missing_documents"
     t.jsonb    "open_enrollments"
     t.boolean  "rrh_desired"
     t.decimal  "vispdat_priority_score"
