@@ -20,7 +20,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
       merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id).to_set
-
     calcs = StatsCalculator.new(client_ids: client_ids)
     client_ids.each do |client_id|
       processed = existing_by_client_id[client_id] || where(
@@ -55,12 +54,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   class StatsCalculator
     def initialize(client_ids: )
-      @client_ids
+      @client_ids = client_ids
     end
 
     def most_recent_homeless_dates
       @most_recent_homeless_dates ||= begin
-        puts @client_ids.inspect
         GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
           where(client_id: @client_ids).
           group(:client_id).
