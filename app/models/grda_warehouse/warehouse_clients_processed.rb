@@ -275,8 +275,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def as_hash
       {
-        disability_verification_date: client.most_recent_verification_of_disability&.created_at&.to_date, # sub-daily
-        missing_documents: missing_documents, # sub-daily
+        # disability_verification_date: client.most_recent_verification_of_disability&.created_at&.to_date, # sub-daily
+        # missing_documents: missing_documents, # sub-daily
         enrolled_homeless_shelter: client.service_history_enrollments.homeless_sheltered.ongoing.exists?,
         enrolled_homeless_unsheltered: client.service_history_enrollments.homeless_unsheltered.ongoing.exists?,
         enrolled_permanent_housing: client.service_history_enrollments.permanent_housing.ongoing.exists?,
@@ -305,12 +305,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end.join('; ')
     end
 
-    private def missing_documents
-      required_documents = GrdaWarehouse::AvailableFileTag.document_ready
-      client.document_readiness(required_documents).select do |m|
-        m.available == false
-      end.map(&:name).join('; ')
-    end
+    # private def missing_documents
+    #   required_documents = GrdaWarehouse::AvailableFileTag.document_ready
+    #   client.document_readiness(required_documents).select do |m|
+    #     m.available == false
+    #   end.map(&:name).join('; ')
+    # end
 
     private def open_enrollments
       client.service_history_enrollments.ongoing.

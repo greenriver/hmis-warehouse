@@ -21,7 +21,6 @@ module CohortColumns
     end
 
     def comments
-      return ""
       comments = ''
       if inactive
         comments += "No homeless service in #{@cohort.days_of_inactivity} days\r\n"

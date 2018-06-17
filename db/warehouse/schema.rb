@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180616123004) do
+ActiveRecord::Schema.define(version: 20180617111542) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -968,10 +968,10 @@ ActiveRecord::Schema.define(version: 20180616123004) do
   add_index "cohort_client_notes", ["deleted_at"], name: "index_cohort_client_notes_on_deleted_at", using: :btree
 
   create_table "cohort_clients", force: :cascade do |t|
-    t.integer  "cohort_id",                                                         null: false
-    t.integer  "client_id",                                                         null: false
-    t.datetime "created_at",                                                        null: false
-    t.datetime "updated_at",                                                        null: false
+    t.integer  "cohort_id",                                                                  null: false
+    t.integer  "client_id",                                                                  null: false
+    t.datetime "created_at",                                                                 null: false
+    t.datetime "updated_at",                                                                 null: false
     t.datetime "deleted_at"
     t.string   "agency"
     t.string   "case_manager"
@@ -981,7 +981,7 @@ ActiveRecord::Schema.define(version: 20180616123004) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.boolean  "sif_eligible",                                      default: false
+    t.boolean  "sif_eligible",                                               default: false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -991,13 +991,13 @@ ActiveRecord::Schema.define(version: 20180616123004) do
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
     t.string   "va_eligible"
-    t.boolean  "vash_eligible",                                     default: false
+    t.boolean  "vash_eligible",                                              default: false
     t.string   "chapter_115"
     t.date     "first_date_homeless"
     t.date     "last_date_approached"
-    t.boolean  "chronic",                                           default: false
+    t.boolean  "chronic",                                                    default: false
     t.string   "dnd_rank"
-    t.boolean  "veteran",                                           default: false
+    t.boolean  "veteran",                                                    default: false
     t.string   "housing_track_suggested"
     t.string   "housing_track_enrolled"
     t.integer  "adjusted_days_homeless"
@@ -1007,22 +1007,29 @@ ActiveRecord::Schema.define(version: 20180616123004) do
     t.string   "location"
     t.string   "location_type"
     t.string   "vet_squares_confirmed"
-    t.boolean  "active",                                            default: true,  null: false
+    t.boolean  "active",                                                     default: true,  null: false
     t.string   "provider"
     t.string   "next_step"
     t.text     "housing_plan"
     t.date     "document_ready_on"
     t.string   "new_lease_referral"
     t.string   "vulnerability_rank"
-    t.boolean  "ineligible",                                        default: false, null: false
-    t.integer  "adjusted_days_homeless_last_three_years",           default: 0,     null: false
-    t.boolean  "original_chronic",                                  default: false, null: false
+    t.boolean  "ineligible",                                                 default: false, null: false
+    t.integer  "adjusted_days_homeless_last_three_years",                    default: 0,     null: false
+    t.boolean  "original_chronic",                                           default: false, null: false
     t.string   "not_a_vet"
     t.string   "primary_housing_track_suggested"
     t.integer  "minimum_bedroom_size"
     t.string   "special_needs"
     t.integer  "adjusted_days_literally_homeless_last_three_years"
     t.boolean  "reported"
+    t.integer  "calculated_days_homeless_on_effective_date"
+    t.integer  "days_homeless_last_three_years_on_effective_date"
+    t.integer  "days_literally_homeless_last_three_years_on_effective_date"
+    t.string   "destination_from_homelessness"
+    t.string   "related_users"
+    t.date     "disability_verification_date"
+    t.string   "missing_documents"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree

@@ -28,7 +28,7 @@ if environment == 'production'
     rake "grda_warehouse:daily"
   end
 
-  # refresh this every six hours.  Cache expires after 10
+  # refresh this every six hours, during the day
   every 1.day, at: ['7:15 am', '1:15 pm', '7:15 pm']  do
     rake "grda_warehouse:warm_cohort_cache"
   end

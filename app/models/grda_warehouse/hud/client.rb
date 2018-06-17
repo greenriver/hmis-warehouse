@@ -1647,6 +1647,10 @@ module GrdaWarehouse::Hud
         update_all(client_id: new_id)
       GrdaWarehouse::HudChronic.where(client_id: previous_id).
         update_all(client_id: new_id)
+
+      # Relationships
+      GrdaWarehouse::UserClient.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild

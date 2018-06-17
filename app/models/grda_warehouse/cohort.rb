@@ -239,32 +239,31 @@ module GrdaWarehouse
       }
     end
 
-    def self.prepare_active_cohorts force_refresh: false
+    def self.prepare_active_cohorts
       client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
-      GrdaWarehouse::Cohort.active.each{|c| c.time_dependant_client_data(force_refresh: force_refresh)}
+      GrdaWarehouse::Cohort.active.each(&:refresh_time_dependant_client_data)
     end
 
-    # A cache of client calculations dependent
-    # on both the current time and the effective_date of this cohort
-    # intended to be called only by CohortColumns::* only
-    def time_dependant_client_data force_refresh: false
-      Rails.cache.delete([self.cache_key, 'time_dependant_client_data']) if force_refresh
-      Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 10.hours) do
-        {}.tap do |data_by_client_id|
-          cohort_clients.joins(:client).map do |cc|
-            data_by_client_id[cc.client_id] = {
-              calculated_days_homeless: calculated_days_homeless(cc.client),
-              days_homeless_last_three_years: days_homeless_last_three_years(cc.client),
-              days_literally_homeless_last_three_years: days_literally_homeless_last_three_years(cc.client),
-              destination_from_homelessness: destination_from_homelessness(cc.client),
-              related_users: related_users(cc.client)
-            }
-          end
-        end
+    def refresh_time_dependant_client_data(cohort_client_ids: nil)
+      scope = cohort_clients
+      if cohort_client_ids.present?
+        scope = scope.where(id: cohort_client_ids)
+      end
+      scope.joins(:client).each do |cc|
+        data = {
+          calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
+          days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
+          days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
+          destination_from_homelessness: destination_from_homelessness(cc.client),
+          related_users: related_users(cc.client),
+          disability_verification_date: disability_verification_date(cc.client),
+          missing_documents: missing_documents(cc.client),
+        }
+        cc.update(data)
       end
     end
-    memoize :time_dependant_client_data
+
 
     private def calculated_days_homeless(client)
       client.days_homeless(on_date: effective_date || Date.today)
@@ -301,6 +300,17 @@ module GrdaWarehouse
         active.
         pluck(:user_id, :relationship).to_h
       User.where(id: users.keys).map{|u| "#{users[u.id]} (#{u.name})"}.join('; ')
+    end
+
+    private def missing_documents(client)
+      required_documents = GrdaWarehouse::AvailableFileTag.document_ready
+      client.document_readiness(required_documents).select do |m|
+        m.available == false
+      end.map(&:name).join('; ')
+    end
+
+    private def disability_verification_date(client)
+      client.most_recent_verification_of_disability&.created_at&.to_date
     end
   end
 end

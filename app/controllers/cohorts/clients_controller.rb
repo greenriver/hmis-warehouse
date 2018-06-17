@@ -71,11 +71,8 @@ module Cohorts
             renderer: cohort_column.renderer,
             cohort_client_id: cohort_client.id,
             comments: cohort_column.comments,
+            editable: editable,
           }
-          if editable
-            # save some bytes
-            row[cohort_column.column][:editable]=true
-          end
           if cohort_column.column == 'meta'
             row[cohort_column.column].merge!(cohort_column.metadata)
           end
