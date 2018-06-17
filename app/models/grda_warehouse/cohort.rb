@@ -44,7 +44,7 @@ module GrdaWarehouse
 
       at = GrdaWarehouse::CohortClient.arel_table
 
-      scope = case population.to_sym
+      scope = case population&.to_sym
       when :housed
         @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
           where(ineligible: [nil, false])
@@ -239,16 +239,17 @@ module GrdaWarehouse
       }
     end
 
-    def self.prepare_active_cohorts
+    def self.prepare_active_cohorts force_refresh: false
       client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
-      GrdaWarehouse::Cohort.active.each(&:time_dependant_client_data)
+      GrdaWarehouse::Cohort.active.each{|c| c.time_dependant_client_data(force_refresh: force_refresh)}
     end
 
     # A cache of client calculations dependent
     # on both the current time and the effective_date of this cohort
     # intended to be called only by CohortColumns::* only
-    def time_dependant_client_data
+    def time_dependant_client_data force_refresh: false
+      Rails.cache.delete([self.cache_key, 'time_dependant_client_data']) if force_refresh
       Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 10.hours) do
         {}.tap do |data_by_client_id|
           cohort_clients.joins(:client).map do |cc|
@@ -267,14 +268,23 @@ module GrdaWarehouse
 
     private def calculated_days_homeless(client)
       client.days_homeless(on_date: effective_date || Date.today)
+
+      # TODO, make this work on a batch of clients
+      # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
     end
 
     private def days_homeless_last_three_years(client)
       client.days_homeless_in_last_three_years(on_date: effective_date || Date.today)
+
+      # TODO, make this work on a batch of clients
+      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
     end
 
     private def days_literally_homeless_last_three_years(client)
       client.literally_homeless_last_three_years(on_date: effective_date || Date.today)
+
+      # TODO, make this work on a batch of clients
+      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date
     end
 
     private def destination_from_homelessness(client)

@@ -294,7 +294,7 @@ namespace :grda_warehouse do
 
   desc "Warm Cohort Cache"
   task :warm_cohort_cache, [] => [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Cohort.prepare_active_cohorts
+    GrdaWarehouse::Cohort.prepare_active_cohorts(force_refresh: true)
   end
 
 end

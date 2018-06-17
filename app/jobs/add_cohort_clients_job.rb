@@ -3,10 +3,13 @@ class AddCohortClientsJob < ActiveJob::Base
   queue_as :low_priority
 
   def perform(cohort_id, client_ids, user_id)
+    client_ids = client_ids.split(',').map(&:strip).compact.map(&:to_i)
     GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
-    client_ids.split(',').map(&:strip).compact.each do |id|
-      create_cohort_client(cohort_id, id.to_i, user_id)
+    client_ids.each do |id|
+      create_cohort_client(cohort_id, id, user_id)
     end
+    cohort = cohort_source.find(cohort_id)
+    cohort.time_dependant_client_data(force_refresh: true)
   end
 
   def create_cohort_client(cohort_id, client_id, user_id)

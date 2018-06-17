@@ -19,7 +19,7 @@ module GrdaWarehouse::Hud
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
 
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 2.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
 
     def self.hud_csv_headers(version: nil)
