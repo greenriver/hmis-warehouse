@@ -207,7 +207,7 @@ module Cohorts
     def create
       client_ids = cohort_params[:client_ids]
       AddCohortClientsJob.perform_later(@cohort.id, client_ids, current_user.id)
-      flash[:notice] = "Clients updated for #{@cohort.name}"
+      flash[:notice] = "Clients updated for #{@cohort.name}; Adding clients requires some calculations. Please refresh this page in a few minutes to see changes."
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 
