@@ -11,16 +11,5 @@ class WarehouseReportsController < ApplicationController
     else
       @report_definitions = current_user.reports.group_by(&:report_group)
     end
-    @report_definitions = filter_reports(@report_definitions)
   end
-
-  private
-
-  def filter_reports report_definitions
-    unless GrdaWarehouse::Config.get(:healthcare_available)
-      report_definitions = report_definitions.except('Health')
-    end
-    report_definitions
-  end
-
 end
