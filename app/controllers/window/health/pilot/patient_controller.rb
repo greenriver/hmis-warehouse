@@ -1,5 +1,5 @@
 module Window::Health::Pilot
-  class PatientController < IndividualPatientController
+  class PatientController < HealthController
     before_action :require_can_edit_client_health!
     before_action :set_client, only: [:index]
     before_action :set_patient, only: [:index]

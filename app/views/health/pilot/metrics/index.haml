@@ -5,7 +5,7 @@
 - else
   %h2= content_for :title
 = render 'clients/breadcrumbs'
-= render 'clients/tab_navigation', current: client_health_metrics_path(@client)
+= render 'clients/tab_navigation', current: client_health_pilot_metrics_path(@client)
 .row
   .col-sm-12
     - warehouse_report_path = warehouse_reports_health_overview_index_path

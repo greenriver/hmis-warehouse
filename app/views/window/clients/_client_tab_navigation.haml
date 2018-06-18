@@ -1,0 +1,54 @@
+:ruby
+  can_see_always_visible = always_visible.map{|_,details| details[:permission]}.any?
+  can_see_hmis = hmis.map{|_,details| details[:permission]}.any?
+  can_see_health = health.map{|_,details| details[:permission]}.any?
+  can_see_tabs = can_see_always_visible || can_see_hmis || can_see_health
+  on_health = health.keys.include?(current)
+  on_hmis = ! on_hmis
+  if on_health
+    dropdown = {
+      'dropdown' => {
+        title: 'HMIS',
+        permission: can_see_hmis
+      },
+    }
+    expanded_tabs = always_visible.merge(dropdown).merge(health)
+    tab_dropdowns = {'HMIS' => hmis}
+  else
+    dropdown = {
+      'dropdown' => {
+        title: 'Health',
+        permission: can_see_health
+      },
+    }
+    expanded_tabs = always_visible.merge(hmis).merge(dropdown)
+    tab_dropdowns = {'Health' => health}
+  end
+- if can_see_tabs
+  %ul.nav.nav-tabs.margin-bottom-02
+    - expanded_tabs.each do |action, details|
+      - current_tab = action == current
+      - item_classes = []
+      - item_classes << details[:item_class] || ''
+
+      - if action == 'dropdown'
+        - if details[:permission]
+          - current_tab = current.include? details[:title].downcase
+          - item_classes << 'active' if current_tab
+          %li.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
+            %a.dropdown-toggle{data: {toggle: 'dropdown'}}
+              = details[:title]
+              %span.caret
+            %ul.dropdown-menu
+              - tab_dropdowns[details[:title]].each do |action, details|
+                - current_sub_tab = action == current
+                - item_classes = []
+                - item_classes << details[:item_class] || ''
+                - item_classes << 'active' if current_sub_tab
+                - if details[:permission]
+                  %li{role: 'presentation', class: item_classes}
+                    = link_to details[:title], action
+      - else
+        - if details[:permission]
+          - item_classes << 'active' if current_tab
+          %li{class: item_classes}= link_to details[:title], action

@@ -2,11 +2,13 @@
   :ruby
     show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
-    tabs = {
+    always_visible = {
       client_path(@client) => {
         title: 'Dashboard',
         permission: can_view_clients?,
       },
+    }
+    hmis = {
       client_history_path(@client) => {
         title: 'History',
         permission: can_edit_clients?,
@@ -35,90 +37,42 @@
         title: 'Relationships',
         permission: can_assign_users_to_clients?,
       },
-      'dropdown' => {
-        title: 'Health',
-        permission: show_health_hpc || show_health_pilot
-      },
       edit_client_path(@client) => {
         title: 'Merge',
         permission: can_edit_clients?,
-        item_class: 'pull-right'
       },
     }
-    tab_dropdowns = {
-      'Health' => {
-        polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
-         title: 'Dashboard',
-         permission: show_health_hpc || show_health_pilot,
-        },
-        polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
-         title: 'Services',
-         permission: show_health_hpc,
-        },
-        polymorphic_path(careplans_path_generator, client_id: @client.id) => {
-         title: 'Care Plan',
-         permission: show_health_hpc,
-        },
-        polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
-         title: 'Files',
-         permission: show_health_hpc,
-        },
-        polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
-         title: 'Dashboard',
-         permission: show_health_pilot,
-        },
-        polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
-         title: 'Care Plan',
-         permission: show_health_pilot,
-        },
-        polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
-          title: 'Metrics',
-          permission: show_health_pilot,
-        }
-      }
+    health = {
+      # BH CP Pages
+      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+       title: 'Health Dashboard',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
+       title: 'Services',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(careplans_path_generator, client_id: @client.id) => {
+       title: 'Care Plan',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
+       title: 'Files',
+       permission: show_health_hpc,
+      },
+      # Pilot Pages
+      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
+       title: 'Health Dashboard',
+       permission: show_health_pilot,
+      },
+      polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
+       title: 'Care Plan',
+       permission: show_health_pilot,
+      },
+      polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client.id) => {
+        title: 'Metrics',
+        permission: show_health_pilot,
+      }, 
     }
-
-  - allow_click_on_current = allow_click_on_current || false
-  - can_see_tabs = false
-  - tabs.each do |action, details|
-    - if details[:permission]
-      - can_see_tabs = true
-
-  - if can_see_tabs
-    %ul.nav.nav-tabs.margin-bottom-02
-      - tabs.each do |action, details|
-        - current_tab = action == current
-        - item_classes = []
-        - item_classes << details[:item_class] || ''
-        - if action == 'dropdown'
-          - if details[:permission]
-            - current_tab = current.include? details[:title].downcase
-            - item_classes << 'active' if current_tab
-            %li.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
-              %a.dropdown-toggle{data: {toggle: 'dropdown'}}
-                = details[:title]
-                %span.caret
-              %ul.dropdown-menu
-                - tab_dropdowns[details[:title]].each do |action, details|
-                  - current_sub_tab = action == current
-                  - item_classes = []
-                  - item_classes << details[:item_class] || ''
-                  - item_classes << 'active' if current_sub_tab
-                  - if details[:permission]
-                    %li{role: 'presentation', class: item_classes}
-                      = link_to details[:title], action
-
-        - elsif current_tab
-          - item_classes << 'active' if current_tab
-          - if details[:permission]
-            - if allow_click_on_current
-              -# we want the tab to appear active but we want it clickable for sub pages of a tab (example: care plan tab edit/new note)
-              %li.active{role: 'presentation', class: item_classes}
-                = link_to details[:title], action
-            - else
-              %li.active.active-tab{role: 'presentation', class: item_classes}
-                %a{href: '#'}
-                  = details[:title]
-        - else
-          - if details[:permission]
-            %li{class: item_classes}= link_to details[:title], action
+  = render 'window/clients/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
+  

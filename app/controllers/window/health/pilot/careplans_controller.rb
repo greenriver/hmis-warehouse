@@ -1,5 +1,5 @@
 module Window::Health::Pilot
-  class CareplansController < IndividualPatientController
+  class CareplansController < HealthController
     include PjaxModalController
     include WindowClientPathGenerator
     before_action :require_can_edit_client_health!

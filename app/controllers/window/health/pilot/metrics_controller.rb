@@ -1,8 +1,8 @@
-module Window::Health
-  class MetricsController < IndividualPatientController
+module Window::Health::Pilot
+  class MetricsController < HealthController
 
     before_action :set_client, only: [:index]
-    before_action :set_hpc_patient, only: [:index]
+    before_action :set_patient, only: [:index]
     include PjaxModalController
     include WindowClientPathGenerator
     include ActionView::Helpers::NumberHelper

@@ -170,7 +170,11 @@ module Health
     def accessible_by_user user
       return false unless user.present?
       return true if user.can_administer_health?
-      return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
+      if pilot_patient?
+        return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
+      else # hpc_patient?
+        return true if patient_referral.present? && user.has_some_patient_access?
+      end
       return false
     end
 

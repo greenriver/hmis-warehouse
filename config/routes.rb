@@ -23,7 +23,6 @@ Rails.application.routes.draw do
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
       resources :problems, only: [:index]
-      resources :metrics, only: [:index]
       resources :self_sufficiency_matrix_forms
       resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update] do
         member do
@@ -63,6 +62,7 @@ Rails.application.routes.draw do
       end
       namespace :pilot do
         resources :patient, only: [:index]
+        resources :metrics, only: [:index]
         resource :careplan, except: [:destroy] do
           get :self_sufficiency_assessment
           get :print
