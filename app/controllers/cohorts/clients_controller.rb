@@ -6,8 +6,8 @@ module Cohorts
     include Chronic
     include CohortAuthorization
     include CohortClients
-
-
+    include ActionView::Helpers::TextHelper
+    
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
@@ -203,8 +203,18 @@ module Cohorts
 
     def create
       client_ids = cohort_params[:client_ids]
+      # Add all of the cohort clients quickly with no data
+      existing = cohort_client_source.with_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
+      needed = client_ids.split(',').map(&:to_i) - existing
+      to_add = needed.map{|id| [id, @cohort.id, Time.now, Time.now]}
+      cohort_client_source.new.insert_batch(
+        cohort_client_source,
+        [:client_id, :cohort_id, :created_at, :updated_at],
+        to_add
+      )
+      # Go back and get set the data for each client
       AddCohortClientsJob.perform_later(@cohort.id, client_ids, current_user.id)
-      flash[:notice] = "Clients updated for #{@cohort.name}; Adding clients requires some calculations. Please refresh this page in a few minutes to see changes."
+      flash[:notice] = "#{pluralize(needed.count, 'Client')} added to #{@cohort.name}; Some client data won't be available immediately, but will show up in a few minutes."
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 
