@@ -291,4 +291,10 @@ namespace :grda_warehouse do
       app.get(pdf_window_client_history_path(client_id: client.id))
     end
   end
+
+  desc "Warm Cohort Cache"
+  task :warm_cohort_cache, [] => [:environment, "log:info_to_stdout"] do |task, args|
+    GrdaWarehouse::Cohort.prepare_active_cohorts
+  end
+
 end

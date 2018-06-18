@@ -3,7 +3,7 @@ module Reporting
 
     queue_as :low_priority
 
-    def perform(client_ids, cohort_id)
+    def perform(client_ids, date)
       # ActiveJob can't serialize a date, so passing string
       date = Date.parse(date)
 

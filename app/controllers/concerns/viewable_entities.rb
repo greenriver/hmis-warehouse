@@ -75,7 +75,7 @@ module ViewableEntities
     helper_method :coc_viewability
 
     private def reports_viewability(base)
-      model = GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(current_user)
+      model = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.viewable_by(current_user)
       collection = model.order( :report_group, :name ).map do |rd|
         [ "#{rd.report_group}: #{rd.name}", rd.id ]
       end
