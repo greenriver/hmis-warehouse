@@ -6,8 +6,8 @@ module Cohorts
     include Chronic
     include CohortAuthorization
     include CohortClients
-
-
+    include ActionView::Helpers::TextHelper
+    
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
@@ -71,11 +71,8 @@ module Cohorts
             renderer: cohort_column.renderer,
             cohort_client_id: cohort_client.id,
             comments: cohort_column.comments,
+            editable: editable,
           }
-          if editable
-            # save some bytes
-            row[cohort_column.column][:editable]=true
-          end
           if cohort_column.column == 'meta'
             row[cohort_column.column].merge!(cohort_column.metadata)
           end
@@ -206,8 +203,22 @@ module Cohorts
 
     def create
       client_ids = cohort_params[:client_ids]
+      # Add all of the cohort clients quickly with no data
+      incoming = client_ids.split(',').map(&:to_i)
+      existing = cohort_client_source.with_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
+      needed = incoming - existing
+      to_add = needed.map{|id| [id, @cohort.id, Time.now, Time.now]}
+      cohort_client_source.new.insert_batch(
+        cohort_client_source,
+        [:client_id, :cohort_id, :created_at, :updated_at],
+        to_add
+      )
+      to_restore = incoming & cohort_client_source.only_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
+      cohort_client_source.only_deleted.where(cohort_id: @cohort.id, client_id: to_restore).update_all(deleted_at: nil)
+
+      # Go back and get set the data for each client
       AddCohortClientsJob.perform_later(@cohort.id, client_ids, current_user.id)
-      flash[:notice] = "Clients updated for #{@cohort.name}"
+      flash[:notice] = "#{pluralize(needed.count + to_restore.count, 'Client')} added to #{@cohort.name}; Some client data won't be available immediately, but will show up in a few minutes."
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 

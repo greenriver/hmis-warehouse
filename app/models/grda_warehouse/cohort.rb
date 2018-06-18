@@ -41,15 +41,27 @@ module GrdaWarehouse
       else
         cohort_clients.joins(:client).where(active: true)
       end
-      scope = case population.to_sym
+
+      at = GrdaWarehouse::CohortClient.arel_table
+
+      scope = case population&.to_sym
       when :housed
-        @client_search_scope.where.not(housed_date: nil).where(ineligible: [nil, false])
+        @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
+          where(ineligible: [nil, false])
+      when :active
+        @client_search_scope.where(
+          at[:housed_date].eq(nil).
+          or(at[:destination].eq(nil).
+          or(at[:destination].eq('')))
+        ).where(ineligible: [nil, false])
       when :ineligible
         @client_search_scope.where(ineligible: true)
-      when :active
-        @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
       else
-        @client_search_scope.where(housed_date: nil, ineligible: [nil, false])
+        @client_search_scope.where(
+          at[:housed_date].eq(nil).
+          or(at[:destination].eq(nil).
+          or(at[:destination].eq('')))
+        ).where(ineligible: [nil, false])
       end
       if page.present? && per.present?
         scope = scope.order(id: :asc).page(page).per(per)
@@ -61,15 +73,16 @@ module GrdaWarehouse
         }
       )
     end
-
+    
     private def needs_client_search
-      raise 'call #search_clients first' unless @client_search_scope.present? && @client_search_result.present?
+      raise "call #search_clients first; scope: #{@client_search_scope.present?}; results: #{@client_search_result.count}" unless @client_search_scope.present? && @client_search_result.present?
     end
 
     # should we show the housed option for the last `client_search`
     def show_housed
       needs_client_search
-      @client_search_scope.where.not(housed_date: nil).where(ineligible: [nil, false]).exists?
+      @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
+        where(ineligible: [nil, false]).exists?
     end
 
     # should we show the inactive option for the last `client_search`
@@ -229,39 +242,48 @@ module GrdaWarehouse
     def self.prepare_active_cohorts
       client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
-      GrdaWarehouse::Cohort.active.each(&:time_dependant_client_data)
+      GrdaWarehouse::Cohort.active.each(&:refresh_time_dependant_client_data)
     end
 
-    # A cache of client calculations dependent
-    # on both the current time and the effective_date of this cohort
-    # intended to be called only by CohortColumns::* only
-    def time_dependant_client_data
-      Rails.cache.fetch([self.cache_key, 'time_dependant_client_data'], expires_in: 10.hours) do
-        {}.tap do |data_by_client_id|
-          cohort_clients.joins(:client).map do |cc|
-            data_by_client_id[cc.client_id] = {
-              calculated_days_homeless: calculated_days_homeless(cc.client),
-              days_homeless_last_three_years: days_homeless_last_three_years(cc.client),
-              days_literally_homeless_last_three_years: days_literally_homeless_last_three_years(cc.client),
-              destination_from_homelessness: destination_from_homelessness(cc.client),
-              related_users: related_users(cc.client)
-            }
-          end
-        end
+    def refresh_time_dependant_client_data(cohort_client_ids: nil)
+      scope = cohort_clients
+      if cohort_client_ids.present?
+        scope = scope.where(id: cohort_client_ids)
+      end
+      scope.joins(:client).each do |cc|
+        data = {
+          calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
+          days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
+          days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
+          destination_from_homelessness: destination_from_homelessness(cc.client),
+          related_users: related_users(cc.client),
+          disability_verification_date: disability_verification_date(cc.client),
+          missing_documents: missing_documents(cc.client),
+        }
+        cc.update(data)
       end
     end
-    memoize :time_dependant_client_data
+
 
     private def calculated_days_homeless(client)
       client.days_homeless(on_date: effective_date || Date.today)
+
+      # TODO, make this work on a batch of clients
+      # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
     end
 
     private def days_homeless_last_three_years(client)
       client.days_homeless_in_last_three_years(on_date: effective_date || Date.today)
+
+      # TODO, make this work on a batch of clients
+      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
     end
 
     private def days_literally_homeless_last_three_years(client)
       client.literally_homeless_last_three_years(on_date: effective_date || Date.today)
+
+      # TODO, make this work on a batch of clients
+      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date
     end
 
     private def destination_from_homelessness(client)
@@ -278,6 +300,17 @@ module GrdaWarehouse
         active.
         pluck(:user_id, :relationship).to_h
       User.where(id: users.keys).map{|u| "#{users[u.id]} (#{u.name})"}.join('; ')
+    end
+
+    private def missing_documents(client)
+      required_documents = GrdaWarehouse::AvailableFileTag.document_ready
+      client.document_readiness(required_documents).select do |m|
+        m.available == false
+      end.map(&:name).join('; ')
+    end
+
+    private def disability_verification_date(client)
+      client.most_recent_verification_of_disability&.created_at&.to_date
     end
   end
 end

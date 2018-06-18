@@ -25,6 +25,7 @@ class ClientsController < ApplicationController
     else
       client_scope
     end
+    @clients = @clients.preload(:processed_service_history)
     sort_filter_index()
   end
 

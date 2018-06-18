@@ -20,7 +20,7 @@ module GrdaWarehouse::Hud
     self.hud_key = 'PersonalID'
     acts_as_paranoid(column: :DateDeleted)
 
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 2.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
 
     def self.hud_csv_headers(version: nil)
@@ -1652,6 +1652,10 @@ module GrdaWarehouse::Hud
         update_all(client_id: new_id)
       GrdaWarehouse::HudChronic.where(client_id: previous_id).
         update_all(client_id: new_id)
+
+      # Relationships
+      GrdaWarehouse::UserClient.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild
@@ -1829,7 +1833,8 @@ module GrdaWarehouse::Hud
     end
 
     def days_homeless(on_date: Date.today)
-      self.class.days_homeless(client_id: id, on_date: on_date)
+      # attempt to pull this from previously calculated data
+      processed_service_history.homeless_days.presence || self.class.days_homeless(client_id: id, on_date: on_date)
     end
 
     # Pull the maximum total monthly income from any open enrollments, looking

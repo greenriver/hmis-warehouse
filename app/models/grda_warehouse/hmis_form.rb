@@ -2,7 +2,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
-  serialize :response, Hash
+  serialize :api_response, Hash
   serialize :answers, Hash
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
