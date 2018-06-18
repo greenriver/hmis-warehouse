@@ -16,4 +16,4 @@
       - else
         - collection = relationship.claimed? ? [['Not Our Patient', false]] : [['Our Patient', true]]
       - collection.each do |c|
-        = link_to c.first, '#', data: {behavior: 'claim patient', value: c.last.to_s}, class: 'padding-right-02'
+        = link_to c.first, '#', data: {behavior: 'claim patient', value: c.last.to_s}, class: 'padding-right-02 btn btn-secondary'
