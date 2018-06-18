@@ -1,4 +1,4 @@
-module Window::Health::Careplan
+module Window::Health::Pilot::Careplan
   class PreviousController < HealthController
     include PjaxModalController    
     include WindowClientPathGenerator

@@ -1,4 +1,4 @@
-module Window::Health::Careplan::Team
+module Window::Health::Pilot::Careplan::Team
   class MembersController < HealthController
     before_action :require_can_edit_client_health!
     before_action :set_client
