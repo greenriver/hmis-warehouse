@@ -20,11 +20,18 @@
                   = @patient.most_recent_ssn || detail[1].presence || '(unknown)'
                 - else
                   = detail[1]
+            - if @patient.aco.present?
+              .ho-patient__detail
+                %span
+                  ACO:
+                = @patient.aco.name
 
           .col-md-6.text-right
             .row
               .col-sm-6.text-right
-                PREFERRED COMMUNICATION:
+                .ho-patient__detail
+                  %span
+                    Preferred Communication:
               .col-sm-6.text-left
                 = @patient.preferred_communication
                 = @patient.phone_message_ok

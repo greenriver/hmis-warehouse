@@ -135,6 +135,7 @@ module Health
     end
 
     delegate :effective_date, to: :patient_referral
+    delegate :aco, to: :patient_referral
 
     self.source_key = :PAT_ID
 

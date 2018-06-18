@@ -31,6 +31,9 @@ module Health::Tasks
             row = Hash[db_headers.zip(file.row(i))]
             patient_referral = Health::PatientReferral.where(medicaid_id: row[:medicaid_id]).
               first_or_initialize
+            # attempt to find ACO ID
+            aco_id = Health::AccountableCareOrganization.find_by(mco_pid: row[:aco_mco_pid], mco_sl: row[:aco_mco_sl])&.id
+            patient_referral.accountable_care_organization_id = aco_id if aco_id.present?
             # if we have a new row or an update
             # save it
             updated_on = Date.strptime(row[:updated_on].to_s, '%Y%m%d')

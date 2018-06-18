@@ -26,9 +26,9 @@ module Health
     validates_size_of :ssn, is: 9, allow_blank: true
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
-    belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
+    belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: :agency_id
     belongs_to :patient, required: false
-    belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: 'accountable_care_organization_id'
+    belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id
 
     def client
       patient&.client
