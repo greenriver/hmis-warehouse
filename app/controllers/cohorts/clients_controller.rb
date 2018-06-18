@@ -204,17 +204,21 @@ module Cohorts
     def create
       client_ids = cohort_params[:client_ids]
       # Add all of the cohort clients quickly with no data
+      incoming = client_ids.split(',').map(&:to_i)
       existing = cohort_client_source.with_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
-      needed = client_ids.split(',').map(&:to_i) - existing
+      needed = incoming - existing
       to_add = needed.map{|id| [id, @cohort.id, Time.now, Time.now]}
       cohort_client_source.new.insert_batch(
         cohort_client_source,
         [:client_id, :cohort_id, :created_at, :updated_at],
         to_add
       )
+      to_restore = incoming & cohort_client_source.only_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
+      cohort_client_source.only_deleted.where(cohort_id: @cohort.id, client_id: to_restore).update_all(deleted_at: nil)
+
       # Go back and get set the data for each client
       AddCohortClientsJob.perform_later(@cohort.id, client_ids, current_user.id)
-      flash[:notice] = "#{pluralize(needed.count, 'Client')} added to #{@cohort.name}; Some client data won't be available immediately, but will show up in a few minutes."
+      flash[:notice] = "#{pluralize(needed.count + to_restore.count, 'Client')} added to #{@cohort.name}; Some client data won't be available immediately, but will show up in a few minutes."
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 
