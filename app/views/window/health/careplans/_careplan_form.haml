@@ -5,55 +5,9 @@
       = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
     .col-md-6.col-lg-4
       = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }, wrapper_html: {class: 'form-group--hanging-label'}
-
-  %section.health__team
-    .c-card
-      .c-card__header.c-card__header--external
-        %h3 Care Team Members
-        = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
-          %i.icon-plus
-          Add Team Member
-      .c-card__content
-        .row.health__team-members
-          - if @careplan&.team_members&.any?
-            - @careplan.team_members.each do |member|
-              = render 'window/health/team_members/team_member', member: member, restore: false, delete: true
-
-          - else
-            %p.no-data
-              No team members currently.
-              = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), data: { loads_in_pjax_modal: true } do
-                Add team member
-
-  %section.row.health-care-plan__about-me.row
-    .col-sm-10.col-lg-8
-      - sized_textarea_html = {class: 'sized'}
-      %h3 About Me
-      = f.input :patient_health_problems, label: 'My Health Problems', as: :text, input_html: sized_textarea_html
-      = f.input :patient_strengths, label: 'My Strengths', as: :text, input_html: sized_textarea_html
-      = f.input :patient_goals, label: 'My Goals', as: :text, input_html: sized_textarea_html
-      = f.input :patient_barriers, label: 'My Barriers', as: :text, input_html: sized_textarea_html
-
-  %section.health-care-plan__goals.row
-    .col-sm-10.col-lg-8
-      .c-card
-        .c-card__header.c-card__header--external
-          %h3 Goals
-          = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
-            %i.icon-plus
-            Add Goal
-        .c-card__content.health-care-plan__goal-list
-          - if @careplan.hpc_goals.any?
-            - @careplan.hpc_goals.each_with_index do |goal, index|
-              = render goal, readonly: true, index: (index + 1)
-          - else
-            %p.no-data.jEmpty
-              No goals currently.
-          .c-card__internal-primary-action
-            = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
-              %i.icon-plus
-              Add Goal
-
+  = render 'window/health/careplans/team', f: f
+  = render 'window/health/careplans/about_me', f: f
+  = render 'window/health/careplans/goals', f: f
 
   %section.health-care-plan__services
     = render 'window/health/careplans/service_list'
