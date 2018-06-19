@@ -11,7 +11,7 @@
           - if form.is_a? Health::SelfSufficiencyMatrixForm
             %td= link_to 'SSM', polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= form.completed_at&.to_date || 'in progress'
-            %td= form.user.name
+            %td= form&.user&.name
           - if form.is_a? GrdaWarehouse::HmisForm
             %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= form.collected_at.to_date
