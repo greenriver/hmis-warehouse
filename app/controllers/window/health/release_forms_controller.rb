@@ -18,9 +18,17 @@ module Window::Health
       validate_form
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
-      saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
-      save_file if @release_form.errors.none? && saved
-      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+
+      if ! request.xhr?
+        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        save_file if @release_form.errors.none? && saved
+        respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      else
+        if @release_form.valid?
+          saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+          save_file if @release_form.errors.none? && saved
+        end
+      end
     end
 
     def show
@@ -35,9 +43,17 @@ module Window::Health
       validate_form unless @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
-      saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
-      save_file if @release_form.errors.none? && saved
-      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      
+      if ! request.xhr?
+        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+        save_file if @release_form.errors.none? && saved
+        respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      else
+        if @release_form.valid?
+          saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+          save_file if @release_form.errors.none? && saved
+        end
+      end
     end
 
     def download

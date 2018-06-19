@@ -69,7 +69,7 @@ module Health
     validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
     validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
     validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_blank: true
-    validates :client_phone_number, format: { with: US_PHONE_NUMBERS }, allow_blank: true
+    # validates :client_phone_number, format: { with: US_PHONE_NUMBERS }, allow_blank: true
 
     def submitted_activities
       activities.submitted
