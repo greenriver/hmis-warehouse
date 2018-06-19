@@ -11,11 +11,11 @@ $(document).on 'change', '.cha-form.autosave', (e) ->
     $savingIndicator.removeClass('saving c-spinner').addClass('saved').text('Saved!')
   .fail (e) ->
     console.log 'fail'
-    $$savingIndicator.removeClass('saving c-spinner').addClass('error').text('Error saving')
+    $savingIndicator.removeClass('saving c-spinner').addClass('error').text('Error saving')
   .always ->
     setTimeout ->
       $savingIndicator.removeClass('saving').addClass('hidden')
-    , 2000
+    , 20000
 
 $(document).on 'click', '.add-diagnosis', (e) ->
   $('.diagnosis-row.hidden').first().removeClass('hidden')

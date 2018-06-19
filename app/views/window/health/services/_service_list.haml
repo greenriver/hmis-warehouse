@@ -18,7 +18,8 @@
           %td{colspan: 8}
             %p.no-data
               No services listed.
-              = link_to polymorphic_path([:new] + health_path_generator + [:service]), data: { loads_in_pjax_modal: true } do
+              = link_to polymorphic_path([:new] + health_path_generator + [:service]), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary ml-2' do
+                %i.icon-plus
                 Add Service
 
       - else

@@ -14,7 +14,8 @@
           %td{colspan: 6}
             %p.no-data
               No DME listed.
-              = link_to polymorphic_path([:new] + health_path_generator + [:durable_equipment]), data: { loads_in_pjax_modal: true } do
+              = link_to polymorphic_path([:new] + health_path_generator + [:durable_equipment]), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary ml-2' do 
+                %i.icon-plus
                 Add Equipment Item
       - else       
         - @equipments.each do |equipment|

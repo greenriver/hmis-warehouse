@@ -1,9 +1,0 @@
-%h1
-  = "Comprehensive Health Assessment for #{@client.full_name}"
-  
-= render 'clients/breadcrumbs'
-= render 'clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
-= render 'window/health/patient_release_status'
-.cha-form.autosave
-  = render 'upload'
-  = render 'form'

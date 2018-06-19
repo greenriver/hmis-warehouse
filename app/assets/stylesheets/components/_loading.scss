@@ -15,3 +15,17 @@
     background: $brand-danger-l;
   }
 }
+
+
+.cha__saving-indicator
+{
+  position: fixed;
+  top: 0;
+  right: 50%;
+  transform: translateX(50%);
+  z-index: 2000;
+  width: 160px;
+  justify-content: center;
+  border-bottom-left-radius: $border-radius-default;
+  border-bottom-right-radius: $border-radius-default;
+}

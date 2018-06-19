@@ -71,7 +71,7 @@ module Window::Health
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
       )
       if ! current_user.can_approve_cha?
-        local_params.execpt(:reviewed_by_supervisor)
+        local_params.except(:reviewed_by_supervisor)
       else
         local_params
       end

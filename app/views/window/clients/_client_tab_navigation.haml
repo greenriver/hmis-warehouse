@@ -3,7 +3,7 @@
   can_see_hmis = hmis.map{|_,details| details[:permission]}.any?
   can_see_health = health.map{|_,details| details[:permission]}.any?
   can_see_tabs = can_see_always_visible || can_see_hmis || can_see_health
-  on_health = health.keys.include?(current)
+  on_health = health.keys.include?(current) || @on_health
   on_hmis = ! on_hmis
   if on_health
     dropdown = {

@@ -31,13 +31,3 @@
 
 - else
   %p.no-data No Self-Sufficiency Assessment on file
-
-= content_for :page_js do
-  :javascript
-    $('.datatable-ssm').DataTable({
-      searching: false,
-      ordering: false,
-      pageLength: 20,
-      lengthChange: false,
-      pagingType: 'simple'
-    })
