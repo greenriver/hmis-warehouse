@@ -1,4 +1,4 @@
-.col-xs-12.col-md-2
+.col-sm-2
   %div.margin-bottom-01
     %strong Claimed By:
     - pr.display_claimed_by.each do |c|
@@ -11,10 +11,10 @@
         = unclaimed.size
       .inline-icon.inline-icon--left{data: {toggle: 'tooltip', placement: 'right', title: unclaimed.map{|uc| "<div style='white-space:nowrap;text-align:left;'>#{uc}</div>"}.join(''), html: 'true'}}
         %i.icon-info
-.col-xs-12.col-md-2
+.col-sm-2
   = render 'assign_agency', pr: pr
-%div{class: can_bulk_assign? ? 'col-xs-12 col-md-2' : 'col-xs-12 col-md-3'}
+%div{class: can_bulk_assign? ? 'col-sm-2' : 'col-sm-3'}
   = render 'reject', pr: pr
 - if can_bulk_assign?
-  .col-xs-12.col-md-1.text-right
+  .col-sm-1.text-right
     = check_box_tag :patient_referral_id, pr.id

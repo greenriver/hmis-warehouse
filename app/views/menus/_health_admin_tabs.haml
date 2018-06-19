@@ -1,7 +1,7 @@
 :ruby
   tabs = [
     {
-      title: 'Add / Review Assignments',
+      title: 'Patient Referrals',
       path: review_admin_health_patient_referrals_path,
       controllers: ['patient_referrals', 'agency_patient_referrals'],
       visible: can_approve_patient_assignments? || can_manage_patients_for_own_agency? || can_manage_health_agency?,
@@ -13,25 +13,25 @@
       visible: can_administer_health? || can_manage_health_agency?,
     },
     {
-      title: 'Match Patients / Clients',
+      title: 'Pilot Patients',
       path: admin_health_patients_path, 
       controllers: ['patients'],
       visible: can_administer_health? || can_manage_all_patients?,
     },
     {
-      title: 'Healthcare Window Access',
+      title: 'User Access',
       path: admin_health_users_path, 
       controllers: ['users'],
       visible: can_administer_health? ,
     },
     {
-      title: 'Permissions & Health Roles',
+      title: 'Health Roles',
       path: admin_health_roles_path,
       controllers: ['roles'],
       visible: can_administer_health? ,
     },
     {
-      title: 'Assign Team Coordinators',
+      title: 'Team Coordinators',
       path: admin_health_team_coordinators_path,
       controllers: ['team_coordinators'],
       visible: can_administer_health? ,

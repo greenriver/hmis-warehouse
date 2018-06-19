@@ -34,8 +34,16 @@ module Admin::Health
       @active_patient_referral_tab = 'reviewed'
       @active_patient_referral_group = params[:group] || 'our patient'
       @patient_referral_groups = [
-        {id: 'our patient', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'our patient'}))},
-        {id: 'not our patient', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'not our patient'}))}
+        {
+          id: 'our patient', 
+          path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'our patient'})),
+          title: 'Reviewed as our patient',
+        },
+        {
+          id: 'not our patient', 
+          path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'not our patient'})),
+          title: 'Reviewed as not our patient',
+        }
       ]
       if @agency.present?
         @patient_referrals = Health::PatientReferral.

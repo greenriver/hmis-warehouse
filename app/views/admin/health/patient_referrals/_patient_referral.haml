@@ -1,12 +1,12 @@
-.c-card.mb-2
+.c-card.sm-2
   .c-card__content
     .row
-      .col-xs-12.col-md-2
+      .col-sm-2
         - if client = pr.client
           = link_to pr.name, window_client_path(client)
         - else
           = pr.name
-      .col-xs-12.col-md-3
+      .col-sm-3
         %div
           %strong DOB:
           = pr.birthdate
