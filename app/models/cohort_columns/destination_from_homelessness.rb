@@ -5,7 +5,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Recent Exits from Homelessness'
 
     def value(cohort_client) # OK
-      cohort.time_dependant_client_data[cohort_client.client_id][:destination_from_homelessness]
+      cohort_client.destination_from_homelessness
     end
   end
 end

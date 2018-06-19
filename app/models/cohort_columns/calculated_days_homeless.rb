@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort.time_dependant_client_data[cohort_client.client_id][:calculated_days_homeless]
+      cohort_client.calculated_days_homeless_on_effective_date
     end
   end
 end
