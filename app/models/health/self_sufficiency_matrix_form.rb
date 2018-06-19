@@ -4,7 +4,8 @@ module Health
     belongs_to :user
 
     scope :in_progress, -> { where(completed_at: nil) }
-    scope :completed, -> {where.not completed_at: nil }
+    scope :completed, -> { where.not completed_at: nil }
+    scope :incomplete, -> { where(completed_at: nil)}
     scope :recent, -> { order(created_at: :desc).limit(1) }
 
     SECTIONS = {

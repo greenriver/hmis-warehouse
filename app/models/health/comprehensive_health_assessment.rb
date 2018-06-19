@@ -871,6 +871,7 @@ module Health
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
+    scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil)}
 
     attr_accessor :reviewed_by_supervisor, :completed
 

@@ -4,21 +4,4 @@
 %h1= content_for(:title)
 = render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:services], client_id: @client.id)
 = render 'window/health/patient_release_status'
-%section.c-card.c-card--block
-  .c-card__header.c-card__header--external
-    %h2 Services
-    = link_to polymorphic_path([:new] + health_path_generator + [:service]), class: 'btn btn-primary btn-icon-left', data: { loads_in_pjax_modal: true } do
-      %i.icon-plus
-      Add Service
-
-  .c-card__content.c-card__content--flush.pb-0.pt-0
-    = render 'service_list'
-
-%section.c-card.c-card--block
-  .c-card__header.c-card__header--external
-    %h2 Durable Medical Equipment (DME)
-    = link_to polymorphic_path([:new] + health_path_generator + [:durable_equipment]), class: 'btn btn-primary btn-icon-left', data: { loads_in_pjax_modal: true } do
-      %i.icon-plus
-      Add Equipment Item
-  .c-card__content.c-card__content--flush.pb-0.pt-0
-    = render 'window/health/durable_equipments/equipment_list'
+= render 'index'

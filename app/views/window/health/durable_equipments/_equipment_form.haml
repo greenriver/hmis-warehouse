@@ -22,10 +22,13 @@
             %i.icon-cross
             Delete
       .c-btn-group.ml-auto
-        %button.btn.btn-secondary{'pjax-modal-close' => ''} Cancel
+        %a.btn.btn-secondary.jClose{'pjax-modal-close' => '', href: ''} Cancel
         = f.button :submit, class: 'btn btn-primary', value: @button_label
 
 
 = content_for :page_js do
   :javascript
     $('.select2').select2().css('width: 100%;');
+    $('.jClose').on('click', function(e) {
+      e.preventDefault();
+    });

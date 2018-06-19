@@ -58,5 +58,6 @@
       .col-sm-6
         = f.input :status, collection: goal.class.available_stati, input_html: { class: :select2 }
         = f.input :responsible_team_member_id, collection: @careplan.team.available_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
-    .form__actions.form__actions--right
-      = f.submit value: 'Save Goal', class: 'btn btn-primary'
+    .d-flex
+      .c-btn-group.ml-auto
+        = f.submit value: 'Save Goal', class: 'btn btn-primary'

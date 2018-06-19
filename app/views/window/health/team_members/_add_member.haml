@@ -7,5 +7,6 @@
   = f.input :email, placeholder: 'user@domain.com', type: :email
   = f.input :phone
   = f.input :organization
-  .form-actions
-    = f.button :submit, value: 'Add Team Member'
+  .d-flex
+    .c-btn-group.ml-auto
+      = f.button :submit, value: 'Add Team Member'
