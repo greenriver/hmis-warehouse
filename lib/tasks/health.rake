@@ -83,7 +83,11 @@ namespace :health do
     task :setup do
       Rake::Task["db:setup"].invoke
     end
- 
+
+    task :migrate do
+      Rake::Task["db:migrate"].invoke
+    end
+
     namespace :migrate do
       task :redo do
         Rake::Task["db:migrate:redo"].invoke
