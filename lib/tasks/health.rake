@@ -24,8 +24,14 @@ namespace :health do
     Health::AccountableCareOrganization.create!(name: 'MassHealth')
   end
 
+  desc "Import patient Referrals"
+  task import_patient_referrals: [:environment, "log:info_to_stdout"] do
+    Health::Tasks::ImportPatientReferrals.new.import!
+  end
+
   desc "Generate HPC Patient Referrals for development/staging"
   task dev_create_patient_referrals: [:environment, "log:info_to_stdout"] do
+    return if Rails.env.production?
     require 'faker'
     20.times do 
       patient = Health::PatientReferral.new

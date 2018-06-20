@@ -1834,7 +1834,7 @@ module GrdaWarehouse::Hud
 
     def days_homeless(on_date: Date.today)
       # attempt to pull this from previously calculated data
-      processed_service_history.homeless_days.presence || self.class.days_homeless(client_id: id, on_date: on_date)
+      processed_service_history&.homeless_days&.presence || self.class.days_homeless(client_id: id, on_date: on_date)
     end
 
     # Pull the maximum total monthly income from any open enrollments, looking
