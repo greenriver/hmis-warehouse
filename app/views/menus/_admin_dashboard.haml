@@ -10,7 +10,7 @@
     - if show_health
       %li.o-menu__item
         - path = admin_health_admin_index_path
-        - if can_administer_health? || can_approve_patient_assignments?
+        - if can_approve_patient_assignments?
           - path = review_admin_health_patient_referrals_path
         - elsif (can_manage_health_agency? || can_manage_patients_for_own_agency?) && current_user.health_agency.present?
           - path = review_admin_health_agency_patient_referrals_path
