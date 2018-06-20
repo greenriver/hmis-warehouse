@@ -12,18 +12,25 @@ module Health::Tasks
       setup_notifier('HealthImporter')
       
       @logger = logger
-      @config = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+            
       @load_locally = load_locally
+      
       @to_revoke = []
       @to_restore = []
       @new_patients = []
     end
 
     def run!
-      fetch_files() unless @load_locally
-      import_files()
-      update_consent()
-      return change_counts()
+      configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      configs.each do |_, config|
+        @config = config
+        ds = Health::DataSource.find_by(name: config['data_source_name'])
+        @data_source_id = ds.id
+        fetch_files() unless @load_locally
+        import_files()
+        update_consent()
+        return change_counts()
+      end
     end
 
     def import klass:, file:
@@ -41,7 +48,11 @@ module Health::Tasks
           clean_key = klass.csv_map[k.to_sym]
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h
-        entry = klass.where(klass.csv_map[klass.source_key] => key).
+        # Make note that the import of patients is only functional for the pilot
+        if klass == Health::Patient
+          translated_row[:pilot] = true
+        end
+        entry = klass.where(klass.csv_map[klass.source_key] => key, data_source_id: @data_source_id).
           first_or_create(translated_row) do |patient|
           if klass == Health::Patient
             @new_patients << patient[:id_in_source]
@@ -67,19 +78,6 @@ module Health::Tasks
         revoked_consent: @to_revoke.size,
       }
     end
-
-    # def notify_health_admin_of_changes
-    #   if @new_patients.size > 0 || @to_revoke.any? || @to_restore.any?
-    #     User.can_administer_health.each do |user|
-    #       HealthConsentChangeMailer.consent_changed(
-    #         new_patients: @new_patients.size,
-    #         consented: @to_restore.size, 
-    #         revoked_consent: @to_revoke.size, 
-    #         user: user
-    #       ).deliver_later
-    #     end 
-    #   end
-    # end
 
     def update_consent
       klass = Health::Patient

@@ -38,7 +38,7 @@ class App.Users.Messages
       dataType: 'json'
       data: id: id
       success: (data) =>
-        console.log 'saw', id
+        # console.log 'saw', id
   # set up the notification widget
   ringBell: () =>
     $envelope = $ '.email-messages'

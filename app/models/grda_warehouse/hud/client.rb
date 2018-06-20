@@ -11,6 +11,7 @@ module GrdaWarehouse::Hud
     include Eto::TouchPoints
 
     has_many :client_files
+    has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -630,8 +631,12 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def show_health_for?(user)
-      patient.present? && patient.accessible_by_user(user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+    def show_health_pilot_for?(user)
+      patient.present? && patient.accessible_by_user(user).present? && patient.pilot_patient? && GrdaWarehouse::Config.get(:healthcare_available)
+    end
+
+    def show_health_hpc_for?(user)
+      patient.present? && patient.hpc_patient? && patient.patient_referral.present? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     def show_window_demographic_to?(user)

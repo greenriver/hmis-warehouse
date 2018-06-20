@@ -184,8 +184,8 @@ GEM
     factory_girl_rails (4.8.0)
       factory_girl (~> 4.8.0)
       railties (>= 3.0.0)
-    faker (1.8.4)
-      i18n (~> 0.5)
+    faker (1.8.7)
+      i18n (>= 0.7)
     faraday (0.10.0)
       multipart-post (>= 1.2, < 3)
     fast_gettext (1.4.1)
@@ -447,6 +447,9 @@ GEM
     ruby-ole (1.2.12.1)
     ruby-prof (0.16.2)
     ruby-progressbar (1.8.1)
+    rubyXL (3.3.29)
+      nokogiri (>= 1.4.4)
+      rubyzip (>= 1.1.6)
     ruby_dep (1.5.0)
     ruby_parser (3.9.0)
       sexp_processor (~> 4.1)
@@ -590,6 +593,7 @@ DEPENDENCIES
   haml-rails
   handlebars_assets
   html2haml
+  htmlentities
   jquery-minicolors-rails
   jquery-rails
   jquery-ui-rails
@@ -629,6 +633,7 @@ DEPENDENCIES
   ruby-filemagic
   ruby-prof
   ruby-progressbar
+  rubyXL
   ruby_parser
   rubyzip (>= 1.2.1)
   sass-rails

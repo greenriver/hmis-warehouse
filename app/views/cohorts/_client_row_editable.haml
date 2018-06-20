@@ -22,5 +22,5 @@
             = cohort_column.display_read_only
     - if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?  
       %td
-        = link_to pre_destroy_cohort_cohort_client_path(@cohort, cohort_client), class: 'btn btn-danger', data: {loads_in_pjax_modal: true} do
+        = link_to pre_destroy_cohort_cohort_client_path(@cohort, cohort_client), class: 'btn btn-danger btn-icon-only', data: {loads_in_pjax_modal: true} do
           %span.icon-cross

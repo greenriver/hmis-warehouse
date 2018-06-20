@@ -28,4 +28,11 @@
 
 .no-data {
   padding: space(3);
+  margin: 0;
+}
+
+@each $direction, $name in $directions {
+  .border-#{$direction} {
+    border-#{$name}: 1px solid $gray-015;
+  }
 }

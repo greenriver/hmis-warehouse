@@ -1,0 +1,12 @@
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var links = $('a[data-behavior="claim patient"]');
+      links.on('click', function() {
+        var value = $(this).data('value');
+        var form = $(this).parents('form');
+        var input = $(form).find("input[name='health_agency_patient_referral[claimed]']");
+        $(input).val(value);
+        $(form).submit();
+      });
+    });

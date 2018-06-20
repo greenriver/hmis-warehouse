@@ -1,0 +1,35 @@
+.mt-8
+  %ul.pagination
+    %li.page-item
+      %a.page-link{:href => "#"} « First
+    %li.page-item
+      %a.page-link{:href => "#", :rel => "prev"} ‹ Prev
+    %li.page-item
+      %a.page-link{:href => "#"} 1
+    %li.page-item
+      %a.page-link{:href => "#"} 2
+    %li.page-item
+      %a.page-link{:href => "#"} 3
+    %li.page-item
+      %a.page-link{:href => "#", :rel => "prev"} 4
+    %li.page-item.active
+      %a.page-link{:remote => "false"} 5
+    %li.page-item
+      %a.page-link{:href => "#", :rel => "next"} 6
+    %li.page-item
+      %a.page-link{:href => "#"} 7
+    %li.page-item
+      %a.page-link{:href => "#"} 8
+    %li.page-item
+      %a.page-link{:href => "#"} 9
+    %li.page-item.disabled
+      %a.page-link …
+    %li.page-item
+      %a.page-link{:href => "#", :rel => "next"} Next ›
+    %li.page-item
+      %a.page-link{:href => "#"} Last »
+
+:css
+  body.pagination {
+    width: 100% !important
+  }

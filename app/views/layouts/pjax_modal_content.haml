@@ -1,8 +1,8 @@
 .modal-header
-  %button.close.pull-right(aria-label="Close" pjax-modal-close type="button")
-    %span.icon-cross(aria-hidden="true")
   %h4.modal-title(data-pjax-modal-title)
     = yield :modal_title
+  %button.close.pull-right(aria-label="Close" pjax-modal-close type="button")
+    %i.modal-icon-close
 .modal-body.clearfix
   %div(data-pjax-modal-body)
     = yield

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180521190108) do
+ActiveRecord::Schema.define(version: 20180613133940) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -267,6 +267,12 @@ ActiveRecord::Schema.define(version: 20180521190108) do
     t.boolean  "can_view_patients_for_own_agency",                    default: false
     t.boolean  "can_add_case_management_notes",                       default: false
     t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
+    t.boolean  "can_approve_patient_items_for_agency",                default: false
+    t.boolean  "can_approve_cha",                                     default: false
+    t.boolean  "can_approve_ssm",                                     default: false
+    t.boolean  "can_approve_release",                                 default: false
+    t.boolean  "can_approve_participation",                           default: false
+    t.boolean  "can_manage_care_coordinators",                        default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree

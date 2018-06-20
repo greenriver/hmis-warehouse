@@ -1,0 +1,21 @@
+- title = 'Healthcare Administration'
+- content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= title
+
+  = render 'menus/health_admin_tabs'
+
+  .o-page__main-content.mt-0
+    .d-flex.align-items-center.mb-3
+      %div
+        %h3 Add and Review Patient Assignments
+        %p 
+          Patients added here can be claimed by agencies, subject to BHCHP approval.
+          %br
+          Note: Choosing 'Not Our Patient' is optional. It is offered as a way to clear your review list. Once BHCHP assigns patients to agencies, those patients will also no longer appear in your review list.
+      - if current_user.can_administer_health?
+        %button.btn.btn-secondary.ml-auto{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient
+      - if @active_patient_referral_tab == 'review' &&  current_user.has_patient_referral_review_access?
+        = link_to 'Download Excel', params.merge(format: :xlsx), class: 'btn btn-secondary ml-2'
+    = render 'admin/health/patient_referrals/filter'

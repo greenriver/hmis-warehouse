@@ -1,6 +1,20 @@
-- if can_edit_users? || can_edit_translations? || can_view_imports? || can_administer_health?
+- show_admin = can_edit_users? || can_edit_translations? || can_view_imports? || can_administer_health?
+- show_health = GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency? || current_user.has_patient_referral_review_access?)
+- if show_admin || show_health
   %ul.o-menu__group.list-unstyled
-    %li.o-menu__item
-      = link_to current_user.admin_dashboard_landing_path, class: 'o-menu__link' do
-        .o-menu__link--description
-          Admin Dashboard
+    - if show_admin
+      %li.o-menu__item
+        = link_to current_user.admin_dashboard_landing_path, class: 'o-menu__link' do
+          .o-menu__link--description
+            Admin Dashboard
+    - if show_health
+      %li.o-menu__item
+        - path = admin_health_admin_index_path
+        - if can_administer_health? || can_approve_patient_assignments?
+          - path = review_admin_health_patient_referrals_path
+        - elsif (can_manage_health_agency? || can_manage_patients_for_own_agency?) && current_user.health_agency.present?
+          - path = review_admin_health_agency_patient_referrals_path
+        
+        = link_to path, class: 'o-menu__link' do
+          .o-menu__link--description
+            Healthcare Admin

@@ -1,0 +1,12 @@
+- note = Health::SdhCaseManagementNote
+= f.input :topics, collection: note.topics_collection, as: :check_boxes
+.row
+  .col-sm-6
+    = f.input :title
+.row
+  .col-sm-3
+    = f.input :total_time_spent_in_minutes, input_html: {min: 0}, label: 'Total time spent (in minutes)'
+.row
+  .col-sm-5
+    = f.input :date_of_contact, as: :date_picker, input_html: {value: f.object.date_of_contact&.to_date || Date.today.to_date}
+

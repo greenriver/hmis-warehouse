@@ -16,6 +16,7 @@ module Health
       'problems.csv' => Health::Problem,
       'recent_visits.csv' => Health::Visit,
       'goals.csv' => Health::EpicGoal,
+      'careteam.csv' => Health::EpicTeamMember,
     }.freeze
   end
 end

@@ -62,6 +62,7 @@ gem 'jquery-ui-rails'
 gem 'nominatim'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
+gem 'htmlentities'
 # gem 'jquery-datatables-rails'
 
 # ETO API related
@@ -80,6 +81,7 @@ gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
 gem 'roo', require: false
 gem 'roo-xls', require: false
+gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'

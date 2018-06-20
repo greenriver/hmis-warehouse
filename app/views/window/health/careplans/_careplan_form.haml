@@ -1,0 +1,51 @@
+= simple_form_for @careplan, url: @form_url do |f|
+  = f.error_notification
+  %section.row
+    .col-sm-6.col-lg-4
+      = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
+    .col-md-6.col-lg-4
+      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }, wrapper_html: {class: 'form-group--hanging-label'}
+  = render 'window/health/careplans/team', f: f
+  = render 'window/health/careplans/about_me', f: f
+  = render 'window/health/careplans/goals', f: f
+
+  %section.health-care-plan__services
+    = render 'window/health/careplans/service_list'
+
+  %section.health-care-plan__equipments
+    = render 'window/health/careplans/equipment_list'
+
+  %section.c-card
+    .c-card__header.c-card__header--external
+      %h3 Responsible Parties
+    .c-card__content
+      .row.mb-4
+        .col-md-6
+          .form-group.mb-3
+            %label.control-label.optional Patient
+            .controls.form-control.form-control-faux
+              = @patient.name
+          = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
+      .row.careplan-signatures
+        = render 'careplan_form_signatures', f: f
+        
+
+    .form__actions.mt-6.mb-8
+      .c-btn-group
+        = link_to polymorphic_path(careplan_path_generator, id: @careplan), method: :delete, class: 'btn btn-danger', data: {confirm: "Would you really like to delete the Care Plan?"} do
+          %i.icon-cross
+          Delete Care Plan
+      .c-btn-group.ml-auto
+        = f.button :submit, @form_button
+
+
+
+= javascript_include_tag 'moment.min.js'
+= content_for :page_js do
+  :javascript
+
+    $('.jInitialDate').on('change', function(e) {
+      var initial_date = moment($(this).val()).format("MMM DD, YYYY");
+      var review_date = moment(initial_date).add(6, 'months');
+      $('.jReviewDate').val(review_date.format("MMM DD, YYYY"));
+    });

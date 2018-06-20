@@ -2,13 +2,18 @@
   - filter_class = 'client__filter-active'
 - else
   - filter_class = 'client__filter'
-.btn-group{class: filter_class}
-  %button.btn.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
+
+.dropdown.o-filtration{class: filter_class}
+  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
     Filter
     %span.caret
-  .dropdown-menu.dropdown-menu-left.options
-    %h3.client__filter-header Limit clients by:
+
+  .o-filtration__container.dropdown-menu.dropdown-menu-left.options
+    .o-filtration__header
+      %h3.client__filter-header Filter clients
+
     = form_tag(nil, method: "get") do
+
       -# preserve sort and search for filtering
       - if params[:sort]
         = hidden_field_tag :sort, params[:sort]
@@ -16,78 +21,48 @@
         = hidden_field_tag :direction, params[:direction]
       - if params[:q]
         = hidden_field_tag :q, params[:q]
-      %h4 Dates Served
-      .row
-        .col-xs-5
-          .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
-            %input.form-control{name: :start_date, type: :text, value: @start_date}
-            %span.input-group-addon.icon-calendar
-        .col-xs-1{style: 'padding-top: 5px;'}
-          to
-        .col-xs-5
-          .input-group.date{data: {provide: :datepicker}, style: 'margin-bottom: 20px;'}
-            %input.form-control{name: :end_date, type: :text, value: @end_date}
-            %span.input-group-addon.icon-calendar
-      .row
-        .col-sm-4
-          %h4 Data Source
+
+      .o-filtration__option.row
+        .col-sm-12
+          %label Dates Served
+          .o-filtration__option-row
+            .input-group.date{data: {provide: :datepicker}}
+              %input.form-control{name: :start_date, type: :text, value: @start_date}
+              %span.input-group-addon.icon-calendar
+            .o-filtration__separator to
+            .input-group.date{data: {provide: :datepicker}}
+              %input.form-control{name: :end_date, type: :text, value: @end_date}
+              %span.input-group-addon.icon-calendar
+
+      .o-filtration__option.row.mb-4
+        .col-sm-4.mb-3
+          %label Data Source
           = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.importable.each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
 
         - if can_view_vspdat?
-          .col-sm-4
-            %h4 VSPDAT Vulnerability
+          .col-sm-4.mb-3
+            %label VSPDAT Vulnerability
             = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability]), class: 'select2', style: 'width: 100%;')
 
-        .col-sm-4
-          %h4 Age Group
+        .col-sm-4.mb-3
+          %label Age Group
           = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
 
-      .row
-        .col-xs-10
-          .checkbox
-            %label{for: :data_sharing}
-              %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing}
-              = _('Fully signed data sharing agreement')
-      .row.margin-bottom-02
-        .col-sm-6
-          %h4 Population
+      .o-filtration__option
+        .checkbox
+          %label{for: :data_sharing}
+            %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing}
+            = _('Fully signed data sharing agreement')
+
+      .o-filtration__option.row
+        .col-sm-8
+          %label Population
           = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population]), class: 'select2', style: 'width: 100%;')
-      .row
-        .col-xs-6
-          %p
-            %button.btn.btn-primary{type: :submit}
-              %span.icon-filter.icon-inline
-              Filter
-        .col-xs-6.text-right
-          = link_to clients_path, class:'btn btn-secondary' do
-            %span.icon-cross.icon-inline
-            Clear Filters
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var filter_class = '.#{filter_class}'
-      function toggle_clickable(e) {
-        if($(e.target).closest(filter_class).length == 0 ) {
-          $(filter_class).data('closeable', true);
-        }
-      }
-      $(filter_class).on('hide.bs.dropdown', function (e) {
-        var closable = $(this).data('closeable');
-        if(closable) {
-          $('body').off('click', toggle_clickable);
-        }
-        return closable;
-      });
-      $(filter_class).on('show.bs.dropdown', function (e) {
-        $(this).data('closeable', false);
-        // Make clicking outside of the menu close the menu
-        $('body').on('click', toggle_clickable);
-      });
-      $(filter_class).on('click', '*', function(e) {
-        var $target = $(e.target);
-        var closeable = $target.parent().data('closeable');
-        if($target.hasClass('dropdown-toggle') && closeable == false) {
-          $target.parent().data('closeable', true);
-        }
-      });
-    })(jQuery);
+
+      .o-filtration__actions.form__actions
+        = link_to clients_path, class:'btn btn-secondary' do
+          %span.icon-cross.icon-inline
+          Clear Filters
+        %button.btn.btn-primary.ml-auto{type: :submit}
+          %span.icon-filter.icon-inline.mr-1
+          Filter

@@ -1,0 +1,8 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Patient Assignments to Review") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {hosizontal: :center})
+  sheet.add_row(['First Name', 'Last Name', 'DOB', 'Medicaid ID'])
+  @patient_referrals.each do |pr|
+    sheet.add_row([pr.first_name, pr.last_name, pr.birthdate, pr.medicaid_id])
+  end
+end
