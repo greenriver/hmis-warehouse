@@ -11,8 +11,8 @@
       %div
         %h3 Add and Review Patient Assignments
         %p 
-          Patients added here can be claimed by agencies, subject to BHCHP approval.
-          %br
+          Please indicate patients who you have an existing care relationship with. BHCHP will use this information to assign patients to agencies.
+        %p
           Note: Choosing 'Not Our Patient' is optional. It is offered as a way to clear your review list. Once BHCHP assigns patients to agencies, those patients will also no longer appear in your review list.
       - if current_user.can_administer_health?
         %button.btn.btn-secondary.ml-auto{type: 'button', data: {toggle: 'modal', target: '#new-patient-referral__modal'}} Add Patient

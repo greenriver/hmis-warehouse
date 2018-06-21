@@ -25,7 +25,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Patient Assignments to Review.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=PatientReferrals.xlsx"
         end
       end
     end
