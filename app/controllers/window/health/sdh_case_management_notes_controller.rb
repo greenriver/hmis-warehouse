@@ -142,8 +142,7 @@ module Window::Health
         permitted_params[:activities_attributes][key].merge!({
           user_id: current_user.id,
           user_full_name: current_user.name,
-          patient_id: @patient.id,
-          follow_up: permitted_params[:next_steps],
+          patient_id: @patient.id
         })
       end
       permitted_params
@@ -162,7 +161,7 @@ module Window::Health
         :housing_placement_date,
         :client_action,
         :notes_from_encounter,
-        :next_steps,
+        # :next_steps,
         :client_phone_number,
         :completed_on,
         topics: [],

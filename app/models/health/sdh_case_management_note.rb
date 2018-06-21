@@ -44,8 +44,11 @@ module Health
     CLIENT_ACTION = [
       'Clilent signed participation form and release of information',
       'Client declined to participate in BH CP program',
-      'Client wants to switch to a different BH CP'
+      'Client wants to switch to a different BH CP',
+      'Client declines consent at this time; willing to revisit',
+      'Supporting medication reconciliation'
     ]
+    CLIENT_ACTION_OTHER = 'Supporting medication reconciliation'
 
     belongs_to :patient
     belongs_to :user
@@ -64,7 +67,8 @@ module Health
     validates_presence_of :patient, :user, :title, :date_of_contact
     validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?, allow_blank: false
     validates_presence_of :housing_status_other, if: :housing_status_is_other?, allow_blank: false
-    validates_presence_of :next_steps
+    validates_presence_of :client_action_medication_reconciliation_clinician, if: :client_action_is_medication_reconciliation_clinician?, allow_blank: false
+    # validates_presence_of :next_steps
     validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
     validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
     validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
@@ -117,13 +121,21 @@ module Health
       HOUSING_STATUS_OTHER
     end
 
+    def client_action_is_medication_reconciliation_clinician?
+      client_action == CLIENT_ACTION_OTHER
+    end
+
+    def client_action_medication_reconciliation_clinician_value
+      CLIENT_ACTION_OTHER
+    end
+
     def user_can_edit?(current_user)
       current_user.id == user_id && current_user.can_edit_patient_items_for_own_agency?
     end
 
     def display_note_form_sections
       [
-        {id: :basic_info, title: 'Note Topic, Title, Time Spent'},
+        {id: :basic_info, title: 'Note Details'},
         {id: :activities, title: 'Qualifying Activities'},
         {id: :additional_questions, title: 'Additional Questions'}
       ]
@@ -158,7 +170,7 @@ module Health
           {key: 'Housing Status:', value: housing_status, other: (housing_status_is_other? ? {key: 'Other:', value: housing_status_other} : false )},
           {key: 'Housing Placement Date:', value: housing_placement_date},
           {key: 'Notes from encounter:', value: notes_from_encounter, text_area: true},
-          {key: 'Next Steps:', value: next_steps, text_area: true},
+          # {key: 'Next Steps:', value: next_steps, text_area: true},
           {key: 'Client Phone:', value: client_phone_number},
           {key: 'File:', value: health_file&.name, download: true}
         ]
