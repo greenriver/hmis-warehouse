@@ -117,7 +117,7 @@
         .row
           .col-sm-12.mb-1
             %h4= _('CHA G_Q1_HEADER')
-            %p.help-text= _('CHA G_Q1_SUBHEADER')
+            %p.cha__help-text= _('CHA G_Q1_SUBHEADER')
         .row
           .col-sm-12.mb-1
             %p
@@ -193,7 +193,7 @@
         .row
           .col-sm-12
             %h4= _('CHA G_Q2_HEADER')
-            %p.help-text= _('CHA G_Q2_SUBHEADER')
+            %p.cha__help-text= _('CHA G_Q2_SUBHEADER')
 
         = cha_radios     f, :g_q2a
         = cha_radios     f, :g_q2b
@@ -271,17 +271,22 @@
       .well
         = cha_radios     f, :j_q1
         = cha_radios     f, :j_q2
-
+        %h4= _('CHA J_Q3_HEADER')
+        - #%h5= _('CHA J_Q3A_HEADER')
         = cha_radios     f, :j_q3a
         = cha_radios     f, :j_q3b
+        - #%h5= _('CHA J_Q3C_HEADER')
         = cha_radios     f, :j_q3c
+        - #%h5= _('CHA J_Q3D_HEADER')
         = cha_radios     f, :j_q3d
         = cha_radios     f, :j_q3e
         = cha_radios     f, :j_q3f
+        - #%h5= _('CHA J_Q3G_HEADER')
         = cha_radios     f, :j_q3g
         = cha_radios     f, :j_q3h
         = cha_radios     f, :j_q3i
         = cha_radios     f, :j_q3j
+        - #%h5= _('CHA J_Q3K_HEADER')
         = cha_radios     f, :j_q3k
         = cha_radios     f, :j_q3l
 
@@ -444,6 +449,7 @@
             = cha_string f, :r_q6d
         = cha_text   f, :r_q6e
         = cha_radios f, :r_q7
+        %p.mb-4=_('CHA R_Q7_SUBHEADER')
         = cha_checkboxes f, :r_q8
 
       %section.c-card.c-card--block
