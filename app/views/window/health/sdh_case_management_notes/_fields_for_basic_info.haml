@@ -15,9 +15,7 @@
 .row
   .col-sm-6
     = render 'string_collection_with_other', object: note, f: f, note_attr: 'housing_status', label: 'Housing Status', other_label: 'Please specify', other: 'other'
-.row
-  .col-sm-5
-    = f.input :housing_placement_date, as: :date_picker
+
 .row
   .col-sm-6
     = render 'string_collection_with_other', object: note, f: f, note_attr: 'client_action', label: 'Did any of the following happen?', other_label: 'Clinician who performed medication reconciliation', other: 'medication_reconciliation_clinician'

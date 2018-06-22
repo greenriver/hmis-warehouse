@@ -11,6 +11,17 @@
         otherInput.find('input').val('');
         otherInput.slideUp();
       }
+      var dateInput = container.find('.string-collection-date__input');
+      if(dateInput.length === 1) {
+        var dateValues = dateInput.data('date-values')
+        var value = $(input).val()
+        if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
+          dateInput.slideDown();
+        } else {
+          dateInput.find('input').val('');
+          dateInput.slideUp();
+        }
+      }
     }
 
     var behaviorSelector = function(behavior) {

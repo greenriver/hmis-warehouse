@@ -40,6 +40,7 @@ module Health
       'Other'
     ]
     HOUSING_STATUS_OTHER = 'Other'
+    HOUSING_STATUS_DATE = ['Supportive Housing', 'Housing with No Supports']
 
     CLIENT_ACTION = [
       'Clilent signed participation form and release of information',
@@ -119,6 +120,14 @@ module Health
 
     def housing_status_other_value
       HOUSING_STATUS_OTHER
+    end
+
+    def housing_status_includes_date?
+      HOUSING_STATUS_DATE.include?(housing_status)
+    end
+
+    def housing_status_include_date_values
+      HOUSING_STATUS_DATE
     end
 
     def client_action_is_medication_reconciliation_clinician?
