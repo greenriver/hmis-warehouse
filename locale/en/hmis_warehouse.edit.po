@@ -1544,6 +1544,9 @@ msgstr ""
 msgid "CHA J_Q3L"
 msgstr ""
 
+msgid "CHA J_Q3_HEADER"
+msgstr ""
+
 msgid "CHA J_Q4"
 msgstr ""
 
@@ -3567,6 +3570,9 @@ msgid "CHA R_Q7_A1"
 msgstr ""
 
 msgid "CHA R_Q7_A2"
+msgstr ""
+
+msgid "CHA R_Q7_SUBHEADER"
 msgstr ""
 
 msgid "CHA R_Q8"

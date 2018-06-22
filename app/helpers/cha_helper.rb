@@ -10,8 +10,8 @@ module ChaHelper
 
   def cha_radios f, field
     capture do
-      concat content_tag(:strong, header_for(field))
-      concat content_tag(:p, subheader_for(field), class: 'help-text')
+      concat content_tag(:h4, header_for(field))
+      concat content_tag(:p, subheader_for(field), class: 'cha__help-text')
       concat f.input field, 
         label: _("CHA #{field.upcase}"), 
         as: :radio_buttons, 
@@ -23,7 +23,7 @@ module ChaHelper
   def cha_checkboxes f, field
     capture do
       concat content_tag(:strong, header_for(field))
-      concat content_tag(:p, subheader_for(field), class: 'help-text')
+      concat content_tag(:p, subheader_for(field), class: 'cha__help-text')
       concat f.input field, 
         label: _("CHA #{field.upcase}"), 
         as: :check_boxes, 
@@ -45,7 +45,7 @@ module ChaHelper
         concat content_tag(:strong, header)
       end
       if subheader = subheader_for(field)
-        concat content_tag(:p, raw(subheader), class: 'help-text')
+        concat content_tag(:p, raw(subheader), class: 'cha__help-text')
       end
       concat f.input field, 
         label: _("CHA #{field.upcase}"), 
