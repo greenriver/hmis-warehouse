@@ -1,4 +1,4 @@
-- show_admin = can_edit_users? || can_edit_translations? || can_view_imports? || can_administer_health?
+- show_admin = can_edit_users? || can_edit_translations? || can_view_imports?
 - show_health = GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency? || current_user.has_patient_referral_review_access?)
 - if show_admin || show_health
   %ul.o-menu__group.list-unstyled
