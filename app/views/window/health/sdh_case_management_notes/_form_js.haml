@@ -18,7 +18,7 @@
         if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
           dateInput.slideDown();
         } else {
-          dateInput.find('input').val('');
+          // don't remove yet (this will be removed after validation)
           dateInput.slideUp();
         }
       }

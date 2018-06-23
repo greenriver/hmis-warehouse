@@ -14,8 +14,13 @@ module Window::Health
     end
 
     def new
+      last_form = Health::SdhCaseManagementNote.last_form
       @note = @patient.sdh_case_management_notes.
-        build(user: current_user, completed_on: DateTime.current)
+        build(
+          user: current_user, 
+          completed_on: DateTime.current,
+          housing_placement_date: last_form&.housing_placement_date,
+          client_phone_number: last_form&.client_phone_number)
       @note.activities.build
       @note.save(validate: false)
       redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
@@ -85,6 +90,7 @@ module Window::Health
       result = []
       result.push(@note.display_basic_info_section)
       result.push(@note.display_basic_note_section)
+      result.push(@note.display_note_details_section)
       result.push({title: 'Qualifying Activities'})
       if @note.activities.any?
         @note.activities.each_with_index do |activity, index|
@@ -160,8 +166,8 @@ module Window::Health
         :housing_status_other,
         :housing_placement_date,
         :client_action,
+        :client_action_medication_reconciliation_clinician,
         :notes_from_encounter,
-        # :next_steps,
         :client_phone_number,
         :completed_on,
         topics: [],

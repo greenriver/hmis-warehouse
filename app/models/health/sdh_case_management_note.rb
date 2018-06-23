@@ -60,6 +60,7 @@ module Health
     serialize :topics, Array
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
+    scope :last_form_created, -> {order(created_at: :desc).limit(1)}
     scope :with_phone, -> { where.not(client_phone_number: nil) }
 
     accepts_nested_attributes_for :activities, allow_destroy: true 
@@ -69,12 +70,24 @@ module Health
     validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?, allow_blank: false
     validates_presence_of :housing_status_other, if: :housing_status_is_other?, allow_blank: false
     validates_presence_of :client_action_medication_reconciliation_clinician, if: :client_action_is_medication_reconciliation_clinician?, allow_blank: false
-    # validates_presence_of :next_steps
     validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
     validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
     validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
     validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_blank: true
-    # validates :client_phone_number, format: { with: US_PHONE_NUMBERS }, allow_blank: true
+
+    # doing this after validation because form updates with ajax and no validation
+    # keep the date around until they hit save
+    after_validation :remove_housing_placement_date
+
+    def remove_housing_placement_date
+      unless housing_status_includes_date?
+        self.housing_placement_date = nil
+      end
+    end
+
+    def self.last_form
+      last_form_created.first
+    end
 
     def submitted_activities
       activities.submitted
@@ -171,16 +184,23 @@ module Health
       }
     end
 
-    def display_additional_questions_section
+    def display_note_details_section
       {
-        title: 'Additional Questions',
         values: [
           {key: 'Place of Contact:', value: place_of_contact, other: (place_of_contact_is_other? ? {key: 'Other:', value: place_of_contact_other} : false)},
           {key: 'Housing Status:', value: housing_status, other: (housing_status_is_other? ? {key: 'Other:', value: housing_status_other} : false )},
           {key: 'Housing Placement Date:', value: housing_placement_date},
-          {key: 'Notes from encounter:', value: notes_from_encounter, text_area: true},
-          # {key: 'Next Steps:', value: next_steps, text_area: true},
-          {key: 'Client Phone:', value: client_phone_number},
+          {key: 'The following happened:', value: client_action, other: (client_action_is_medication_reconciliation_clinician? ? {key: 'Clinician who performed medication reconciliation:', value: client_action_medication_reconciliation_clinician} : false)},
+          {key: 'Client Phone:', value: client_phone_number}
+        ]
+      }
+    end
+
+    def display_additional_questions_section
+      {
+        title: 'Additional Questions',
+        values: [
+          {key: 'Additional Information:', value: notes_from_encounter, text_area: true},
           {key: 'File:', value: health_file&.name, download: true}
         ]
       }
