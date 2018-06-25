@@ -1,0 +1,29 @@
+%nav.form__nav.j-form-nav.scrollspy{style: 'padding-bottom: 160px;'}
+  %ul.list-group.nav.j-form-nav-list
+    - ('a'..'r').each do |letter|
+      %li.list-group-item.nav-item
+        = link_to "Section #{letter.upcase}", "#section-#{letter}", class: 'nav-link'
+    %li.list-group-item.nav-item
+      = link_to "Services", "#section-services", class: 'nav-link'
+    %li.list-group-item.nav-item
+      = link_to "Durable Medical Equipment", "#section-dme", class: 'nav-link'
+    %li.list-group-item.nav-item
+      = link_to "Review", "#section-review", class: 'nav-link'
+  %div
+    = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default w-100 mb-1', data: { disable_with: 'Saving...' }
+    %button.w-100.btn.btn-success{type: 'submit', data: { disable_with: 'Saving...' } }
+      Complete
+
+- content_for :page_js do
+  :javascript
+    $(function(){
+      var $tabs = $('.j-form-nav');
+      $tabs.affix({offset: {top: $tabs.offset().top} });
+      var sectionTitles = $("h3[id^='section']").map(function(){
+        return $(this).text().trim()
+      })
+      $('.j-form-nav-list').find('a').each(function(i, el){
+        el.textContent = sectionTitles[i]
+      })
+      $('body').scrollspy({target: '.j-form-nav', offset: 250})
+    })

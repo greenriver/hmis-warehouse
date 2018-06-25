@@ -14,7 +14,7 @@ module ReportGenerators::SystemPerformance::Fy2016
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
     RRH = [13]
-    PH_PSH = [3,9,10] # All PH execpt 13, Measure 7 doesn't count RRH
+    PH_PSH = [3,9,10] # All PH except 13, Measure 7 doesn't count RRH
 
     def run!
       # Disable logging so we don't fill the disk

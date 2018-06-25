@@ -1,0 +1,19 @@
+%section.health__team
+  .c-card
+    .c-card__header.c-card__header--external
+      %h3 Care Team Members
+      = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+        %i.icon-plus
+        Add Team Member
+    .c-card__content
+      .row.health__team-members
+        - if @careplan&.team_members&.any?
+          - @careplan.team_members.each do |member|
+            = render 'window/health/team_members/team_member', member: member, restore: false, delete: true
+
+        - else
+          %p.no-data
+            No team members currently.
+            = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+              %i.icon-plus
+              Add Team Member

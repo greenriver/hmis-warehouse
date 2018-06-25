@@ -18,15 +18,55 @@ Rails.application.routes.draw do
 
   def healthcare_routes
     namespace :health do
-      resources :patient, only: [:index]
+      resources :patient, only: [:index, :update]
       resources :utilization, only: [:index]
       resources :appointments, only: [:index]
       resources :medications, only: [:index]
       resources :problems, only: [:index]
-      resources :metrics, only: [:index]
-      resource :careplan, except: [:destroy] do
+      resources :self_sufficiency_matrix_forms
+      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update] do
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
+      resources :services
+      resources :qualifying_activities, only: [:index]
+      resources :durable_equipments, except: [:index]
+      resources :files, only: [:index, :show]
+      resources :careplans, except: [:create] do
+        resources :team_members, except: [:index, :show]
+        resources :goals, except: [:index, :show]
         get :self_sufficiency_assessment
         get :print
+        get :revise, on: :member
+      end
+      resources :participation_forms do
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
+      resources :release_forms do
+        member do
+          delete :remove_file
+          get :download
+        end
+      end
+      resources :comprehensive_health_assessments, path: :chas, as: :chas do
+        member do
+          delete :remove_file
+          get :download
+          patch :upload
+        end
+      end
+      namespace :pilot do
+        resources :patient, only: [:index]
+        resources :metrics, only: [:index]
+        resource :careplan, except: [:destroy] do
+          get :self_sufficiency_assessment
+          get :print
+        end
       end
       namespace :careplan do
         resources :goals do
@@ -358,6 +398,11 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :health do
+    resources :patients, only: [:index]
+    resources :my_patients, only: [:index]
+  end
+
   namespace :api do
     namespace :health do
       namespace :claims do
@@ -395,11 +440,30 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :admin, only: [:index]
+      resources :agencies, except: [:show]
+      resources :team_coordinators, only: [:index, :create, :destroy]
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
+      resources :patient_referrals, only: [:create] do
+        patch :reject
+        collection do
+          get :review
+          get :assigned
+          get :rejected
+          post :bulk_assign_agency
+        end
+        post :assign_agency
+      end
+      resources :agency_patient_referrals, only: [:create, :update] do
+        collection do
+          get :review
+          get :reviewed
+        end
+      end
       resources :users, only: [:index] do
         post :update, on: :collection
+        resources :agency_users, only: [:new, :edit, :create, :update]
       end
       resources :roles, only: [:index, :edit, :update]
     end
@@ -416,8 +480,10 @@ Rails.application.routes.draw do
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
+    resources :public_files, only: [:index, :create, :destroy]
   end
   resource :account, only: [:edit, :update]
+  resources :public_files, only: [:show]
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
@@ -429,6 +495,8 @@ Rails.application.routes.draw do
       get :alerts
       get :tags
       get :client_dashboard
+      get :buttons
+      get :pagination
     end
   end
 

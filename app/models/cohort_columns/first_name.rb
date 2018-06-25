@@ -11,16 +11,16 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # OK
       cohort_client.client.FirstName
-    end 
+    end
 
     def display_for(user)
       display_read_only(user)
     end
 
     def display_read_only(user)
-      html = content_tag(:span, class: "hidden") do 
+      html = content_tag(:span, class: "hidden") do
         value(cohort_client)
       end
       if user.can_view_clients?

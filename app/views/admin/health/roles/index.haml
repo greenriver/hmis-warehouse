@@ -1,29 +1,24 @@
+- content_for :title,  'Healthcare Related Roles'
+%h1= content_for :title
 = render 'breadcrumbs'
-.row
-  .col-sm-8
-    %h1 Healthcare Related Roles
-.row.table-utilities
-  .col-sm-8
-    %p= page_entries_info @roles, entry_name: _('role')
-.row
-  .col-sm-12
-    .table-responsive
-      %table.table.table-condensed
-        %thead
-          %th Permission:
+
+= render 'menus/health_admin_tabs'
+.table-responsive
+  %table.table.table-condensed
+    %thead
+      %th Permission:
+      - @roles.each do |role|
+        %th
+          = link_to role.name, action: :edit, id: role
+    
+    %tbody
+      - Role.health_permissions.each do |permission|
+        %tr
+          %td
+            =permission.to_s.humanize
           - @roles.each do |role|
-            %th
-              = link_to role.name, action: :edit, id: role
-          %th
-          %th
-        %tbody
-          - Role.health_permissions.each do |permission|
-            %tr
-              %td
-                =permission.to_s.humanize
-              - @roles.each do |role|
-                %td
-                  =checkmark(role.send(permission))
+            %td
+              =checkmark(role.send(permission))
 
 
     %p= paginate @roles

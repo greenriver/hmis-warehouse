@@ -1,0 +1,18 @@
+- if f.object.unsubmitted?
+  .pull-right
+    = link_to 'Remove Activity', form_url({commit: 'Remove Activity', format: :js}), class: 'btn btn-sm btn-danger btn-icon-only', data: {behavior: 'remove activity'}
+  %div{style: 'display:none;'}
+    - delete_checked = f.object.new_record? ? false : f.object.empty?
+    = f.input :_destroy, as: :boolean, input_html: {checked: delete_checked, data: {behavior: 'remove activity input'}}
+.row
+  .col-sm-6
+    = render 'string_collection_with_other', object: activity, f: f, note_attr: 'mode_of_contact', label: 'Mode of Contact', other_label: 'Please Specify:', other: 'other'
+.row
+  .col-sm-6
+    = render 'string_collection_with_other', object: activity, f: f, note_attr: 'reached_client', label: 'Reached Client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact'
+.row
+  .col-sm-6
+    = f.input :activity, collection: activity.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'
+.row
+  .col-sm-6
+    = f.input :date_of_activity, as: :date_picker, input_html: {value: f.object.date_of_activity&.to_date || Date.today.to_date}

@@ -31,3 +31,35 @@
   justify-content: center;
   align-items: center;
 }
+
+.o-page__main-content {
+  margin-top: space(6);
+}
+
+.o-page__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: -10px;
+}
+
+.o-page__search {
+  width: 100%;
+  @include media-breakpoint-up(md) {
+    width: 50%;
+    margin-right: space(4);
+  }
+}
+
+.o-page__sort {
+  display: flex;
+  > div {
+    margin-right: space(2);
+  }
+}
+
+.o-page__search,
+.o-page__sort {
+  margin-top: space(1);
+  margin-bottom: space(2);
+}

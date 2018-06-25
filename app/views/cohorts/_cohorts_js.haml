@@ -1,31 +1,32 @@
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var cohort_options = {
-        wrapper_selector: '.cohorts',
-        table_selector: '.datatable',
-        batch_size: 25,
-        static_column_count: #{@cohort.static_column_count + 1},
-        client_count: #{@cohort_clients.count},
-        sort_direction: '#{@cohort.default_sort_direction}',
-        column_order: #{(@visible_columns.map(&:column)).to_json},
-        column_headers: #{@column_headers.to_json},
-        column_options: #{@column_options.to_json},
-        column_widths: #{(@visible_columns.map(&:width)).to_json},
-        size_toggle_class: '.jToggleFontSize',
-        include_inactive: #{params[:inactive].present?},
-        client_path: "#{cohort_cohort_clients_path(@cohort)}",
-        client_row_class: '.jCohortClient',
-        loading_selector: '.jLoading',
-        cohort_client_form_selector: '.edit_cohort_client',
-        cohort_value_hidden_selector: '.jCohortColumnValue',
-        check_url: '#{cohort_cohort_clients_path(@cohort)}',
-        input_selector: '.jCohortClientInput',
-        updated_ats: #{@cohort_client_updates.to_json},
-        search_selector: '#cohort-search',
-        search_actions_selector: '.jSearchActions',
-        population: "#{@population}"
-      }
-      $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
-      
-    })(jQuery);
+- if @cohort.cohort_clients.any?
+  = content_for :page_js do
+    :javascript
+      (function($) {
+        var cohort_options = {
+          wrapper_selector: '.cohorts',
+          table_selector: '.datatable',
+          batch_size: 100,
+          static_column_count: #{@cohort.static_column_count + 1},
+          client_count: #{@cohort.client_search_scope.count},
+          sort_direction: '#{@cohort.default_sort_direction}',
+          column_order: #{(@visible_columns.map(&:column)).to_json},
+          column_headers: #{@column_headers.to_json},
+          column_options: #{@column_options.to_json},
+          column_widths: #{(@visible_columns.map(&:width)).to_json},
+          size_toggle_class: '.jToggleFontSize',
+          include_inactive: #{params[:inactive].present?},
+          client_path: "#{cohort_cohort_clients_path(@cohort)}",
+          client_row_class: '.jCohortClient',
+          loading_selector: '.jLoading',
+          cohort_client_form_selector: '.edit_cohort_client',
+          cohort_value_hidden_selector: '.jCohortColumnValue',
+          check_url: '#{cohort_cohort_clients_path(@cohort)}',
+          input_selector: '.jCohortClientInput',
+          updated_ats: #{@cohort_client_updates.to_json},
+          search_selector: '#cohort-search',
+          search_actions_selector: '.jSearchActions',
+          population: "#{@population}"
+        }
+        $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
+
+      })(jQuery);

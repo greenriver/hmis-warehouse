@@ -2,7 +2,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
-  serialize :response, Hash
+  serialize :api_response, Hash
   serialize :answers, Hash
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
@@ -27,8 +27,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(name: 'Self-Sufficiency Matrix')
   end
 
+  scope :collected, -> do
+    where.not(collected_at: nil)
+  end
+
   scope :case_management_notes, -> do 
-    where(name: 'SDH Case Management Note')
+    where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
   end
   scope :health_touch_points, -> do
     where(arel_table[:collection_location].matches('Social Determinants of Health%'))

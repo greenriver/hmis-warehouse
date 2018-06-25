@@ -20,6 +20,7 @@ module Window
       else
         client_scope.none
       end
+      @clients = @clients.preload(:processed_service_history)
       sort_filter_index()
 
     end

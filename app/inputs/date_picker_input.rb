@@ -3,9 +3,14 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
     set_html_options
     set_value_html_option
 
-    template.content_tag :div, class: 'input-group date datepicker', data: {provide: 'datepicker'} do
-      input = super(wrapper_options)
-      input + input_button
+    if @builder.options[:wrapper] == :readonly
+      display_value = object.send(attribute_name) 
+      template.content_tag(:p, display_value, label_html_options)
+    else
+      template.content_tag :div, class: 'input-group date datepicker', data: {provide: 'datepicker'} do
+        input = super(wrapper_options)
+        input + input_button
+      end
     end
   end
 

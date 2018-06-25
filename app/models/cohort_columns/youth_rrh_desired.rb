@@ -2,12 +2,12 @@ module CohortColumns
   class YouthRrhDesired < ReadOnly
     attribute :column, String, lazy: true, default: :youth_rrh_desired
     attribute :title, String, lazy: true, default: 'Interested in Youth RRH'
-    
+
     def renderer
       'html'
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # OK
       checkmark_or_x text_value(cohort_client)
     end
 

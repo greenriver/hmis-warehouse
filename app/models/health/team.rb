@@ -6,5 +6,16 @@ module Health
     belongs_to :patient
     belongs_to :editor, class_name: User.name, foreign_key: :user_id
 
+    accepts_nested_attributes_for :members, allow_destroy: true
+
+    # Used for select options
+    def available_members
+      members.map do |member|
+        [
+          member.full_name, member.id
+        ]
+      end
+    end
+
   end
 end
