@@ -1511,13 +1511,22 @@ msgstr ""
 msgid "CHA J_Q3A_A5"
 msgstr ""
 
+msgid "CHA J_Q3A_HEADER"
+msgstr ""
+
 msgid "CHA J_Q3B"
 msgstr ""
 
 msgid "CHA J_Q3C"
 msgstr ""
 
+msgid "CHA J_Q3C_HEADER"
+msgstr ""
+
 msgid "CHA J_Q3D"
+msgstr ""
+
+msgid "CHA J_Q3D_HEADER"
 msgstr ""
 
 msgid "CHA J_Q3E"
@@ -1527,6 +1536,9 @@ msgid "CHA J_Q3F"
 msgstr ""
 
 msgid "CHA J_Q3G"
+msgstr ""
+
+msgid "CHA J_Q3G_HEADER"
 msgstr ""
 
 msgid "CHA J_Q3H"
@@ -1541,7 +1553,13 @@ msgstr ""
 msgid "CHA J_Q3K"
 msgstr ""
 
+msgid "CHA J_Q3K_HEADER"
+msgstr ""
+
 msgid "CHA J_Q3L"
+msgstr ""
+
+msgid "CHA J_Q3_HEADER"
 msgstr ""
 
 msgid "CHA J_Q4"
@@ -3567,6 +3585,9 @@ msgid "CHA R_Q7_A1"
 msgstr ""
 
 msgid "CHA R_Q7_A2"
+msgstr ""
+
+msgid "CHA R_Q7_SUBHEADER"
 msgstr ""
 
 msgid "CHA R_Q8"

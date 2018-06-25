@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-15 20:36-0400\n"
-"PO-Revision-Date: 2018-06-15 20:36-0400\n"
+"POT-Creation-Date: 2018-06-21 22:47-0700\n"
+"PO-Revision-Date: 2018-06-21 22:47-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -1512,13 +1512,22 @@ msgstr ""
 msgid "CHA J_Q3A_A5"
 msgstr ""
 
+msgid "CHA J_Q3A_HEADER"
+msgstr ""
+
 msgid "CHA J_Q3B"
 msgstr ""
 
 msgid "CHA J_Q3C"
 msgstr ""
 
+msgid "CHA J_Q3C_HEADER"
+msgstr ""
+
 msgid "CHA J_Q3D"
+msgstr ""
+
+msgid "CHA J_Q3D_HEADER"
 msgstr ""
 
 msgid "CHA J_Q3E"
@@ -1528,6 +1537,9 @@ msgid "CHA J_Q3F"
 msgstr ""
 
 msgid "CHA J_Q3G"
+msgstr ""
+
+msgid "CHA J_Q3G_HEADER"
 msgstr ""
 
 msgid "CHA J_Q3H"
@@ -1542,7 +1554,13 @@ msgstr ""
 msgid "CHA J_Q3K"
 msgstr ""
 
+msgid "CHA J_Q3K_HEADER"
+msgstr ""
+
 msgid "CHA J_Q3L"
+msgstr ""
+
+msgid "CHA J_Q3_HEADER"
 msgstr ""
 
 msgid "CHA J_Q4"
@@ -3568,6 +3586,9 @@ msgid "CHA R_Q7_A1"
 msgstr ""
 
 msgid "CHA R_Q7_A2"
+msgstr ""
+
+msgid "CHA R_Q7_SUBHEADER"
 msgstr ""
 
 msgid "CHA R_Q8"

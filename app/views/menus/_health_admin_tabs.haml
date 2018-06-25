@@ -3,8 +3,14 @@
     {
       title: 'Patient Referrals',
       path: review_admin_health_patient_referrals_path,
-      controllers: ['patient_referrals', 'agency_patient_referrals'],
-      visible: can_approve_patient_assignments? || can_manage_patients_for_own_agency? || can_manage_health_agency?,
+      controllers: ['patient_referrals'],
+      visible: can_approve_patient_assignments?,
+    },
+    {
+      title: 'Identify Patients',
+      path: review_admin_health_agency_patient_referrals_path,
+      controllers: ['agency_patient_referrals'],
+      visible: can_manage_patients_for_own_agency? || can_manage_health_agency?,
     },
     {
       title: 'Health Agencies',

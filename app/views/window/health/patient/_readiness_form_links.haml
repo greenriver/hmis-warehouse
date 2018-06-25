@@ -25,11 +25,11 @@
             %span.icon-checkmark.o-color--positive.mr-1
           - else
             %span.icon-checkmark.mr-1.o-color--gray-l
-          Release Form
+          Release of Information form
       - else
         = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
           %span.icon-checkmark.mr-1.o-color--gray-l
-          Release Form
+          Release of Information form
     %li
       - completed_ssm = @patient.self_sufficiency_matrix_forms.completed.recent.first
       - if completed_ssm 
