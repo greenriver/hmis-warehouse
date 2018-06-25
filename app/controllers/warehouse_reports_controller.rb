@@ -5,8 +5,8 @@ class WarehouseReportsController < ApplicationController
   def index
 
     all_report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.
-      ordered.
-      group_by(&:report_group)
+        ordered.
+        group_by(&:report_group)
     if current_user.can_view_all_reports?
       @report_definitions = all_report_definitions
     else
