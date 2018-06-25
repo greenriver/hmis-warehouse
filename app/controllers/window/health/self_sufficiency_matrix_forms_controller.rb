@@ -5,7 +5,7 @@ module Window::Health
     include WindowClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_form, only: [:show, :edit, :update]
+    before_action :set_form, only: [:show, :edit, :update, :destroy]
     before_action :set_claim_submitted, only: [:show, :edit]
 
     def new
@@ -31,6 +31,11 @@ module Window::Health
       @form.assign_attributes(form_params)
       Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
+    end
+
+    def destroy
+      @form.destroy!
+      redirect_to polymorphic_path(careplans_path_generator)
     end
 
     private
