@@ -1,0 +1,18 @@
+- dropdown_id = "reject-pr-#{pr.id}"
+- label = pr.rejected? ? 'Remove/Change Removal' : 'Remove'
+- if pr.rejected?
+  %strong Removal Reason
+  %br
+  = Health::PatientReferral.display_rejected_reason(pr.rejected_reason)
+.patient-referral__reject
+  = simple_form_for pr, url: admin_health_patient_referral_reject_path(pr), namespace: dropdown_id do |f|
+    = f.input :rejected_reason, as: :hidden
+  .dropdown
+    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'} do
+      = label
+      %span.caret
+    %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
+      - Health::PatientReferral.rejected_reasons.each do |reason|
+        - unless reason[0] == pr.rejected_reason
+          %li
+            = link_to Health::PatientReferral.display_rejected_reason(reason[0]), '#', data: {behavior: 'reject patient referral', rejected_reason: reason[0]}

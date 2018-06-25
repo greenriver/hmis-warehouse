@@ -74,6 +74,7 @@ $tag-icon-shadow: $white;
 }
 
 .c-tag__content a {
+  font-weight: bold;
   &:hover {
     text-decoration: underline;
   }

@@ -13,7 +13,7 @@
         = note.updated_at.to_date
     .col-sm-2
       - if note.destroyable_by current_user
-        = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger', method: :delete, remote: true do
+        = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger btn-icon-only', method: :delete, remote: true do
           %i.icon-cross
           Destroy
 

@@ -237,6 +237,8 @@ module Exporters::Tableau::EntryExit
               exists?
             has_income ? 't' : 'f'
           when :days_to_return
+            # Verify that if a client has two exits on the same day, they should have the same days to return
+
             # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a
             # nil - no exit
             # positive number = days to return
@@ -247,8 +249,8 @@ module Exporters::Tableau::EntryExit
               # if the next enrollment is PH it must be > 14 days after exit AND 14 days after any other PH or TH exits 
               exit_date = row['entry_exit_exit_date'].to_date
               newer_residential_enrollments = data_by_client[row['client_uid']].select do |enrollment|
-                GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(enrollment['prog_type'].to_i) &&
-                enrollment['entry_exit_entry_date'].to_date > exit_date
+                residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(enrollment['prog_type'].to_i)
+                residential && enrollment['entry_exit_entry_date'].to_date > exit_date
               end.sort_by do |enrollment|
                 # order by entry date and project type, this will put ES in front of PH/TH 
                 # if they start on the same day

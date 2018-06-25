@@ -1,0 +1,49 @@
+- path = @participation_form.new_record? ? polymorphic_path(participation_forms_path_generator, client_id: @client.id) : polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @participation_form.id)
+
+= simple_form_for @participation_form, url: path, as: :form, remote: request.xhr? do |f|
+  
+  = f.error_notification
+
+  .col-sm-12
+    .row
+      .col-sm-6
+        = f.input :signature_on, as: :date_picker
+        - if @participation_form.case_manager
+          .form-group
+            %label Case Manager
+            %p.form-control-static= @participation_form.case_manager&.name
+
+        = f.input :location
+      - if @blank_participation_form_url.present?
+        .col-sm-6.text-right
+          = link_to @blank_participation_form_url, class: 'btn btn-secondary' do
+            %i.icon-download2
+            Blank Participation Form
+
+    .row
+      .col-sm-6
+        = f.input :file, as: :file 
+      .col-sm-6
+        - if @participation_form.health_file.present?
+          .form-group
+            %label Existing File
+            %div
+              .btn-group.existing-file
+                = link_to polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ), class: 'btn btn-default' do
+                  = @participation_form.health_file&.name
+                = link_to polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ), class: 'btn btn-danger btn-icon-only', method: :delete, remote: true do
+                  %span.icon-cross{ style: "color:white; margin:0" }
+
+    %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
+
+
+    - if @participation_form.reviewed_by.present?
+      .form-group
+        %label Reviewed by Supervisor
+        %p.form-control-static= @participation_form.reviewed_by&.name
+    - elsif current_user.can_approve_participation?
+      = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark reviewed by supervisor', checked_value: 'yes', unchecked_value: 'no'
+
+  .col-sm-12
+    .text-right
+      = f.button :submit, 'Save'

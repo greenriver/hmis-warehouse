@@ -143,6 +143,12 @@ module ArelHelper
   def enx_t
     GrdaWarehouse::EnrollmentExtra.arel_table
   end
+  def hpr_t 
+    Health::PatientReferral.arel_table
+  end
+  def hapr_t 
+    Health::AgencyPatientReferral.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -345,6 +351,12 @@ module ArelHelper
     end
     def enx_t
       GrdaWarehouse::EnrollmentExtra.arel_table
+    end
+    def hpr_t 
+      Health::PatientReferral.arel_table
+    end
+    def hapr_t 
+      Health::AgencyPatientReferral.arel_table
     end
   end
 end

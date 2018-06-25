@@ -30,9 +30,6 @@ th .fa {
   z-index: $zIndex-3--notice;
   @include open-sans-medium;
   color: rgba($black, .75);
-  &-info {
-    color: rgba($white, .90);
-  }
 }
 
 .alert a {
@@ -46,12 +43,6 @@ th .fa {
 .alert a:hover,
 .alert a:focus {
   text-decoration: none;
-}
-
-.alert-info {
-  a {
-    color: rgba($white, .90);
-  }
 }
 
 a.icon-cross:link {
@@ -82,4 +73,9 @@ a.icon-cross:link {
 
 .label {
   @extend .c-tag-pill;
+}
+
+.dropdown-menu
+{
+  z-index: 1500;
 }

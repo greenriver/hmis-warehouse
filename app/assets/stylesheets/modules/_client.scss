@@ -267,12 +267,6 @@ $client-image-height: 200px;
   }
 }
 
-.clients__client {
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
-  background-color: $white;
-}
-
 .client__details{
   padding-right: space(4);
   flex: 0 0 33%;
@@ -312,49 +306,65 @@ $client-image-height: 200px;
   margin-bottom: 0;
 }
 
-.client__filter .dropdown-menu.options,
+/* .client__filter .dropdown-menu.options,
 .client__filter-active .dropdown-menu.options {
-  width: 38em;
+  width: 100%;
   padding: 1em;
-}
+  @include media-breakpoint-up(sm) {
+    width: 38em;
+  }
+} */
+
 .client__filter-header
 {
   margin-top: 0;
 }
+
 .client__sort .dropdown-menu.options
 {
   width: 15em;
   padding: 1em;
 }
-.client__sort ul
-{
-  list-style-type: none;
-  padding-left: 0.25em;
-}
-.client__filter-active .btn-default {
-  background-color: $cob-sg-blue-004;
-  color: white;
-}
+
 .client__assessment-question,
-.client__assessment-answer
-{
+.client__assessment-answer {
   margin-left: 1em;
   margin-right: 1em;
+  margin-bottom: rem(2px);
 }
-.client__assessment-question
-{
+
+.client__assessment-question {
   padding-bottom: 0.5em;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
 }
-.client__assessment-answer
-{
+
+.client__assessment-question--title {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+
+.client__assessment-answer {
   padding-bottom: 1.5em;
   margin-left: 1em;
+  text-indent: 1em;
 }
-.client__assessment-section-heading
-{
+
+.client__assessment-answer--text {
+  margin-bottom: rem(5px);
+}
+
+.client__assessment-section-heading {
   border-bottom: 1px solid $gray-040;
+  font: Open Sans;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 24px;
 }
+
 .enrollment__project_type
 {
   display: inline-block;
@@ -476,4 +486,33 @@ $file-thumbnail-size: 75px;
     left: 0;
     right: 0;
   }
+}
+
+.sdh-note__activity {
+  &:first-of-type {
+    margin-top: -16px;
+    .sdh-note__activity h5 {
+      border-top-left-radius: $border-radius-default;
+      border-top-right-radius: $border-radius-default;
+    }
+  }
+}
+
+.sdh-note__action,
+.sdh-note__activity h3 {
+  @include internal-card-heading;
+}
+
+.sdh-note__action {
+  margin-top: space(4);
+  margin-bottom: -16px;
+  border-bottom: 0;
+  border-bottom-left-radius: $border-radius-default;
+  border-bottom-right-radius: $border-radius-default;
+}
+
+.sdh-note__activity h5 a {
+  text-transform: none;
+  @include open-sans-normal;
+  padding-left: 20px;
 }

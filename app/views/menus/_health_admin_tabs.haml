@@ -1,0 +1,62 @@
+:ruby
+  tabs = [
+    {
+      title: 'Patient Referrals',
+      path: review_admin_health_patient_referrals_path,
+      controllers: ['patient_referrals'],
+      visible: can_approve_patient_assignments?,
+    },
+    {
+      title: 'Identify Patients',
+      path: review_admin_health_agency_patient_referrals_path,
+      controllers: ['agency_patient_referrals'],
+      visible: can_manage_patients_for_own_agency? || can_manage_health_agency?,
+    },
+    {
+      title: 'Health Agencies',
+      path: admin_health_agencies_path,
+      controllers: ['agencies'],
+      visible: can_administer_health? || can_manage_health_agency?,
+    },
+    {
+      title: 'Pilot Patients',
+      path: admin_health_patients_path, 
+      controllers: ['patients'],
+      visible: can_administer_health? || can_manage_all_patients?,
+    },
+    {
+      title: 'User Access',
+      path: admin_health_users_path, 
+      controllers: ['users'],
+      visible: can_administer_health? ,
+    },
+    {
+      title: 'Health Roles',
+      path: admin_health_roles_path,
+      controllers: ['roles'],
+      visible: can_administer_health? ,
+    },
+    {
+      title: 'Team Coordinators',
+      path: admin_health_team_coordinators_path,
+      controllers: ['team_coordinators'],
+      visible: can_administer_health? ,
+    },
+  ]
+
+- if GrdaWarehouse::Config.get(:healthcare_available)
+  .row
+    %ul.nav.nav-tabs.margin-bottom-02
+      - tabs.each do |tab|
+        - if tab[:visible]
+          %li.nav-item{role: 'presentation', class: tab[:controllers].include?(controller_name) ? 'active' : ''}
+            = link_to tab[:path] do
+              = tab[:title].html_safe
+    
+
+
+
+
+
+    
+        

@@ -1,32 +1,19 @@
-- if @goals.present?
-  .row.jGoals
-    .col-sm-12
-      - @goals.each do |goal|
-        = render goal
-
-- unless @readonly
-  = content_for :page_js do
-    :javascript
-      (function($) {
-        $('.goal-form input[type=submit]').on('click', function(e) {
-          $(this).closest('.goal-form').find('.status').html('<div class="alert alert-info">Saving...</div>')
-        });
-                
-        // Enable the confidence slider
-        $('.jGoals').bind('DOMSubtreeModified', function() {
-          if($('.confidence_slider.ui-slider').length == 0) {
-            $('.confidence_slider').slider({
-              value: $('input#goal_confidence').val(),
-              min: 1,
-              max: 10,
-              step: 1,
-              slide: function(e, ui) {
-                var $confidence = $(e.target).closest('.confidence');
-                $('input#goal_confidence').attr('value', ui.value);
-                console.log(e);
-                $confidence.find('.value').text(ui.value); 
-              }
-            });
-          }
-        });
-      })(jQuery);
+%section.health-care-plan__goals.row
+  .col-sm-10.col-lg-8
+    .c-card
+      .c-card__header.c-card__header--external
+        %h3 Goals
+        = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+          %i.icon-plus
+          Add Goal
+      .c-card__content.health-care-plan__goal-list
+        - if @careplan.hpc_goals.any?
+          - @careplan.hpc_goals.each_with_index do |goal, index|
+            = render goal, readonly: true, index: (index + 1)
+        - else
+          %p.no-data.jEmpty
+            No goals currently.
+          .c-card__internal-primary-action.jEmpty
+            = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+              %i.icon-plus
+              Add Goal

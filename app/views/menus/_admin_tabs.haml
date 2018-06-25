@@ -2,19 +2,19 @@
   %ul.nav.nav-tabs.margin-bottom-02
     -if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_users_path))}
-        = link_to 'User Accounts', admin_users_path, class: 'nav-link'
+        = link_to 'Users', admin_users_path, class: 'nav-link'
     -if can_manage_config?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_configs_path))}
-        = link_to 'Site Configuration', admin_configs_path, class: 'nav-link'
+        = link_to 'Site Config', admin_configs_path, class: 'nav-link'
+    -if can_manage_config?
+      %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_public_files_path))}
+        = link_to 'Public Files', admin_public_files_path, class: 'nav-link'
     -if can_edit_translations?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_translation_keys_path))}
-        = link_to 'Manage Translations', admin_translation_keys_path, class: 'nav-link'
+        = link_to 'Translations', admin_translation_keys_path, class: 'nav-link'
     -if can_view_imports?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_dashboard_imports_path))}
-        = link_to 'Import Dashboard', admin_dashboard_imports_path, class: 'nav-link'
-    -if can_administer_health? && GrdaWarehouse::Config.get(:healthcare_available)
-      %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_health_admin_index_path))}
-        = link_to 'Healthcare Administration', admin_health_admin_index_path, class: 'nav-link'
+        = link_to 'Imports', admin_dashboard_imports_path, class: 'nav-link'
     -if can_edit_dq_grades?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_data_quality_grades_path))}
         = link_to 'Grade Scale', admin_data_quality_grades_path, class: 'nav-link'

@@ -1,0 +1,16 @@
+- activity = Health::QualifyingActivity
+%div{data: {behavior: 'activities'}}
+  = f.simple_fields_for :activities, @activities do |f2|
+    .sdh-note__activity{data: {behavior: 'activity'}}
+      - if f2.object.unsubmitted?
+        %h3
+          = "Qualifying Activity ##{f2.index+1}"
+        = render 'fields_for_activity', f: f2, activity: activity
+      - else
+        = render 'display_note_section', section: f2.object.display_sections(f2.index)
+  - unless @note.activities.any?
+    %p{data: {behavior: 'no activities'}} No Qualifying Activities
+-# template for js to copy to add activity
+= f.simple_fields_for :activities, @template_activity, child_index: 'COPY' do |f2|
+  %div{style: 'display:none;', data: {behavior: 'activity to copy'}}
+    = render 'fields_for_activity', f: f2, activity: activity

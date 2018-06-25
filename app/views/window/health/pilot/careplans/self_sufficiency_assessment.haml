@@ -1,0 +1,13 @@
+- content_for :modal_title, 'Self-Sufficiency Assessment'
+=# debug @assessment.answers['sections']
+
+- if true
+  
+  %p.text-small
+    Only answered questions are shown.
+  - @assessment.answers.with_indifferent_access[:sections].each do |section|
+    %h4.client__assessment-section-heading= section[:section_title]
+    - section[:questions].each do |question|
+      - if question[:answer].present?
+        .client__assessment-question= question[:question]
+        .client__assessment-answer= question[:answer]

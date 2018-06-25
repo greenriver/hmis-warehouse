@@ -14,6 +14,7 @@ App.init = ->
     $('input.' + id).prop('checked', checked)
   return true
 
+
 # TODO may also need to do on pjax_modal change
 $ ->
   App.init()

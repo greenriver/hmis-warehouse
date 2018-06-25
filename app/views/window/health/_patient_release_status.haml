@@ -1,0 +1,7 @@
+- unless @patient.release_forms.reviewed.exists?
+  .alert.alert--flex.alert-danger
+    %i.alert__icon.icon-warning
+    %p
+      #{@patient.name} does not have signed participation and release of information forms on file.  
+      %br
+      Patient information is still available, but you are responsible for limiting your access to only necessary content.

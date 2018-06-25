@@ -21,6 +21,7 @@ class User < ActiveRecord::Base
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
   has_many :entities, class_name: GrdaWarehouse::UserViewableEntity.name
+
   has_many :messages
 
   scope :receives_file_notifications, -> do
@@ -71,6 +72,17 @@ class User < ActiveRecord::Base
     end
   end
 
+  def has_administartive_access_to_health?
+      can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
+  end
+
+  def has_patient_referral_review_access?
+    can_approve_patient_assignments? || can_manage_patients_for_own_agency?
+  end
+
+  def has_some_patient_access?
+    can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
+  end
 
 
   # def role_keys
@@ -133,6 +145,24 @@ class User < ActiveRecord::Base
     viewable GrdaWarehouse::Cohort
   end
 
+  def user_care_coordinators
+    Health::UserCareCoordinator.where(user_id: id)
+  end
+
+  def care_coordinators
+    ids = user_care_coordinators.pluck(:care_coordinator_id)
+    User.where(id: ids)
+  end
+
+  def user_team_coordinators
+    Health::UserCareCoordinator.where(care_coordinator_id: id)
+  end
+
+  def team_coordinators
+    ids = user_team_coordinators.pluck(:user_id)
+    User.where(id: ids)
+  end
+  
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::UserViewableEntity.transaction do
@@ -160,7 +190,6 @@ class User < ActiveRecord::Base
     return admin_configs_path if can_manage_config?
     return admin_translation_keys_path if can_edit_translations?
     return admin_dashboard_imports_path if can_view_imports?
-    return admin_health_admin_index_path if can_administer_health?
   end
 
   def subordinates
@@ -196,6 +225,13 @@ class User < ActiveRecord::Base
     User.where(id: sub_ids - manager_ids)
   end
 
+  def health_agency
+    agency_user&.agency
+  end
+
+  def agency_user
+    Health::AgencyUser.where(user_id: id).last
+  end
   # send email upon creation or only in a periodic digest
   def continuous_email_delivery?
     email_schedule.nil? || email_schedule == 'immediate'

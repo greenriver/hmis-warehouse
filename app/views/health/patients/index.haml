@@ -1,0 +1,22 @@
+- content_for(:title, "Patients for #{current_user.health_agency&.name}")
+%h1= content_for(:title)
+
+.o-page__controls
+  .o-page__search
+    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+  .o-page__filter
+    = render 'filter'
+%p.mr-5= page_entries_info @patients, entry_name: _('patient')
+= paginate @patients
+
+- if @patients.any?
+  - @patients.each do |patient|
+    = render 'patient_card', patient: patient
+
+= paginate @patients
+
+= content_for :page_js do
+  :javascript
+    $('.jCareCoordinator').on('change', function(e){
+      $(this).closest('form').trigger('submit');
+    });
