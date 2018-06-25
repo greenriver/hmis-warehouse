@@ -12,6 +12,10 @@
         %dd.breaker
         %dt.inline Case Worker:
         %dd.inline= @cha.user&.name
+        %dd.breaker
+        - if @cha.health_file.present?
+          %dt.inline File:
+          %dd.inline= link_to @cha.health_file&.name, polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha)
 
       - if @cha.reviewed_by
         %strong Supervisor Review:
