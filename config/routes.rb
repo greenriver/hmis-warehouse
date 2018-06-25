@@ -24,7 +24,7 @@ Rails.application.routes.draw do
       resources :medications, only: [:index]
       resources :problems, only: [:index]
       resources :self_sufficiency_matrix_forms
-      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update] do
+      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy] do
         member do
           delete :remove_file
           get :download

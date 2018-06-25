@@ -7,7 +7,7 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
-    before_action :load_note, only: [:show, :edit, :update, :download, :remove_file]
+    before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
 
     def show
       render :show
@@ -59,6 +59,11 @@ module Window::Health
       @noteAdded = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
       respond_with @note, location: polymorphic_path(careplans_path_generator)
+    end
+
+    def destroy
+      @note.destroy!
+      redirect_to polymorphic_path(careplans_path_generator)
     end
 
     def download
@@ -182,7 +187,10 @@ module Window::Health
           :follow_up,
           :_destroy
         ]
-      ).reject{|k, v| v.blank?}
+      ).reject do |k, v|
+        k != 'topics' && v.blank?
+      end
+      puts permitted_params
       add_calculated_params_to_activities!(permitted_params)
     end
 
