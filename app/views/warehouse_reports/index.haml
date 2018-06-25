@@ -1,17 +1,11 @@
 - content_for :title, _("Warehouse Reports")
 %h1= content_for :title
 
-- active_class = ''
-
 %ul.nav.nav-tabs{role: :tablist}
   - @report_definitions.each_with_index do |(group_name, reports), index|
     %li{role: :presentation, class: (index == 0 ? 'active' : '')}
       %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
         #{group_name}
-  - if false # can_view_aggregate_health?
-    %li{role: :presentation, class: active_class}
-      %a{href: '#health-reports', role: :tab, data: {toggle: :tab}, aria: {controls: 'Health Reports'}}
-        Health
 
 .tab-content
   - @report_definitions.each_with_index do |(group_name, reports), index|
