@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180617130414) do
+ActiveRecord::Schema.define(version: 20180626140358) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "Affiliation", ["DateCreated"], name: "affiliation_date_created", using: :btree
@@ -110,6 +111,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.boolean  "youth_rrh_desired",                                  default: false, null: false
     t.string   "rrh_assessment_contact_info"
     t.datetime "rrh_assessment_collected_at"
+    t.string   "source_hash"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -146,6 +148,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
@@ -174,6 +177,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "EmploymentEducation", ["DateCreated"], name: "employment_education_date_created", using: :btree
@@ -300,6 +304,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.boolean  "roi_permission"
     t.string   "last_locality"
     t.string   "last_zipcode"
+    t.string   "source_hash"
   end
 
   add_index "Enrollment", ["DateCreated"], name: "enrollment_date_created", using: :btree
@@ -329,6 +334,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "HouseholdID",         limit: 32
+    t.string   "source_hash"
   end
 
   add_index "EnrollmentCoC", ["DateCreated"], name: "enrollment_coc_date_created", using: :btree
@@ -396,6 +402,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.integer  "InPersonIndividual"
     t.integer  "InPersonGroup"
     t.integer  "CMExitReason"
+    t.string   "source_hash"
   end
 
   add_index "Exit", ["DateCreated"], name: "exit_date_created", using: :btree
@@ -429,6 +436,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.integer  "data_source_id"
     t.integer  "SourceType"
     t.date     "effective_export_end_date"
+    t.string   "source_hash"
   end
 
   add_index "Export", ["ExportID"], name: "export_export_id", using: :btree
@@ -448,6 +456,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "Funder", ["DateCreated"], name: "funder_date_created", using: :btree
@@ -455,6 +464,34 @@ ActiveRecord::Schema.define(version: 20180617130414) do
   add_index "Funder", ["ExportID"], name: "funder_export_id", using: :btree
   add_index "Funder", ["data_source_id", "FunderID"], name: "unk_Funder", unique: true, using: :btree
   add_index "Funder", ["data_source_id"], name: "index_Funder_on_data_source_id", using: :btree
+
+  create_table "Geography", force: :cascade do |t|
+    t.string   "SiteID"
+    t.string   "ProjectID"
+    t.string   "CoCCode",         limit: 50
+    t.integer  "PrincipalSite"
+    t.string   "Geocode",         limit: 50
+    t.string   "Address"
+    t.string   "City"
+    t.string   "State",           limit: 2
+    t.string   "ZIP",             limit: 10
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string   "UserID",          limit: 100
+    t.datetime "DateDeleted"
+    t.string   "ExportID"
+    t.integer  "data_source_id"
+    t.date     "InformationDate"
+    t.string   "Address2"
+    t.integer  "GeographyType"
+    t.string   "source_hash"
+  end
+
+  add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
+  add_index "Geography", ["DateUpdated"], name: "site_date_updated", using: :btree
+  add_index "Geography", ["ExportID"], name: "site_export_id", using: :btree
+  add_index "Geography", ["data_source_id", "SiteID"], name: "unk_Site", unique: true, using: :btree
+  add_index "Geography", ["data_source_id"], name: "index_Geography_on_data_source_id", using: :btree
 
   create_table "HealthAndDV", force: :cascade do |t|
     t.string   "HealthAndDVID"
@@ -476,6 +513,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "HealthAndDV", ["DateCreated"], name: "health_and_dv_date_created", using: :btree
@@ -568,6 +606,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.integer  "OtherInsurance"
     t.string   "OtherInsuranceIdentify",       limit: 50
     t.integer  "ConnectionWithSOAR"
+    t.string   "source_hash"
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
@@ -602,6 +641,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "Inventory", ["DateCreated"], name: "inventory_date_created", using: :btree
@@ -622,6 +662,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.boolean  "dmh",                                default: false, null: false
+    t.string   "source_hash"
   end
 
   add_index "Organization", ["ExportID"], name: "organization_export_id", using: :btree
@@ -654,6 +695,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.integer  "VictimServicesProvider"
     t.integer  "HousingType"
     t.string   "local_planning_group"
+    t.string   "source_hash"
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
@@ -676,6 +718,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "hud_coc_code"
+    t.string   "source_hash"
   end
 
   add_index "ProjectCoC", ["DateCreated"], name: "project_coc_date_created", using: :btree
@@ -701,6 +744,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
+    t.string   "source_hash"
   end
 
   add_index "Services", ["DateCreated"], name: "services_date_created", using: :btree
@@ -713,33 +757,6 @@ ActiveRecord::Schema.define(version: 20180617130414) do
   add_index "Services", ["data_source_id", "PersonalID", "RecordType", "ProjectEntryID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date", using: :btree
   add_index "Services", ["data_source_id", "ServicesID"], name: "unk_Services", unique: true, using: :btree
   add_index "Services", ["data_source_id"], name: "index_Services_on_data_source_id", using: :btree
-
-  create_table "Site", force: :cascade do |t|
-    t.string   "SiteID"
-    t.string   "ProjectID"
-    t.string   "CoCCode",         limit: 50
-    t.integer  "PrincipalSite"
-    t.string   "Geocode",         limit: 50
-    t.string   "Address"
-    t.string   "City"
-    t.string   "State",           limit: 2
-    t.string   "ZIP",             limit: 10
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
-    t.string   "UserID",          limit: 100
-    t.datetime "DateDeleted"
-    t.string   "ExportID"
-    t.integer  "data_source_id"
-    t.date     "InformationDate"
-    t.string   "Address2"
-    t.integer  "GeographyType"
-  end
-
-  add_index "Site", ["DateCreated"], name: "site_date_created", using: :btree
-  add_index "Site", ["DateUpdated"], name: "site_date_updated", using: :btree
-  add_index "Site", ["ExportID"], name: "site_export_id", using: :btree
-  add_index "Site", ["data_source_id", "SiteID"], name: "unk_Site", unique: true, using: :btree
-  add_index "Site", ["data_source_id"], name: "index_Site_on_data_source_id", using: :btree
 
   create_table "administrative_events", force: :cascade do |t|
     t.integer  "user_id",     null: false
@@ -2866,6 +2883,7 @@ ActiveRecord::Schema.define(version: 20180617130414) do
   add_foreign_key "EnrollmentCoC", "data_sources"
   add_foreign_key "Exit", "data_sources"
   add_foreign_key "Funder", "data_sources"
+  add_foreign_key "Geography", "data_sources"
   add_foreign_key "HealthAndDV", "data_sources"
   add_foreign_key "IncomeBenefits", "data_sources"
   add_foreign_key "Inventory", "data_sources"
@@ -2873,7 +2891,6 @@ ActiveRecord::Schema.define(version: 20180617130414) do
   add_foreign_key "Project", "data_sources"
   add_foreign_key "ProjectCoC", "data_sources"
   add_foreign_key "Services", "data_sources"
-  add_foreign_key "Site", "data_sources"
   add_foreign_key "files", "vispdats"
   add_foreign_key "import_logs", "data_sources"
   add_foreign_key "service_history_services", "service_history_enrollments", on_delete: :cascade
@@ -3523,5 +3540,29 @@ ActiveRecord::Schema.define(version: 20180617130414) do
   add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
+
+  create_view "Site",  sql_definition: <<-SQL
+      SELECT "Geography"."SiteID",
+      "Geography"."ProjectID",
+      "Geography"."CoCCode",
+      "Geography"."PrincipalSite",
+      "Geography"."Geocode",
+      "Geography"."Address",
+      "Geography"."City",
+      "Geography"."State",
+      "Geography"."ZIP",
+      "Geography"."DateCreated",
+      "Geography"."DateUpdated",
+      "Geography"."UserID",
+      "Geography"."DateDeleted",
+      "Geography"."ExportID",
+      "Geography".data_source_id,
+      "Geography".id,
+      "Geography"."InformationDate",
+      "Geography"."Address2",
+      "Geography"."GeographyType",
+      "Geography".source_hash
+     FROM "Geography";
+  SQL
 
 end
