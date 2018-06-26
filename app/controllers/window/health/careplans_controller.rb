@@ -14,6 +14,23 @@ module Window::Health
       @careplan = @careplans.sorted.first
       @disable_goal_actions = true
       @goals = @careplan&.hpc_goals
+
+      #TDB: background this and/or wire up callbacks from HS
+      @careplans.each do |cp|
+        if cp.primary_signable_document.present?
+          doc = cp.primary_signable_document
+          doc.refresh_signers!
+          if cp.patient_signed_on.blank? && doc.signed_by?(@patient.email)
+            cp.patient_signed_on = doc.signed_on(@patient.email)
+          end
+
+          if cp.provider_signed_on.blank? && doc.signed_by?(cp.team.pcp_designee&.email)
+            cp.provider_signed_on = doc.signed_on(cp.team.pcp_designee&.email)
+          end
+
+          cp.save!
+        end
+      end
     end
 
     def show

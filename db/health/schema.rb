@@ -609,6 +609,27 @@ ActiveRecord::Schema.define(version: 20180621211650) do
     t.string   "status"
   end
 
+  create_table "signable_documents", force: :cascade do |t|
+    t.integer  "signable_id",                                                              null: false
+    t.string   "signable_type",                                                            null: false
+    t.boolean  "primary",                default: true,                                    null: false
+    t.integer  "user_id",                                                                  null: false
+    t.jsonb    "hs_initial_request"
+    t.jsonb    "hs_initial_response"
+    t.datetime "hs_initial_response_at"
+    t.jsonb    "hs_last_response"
+    t.datetime "hs_last_response_at"
+    t.string   "hs_subject",             default: "Signature Request",                     null: false
+    t.string   "hs_title",               default: "Signature Request",                     null: false
+    t.text     "hs_message",             default: "You've been asked to sign a document."
+    t.jsonb    "signers",                default: [],                                      null: false
+    t.jsonb    "signed_by",              default: [],                                      null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "signable_documents", ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree
+
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false
     t.integer  "team_id",      null: false

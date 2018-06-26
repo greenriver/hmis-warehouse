@@ -43,6 +43,17 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  def redirect_back(*args)
+    argsdup = args.dup
+    fallback = argsdup.delete(:fallback_location) || root_path
+
+    if request.env['HTTP_REFERER'].present?
+      redirect_to request.env['HTTP_REFERER'], *argsdup
+    else
+      redirect_to fallback, *argsdup
+    end
+  end
+
   def locale
     default_locale = 'en'
     params[:locale] || session[:locale] || default_locale

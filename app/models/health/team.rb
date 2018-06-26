@@ -3,6 +3,7 @@ module Health
     has_paper_trail
     acts_as_paranoid
     has_many :members, class_name: Health::Team::Member.name
+    has_one :pcp_designee, class_name: Health::Team::PcpDesignee.name
     belongs_to :patient
     belongs_to :editor, class_name: User.name, foreign_key: :user_id
 

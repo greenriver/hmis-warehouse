@@ -17,6 +17,9 @@ module Health
     belongs_to :provider, class_name: Health::Team::Member.name
     belongs_to :representative, class_name: Health::Team::Member.name
 
+    has_many :signable_documents, as: :signable
+    has_one :primary_signable_document, -> { where(signable_documents: {primary: true}) }, class_name: Health::SignableDocument.name, as: :signable
+
     serialize :service_archive, Array
     serialize :equipment_archive, Array
 

@@ -1,0 +1,20 @@
+- content_for :page_js do
+  %script{type: "text/javascript", src: "https://s3.amazonaws.com/cdn.hellosign.com/public/js/hellosign-embedded.LATEST.min.js"}
+
+  :javascript
+    $(function() {
+      HelloSign.init("#{ENV['HELLO_SIGN_CLIENT_ID']}");
+      HelloSign.open({
+        url: '#{@signature_request_url}',
+        allowCancel: true,
+        messageListener: function(eventData) {
+          console.log(eventData.signature_id);
+          console.log(eventData.event);
+          console.debug(eventData);
+
+          if (eventData.event === "signature_request_signed") {
+            window.location = "#{params[:post_sign_path]||new_user_session_path}";
+          }
+        }
+      });
+    })
