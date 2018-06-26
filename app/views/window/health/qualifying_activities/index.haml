@@ -28,5 +28,6 @@
               %td= qa.user_full_name
               %td= qa.procedure_code
               %td= qa.modifiers.join('>')
+        %p= paginate @qualifying_activities
     - else
       %p.no-data None on file.

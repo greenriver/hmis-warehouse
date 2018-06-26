@@ -11,8 +11,10 @@ module Window::Health
     end
 
     def set_qualifying_activities
-      @qualifying_activities = @patient.qualifying_activities.order(date_of_activity: :desc)
+      # sort / paginate
+      @qualifying_activities = @patient.qualifying_activities
+        .order(date_of_activity: :desc)
+        .page(params[:page]).per(2)
     end
   end
 end
-
