@@ -10,7 +10,7 @@ module WarehouseReports
 
     def download
       @patients = ::Health::Patient.where(client_id: @client_ids.to_a).
-        joins(:careplan).
+        joins(:careplans).
         index_by(&:client_id)
       respond_to do |format|
         format.xlsx do

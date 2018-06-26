@@ -13,7 +13,7 @@ wb.add_worksheet(name: "Touch Point") do |sheet|
     row = []
     client_id = response.client.destination_client.id
     client_name = response.client.destination_client.name
-    enroll_date = @patients[client_id]&.careplan&.sdh_enroll_date
+    enroll_date = @patients[client_id]&.careplans&.sorted&.first&.sdh_enroll_date
 
     row << client_id 
     row << client_name
