@@ -6,9 +6,8 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health-reports'
 
 - if GrdaWarehouse::Config.get(:eto_api_available)
-  .well
-    .row
-      .col-sm-12
-        = render 'filter'
+  .row
+    .col-sm-12
+      = render 'filter'
 - else
   %p Access to the ETO API is required for this report.
