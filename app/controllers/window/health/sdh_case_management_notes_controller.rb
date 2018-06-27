@@ -117,15 +117,21 @@ module Window::Health
 
     def save_file
       file = params.dig(:health_sdh_case_management_note, :file)
+      note = params.dig(:health_sdh_case_management_note, :file_note)
       if file
         health_file = Health::SdhCaseManagementNoteFile.new(
           user_id: current_user.id,
           client_id: @client.id,
           file: file,
-          content: file&.read
+          content: file&.read,
+          note: note
         )
         @note.health_file = health_file
         @note.save(validate: false)
+      elsif note && @note.health_file.present?
+        health_file = @note.health_file
+        health_file.note = note
+        health_file.save
       end
     end
 
@@ -190,7 +196,6 @@ module Window::Health
       ).reject do |k, v|
         k != 'topics' && v.blank?
       end
-      puts permitted_params
       add_calculated_params_to_activities!(permitted_params)
     end
 

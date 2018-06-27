@@ -4,17 +4,17 @@ module Health
     US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/
 
     TOPICS = [
-      'Basic Needs',
-      'Behavioral Health',
+      'Basic needs',
+      'Behavioral health',
       'Benefits and income',
       'Education and employment',
-      'Housing stabilsation',
+      'Housing stabilization',
       'Legal',
       'Medical',
       'Needs assessment',
       'Obtain housing',
       'Transportation',
-      'Vital document'
+      'Vital documents'
     ]
 
     PLACE_OF_CONTACT = [
@@ -43,7 +43,7 @@ module Health
     HOUSING_STATUS_DATE = ['Supportive Housing', 'Housing with No Supports']
 
     CLIENT_ACTION = [
-      'Clilent signed participation form and release of information',
+      'Client signed participation form and release of information',
       'Client declined to participate in BH CP program',
       'Client wants to switch to a different BH CP',
       'Client declines consent at this time; willing to revisit',
@@ -201,7 +201,8 @@ module Health
         title: 'Additional Questions',
         values: [
           {key: 'Additional Information:', value: notes_from_encounter, text_area: true},
-          {key: 'File:', value: health_file&.name, download: true}
+          {key: 'File:', value: health_file&.name, download: true},
+          {key: 'File Description:', value: health_file&.note, text_area: true}
         ]
       }
     end
