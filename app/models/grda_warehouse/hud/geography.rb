@@ -7,7 +7,7 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       case version
-      when '5'
+      when '5.1'
         [
           "SiteID",
           "ProjectID",
