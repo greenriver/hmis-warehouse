@@ -91,7 +91,7 @@ module Health
       },
       physical_health: {
         1 => "Untreated and chronic medical and life-threatening conditions, with inconsistent to minimal follow-up care. (in-crisis)",
-        2 => "Chronic medical conditions, potentially life threating, with inconsistent follow up care. (vulnerable)",
+        2 => "Chronic medical conditions, potentially life-threatening, with inconsistent follow up care. (vulnerable)",
         3 => "Chronic illness generally well managed and attempting to make and keep routine medical and dental appointments (safe)",
         4 => "No chronic illness or stable chronic illness and maintain good preventive medical and dental care practices. (stable)",
         5 => "No chronic illness and maintaining proactive preventive medical and dental care practices. (thriving)",
@@ -218,7 +218,7 @@ module Health
     }
 
     SECTION_FOOTERS = {
-      risk: "Work with guest (and other staff as applicable) around safety planning. Complete the CRIT and/or Suicide assessment after safety planning session."
+      # risk: "Work with guest (and other staff as applicable) around safety planning. Complete the CRIT and/or Suicide assessment after safety planning session."
     }
 
     # for health_charts (match with old for charts code)
@@ -276,8 +276,12 @@ module Health
       end
     end
 
+    def questions_answered
+      SECTIONS.keys.map { |key| self.send("#{key}_score") }.compact.size
+    end
+
     def average_score
-      (total_score / SECTIONS.keys.size.to_f).round(1)
+      (total_score / questions_answered.to_f).round(1)
     end
 
     # for health_charts
