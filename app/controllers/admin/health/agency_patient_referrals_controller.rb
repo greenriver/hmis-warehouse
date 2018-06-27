@@ -16,7 +16,7 @@ module Admin::Health
           select(:patient_referral_id)
         @patient_referrals = Health::PatientReferral.
           unassigned.includes(:relationships).
-          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
+          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids.to_sql))).
           references(:relationships)
       end
       respond_to do |format|
