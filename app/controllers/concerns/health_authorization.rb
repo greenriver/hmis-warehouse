@@ -6,11 +6,11 @@ module HealthAuthorization
       return true  if current_user.has_administartive_access_to_health?
       not_authorized!
     end
-    
+
     def require_can_review_patient_assignments!
       return true if current_user.has_patient_referral_review_access?
       not_authorized!
-    end 
+    end
 
     def require_can_manage_health_agencies!
       return true if current_user.can_administer_health? || current_user.can_manage_health_agency?
@@ -30,5 +30,11 @@ module HealthAuthorization
       return true if current_user.has_some_patient_access?
       not_authorized!
     end
+
+    def require_pilot_or_some_client_access!
+      return true if current_user.has_some_patient_access? || current_user.can_edit_client_health? || current_user.can_view_client_health?
+      not_authorized!
+    end
+
   end
 end
