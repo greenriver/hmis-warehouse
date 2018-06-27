@@ -127,6 +127,18 @@ module Health
         },
       }.sort_by{|_, m| m[:weight]}.to_h
     end
+    
+    def self.date_search(start_date, end_date)
+      if start_date.present? && end_date.present?
+        self.where("date_of_activity >= ? AND date_of_activity <= ?", start_date, end_date)
+      elsif start_date.present?
+        self.where("date_of_activity >= ?", start_date)
+      elsif end_date.present? 
+        self.where("date_of_activity <= ?", end_date)
+      else
+        QualifyingActivity.all
+      end
+    end
 
     # These validations must come after the above methods
     validates :mode_of_contact, inclusion: {in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s)}, allow_blank: true
