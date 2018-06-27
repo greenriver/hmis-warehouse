@@ -466,12 +466,12 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   add_index "Funder", ["data_source_id"], name: "index_Funder_on_data_source_id", using: :btree
 
   create_table "Geography", force: :cascade do |t|
-    t.string   "SiteID"
+    t.string   "GeographyID"
     t.string   "ProjectID"
     t.string   "CoCCode",         limit: 50
     t.integer  "PrincipalSite"
     t.string   "Geocode",         limit: 50
-    t.string   "Address"
+    t.string   "Address1"
     t.string   "City"
     t.string   "State",           limit: 2
     t.string   "ZIP",             limit: 10
@@ -490,7 +490,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
   add_index "Geography", ["DateUpdated"], name: "site_date_updated", using: :btree
   add_index "Geography", ["ExportID"], name: "site_export_id", using: :btree
-  add_index "Geography", ["data_source_id", "SiteID"], name: "unk_Site", unique: true, using: :btree
+  add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Site", unique: true, using: :btree
   add_index "Geography", ["data_source_id"], name: "index_Geography_on_data_source_id", using: :btree
 
   create_table "HealthAndDV", force: :cascade do |t|
@@ -3542,12 +3542,12 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
 
   create_view "Site",  sql_definition: <<-SQL
-      SELECT "Geography"."SiteID",
+      SELECT "Geography"."GeographyID",
       "Geography"."ProjectID",
       "Geography"."CoCCode",
       "Geography"."PrincipalSite",
       "Geography"."Geocode",
-      "Geography"."Address",
+      "Geography"."Address1",
       "Geography"."City",
       "Geography"."State",
       "Geography"."ZIP",

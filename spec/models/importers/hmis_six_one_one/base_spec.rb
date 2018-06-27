@@ -194,7 +194,7 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
       expect(GrdaWarehouse::Hud::Inventory.count).to eq(4)
     end
     it 'the database will have four geographies' do
-      expect(GrdaWarehouse::Hud::Site.count).to eq(4)
+      expect(GrdaWarehouse::Hud::Geography.count).to eq(4)
     end
     it 'the database will have five funders' do
       expect(GrdaWarehouse::Hud::Funder.count).to eq(5)

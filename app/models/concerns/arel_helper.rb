@@ -86,8 +86,8 @@ module ArelHelper
   def s_t
     GrdaWarehouse::Hud::Service.arel_table
   end
-  def site_t
-    GrdaWarehouse::Hud::Site.arel_table
+  def g_t
+    GrdaWarehouse::Hud::Geography.arel_table
   end
   def e_t
     GrdaWarehouse::Hud::Enrollment.arel_table
@@ -127,7 +127,7 @@ module ArelHelper
   end
   def wcp_t
     GrdaWarehouse::WarehouseClientsProcessed.arel_table
-  end    
+  end
   def ib_t
     GrdaWarehouse::Hud::IncomeBenefit.arel_table
   end
@@ -143,10 +143,10 @@ module ArelHelper
   def enx_t
     GrdaWarehouse::EnrollmentExtra.arel_table
   end
-  def hpr_t 
+  def hpr_t
     Health::PatientReferral.arel_table
   end
-  def hapr_t 
+  def hapr_t
     Health::AgencyPatientReferral.arel_table
   end
 
@@ -295,8 +295,8 @@ module ArelHelper
     def s_t
       GrdaWarehouse::Hud::Service.arel_table
     end
-    def site_t
-      GrdaWarehouse::Hud::Site.arel_table
+    def g_t
+      GrdaWarehouse::Hud::Geography.arel_table
     end
     def e_t
       GrdaWarehouse::Hud::Enrollment.arel_table
@@ -352,10 +352,10 @@ module ArelHelper
     def enx_t
       GrdaWarehouse::EnrollmentExtra.arel_table
     end
-    def hpr_t 
+    def hpr_t
       Health::PatientReferral.arel_table
     end
-    def hapr_t 
+    def hapr_t
       Health::AgencyPatientReferral.arel_table
     end
   end

@@ -1,0 +1,24 @@
+%h2 Sites
+- if geographies.count > 0
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Principal Site?
+        %th CoC Code
+        %th Address
+        %th City
+        %th State
+        %th Zip
+        %th Geocode
+    %tbody
+      - geographies.all.each do |geography|
+        %tr
+          %td= checkmark(geography.PrincipalSite && 1)
+          %td= geography.CoCCode
+          %td= geography.Address
+          %td= geography.City
+          %td= geography.State
+          %td= geography.ZIP
+          %td= geography.Geocode
+- else
+  %p.text-center No sites

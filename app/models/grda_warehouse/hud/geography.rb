@@ -6,26 +6,48 @@ module GrdaWarehouse::Hud
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        "GeographyID",
-        "ProjectID",
-        "CoCCode",
-        "PrincipalSite",
-        "Geocode",
-        "Address",
-        "City",
-        "State",
-        "ZIP",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5'
+        [
+          "SiteID",
+          "ProjectID",
+          "CoCCode",
+          "PrincipalSite",
+          "Geocode",
+          "Address",
+          "City",
+          "State",
+          "ZIP",
+          "DateCreated",
+          "DateUpdated",
+          "UserID",
+          "DateDeleted",
+          "ExportID"
+        ]
+      else
+        [
+          :GeographyID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :Geocode,
+          :GeographyType,
+          :Address1,
+          :Address2,
+          :City,
+          :State,
+          :ZIP,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ]
+      end
     end
 
-    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :sites
-    belongs_to :export, **hud_belongs(Export), inverse_of: :sites
+    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
+    belongs_to :export, **hud_belongs(Export), inverse_of: :geographies
     has_one :project, through: :project_coc, source: :project
 
     scope :viewable_by, -> (user) do

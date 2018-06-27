@@ -1,9 +1,9 @@
 module GrdaWarehouse::Import::HMISSixOneOne
-  class Geography < GrdaWarehouse::Hud::Site
+  class Geography < GrdaWarehouse::Hud::Geography
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
+
+    setup_hud_column_access(
       [
         :GeographyID,
         :ProjectID,
@@ -23,18 +23,11 @@ module GrdaWarehouse::Import::HMISSixOneOne
         :ExportID,
       ]
     )
-    
-    self.hud_key = :SiteID
+
+    self.hud_key = :GeographyID
 
     def self.file_name
       'Geography.csv'
-    end
-
-    # Currently this translates back to HMIS 5.1
-    def self.translate_to_db_headers(row)
-      row[:SiteID] = row.delete(:GeographyID)
-      row[:Address] = row.delete(:Address1)
-      return row
     end
 
     # Each import should be authoritative for inventory for all projects included

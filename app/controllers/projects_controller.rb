@@ -4,7 +4,7 @@ class ProjectsController < ApplicationController
   before_action :set_project, only: [:show]
 
   include ArelHelper
-  
+
   def index
     # search
     @projects = if params[:q].present?
@@ -25,7 +25,7 @@ class ProjectsController < ApplicationController
     end
     @projects = @projects
       .includes(:organization)
-      .preload(:sites)
+      .preload(:geographies)
       .preload(:inventories)
       .order(sort)
       .page(params[:page]).per(50)
