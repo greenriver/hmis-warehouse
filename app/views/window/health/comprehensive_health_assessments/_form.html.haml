@@ -30,10 +30,10 @@
               = cha_string f, :a_q5b
           .row.mb-1.pr-2
             .col-md-8
-              = cha_string f, :a_q6c, input_html: { disabled: true, value: @patient.medicaid_id }
+              = cha_string f, :a_q5c, input_html: { disabled: true, value: @patient.medicaid_id }
         .row.mb-1.pr-2
           .col-sm-8
-            = cha_string     f, :a_q6
+            = cha_string     f, :a_q6, input_html: { value: ENV['AGENCY_PROVIDER_NUMBER'] }
         = cha_radios     f, :a_q7
         .row.mb-1.pr-2
           .col-md-8.col-lg-4
@@ -272,21 +272,16 @@
         = cha_radios     f, :j_q1
         = cha_radios     f, :j_q2
         %h4= _('CHA J_Q3_HEADER')
-        %h5= _('CHA J_Q3A_HEADER')
         = cha_radios     f, :j_q3a
         = cha_radios     f, :j_q3b
-        %h5= _('CHA J_Q3C_HEADER')
         = cha_radios     f, :j_q3c
-        %h5= _('CHA J_Q3D_HEADER')
         = cha_radios     f, :j_q3d
         = cha_radios     f, :j_q3e
         = cha_radios     f, :j_q3f
-        %h5= _('CHA J_Q3G_HEADER')
         = cha_radios     f, :j_q3g
         = cha_radios     f, :j_q3h
         = cha_radios     f, :j_q3i
         = cha_radios     f, :j_q3j
-        %h5= _('CHA J_Q3K_HEADER')
         = cha_radios     f, :j_q3k
         = cha_radios     f, :j_q3l
 
@@ -431,6 +426,8 @@
           .col-md-8
             = cha_string f, :r_q1a
             = cha_string f, :r_q1b
+            = cha_string f, :r_q1c
+            = cha_string f, :r_q1d
         = cha_radios f, :r_q2
         = cha_radios f, :r_q3
         = cha_radios f, :r_q4
@@ -449,7 +446,6 @@
             = cha_string f, :r_q6d
         = cha_text   f, :r_q6e
         = cha_radios f, :r_q7
-        %p.mb-4=_('CHA R_Q7_SUBHEADER')
         = cha_checkboxes f, :r_q8
 
       %section.c-card.c-card--block
@@ -480,7 +476,7 @@
             %p.form-control-static= @cha.reviewed_by&.name
         - else
           - if can_approve_cha?
-            = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no'
+            = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no'
           - else
             Not yet reviewed
 
