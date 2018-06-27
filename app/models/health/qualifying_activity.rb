@@ -205,15 +205,21 @@ module Health
     end
 
     def title_for_mode_of_contact
-      self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :title)
+      if mode_of_contact.present?
+        self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :title)
+      end
     end
 
     def title_for_client_reached
-      self.class.client_reached[reached_client.to_sym].try(:[], :title)
+      if reached_client.present?
+        self.class.client_reached[reached_client.to_sym].try(:[], :title)
+      end
     end
 
     def title_for_activity
-      self.class.activities[activity.to_sym].try(:[], :title)
+      if activity.present?
+        self.class.activities[activity.to_sym].try(:[], :title)
+      end
     end
 
     def procedure_code

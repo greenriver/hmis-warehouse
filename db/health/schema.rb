@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180621211650) do
+ActiveRecord::Schema.define(version: 20180627182220) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -282,6 +282,7 @@ ActiveRecord::Schema.define(version: 20180621211650) do
     t.datetime "updated_at"
     t.datetime "deleted_at"
     t.integer  "patient_id"
+    t.string   "status"
   end
 
   create_table "health_files", force: :cascade do |t|
