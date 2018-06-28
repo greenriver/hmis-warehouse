@@ -22,6 +22,7 @@ module Admin::Health
     end
 
     def create
+      @form_url = admin_health_accountable_care_organizations_path
       @accountable_care_organization = accountable_care_organization_source.new(accountable_care_organization_params)
       @accountable_care_organization.save
       respond_with(@accountable_care_organization, location: admin_health_accountable_care_organizations_path)
