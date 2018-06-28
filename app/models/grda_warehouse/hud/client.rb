@@ -17,7 +17,7 @@ module GrdaWarehouse::Hud
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
     self.table_name = 'Client'
-    self.hud_key = 'PersonalID'
+    self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
 
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
@@ -25,43 +25,43 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       [
-        "PersonalID",
-        "FirstName",
-        "MiddleName",
-        "LastName",
-        "NameSuffix",
-        "NameDataQuality",
-        "SSN",
-        "SSNDataQuality",
-        "DOB",
-        "DOBDataQuality",
-        "AmIndAKNative",
-        "Asian",
-        "BlackAfAmerican",
-        "NativeHIOtherPacific",
-        "White",
-        "RaceNone",
-        "Ethnicity",
-        "Gender",
-        "OtherGender",
-        "VeteranStatus",
-        "YearEnteredService",
-        "YearSeparated",
-        "WorldWarII",
-        "KoreanWar",
-        "VietnamWar",
-        "DesertStorm",
-        "AfghanistanOEF",
-        "IraqOIF",
-        "IraqOND",
-        "OtherTheater",
-        "MilitaryBranch",
-        "DischargeStatus",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
+        :PersonalID,
+        :FirstName,
+        :MiddleName,
+        :LastName,
+        :NameSuffix,
+        :NameDataQuality,
+        :SSN,
+        :SSNDataQuality,
+        :DOB,
+        :DOBDataQuality,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :NativeHIOtherPacific,
+        :White,
+        :RaceNone,
+        :Ethnicity,
+        :Gender,
+        :OtherGender,
+        :VeteranStatus,
+        :YearEnteredService,
+        :YearSeparated,
+        :WorldWarII,
+        :KoreanWar,
+        :VietnamWar,
+        :DesertStorm,
+        :AfghanistanOEF,
+        :IraqOIF,
+        :IraqOND,
+        :OtherTheater,
+        :MilitaryBranch,
+        :DischargeStatus,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID
       ].freeze
     end
 

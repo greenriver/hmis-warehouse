@@ -9,23 +9,48 @@ module GrdaWarehouse::Hud
     has_paper_trail
 
     def self.hud_csv_headers(version: nil)
-      [
-        "ProjectID",
-        "OrganizationID",
-        "ProjectName",
-        "ProjectCommonName",
-        "ContinuumProject",
-        "ProjectType",
-        "ResidentialAffiliation",
-        "TrackingMethod",
-        "TargetPopulation",
-        "PITCount",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5.1'
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :OperatingStartDate,
+          :OperatingEndDate,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :VictimServicesProvider,
+          :HousingType,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
    include Filterable

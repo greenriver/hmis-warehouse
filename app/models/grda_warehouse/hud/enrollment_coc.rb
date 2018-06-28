@@ -2,25 +2,44 @@ module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
     self.table_name = 'EnrollmentCoC'
-    self.hud_key = 'EnrollmentCoCID'
+    self.hud_key = :EnrollmentCoCID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        "EnrollmentCoCID",
-        "ProjectEntryID",
-        "HouseholdID",
-        "ProjectID",
-        "PersonalID",
-        "InformationDate",
-        "CoCCode",
-        "DataCollectionStage",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5.1'
+        [
+          :EnrollmentCoCID,
+          :ProjectEntryID,
+          :HouseholdID,
+          :ProjectID,
+          :PersonalID,
+          :InformationDate,
+          :CoCCode,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :EnrollmentCoCID,
+          :EnrollmentID,
+          :HouseholdID,
+          :ProjectID,
+          :PersonalID,
+          :InformationDate,
+          :CoCCode,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     belongs_to :project_coc, **hud_belongs(ProjectCoc), inverse_of: :enrollment_cocs

@@ -2,40 +2,91 @@ module GrdaWarehouse::Hud
   class Exit < Base
     include HudSharedScopes
     self.table_name = 'Exit'
-    self.hud_key = 'ExitID'
+    self.hud_key = :ExitID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        "ExitID",
-        "ProjectEntryID",
-        "PersonalID",
-        "ExitDate",
-        "Destination",
-        "OtherDestination",
-        "AssessmentDisposition",
-        "OtherDisposition",
-        "HousingAssessment",
-        "SubsidyInformation",
-        "ConnectionWithSOAR",
-        "WrittenAftercarePlan",
-        "AssistanceMainstreamBenefits",
-        "PermanentHousingPlacement",
-        "TemporaryShelterPlacement",
-        "ExitCounseling",
-        "FurtherFollowUpServices",
-        "ScheduledFollowUpContacts",
-        "ResourcePackage",
-        "OtherAftercarePlanOrAction",
-        "ProjectCompletionStatus",
-        "EarlyExitReason",
-        "FamilyReunificationAchieved",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5.1'
+        [
+          :ExitID,
+          :ProjectEntryID,
+          :PersonalID,
+          :ExitDate,
+          :Destination,
+          :OtherDestination,
+          :AssessmentDisposition,
+          :OtherDisposition,
+          :HousingAssessment,
+          :SubsidyInformation,
+          :ConnectionWithSOAR,
+          :WrittenAftercarePlan,
+          :AssistanceMainstreamBenefits,
+          :PermanentHousingPlacement,
+          :TemporaryShelterPlacement,
+          :ExitCounseling,
+          :FurtherFollowUpServices,
+          :ScheduledFollowUpContacts,
+          :ResourcePackage,
+          :OtherAftercarePlanOrAction,
+          :ProjectCompletionStatus,
+          :EarlyExitReason,
+          :FamilyReunificationAchieved,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :ExitID,
+          :EnrollmentID,
+          :PersonalID,
+          :ExitDate,
+          :Destination,
+          :OtherDestination,
+          :AssessmentDisposition,
+          :OtherDisposition,
+          :HousingAssessment,
+          :SubsidyInformation,
+          :ProjectCompletionStatus,
+          :EarlyExitReason,
+          :ExchangeForSex,
+          :ExchangeForSexPastThreeMonths,
+          :CountOfExchangeForSex,
+          :AskedOrForcedToExchangeForSex,
+          :AskedOrForcedToExchangeForSexPastThreeMonths,
+          :WorkPlaceViolenceThreats,
+          :WorkplacePromiseDifference,
+          :CoercedToContinueWork,
+          :LaborExploitPastThreeMonths,
+          :CounselingReceived,
+          :IndividualCounseling,
+          :FamilyCounseling,
+          :GroupCounseling,
+          :SessionCountAtExit,
+          :PostExitCounselingPlan,
+          :SessionsInPlan,
+          :DestinationSafeClient,
+          :DestinationSafeWorker,
+          :PosAdultConnections,
+          :PosPeerConnections,
+          :PosCommunityConnections,
+          :AftercareDate,
+          :AftercareProvided,
+          :EmailSocialMedia,
+          :Telephone,
+          :InPersonIndividual,
+          :InPersonGroup,
+          :CMExitReason,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     belongs_to :data_source, inverse_of: :exits

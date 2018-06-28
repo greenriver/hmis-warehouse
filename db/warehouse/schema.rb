@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180626140358) do
+ActiveRecord::Schema.define(version: 20180628035131) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -125,7 +125,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   create_table "Disabilities", force: :cascade do |t|
     t.string   "DisabilitiesID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "PersonalID"
     t.date     "InformationDate"
     t.integer  "DisabilityType"
@@ -153,16 +153,16 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
+  add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
   add_index "Disabilities", ["ExportID"], name: "disabilities_export_id", using: :btree
   add_index "Disabilities", ["PersonalID"], name: "index_Disabilities_on_PersonalID", using: :btree
-  add_index "Disabilities", ["ProjectEntryID"], name: "index_Disabilities_on_ProjectEntryID", using: :btree
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true, using: :btree
   add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id"], name: "index_Disabilities_on_data_source_id", using: :btree
 
   create_table "EmploymentEducation", force: :cascade do |t|
     t.string   "EmploymentEducationID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "PersonalID"
     t.date     "InformationDate"
     t.integer  "LastGradeCompleted"
@@ -182,23 +182,23 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   add_index "EmploymentEducation", ["DateCreated"], name: "employment_education_date_created", using: :btree
   add_index "EmploymentEducation", ["DateUpdated"], name: "employment_education_date_updated", using: :btree
+  add_index "EmploymentEducation", ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID", using: :btree
   add_index "EmploymentEducation", ["ExportID"], name: "employment_education_export_id", using: :btree
   add_index "EmploymentEducation", ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID", using: :btree
-  add_index "EmploymentEducation", ["ProjectEntryID"], name: "index_EmploymentEducation_on_ProjectEntryID", using: :btree
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true, using: :btree
   add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id", using: :btree
 
   create_table "Enrollment", force: :cascade do |t|
-    t.string   "ProjectEntryID",                               limit: 50
+    t.string   "EnrollmentID",                                 limit: 50
     t.string   "PersonalID"
     t.string   "ProjectID",                                    limit: 50
     t.date     "EntryDate"
     t.string   "HouseholdID"
     t.integer  "RelationshipToHoH"
-    t.integer  "ResidencePrior"
+    t.integer  "LivingSituation"
     t.string   "OtherResidencePrior"
-    t.integer  "ResidencePriorLengthOfStay"
+    t.integer  "LengthOfStay"
     t.integer  "DisablingCondition"
     t.integer  "EntryFromStreetESSH"
     t.date     "DateToStreetESSH"
@@ -210,7 +210,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
     t.integer  "HousingStatus"
     t.date     "DateOfEngagement"
     t.integer  "InPermanentHousing"
-    t.date     "ResidentialMoveInDate"
+    t.date     "MoveInDate"
     t.date     "DateOfPATHStatus"
     t.integer  "ClientEnrolledInPATH"
     t.integer  "ReasonNotEnrolled"
@@ -222,7 +222,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
     t.string   "LastPermanentZIP",                             limit: 10
     t.integer  "AddressDataQuality"
     t.date     "DateOfBCPStatus"
-    t.integer  "FYSBYouth"
+    t.integer  "EligibleForRHY"
     t.integer  "ReasonNoServices"
     t.integer  "SexualOrientation"
     t.integer  "FormerWardChildWelfare"
@@ -310,18 +310,18 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   add_index "Enrollment", ["DateCreated"], name: "enrollment_date_created", using: :btree
   add_index "Enrollment", ["DateDeleted"], name: "index_Enrollment_on_DateDeleted", using: :btree
   add_index "Enrollment", ["DateUpdated"], name: "enrollment_date_updated", using: :btree
+  add_index "Enrollment", ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID", using: :btree
   add_index "Enrollment", ["EntryDate"], name: "index_Enrollment_on_EntryDate", using: :btree
   add_index "Enrollment", ["ExportID"], name: "enrollment_export_id", using: :btree
   add_index "Enrollment", ["PersonalID"], name: "index_Enrollment_on_PersonalID", using: :btree
-  add_index "Enrollment", ["ProjectEntryID"], name: "index_Enrollment_on_ProjectEntryID", using: :btree
   add_index "Enrollment", ["ProjectID"], name: "index_Enrollment_on_ProjectID", using: :btree
+  add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
   add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_PersonalID", using: :btree
-  add_index "Enrollment", ["data_source_id", "ProjectEntryID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
   add_index "Enrollment", ["data_source_id"], name: "index_Enrollment_on_data_source_id", using: :btree
 
   create_table "EnrollmentCoC", force: :cascade do |t|
     t.string   "EnrollmentCoCID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "ProjectID"
     t.string   "PersonalID"
     t.date     "InformationDate"
@@ -346,7 +346,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   create_table "Exit", force: :cascade do |t|
     t.string   "ExitID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "PersonalID"
     t.date     "ExitDate"
     t.integer  "Destination"
@@ -408,10 +408,10 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   add_index "Exit", ["DateCreated"], name: "exit_date_created", using: :btree
   add_index "Exit", ["DateDeleted"], name: "index_Exit_on_DateDeleted", using: :btree
   add_index "Exit", ["DateUpdated"], name: "exit_date_updated", using: :btree
+  add_index "Exit", ["EnrollmentID"], name: "index_Exit_on_EnrollmentID", using: :btree
   add_index "Exit", ["ExitDate"], name: "index_Exit_on_ExitDate", using: :btree
   add_index "Exit", ["ExportID"], name: "exit_export_id", using: :btree
   add_index "Exit", ["PersonalID"], name: "index_Exit_on_PersonalID", using: :btree
-  add_index "Exit", ["ProjectEntryID"], name: "index_Exit_on_ProjectEntryID", using: :btree
   add_index "Exit", ["data_source_id", "ExitID"], name: "unk_Exit", unique: true, using: :btree
   add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_PersonalID", using: :btree
   add_index "Exit", ["data_source_id"], name: "index_Exit_on_data_source_id", using: :btree
@@ -495,7 +495,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   create_table "HealthAndDV", force: :cascade do |t|
     t.string   "HealthAndDVID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "PersonalID"
     t.date     "InformationDate"
     t.integer  "DomesticViolenceVictim"
@@ -518,16 +518,16 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   add_index "HealthAndDV", ["DateCreated"], name: "health_and_dv_date_created", using: :btree
   add_index "HealthAndDV", ["DateUpdated"], name: "health_and_dv_date_updated", using: :btree
+  add_index "HealthAndDV", ["EnrollmentID"], name: "index_HealthAndDV_on_EnrollmentID", using: :btree
   add_index "HealthAndDV", ["ExportID"], name: "health_and_dv_export_id", using: :btree
   add_index "HealthAndDV", ["PersonalID"], name: "index_HealthAndDV_on_PersonalID", using: :btree
-  add_index "HealthAndDV", ["ProjectEntryID"], name: "index_HealthAndDV_on_ProjectEntryID", using: :btree
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true, using: :btree
   add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id"], name: "index_HealthAndDV_on_data_source_id", using: :btree
 
   create_table "IncomeBenefits", force: :cascade do |t|
     t.string   "IncomeBenefitsID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "PersonalID"
     t.date     "InformationDate"
     t.integer  "IncomeFromAnySource"
@@ -611,9 +611,9 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
   add_index "IncomeBenefits", ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
+  add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
-  add_index "IncomeBenefits", ["ProjectEntryID"], name: "index_IncomeBenefits_on_ProjectEntryID", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
@@ -729,7 +729,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   create_table "Services", force: :cascade do |t|
     t.string   "ServicesID"
-    t.string   "ProjectEntryID"
+    t.string   "EnrollmentID"
     t.string   "PersonalID"
     t.date     "DateProvided"
     t.integer  "RecordType"
@@ -751,10 +751,10 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   add_index "Services", ["DateDeleted"], name: "index_Services_on_DateDeleted", using: :btree
   add_index "Services", ["DateProvided"], name: "index_Services_on_DateProvided", using: :btree
   add_index "Services", ["DateUpdated"], name: "services_date_updated", using: :btree
+  add_index "Services", ["EnrollmentID", "PersonalID", "data_source_id"], name: "index_serv_on_proj_entry_per_id_ds_id", using: :btree
   add_index "Services", ["ExportID"], name: "services_export_id", using: :btree
   add_index "Services", ["PersonalID"], name: "index_Services_on_PersonalID", using: :btree
-  add_index "Services", ["ProjectEntryID", "PersonalID", "data_source_id"], name: "index_serv_on_proj_entry_per_id_ds_id", using: :btree
-  add_index "Services", ["data_source_id", "PersonalID", "RecordType", "ProjectEntryID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date", using: :btree
+  add_index "Services", ["data_source_id", "PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date", using: :btree
   add_index "Services", ["data_source_id", "ServicesID"], name: "unk_Services", unique: true, using: :btree
   add_index "Services", ["data_source_id"], name: "index_Services_on_data_source_id", using: :btree
 
@@ -3044,15 +3044,15 @@ ActiveRecord::Schema.define(version: 20180626140358) do
   SQL
 
   create_view "report_enrollments",  sql_definition: <<-SQL
-      SELECT "Enrollment"."ProjectEntryID",
+      SELECT "Enrollment"."EnrollmentID" AS "ProjectEntryID",
       "Enrollment"."PersonalID",
       "Enrollment"."ProjectID",
       "Enrollment"."EntryDate",
       "Enrollment"."HouseholdID",
       "Enrollment"."RelationshipToHoH",
-      "Enrollment"."ResidencePrior",
+      "Enrollment"."LivingSituation" AS "ResidencePrior",
       "Enrollment"."OtherResidencePrior",
-      "Enrollment"."ResidencePriorLengthOfStay",
+      "Enrollment"."LengthOfStay" AS "ResidencePriorLengthOfStay",
       "Enrollment"."DisablingCondition",
       "Enrollment"."EntryFromStreetESSH",
       "Enrollment"."DateToStreetESSH",
@@ -3064,7 +3064,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
       "Enrollment"."HousingStatus",
       "Enrollment"."DateOfEngagement",
       "Enrollment"."InPermanentHousing",
-      "Enrollment"."ResidentialMoveInDate",
+      "Enrollment"."MoveInDate" AS "ResidentialMoveInDate",
       "Enrollment"."DateOfPATHStatus",
       "Enrollment"."ClientEnrolledInPATH",
       "Enrollment"."ReasonNotEnrolled",
@@ -3076,7 +3076,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
       "Enrollment"."LastPermanentZIP",
       "Enrollment"."AddressDataQuality",
       "Enrollment"."DateOfBCPStatus",
-      "Enrollment"."FYSBYouth",
+      "Enrollment"."EligibleForRHY" AS "FYSBYouth",
       "Enrollment"."ReasonNoServices",
       "Enrollment"."SexualOrientation",
       "Enrollment"."FormerWardChildWelfare",
@@ -3166,7 +3166,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
 
   create_view "report_disabilities",  sql_definition: <<-SQL
       SELECT "Disabilities"."DisabilitiesID",
-      "Disabilities"."ProjectEntryID",
+      "Disabilities"."EnrollmentID" AS "ProjectEntryID",
       "Disabilities"."PersonalID",
       "Disabilities"."InformationDate",
       "Disabilities"."DisabilityType",
@@ -3197,13 +3197,13 @@ ActiveRecord::Schema.define(version: 20180626140358) do
        JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Disabilities"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_employment_educations",  sql_definition: <<-SQL
       SELECT "EmploymentEducation"."EmploymentEducationID",
-      "EmploymentEducation"."ProjectEntryID",
+      "EmploymentEducation"."EnrollmentID" AS "ProjectEntryID",
       "EmploymentEducation"."PersonalID",
       "EmploymentEducation"."InformationDate",
       "EmploymentEducation"."LastGradeCompleted",
@@ -3226,13 +3226,13 @@ ActiveRecord::Schema.define(version: 20180626140358) do
        JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_exits",  sql_definition: <<-SQL
       SELECT "Exit"."ExitID",
-      "Exit"."ProjectEntryID",
+      "Exit"."EnrollmentID" AS "ProjectEntryID",
       "Exit"."PersonalID",
       "Exit"."ExitDate",
       "Exit"."Destination",
@@ -3296,13 +3296,13 @@ ActiveRecord::Schema.define(version: 20180626140358) do
        JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Exit"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Exit"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_health_and_dvs",  sql_definition: <<-SQL
       SELECT "HealthAndDV"."HealthAndDVID",
-      "HealthAndDV"."ProjectEntryID",
+      "HealthAndDV"."EnrollmentID" AS "ProjectEntryID",
       "HealthAndDV"."PersonalID",
       "HealthAndDV"."InformationDate",
       "HealthAndDV"."DomesticViolenceVictim",
@@ -3328,13 +3328,13 @@ ActiveRecord::Schema.define(version: 20180626140358) do
        JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("HealthAndDV"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("HealthAndDV"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_income_benefits",  sql_definition: <<-SQL
       SELECT "IncomeBenefits"."IncomeBenefitsID",
-      "IncomeBenefits"."ProjectEntryID",
+      "IncomeBenefits"."EnrollmentID" AS "ProjectEntryID",
       "IncomeBenefits"."PersonalID",
       "IncomeBenefits"."InformationDate",
       "IncomeBenefits"."IncomeFromAnySource",
@@ -3421,13 +3421,13 @@ ActiveRecord::Schema.define(version: 20180626140358) do
        JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("IncomeBenefits"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_services",  sql_definition: <<-SQL
       SELECT "Services"."ServicesID",
-      "Services"."ProjectEntryID",
+      "Services"."EnrollmentID" AS "ProjectEntryID",
       "Services"."PersonalID",
       "Services"."DateProvided",
       "Services"."RecordType",
@@ -3450,7 +3450,7 @@ ActiveRecord::Schema.define(version: 20180626140358) do
        JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."ProjectEntryID")::text = ("Enrollment"."ProjectEntryID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Services"."DateDeleted" IS NULL);
   SQL
 

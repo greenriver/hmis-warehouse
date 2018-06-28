@@ -69,6 +69,9 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
         importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
         importer.import!
       end
+      after(:all) do
+        FileUtils.rm_rf(@import_path) unless @import_path == @file_path
+      end
 
       it 'it doesn\'t import enrollments that changed but have an earlier modification date' do
         expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '2f4b963171644a8b9902bdfe79a4b403').pluck(:HouseholdID).compact).to be_empty

@@ -2,28 +2,28 @@ module GrdaWarehouse::Hud
   class Geography < Base
     include HudSharedScopes
     self.table_name = 'Geography'
-    self.hud_key = 'GeographyID'
+    self.hud_key = :GeographyID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
       case version
       when '5.1'
         [
-          "SiteID",
-          "ProjectID",
-          "CoCCode",
-          "PrincipalSite",
-          "Geocode",
-          "Address",
-          "City",
-          "State",
-          "ZIP",
-          "DateCreated",
-          "DateUpdated",
-          "UserID",
-          "DateDeleted",
-          "ExportID"
-        ]
+          :SiteID,
+          :ProjectID,
+          :CoCCode,
+          :PrincipalSite,
+          :Geocode,
+          :Address,
+          :City,
+          :State,
+          :ZIP,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
       else
         [
           :GeographyID,
@@ -42,7 +42,7 @@ module GrdaWarehouse::Hud
           :UserID,
           :DateDeleted,
           :ExportID,
-        ]
+        ].freeze
       end
     end
 

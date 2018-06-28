@@ -2,27 +2,48 @@ module GrdaWarehouse::Hud
   class Service < Base
     include HudSharedScopes
     self.table_name = 'Services'
-    self.hud_key = 'ServicesID'
+    self.hud_key = :ServicesID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        "ServicesID",
-        "ProjectEntryID",
-        "PersonalID",
-        "DateProvided",
-        "RecordType",
-        "TypeProvided",
-        "OtherTypeProvided",
-        "SubTypeProvided",
-        "FAAmount",
-        "ReferralOutcome",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5.1'
+        [
+          :ServicesID,
+          :ProjectEntryID,
+          :PersonalID,
+          :DateProvided,
+          :RecordType,
+          :TypeProvided,
+          :OtherTypeProvided,
+          :SubTypeProvided,
+          :FAAmount,
+          :ReferralOutcome,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :ServicesID,
+          :EnrollmentID,
+          :PersonalID,
+          :DateProvided,
+          :RecordType,
+          :TypeProvided,
+          :OtherTypeProvided,
+          :SubTypeProvided,
+          :FAAmount,
+          :ReferralOutcome,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     belongs_to :data_source, inverse_of: :services

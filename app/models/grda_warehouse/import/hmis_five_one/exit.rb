@@ -2,40 +2,9 @@ module GrdaWarehouse::Import::HMISFiveOne
   class Exit < GrdaWarehouse::Hud::Exit
     include ::Import::HMISFiveOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :ExitID,
-        :ProjectEntryID,
-        :PersonalID,
-        :ExitDate,
-        :Destination,
-        :OtherDestination,
-        :AssessmentDisposition,
-        :OtherDisposition,
-        :HousingAssessment,
-        :SubsidyInformation,
-        :ConnectionWithSOAR,
-        :WrittenAftercarePlan,
-        :AssistanceMainstreamBenefits,
-        :PermanentHousingPlacement,
-        :TemporaryShelterPlacement,
-        :ExitCounseling,
-        :FurtherFollowUpServices,
-        :ScheduledFollowUpContacts,
-        :ResourcePackage,
-        :OtherAftercarePlanOrAction,
-        :ProjectCompletionStatus,
-        :EarlyExitReason,
-        :FamilyReunificationAchieved,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
+
+    setup_hud_column_access( self.hud_csv_headers(version: '5.1') )
+
     self.hud_key = :ExitID
 
     def self.file_name

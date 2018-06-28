@@ -2,34 +2,10 @@ module GrdaWarehouse::Import::HMISSixOneOne
   class Disability < GrdaWarehouse::Hud::Disability
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :DisabilitiesID,
-        :EnrollmentID,
-        :PersonalID,
-        :InformationDate,
-        :DisabilityType,
-        :DisabilityResponse,
-        :IndefiniteAndImpairs,
-        :TCellCountAvailable,
-        :TCellCount,
-        :TCellSource,
-        :ViralLoadAvailable,
-        :ViralLoad,
-        :ViralLoadSource,
-        :DataCollectionStage,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
-    self.hud_key = :DisabilitiesID
-    
-    def self.date_provided_column 
+
+    setup_hud_column_access( self.hud_csv_headers(version: '6.11') )
+
+    def self.date_provided_column
       :InformationDate
     end
 
@@ -42,9 +18,8 @@ module GrdaWarehouse::Import::HMISSixOneOne
     def self.translate_to_db_headers(row)
        # We've seen a bunch of integers come through as floats
       row[:TCellCount] = row[:TCellCount].to_i
-      row[:ProjectEntryID] = row.delete(:EnrollmentID)
       return row
     end
-    
+
   end
 end

@@ -2,27 +2,48 @@ module GrdaWarehouse::Hud
   class EmploymentEducation < Base
     include HudSharedScopes
     self.table_name = 'EmploymentEducation'
-    self.hud_key = 'EmploymentEducationID'
+    self.hud_key = :EmploymentEducationID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        "EmploymentEducationID",
-        "ProjectEntryID",
-        "PersonalID",
-        "InformationDate",
-        "LastGradeCompleted",
-        "SchoolStatus",
-        "Employed",
-        "EmploymentType",
-        "NotEmployedReason",
-        "DataCollectionStage",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ].freeze
+      case version
+      when '5.1'
+        [
+          :EmploymentEducationID,
+          :ProjectEntryID,
+          :PersonalID,
+          :InformationDate,
+          :LastGradeCompleted,
+          :SchoolStatus,
+          :Employed,
+          :EmploymentType,
+          :NotEmployedReason,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :EmploymentEducationID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :LastGradeCompleted,
+          :SchoolStatus,
+          :Employed,
+          :EmploymentType,
+          :NotEmployedReason,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     belongs_to :direct_client, **hud_belongs(Client), inverse_of: :direct_employment_educations

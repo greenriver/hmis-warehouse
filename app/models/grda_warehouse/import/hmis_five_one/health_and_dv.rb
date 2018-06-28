@@ -2,33 +2,12 @@ module GrdaWarehouse::Import::HMISFiveOne
   class HealthAndDv < GrdaWarehouse::Hud::HealthAndDv
     include ::Import::HMISFiveOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :HealthAndDVID,
-        :ProjectEntryID,
-        :PersonalID,
-        :InformationDate,
-        :DomesticViolenceVictim,
-        :WhenOccurred,
-        :CurrentlyFleeing,
-        :GeneralHealthStatus,
-        :DentalHealthStatus,
-        :MentalHealthStatus,
-        :PregnancyStatus,
-        :DueDate,
-        :DataCollectionStage,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
+
+    setup_hud_column_access( self.hud_csv_headers(version: '5.1') )
+
     self.hud_key = :HealthAndDVID
-    
-    def self.date_provided_column 
+
+    def self.date_provided_column
       :InformationDate
     end
 

@@ -2,28 +2,10 @@ module GrdaWarehouse::Import::HMISSixOneOne
   class EnrollmentCoc < GrdaWarehouse::Hud::EnrollmentCoc
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :EnrollmentCoCID,
-        :EnrollmentID,
-        :HouseholdID,
-        :ProjectID,
-        :PersonalID,
-        :InformationDate,
-        :CoCCode,
-        :DataCollectionStage,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
-    self.hud_key = :EnrollmentCoCID
-    
-    def self.date_provided_column 
+
+    setup_hud_column_access( self.hud_csv_headers(version: '6.11') )
+
+    def self.date_provided_column
       :InformationDate
     end
 

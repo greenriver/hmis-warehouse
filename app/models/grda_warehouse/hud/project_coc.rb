@@ -2,20 +2,20 @@ module GrdaWarehouse::Hud
   class ProjectCoc < Base
     include HudSharedScopes
     self.table_name = 'ProjectCoC'
-    self.hud_key = 'ProjectCoCID'
+    self.hud_key = :ProjectCoCID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
       [
-        "ProjectCoCID",
-        "ProjectID",
-        "CoCCode",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+        :ProjectCoCID,
+        :ProjectID,
+        :CoCCode,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
+      ].freeze
     end
 
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :project_cocs
