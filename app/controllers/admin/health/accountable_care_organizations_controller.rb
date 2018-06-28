@@ -52,7 +52,7 @@ module Admin::Health
       end
 
       def accountable_care_organization_params
-        params.require(:health_accountable_care_organization).permit(:name, :short_name)
+        params.require(:health_accountable_care_organization).permit(:name, :short_name, :mco_pid, :mco_sl)
       end
   end
 end
