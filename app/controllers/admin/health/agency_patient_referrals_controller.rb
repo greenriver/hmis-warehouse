@@ -97,7 +97,7 @@ module Admin::Health
       @agency_user = current_user.agency_user
       @agency = @agency_user&.agency
       if !@agency
-        @no_agency_user_warning = "This user doesn't belong to any agency"
+        @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
       end
     end
 
