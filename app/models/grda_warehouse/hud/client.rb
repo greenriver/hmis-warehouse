@@ -570,10 +570,6 @@ module GrdaWarehouse::Hud
         ).distinct.pluck(:id)
     end
     
-    # def self.disabled? 
-    #   GrdaWarehouse::Hud::Client.disabled_client_ids.include?(self.id)
-    # end
-    
     def deceased?
       deceased_on.present?
     end
