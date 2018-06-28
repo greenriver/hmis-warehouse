@@ -4,7 +4,7 @@ module Admin::Health
     before_action :require_can_review_patient_assignments!
     before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
     before_action :load_new_patient_referral, only: [:review, :reviewed]
-    
+
     include PatientReferral
     include ArelHelper
 
@@ -35,12 +35,12 @@ module Admin::Health
       @active_patient_referral_group = params[:group] || 'our patient'
       @patient_referral_groups = [
         {
-          id: 'our patient', 
+          id: 'our patient',
           path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'our patient'})),
           title: 'Reviewed as our patient',
         },
         {
-          id: 'not our patient', 
+          id: 'not our patient',
           path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'not our patient'})),
           title: 'Reviewed as not our patient',
         }
@@ -72,7 +72,7 @@ module Admin::Health
 
     def build_relationship(relationship)
       # aka agency_patient_referral
-      path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path 
+      path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path
       success = relationship.new_record? ? relationship.save : relationship.update_attributes(relationship_params)
       if success
         r = relationship.claimed? ? 'Our Patient' : 'Not Our Patient'
@@ -103,7 +103,7 @@ module Admin::Health
 
     def load_tabs
       @patient_referral_tabs = [
-        {id: 'review', tab_text: "Assignments to Review for #{@agency.name}", path: review_admin_health_agency_patient_referrals_path(tab_path_params)},
+        {id: 'review', tab_text: "Assignments to Review for #{@agency&.name}", path: review_admin_health_agency_patient_referrals_path(tab_path_params)},
         {id: 'reviewed', tab_text: 'Previously Reviewed', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params)}
       ]
     end
