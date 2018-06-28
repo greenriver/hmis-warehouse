@@ -5,7 +5,7 @@
     %h1= content_for :title
   .o-page__controls
     .o-page__search
-      = render 'search_form', data: {placement: 'bottom'}
+      = render 'filter', data: {placement: 'bottom'}
   .table-utilities
     %p.mr-5= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
 
