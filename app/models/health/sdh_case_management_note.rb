@@ -58,6 +58,7 @@ module Health
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
     serialize :topics, Array
+    serialize :client_action, Array
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :last_form_created, -> {order(created_at: :desc).limit(1)}
@@ -73,7 +74,6 @@ module Health
     validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
     validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
     validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
-    validates :client_action, inclusion: {in: CLIENT_ACTION}, allow_blank: true
 
     # doing this after validation because form updates with ajax and no validation
     # keep the date around until they hit save
@@ -101,9 +101,12 @@ module Health
       TOPICS
     end
 
-    def self.load_string_collection(collection)
-      [['None', '']] + collection.map do |c|
-        [c, c]
+    def self.load_string_collection(collection, include_none: true)
+      collection = collection.map{|c| [c, c]}
+      if include_none
+        [['None', '']] + collection
+      else
+        collection
       end
     end
 
@@ -116,7 +119,7 @@ module Health
     end
 
     def self.client_action_collection
-      self.load_string_collection(CLIENT_ACTION)
+      self.load_string_collection(CLIENT_ACTION, include_none: false)
     end
 
     def place_of_contact_is_other?
@@ -144,7 +147,7 @@ module Health
     end
 
     def client_action_is_medication_reconciliation_clinician?
-      client_action == CLIENT_ACTION_OTHER
+      client_action.include?(CLIENT_ACTION_OTHER)
     end
 
     def client_action_medication_reconciliation_clinician_value
@@ -190,7 +193,7 @@ module Health
           {key: 'Place of Contact:', value: place_of_contact, other: (place_of_contact_is_other? ? {key: 'Other:', value: place_of_contact_other} : false)},
           {key: 'Housing Status:', value: housing_status, other: (housing_status_is_other? ? {key: 'Other:', value: housing_status_other} : false )},
           {key: 'Housing Placement Date:', value: housing_placement_date},
-          {key: 'The following happened:', value: client_action, other: (client_action_is_medication_reconciliation_clinician? ? {key: 'Clinician who performed medication reconciliation:', value: client_action_medication_reconciliation_clinician} : false)},
+          {key: 'The following happened:', value: client_action, list: true, other: (client_action_is_medication_reconciliation_clinician? ? {key: 'Clinician who performed medication reconciliation:', value: client_action_medication_reconciliation_clinician} : false)},
           {key: 'Client Phone:', value: client_phone_number}
         ]
       }

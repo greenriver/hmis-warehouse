@@ -152,6 +152,8 @@ module Window::Health
       end
       # remove empty element from topics array
       (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
+      # remove empty element from client action array
+      (params[:health_sdh_case_management_note][:client_action]||[]).reject!{|v| v.blank?}
     end
 
     def add_calculated_params_to_activities!(permitted_params)
@@ -176,11 +178,11 @@ module Window::Health
         :housing_status,
         :housing_status_other,
         :housing_placement_date,
-        :client_action,
         :client_action_medication_reconciliation_clinician,
         :notes_from_encounter,
         :client_phone_number,
         :completed_on,
+        client_action: [],
         topics: [],
         activities_attributes: [
           :id,
@@ -193,9 +195,7 @@ module Window::Health
           :follow_up,
           :_destroy
         ]
-      ).reject do |k, v|
-        k != 'topics' && v.blank?
-      end
+      )
       add_calculated_params_to_activities!(permitted_params)
     end
 

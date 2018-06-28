@@ -13,6 +13,7 @@
         - label = item[:key]
         - value = item[:value]
         - text_area = item[:text_area] || false
+        - list = item[:list] || false
         - other = item[:other]
         - include_br_before = item[:include_br_before] || false
         - download = item[:download] || false
@@ -25,6 +26,12 @@
           - else
             %span No File
           %br
+        - elsif list
+          - if value.any?
+            %br
+            - value.each do |v|
+              %span.padding-left-02= v
+              %br
         - elsif include_br_before && value.present?
           %br
           %span.padding-left-02= value

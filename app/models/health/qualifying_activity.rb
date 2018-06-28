@@ -149,7 +149,6 @@ module Health
       reached_client.blank? && 
       activity.blank? && 
       claim_submitted_on.blank? && 
-      date_of_activity.blank? && 
       follow_up.blank?
     end
 
