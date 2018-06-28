@@ -7,6 +7,11 @@ module Clients
 
     def edit
       @note = GrdaWarehouse::ClientNotes::Base.new
+      if params[:date]
+        @date = params[:date].to_date
+      else 
+        @date = Date.today
+      end
     end
     
     def update
