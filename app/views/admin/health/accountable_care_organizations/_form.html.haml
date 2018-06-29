@@ -1,0 +1,16 @@
+.row
+  .col-sm-8
+    = simple_form_for @accountable_care_organization, url: @form_url do |f|
+      - if @accountable_care_organization.errors.any?
+        #error_explanation
+          %h2= "#{pluralize(@accountable_care_organization.errors.count, "error")} prohibited this accountable_care_organization from being saved:"
+          %ul
+            - @accountable_care_organization.errors.full_messages.each do |msg|
+              %li= msg
+      = f.input :name
+      = f.input :short_name
+      = f.input :mco_pid
+      = f.input :mco_sl
+
+      .form-actions
+        = f.submit 'Save', class: 'btn btn-primary'

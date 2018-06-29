@@ -55,7 +55,7 @@ module Admin::Health
       end
 
       def health_agency_params
-        params.require(:health_agency).permit(:name)
+        params.require(:health_agency).permit(:name, :short_name)
       end
   end
 end
