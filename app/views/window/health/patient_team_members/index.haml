@@ -1,0 +1,22 @@
+- title = 'Patient Team Members'
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= title
+  = render 'window/clients/breadcrumbs'
+  = render 'window/clients/tab_navigation', current: polymorphic_path(careplans_path_generator)
+  %table.table
+    %thead
+      %tr
+        %th
+        %th Name
+        %th Organization
+        %th Phone
+    %tbody
+      - @teams.each do |team|
+        - team.members.each do |member|
+          %tr
+            %td= member.class.member_type_name
+            %td= member.full_name
+            %td= member.organization
+            %td= member.phone
