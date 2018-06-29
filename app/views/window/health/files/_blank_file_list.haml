@@ -11,4 +11,7 @@
           - @blank_files.each do |file|
             - if file[:url].present?
               %tr
-                %td= link_to file[:title], file[:url]
+                %td
+                  = link_to file[:url] do
+                    = file[:title]
+                    %i.pull-right.icon-download2
