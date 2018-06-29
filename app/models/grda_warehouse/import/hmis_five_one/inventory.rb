@@ -3,7 +3,7 @@ module GrdaWarehouse::Import::HMISFiveOne
     include ::Import::HMISFiveOne::Shared
     include TsqlImport
 
-    setup_hud_column_access( self.hud_csv_headers(version: '5.1') )
+    setup_hud_column_access( GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '5.1') )
 
     self.hud_key = :InventoryID
 

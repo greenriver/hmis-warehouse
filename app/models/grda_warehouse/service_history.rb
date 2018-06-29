@@ -12,7 +12,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history
   belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID]
   belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID]
-  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :service_histories
+  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], inverse_of: :service_histories
   has_one :enrollment_coc_at_entry, through: :enrollment
   has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
   belongs_to :data_source
@@ -29,11 +29,11 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   scope :entry, -> { where record_type: 'entry' }
   scope :exit, -> { where record_type: 'exit' }
-  
+
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service
-  scope :first_date, -> { where record_type: 'first' } 
+  scope :first_date, -> { where record_type: 'first' }
 
   scope :ongoing, -> (on_date: Date.today) do
     at = arel_table
@@ -46,7 +46,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
 
   # This is the old logic, still not completely convinced of the new logic
   # They do differ, but I believe the new logic is more correct
-  scope :old_open_between, -> (start_date:, end_date:) do 
+  scope :old_open_between, -> (start_date:, end_date:) do
     at = arel_table
 
     closed_within_range = at[:last_date_in_program].gt(start_date).
@@ -60,7 +60,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(closed_within_range.or(opened_within_range).or(open_throughout))
   end
 
-  scope :open_between, -> (start_date:, end_date:) do 
+  scope :open_between, -> (start_date:, end_date:) do
     at = arel_table
     # Excellent discussion of why this works:
     # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -72,7 +72,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
   end
 
-  scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do 
+  scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do
     if chronic_types_only
       project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     else
@@ -149,7 +149,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     coc_funded.in_coc(coc_code: coc_code)
   end
 
-  # Category 3 is "Homeless only under other federal statuses" and 
+  # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
   scope :category_3, -> do
     where(arel_table[:housing_status_at_entry].eq(5).
@@ -239,7 +239,7 @@ class GrdaWarehouse::ServiceHistory < GrdaWarehouseBase
     # End Standard Cohort Scopes
     #################################
 
-  # Only run this on off-hours.  It can take 2-5 hours and hang 
+  # Only run this on off-hours.  It can take 2-5 hours and hang
   # the database
   def self.reindex_table!
     connection.execute("REINDEX TABLE #{table_name}")

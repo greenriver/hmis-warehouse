@@ -1,9 +1,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Geography < GrdaWarehouse::Import::HMISSixOneOne::Geography
     include ::Export::HMISSixOneOne::Shared
-    setup_hud_column_access(
-      GrdaWarehouse::Hud::Geography.hud_csv_headers(version: '6.11')
-    )
+    setup_hud_column_access( GrdaWarehouse::Hud::Geography.hud_csv_headers(version: '6.11') )
 
     self.hud_key = :GeographyID
 

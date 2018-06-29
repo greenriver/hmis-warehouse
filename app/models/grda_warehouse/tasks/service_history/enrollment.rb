@@ -4,7 +4,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include TsqlImport
     include ArelHelper
     include ActiveSupport::Benchmarkable
-    
+
     after_commit :force_validity_calculation
 
     scope :unprocessed, -> do
@@ -87,7 +87,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             service_history_enrollment_source.connection.insert(insert.to_sql)
           end
         end
-      
+
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
         if days.any?
@@ -186,7 +186,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def service_dates_from_service_history_for_enrollment
       return [] unless destination_client.present? && service_history_enrollment.present?
       set_entry_record_id()
-      
+
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
         where(
           record_type: :service,
@@ -210,9 +210,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def remove_existing_service_history_for_enrollment
       return unless destination_client.present?
       service_history_enrollment_source.where(
-        client_id: destination_client.id, 
-        enrollment_group_id: self.ProjectEntryID, 
-        data_source_id: data_source_id, 
+        client_id: destination_client.id,
+        enrollment_group_id: self.EnrollmentID,
+        data_source_id: data_source_id,
         project_id: self.ProjectID,
         record_type: [:entry, :exit],
       ).delete_all
@@ -251,9 +251,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
 
       # Break this into two queries to speed it up and keep RAM usage in check
-      # 
+      #
       # Ignore service history side, these should always be invalidated if clients are merged
-      #rows = source_rows(id) + service_history_rows(id) 
+      #rows = source_rows(id) + service_history_rows(id)
       # rows = source_rows(id)
       # Digest::SHA256.hexdigest(rows.to_s)
 
@@ -276,7 +276,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     #   join_sh_t_sql = e_t.join(sh_t).
     #   on(e_t[:ProjectID].eq(sh_t[:project_id]).
     #     and(e_t[:data_source_id].eq(sh_t[:data_source_id])).
-    #     and(e_t[:ProjectEntryID].eq(sh_t[:enrollment_group_id]))
+    #     and(e_t[:EnrollmentID].eq(sh_t[:enrollment_group_id]))
     #   ).to_sql.gsub('SELECT FROM "Enrollment"', '')
 
     #   # This must be explicitly ordered since the database doesn't always
@@ -296,9 +296,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     #   service_history_source.
     #     where(
     #       service_history_source.table_name => {record_type: [:entry, :exit, :service]},
-    #       client_id: en.destination_client.id, 
-    #       enrollment_group_id: en.ProjectEntryID, 
-    #       data_source_id: en.data_source_id, 
+    #       client_id: en.destination_client.id,
+    #       enrollment_group_id: en.EnrollmentID,
+    #       data_source_id: en.data_source_id,
     #       project_id: en.ProjectID,
     #     ).order(*service_history_hash_columns_order).
     #     pluck(*service_history_hash_columns)
@@ -310,7 +310,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         date: nil,
         first_date_in_program: self.EntryDate,
         last_date_in_program: exit&.ExitDate,
-        enrollment_group_id: self.ProjectEntryID,
+        enrollment_group_id: self.EnrollmentID,
         service_type: nil,
         project_type: project.ProjectType,
         computed_project_type: project.computed_project_type,
@@ -428,14 +428,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # client is a youth and presents with someone under 18, no other adults over 25 present
     def parenting_youth?
       @parenting_youth ||= begin
-        youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 > 0 
+        youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 > 0
       end
     end
 
     # client is under 18 and head of household and has at least one other client under 18 in enrollment
     def parenting_juvenile?
       @parenting_juvenile ||= begin
-        child?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0 && other_clients_under_18 > 0 
+        child?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0 && other_clients_under_18 > 0
       end
     end
 
@@ -510,7 +510,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         self.PersonalID
       else
         self.class.where(
-          ProjectEntryID: self.ProjectEntryID, 
+          EnrollmentID: self.EnrollmentID,
           data_source_id: data_source_id,
           RelationshipToHoH: [nil, 1]
         ).pluck(:PersonalID)&.first || self.PersonalID
@@ -520,7 +520,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def head_of_household
       GrdaWarehouse::Hud::Client.where(PersonalID: head_of_household_id)
     end
- 
+
     def head_of_household?
       self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
     end
@@ -574,14 +574,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    # FIXME: We can't use this because out-of order exports only have access to part of their 
+    # FIXME: We can't use this because out-of order exports only have access to part of their
     # data after import (some remains attached to other exports, and the max updated dates get off)
     def export_max_coverage
       # Attempt to determine the max useful range for this export.
-      # We look to the actual data instead of relying on ExportDate since that 
+      # We look to the actual data instead of relying on ExportDate since that
       # has proven unreliable
       # @export_max_coverage ||= [
-      #   export.enrollments.maximum(:DateUpdated), 
+      #   export.enrollments.maximum(:DateUpdated),
       #   export.exits.maximum(:DateUpdated),
       #   export.services.maximum(:DateUpdated),
       # ].compact.max
@@ -622,16 +622,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
         columns += client_hash_columns.values.map do |col|
           c_t[col].asc
         end
-        columns    
+        columns
       end
     end
 
-    def self.client_hash_columns 
+    def self.client_hash_columns
        @client_hash_columns ||= {
           destination_client_id: :id,
        }
     end
-    def self.enrollment_hash_columns 
+    def self.enrollment_hash_columns
       @enrollment_hash_columns ||= {
         id: :id,
         data_source_id: :data_source_id,
@@ -641,8 +641,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         household_id: :HouseholdID,
       }
     end
-        
-    def self.exit_hash_columns 
+
+    def self.exit_hash_columns
       @exit_hash_columns ||= {
         exit_date: :ExitDate,
         deleted_at: :DateDeleted,
@@ -650,8 +650,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         destination: :Destination,
       }
     end
-        
-    def self.service_hash_columns 
+
+    def self.service_hash_columns
       @service_hash_columns = {
         date_provided: :DateProvided,
         deleted_at: :DateDeleted,
@@ -677,7 +677,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     #   end
     # end
 
-    # def self.service_history_columns 
+    # def self.service_history_columns
     #   @service_history_columns ||= {
     #     client_id: :client_id,
     #     date: :date,

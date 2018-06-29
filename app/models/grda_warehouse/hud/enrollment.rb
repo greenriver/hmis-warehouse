@@ -204,23 +204,23 @@ module GrdaWarehouse::Hud
     has_one :destination_client, through: :client, autosave: false
 
     # Client-Enrollment related relationships
-    has_one :exit,  class_name: GrdaWarehouse::Hud::Exit.name, foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment, autosave: false
-    has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :health_and_dvs, class_name: GrdaWarehouse::Hud::HealthAndDv.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :services, class_name: GrdaWarehouse::Hud::Service.name, foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :enrollment_cocs, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :employment_educations, class_name: GrdaWarehouse::Hud::EmploymentEducation.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_one :exit,  class_name: GrdaWarehouse::Hud::Exit.name, foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], primary_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment, autosave: false
+    has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :health_and_dvs, class_name: GrdaWarehouse::Hud::HealthAndDv.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :services, class_name: GrdaWarehouse::Hud::Service.name, foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], primary_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :enrollment_cocs, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_many :employment_educations, class_name: GrdaWarehouse::Hud::EmploymentEducation.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
 
-    has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], autosave: false
-    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], autosave: false
-    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], autosave: false
-    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
-    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+    has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
     # NOTE: you will want to limit this to a particular record_type
-    has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], inverse_of: :enrollment
-    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
-    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
+    has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], inverse_of: :enrollment
+    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)
@@ -267,7 +267,7 @@ module GrdaWarehouse::Hud
       d_2_end = ex_t[:ExitDate]
       # Currently does not count as an overlap if one starts on the end of the other
       joins(e_t.join(ex_t, Arel::Nodes::OuterJoin).
-        on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
+        on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
         and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
         and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
         join_sources).
@@ -365,7 +365,7 @@ module GrdaWarehouse::Hud
     end
 
     def days_served
-      client.destination_client.service_history.where(record_type: 'service', enrollment_group_id: self.ProjectEntryID).select(:date).distinct
+      client.destination_client.service_history.where(record_type: 'service', enrollment_group_id: self.EnrollmentID).select(:date).distinct
     end
     # If another enrollment with the same project type starts before this ends,
     # Only count days in this enrollment that occured before the other starts
@@ -429,7 +429,7 @@ module GrdaWarehouse::Hud
         .where(record_type: 'service')
         .where(date: thirty_days_ago...self.EntryDate)
         .where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
-        .where.not(enrollment_group_id: self.ProjectEntryID)
+        .where.not(enrollment_group_id: self.EnrollmentID)
         .exists?
 
       non_homeless_residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES

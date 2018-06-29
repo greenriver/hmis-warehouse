@@ -2,7 +2,7 @@ module GrdaWarehouse::Import::HMISFiveOne
   class Project < GrdaWarehouse::Hud::Project
     include ::Import::HMISFiveOne::Shared
 
-    setup_hud_column_access( self.hud_csv_headers(version: '5.1') )
+    setup_hud_column_access( GrdaWarehouse::Hud::Project.hud_csv_headers(version: '5.1') )
 
     attr_accessor :existing
     self.hud_key = :ProjectID

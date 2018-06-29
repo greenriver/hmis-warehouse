@@ -2,7 +2,7 @@ module GrdaWarehouse::Import::HMISFiveOne
   class Export < GrdaWarehouse::Hud::Export
     include ::Import::HMISFiveOne::Shared
 
-    setup_hud_column_access( self.hud_csv_headers(version: '5.1') )
+    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '5.1') )
 
     validates_presence_of :ExportStartDate, :ExportEndDate, :ExportID, :data_source_id, :ExportDate
 

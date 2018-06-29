@@ -33,8 +33,8 @@ module Exporters::Tableau::EntryExit
         **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky # in use
         # disabling_condition:              nil,
         # any_income_30days:                nil,
-        res_prior_to_entry:               e_t[:ResidencePrior],
-        length_of_stay_prev_place:        e_t[:ResidencePriorLengthOfStay],
+        res_prior_to_entry:               e_t[:LivingSituation],
+        length_of_stay_prev_place:        e_t[:LengthOfStay],
         approx_date_homelessness_started: e_t[:DateToStreetESSH],
         times_on_street:                  e_t[:TimesHomelessPastThreeYears],
         total_months_homeless_on_street:  e_t[:MonthsHomelessPastThreeYears],
@@ -44,7 +44,7 @@ module Exporters::Tableau::EntryExit
         # night_before_es_sh:               nil,
         # less_than_7_nights:               nil,
         # less_than_90_days:                nil,
-        movein_date:                      e_t[:ResidentialMoveInDate], # in use
+        movein_date:                      e_t[:MoveInDate], # in use
         chronic:                          nil, # at enrollment start # in use
         days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a # in use
         rrh_time_in_shelter:              nil, # in use
@@ -212,7 +212,7 @@ module Exporters::Tableau::EntryExit
             end
           when :disabling_condition
             if [1,2,3].include? d_t.engine.where(
-              ProjectEntryID: row['group_uid'],
+              EnrollmentID: row['group_uid'],
               PersonalID: row['personal_id'],
               data_source_id: row['data_source_id'],
             ).order(InformationDate: :desc).limit(1).pluck(:DisabilityResponse).first
@@ -229,7 +229,7 @@ module Exporters::Tableau::EntryExit
               where(
                 PersonalID: row['personal_id'],
                 data_source_id: row['data_source'],
-                ProjectEntryID: row['group_uid']
+                EnrollmentID: row['group_uid']
               ).
               where( IncomeFromAnySource: 1 ).
               where( ib_t[:InformationDate].gteq thirty_day_limit ).

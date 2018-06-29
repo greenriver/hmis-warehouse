@@ -2,8 +2,8 @@ module GrdaWarehouse::Import::HMISSixOneOne
   class Inventory < GrdaWarehouse::Hud::Inventory
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
-
-    setup_hud_column_access( self.hud_csv_headers(version: '6.11') )
+    self.hud_key = :InventoryID
+    setup_hud_column_access( GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '6.11') )
 
     def self.file_name
       'Inventory.csv'

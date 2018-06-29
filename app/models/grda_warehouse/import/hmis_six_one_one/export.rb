@@ -1,8 +1,8 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class Export < GrdaWarehouse::Hud::Export
     include ::Import::HMISSixOneOne::Shared
-
-    setup_hud_column_access( self.hud_csv_headers(version: '6.11') )
+    self.hud_key = :ExportID
+    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '6.11') )
 
     validates_presence_of :ExportStartDate, :ExportEndDate, :ExportID, :data_source_id, :ExportDate
 

@@ -2,29 +2,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
   class Project < GrdaWarehouse::Import::HMISSixOneOne::Project
     include ::Export::HMISSixOneOne::Shared
 
-    setup_hud_column_access( 
-      [
-        :ProjectID,
-        :OrganizationID,
-        :ProjectName,
-        :ProjectCommonName,
-        :OperatingStartDate,
-        :OperatingEndDate,
-        :ContinuumProject,
-        :ProjectType,
-        :ResidentialAffiliation,
-        :TrackingMethod,
-        :TargetPopulation,
-        :VictimServicesProvider,
-        :HousingType,
-        :PITCount,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
+    setup_hud_column_access( GrdaWarehouse::Hud::Project.hud_csv_headers(version: '6.11') )
 
     self.hud_key = :ProjectID
 
@@ -38,10 +16,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
         export_scope = project_scope.
           modified_within_range(range: (export.start_date..export.end_date))
       end
-      
+
       export_to_path(
-        export_scope: export_scope, 
-        path: path, 
+        export_scope: export_scope,
+        path: path,
         export: export
       )
     end

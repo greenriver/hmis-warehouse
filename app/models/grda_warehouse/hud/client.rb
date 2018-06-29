@@ -522,7 +522,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -556,7 +556,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -1944,7 +1944,7 @@ module GrdaWarehouse::Hud
             project_name: project_name,
             confidential_project: project.confidential,
             entry_date: entry.first_date_in_program,
-            living_situation: entry.enrollment.ResidencePrior,
+            living_situation: entry.enrollment.LivingSituation,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
             days: dates_served.count,

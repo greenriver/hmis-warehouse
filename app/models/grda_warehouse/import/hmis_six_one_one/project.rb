@@ -1,8 +1,8 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class Project < GrdaWarehouse::Hud::Project
     include ::Import::HMISSixOneOne::Shared
-
-    setup_hud_column_access( self.hud_csv_headers(version: '6.11') )
+    self.hud_key = :ProjectID
+    setup_hud_column_access( GrdaWarehouse::Hud::Project.hud_csv_headers(version: '6.11') )
 
     attr_accessor :existing
 
