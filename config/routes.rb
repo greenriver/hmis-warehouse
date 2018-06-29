@@ -416,6 +416,7 @@ Rails.application.routes.draw do
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
+    resources :warehouse_alerts
   end
   resource :account, only: [:edit, :update]
 

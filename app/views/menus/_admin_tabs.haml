@@ -21,3 +21,6 @@
     -if can_add_administrative_event?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_administrative_events_path))}
         = link_to 'Administrative Events', admin_administrative_events_path, class: 'nav-link'
+    -if can_edit_warehouse_alerts?
+      %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_warehouse_alerts_path))}
+        = link_to 'Warehouse Alerts', admin_warehouse_alerts_path, class: 'nav-link'

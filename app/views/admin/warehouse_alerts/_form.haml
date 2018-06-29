@@ -1,0 +1,10 @@
+= simple_form_for alert, url: @form_url do |f|
+  = f.error_notification
+
+  .row
+    .col-sm-6
+      .form-inputs
+        = f.input :html, label: "HTML"           
+
+      .form-actions
+        = f.button :submit, "Submit", class: 'btn btn-primary'

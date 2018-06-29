@@ -69,6 +69,7 @@ class Role < ActiveRecord::Base
       :can_manage_organization_users,
       :can_add_administrative_event,
       :can_see_clients_in_window_for_assigned_data_sources,
+      :can_edit_warehouse_alerts,
     ]
     perms += self.health_permissions unless exclude_health
     return perms
