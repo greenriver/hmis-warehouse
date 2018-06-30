@@ -1,6 +1,6 @@
 module Health
   class Careplan < HealthBase
-    
+
     acts_as_paranoid
     # has_many :goals, class_name: Health::Goal::Base.name
     # has_many :hpc_goals, class_name: Health::Goal::Hpc.name
@@ -20,13 +20,15 @@ module Health
 
     serialize :service_archive, Array
     serialize :equipment_archive, Array
+    serialize :team_members_archive, Array
+    serialize :goals_archive, Array
 
     validates_presence_of :provider_id, if: -> { self.provider_signed_on.present? }
 
     # Scopes
     scope :locked, -> do
       where(locked: true)
-    end 
+    end
     scope :editable, -> do
       where(locked: false)
     end
@@ -40,7 +42,7 @@ module Health
     scope :sorted, -> do
       order(updated_at: :desc)
     end
-    # End Scopes 
+    # End Scopes
 
     def editable?
       ! locked
@@ -81,7 +83,7 @@ module Health
     end
 
     def just_signed?
-      self.patient_signed_on.present? && self.patient_signed_on_changed? || 
+      self.patient_signed_on.present? && self.patient_signed_on_changed? ||
       self.provider_signed_on.present? && self.provider_signed_on_changed?
     end
 
@@ -117,7 +119,7 @@ module Health
         # team_attrs = original_team.attributes.except('id')
         # team_attrs['careplan_id'] = new_careplan.id
         # new_team = original_team.class.create(team_attrs)
-        
+
         # original_team_members.each do |member|
         #   member_attrs = member.attributes.except('id')
         #   member_attrs['team_id'] = new_team.id
