@@ -1,6 +1,6 @@
 .patient__remaining_requirements.ml-4
   .patient__remaining_requirement
-    - if patient.participation_forms.reviewed.exists? 
+    - if patient.participation_forms.reviewed.exists?
       %span.icon-checkmark.o-color--positive.mr-1
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l
@@ -12,7 +12,7 @@
       %span.icon-checkmark.mr-1.o-color--gray-l
     Release Form
   .patient__remaining_requirement
-    - if patient.ssms? 
+    - if patient.ssms?
       %span.icon-checkmark.o-color--positive.mr-1
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l
@@ -23,3 +23,9 @@
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l
     Comprehensive Health Assessment
+  .patient__remaining_careplan
+    - if patient.careplans.locked.exists?
+      %span.icon-checkmark.o-color--positive.mr-1
+    - else
+      %span.icon-checkmark.mr-1.o-color--gray-l
+    PCTP Signed

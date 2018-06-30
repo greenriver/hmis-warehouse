@@ -32,7 +32,7 @@
           Release of Information form
     %li
       - completed_ssm = @patient.self_sufficiency_matrix_forms.completed.recent.first
-      - if completed_ssm 
+      - if completed_ssm
         = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: completed_ssm.id) do
           %span.icon-checkmark.o-color--positive.mr-1
           Self-Sufficiency Matrix
@@ -57,3 +57,13 @@
         = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id) do
           %span.icon-checkmark.mr-1.o-color--gray-l
           Comprehensive Health Assessment
+    %li
+      - if @patient.careplans.locked.exists?
+        - careplan = @patient.careplans.locked.last
+        = link_to window_client_health_careplan_path(client_id: @client.id, id: careplan.id) do
+          %span.icon-checkmark.o-color--positive.mr-1
+          PCTP Signed
+      - else
+        = link_to new_window_client_health_careplan_path(@client) do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          PCTP Signed

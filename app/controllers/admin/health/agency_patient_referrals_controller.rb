@@ -17,7 +17,8 @@ module Admin::Health
         @patient_referrals = Health::PatientReferral.
           unassigned.includes(:relationships).
           where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids.to_sql))).
-          references(:relationships)
+          references(:relationships).
+          preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       end
       respond_to do |format|
         format.html do
@@ -50,7 +51,8 @@ module Admin::Health
           unassigned.
           joins(:relationships).
           where(agency_patient_referrals: {agency_id: @agency.id}).
-          where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'})
+          where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
+          preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
         load_index_vars
       end
       render 'index'
