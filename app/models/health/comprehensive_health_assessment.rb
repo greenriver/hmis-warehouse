@@ -728,8 +728,10 @@ module Health
       q_q2: nil,
 
       r_q1: answers_for(section: 'R', question: 1, number: 4),
-      r_q1a: answers_for(section: 'R', question: 'A', number: 1),
-      r_q1b: answers_for(section: 'R', question: 'B', number: 1),
+      r_q1a: nil,
+      r_q1b: nil,
+      r_q1c: nil,
+      r_q1d: nil,
       r_q2: answers_for(section: 'R', question: 2, number: 2),
       r_q3: answers_for(section: 'R', question: 3, number: 2),
       r_q4: answers_for(section: 'R', question: 4, number: 2),

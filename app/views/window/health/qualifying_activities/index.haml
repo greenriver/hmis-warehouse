@@ -1,32 +1,39 @@
 = render 'window/health/breadcrumbs'
 - content_for(:title, "Qualifying Activities for #{@patient.name}")
-%h1= content_for :title
-.c-card
-  .c-card__content
-    - if @qualifying_activities.present?
-      %table.table.table-condensed
-        %thead
+.o-page
+  .o-page__header
+    %h1= content_for :title
+  .o-page__controls
+    .o-page__search
+      = render 'filter', data: {placement: 'bottom'}
+  .table-utilities
+    %p.mr-5= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
+
+  - if @qualifying_activities.present?
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Date of activity
+          %th Claim submitted?
+          %th Activity
+          %th Mode of contact
+          %th Client reached
+          %th Follow-up
+          %th Owner
+          %th Procedure Code
+          %th Modifiers
+      %tbody
+        - @qualifying_activities.each do |qa|
           %tr
-            %th Date of activity
-            %th Claim submitted?
-            %th Activity
-            %th Mode of contact
-            %th Client reached
-            %th Follow-up
-            %th Owner
-            %th Procedure Code
-            %th Modifiers
-        %tbody
-          - @qualifying_activities.each do |qa|
-            %tr
-              %td= qa.date_of_activity.to_date
-              %td= qa.claim_submitted_on
-              %td= qa.title_for_activity
-              %td= qa.title_for_mode_of_contact
-              %td= qa.title_for_client_reached
-              %td= qa.follow_up
-              %td= qa.user_full_name
-              %td= qa.procedure_code
-              %td= qa.modifiers.join('>')
-    - else
-      %p.no-data None on file.
+            %td= qa.date_of_activity.to_date
+            %td= qa.claim_submitted_on
+            %td= qa.title_for_activity
+            %td= qa.title_for_mode_of_contact
+            %td= qa.title_for_client_reached
+            %td= qa.follow_up
+            %td= qa.user_full_name
+            %td= qa.procedure_code
+            %td= qa.modifiers.join('>')
+      %p= paginate @qualifying_activities
+  - else
+    %p.no-data None on file.
