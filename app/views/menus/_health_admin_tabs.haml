@@ -42,6 +42,12 @@
       controllers: ['team_coordinators'],
       visible: can_administer_health? ,
     },
+    {
+      title: 'Accountable Care Organizations',
+      path: admin_health_accountable_care_organizations_path,
+      controllers: ['accountable_care_organizations'],
+      visible: can_administer_health? ,
+    },
   ]
 
 - if GrdaWarehouse::Config.get(:healthcare_available)
