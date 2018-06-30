@@ -12,10 +12,10 @@
     .patient__care_coordinator.ml-4
       = simple_form_for patient, as: :patient, url: window_client_health_patient_url(patient.client, patient), remote: true do |f|
         = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator]}
-    .ml-auto
+    .ml-3
       - if ! patient.engaged?
         = render 'window/health/patient/remaining_to_engage', patient: patient
-    .ml-4
+    .ml-auto
       = render 'window/health/patient/engagement', patient: patient
-    .patient__link.ml-4
-      = link_to 'View', url, class: 'btn btn-sm btn-secondary'
+      .patient__link.text-right.mt-4
+        = link_to 'View', url, class: 'btn btn-sm btn-secondary'
