@@ -47,9 +47,9 @@ module Health
     end
 
     def ensure_team_exists
-      if team.blank?
-        create_team!(patient: patient, editor: user)
-      end
+      # if team.blank?
+      #   create_team!(patient: patient, editor: user)
+      # end
     end
 
     def import_team_members
@@ -105,23 +105,24 @@ module Health
     end
 
     def revise!
-      original_team = self.team
-      original_team_members = self.team_members
+      # I think this updates this for changes made here PT story #158636393
+      # original_team = self.team
+      # original_team_members = self.team_members
       original_goals = self.goals
 
       new_careplan = self.class.new(revsion_attributes)
       self.class.transaction do
         new_careplan.locked = false
         new_careplan.save!
-        team_attrs = original_team.attributes.except('id')
-        team_attrs['careplan_id'] = new_careplan.id
-        new_team = original_team.class.create(team_attrs)
+        # team_attrs = original_team.attributes.except('id')
+        # team_attrs['careplan_id'] = new_careplan.id
+        # new_team = original_team.class.create(team_attrs)
         
-        original_team_members.each do |member|
-          member_attrs = member.attributes.except('id')
-          member_attrs['team_id'] = new_team.id
-          new_team_members = member.class.create(member_attrs)
-        end
+        # original_team_members.each do |member|
+        #   member_attrs = member.attributes.except('id')
+        #   member_attrs['team_id'] = new_team.id
+        #   new_team_members = member.class.create(member_attrs)
+        # end
         original_goals.each do |goal|
           goal_attr = goal.attributes.except('id')
           goal_attr[:careplan_id] = new_careplan.id

@@ -48,6 +48,14 @@
        title: 'Files',
        permission: show_health_hpc,
       },
+      polymorphic_path(team_members_path_generator) => {
+        title: 'Team Members',
+        permission: show_health_hpc,
+      },
+      polymorphic_path(goals_path_generator) => {
+        title: 'Goals',
+        permission: show_health_hpc,
+      },
       polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
        title: 'Dashboard',
        permission: show_health_pilot,

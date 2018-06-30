@@ -1,16 +1,19 @@
 - index ||= @careplan.goals.count
 - goal = hpc
-- if goal.id.present?
-  - url = polymorphic_path(careplan_path_generator + [:goal], id: goal.id, careplan_id: @careplan)
-- else
-  - url = polymorphic_path(careplan_path_generator + [:goals])
+-# TODO fix me
+  - if goal.id.present?
+    - url = polymorphic_path(careplan_path_generator + [:goal], id: goal.id, careplan_id: @careplan)
+  - else
+    - url = polymorphic_path(careplan_path_generator + [:goals])
+- url = '#'
 
 - if readonly
   .jGoal{data: {id: goal.id}}
     .c-card__item.health-careplan__goal
       .c-card__item-header
         %h4 Goal ##{index}
-        - unless @disable_goal_actions
+        -# TODO fix me
+        - unless @disable_goal_actions || !@careplan.present?
           .d-flex.ml-auto
             .health-careplan__goal-action.health-careplan__goal-delete.mr-3
               = link_to polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id), data: { loads_in_pjax_modal: true } do
@@ -22,7 +25,7 @@
         .col-xs-4
           %label Responsible Care Team Member
           .health-careplan__goal-responsible
-            = @careplan.team.available_members.to_h.invert[goal.responsible_team_member_id]
+            = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
         .col-xs-4
           %label Start Date
           .health-careplan__goal-start-date
@@ -57,7 +60,7 @@
     .row
       .col-sm-6
         = f.input :status, collection: goal.class.available_stati, input_html: { class: :select2 }
-        = f.input :responsible_team_member_id, collection: @careplan.team.available_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
+        = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
     .d-flex
       .c-btn-group.ml-auto
         = f.submit value: 'Save Goal', class: 'btn btn-primary'

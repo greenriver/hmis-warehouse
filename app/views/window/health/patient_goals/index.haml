@@ -1,0 +1,17 @@
+- title = "Manage Goals for #{@client.full_name}"
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= title
+  = render 'window/clients/breadcrumbs'
+  = render 'window/clients/tab_navigation', current: polymorphic_path(goals_path_generator)
+  %section.c-card.c-card--block.c-card--no-padding
+    .c-card__header.c-card__header--external
+      %h2 Goals
+    - if @goals.blank?
+      .c-card__content.c-card__content--flush.w-100
+        %p.no-data No team members on file
+    - else
+      .c-card__content.pb-0
+        - @goals.each_with_index do |goal, index|
+          = render goal, readonly: true, index: (index + 1)

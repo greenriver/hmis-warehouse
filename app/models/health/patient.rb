@@ -156,6 +156,10 @@ module Health
       end
     end
 
+    def available_team_members
+      team_members.map{|t| [t.full_name, t.id]}
+    end
+
     def days_to_engage 
       return 0 unless engagement_date.present?
       (engagement_date - Date.today).to_i.clamp(0, 180)

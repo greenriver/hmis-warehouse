@@ -8,6 +8,7 @@ module Window::Health
 
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthGoal
     def index
       @goal = Health::Goal::Hpc.new
 

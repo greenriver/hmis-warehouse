@@ -35,6 +35,7 @@ Rails.application.routes.draw do
       resources :durable_equipments, except: [:index]
       resources :files, only: [:index, :show]
       resources :team_members, controller: :patient_team_members
+      resources :goals, controller: :patient_goals
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
