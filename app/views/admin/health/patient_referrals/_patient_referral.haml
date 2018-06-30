@@ -3,7 +3,7 @@
     .row
       .col-sm-2
         - if client = pr.client
-          = link_to pr.name, window_client_path(client)
+          = link_to pr.name, window_client_health_patient_index_path(client)
         - else
           = pr.name
       .col-sm-3
