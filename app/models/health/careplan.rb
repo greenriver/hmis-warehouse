@@ -2,8 +2,8 @@ module Health
   class Careplan < HealthBase
     
     acts_as_paranoid
-    has_many :goals, class_name: Health::Goal::Base.name
-    has_many :hpc_goals, class_name: Health::Goal::Hpc.name
+    # has_many :goals, class_name: Health::Goal::Base.name
+    # has_many :hpc_goals, class_name: Health::Goal::Hpc.name
     has_one :team, class_name: Health::Team.name, dependent: :destroy
 
     # PT story #158636393 taken off the of the careplan and added to the patient

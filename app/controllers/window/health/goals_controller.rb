@@ -4,7 +4,6 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan
-    before_action :set_goal, only: [:destroy, :edit, :update]
 
     include PjaxModalController
     include WindowClientPathGenerator
@@ -14,57 +13,37 @@ module Window::Health
 
     end
 
-    def new
-      @goal = Health::Goal::Hpc.new
-    end
-
     def previous
 
     end
 
-    def edit
+    def after_path
+      polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
     end
 
-    def update
-      @goal.update(goal_params)
-      if ! request.xhr?
-        respond_with(@goal, location: polymorphic_path([:edit] + careplan_path_generator, id: @careplan))
-        return
+    def goal_form_path
+      if @goal.new_record?
+        polymorphic_path(careplan_path_generator + [:goals])
+      else
+        polymorphic_path(careplan_path_generator + [:goal], id: @goal.id)
       end
     end
+    helper_method :goal_form_path
 
-
-    def create
-      existing_count = @careplan.goals.count
-      opts = goal_params.merge({
-        name: 'HPC Goal',
-        number: existing_count,
-        user_id: current_user.id,
-        careplan_id: @careplan.id,
-      })
-      @goal = Health::Goal::Hpc.create(opts)
-
-      if ! request.xhr?
-        respond_with(@goal, location: polymorphic_path([:edit] + careplan_path_generator, id: @careplan))
-        return
-      end
+    def new_goal_path
+      polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id)
     end
+    helper_method :new_goal_path
 
-    def destroy
-      @goal.update(user_id: current_user.id)
-      @goal.destroy!
+    def edit_goal_path(goal)
+      polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
     end
+    helper_method :edit_goal_path
 
-    def goal_params
-      params.require(:goal).permit(
-        :problem,
-        :start_date,
-        :goal_details,
-        :intervention,
-        :status,
-        :responsible_team_member_id,
-      )
+    def delete_goal_path(goal)
+      polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
     end
+    helper_method :delete_goal_path
 
     def set_careplan
       @careplan = careplan_source.find(params[:careplan_id].to_i)
@@ -72,10 +51,6 @@ module Window::Health
 
     def careplan_source
       Health::Careplan
-    end
-    
-    private def set_goal
-      @goal = ::Health::Goal::Hpc.find(params[:id].to_i)
     end
 
     def flash_interpolation_options

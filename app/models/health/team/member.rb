@@ -57,6 +57,19 @@ module Health
     def full_name
       ["#{first_name} #{last_name}", title.presence].compact.join(', ')
     end
+
+    def careplans
+      Health::Careplan.
+        where('responsible_team_member_id = ? OR provider_id = ? OR representative_id = ?', id, id, id)
+    end
+
+    def goals
+      Health::Goal::Base.where('responsible_team_member_id = ?', id)
+    end
+
+    def in_use?
+      careplans.any? || goals.any? 
+    end
   end
 end
 

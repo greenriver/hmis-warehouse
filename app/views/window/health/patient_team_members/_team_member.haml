@@ -15,7 +15,8 @@
   %td= member.organization
   %td
     .health__team-member__action.health__team-member--delete
-      = link_to polymorphic_path([:edit] + team_member_path_generator, id: member.id), data: { loads_in_pjax_modal: true }, class: 'mr-1' do
+      = link_to polymorphic_path([:edit] + team_member_path_generator, id: member.id), data: { loads_in_pjax_modal: true }, class: 'mr-4' do
         %span.icon-pencil
-      = link_to polymorphic_path(team_member_path_generator, id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do 
-        %span.icon-cross
+      - unless member.in_use?
+        = link_to polymorphic_path(team_member_path_generator, id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do 
+          %span.icon-cross

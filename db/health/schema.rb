@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180629203110) do
+ActiveRecord::Schema.define(version: 20180630171549) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -303,7 +303,6 @@ ActiveRecord::Schema.define(version: 20180629203110) do
   add_index "health_files", ["type"], name: "index_health_files_on_type", using: :btree
 
   create_table "health_goals", force: :cascade do |t|
-    t.integer  "careplan_id"
     t.integer  "user_id"
     t.string   "type"
     t.integer  "number"
@@ -345,9 +344,10 @@ ActiveRecord::Schema.define(version: 20180629203110) do
     t.text     "intervention"
     t.string   "status"
     t.integer  "responsible_team_member_id"
+    t.integer  "patient_id"
   end
 
-  add_index "health_goals", ["careplan_id"], name: "index_health_goals_on_careplan_id", using: :btree
+  add_index "health_goals", ["patient_id"], name: "index_health_goals_on_patient_id", using: :btree
   add_index "health_goals", ["user_id"], name: "index_health_goals_on_user_id", using: :btree
 
   create_table "medications", force: :cascade do |t|
@@ -676,6 +676,7 @@ ActiveRecord::Schema.define(version: 20180629203110) do
 
   add_foreign_key "comprehensive_health_assessments", "health_files"
   add_foreign_key "comprehensive_health_assessments", "patients"
+  add_foreign_key "health_goals", "patients"
   add_foreign_key "participation_forms", "health_files"
   add_foreign_key "release_forms", "health_files"
   add_foreign_key "sdh_case_management_notes", "health_files"

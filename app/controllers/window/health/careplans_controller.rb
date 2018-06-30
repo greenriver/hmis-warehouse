@@ -13,7 +13,8 @@ module Window::Health
       # most-recent careplan
       @careplan = @careplans.sorted.first
       @disable_goal_actions = true
-      @goals = @careplan&.hpc_goals
+      # @goals = @careplan&.hpc_goals
+      @goals = @patient.hpc_goals
     end
 
     def show
@@ -130,6 +131,21 @@ module Window::Health
     def flash_interpolation_options
       { resource_name: 'Care Plan' }
     end
+
+    def new_goal_path
+      polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id)
+    end
+    helper_method :new_goal_path
+
+    def edit_goal_path(goal)
+      polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
+    end
+    helper_method :edit_goal_path
+
+    def delete_goal_path(goal)
+      polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
+    end
+    helper_method :delete_goal_path
 
   end
 end

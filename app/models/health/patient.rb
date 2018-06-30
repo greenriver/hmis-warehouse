@@ -15,7 +15,10 @@ module Health
     # has_many :team_members, class_name: Health::Team::Member.name, through: :team
     has_many :team_members, class_name: Health::Team::Member.name
 
-    has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
+    # has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
+    has_many :goals, class_name: Health::Goal::Base.name
+    # NOTE: not sure if this is the right order but it seems they should have some kind of order
+    has_many :hpc_goals, -> {order 'health_goals.start_date'}, class_name: Health::Goal::Hpc.name
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 

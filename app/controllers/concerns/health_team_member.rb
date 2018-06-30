@@ -36,8 +36,10 @@ module HealthTeamMember
 
   def destroy
     @member = Health::Team::Member.find(params[:id])
-    @member.update(user_id: current_user.id)
-    @member.destroy!
+    unless @member.in_use?
+      @member.update(user_id: current_user.id)
+      @member.destroy!
+    end
     if !request.xhr?
       respond_with(@member, location: after_path)
     end
