@@ -13,6 +13,8 @@ module Health
 
     has_many :services, through: :patient, class_name: Health::Service.name
     has_many :equipments, through: :patient, class_name: Health::Equipment.name
+    has_many :team_members, through: :patient, class_name: Health::Team::Member.name
+    has_many :hpc_goals, through: :patient, class_name: Health::Goal::Hpc.name
 
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
@@ -92,6 +94,8 @@ module Health
         self.locked = true
         archive_services
         archive_equipment
+        archive_goals
+        archive_team_members
       else
         self.locked = false
       end
@@ -104,6 +108,14 @@ module Health
 
     def archive_equipment
       self.equipment_archive = self.equipments.map(&:attributes)
+    end
+
+    def archive_goals
+      self.goals_archive = self.hpc_goals.map(&:attributes)
+    end
+
+    def archive_team_members
+      self.team_members_archive = self.team_members.map(&:attributes)
     end
 
     def revise!
