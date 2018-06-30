@@ -4,7 +4,8 @@ module Health
     has_paper_trail class_name: Health::HealthVersion.name
     acts_as_paranoid
 
-    belongs_to :team, class_name: Health::Team.name
+    # belongs_to :team, class_name: Health::Team.name
+    belongs_to :patient
         
     validates :email, presence: true, email_format: { check_mx: true }, length: {maximum: 250}
     validates_presence_of :first_name, :last_name, :organization

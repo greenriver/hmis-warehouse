@@ -1,6 +1,16 @@
 module CombinedClientPathsGenerator
   extend ActiveSupport::Concern
   included do
+    def team_member_path_generator
+      health_path_generator + [:team_member]
+    end
+    helper_method :team_member_path_generator
+
+    def team_members_path_generator
+      health_path_generator + [:team_members]
+    end
+    helper_method :team_members_path_generator
+
     def careplans_path_generator
       health_path_generator + [:careplans]
     end

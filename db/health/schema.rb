@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180628175013) do
+ActiveRecord::Schema.define(version: 20180629203110) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -612,7 +612,6 @@ ActiveRecord::Schema.define(version: 20180628175013) do
 
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false
-    t.integer  "team_id",      null: false
     t.string   "first_name",   null: false
     t.string   "last_name",    null: false
     t.string   "email",        null: false
@@ -624,9 +623,10 @@ ActiveRecord::Schema.define(version: 20180628175013) do
     t.datetime "updated_at"
     t.integer  "user_id"
     t.string   "phone"
+    t.integer  "patient_id"
   end
 
-  add_index "team_members", ["team_id"], name: "index_team_members_on_team_id", using: :btree
+  add_index "team_members", ["patient_id"], name: "index_team_members_on_patient_id", using: :btree
   add_index "team_members", ["type"], name: "index_team_members_on_type", using: :btree
 
   create_table "teams", force: :cascade do |t|
@@ -679,4 +679,5 @@ ActiveRecord::Schema.define(version: 20180628175013) do
   add_foreign_key "participation_forms", "health_files"
   add_foreign_key "release_forms", "health_files"
   add_foreign_key "sdh_case_management_notes", "health_files"
+  add_foreign_key "team_members", "patients"
 end

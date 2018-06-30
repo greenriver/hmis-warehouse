@@ -6,7 +6,8 @@ module Health
     has_many :hpc_goals, class_name: Health::Goal::Hpc.name
     has_one :team, class_name: Health::Team.name, dependent: :destroy
 
-    has_many :team_members, through: :team, source: :members
+    # PT story #158636393 taken off the of the careplan and added to the patient
+    # has_many :team_members, through: :team, source: :members
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
 
@@ -52,6 +53,7 @@ module Health
     end
 
     def import_team_members
+      # I think this updates this for changes made here PT story #158636393
       potential_team = patient.epic_team_members.unprocessed.to_a
       return unless potential_team.any?
       potential_team.each do |epic_member|
@@ -64,7 +66,7 @@ module Health
         # Use the PCP type if we have it
         relationship = epic_member.pcp_type || epic_member.relationship
         member = Health::Team::Member.class_from_member_type_name(relationship).new(
-            team: team, 
+            patient_id: patient.id,
             user_id: user.id,
             first_name: first_name,
             last_name: last_name,

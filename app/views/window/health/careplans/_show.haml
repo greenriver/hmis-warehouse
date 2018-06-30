@@ -25,7 +25,7 @@
           %th Organization
           %th Contact
       %tbody
-        - @careplan.team_members.each do |member|
+        - @patient.team_members.each do |member|
           %tr
             %td= member.member_type_name
             %td= member.full_name

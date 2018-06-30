@@ -1,0 +1,21 @@
+%tr.jTeamMember{id: "team-member-#{member.id}"}
+  %td
+    .health__team-member--type.mb-0
+      %i{class: Health::Team::Member.icon_for(member.member_type_name)}
+      = member.class.member_type_name
+  %td
+    = member.full_name
+    %br
+    = mail_to member.email do
+      %i.icon-envelope-o
+      = member.email
+    - if member.present?
+      %br
+      = member.phone
+  %td= member.organization
+  %td
+    .health__team-member__action.health__team-member--delete
+      = link_to polymorphic_path([:edit] + team_member_path_generator, id: member.id), data: { loads_in_pjax_modal: true }, class: 'mr-1' do
+        %span.icon-pencil
+      = link_to polymorphic_path(team_member_path_generator, id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do 
+        %span.icon-cross

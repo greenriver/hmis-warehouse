@@ -11,8 +11,9 @@ module Health
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
-    has_many :teams, through: :careplans
-    has_many :team_members, class_name: Health::Team::Member.name, through: :team
+    # has_many :teams, through: :careplans
+    # has_many :team_members, class_name: Health::Team::Member.name, through: :team
+    has_many :team_members, class_name: Health::Team::Member.name
 
     has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
 
