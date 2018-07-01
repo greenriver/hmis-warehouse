@@ -1,4 +1,4 @@
-- content_for :title,  'Accountable Care Organization'
+- content_for :title,  'Accountable Care Organizations'
 %h1= content_for :title
 
 = render 'menus/health_admin_tabs'
@@ -19,8 +19,8 @@
             %td= accountable_care_organization.short_name
             %td= accountable_care_organization.mco_pid
             %td= accountable_care_organization.mco_sl
-        
+
   .col-sm-4
     = link_to new_admin_health_accountable_care_organization_path, class: 'btn btn-primary' do
       %i.icon-plus
-      New Accountable Care Organization
+      New ACO

@@ -1,6 +1,6 @@
 module Admin::Health
   class AccountableCareOrganizationsController < HealthController
-    before_action :require_has_administartive_access_to_health!
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_manage_accountable_care_organizations!
     before_action :set_accountable_care_organization, only: [:edit, :update]
 
