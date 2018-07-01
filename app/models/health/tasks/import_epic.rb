@@ -47,7 +47,7 @@ module Health::Tasks
         translated_row = row.to_h.map do |k,v|
           clean_key = klass.csv_map[k.to_sym]
           [clean_key, klass.clean_value(clean_key, v)]
-        end.to_h
+        end.to_h.except(nil)
         # Make note that the import of patients is only functional for the pilot
         if klass == Health::Patient
           translated_row[:pilot] = true

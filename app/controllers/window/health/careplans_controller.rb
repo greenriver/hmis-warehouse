@@ -21,11 +21,13 @@ module Window::Health
       @goal = Health::Goal::Base.new
       @readonly = false
       file_name = 'care_plan'
-      # make sure we have the most recent-services and DME if
+      # make sure we have the most recent-services, DME, team members, and goals if
       # the plan is editable
       if @careplan.editable?
         @careplan.archive_services
         @careplan.archive_equipment
+        @careplan.archive_goals
+        @careplan.archive_team_members
         @careplan.save
       end
 

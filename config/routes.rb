@@ -36,6 +36,7 @@ Rails.application.routes.draw do
       resources :files, only: [:index, :show]
       resources :team_members, controller: :patient_team_members
       resources :goals, controller: :patient_goals
+      resources :epic_case_notes, only: [:show]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
