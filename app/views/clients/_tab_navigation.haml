@@ -56,6 +56,14 @@
        title: 'Care Plan',
        permission: show_health_hpc,
       },
+      polymorphic_path(team_members_path_generator, client_id: @client.id) => {
+        title: 'Team Members',
+        permission: show_health_hpc,
+      },
+      polymorphic_path(goals_path_generator, client_id: @client.id) => {
+        title: 'Goals',
+        permission: show_health_hpc,
+      },
       polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
        title: 'Files',
        permission: show_health_hpc,
@@ -72,7 +80,6 @@
       polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client.id) => {
         title: 'Metrics',
         permission: show_health_pilot,
-      }, 
+      },
     }
   = render 'window/clients/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
-  
