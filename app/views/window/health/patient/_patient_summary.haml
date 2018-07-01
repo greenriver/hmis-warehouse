@@ -24,21 +24,21 @@
                 = @patient.aco.name
           .col-md-4
             = render 'readiness_form_links'
-        .row
-          .col-md-6
-            .row
-              .col-sm-6
-                .ho-patient__detail
-                  %span
-                    Preferred Communication:
-              .col-sm-6.text-left
-                = @patient.preferred_communication
-                = @patient.phone_message_ok
-                %br
-                = @patient.most_recent_phone
-                %br
-                = @patient.email
-
+    .ho-patient__content
+      %h4 Communication
+      .ho-patient__detail
+        %span Preferred Communication:
+        = @patient.preferred_communication
+      .patient__phone-status
+        = @patient.phone_message_ok
+      - if phone = @patient.most_recent_phone
+        .ho-patient__detail
+          %span Phone:
+          = phone
+      - if email = @patient.email
+        .ho-patient__detail
+          %span Email
+          = mail_to email
     .ho-patient__content
       %h4
         Demographics

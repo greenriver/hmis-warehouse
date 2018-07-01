@@ -3857,6 +3857,9 @@ msgstr ""
 msgid "patient"
 msgstr ""
 
+msgid "qualifying activities"
+msgstr ""
+
 msgid "report"
 msgstr ""
 

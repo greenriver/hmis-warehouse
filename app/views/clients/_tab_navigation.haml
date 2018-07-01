@@ -48,10 +48,6 @@
        title: 'Health Dashboard',
        permission: show_health_hpc,
       },
-      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
-       title: 'Services',
-       permission: show_health_hpc,
-      },
       polymorphic_path(careplans_path_generator, client_id: @client.id) => {
        title: 'Care Plan',
        permission: show_health_hpc,
@@ -59,6 +55,10 @@
       polymorphic_path(team_members_path_generator, client_id: @client.id) => {
         title: 'Team Members',
         permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
+       title: 'Services',
+       permission: show_health_hpc,
       },
       polymorphic_path(goals_path_generator, client_id: @client.id) => {
         title: 'Goals',
