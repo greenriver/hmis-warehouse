@@ -1,0 +1,28 @@
+%article.health-care-plan__goals.l-print__section--page
+  %h1 Goals
+  .l-print__item-wrapper
+    - if @careplan.locked?
+      - goals = @careplan.goals_archive
+    - else
+      - goals = @careplan.goals
+    - goals.each do |goal|
+      .l-print__item.l-print__item--bordered
+        %dl
+          %dt Responsible Care Team Member
+          - responsible_team_member = @careplan.team.available_members.to_h.invert[goal[:responsible_team_member_id]] || 'No responsible team member'
+          %dd{class: ('minor-text' unless responsible_team_member)}= responsible_team_member
+
+          %dt Start Date
+          %dd= goal[:start_date]
+
+          %dt Status
+          %dd= goal[:status]
+
+          %dt Problem
+          %dd= simple_format goal[:problem]
+
+          %dt Goal Description
+          %dd= simple_format goal[:goal_details]
+
+          %dt Intervention
+          %dd= simple_format goal[:intervention]
