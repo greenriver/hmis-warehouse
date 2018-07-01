@@ -9,8 +9,8 @@
               %li= msg
       = f.input :name
       = f.input :short_name
-      = f.input :mco_pid
-      = f.input :mco_sl
+      = f.input :mco_pid, label: 'MCO PID'
+      = f.input :mco_sl, label: 'MCO SL'
 
       .form-actions
         = f.submit 'Save', class: 'btn btn-primary'
