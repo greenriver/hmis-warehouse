@@ -262,6 +262,7 @@ ActiveRecord::Schema.define(version: 20180701013424) do
     t.string   "dx_2_icd10"
     t.string   "dx_2_name"
     t.string   "homeless_status"
+    t.integer  "data_source_id"
     t.datetime "created_at",                null: false
     t.datetime "updated_at",                null: false
   end

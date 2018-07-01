@@ -10,11 +10,11 @@ module Health::Tasks
 
     def initialize(logger: Rails.logger, load_locally: false)
       setup_notifier('HealthImporter')
-      
+
       @logger = logger
-            
+
       @load_locally = load_locally
-      
+
       @to_revoke = []
       @to_restore = []
       @new_patients = []
@@ -74,18 +74,19 @@ module Health::Tasks
     def change_counts
       {
         new_patients: @new_patients.size,
-        consented: @to_restore.size, 
+        consented: @to_restore.size,
         revoked_consent: @to_revoke.size,
       }
     end
 
+    # only valid for pilot patients
     def update_consent
       klass = Health::Patient
       file = Health.model_to_filename(klass)
       path = "#{@config['destination']}/#{file}"
 
-      consented = klass.consented.pluck(:id_in_source)
-      revoked = klass.consent_revoked.pluck(:id_in_source)
+      consented = klass.pilot.consented.pluck(:id_in_source)
+      revoked = klass.pilot.consent_revoked.pluck(:id_in_source)
       incoming = []
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
         incoming << row[klass.source_key.to_s]
@@ -100,7 +101,7 @@ module Health::Tasks
 
     def fetch_files
       sftp = Net::SFTP.start(
-        @config['host'], 
+        @config['host'],
         @config['username'],
         password: @config['password'],
         # verbose: :debug,
@@ -124,7 +125,11 @@ module Health::Tasks
     def header_row_matches file:, klass:
       expected = klass.csv_map.keys.sort
       found = CSV.parse(file.first).first.map(&:to_sym).sort
-      found == expected
+      if klass.name == "Health::EpicCaseNote"
+        (expected - found).size == 0
+      else
+        found == expected
+      end
     end
 
     def notify msg

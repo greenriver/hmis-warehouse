@@ -17,6 +17,7 @@ class CreateEpicCaseNotes < ActiveRecord::Migration
       t.string :dx_2_icd10
       t.string :dx_2_name
       t.string :homeless_status
+      t.integer :data_source_id
       t.timestamps null: false
     end
   end

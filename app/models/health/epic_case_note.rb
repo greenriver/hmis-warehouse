@@ -25,5 +25,13 @@ module Health
       }
     end
 
+    def self.clean_value key, value
+      case value
+      when 'NULL'
+        value = nil
+      else
+        value
+      end
+    end
   end
 end
