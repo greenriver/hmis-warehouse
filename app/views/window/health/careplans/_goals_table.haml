@@ -4,7 +4,7 @@
     - if @careplan.locked?
       - goals = @careplan.goals_archive.map{|m| m['type'].safe_constantize.new(m)}
     - else
-      - goals = @careplan.goals
+      - goals = @patient.goals
     - goals.each do |goal|
       .l-print__item.l-print__item--bordered
         %dl

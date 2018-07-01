@@ -1,69 +1,67 @@
-.btn-group
-  %button{ type: 'button', class: 'btn btn-secondary btn-sm dropdown-toggle', :'data-toggle' => 'dropdown' }
-    Engagement Readiness & Forms
-    %span.caret
-  %ul.dropdown-menu
-    %li
-      - participation = @patient.participation_forms.recent.first
-      - if participation
-        = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
-          - if participation.reviewed_by.present?
-            %span.icon-checkmark.o-color--positive.mr-1
-          - else
-            %span.icon-checkmark.mr-1.o-color--gray-l
-          Participation Form
-      - else
-        = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
-          %span.icon-checkmark.mr-1.o-color--gray-l
-          Participation Form
+%h4 Engagement Readiness & Forms
 
-    %li
-      - release = @patient.release_forms.recent.first
-      - if release
-        = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
-          - if release.reviewed_by.present?
-            %span.icon-checkmark.o-color--positive.mr-1
-          - else
-            %span.icon-checkmark.mr-1.o-color--gray-l
-          Release of Information form
-      - else
-        = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
-          %span.icon-checkmark.mr-1.o-color--gray-l
-          Release of Information form
-    %li
-      - completed_ssm = @patient.self_sufficiency_matrix_forms.completed.recent.first
-      - if completed_ssm
-        = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: completed_ssm.id) do
+%ul.list-unstyled
+  %li
+    - participation = @patient.participation_forms.recent.first
+    - if participation
+      = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
+        - if participation.reviewed_by.present?
           %span.icon-checkmark.o-color--positive.mr-1
-          Self-Sufficiency Matrix
-      - elsif ssm = @patient.self_sufficiency_matrix_forms.recent.first
-        = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: ssm.id) do
+        - else
           %span.icon-checkmark.mr-1.o-color--gray-l
-          Self-Sufficiency Matrix
-      - else
-        = link_to polymorphic_path([:new] + self_sufficiency_matrix_form_path_generator) do
-          %span.icon-checkmark.mr-1.o-color--gray-l
-          Self-Sufficiency Matrix
-    %li
-      - cha = @patient.chas.recent.first
-      - if cha
-        = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id) do
-          - if cha.reviewed_by.present?
-            %span.icon-checkmark.o-color--positive.mr-1
-          - else
-            %span.icon-checkmark.mr-1.o-color--gray-l
-          Comprehensive Health Assessment
-      - else
-        = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id) do
-          %span.icon-checkmark.mr-1.o-color--gray-l
-          Comprehensive Health Assessment
-    %li
-      - if @patient.careplans.locked.exists?
-        - careplan = @patient.careplans.locked.last
-        = link_to window_client_health_careplan_path(client_id: @client.id, id: careplan.id) do
+        Participation Form
+    - else
+      = link_to polymorphic_path([:new] + participation_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+        %span.icon-checkmark.mr-1.o-color--gray-l
+        Participation Form
+
+  %li
+    - release = @patient.release_forms.recent.first
+    - if release
+      = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
+        - if release.reviewed_by.present?
           %span.icon-checkmark.o-color--positive.mr-1
-          PCTP Signed
-      - else
-        = link_to new_window_client_health_careplan_path(@client) do
+        - else
           %span.icon-checkmark.mr-1.o-color--gray-l
-          PCTP Signed
+        Release of Information form
+    - else
+      = link_to polymorphic_path([:new] + release_form_path_generator, client_id: @client.id), data: { loads_in_pjax_modal: true } do
+        %span.icon-checkmark.mr-1.o-color--gray-l
+        Release of Information form
+  %li
+    - completed_ssm = @patient.self_sufficiency_matrix_forms.completed.recent.first
+    - if completed_ssm
+      = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: completed_ssm.id) do
+        %span.icon-checkmark.o-color--positive.mr-1
+        Self-Sufficiency Matrix
+    - elsif ssm = @patient.self_sufficiency_matrix_forms.recent.first
+      = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: ssm.id) do
+        %span.icon-checkmark.mr-1.o-color--gray-l
+        Self-Sufficiency Matrix
+    - else
+      = link_to polymorphic_path([:new] + self_sufficiency_matrix_form_path_generator) do
+        %span.icon-checkmark.mr-1.o-color--gray-l
+        Self-Sufficiency Matrix
+  %li
+    - cha = @patient.chas.recent.first
+    - if cha
+      = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id) do
+        - if cha.reviewed_by.present?
+          %span.icon-checkmark.o-color--positive.mr-1
+        - else
+          %span.icon-checkmark.mr-1.o-color--gray-l
+        Comprehensive Health Assessment
+    - else
+      = link_to polymorphic_path([:new] + cha_path_generator, client_id: @client.id) do
+        %span.icon-checkmark.mr-1.o-color--gray-l
+        Comprehensive Health Assessment
+  %li
+    - if @patient.careplans.locked.exists?
+      - careplan = @patient.careplans.locked.last
+      = link_to window_client_health_careplan_path(client_id: @client.id, id: careplan.id) do
+        %span.icon-checkmark.o-color--positive.mr-1
+        PCTP Signed
+    - else
+      = link_to new_window_client_health_careplan_path(@client) do
+        %span.icon-checkmark.mr-1.o-color--gray-l
+        PCTP Signed

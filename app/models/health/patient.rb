@@ -213,7 +213,7 @@ module Health
     end
 
     def preferred_communication
-      recent_cha&.answer(:r_q1).presence || '(unknown)'
+      recent_cha&.answer(:r_q1)
     end
 
     def most_recent_phone
@@ -259,7 +259,7 @@ module Health
     end
 
     def email
-      recent_cha&.answer(:r_q1b).presence || '(unknown)'
+      recent_cha&.answer(:r_q1b).presence
     end
 
     def advanced_directive

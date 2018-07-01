@@ -7,12 +7,9 @@
             = @patient.client.name
           .col-sm-8.text-right
             = render 'engagement', patient: @patient
-            = render 'readiness_form_links'
-                
-
       .ho-patient__details
         .row
-          .col-md-6
+          .col-md-8
             - @patient_summary[:details].each do |detail|
               .ho-patient__detail
                 %span= "#{detail[0]}: "
@@ -25,10 +22,12 @@
                 %span
                   ACO:
                 = @patient.aco.name
-
-          .col-md-6.text-right
+          .col-md-4
+            = render 'readiness_form_links'
+        .row
+          .col-md-6
             .row
-              .col-sm-6.text-right
+              .col-sm-6
                 .ho-patient__detail
                   %span
                     Preferred Communication:
@@ -36,7 +35,7 @@
                 = @patient.preferred_communication
                 = @patient.phone_message_ok
                 %br
-                = @patient.most_recent_phone || '(unknown)'
+                = @patient.most_recent_phone
                 %br
                 = @patient.email
 
@@ -73,10 +72,9 @@
             %div= @patient.advanced_directive[:address]
             %div= @patient.advanced_directive[:phone]
           - else
-            %strong None
-            %br
             - if @patient.develop_advanced_directive?
               Would like to develop plan
+
 
 
 
