@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180630225902) do
+ActiveRecord::Schema.define(version: 20180701013424) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -244,6 +244,29 @@ ActiveRecord::Schema.define(version: 20180630225902) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "epic_case_notes", force: :cascade do |t|
+    t.string   "patient_id",                null: false
+    t.string   "id_in_source",              null: false
+    t.datetime "contact_date"
+    t.string   "closed"
+    t.string   "encounter_type"
+    t.string   "provider_name"
+    t.string   "location"
+    t.string   "chief_complaint_1"
+    t.string   "chief_complaint_1_comment"
+    t.string   "chief_complaint_2"
+    t.string   "chief_complaint_2_comment"
+    t.string   "dx_1_icd10"
+    t.string   "dx_1_name"
+    t.string   "dx_2_icd10"
+    t.string   "dx_2_name"
+    t.string   "homeless_status"
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+  end
+
+  add_index "epic_case_notes", ["patient_id"], name: "index_epic_case_notes_on_patient_id", using: :btree
 
   create_table "epic_goals", force: :cascade do |t|
     t.string   "patient_id",                           null: false
