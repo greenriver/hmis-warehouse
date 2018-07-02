@@ -1,6 +1,6 @@
 module Window::Health
   class GoalsController < IndividualPatientController
-    
+
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan
@@ -8,14 +8,6 @@ module Window::Health
     include PjaxModalController
     include WindowClientPathGenerator
     include HealthGoal
-    def index
-      @goal = Health::Goal::Hpc.new
-
-    end
-
-    def previous
-
-    end
 
     def after_path
       polymorphic_path([:edit] + careplan_path_generator, id: @careplan)

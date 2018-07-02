@@ -71,18 +71,6 @@ Rails.application.routes.draw do
           get :print
         end
       end
-      namespace :careplan do
-        resources :goals do
-          post :sort, on: :collection
-          resources :previous, only: [:index, :show]
-        end
-        namespace :team do
-          resources :members, only: [:index, :create, :destroy, :new] do
-            get :previous, on: :collection
-            post :restore
-          end
-        end
-      end
     end
   end
 

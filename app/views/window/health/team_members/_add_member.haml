@@ -9,5 +9,5 @@
   = f.input :organization
   .d-flex
     .c-btn-group.ml-auto
-      - submit_text = @member.new_record? ? 'Add Team Member' : 'Edit Team Member'
+      - submit_text = @member.new_record? ? 'Add Team Member' : 'Save Team Member'
       = f.button :submit, value: submit_text

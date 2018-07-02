@@ -10,26 +10,6 @@ module Window::Health
     include WindowClientPathGenerator
     include HealthTeamMember
 
-    def index
-      @member = Health::Team::Member.new
-
-    end
-
-    def previous
-
-    end
-
-    def restore
-      begin
-        @member.restore!
-        @member.update(user_id: current_user.id)
-        @team.update(user_id: current_user.id)
-      rescue Exception => e
-        flash[:error] = "Unable to restore team member: #{e}"
-      end
-      redirect_to action: :index
-    end
-
     def after_path
       polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
     end
@@ -49,10 +29,6 @@ module Window::Health
 
     def careplan_source
       Health::Careplan
-    end
-
-    private def set_deleted_team_member
-      @member = ::Health::Team::Member.with_deleted.find(params[:member_id].to_i)
     end
 
     def flash_interpolation_options
