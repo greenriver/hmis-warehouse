@@ -1,14 +1,14 @@
 $(document).on 'change', '.cha-form.autosave', (e) ->
   form = $(e.target).closest('form')
   $savingIndicator = $('.j-saving-indicator')
-  $savingIndicator.text('Saving').removeClass('hidden').addClass('saving c-spinner')
+  $savingIndicator.text('Saving').removeClass('hidden saved error').addClass('saving c-spinner')
   $.ajax
     url: form.data('url'),
     type: 'PATCH',
     data: form.serialize()
   .done (e) ->
-    console.log 'done'
-    $savingIndicator.removeClass('saving c-spinner').addClass('saved').text('Saved!')
+    # console.log 'done'
+    $savingIndicator.removeClass('saving c-spinner error').addClass('saved').text('Saved!')
   .fail (e) ->
     console.log 'fail'
     $savingIndicator.removeClass('saving c-spinner').addClass('error').text('Error saving')
@@ -37,7 +37,14 @@ $(document).on 'click', '.remove-medication', (e) ->
   inputs.first().change()
   row.addClass('hidden')
 
+$(document).on 'change', '.jMarkComplete', (e) ->
+  console.log $(e.target)
+  if $(e.target).is(':checked')
+    $('jMarkReviewed').removeProp('disabled')
+  else
+    $('.jMarkReviewed').prop('disabled', 'disabled')
 
+$('.jMarkComplete').trigger('change')
 # Scroll to element with id that matches hash
 # https://css-tricks.com/snippets/jquery/smooth-scrolling/
 scrollToElement = (event, offset=0, duration=1000) ->

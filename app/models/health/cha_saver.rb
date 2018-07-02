@@ -22,6 +22,7 @@ module Health
 
     def update
       @cha.class.transaction do
+        @cha.completed_at = nil unless @complete
         @cha.save!
         if @complete || @reviewed
           @qualifying_activity.source_id = @cha.id
@@ -43,6 +44,6 @@ module Health
         patient_id: @cha.patient_id
       )
     end
-    
+
   end
 end
