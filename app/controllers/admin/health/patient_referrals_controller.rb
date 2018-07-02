@@ -1,6 +1,6 @@
 module Admin::Health
   class PatientReferralsController < HealthController
-    before_action :require_has_administartive_access_to_health!
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
     before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
@@ -9,7 +9,8 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
-      @patient_referrals = Health::PatientReferral.unassigned.includes(:relationships)
+      @patient_referrals = Health::PatientReferral.unassigned.includes(:relationships).
+        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       respond_to do |format|
         format.html do
           load_index_vars
@@ -23,14 +24,16 @@ module Admin::Health
 
     def assigned
       @active_patient_referral_tab = 'assigned'
-      @patient_referrals = Health::PatientReferral.assigned.includes(:relationships)
+      @patient_referrals = Health::PatientReferral.assigned.includes(:relationships).
+        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       load_index_vars
       render 'index'
     end
 
     def rejected
       @active_patient_referral_tab = 'rejected'
-      @patient_referrals = Health::PatientReferral.rejected.includes(:relationships)
+      @patient_referrals = Health::PatientReferral.rejected.includes(:relationships).
+        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       load_index_vars
       render 'index'
     end
@@ -87,7 +90,7 @@ module Admin::Health
 
     def bulk_assign_agency
       @params = params[:bulk_assignment] || {}
-      @agency = Health::Agency.find(@params[:agency_id]) if @params[:agency_id].present? 
+      @agency = Health::Agency.find(@params[:agency_id]) if @params[:agency_id].present?
       @patient_referrals = Health::PatientReferral.where(id: (@params[:patient_referral_ids] || []))
       if @patient_referrals.any? && @agency.present?
         @patient_referrals.update_all(agency_id: @agency.id)
@@ -104,7 +107,7 @@ module Admin::Health
         flash[:error] = 'Error: Please select patients to assign.'
         redirect_to review_admin_health_patient_referrals_path
       end
-      
+
     end
 
     private

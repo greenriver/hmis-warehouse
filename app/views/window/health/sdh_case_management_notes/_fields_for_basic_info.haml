@@ -9,4 +9,16 @@
 .row
   .col-sm-5
     = f.input :date_of_contact, as: :date_picker, input_html: {value: f.object.date_of_contact&.to_date || Date.today.to_date}
+.row
+  .col-sm-6
+    = render 'string_collection_with_other', object: note, f: f, note_attr: 'place_of_contact', label: 'Place of contact (if in person)', other_label: 'Please specify', other: 'other', as: :radio_buttons
+.row
+  .col-sm-6
+    = render 'string_collection_with_other', object: note, f: f, note_attr: 'housing_status', label: 'Housing status', other_label: 'Please specify', other: 'other', as: :radio_buttons
 
+.row
+  .col-sm-6
+    = render 'string_collection_with_other', object: note, f: f, note_attr: 'client_action', label: 'Did any of the following happen?', other_label: 'Clinician who performed medication reconciliation', other: 'medication_reconciliation_clinician', as: :check_boxes
+.row
+  .col-sm-4
+    = f.input :client_phone_number

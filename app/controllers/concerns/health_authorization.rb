@@ -2,8 +2,8 @@ module HealthAuthorization
   extend ActiveSupport::Concern
 
   included do
-    def require_has_administartive_access_to_health!
-      return true  if current_user.has_administartive_access_to_health?
+    def require_has_administrative_access_to_health!
+      return true  if current_user.has_administrative_access_to_health?
       not_authorized!
     end
 

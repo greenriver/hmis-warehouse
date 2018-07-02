@@ -12,11 +12,12 @@ module ChaHelper
     capture do
       concat content_tag(:h4, header_for(field))
       concat content_tag(:p, subheader_for(field), class: 'cha__help-text')
-      concat f.input field, 
-        label: _("CHA #{field.upcase}"), 
-        as: :radio_buttons, 
-        collection: cha_options[field], 
-        checked: f.object.answer(field)
+      concat f.input field,
+        label: _("CHA #{field.upcase}"),
+        as: :radio_buttons,
+        collection: cha_options[field],
+        checked: f.object.answer(field),
+        hint: hint_for(field)
     end
   end
 
@@ -24,18 +25,18 @@ module ChaHelper
     capture do
       concat content_tag(:strong, header_for(field))
       concat content_tag(:p, subheader_for(field), class: 'cha__help-text')
-      concat f.input field, 
-        label: _("CHA #{field.upcase}"), 
-        as: :check_boxes, 
-        collection: cha_options[field], 
+      concat f.input field,
+        label: _("CHA #{field.upcase}"),
+        as: :check_boxes,
+        collection: cha_options[field],
         checked: f.object.answer(field)
     end
   end
 
   def cha_datepicker f, field, input_html_options={}
-    f.input field, 
-      label: _("CHA #{field.upcase}"), 
-      as: :date_picker, 
+    f.input field,
+      label: _("CHA #{field.upcase}"),
+      as: :date_picker,
       input_html: input_html_options[:input_html] || { value: f.object.answer(field) }
   end
 
@@ -47,15 +48,15 @@ module ChaHelper
       if subheader = subheader_for(field)
         concat content_tag(:p, raw(subheader), class: 'cha__help-text')
       end
-      concat f.input field, 
-        label: _("CHA #{field.upcase}"), 
+      concat f.input field,
+        label: _("CHA #{field.upcase}"),
         input_html: input_html_options[:input_html] || { value: f.object.answer(field) }
     end
   end
 
   def cha_text f, field
-    f.input field, 
-      label: _("CHA #{field.upcase}"), 
+    f.input field,
+      label: _("CHA #{field.upcase}"),
       as: :text,
       input_html: { value: f.object.answer(field) }
   end
@@ -70,6 +71,12 @@ module ChaHelper
     key = "CHA #{field.upcase}_SUBHEADER"
     subheader = _( key )
     (subheader.blank? || subheader==key) ? nil : subheader
+  end
+
+  def hint_for field
+    key = "CHA #{field.upcase}_HINT"
+    footer = _( key )
+    (footer.blank? || footer==key) ? nil : footer
   end
 
   def cha_options
@@ -174,6 +181,7 @@ module ChaHelper
   _("CHA G_Q4B")
   _("CHA G_Q5_HEADER")
   _("CHA G_Q5")
+  _("CHA G_Q6A_HEADER")
   _("CHA G_Q6A")
   _("CHA G_Q6B")
   _("CHA H_Q1")
@@ -773,6 +781,8 @@ module ChaHelper
   _("CHA R_Q1")
   _("CHA R_Q1A")
   _("CHA R_Q1B")
+  _("CHA R_Q1C")
+  _("CHA R_Q1D")
   _("CHA R_Q2")
   _("CHA R_Q3")
   _("CHA R_Q4")
@@ -784,6 +794,7 @@ module ChaHelper
   _("CHA R_Q6D")
   _("CHA R_Q6E")
   _("CHA R_Q7")
+  _("CHA R_Q7_HINT")
   _("CHA R_Q8_HEADER")
   _("CHA R_Q8")
 

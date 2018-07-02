@@ -127,6 +127,18 @@ module Health
         },
       }.sort_by{|_, m| m[:weight]}.to_h
     end
+    
+    def self.date_search(start_date, end_date)
+      if start_date.present? && end_date.present?
+        self.where("date_of_activity >= ? AND date_of_activity <= ?", start_date, end_date)
+      elsif start_date.present?
+        self.where("date_of_activity >= ?", start_date)
+      elsif end_date.present? 
+        self.where("date_of_activity <= ?", end_date)
+      else
+        QualifyingActivity.all
+      end
+    end
 
     # These validations must come after the above methods
     validates :mode_of_contact, inclusion: {in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s)}, allow_blank: true
@@ -149,7 +161,6 @@ module Health
       reached_client.blank? && 
       activity.blank? && 
       claim_submitted_on.blank? && 
-      date_of_activity.blank? && 
       follow_up.blank?
     end
 
@@ -205,15 +216,21 @@ module Health
     end
 
     def title_for_mode_of_contact
-      self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :title)
+      if mode_of_contact.present?
+        self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :title)
+      end
     end
 
     def title_for_client_reached
-      self.class.client_reached[reached_client.to_sym].try(:[], :title)
+      if reached_client.present?
+        self.class.client_reached[reached_client.to_sym].try(:[], :title)
+      end
     end
 
     def title_for_activity
-      self.class.activities[activity.to_sym].try(:[], :title)
+      if activity.present?
+        self.class.activities[activity.to_sym].try(:[], :title)
+      end
     end
 
     def procedure_code

@@ -1,6 +1,6 @@
 module Admin::Health
   class AgenciesController < HealthController
-    before_action :require_has_administartive_access_to_health!
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_manage_health_agencies!
     before_action :set_health_agency, only: [:edit, :update, :destroy]
 
@@ -55,7 +55,7 @@ module Admin::Health
       end
 
       def health_agency_params
-        params.require(:health_agency).permit(:name)
+        params.require(:health_agency).permit(:name, :short_name)
       end
   end
 end

@@ -7,10 +7,9 @@
         Add Team Member
     .c-card__content
       .row.health__team-members
-        - if @careplan&.team_members&.any?
-          - @careplan.team_members.each do |member|
+        - if @patient.team_members.any?
+          - @patient.team_members.each do |member|
             = render 'window/health/team_members/team_member', member: member, restore: false, delete: true
-
         - else
           %p.no-data
             No team members currently.

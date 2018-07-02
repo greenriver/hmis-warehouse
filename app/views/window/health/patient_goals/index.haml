@@ -1,0 +1,8 @@
+- title = "Manage Goals for #{@client.full_name}"
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= title
+  = render 'window/clients/breadcrumbs'
+  = render 'window/clients/tab_navigation', current: polymorphic_path(goals_path_generator)
+  = render 'goals', fullscreen: true

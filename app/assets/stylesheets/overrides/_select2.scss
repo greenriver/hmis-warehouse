@@ -9,6 +9,10 @@
   display: flex;
   align-items: center;
 }
+.select2-container--open
+{
+  z-index: 2000;
+}
 
 .select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
   background-color: $brand-primary;

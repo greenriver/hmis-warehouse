@@ -1,6 +1,6 @@
 module Admin::Health
   class TeamCoordinatorsController < HealthController
-    before_action :require_has_administartive_access_to_health!
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_administer_health!
     before_action :load_team_coordinators, only: [:index, :create]
     before_action :load_care_coordinators, only: [:index, :create]
@@ -59,5 +59,5 @@ module Admin::Health
     def flash_interpolation_options
       { resource_name: 'Team Coordinator' }
     end
-  end  
+  end
 end

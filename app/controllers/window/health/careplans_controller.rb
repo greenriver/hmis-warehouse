@@ -13,18 +13,21 @@ module Window::Health
       # most-recent careplan
       @careplan = @careplans.sorted.first
       @disable_goal_actions = true
-      @goals = @careplan&.hpc_goals
+      # @goals = @careplan&.hpc_goals
+      @goals = @patient.hpc_goals
     end
 
     def show
       @goal = Health::Goal::Base.new
       @readonly = false
       file_name = 'care_plan'
-      # make sure we have the most recent-services and DME if
+      # make sure we have the most recent-services, DME, team members, and goals if
       # the plan is editable
       if @careplan.editable?
         @careplan.archive_services
         @careplan.archive_equipment
+        @careplan.archive_goals
+        @careplan.archive_team_members
         @careplan.save
       end
 
@@ -60,8 +63,13 @@ module Window::Health
     end
 
     def new
-      @careplan = @patient.careplans.new(user: current_user)
-      Health::CareplanSaver.new(careplan: @careplan, user: current_user).create
+      if @patient.careplans.editable.exists?
+        @careplan = @patient.careplans.editable.first
+      else
+        @careplan = @patient.careplans.new(user: current_user)
+        Health::CareplanSaver.new(careplan: @careplan, user: current_user).create
+      end
+
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
       # @form_url = polymorphic_path(careplans_path_generator)
       # @form_button = 'Create Care Plan'
@@ -77,6 +85,12 @@ module Window::Health
     end
 
     def revise
+      # prevent multiple editable careplans
+      if @patient.careplans.editable.exists?
+        @careplan = @patient.careplans.editable.first
+        redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
+        return
+      end
       new_id = @careplan.revise!
       flash[:notice] = "Careplan revised"
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: new_id)
@@ -130,6 +144,21 @@ module Window::Health
     def flash_interpolation_options
       { resource_name: 'Care Plan' }
     end
+
+    def new_goal_path
+      polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id)
+    end
+    helper_method :new_goal_path
+
+    def edit_goal_path(goal)
+      polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
+    end
+    helper_method :edit_goal_path
+
+    def delete_goal_path(goal)
+      polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
+    end
+    helper_method :delete_goal_path
 
   end
 end

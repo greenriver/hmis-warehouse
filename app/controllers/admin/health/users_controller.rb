@@ -1,8 +1,8 @@
 module Admin::Health
   class UsersController < HealthController
-    before_action :require_has_administartive_access_to_health!
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_administer_health!
-    
+
     def index
       if params[:q].present?
         @users = User.text_search(params[:q])
@@ -11,7 +11,7 @@ module Admin::Health
       end
       @users = @users.order(last_name: :asc, first_name: :asc).
         page(params[:page].to_i).per(25)
-      
+
     end
 
     def update
@@ -30,13 +30,13 @@ module Admin::Health
             disabled_role_ids = available_role_ids - enabled_role_ids
             current_roles = user.roles
             new_roles = current_roles + Role.where(id: enabled_role_ids) - Role.where(id: disabled_role_ids)
-            user.roles = new_roles            
+            user.roles = new_roles
           end
         rescue ActiveRecord::ActiveRecordError => e
           flash[:error] = 'Unable to update roles'
           error = true
           render action: :index
-        end   
+        end
       end
       flash[:notice] = 'Role assignments updated'
       redirect_to action: :index if ! error
