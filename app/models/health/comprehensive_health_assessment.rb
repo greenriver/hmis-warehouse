@@ -940,7 +940,7 @@ module Health
     end
 
     def editable_by? editor
-      editor == user
+      editor.can_edit_patient_items_for_own_agency? || editor.has_some_patient_access?
     end
 
     def phone
