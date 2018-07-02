@@ -240,7 +240,7 @@
           .col-sm-12
             %p
               %strong= _('CHA I_Q2_HEADER')
-        - ('a'..'ay').each_with_index do |key, index|
+        - ('a'..'z').each_with_index do |key, index|
           - diagnosis = "i_q2#{key}1".to_sym
           - disease   = "i_q2#{key}2".to_sym
           - icd       = "i_q2#{key}3".to_sym

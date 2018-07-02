@@ -93,7 +93,7 @@ module Window::Health
     end
 
     def set_form
-      @form = @patient.self_sufficiency_matrix_forms.find_by(id: params[:id])
+      @form = @patient.self_sufficiency_matrix_forms.find_by(id: params[:id].to_i)
     end
 
     def set_claim_submitted
