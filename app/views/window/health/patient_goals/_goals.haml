@@ -14,6 +14,6 @@
           %p.no-data.jEmpty
             No goals currently.
           .c-card__internal-primary-action.jEmpty
-            = link_to polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+            = link_to new_goal_path, class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
               %i.icon-plus
               Add Goal

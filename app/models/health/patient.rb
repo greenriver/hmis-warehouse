@@ -7,6 +7,7 @@ module Health
     has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_case_notes, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
@@ -163,7 +164,7 @@ module Health
       team_members.map{|t| [t.full_name, t.id]}
     end
 
-    def days_to_engage 
+    def days_to_engage
       return 0 unless engagement_date.present?
       (engagement_date - Date.today).to_i.clamp(0, 180)
     end
@@ -175,7 +176,7 @@ module Health
     def health_files
       Health::HealthFile.where(client_id: client.id)
     end
-    
+
     def accessible_by_user user
       return false unless user.present?
       return true if user.can_administer_health?
@@ -205,7 +206,7 @@ module Health
 
     def most_recent_ssn
       [
-        [self.ssn.presence, updated_at.to_i], 
+        [self.ssn.presence, updated_at.to_i],
         [recent_cha&.ssn.presence, recent_cha&.updated_at.to_i],
         [client.SSN.presence, client.DateUpdated.to_i]
       ].sort_by(&:last).map(&:first).compact.reverse.first
@@ -224,7 +225,7 @@ module Health
     end
 
     def phone_message_ok
-      if preferred_communication == 'Phone' && 
+      if preferred_communication == 'Phone' &&
         recent_cha&.answer(:r_q2) == 'Yes'
         ', message ok'
       end
@@ -364,7 +365,7 @@ module Health
           end.first
           status = client.class.health_housing_bucket(answer[:answer])
           OpenStruct.new({
-            date: form.collected_at.to_date, 
+            date: form.collected_at.to_date,
             postitive_outcome: client.class.health_housing_positive_outcome?(answer[:answer]),
             outcome: status,
             detail: answer[:answer],
@@ -394,12 +395,12 @@ module Health
     end
 
     def self.column_from_sort(column: nil, direction: nil)
-      { 
+      {
         [:patient_last_name, :asc] => arel_table[:last_name].asc,
         [:patient_last_name, :desc] => arel_table[:last_name].desc,
         [:patient_first_name, :asc] => arel_table[:first_name].asc,
         [:patient_first_name, :desc] => arel_table[:first_name].desc,
-      }[[column.to_sym, direction.to_sym]] || default  
+      }[[column.to_sym, direction.to_sym]] || default
     end
 
     def self.default_sort_column
@@ -431,7 +432,7 @@ module Health
           .and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
       else
         query = "%#{text.downcase}%"
-        
+
         where = patient_t[:last_name].lower.matches(query).
           or(patient_t[:first_name].lower.matches(query)).
           or(patient_t[:id_in_source].lower.matches(query))

@@ -21,11 +21,13 @@ module Window::Health
       @goal = Health::Goal::Base.new
       @readonly = false
       file_name = 'care_plan'
-      # make sure we have the most recent-services and DME if
+      # make sure we have the most recent-services, DME, team members, and goals if
       # the plan is editable
       if @careplan.editable?
         @careplan.archive_services
         @careplan.archive_equipment
+        @careplan.archive_goals
+        @careplan.archive_team_members
         @careplan.save
       end
 
@@ -61,8 +63,13 @@ module Window::Health
     end
 
     def new
-      @careplan = @patient.careplans.new(user: current_user)
-      Health::CareplanSaver.new(careplan: @careplan, user: current_user).create
+      if @patient.careplans.editable.exists?
+        @careplan = @patient.careplans.editable.first
+      else
+        @careplan = @patient.careplans.new(user: current_user)
+        Health::CareplanSaver.new(careplan: @careplan, user: current_user).create
+      end
+
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
       # @form_url = polymorphic_path(careplans_path_generator)
       # @form_button = 'Create Care Plan'
@@ -78,6 +85,12 @@ module Window::Health
     end
 
     def revise
+      # prevent multiple editable careplans
+      if @patient.careplans.editable.exists?
+        @careplan = @patient.careplans.editable.first
+        redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
+        return
+      end
       new_id = @careplan.revise!
       flash[:notice] = "Careplan revised"
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: new_id)
