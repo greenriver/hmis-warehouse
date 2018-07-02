@@ -38,12 +38,12 @@ module Window::Health
     def edit
       respond_with @release_form
     end
-    
+
     def update
       validate_form unless @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
-      
+
       if ! request.xhr?
         saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
         save_file if @release_form.errors.none? && saved
@@ -58,7 +58,7 @@ module Window::Health
 
     def download
       @file = @release_form.health_file
-      send_data @file.content, 
+      send_data @file.content,
         type: @file.content_type,
         filename: File.basename(@file.file.to_s)
     end
@@ -75,7 +75,7 @@ module Window::Health
     end
 
     def form_params
-      local_params = params.require(:form).permit( 
+      local_params = params.require(:form).permit(
         :signature_on,
         :file_location,
         :reviewed_by_supervisor
