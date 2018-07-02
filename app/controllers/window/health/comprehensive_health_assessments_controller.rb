@@ -10,8 +10,13 @@ module Window::Health
     before_action :set_locked, only: [:show, :edit]
 
     def new
-      @cha = @patient.chas.build(user: current_user)
-      Health::ChaSaver.new(cha: @cha, user: current_user).create
+      # redirect to edit if there are any incomplete
+      if @patient.chas.incomplete.exists?
+        @cha = @patient.chas.incomplete.recent.last
+      else
+        @cha = @patient.chas.build(user: current_user)
+        Health::ChaSaver.new(cha: @cha, user: current_user).create
+      end
       redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
