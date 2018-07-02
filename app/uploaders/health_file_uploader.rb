@@ -20,7 +20,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # def store_dir
   #   "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   # end
-  # 
+  #
   # def cache_dir
   #   "#{Rails.root}/tmp/uploads-cache/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   # end
@@ -44,7 +44,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # version :thumb do
   #   process :resize_to_fit => [50, 50]
   # end
-  # 
+  #
   process :extract_file_metadata!
 
   version :preview do
@@ -132,11 +132,11 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # def extension_white_list
   #   %w(pdf jpg jpeg doc docx xls xlsx gif png txt rtf)
   # end
-  
+
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING
   def size_range
-    0..2.megabytes #Up to two megabytes
+    0..10.megabytes #Up to two megabytes
   end
 
   # Override the filename of the uploaded files:
