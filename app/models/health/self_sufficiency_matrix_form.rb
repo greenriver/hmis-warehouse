@@ -277,7 +277,9 @@ module Health
     end
 
     def questions_answered
-      SECTIONS.keys.map { |key| self.send("#{key}_score") }.delete(0).compact.size
+      questions = SECTIONS.keys.map { |key| self.send("#{key}_score") }.compact
+      questions.delete(0)
+      questions.size
     end
 
     def average_score

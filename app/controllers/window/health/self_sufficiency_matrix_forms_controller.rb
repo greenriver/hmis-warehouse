@@ -10,8 +10,8 @@ module Window::Health
 
     def new
       # redirect to edit if there are any incomplete
-      if @patient.in_progress.exits?
-        @form = @patient.in_progress.recent.last
+      if @patient.self_sufficiency_matrix_forms.in_progress.exists?
+        @form = @patient.self_sufficiency_matrix_forms.in_progress.recent.last
       else
         @form = @patient.self_sufficiency_matrix_forms.build(user: current_user)
       end

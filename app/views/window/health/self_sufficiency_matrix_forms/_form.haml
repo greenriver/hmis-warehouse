@@ -9,6 +9,9 @@
         = link_to @blank_ssm_url, class: 'btn btn-secondary' do
           %i.icon-download2
           Blank Self Sufficiency Matrix Form
+    - unless @form.claim_submitted?
+      .mb-6.ml-4
+        = link_to 'Delete', polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete this SSM?"}
   .row
     .col-sm-8
       = simple_form_for @form, url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), as: :form, html: { class: 'ssm-form', data: { url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id, format: :js) }} do |f|
