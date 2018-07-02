@@ -5,5 +5,6 @@
   html = "<%= j render('window/health/patient_team_members/team_member', member: @new_member) %>"
   $container = $('.health__team-members')
   $container.append(html)
+  $container.parent().find('.no-data').remove()
   $('.modal:visible .close').trigger('click')
 <% end %>
