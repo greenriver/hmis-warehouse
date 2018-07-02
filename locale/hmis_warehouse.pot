@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-01 12:03-0400\n"
-"PO-Revision-Date: 2018-07-01 12:03-0400\n"
+"POT-Creation-Date: 2018-07-01 20:11-0400\n"
+"PO-Revision-Date: 2018-07-01 20:11-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -18,13 +18,25 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "\"CHA #{code}_HEADER\""
+msgstr ""
+
 msgid "\"CHA #{field.upcase}\""
+msgstr ""
+
+msgid "\"CHA #{section_code}_SUBTITLE\""
 msgstr ""
 
 msgid "\"CHA #{section_code}_TITLE\""
 msgstr ""
 
 msgid "\"CHA #{section_question.upcase}\""
+msgstr ""
+
+msgid "\"CHA #{section_question.upcase}_HEADER\""
+msgstr ""
+
+msgid "\"CHA #{section_question.upcase}_SUBHEADER\""
 msgstr ""
 
 msgid "\"CHA #{section}_Q#{question}_A#{n}\""
@@ -880,6 +892,9 @@ msgid "CHA G_Q6A_A1"
 msgstr ""
 
 msgid "CHA G_Q6A_A2"
+msgstr ""
+
+msgid "CHA G_Q6A_HEADER"
 msgstr ""
 
 msgid "CHA G_Q6B"
