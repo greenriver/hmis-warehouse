@@ -2,7 +2,7 @@ module Admin
   class WarehouseAlertsController < ApplicationController
     before_action :require_can_edit_warehouse_alerts!
     before_action :load_alert_and_form_url_for_edit, only: [:edit, :update]
-    before_action :load_alert_and_form_url_for_new, only: [:new, :update, :destroy]
+    before_action :load_alert_and_form_url_for_new, only: [:new, :destroy]
     
     def index   
       if warehouse_alert_scope.exists?
@@ -17,7 +17,6 @@ module Admin
     
     def show
       @alert = warehouse_alert_source.find params[:id]
-      render inline: @alert.html
     end
 
     def new
@@ -37,7 +36,7 @@ module Admin
     end
     
     def update
-      if @alert.save
+      if @alert.update(warehouse_alert_params)
         redirect_to({action: :index}, notice: 'Alert updated')
       else
         flash[:error] = 'Please review the form problems below'
