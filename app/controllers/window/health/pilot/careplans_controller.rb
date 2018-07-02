@@ -6,7 +6,6 @@ module Window::Health::Pilot
     before_action :set_client
     before_action :set_patient
     before_action :set_careplan
-    before_action :set_housing_goal, only: [:show, :print]
     before_action :set_variable_goals, only: [:show, :print]
 
     def show
@@ -36,14 +35,6 @@ module Window::Health::Pilot
       @careplan = Health::Careplan.where(patient_id: @patient.id).first_or_create do |cp|
         cp.user = current_user
         cp.save!
-      end
-    end
-
-    def set_housing_goal
-      @housing = Health::Goal::Housing.where(careplan_id: @careplan.id).first_or_create do |goal|
-        goal.name = 'Housing'
-        goal.number = -1
-        goal.save!
       end
     end
 
