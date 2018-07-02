@@ -9,7 +9,12 @@ module Window::Health
     before_action :set_claim_submitted, only: [:show, :edit]
 
     def new
-      @form = @patient.self_sufficiency_matrix_forms.build(user: current_user)
+      # redirect to edit if there are any incomplete
+      if @patient.in_progress.exits?
+        @form = @patient.in_progress.recent.last
+      else
+        @form = @patient.self_sufficiency_matrix_forms.build(user: current_user)
+      end
       Health::SsmSaver.new(ssm: @form, user: current_user).create
       redirect_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
     end
@@ -21,12 +26,12 @@ module Window::Health
     def edit
       if @claim_submitted
         flash.notice = "This qualifying activity has already been submitted and cannot be edited."
-        redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return 
+        redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return
       end
       @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form
     end
-    
+
     def update
       @form.assign_attributes(form_params)
       Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
@@ -41,7 +46,7 @@ module Window::Health
     private
 
     def form_params
-      params.require(:form).permit( 
+      params.require(:form).permit(
         :point_completed,
         :housing_score,
         :housing_notes,
