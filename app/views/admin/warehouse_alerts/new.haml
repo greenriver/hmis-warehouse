@@ -1,5 +1,6 @@
 = render :partial => 'menus/admin_tabs'
-- content_for :title, t('.title')
+- title = 'New Warehouse Alert'
+- content_for :title, title
 
-%h1 New Warehouse Alert
+%h1= content_for :title
 = render "form", alert: @alert
