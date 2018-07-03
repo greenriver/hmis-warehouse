@@ -128,7 +128,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING
   def size_range
-    0..10.megabytes #Up to two megabytes
+    0..25.megabytes #Up to two megabytes
   end
 
   def max_size_in_bytes
