@@ -65,14 +65,14 @@ class User < ActiveRecord::Base
     end
 
     # Provide a scope for each permission to get any user who qualifies
-    # e.g. User.can_administer_health 
+    # e.g. User.can_administer_health
     scope permission, -> do
       joins(:roles).
       where(roles: {permission => true})
     end
   end
 
-  def has_administartive_access_to_health?
+  def has_administrative_access_to_health?
       can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
   end
 
@@ -162,7 +162,7 @@ class User < ActiveRecord::Base
     ids = user_team_coordinators.pluck(:user_id)
     User.where(id: ids)
   end
-  
+
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::UserViewableEntity.transaction do
@@ -184,7 +184,7 @@ class User < ActiveRecord::Base
   def can_see_admin_menu?
     can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?
   end
-  
+
   def admin_dashboard_landing_path
     return admin_users_path if can_edit_users?
     return admin_configs_path if can_manage_config?
@@ -255,7 +255,7 @@ class User < ActiveRecord::Base
 
     def viewable_join(model)
       GrdaWarehouse::UserViewableEntity.where(
-        entity_type: model.sti_name, 
+        entity_type: model.sti_name,
         user_id: id
       )
     end

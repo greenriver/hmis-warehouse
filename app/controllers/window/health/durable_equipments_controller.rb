@@ -64,6 +64,7 @@ module Window::Health
         :quantity,
         :effective_date,
         :comments,
+        :status
       )
     end
 

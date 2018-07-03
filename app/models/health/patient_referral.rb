@@ -6,7 +6,7 @@ module Health
     # rejected_reason_none: 0 always needs to be there
     # this is the default and means that the patient referral is not rejected
     enum rejected_reason: {
-      Remove_Removal: 0, 
+      Remove_Removal: 0,
       Declined: 1,
       Unreachable: 2,
       Moved_out_of_Geographic_Area: 3,
@@ -14,18 +14,23 @@ module Health
       Enrollee_requested_change: 5,
       'ACO/MCO requested change' => 6,
       Medical_exception: 2,
+      Deceased: 7,
     }
 
     scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
     scope :rejected, -> {where(rejected: true)}
 
-    # TODO: What needs to be validated here?
-    # TODO: how to validate medicaid id?
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true
 
     has_many :relationships, class_name: 'Health::AgencyPatientReferral', dependent: :destroy
+    has_many :relationships_claimed, -> do
+      merge(Health::AgencyPatientReferral.claimed)
+    end, class_name: 'Health::AgencyPatientReferral'
+    has_many :relationships_unclaimed, -> do
+      merge(Health::AgencyPatientReferral.unclaimed)
+    end, class_name: 'Health::AgencyPatientReferral'
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: :agency_id
     belongs_to :patient, required: false
     belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id
@@ -85,7 +90,7 @@ module Health
 
     def display_claimed_by_other(agency)
       cb = display_claimed_by
-      other_size = cb.select{|c| c != 'Unclaimed'}.size
+      other_size = cb.select{|c| c != 'Unknown'}.size
       if other_size > 0
         if cb.include?(agency.name)
           other_size = other_size - 1
@@ -95,21 +100,21 @@ module Health
           "#{other_size} Other #{agency}"
         end
       else
-        'Unclaimed'
+        'Unknown'
       end
     end
 
     def display_claimed_by
-      claimed = relationships.claimed
+      claimed = relationships_claimed
       if claimed.any?
         claimed.map{|r| r.agency.name}
       else
-        ['Unclaimed']
+        ['Unknown']
       end
     end
 
     def display_unclaimed_by
-      unclaimed = relationships.unclaimed
+      unclaimed = relationships_unclaimed
       unclaimed.map{|r| r.agency.name}
     end
 
@@ -205,7 +210,7 @@ module Health
           .and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
       else
         query = "%#{text.downcase}%"
-        
+
         where = pr_t[:last_name].lower.matches(query).
           or(pr_t[:first_name].lower.matches(query)).
           or(pr_t[:medicaid_id].lower.matches(query))

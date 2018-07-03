@@ -3,5 +3,7 @@
 - if @note.user_can_edit?(current_user)
   .pull-right
     = link_to 'Edit', polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id), class: 'btn btn-primary btn-primary__reverse'
+    - unless @note.submitted_activities.any?
+      = link_to 'Delete', polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure?"}
 - display_note_object.each do |section|
   = render 'display_note_section', section: section

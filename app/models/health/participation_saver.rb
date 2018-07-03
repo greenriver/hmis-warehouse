@@ -13,15 +13,20 @@ module Health
     end
 
     def update
-      @form.class.transaction do
-        include_qualifying_activity = @form.signature_on.present? && @form.signature_on_changed?
-        @form.save!
-        if include_qualifying_activity
-          @qualifying_activity.source_id = @form.id
-          @qualifying_activity.save
+      success = true
+      begin
+        @form.class.transaction do
+          include_qualifying_activity = @form.signature_on.present? && @form.signature_on_changed?
+          @form.save!
+          if include_qualifying_activity
+            @qualifying_activity.source_id = @form.id
+            @qualifying_activity.save
+          end
         end
+      rescue Exception => e
+        success = false
       end
-      return true
+      return success
     end
 
     protected def setup_qualifying_activity

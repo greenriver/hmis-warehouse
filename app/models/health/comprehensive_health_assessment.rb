@@ -3,8 +3,8 @@ module Health
 
     # Generates translation keys of the form "CHA A_Q5_A6"
     def self.answers_for section: nil, question: nil, number: 0
-      return [] unless section.present? && 
-        question.present? && 
+      return [] unless section.present? &&
+        question.present? &&
         number&.is_a?(Integer)
       (1..number).map { |n| _("CHA #{section}_Q#{question}_A#{n}") }
     end
@@ -138,31 +138,6 @@ module Health
       i_q2x1: nil,
       i_q2y1: nil,
       i_q2z1: nil,
-      i_q2aa1: nil,
-      i_q2ab1: nil,
-      i_q2ac1: nil,
-      i_q2ad1: nil,
-      i_q2ae1: nil,
-      i_q2af1: nil,
-      i_q2ag1: nil,
-      i_q2ah1: nil,
-      i_q2ai1: nil,
-      i_q2aj1: nil,
-      i_q2ak1: nil,
-      i_q2al1: nil,
-      i_q2am1: nil,
-      i_q2an1: nil,
-      i_q2ao1: nil,
-      i_q2ap1: nil,
-      i_q2aq1: nil,
-      i_q2ar1: nil,
-      i_q2as1: nil,
-      i_q2at1: nil,
-      i_q2au1: nil,
-      i_q2av1: nil,
-      i_q2aw1: nil,
-      i_q2ax1: nil,
-      i_q2ay1: nil,
 
       i_q2a2: indicators,
       i_q2b2: indicators,
@@ -190,31 +165,6 @@ module Health
       i_q2x2: indicators,
       i_q2y2: indicators,
       i_q2z2: indicators,
-      i_q2aa2: indicators,
-      i_q2ab2: indicators,
-      i_q2ac2: indicators,
-      i_q2ad2: indicators,
-      i_q2ae2: indicators,
-      i_q2af2: indicators,
-      i_q2ag2: indicators,
-      i_q2ah2: indicators,
-      i_q2ai2: indicators,
-      i_q2aj2: indicators,
-      i_q2ak2: indicators,
-      i_q2al2: indicators,
-      i_q2am2: indicators,
-      i_q2an2: indicators,
-      i_q2ao2: indicators,
-      i_q2ap2: indicators,
-      i_q2aq2: indicators,
-      i_q2ar2: indicators,
-      i_q2as2: indicators,
-      i_q2at2: indicators,
-      i_q2au2: indicators,
-      i_q2av2: indicators,
-      i_q2aw2: indicators,
-      i_q2ax2: indicators,
-      i_q2ay2: indicators,
 
       i_q2a3: nil,
       i_q2b3: nil,
@@ -242,31 +192,6 @@ module Health
       i_q2x3: nil,
       i_q2y3: nil,
       i_q2z3: nil,
-      i_q2aa3: nil,
-      i_q2ab3: nil,
-      i_q2ac3: nil,
-      i_q2ad3: nil,
-      i_q2ae3: nil,
-      i_q2af3: nil,
-      i_q2ag3: nil,
-      i_q2ah3: nil,
-      i_q2ai3: nil,
-      i_q2aj3: nil,
-      i_q2ak3: nil,
-      i_q2al3: nil,
-      i_q2am3: nil,
-      i_q2an3: nil,
-      i_q2ao3: nil,
-      i_q2ap3: nil,
-      i_q2aq3: nil,
-      i_q2ar3: nil,
-      i_q2as3: nil,
-      i_q2at3: nil,
-      i_q2au3: nil,
-      i_q2av3: nil,
-      i_q2aw3: nil,
-      i_q2ax3: nil,
-      i_q2ay3: nil,
 
       j_q1: answers_for(section: 'J', question: 1, number: 4),
       j_q2: answers_for(section: 'J', question: 2, number: 3),
@@ -717,6 +642,10 @@ module Health
       m_q1g: indicators,
       m_q1h: indicators,
 
+      m_q2a: nil,
+      m_q2b: nil,
+      m_q2c: nil,
+
       n_q1: answers_for(section: 'N', question: 1, number: 2),
 
       o_q1: answers_for(section: 'O', question: 1, number: 2),
@@ -728,8 +657,10 @@ module Health
       q_q2: nil,
 
       r_q1: answers_for(section: 'R', question: 1, number: 4),
-      r_q1a: answers_for(section: 'R', question: 'A', number: 1),
-      r_q1b: answers_for(section: 'R', question: 'B', number: 1),
+      r_q1a: nil,
+      r_q1b: nil,
+      r_q1c: nil,
+      r_q1d: nil,
       r_q2: answers_for(section: 'R', question: 2, number: 2),
       r_q3: answers_for(section: 'R', question: 3, number: 2),
       r_q4: answers_for(section: 'R', question: 4, number: 2),
@@ -872,12 +803,17 @@ module Health
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil)}
+    scope :complete, -> { where.not(completed_at: nil) }
 
     attr_accessor :reviewed_by_supervisor, :completed
 
     attr_accessor *QUESTION_ANSWER_OPTIONS.keys
 
     before_save :set_answers, :set_reviewer
+
+    def complete?
+     completed_at.present?
+    end
 
     private def set_reviewer
       if reviewed_by
@@ -891,14 +827,31 @@ module Health
       QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
         section_code  = section_question.to_s.upcase.split('_').first
         section       = _("CHA #{section_code}_TITLE")
+        section_subtitle = _("CHA #{section_code}_SUBTITLE")
         question      = _("CHA #{section_question.upcase}")
+        question_header = ''
+        unless "CHA #{section_question.upcase}_HEADER" == _("CHA #{section_question.upcase}_HEADER")
+          question_header = _("CHA #{section_question.upcase}_HEADER")
+        end
+        question_sub_header = ''
+        unless "CHA #{section_question.upcase}_SUBHEADER" == _("CHA #{section_question.upcase}_SUBHEADER")
+          question_sub_header = _("CHA #{section_question.upcase}_SUBHEADER")
+        end
+        if matches = section_question.match(/(g_q1.)p$/)
+          if code = matches.try(:[], 1)&.upcase
+            question_header = _("CHA #{code}_HEADER")
+          end
+        end
         hash[section_code] ||= {}
         hash[section_code][:title] = section
+        hash[section_code][:subtitle] = section_subtitle
         hash[section_code][:answers] ||= {}
         hash[section_code][:answers][section_question] ||= {}
         hash[section_code][:answers][section_question][:question] ||= question
         value = send(section_question)
         hash[section_code][:answers][section_question][:answer] = value if value
+        hash[section_code][:answers][section_question][:header] = question_header
+        hash[section_code][:answers][section_question][:sub_header] = question_sub_header
       end
       hash['A'][:answers][:a_q1][:answer] = patient.client&.name
       hash['A'][:answers][:a_q3][:answer] = patient.client&.DOB
@@ -917,7 +870,7 @@ module Health
     end
 
     def editable_by? editor
-      editor == user
+      editor.can_edit_patient_items_for_own_agency? || editor.has_some_patient_access?
     end
 
     def phone

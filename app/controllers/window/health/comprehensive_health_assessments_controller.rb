@@ -10,14 +10,20 @@ module Window::Health
     before_action :set_locked, only: [:show, :edit]
 
     def new
-      @cha = @patient.chas.build(user: current_user)
-      Health::ChaSaver.new(cha: @cha, user: current_user).create
+      # redirect to edit if there are any incomplete
+      if @patient.chas.incomplete.exists?
+        @cha = @patient.chas.incomplete.recent.last
+      else
+        @cha = @patient.chas.build(user: current_user)
+        Health::ChaSaver.new(cha: @cha, user: current_user).create
+      end
       redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
     def update
+      @tt = form_params
       @cha.assign_attributes(form_params)
-      Health::ChaSaver.new(cha: @cha, user: current_user, complete: params[:commit]=='Complete', reviewed: reviewed?).update
+      Health::ChaSaver.new(cha: @cha, user: current_user, complete: completed?, reviewed: reviewed?).update
       respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end
 
@@ -32,10 +38,10 @@ module Window::Health
       @services = @patient.services.order(date_requested: :desc)
       @equipments = @patient.equipments
       @blank_cha_url = GrdaWarehouse::PublicFile.url_for_location 'patient/cha'
-      
+
       respond_with @cha
     end
-    
+
     def upload
       validate_form
       save_file if @cha.errors.none? && @cha.update(form_params)
@@ -48,7 +54,7 @@ module Window::Health
 
     def download
       @file = @cha.health_file
-      send_data @file.content, 
+      send_data @file.content,
         type: @file.content_type,
         filename: File.basename(@file.file.to_s)
     end
@@ -65,7 +71,7 @@ module Window::Health
     end
 
     def form_params
-      local_params = params.require(:form).permit( 
+      local_params = params.require(:form).permit(
         :reviewed_by_supervisor,
         :completed,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
@@ -110,7 +116,7 @@ module Window::Health
     end
 
     def completed?
-      form_params[:completed] == 'yes'
+      form_params[:completed] == 'yes' || form_params[:completed] == '1'
     end
 
   end

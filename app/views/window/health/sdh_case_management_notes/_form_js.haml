@@ -5,11 +5,27 @@
       var container = $(input).parents('.string-collection-with-other__container');
       var otherInput = container.find('.string-collection-with-other__input');
       var otherValue = otherInput.data('other-value');
-      if($(input).is(':checked') && $(input).val() === otherValue) {
+      var inputs = container.find('.string-collection-with-other__control:checked')
+      var selectedValues = []
+      inputs.each(function() {
+        selectedValues.push($(this).val())
+      });
+      if(selectedValues.indexOf(otherValue) > -1) {
         otherInput.slideDown();
       } else {
         otherInput.find('input').val('');
         otherInput.slideUp();
+      }
+      var dateInput = container.find('.string-collection-date__input');
+      if(dateInput.length === 1) {
+        var dateValues = dateInput.data('date-values')
+        var value = $(input).val()
+        if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
+          dateInput.slideDown();
+        } else {
+          // don't remove yet (this will be removed after validation)
+          dateInput.slideUp();
+        }
       }
     }
 

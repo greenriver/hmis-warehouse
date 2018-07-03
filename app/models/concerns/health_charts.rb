@@ -38,6 +38,18 @@ module HealthCharts
             }
           end
       end
+      if patient.epic_case_notes.any?
+        stati = stati + patient.epic_case_notes.
+          select do |note|
+            note.homeless_status.present? && note.contact_date.present?
+          end.map do |note|
+            {
+              date: note.contact_date.to_date,
+              score: self.class.health_housing_score(note.homeless_status),
+              status: note.homeless_status
+            }
+          end
+      end
       stati.sort_by{|m| m[:date]}
     end
 
@@ -68,7 +80,15 @@ module HealthCharts
           score: 2,
           status: :doubling_up,
         },
+        'Doubled Up' =>  {
+          score: 2,
+          status: :doubling_up,
+        },
         'Transitional Housing / Residential Treatment Program' => {
+          score: 3,
+          status: :temporary,
+        },
+         'Transitional Housing or Residential Treatment Program' => {
           score: 3,
           status: :temporary,
         },
@@ -77,6 +97,10 @@ module HealthCharts
           status: :temporary,
         },
         'Assisted Living / Nursing Home / Rest Home' => {
+          score: 4,
+          status: :permanent,
+        },
+        'Assisted Living Facility, Nursing Home, Rest Home' => {
           score: 4,
           status: :permanent,
         },
@@ -92,13 +116,17 @@ module HealthCharts
           score: 4,
           status: :permanent,
         },
+        'Housing with no Supportive Services' => {
+          score: 4,
+          status: :permanent,
+        },
         # 'Unknown',
         # 'Other',
       }.freeze
     end
 
     def self.clean_health_housing_outcome_answer(answer)
-      # February 2018, the wording of two of the options for our housing status question was changed by OCHIN 
+      # February 2018, the wording of two of the options for our housing status question was changed by OCHIN
       # "Doubling up" was changed to "Doubled up"
       # "Housing with no support services" was changed to "Housing with no supportive services"
       changes = {

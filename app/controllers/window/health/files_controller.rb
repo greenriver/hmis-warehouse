@@ -7,6 +7,9 @@ module Window::Health
     include WindowClientPathGenerator
     def index
       @files = @patient.health_files
+      @blank_files = GrdaWarehouse::PublicFile.known_locations.to_a.map do |location, title|
+        {title: title, url: GrdaWarehouse::PublicFile.url_for_location(location)}
+      end
     end
 
     def show

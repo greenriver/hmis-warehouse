@@ -420,15 +420,30 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
     clear: left;
   }
 }
-
-.l-print .g_q {
-  width: 50%;
+.g_q2a
+{
+  clear: left;
 }
+
 
 .l-print .i_q {
   width: 30%;
 }
 
 .l-print .l_q {
-  width: 14%;
+  width: 30%;
+}
+
+.row
+{
+  clear: both;
+  width: 100%;
+}
+.row .col-sm-6
+{
+  width: 50%;
+}
+.col-sm-4
+{
+  width: 30%;
 }

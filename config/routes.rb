@@ -24,7 +24,7 @@ Rails.application.routes.draw do
       resources :medications, only: [:index]
       resources :problems, only: [:index]
       resources :self_sufficiency_matrix_forms
-      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update] do
+      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy] do
         member do
           delete :remove_file
           get :download
@@ -34,6 +34,9 @@ Rails.application.routes.draw do
       resources :qualifying_activities, only: [:index]
       resources :durable_equipments, except: [:index]
       resources :files, only: [:index, :show]
+      resources :team_members, controller: :patient_team_members
+      resources :goals, controller: :patient_goals
+      resources :epic_case_notes, only: [:show]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
@@ -66,18 +69,6 @@ Rails.application.routes.draw do
         resource :careplan, except: [:destroy] do
           get :self_sufficiency_assessment
           get :print
-        end
-      end
-      namespace :careplan do
-        resources :goals do
-          post :sort, on: :collection
-          resources :previous, only: [:index, :show]
-        end
-        namespace :team do
-          resources :members, only: [:index, :create, :destroy, :new] do
-            get :previous, on: :collection
-            post :restore
-          end
         end
       end
     end
@@ -445,6 +436,7 @@ Rails.application.routes.draw do
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
+      resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
       resources :patient_referrals, only: [:create] do
         patch :reject
         collection do

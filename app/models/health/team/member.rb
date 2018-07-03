@@ -4,7 +4,8 @@ module Health
     has_paper_trail class_name: Health::HealthVersion.name
     acts_as_paranoid
 
-    belongs_to :team, class_name: Health::Team.name
+    # belongs_to :team, class_name: Health::Team.name
+    belongs_to :patient
         
     validates :email, presence: true, email_format: { check_mx: true }, length: {maximum: 250}
     validates_presence_of :first_name, :last_name, :organization
@@ -55,6 +56,19 @@ module Health
 
     def full_name
       ["#{first_name} #{last_name}", title.presence].compact.join(', ')
+    end
+
+    def careplans
+      Health::Careplan.
+        where('responsible_team_member_id = ? OR provider_id = ? OR representative_id = ?', id, id, id)
+    end
+
+    def goals
+      Health::Goal::Base.where('responsible_team_member_id = ?', id)
+    end
+
+    def in_use?
+      careplans.any? || goals.any? 
     end
   end
 end

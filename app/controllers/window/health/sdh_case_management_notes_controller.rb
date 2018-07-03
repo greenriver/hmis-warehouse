@@ -7,15 +7,20 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
-    before_action :load_note, only: [:show, :edit, :update, :download, :remove_file]
+    before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
 
     def show
       render :show
     end
 
     def new
+      last_form = Health::SdhCaseManagementNote.last_form
       @note = @patient.sdh_case_management_notes.
-        build(user: current_user, completed_on: DateTime.current)
+        build(
+          user: current_user, 
+          completed_on: DateTime.current,
+          housing_placement_date: last_form&.housing_placement_date,
+          client_phone_number: last_form&.client_phone_number)
       @note.activities.build
       @note.save(validate: false)
       redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
@@ -56,6 +61,11 @@ module Window::Health
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end
 
+    def destroy
+      @note.destroy!
+      redirect_to polymorphic_path(careplans_path_generator)
+    end
+
     def download
       @file = @note.health_file
       send_data @file.content,
@@ -85,6 +95,7 @@ module Window::Health
       result = []
       result.push(@note.display_basic_info_section)
       result.push(@note.display_basic_note_section)
+      result.push(@note.display_note_details_section)
       result.push({title: 'Qualifying Activities'})
       if @note.activities.any?
         @note.activities.each_with_index do |activity, index|
@@ -106,15 +117,21 @@ module Window::Health
 
     def save_file
       file = params.dig(:health_sdh_case_management_note, :file)
+      note = params.dig(:health_sdh_case_management_note, :file_note)
       if file
         health_file = Health::SdhCaseManagementNoteFile.new(
           user_id: current_user.id,
           client_id: @client.id,
           file: file,
-          content: file&.read
+          content: file&.read,
+          note: note
         )
         @note.health_file = health_file
         @note.save(validate: false)
+      elsif note && @note.health_file.present?
+        health_file = @note.health_file
+        health_file.note = note
+        health_file.save
       end
     end
 
@@ -135,6 +152,8 @@ module Window::Health
       end
       # remove empty element from topics array
       (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
+      # remove empty element from client action array
+      (params[:health_sdh_case_management_note][:client_action]||[]).reject!{|v| v.blank?}
     end
 
     def add_calculated_params_to_activities!(permitted_params)
@@ -142,8 +161,7 @@ module Window::Health
         permitted_params[:activities_attributes][key].merge!({
           user_id: current_user.id,
           user_full_name: current_user.name,
-          patient_id: @patient.id,
-          follow_up: permitted_params[:next_steps],
+          patient_id: @patient.id
         })
       end
       permitted_params
@@ -160,11 +178,11 @@ module Window::Health
         :housing_status,
         :housing_status_other,
         :housing_placement_date,
-        :client_action,
+        :client_action_medication_reconciliation_clinician,
         :notes_from_encounter,
-        :next_steps,
         :client_phone_number,
         :completed_on,
+        client_action: [],
         topics: [],
         activities_attributes: [
           :id,
@@ -177,7 +195,7 @@ module Window::Health
           :follow_up,
           :_destroy
         ]
-      ).reject{|k, v| v.blank?}
+      )
       add_calculated_params_to_activities!(permitted_params)
     end
 

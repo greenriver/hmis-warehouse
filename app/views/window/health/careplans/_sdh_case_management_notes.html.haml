@@ -1,4 +1,4 @@
-- if @client.health_touch_points.any? || @patient.sdh_case_management_notes.any?
+- if @client.health_touch_points.any? || @patient.sdh_case_management_notes.any? || @patient.epic_case_notes.any?
   %table.table.table-condensed.datatable-sdh
     %thead
       %tr
@@ -13,7 +13,7 @@
               -# What are topics for old notes?
               %h4= form.assessment_type
               .padding-left-02 From ETO
-          %td= form.collected_at.to_date
+          %td= form.collected_at&.to_date
           %td= form.staff
       - @patient.sdh_case_management_notes.each do |note|
         %tr
@@ -23,6 +23,14 @@
               .padding-left-02= note.title || 'No Title'
           %td= note.completed_on&.to_date
           %td= note.user.name
+      - @patient.epic_case_notes.order(contact_date: :desc).each do |note|
+        %tr
+          %td
+            = link_to polymorphic_path(health_path_generator + [:epic_case_note], client_id: @client.id, id: note.id), data: { loads_in_pjax_modal: true } do
+              %h4= note.encounter_type
+              .padding-left-02 From Epic
+          %td= note.contact_date&.to_date
+          %td= note.provider_name
 
 - else
   %p.no-data No Case Management Notes on file

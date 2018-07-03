@@ -3,8 +3,7 @@
 - content_for(:title, title)
 .o-page
   .o-page__header
-    %h1
-      = content_for(:title)
-  = render 'window/health/breadcrumbs'
+    %h1= content_for(:title)
 
+  = render 'window/health/breadcrumbs'
   = render 'form'

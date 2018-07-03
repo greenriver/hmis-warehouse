@@ -20,13 +20,13 @@
     },
     {
       title: 'Pilot Patients',
-      path: admin_health_patients_path, 
+      path: admin_health_patients_path,
       controllers: ['patients'],
       visible: can_administer_health? || can_manage_all_patients?,
     },
     {
       title: 'User Access',
-      path: admin_health_users_path, 
+      path: admin_health_users_path,
       controllers: ['users'],
       visible: can_administer_health? ,
     },
@@ -42,6 +42,12 @@
       controllers: ['team_coordinators'],
       visible: can_administer_health? ,
     },
+    {
+      title: 'ACOs',
+      path: admin_health_accountable_care_organizations_path,
+      controllers: ['accountable_care_organizations'],
+      visible: can_manage_accountable_care_organizations? ,
+    },
   ]
 
 - if GrdaWarehouse::Config.get(:healthcare_available)
@@ -52,11 +58,11 @@
           %li.nav-item{role: 'presentation', class: tab[:controllers].include?(controller_name) ? 'active' : ''}
             = link_to tab[:path] do
               = tab[:title].html_safe
-    
 
 
 
 
 
-    
-        
+
+
+

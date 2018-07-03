@@ -232,7 +232,8 @@ label {
   }
 }
 
-.form-group[data-other-value] {
+.form-group[data-other-value],
+.form-group[data-date-values] {
   margin-left: space(6);
 }
 

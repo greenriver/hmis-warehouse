@@ -1,0 +1,28 @@
+- title = "Manage Team Members for #{@client.full_name}"
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= title
+  = render 'window/clients/breadcrumbs'
+  = render 'window/clients/tab_navigation', current: polymorphic_path(team_members_path_generator)
+  %section.c-card.c-card--block.c-card--no-padding
+    .c-card__header.c-card__header--external
+      %h2 Care Team Members
+      = link_to polymorphic_path([:new] + team_member_path_generator), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+        %i.icon-plus
+        Add Team Member
+    - if @team_members.blank?
+      .c-card__content.c-card__content--flush.w-100
+        %p.no-data No team members on file
+    - else
+      .c-card__content.pb-0
+        %table.table.health__team-members
+          %thead
+            %tr
+              %th Type
+              %th Name/Email/Phone
+              %th Organization
+              %th
+          %tbody
+            - @team_members.each do |member|
+              = render 'team_member', member: member
