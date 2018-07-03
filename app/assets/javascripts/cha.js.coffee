@@ -1,4 +1,4 @@
-$(document).on 'change', '.cha-form.autosave', (e) ->
+$(document).on 'change', '.cha-form .autosave', (e) ->
   form = $(e.target).closest('form')
   $savingIndicator = $('.j-saving-indicator')
   $savingIndicator.text('Saving').removeClass('hidden saved error').addClass('saving c-spinner')
@@ -38,13 +38,19 @@ $(document).on 'click', '.remove-medication', (e) ->
   row.addClass('hidden')
 
 $(document).on 'change', '.jMarkComplete', (e) ->
-  console.log $(e.target)
+  # console.log $(e.target)
   if $(e.target).is(':checked')
-    $('jMarkReviewed').removeProp('disabled')
+    # console.log('enabling')
+    $('.jMarkReviewed').removeProp('disabled')
   else
+    # console.log('disabling')
     $('.jMarkReviewed').prop('disabled', 'disabled')
 
-$('.jMarkComplete').trigger('change')
+# disable the review box when we load.  Usually we'd call trigger on the
+# .jMarkComplete, but that triggers a save
+if $('.jMarkComplete').is(':not(:checked)')
+  $('.jMarkReviewed').prop('disabled', 'disabled')
+
 # Scroll to element with id that matches hash
 # https://css-tricks.com/snippets/jquery/smooth-scrolling/
 scrollToElement = (event, offset=0, duration=1000) ->

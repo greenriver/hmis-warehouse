@@ -2,10 +2,10 @@
 
 %ul.list-unstyled
   %li
-    - participation = @patient.participation_forms.recent.first
+    - participation = @patient.participation_forms.valid.recent.first
     - if participation
       = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
-        - if participation.reviewed_by.present?
+        - if participation.present?
           %span.icon-checkmark.o-color--positive.mr-1
         - else
           %span.icon-checkmark.mr-1.o-color--gray-l
@@ -16,10 +16,10 @@
         Participation Form
 
   %li
-    - release = @patient.release_forms.recent.first
+    - release = @patient.release_forms.valid.recent.first
     - if release
       = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
-        - if release.reviewed_by.present?
+        - if release.present?
           %span.icon-checkmark.o-color--positive.mr-1
         - else
           %span.icon-checkmark.mr-1.o-color--gray-l

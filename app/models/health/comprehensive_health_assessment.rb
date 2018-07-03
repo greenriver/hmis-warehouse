@@ -805,11 +805,13 @@ module Health
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil)}
     scope :complete, -> { where.not(completed_at: nil) }
 
-    attr_accessor :reviewed_by_supervisor, :completed
+    attr_accessor :reviewed_by_supervisor, :completed, :file
 
     attr_accessor *QUESTION_ANSWER_OPTIONS.keys
 
     before_save :set_answers, :set_reviewer
+
+    validate :validate_health_file_if_present
 
     def complete?
      completed_at.present?
@@ -819,6 +821,12 @@ module Health
       if reviewed_by
         self.reviewer = reviewed_by.name
         self.reviewed_at = DateTime.current
+      end
+    end
+
+    def validate_health_file_if_present
+      if file.present? && file.invalid?
+        errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
     end
 

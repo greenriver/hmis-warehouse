@@ -64,7 +64,7 @@ module Health
     scope :last_form_created, -> {order(created_at: :desc).limit(1)}
     scope :with_phone, -> { where.not(client_phone_number: nil) }
 
-    accepts_nested_attributes_for :activities, allow_destroy: true 
+    accepts_nested_attributes_for :activities, allow_destroy: true
     validates_associated :activities
 
     validates_presence_of :patient, :user, :title, :date_of_contact
@@ -74,10 +74,13 @@ module Health
     validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
     validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
     validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
+    validate :validate_health_file_if_present
 
     # doing this after validation because form updates with ajax and no validation
     # keep the date around until they hit save
     after_validation :remove_housing_placement_date
+
+    attr_accessor :file
 
     def remove_housing_placement_date
       unless housing_status_includes_date?
@@ -208,6 +211,12 @@ module Health
           {key: 'File Description:', value: health_file&.note, text_area: true}
         ]
       }
+    end
+
+    def validate_health_file_if_present
+      if file.present? && file.invalid?
+        errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ')
+      end
     end
 
   end

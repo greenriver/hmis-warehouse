@@ -8,6 +8,7 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
     before_action :set_locked, only: [:show, :edit]
+    before_action :set_health_file, only: [:upload, :update]
 
     def new
       # redirect to edit if there are any incomplete
@@ -23,6 +24,7 @@ module Window::Health
     def update
       @tt = form_params
       @cha.assign_attributes(form_params)
+      @cha.file = @health_file if @health_file
       Health::ChaSaver.new(cha: @cha, user: current_user, complete: completed?, reviewed: reviewed?).update
       respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end
@@ -43,6 +45,7 @@ module Window::Health
     end
 
     def upload
+      @cha.file = @health_file if @health_file
       validate_form
       save_file if @cha.errors.none? && @cha.update(form_params)
       respond_with @cha, location: polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
@@ -91,16 +94,23 @@ module Window::Health
       @cha = @patient.chas.where(id: params[:id]).first
     end
 
-    def save_file
-      file = params.dig(:form, :file)
-      if file
-        health_file = Health::ComprehensiveHealthAssessmentFile.new(
+    def set_health_file
+      if file = params.dig(:form, :file)
+        @health_file = Health::ComprehensiveHealthAssessmentFile.new(
           user_id: current_user.id,
           client_id: @client.id,
           file: file,
-          content: file&.read
+          content: file&.read,
+          content_type: file.content_type
         )
-        @cha.health_file = health_file
+      elsif @cha.health_file.present?
+        @health_file = @cha.health_file
+      end
+    end
+
+    def save_file
+      if @health_file
+        @cha.health_file = @health_file
         @cha.save
       end
     end

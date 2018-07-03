@@ -1,12 +1,12 @@
 .patient__remaining_requirements.ml-4
   .patient__remaining_requirement
-    - if patient.participation_forms.reviewed.exists?
+    - if patient.participation_forms.valid.exists?
       %span.icon-checkmark.o-color--positive.mr-1
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l
     Participation Form
   .patient__remaining_requirement
-    - if patient.release_forms.reviewed.exists?
+    - if patient.release_forms.valid.exists?
       %span.icon-checkmark.o-color--positive.mr-1
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l

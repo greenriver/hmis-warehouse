@@ -1,6 +1,6 @@
 - path = @release_form.new_record? ? polymorphic_path(release_forms_path_generator, client_id: @client.id) : polymorphic_path(release_form_path_generator, client_id: @client.id, id: @release_form.id)
 
-= simple_form_for @release_form, url: path, as: :form, remote: true do |f|
+= simple_form_for @release_form, url: path, as: :form, remote: request.xhr? do |f|
 
   = f.error_notification
 
@@ -33,7 +33,7 @@
         .form-group
           %label Reviewed by Supervisor
           %p.form-control-static= @release_form.reviewed_by&.name
-      - elsif current_user.can_approve_release?
+      - elsif false && current_user.can_approve_release? # no review required at the moment
         = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Supervisor', checked_value: 'yes', unchecked_value: 'no'
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }

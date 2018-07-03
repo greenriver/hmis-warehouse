@@ -7,9 +7,14 @@ module Health
     mount_uploader :file, HealthFileUploader
 
     validate :file_not_too_large
+    validate :valid_file_type
 
     def file_not_too_large
-      errors.add :file, "File size should be less than 25 MB" if (content&.size || 0) > 25.megabytes
+      errors.add :file, "File size should be less than #{HealthFileUploader.new.max_size_in_mb} MB" if (content&.size || 0) > HealthFileUploader.new.max_size_in_bytes
+    end
+
+    def valid_file_type
+      errors.add :file, "File must be a PDF" if content_type != 'application/pdf'
     end
 
     def title

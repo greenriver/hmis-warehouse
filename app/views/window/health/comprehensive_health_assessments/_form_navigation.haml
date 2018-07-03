@@ -11,8 +11,6 @@
       = link_to "Complete & Review", "#section-review", class: 'nav-link'
   %div
     = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default w-100 mb-1', data: { disable_with: 'Saving...' }
-    %button.w-100.btn.btn-success{type: 'submit', data: { disable_with: 'Saving...' } }
-      Complete
 
 - content_for :page_js do
   :javascript
