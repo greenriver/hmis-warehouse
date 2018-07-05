@@ -143,6 +143,8 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
+    combine_pdf (1.0.12)
+      ruby-rc4 (>= 0.1.5)
     composite_primary_keys (8.1.4)
       activerecord (~> 4.2.0)
     concurrent-ruby (1.0.5)
@@ -447,6 +449,7 @@ GEM
     ruby-ole (1.2.12.1)
     ruby-prof (0.16.2)
     ruby-progressbar (1.8.1)
+    ruby-rc4 (0.1.5)
     rubyXL (3.3.29)
       nokogiri (>= 1.4.4)
       rubyzip (>= 1.1.6)
@@ -571,6 +574,7 @@ DEPENDENCIES
   carrierwave-i18n
   charlock_holmes
   coffee-rails
+  combine_pdf
   composite_primary_keys (~> 8.0)
   daemons
   delayed_job_active_record

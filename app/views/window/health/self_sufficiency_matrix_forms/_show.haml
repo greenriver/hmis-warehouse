@@ -13,6 +13,10 @@
     %dd.breaker
     %dt.inline Case Worker:
     %dd.inline= @form.user&.name
+    %dd.breaker
+    - if @form.health_file.present?
+      %dt.inline File (see attached):
+      %dd.inline= link_to @form.health_file&.name, polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form)
 
   %p.text-right(style="font-size:smaller;font-style:italic;")
     Only answered questions are shown.

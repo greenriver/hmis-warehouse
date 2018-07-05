@@ -14,7 +14,7 @@
         %dd.inline= @cha.user&.name
         %dd.breaker
         - if @cha.health_file.present?
-          %dt.inline File:
+          %dt.inline File (see attached):
           %dd.inline= link_to @cha.health_file&.name, polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha)
 
       - if @cha.reviewed_by
