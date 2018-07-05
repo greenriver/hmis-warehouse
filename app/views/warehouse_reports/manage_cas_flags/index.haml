@@ -1,15 +1,15 @@
 - title = "Manage CAS Flags"
 - content_for :title, title
-%h1= title 
-= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .warehouse-reports__manage-cas-flags
   %p This form can be used to bulk update the CAS flags on clients.  ID's should be listed one per line. If you remove an ID it will unflag that client for the specific flag.
-  %p 
-    Clients marked with 
-    %strong Active in CAS 
+  %p
+    Clients marked with
+    %strong Active in CAS
     will be flagged available for matching in CAS. Those who exist in CAS but are not included in the
     %strong Active in CAS
-    section below, will be marked inactive in CAS and won't be matched to further vacancies.  Any existing active matches will continue even if the client has been marked inactive.  Proposed matches for clients marked inactive will 
+    section below, will be marked inactive in CAS and won't be matched to further vacancies.  Any existing active matches will continue even if the client has been marked inactive.  Proposed matches for clients marked inactive will
     %strong not
     proceed and will be removed when the currently active match involving related vacancies is next rebuilt due to a completed or canceled match.
   .well
@@ -30,19 +30,18 @@
         - if housing_release_types.include?(@flag)
           .alert.alert-info
             %ul
-              %li You CANNOT use this form to remove a housing release, you must do that on the client dashboard.  
+              %li You CANNOT use this form to remove a housing release, you must do that on the client dashboard.
               %li You CAN use this form to add a housing release or change from limited to full or full to limited.
         = f.input @flag, as: :text, input_html: {value: @clients&.map{|m| m[:id]}&.join("\n"), rows: 20}, label: false
         = f.input :flag, as: :hidden, input_html: {value: @flag}
         = f.submit class: 'btn btn-primary', value: 'Update CAS Flags'
       .col-sm-8
         %h3= "Flagged Clients (#{@clients&.size || 0})"
-        = render 'client_table', clients: @clients  
-      
-    
-  
-    
-    
-    
-      
-  
+        = render 'client_table', clients: @clients
+
+
+
+
+
+
+

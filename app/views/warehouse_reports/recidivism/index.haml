@@ -3,8 +3,7 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 = render 'form'
-.alert.alert-warning.text-center
-  This report is still being developed.
+
 %p
   The following clients have an open PH enrollment between
   = @filter.start
@@ -20,7 +19,7 @@
   - @clients.each do |client|
     .client
       %h4
-        = link_to client_path(client) do 
+        = link_to client_path(client) do
           = client.full_name
       .row
         .col-sm-6
