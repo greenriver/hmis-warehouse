@@ -35,7 +35,7 @@
   width: 100%;
   .form-control,
   textarea,
-  input {
+  input:not([type="submit"]) {
     background-color: $body-bg;
   }
 }

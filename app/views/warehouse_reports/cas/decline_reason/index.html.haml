@@ -1,7 +1,7 @@
 - title = 'Coordinated Access System Decline Reasons'
 - content_for :title, title
 %h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .row
   .col-sm-10
     %p
@@ -19,7 +19,7 @@
           %tr
             %th Reason
             %th Count
-          
+
         %tbody
           - if @reasons.empty?
             %tr

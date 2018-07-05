@@ -2,13 +2,9 @@
   = f.error_notification
   .row.margin-bottom-02
     .col-sm-3
-      .input-group.date{data: {provide: :datepicker}}
-        = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
-        %span.input-group-addon.icon-calendar
+      = f.input :start, as: :date_picker, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
     .col-sm-3
-      .input-group.date{data: {provide: :datepicker}}
-        = f.input :end, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
-        %span.input-group-addon.icon-calendar
+      = f.input :end, as: :date_picker, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
     .col-sm-3
       = f.button :submit, value: 'Update View'
       -# link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
