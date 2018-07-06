@@ -139,7 +139,7 @@ module Import::HMISSixOneOne::Shared
           )
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
-            row[:source_hash] = calculate_source_hash(row)
+            row[:source_hash] = calculate_source_hash(row.values)
             # in some cases this replaces the renamed hud key,
             # so it has to happen before checking for the existing
             existing = existing_items[row[self.hud_key]]
@@ -182,7 +182,7 @@ module Import::HMISSixOneOne::Shared
           )
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
-            row[:source_hash] = calculate_source_hash(row)
+            row[:source_hash] = calculate_source_hash(row.values)
             existing = existing_items[row[self.hud_key]]
             # binding.pry if self.name == 'GrdaWarehouse::Import::HMISSixOneOne::Enrollment'
             if should_add?(existing)
@@ -215,8 +215,16 @@ module Import::HMISSixOneOne::Shared
       stats
     end
 
-    def calculate_source_hash row
-      Digest::SHA256.hexdigest(row.values.to_s)
+    def calculate_source_hash values
+      Digest::SHA256.hexdigest(values.to_s)
+    end
+
+    def pre_calculate_source_hashes!
+      where(source_hash: nil).pluck_in_batches(:id, *hud_csv_headers, batch_size: 10_000) do |batch|
+        batch.each do |(id, *row)|
+          where(id: id).update_all(source_hash: calculate_source_hash(row))
+        end
+      end
     end
 
     def log_added data
