@@ -67,16 +67,17 @@ module Import::HMISSixOneOne::Shared
     end
 
     def needs_update? row:, existing:, soft_delete_time: nil
-      incoming_newer = row[:DateUpdated].to_time > existing.updated_at
+      # Incoming is newer
+      return true if row[:DateUpdated].to_time > existing.updated_at
       deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
       exists_in_incoming_file = row[:DateDeleted].blank?
       incoming_updated_on_same_date = row[:DateUpdated].to_date == existing.updated_at.to_date
-      should_restore = deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
-      undocumented_change = incoming_updated_on_same_date && row[:source_hash] != existing.source_hash
+      # Should be restored
+      return true if deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
 
-      # if it has been obviously updated or restored it needs an update
-      # or if the updated date hasn't changed but the content has
-      return incoming_newer || should_restore || undocumented_change
+      # same modification date, changed data
+      return true if incoming_updated_on_same_date && row[:source_hash] != existing.source_hash
+      return false
     end
 
     def delete_involved projects:, range:, data_source_id:, deleted_at:
