@@ -318,7 +318,7 @@ GEM
     net-ssh (4.2.0)
     netrc (0.11.0)
     newrelic_rpm (3.17.2.327)
-    nokogiri (1.8.2)
+    nokogiri (1.8.4)
       mini_portile2 (~> 2.3.0)
     nominatim (0.0.6)
       faraday
