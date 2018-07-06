@@ -139,7 +139,7 @@ module Import::HMISSixOneOne::Shared
           )
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
-            row[:source_hash] = calculate_source_hash(row.values)
+            row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
             # in some cases this replaces the renamed hud key,
             # so it has to happen before checking for the existing
             existing = existing_items[row[self.hud_key]]
@@ -182,7 +182,7 @@ module Import::HMISSixOneOne::Shared
           )
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
-            row[:source_hash] = calculate_source_hash(row.values)
+            row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
             existing = existing_items[row[self.hud_key]]
             # binding.pry if self.name == 'GrdaWarehouse::Import::HMISSixOneOne::Enrollment'
             if should_add?(existing)
@@ -216,15 +216,30 @@ module Import::HMISSixOneOne::Shared
     end
 
     def calculate_source_hash values
-      Digest::SHA256.hexdigest(values.to_s)
+      Digest::SHA256.hexdigest string_for_source_hash(values)
+    end
+
+    # Since we are using Postgres to calculate these the first time
+    # we need to match the postgres format
+    def string_for_source_hash values
+      values.compact.map do |m|
+        if m.is_a?(Date)
+          m.strftime('%F')
+        elsif m.is_a?(Time)
+          m.utc.strftime('%F %T')
+        else
+          m
+        end
+      end.join(':')
+    end
+
+    def pg_source_hash_calculation_query
+      columns = (hud_csv_headers - [:ExportID]).map{|m| '"' + m.to_s + '"'}.join(',')
+      "UPDATE #{quoted_table_name} SET source_hash = encode(digest(concat_ws(':', #{columns}), 'sha256'), 'hex')"
     end
 
     def pre_calculate_source_hashes!
-      where(source_hash: nil).pluck_in_batches(:id, *hud_csv_headers, batch_size: 10_000) do |batch|
-        batch.each do |(id, *row)|
-          where(id: id).update_all(source_hash: calculate_source_hash(row))
-        end
-      end
+      connection.execute pg_source_hash_calculation_query
     end
 
     def log_added data
