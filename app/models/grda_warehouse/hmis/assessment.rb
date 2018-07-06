@@ -6,7 +6,7 @@ module GrdaWarehouse::HMIS
 
     has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
 
-    scope :confidential, -> do 
+    scope :confidential, -> do
       where(confidential: true)
     end
     scope :non_confidential, -> do
@@ -21,6 +21,10 @@ module GrdaWarehouse::HMIS
 
     scope :active, -> do
       where(active: true)
+    end
+
+    scope :health, -> do
+      where(health: true)
     end
 
     scope :health_for_user, -> (user) do
@@ -47,7 +51,7 @@ module GrdaWarehouse::HMIS
     scope :fetch_for_data_source, -> (ds_id) do
       where(data_source_id: ds_id).where(fetch: true)
     end
-    
+
     def self.update_touch_points
       touch_points = fetch_touch_points()
       assessments = fetch_assessments()
@@ -86,10 +90,10 @@ module GrdaWarehouse::HMIS
         map do |data_source_id, site_id, assessment_id, name, active|
           [
             {
-              data_source_id: data_source_id, 
-              site_id: site_id, 
+              data_source_id: data_source_id,
+              site_id: site_id,
               assessment_id: assessment_id
-            }, 
+            },
             {
               name: name,
               active: active,
@@ -108,12 +112,12 @@ module GrdaWarehouse::HMIS
       end
       {
         {
-          data_source_id: data_source_id, 
-          site_id: site_id, 
+          data_source_id: data_source_id,
+          site_id: site_id,
           assessment_id: assessment_id
         } => {
-          name: "HUD Assessment (Entry/Update/Annual/Exit)", 
-          site_name: site_name, 
+          name: "HUD Assessment (Entry/Update/Annual/Exit)",
+          site_name: site_name,
           active: true
         }
       }
@@ -137,7 +141,7 @@ module GrdaWarehouse::HMIS
                 touch_points[
                   {
                     data_source_id: data_source_id,
-                    site_id: site_id, 
+                    site_id: site_id,
                     assessment_id: touch_point[:TouchPointID]
                   }
                 ] = {
