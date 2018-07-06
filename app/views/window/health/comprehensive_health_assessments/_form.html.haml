@@ -3,7 +3,7 @@
 - url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
 = simple_form_for @cha, url: polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id), as: :form, html: { data: { url: url }} do |f|
 
-  .form.form--with-nav.j-form
+  .form.form--with-nav.j-form.autosave
     = render 'form_navigation'
     .form__questions
 

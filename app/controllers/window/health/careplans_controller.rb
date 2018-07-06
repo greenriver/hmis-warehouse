@@ -36,8 +36,21 @@ module Window::Health
       @cha = @patient.comprehensive_health_assessments.recent.first
       # debugging
       # render layout: false
-      render(
+
+      # render(
+      #   pdf: file_name,
+      #   layout: false,
+      #   encoding: "UTF-8",
+      #   page_size: 'Letter',
+      #   header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
+      #   footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+      #   # Show table of contents by providing the 'toc' property
+      #   # toc: {}
+      # )
+
+      pctp = render_to_string(
         pdf: file_name,
+        template: 'window/health/careplans/show',
         layout: false,
         encoding: "UTF-8",
         page_size: 'Letter',
@@ -46,6 +59,14 @@ module Window::Health
         # Show table of contents by providing the 'toc' property
         # toc: {}
       )
+      pdf = CombinePDF.parse(pctp)
+      if @form.present? && @form.health_file.present?
+        pdf << CombinePDF.parse(@form.health_file.content)
+      end
+      if @cha.present? && @cha.health_file.present?
+        pdf << CombinePDF.parse(@cha.health_file.content)
+      end
+      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
     end
 
     def edit

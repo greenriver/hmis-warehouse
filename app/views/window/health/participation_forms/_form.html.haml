@@ -41,7 +41,7 @@
       .form-group
         %label Reviewed by Supervisor
         %p.form-control-static= @participation_form.reviewed_by&.name
-    - elsif current_user.can_approve_participation?
+    - elsif false && current_user.can_approve_participation? # no review required at the moment
       = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark reviewed by supervisor', checked_value: 'yes', unchecked_value: 'no'
 
   .col-sm-12

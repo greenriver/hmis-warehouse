@@ -4,13 +4,9 @@
       = f.error_notification
       .row
         .col-sm-3
-          .input-group.date{data: {provide: :datepicker}}
-            = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-            %span.input-group-addon.icon-calendar
+          = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
         .col-sm-3
-          .input-group.date{data: {provide: :datepicker}}
-            = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
-            %span.input-group-addon.icon-calendar
+          = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
         .col-sm-4
           = f.button :submit, value: 'Update View'
 

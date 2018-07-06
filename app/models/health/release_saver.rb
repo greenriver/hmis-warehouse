@@ -15,7 +15,7 @@ module Health
     def update
       @form.class.transaction do
         include_qualifying_activity = @form.signature_on.present? && @form.signature_on_changed?
-        @form.save!
+        @form.save
         if include_qualifying_activity
           @qualifying_activity.source_id = @form.id
           @qualifying_activity.save

@@ -1,6 +1,7 @@
 module Health
   class PatientReferral < HealthBase
     include PatientReferralImporter
+    include ArelHelper
     before_validation :update_rejected_from_reason
 
     # rejected_reason_none: 0 always needs to be there
@@ -142,9 +143,15 @@ module Health
       )
     end
 
+    # we aren't receiving SSN, use full name, case insensitive and birth date
     def matching_destination_client
-      if ssn.present? && birthdate.present?
-        GrdaWarehouse::Hud::Client.destination.find_by(SSN: ssn, DOB: birthdate)
+      if birthdate.present? && first_name.present? && last_name.present?
+        GrdaWarehouse::Hud::Client.destination.
+          where(
+            c_t[:FirstName].lower.eq(first_name.downcase).
+            and(c_t[:LastName].lower.eq(last_name.downcase))
+          ).
+          where(DOB: birthdate).first
       end
     end
 

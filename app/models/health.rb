@@ -17,7 +17,7 @@ module Health
       'recent_visits.csv' => Health::Visit,
       'goals.csv' => Health::EpicGoal,
       'careteam.csv' => Health::EpicTeamMember,
-      'encs_CP.csv' => Health::EpicCaseNote,
+      'encounters.csv' => Health::EpicCaseNote,
     }.freeze
   end
 end

@@ -74,15 +74,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
   WHITELIST = IceNine.deep_freeze(%w(
-    image/jpeg
-    image/png
-    image/gif
     application/pdf
-    application/msword
-    application/vnd.openxmlformats-officedocument.wordprocessingml.document
-    text/csv
-    application/vnd.ms-excel
-    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
   ))
 
   MANIPULATEABLE = IceNine.deep_freeze(
@@ -139,6 +131,13 @@ class HealthFileUploader < CarrierWave::Uploader::Base
     0..25.megabytes #Up to two megabytes
   end
 
+  def max_size_in_bytes
+    size_range.last
+  end
+
+  def max_size_in_mb
+    (max_size_in_bytes / 1024 / 1024).round
+  end
   # Override the filename of the uploaded files:
   # Avoid using model.id or version_name here, see uploader/store.rb for details.
   # def filename

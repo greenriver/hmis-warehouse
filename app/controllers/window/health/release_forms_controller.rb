@@ -7,9 +7,16 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
     before_action :set_blank_form, only: [:new, :edit]
+    before_action :set_health_file, only: [:create, :update]
 
     def new
-      @release_form = @patient.release_forms.build
+      # redirect to edit if there are any on-file
+      if @patient.release_forms.exists?
+        @release_form = @patient.release_forms.recent.last
+        render :edit and return
+      else
+        @release_form = @patient.release_forms.build
+      end
       render :new
     end
 
@@ -18,6 +25,7 @@ module Window::Health
       validate_form
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
+      @release_form.file = @health_file if @health_file
 
       if ! request.xhr?
         saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
@@ -43,6 +51,7 @@ module Window::Health
       validate_form unless @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
+      @release_form.file = @health_file if @health_file
 
       if ! request.xhr?
         saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
@@ -66,6 +75,20 @@ module Window::Health
     def remove_file
       @release_form.health_file.destroy
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+    end
+
+    def set_health_file
+      if file = params.dig(:form, :file)
+        @health_file = Health::ReleaseFormFile.new(
+          user_id: current_user.id,
+          client_id: @client.id,
+          file: file,
+          content: file&.read,
+          content_type: file.content_type
+        )
+      elsif @release_form.health_file.present?
+        @health_file = @release_form.health_file
+      end
     end
 
     private
@@ -96,15 +119,8 @@ module Window::Health
     end
 
     def save_file
-      file = params.dig(:form, :file)
-      if file
-        health_file = Health::ReleaseFormFile.new(
-          user_id: current_user.id,
-          client_id: @client.id,
-          file: file,
-          content: file&.read
-        )
-        @release_form.health_file = health_file
+      if @health_file
+        @release_form.health_file = @health_file
         @release_form.save
       end
     end

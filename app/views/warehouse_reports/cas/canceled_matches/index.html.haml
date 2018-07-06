@@ -1,7 +1,7 @@
 - title = 'Coordinated Access System Canceled Matches'
 - content_for :title, title
 %h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .row
   .col-sm-10
     %p
@@ -26,7 +26,7 @@
             %th Previous Step Completed On
             %th= "#{_('Shelter Agency Contacts')}"
             %th= "#{_('HSA Contacts')}"
-          
+
         %tbody
           - if @matches.empty?
             %tr
