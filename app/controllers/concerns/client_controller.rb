@@ -241,7 +241,7 @@ module ClientController
         "/clients/rollup/assessments",
         "/clients/rollup/assessments_without_data",
         "/clients/rollup/case_manager",
-        "/clients/rollup/chronic",
+        "/clients/rollup/chronic_days",
         "/clients/rollup/contact_information",
         "/clients/rollup/demographics",
         "/clients/rollup/disability_types",
