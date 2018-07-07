@@ -14,17 +14,15 @@
 %table.table.table-striped.margin-top-03
   %tbody
     %tr
-      %td= 'Months homeless in the last 3 years'
+      %td Months in ES, SH, SO, or TH in the last 3 years
       %td
-        - # Don't count the current month
-        = @client.months_served_between(start_date: (date - 3.years).beginning_of_month, end_date: date.beginning_of_month - 1.day)
+        = @client.months_homeless_in_last_three_years(on_date: date)
     %tr
-      %td= 'Months homeless in the last year'
+      %td Months in ES, SH, SO, or TH in the last year
       %td
-        - # Don't count the current month
-        = @client.months_served_between(start_date: (date - 1.year).beginning_of_month, end_date: date.beginning_of_month - 1.day)
+        = @client.months_homeless_in_last_year(on_date: date)
     %tr
-      %td= 'Homeless episodes in the last 3 years'
+      %td Homeless episodes in the last 3 years
       %td= @client.homeless_episodes_since(date: (date - 3.years))
     %tr
       %td
@@ -37,13 +35,13 @@
         %td= @client.disabled?(on_date: date) ? 'Yes' : 'No'
     %tr
       %td
-        Days literally homeless in the past 3 years
+        Days literally homeless (ES, SO, or SH) in the past 3 years
         %td= @client.literally_homeless_last_three_years(on_date: date)
     %tr
       %td
-        Months in chronic hud homeless in the past 3 years
-        %td= @client.months_homeless_in_hud_chronic_in_last_three_years(on_date: date)
+        Months literally homeless (ES, SO, or SH) in the past 3 years
+        %td= @client.months_literally_homeless_in_last_three_years(on_date: date)
     %tr
       %td
-        Months in chronic hud homeless in the past 1 year
-        %td= @client.months_homeless_in_hud_chronic_in_last_one_year(on_date: date)
+        Months literally homeless (ES, SO, or SH) in the past 1 year
+        %td= @client.months_literally_homeless_in_last_year(on_date: date)
