@@ -5,12 +5,13 @@
       = member.class.member_type_name
   %td
     = member.full_name
-    %br
-    = mail_to member.email do
-      %i.icon-envelope-o
-      = member.email
+  %td
+    - if member.email?
+      = mail_to member.email do
+        %i.icon-envelope-o
+        = member.email
+  %td
     - if member.present?
-      %br
       = member.phone
   %td= member.organization
   %td
@@ -18,5 +19,5 @@
       = link_to polymorphic_path([:edit] + team_member_path_generator, id: member.id), data: { loads_in_pjax_modal: true }, class: 'mr-4' do
         %span.icon-pencil
       - unless member.in_use?
-        = link_to polymorphic_path(team_member_path_generator, id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do 
+        = link_to polymorphic_path(team_member_path_generator, id: member.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do
           %span.icon-cross

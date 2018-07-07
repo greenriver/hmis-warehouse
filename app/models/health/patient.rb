@@ -2,13 +2,13 @@ module Health
   class Patient < Base
 
     acts_as_paranoid
-    has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_case_notes, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :appointments, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :medications, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :problems, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :visits, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :epic_goals, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :epic_case_notes, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :epic_team_members, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -67,6 +67,8 @@ module Health
       participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
+
       where(
         arel_table[:client_id].not_in(hmis_ssm_client_ids).
         and(
@@ -80,6 +82,9 @@ module Health
         ).
         or(
           arel_table[:id].not_in(Arel.sql cha_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].not_in(Arel.sql pctp_signed_patient_id_scope.to_sql)
         )
       )
     end
@@ -97,6 +102,7 @@ module Health
       participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
 
       where(
         arel_table[:client_id].in(hmis_ssm_client_ids).
@@ -111,6 +117,9 @@ module Health
         ).
         and(
           arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql)
+        ).
+        and(
+          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql)
         )
       )
     end
@@ -293,6 +302,44 @@ module Health
 
     def qualified_activities_since date: 1.months.ago
       qualifying_activities.in_range(date..Date.tomorrow)
+    end
+
+    def import_epic_team_members
+      # I think this updates this for changes made here PT story #158636393
+      potential_team = epic_team_members.unprocessed.to_a
+      return unless potential_team.any?
+      potential_team.each do |epic_member|
+        if epic_member.name.include?(',')
+          (last_name, first_name) = epic_member.name.split(', ', 2)
+        else
+          (first_name, last_name) = epic_member.name.split(' ', 2)
+        end
+        user = User.find_by(email: 'noreply@greenriver.com')
+        # Use the PCP type if we have it
+        relationship = epic_member.pcp_type || epic_member.relationship
+        klass = Health::Team::Member.class_from_member_type_name(relationship)
+        at = klass.arel_table
+        if epic_member.email?
+          member = klass.where(at[:email].lower.eq(epic_member.email).to_sql).first_or_initialize
+        else
+          member = klass.where(
+            at[:first_name].lower.eq(first_name.downcase).
+            and(at[:last_name].lower.eq(last_name.downcase)).to_sql
+          ).first_or_initialize
+        end
+        member.assign_attributes(
+            patient_id: id,
+            user_id: user.id,
+            first_name: first_name,
+            last_name: last_name,
+            title: epic_member.relationship,
+            email: epic_member.email,
+            phone: epic_member.phone,
+            organization: epic_member.email&.split('@')&.last || 'Unknown'
+          )
+        member.save(validate: false)
+        epic_member.update(processed: Time.now)
+      end
     end
 
     def consented? # Pilot

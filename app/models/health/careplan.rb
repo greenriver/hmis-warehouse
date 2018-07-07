@@ -51,31 +51,7 @@ module Health
     end
 
     def import_team_members
-      # I think this updates this for changes made here PT story #158636393
-      potential_team = patient.epic_team_members.unprocessed.to_a
-      return unless potential_team.any?
-      potential_team.each do |epic_member|
-        if epic_member.name.include?(',')
-          (last_name, first_name) = epic_member.name.split(', ', 2)
-        else
-          (first_name, last_name) = epic_member.name.split(' ', 2)
-        end
-        user = User.find_by(email: 'noreply@greenriver.com')
-        # Use the PCP type if we have it
-        relationship = epic_member.pcp_type || epic_member.relationship
-        member = Health::Team::Member.class_from_member_type_name(relationship).new(
-            patient_id: patient.id,
-            user_id: user.id,
-            first_name: first_name,
-            last_name: last_name,
-            title: epic_member.relationship,
-            email: epic_member.email,
-            phone: epic_member.phone,
-            organization: epic_member.email&.split('@')&.last || 'Unknown'
-          )
-        member.save(validate: false)
-        epic_member.update(processed: Time.now)
-      end
+      patient.import_epic_team_members
     end
 
     def just_signed?

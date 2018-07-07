@@ -6,8 +6,8 @@ module Health
 
     # belongs_to :team, class_name: Health::Team.name
     belongs_to :patient
-        
-    validates :email, presence: true, email_format: { check_mx: true }, length: {maximum: 250}
+
+    validates :email, email_format: { check_mx: true }, length: {maximum: 250}, allow_blank: true
     validates_presence_of :first_name, :last_name, :organization
 
     def self.member_type_name
@@ -68,7 +68,7 @@ module Health
     end
 
     def in_use?
-      careplans.any? || goals.any? 
+      careplans.any? || goals.any?
     end
   end
 end

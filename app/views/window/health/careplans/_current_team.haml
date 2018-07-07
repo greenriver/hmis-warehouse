@@ -17,10 +17,11 @@
             = member&.full_name
             %br
             = member&.organization
-            %br
-            = mail_to member.email, subject: 'Collaborative Care Plan' do
-              %i.icon-envelope-o
-              = member&.email
+            - if member.email?
+              %br
+              = mail_to member.email, subject: 'Collaborative Care Plan' do
+                %i.icon-envelope-o
+                = member&.email
             - if member.phone?
               %br
               = member.phone
