@@ -42,6 +42,10 @@ module CohortColumns
       return html
     end
 
+    def text_value cohort_client
+      comments
+    end
+
     def last_activity
       cohort_client.client.processed_service_history&.last_homeless_date
     end
