@@ -70,7 +70,7 @@ module Import::HMISSixOneOne::Shared
       # Incoming is newer
       incoming_newer = row[:DateUpdated].to_time > existing.updated_at
       if incoming_newer
-        puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
+        # puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
         return true
       end
       deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
@@ -79,13 +79,13 @@ module Import::HMISSixOneOne::Shared
       # Should be restored
       should_restore = deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
       if should_restore
-        puts "should restore #{row.inspect} #{existing.updated_at.inspect} #{existing.deleted_at.inspect}"
+        # puts "should restore #{row.inspect} #{existing.updated_at.inspect} #{existing.deleted_at.inspect}"
         return true
       end
       # same modification date, changed data
       data_changed = incoming_updated_on_same_date && row[:source_hash] != existing.source_hash
       if data_changed
-        puts "data changed #{row.inspect} #{existing.inspect}"
+        # puts "data changed #{row.inspect} #{existing.inspect}"
         return true
       end
       return false
