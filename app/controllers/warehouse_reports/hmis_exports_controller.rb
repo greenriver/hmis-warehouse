@@ -46,7 +46,7 @@ module WarehouseReports
     end
 
     def show
-      # send_data GrdaWarehouse::Hud::Site.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
+      # send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
       send_data @export.content, filename: "HMIS_export_#{Time.now.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
@@ -60,7 +60,7 @@ module WarehouseReports
 
     def report_params
       params.require(:filter).permit(
-        :start_date, 
+        :start_date,
         :end_date,
         :hash_status,
         :period_type,

@@ -66,13 +66,13 @@ RSpec.shared_context "single-enrollment tests", shared_context: :metadata do
           current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
           expect(csv.first[current_hud_key]).to eq send(item[:list]).first.id.to_s
         end
-        if item[:klass].column_names.include?('ProjectEntryID')
+        if item[:klass].column_names.include?('EnrollmentID')
           it 'EnrollmentID from CSV file match the id of first enrollment' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             expect(csv.first['EnrollmentID']).to eq enrollments.first.id.to_s
           end
         end
-        
+
       end
     end
   end

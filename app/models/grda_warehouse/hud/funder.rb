@@ -2,23 +2,23 @@ module GrdaWarehouse::Hud
   class Funder < Base
     include HudSharedScopes
     self.table_name = 'Funder'
-    self.hud_key = 'FunderID'
+    self.hud_key = :FunderID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
       [
-        "FunderID",
-        "ProjectID",
-        "Funder",
-        "GrantID",
-        "StartDate",
-        "EndDate",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+        :FunderID,
+        :ProjectID,
+        :Funder,
+        :GrantID,
+        :StartDate,
+        :EndDate,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
+      ].freeze
     end
 
     belongs_to :project, **hud_belongs(Project), inverse_of: :funders

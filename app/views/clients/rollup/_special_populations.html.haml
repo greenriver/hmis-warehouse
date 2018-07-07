@@ -5,7 +5,7 @@
   spesh = @client.
     source_enrollment_health_and_dvs.
     preload( enrollment: :client ).
-    select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:ProjectEntryID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID], ht[:CurrentlyFleeing] ).
+    select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:EnrollmentID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID], ht[:CurrentlyFleeing] ).
     order(et[:EntryDate].desc).
     distinct
 - if spesh.any?

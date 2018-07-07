@@ -17,7 +17,7 @@ module GrdaWarehouse::Hud
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
     self.table_name = 'Client'
-    self.hud_key = 'PersonalID'
+    self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
 
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
@@ -25,43 +25,43 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       [
-        "PersonalID",
-        "FirstName",
-        "MiddleName",
-        "LastName",
-        "NameSuffix",
-        "NameDataQuality",
-        "SSN",
-        "SSNDataQuality",
-        "DOB",
-        "DOBDataQuality",
-        "AmIndAKNative",
-        "Asian",
-        "BlackAfAmerican",
-        "NativeHIOtherPacific",
-        "White",
-        "RaceNone",
-        "Ethnicity",
-        "Gender",
-        "OtherGender",
-        "VeteranStatus",
-        "YearEnteredService",
-        "YearSeparated",
-        "WorldWarII",
-        "KoreanWar",
-        "VietnamWar",
-        "DesertStorm",
-        "AfghanistanOEF",
-        "IraqOIF",
-        "IraqOND",
-        "OtherTheater",
-        "MilitaryBranch",
-        "DischargeStatus",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
+        :PersonalID,
+        :FirstName,
+        :MiddleName,
+        :LastName,
+        :NameSuffix,
+        :NameDataQuality,
+        :SSN,
+        :SSNDataQuality,
+        :DOB,
+        :DOBDataQuality,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :NativeHIOtherPacific,
+        :White,
+        :RaceNone,
+        :Ethnicity,
+        :Gender,
+        :OtherGender,
+        :VeteranStatus,
+        :YearEnteredService,
+        :YearSeparated,
+        :WorldWarII,
+        :KoreanWar,
+        :VietnamWar,
+        :DesertStorm,
+        :AfghanistanOEF,
+        :IraqOIF,
+        :IraqOND,
+        :OtherTheater,
+        :MilitaryBranch,
+        :DischargeStatus,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID
       ].freeze
     end
 
@@ -522,7 +522,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -556,7 +556,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -1944,7 +1944,7 @@ module GrdaWarehouse::Hud
             project_name: project_name,
             confidential_project: project.confidential,
             entry_date: entry.first_date_in_program,
-            living_situation: entry.enrollment.ResidencePrior,
+            living_situation: entry.enrollment.LivingSituation,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
             days: dates_served.count,

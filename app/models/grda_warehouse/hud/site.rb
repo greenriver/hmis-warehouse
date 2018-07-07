@@ -2,12 +2,12 @@ module GrdaWarehouse::Hud
   class Site < Base
     include HudSharedScopes
     self.table_name = 'Site'
-    self.hud_key = 'SiteID'
+    self.hud_key = 'GeographyID'
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
       [
-        "SiteID",
+        "GeographyID",
         "ProjectID",
         "CoCCode",
         "PrincipalSite",
@@ -24,8 +24,8 @@ module GrdaWarehouse::Hud
       ]
     end
 
-    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :sites
-    belongs_to :export, **hud_belongs(Export), inverse_of: :sites
+    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
+    belongs_to :export, **hud_belongs(Export), inverse_of: :geographies
     has_one :project, through: :project_coc, source: :project
 
     scope :viewable_by, -> (user) do
@@ -42,12 +42,12 @@ module GrdaWarehouse::Hud
       "#{self.Address} #{self.City}"
     end
 
-    # when we export, we always need to replace SiteID with the value of id
+    # when we export, we always need to replace GeographyID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
       attributes = self.hud_csv_headers
       headers = attributes.clone
-      attributes[attributes.index('SiteID')] = 'id'
+      attributes[attributes.index('GeographyID')] = 'id'
       attributes[attributes.index('ProjectID')] = 'project.id'
 
       CSV.generate(headers: true) do |csv|
@@ -61,7 +61,7 @@ module GrdaWarehouse::Hud
               i.send(obj).send(meth)
             else
               i.send(attr)
-            end 
+            end
           end
         end
       end
