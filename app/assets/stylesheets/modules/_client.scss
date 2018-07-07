@@ -371,8 +371,12 @@ $client-image-height: 200px;
 }
 .enrollment__new-episode {
   > td {
-    border-bottom: 8px solid $table-cell-bg-positive;
+    border-bottom: 8px solid darken($table-cell-bg-positive, 10%);
   }
+}
+.enrollment__new-episode--key
+{
+  background-color: darken($table-cell-bg-positive, 10%);
 }
 .assessment__new-type:not(:first-child) {
   border-top: 2px solid $cob-sg-optimistic-blue;
