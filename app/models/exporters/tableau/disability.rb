@@ -1,11 +1,11 @@
 module Exporters::Tableau::Disability
   include ArelHelper
   include TableauExport
-  
+
   module_function
   def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       spec = {
-        entry_exit_uid:       e_t[:ProjectEntryID],
+        entry_exit_uid:       e_t[:EnrollmentID],
         entry_exit_client_id: she_t[:client_id],
         disability_type:      d_t[:DisabilityType],
         start_date:           she_t[:first_date_in_program],

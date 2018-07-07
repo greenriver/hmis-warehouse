@@ -4,7 +4,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     self.table_name = 'Organization'
-    self.hud_key = 'OrganizationID'
+    self.hud_key = :OrganizationID
     acts_as_paranoid column: :DateDeleted
     has_many :projects, **hud_many(Project), inverse_of: :organization
     belongs_to :export, **hud_belongs(Export), inverse_of: :organizations
@@ -75,7 +75,7 @@ module GrdaWarehouse::Hud
     private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
       viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       organization_table = quoted_table_name
-        
+
       <<-SQL.squish
 
         EXISTS (
@@ -96,7 +96,7 @@ module GrdaWarehouse::Hud
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       organization_table = quoted_table_name
-        
+
       <<-SQL.squish
 
         EXISTS (
@@ -121,7 +121,7 @@ module GrdaWarehouse::Hud
       viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name
-        
+
       <<-SQL.squish
 
         EXISTS (
@@ -148,15 +148,15 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       [
-        "OrganizationID",
-        "OrganizationName",
-        "OrganizationCommonName",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+        :OrganizationID,
+        :OrganizationName,
+        :OrganizationCommonName,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
+      ].freeze
     end
 
     # when we export, we always need to replace OrganizationID with the value of id

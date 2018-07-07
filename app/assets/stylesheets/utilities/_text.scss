@@ -2,6 +2,18 @@
   color: red;
 }
 
+.gray {
+  color: $gray;
+}
+
 .light {
   color: $light-body-text;
+}
+
+.gray-light {
+  color: $gray-light;
+}
+
+.underline-header {
+  border-bottom: 1px solid $gray-025;
 }

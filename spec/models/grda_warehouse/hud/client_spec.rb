@@ -33,10 +33,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   describe 'scopes' do
     describe 'age_group' do
 
-      let(:eighteen_to_24_group) do 
+      let(:eighteen_to_24_group) do
         GrdaWarehouse::Hud::Client.age_group(start_age: 18, end_age: 24)
       end
-      let(:sixty_plus_group) do 
+      let(:sixty_plus_group) do
         GrdaWarehouse::Hud::Client.age_group(start_age: 60)
       end
 
@@ -69,7 +69,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     end
 
-    describe 'window visibility' do 
+    describe 'window visibility' do
       model = GrdaWarehouse::Hud::Client
       let! :c1 { create :grda_warehouse_hud_client }
       let! :user { create :user }
@@ -109,8 +109,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let  :user { create :user }
       let! :e1  { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID }
       let! :e2  { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID }
-      let! :ec1 { create :hud_enrollment_coc, CoCCode: 'foo', data_source_id: e1.data_source_id, PersonalID: e1.PersonalID, ProjectEntryID: e1.ProjectEntryID }
-      let! :ec2 { create :hud_enrollment_coc, CoCCode: 'bar', data_source_id: e2.data_source_id, PersonalID: e2.PersonalID, ProjectEntryID: e2.ProjectEntryID }
+      let! :ec1 { create :hud_enrollment_coc, CoCCode: 'foo', data_source_id: e1.data_source_id, PersonalID: e1.PersonalID, EnrollmentID: e1.EnrollmentID }
+      let! :ec2 { create :hud_enrollment_coc, CoCCode: 'bar', data_source_id: e2.data_source_id, PersonalID: e2.PersonalID, EnrollmentID: e2.EnrollmentID }
 
       user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
       ids      = -> (*clients) { clients.map(&:id).sort }

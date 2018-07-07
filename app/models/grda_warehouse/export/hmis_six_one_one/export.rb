@@ -2,34 +2,14 @@ module GrdaWarehouse::Export::HMISSixOneOne
   class Export < GrdaWarehouse::Import::HMISSixOneOne::Export
     include ::Export::HMISSixOneOne::Shared
     attr_accessor :path
-
-    setup_hud_column_access( 
-      [
-        :ExportID,
-        :SourceType,
-        :SourceID,
-        :SourceName,
-        :SourceContactFirst,
-        :SourceContactLast,
-        :SourceContactPhone,
-        :SourceContactExtension,
-        :SourceContactEmail,
-        :ExportDate,
-        :ExportStartDate,
-        :ExportEndDate,
-        :SoftwareName,
-        :SoftwareVersion,
-        :ExportPeriodType,
-        :ExportDirective,
-        :HashStatus
-      ]
-    )
+    self.hud_key = :ExportID
+    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '6.11') )
 
     def initialize(path:)
       super
       @path = path
     end
-    
+
     def self.available_period_types
       {
         3 => 'Reporting period',

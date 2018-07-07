@@ -1,0 +1,8 @@
+= render 'window/health/breadcrumbs'
+= content_for(:title, 'Edit Care Plan')
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
+
+  .o-page__content
+    = render 'careplan_form'

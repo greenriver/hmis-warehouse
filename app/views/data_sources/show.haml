@@ -101,7 +101,7 @@
                       %td
                         = proj.input :confidential, label: false
                       %td
-                        = checkmark(project.sites.present? )
+                        = checkmark(project.geographies.present? )
                       %td
                         = checkmark(project.inventories.present? )
   - unless @readonly

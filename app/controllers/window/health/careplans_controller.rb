@@ -1,79 +1,185 @@
 module Window::Health
-  class CareplansController < ApplicationController
+  class CareplansController < IndividualPatientController
     include PjaxModalController
-    include HealthPatient
     include WindowClientPathGenerator
-    
-
-    before_action :require_can_edit_client_health!
     before_action :set_client
-    before_action :set_patient
-    before_action :set_careplan
-    before_action :set_self_management_goal, only: [:show, :print]
-    before_action :set_housing_goal, only: [:show, :print]
-    before_action :set_variable_goals, only: [:show, :print]
-    
+    before_action :set_hpc_patient
+    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
+
+    def index
+      @goal = Health::Goal::Base.new
+      @readonly = false
+      @careplans = @patient.careplans
+      # most-recent careplan
+      @careplan = @careplans.sorted.first
+      @disable_goal_actions = true
+      # @goals = @careplan&.hpc_goals
+      @goals = @patient.hpc_goals
+    end
+
     def show
       @goal = Health::Goal::Base.new
       @readonly = false
+      file_name = 'care_plan'
+      # make sure we have the most recent-services, DME, team members, and goals if
+      # the plan is editable
+      if @careplan.editable?
+        @careplan.archive_services
+        @careplan.archive_equipment
+        @careplan.archive_goals
+        @careplan.archive_team_members
+        @careplan.save
+      end
+
+      # Include most-recent SSM & CHA
+      @form = @patient.self_sufficiency_matrix_forms.recent.first
+      @cha = @patient.comprehensive_health_assessments.recent.first
+      # debugging
+      # render layout: false
+
+      # render(
+      #   pdf: file_name,
+      #   layout: false,
+      #   encoding: "UTF-8",
+      #   page_size: 'Letter',
+      #   header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
+      #   footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+      #   # Show table of contents by providing the 'toc' property
+      #   # toc: {}
+      # )
+
+      pctp = render_to_string(
+        pdf: file_name,
+        template: 'window/health/careplans/show',
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter',
+        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
+        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+        # Show table of contents by providing the 'toc' property
+        # toc: {}
+      )
+      pdf = CombinePDF.parse(pctp)
+      if @form.present? && @form.health_file.present?
+        pdf << CombinePDF.parse(@form.health_file.content)
+      end
+      if @cha.present? && @cha.health_file.present?
+        pdf << CombinePDF.parse(@cha.health_file.content)
+      end
+      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+    end
+
+    def edit
+      @form_url = polymorphic_path(careplan_path_generator)
+      @form_button = 'Save Care Plan'
+      @services = @patient.services
+      @equipments = @patient.equipments
+      # make sure we have the most recent-services and DME if
+      # the plan is editable
+      if @careplan.editable?
+        @careplan.archive_services
+        @careplan.archive_equipment
+        @careplan.save
+      end
+    end
+
+    def new
+      if @patient.careplans.editable.exists?
+        @careplan = @patient.careplans.editable.first
+      else
+        @careplan = @patient.careplans.new(user: current_user)
+        Health::CareplanSaver.new(careplan: @careplan, user: current_user).create
+      end
+
+      redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
+      # @form_url = polymorphic_path(careplans_path_generator)
+      # @form_button = 'Create Care Plan'
+    end
+
+    def destroy
+      @careplan.destroy
+      respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
     def print
       @readonly = true
     end
 
-    def update
-      begin
-        @careplan.update!(careplan_params)
-        flash[:notice] = "Care plan updated"
-      rescue Exception => e
-        flash[:error] = "Failed to update care plan. #{e}"
+    def revise
+      # prevent multiple editable careplans
+      if @patient.careplans.editable.exists?
+        @careplan = @patient.careplans.editable.first
+        redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
+        return
       end
-      redirect_to action: :show
+      new_id = @careplan.revise!
+      flash[:notice] = "Careplan revised"
+      redirect_to polymorphic_path([:edit] + careplan_path_generator, id: new_id)
+    end
+
+    def update
+      attributes = careplan_params
+      attributes[:user_id] = current_user.id
+      @careplan.assign_attributes(attributes)
+      Health::CareplanSaver.new(careplan: @careplan, user: current_user).update
+      # for errors
+      @form_url = polymorphic_path(careplan_path_generator)
+      @form_button = 'Save Care Plan'
+
+      respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
 
     def self_sufficiency_assessment
       @assessment = @client.self_sufficiency_assessments.last
     end
-    
+
     def set_careplan
-      @careplan = Health::Careplan.where(patient_id: @patient.id).first_or_create do |cp|
-        cp.user = current_user
-        cp.save!
-      end
+      @careplan = careplan_source.find(params[:id].to_i)
     end
 
-    def set_self_management_goal
-      @self_management = Health::Goal::SelfManagement.where(careplan_id: @careplan.id).first_or_create do |goal|
-        goal.name = 'Self Management'
-        goal.number = -1
-        goal.save!
-      end
-    end
-
-    def set_housing_goal
-      @housing = Health::Goal::Housing.where(careplan_id: @careplan.id).first_or_create do |goal|
-        goal.name = 'Housing'
-        goal.number = -1
-        goal.save!
-      end
-    end
-
-    def set_variable_goals
-      @goals = @careplan.patient.epic_goals.visible
+    def careplan_source
+      Health::Careplan
     end
 
     def careplan_params
-      params.require(:careplan).
+      params.require(:health_careplan).
         permit(
-          :sdh_enroll_date,
-          :first_meeting_with_case_manager_date,
-          :self_sufficiency_baseline_due_date,
-          :self_sufficiency_final_due_date,
-          :self_sufficiency_baseline_completed_date,
-          :self_sufficiency_final_completed_date
+          :initial_date,
+          :review_date,
+          :patient_signed_on,
+          :provider_signed_on,
+          :case_manager_id,
+          :responsible_team_member_id,
+          :responsible_team_member_signed_on,
+          :representative_id,
+          :representative_signed_on,
+          :provider_id,
+          :provider_signed_on,
+          :patient_health_problems,
+          :patient_strengths,
+          :patient_goals,
+          :patient_barriers,
         )
     end
+
+    def flash_interpolation_options
+      { resource_name: 'Care Plan' }
+    end
+
+    def new_goal_path
+      polymorphic_path([:new] + careplan_path_generator + [:goal], careplan_id: @careplan.id)
+    end
+    helper_method :new_goal_path
+
+    def edit_goal_path(goal)
+      polymorphic_path([:edit] + careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
+    end
+    helper_method :edit_goal_path
+
+    def delete_goal_path(goal)
+      polymorphic_path(careplan_path_generator + [:goal], careplan_id: @careplan.id, id: goal.id)
+    end
+    helper_method :delete_goal_path
 
   end
 end

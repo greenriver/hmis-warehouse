@@ -5,11 +5,12 @@ module Window::Clients
     before_action :require_window_file_access!
     before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :destroy]
     before_action :set_files, only: [:index]
+    before_action :set_window
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
 
     def index
       @consent_editable = consent_editable?
-      @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
+      @consent_form_url = GrdaWarehouse::PublicFile.url_for_location 'client/hmis_consent'
       @consent_files = consent_scope
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
@@ -29,7 +30,7 @@ module Window::Clients
     def create
       @file = file_source.new
       if !file_params[:file]
-        @file.errors.add :file, "No uploaded file found"   
+        @file.errors.add :file, "No uploaded file found"
         render :new
         return
       end
@@ -47,6 +48,7 @@ module Window::Clients
           name: file.original_filename,
           visible_in_window: window_visible?(allowed_params[:visible_in_window]),
           effective_date: allowed_params[:effective_date],
+          expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
         }
 
@@ -153,6 +155,7 @@ module Window::Clients
           :consent_form_signed_on,
           :consent_form_confirmed,
           :effective_date,
+          :expiration_date,
           :tag_list,
         )
     end
@@ -167,6 +170,10 @@ module Window::Clients
 
     def window_visible? visibility
       true
+    end
+
+    def set_window
+      @window = true
     end
 
     def set_client

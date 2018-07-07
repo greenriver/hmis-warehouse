@@ -2,29 +2,11 @@ module GrdaWarehouse::Import::HMISFiveOne
   class Project < GrdaWarehouse::Hud::Project
     include ::Import::HMISFiveOne::Shared
 
-    setup_hud_column_access( 
-      [
-        :ProjectID,
-        :OrganizationID,
-        :ProjectName,
-        :ProjectCommonName,
-        :ContinuumProject,
-        :ProjectType,
-        :ResidentialAffiliation,
-        :TrackingMethod,
-        :TargetPopulation,
-        :PITCount,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID
-      ]
-    )
+    setup_hud_column_access( GrdaWarehouse::Hud::Project.hud_csv_headers(version: '5.1') )
 
     attr_accessor :existing
     self.hud_key = :ProjectID
-    
+
     def import!
       return if existing_is_newer()
       if existing.to_h.present?
@@ -43,14 +25,14 @@ module GrdaWarehouse::Import::HMISFiveOne
       return if existing_is_newer()
       log("Updating Service Histories for #{project_name}, project type has changed")
       GrdaWarehouse::ServiceHistory.where(
-        data_source_id: data_source_id, 
+        data_source_id: data_source_id,
         project_id: project_id,
         organization_id: organization_id
       ).
       update_all(
-        project_name: project_name, 
-        organization_id: organization_id, 
-        project_type: project_type, 
+        project_name: project_name,
+        organization_id: organization_id,
+        project_type: project_type,
         project_tracking_method: tracking_method
       )
     end
@@ -62,18 +44,18 @@ module GrdaWarehouse::Import::HMISFiveOne
     def project_type_unchanged
       existing.project_type == project_type
     end
-    
+
     def self.load_from_csv(file_path: , data_source_id: )
       existing_projects = self.with_deleted.where(data_source_id: data_source_id).pluck(self.hud_key, :DateUpdated, :ProjectType, :id).map do |key, updated_at, project_type, id|
         [key, {updated_at: updated_at, project_type: project_type, id: id}]
       end.to_h
       [].tap do |m|
         CSV.read(
-          "#{file_path}/#{data_source_id}/#{file_name}", 
+          "#{file_path}/#{data_source_id}/#{file_name}",
           headers: true
         ).each do |row|
           extra = {
-            file_path: file_path, 
+            file_path: file_path,
             data_source_id: data_source_id,
             existing: OpenStruct.new(existing_projects[row[self.hud_key.to_s]]),
           }

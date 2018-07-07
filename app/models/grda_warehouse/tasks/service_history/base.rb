@@ -90,9 +90,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         distinct.
         pluck(:enrollment_group_id, :project_id, :data_source_id)
       source_enrollments = client.source_enrollments.
-        order(ProjectEntryID: :asc, ProjectID: :asc, data_source_id: :asc).
+        order(EnrollmentID: :asc, ProjectID: :asc, data_source_id: :asc).
         distinct.
-        pluck(:ProjectEntryID, :ProjectID, :data_source_id)
+        pluck(:EnrollmentID, :ProjectID, :data_source_id)
       extra_enrollments = sh_enrollments - source_enrollments
       extra_enrollments.each do |enrollment_group_id, project_id, data_source_id|
         service_history_enrollment_source.where(

@@ -1,0 +1,24 @@
+.c-card.sm-2
+  .c-card__content
+    .row
+      .col-sm-2
+        - if client = pr.client
+          = link_to pr.name, window_client_health_patient_index_path(client)
+        - else
+          = pr.name
+      .col-sm-3
+        %div
+          %strong DOB:
+          = pr.birthdate
+        %div
+          %strong Age:
+          = pr.age
+        %div
+          %strong Medicaid ID:
+          = pr.medicaid_id
+        %div
+          %strong ACO:
+          = pr.aco_name
+          - if pr.accountable_care_organization_id.present?
+            (matched)
+      = render 'patient_referral_actions', pr: pr

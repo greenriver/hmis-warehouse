@@ -12,7 +12,7 @@ module WarehouseReports
         where( ex_t[:ExitDate].eq s_t[:DateProvided] ).
         where( e_t[:EntryDate].eq s_t[:DateProvided] ).
         select(
-          s_t[:ProjectEntryID],
+          s_t[:EnrollmentID],
           e_t[:EntryDate],
           s_t[:DateProvided],
           ex_t[:ExitDate],
@@ -30,7 +30,7 @@ module WarehouseReports
         result = GrdaWarehouseBase.connection.select_all(sql)
         result.map do |row|
           Hash.new.tap do |hash|
-            result.columns.each_with_index.map do |name, idx| 
+            result.columns.each_with_index.map do |name, idx|
               hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
             end
           end

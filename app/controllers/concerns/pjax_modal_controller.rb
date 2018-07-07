@@ -21,7 +21,7 @@ module PjaxModalController
       end
     end
     alias_method_chain :redirect_to, :xhr_redirect
-    
+    helper_method :pjax_request?
   end
   
   private

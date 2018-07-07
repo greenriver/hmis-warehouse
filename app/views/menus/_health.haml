@@ -1,0 +1,14 @@
+- if GrdaWarehouse::Config.get(:healthcare_available)
+  - if can_view_aggregate_health? || can_view_patients_for_own_agency?
+    %ul.o-menu__group.list-unstyled
+      - if can_view_aggregate_health?
+        %li.o-menu__item
+          = link_to warehouse_reports_health_overview_index_path, class: 'o-menu__link' do
+            = _("Health Report")
+      - if can_view_patients_for_own_agency? && current_user.health_agency.present?
+        %li.o-menu__item
+          = link_to health_patients_path, class: 'o-menu__link' do
+            = _("My Agency's Patients")
+        %li.o-menu__item
+          = link_to health_my_patients_path, class: 'o-menu__link' do
+            = _("My Patients")

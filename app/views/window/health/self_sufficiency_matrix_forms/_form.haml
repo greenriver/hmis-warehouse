@@ -1,0 +1,42 @@
+.o-page__main-content
+  .d-flex
+    .mb-6
+      %small
+        Entered by
+        = @form.user.name
+    - if @blank_ssm_url.present?
+      .mb-6.ml-auto
+        = link_to @blank_ssm_url, class: 'btn btn-secondary' do
+          %i.icon-download2
+          Blank Self Sufficiency Matrix Form
+    - unless @form.claim_submitted?
+      .mb-6.ml-4
+        = link_to 'Delete', polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete this SSM?"}
+  .row
+    .col-sm-8
+      = simple_form_for @form, url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), as: :form, html: { class: 'ssm-form', data: { url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id, format: :js) }} do |f|
+
+        = f.error_notification
+
+        %section.c-card
+          .c-card__content
+            = f.input :point_completed, collection: Health::SelfSufficiencyMatrixForm.point_completed_options, as: :radio_buttons
+            .row
+              .col-md-8
+                = f.input :collection_location
+
+        - Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |section_key|
+          %section.c-card
+            .c-card__content
+              = f.input :"#{section_key}_score", label: Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key], collection: Health::SelfSufficiencyMatrixForm::SECTIONS[section_key].invert.to_a, as: :radio_buttons
+              .row
+                .col-md-10
+                  = f.input :"#{section_key}_notes", as: :text, label: 'Notes', hint: Health::SelfSufficiencyMatrixForm::SECTION_NOTES[section_key], input_html: {class: 'sized'}
+                  %p.has-error
+                    %span.help-block= Health::SelfSufficiencyMatrixForm::SECTION_FOOTERS[section_key]
+
+        .form__actions.form__actions--right.mb-6
+          = f.button :submit, 'Save'
+
+      .well.form__upload
+        = render 'upload'

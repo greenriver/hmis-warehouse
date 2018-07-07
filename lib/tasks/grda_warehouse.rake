@@ -23,7 +23,7 @@ namespace :grda_warehouse do
     end
 
   end
-  
+
   desc "Empty the GRDA warehouse"
   task clear: [:environment] do
     GrdaWarehouse::Utility.clear!
@@ -164,17 +164,17 @@ namespace :grda_warehouse do
   desc "S3 Import HUD Zips from all Data Sources"
   task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
     hmis_version = args.hmis_version || 'hmis_611'
-      
+
     case hmis_version
     when 'hmis_51'
       Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
 
         options = {
-          data_source_id: conf['data_source_id'], 
-          region: conf['region'], 
-          access_key_id: conf['access_key_id'], 
-          secret_access_key: conf['secret_access_key'], 
-          bucket_name: conf['bucket_name'], 
+          data_source_id: conf['data_source_id'],
+          region: conf['region'],
+          access_key_id: conf['access_key_id'],
+          secret_access_key: conf['secret_access_key'],
+          bucket_name: conf['bucket_name'],
           path: conf['path'],
           file_password: conf['file_password']
         }
@@ -182,13 +182,13 @@ namespace :grda_warehouse do
       end
     else
       Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
-        
+
         options = {
-          data_source_id: conf['data_source_id'], 
-          region: conf['region'], 
-          access_key_id: conf['access_key_id'], 
-          secret_access_key: conf['secret_access_key'], 
-          bucket_name: conf['bucket_name'], 
+          data_source_id: conf['data_source_id'],
+          region: conf['region'],
+          access_key_id: conf['access_key_id'],
+          secret_access_key: conf['secret_access_key'],
+          bucket_name: conf['bucket_name'],
           path: conf['path'],
           file_password: conf['file_password']
         }
@@ -239,6 +239,7 @@ namespace :grda_warehouse do
     end
   end
 
+  # rake grda_warehouse:anonymize_client_names['var/data/IL504']
   desc "Anonymize all client names in Client.csv"
   task :anonymize_client_names, [:path] => [:environment, "log:info_to_stdout"] do |task, args|
     raise 'path is required' unless args.path.present?

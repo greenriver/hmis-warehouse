@@ -1,0 +1,14 @@
+%section.o-section-card
+  %header.o-section-card__header
+    %h3 Health Files
+  .c-card.c-card--flush.c-card--block
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Document
+          %th Uploaded
+        %tbody
+          - @files.each do |file|
+            %tr
+              %td= link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
+              %td= file.created_at.to_date

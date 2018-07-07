@@ -12,15 +12,15 @@
         :ruby
           filters = {
             ProjectType: {
-              label: "Project Type", 
+              label: "Project Type",
               collection: HUD.project_type(1, false, false).invert,
             },
             OrganizationID: {
-              label: "Organization Name", 
+              label: "Organization Name",
               collection: GrdaWarehouse::Hud::Organization.names,
             },
             data_source_id: {
-              label: "Data Source", 
+              label: "Data Source",
               collection: GrdaWarehouse::DataSource.names,
             },
           }
@@ -46,7 +46,7 @@
                   %td
                     = p.data_source.short_name
                   %td
-                    = checkmark(p.sites.count > 0)
+                    = checkmark(p.geographies.count > 0)
                   %td
                     = checkmark(p.inventories.count > 0)
 %p= paginate @projects

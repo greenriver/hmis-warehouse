@@ -1,0 +1,46 @@
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var error_message = function (response, status, xhr, target) {
+        var message = "Loading failed: " + xhr.status + ' ' + xhr.statusText;
+        var $error = $(document.createElement('div'));
+        $error.text(message).addClass('alert').addClass('alert-danger')
+        $(target).html($error);
+      };
+
+      var $appointments = $('.jAppointments');
+      $appointments.load($appointments.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jAppointments .datatable'));
+        }
+      });
+
+      var $problems = $('.jProblems');
+      $problems.load($problems.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jProblems .datatable'));
+        }
+      });
+
+      var $medications = $('.jMedications');
+      $medications.load($medications.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        } else {
+          add_data_table($('.jMedications .datatable'));
+        }
+      });
+    })(jQuery);
+
+    var add_data_table = function(element) {
+      $(element).DataTable({
+        ordering: false,
+        pageLength: 15,
+        lengthChange: false,
+        pagingType: 'simple'
+      });
+    };
