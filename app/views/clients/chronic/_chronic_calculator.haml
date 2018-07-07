@@ -1,11 +1,6 @@
-%header
-  %h1.h3 Chronic Calculator
-.row
-  .col-xs-8
-    %h4
-      On this Date
+%h4 Chronic Details On this Date
 
-= form_tag(edit_client_chronic_path(@client), method: "get") do  
+= form_tag(edit_client_chronic_path(@client), method: "get") do
   .row
     .col-sm-4
       .o-filtration__option-row
@@ -14,7 +9,7 @@
           %span.input-group-addon.icon-calendar
     .col-sm-4
       %span.input-group-btn
-        %button.btn.btn-default{type: :submit} Submit    
+        %button.btn.btn-default{type: :submit} Re-calculate
 
 %table.table.table-striped.margin-top-03
   %tbody
@@ -32,13 +27,13 @@
       %td= 'Homeless episodes in the last 3 years'
       %td= @client.homeless_episodes_since(date: (date - 3.years))
     %tr
-      %td 
+      %td
         Days homeless in the last 3 years
         %span.icon-info{data: { toggle: 'tooltip', title: "Using the chronic calculator algorithm for #{date}" } }
-      %td= @client.homeless_dates_for_chronic_in_past_three_years.count
+      %td= @client.homeless_dates_for_chronic_in_past_three_years(date: date).count
     %tr
       %td
-        Disabled? 
+        Disabled?
         %td= @client.disabled?(on_date: date) ? 'Yes' : 'No'
     %tr
       %td
@@ -51,4 +46,4 @@
     %tr
       %td
         Months in chronic hud homeless in the past 1 year
-        %td= @client.months_homeless_in_hud_chronic_in_last_one_year(on_date: date)  
+        %td= @client.months_homeless_in_hud_chronic_in_last_one_year(on_date: date)
