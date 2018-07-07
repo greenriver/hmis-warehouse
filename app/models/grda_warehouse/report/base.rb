@@ -111,7 +111,7 @@ module GrdaWarehouse::Report
           e_t[:DateDeleted].eq nil
         ).
         join(ex_t, Arel::Nodes::OuterJoin).
-          on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
+          on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
           and(e_t[:PersonalID].eq(ex_t[:PersonalID]).
           and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
         where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end))).to_sql

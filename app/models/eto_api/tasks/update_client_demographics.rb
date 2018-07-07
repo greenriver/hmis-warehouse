@@ -212,7 +212,7 @@ module EtoApi::Tasks
         hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])
         hmis_form.name = assessment_name
         hmis_form.collection_location = @api.program(site_id: site_id, id: program_id)
-        hmis_form.response = api_response
+        hmis_form.api_response = api_response
         hmis_form.answers = answers
         hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
         begin

@@ -43,7 +43,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           pluck(*client_columns.values).
           map do |row|
             Hash[client_columns.keys.zip(row)]
-          end        
+          end
       end
     end
 
@@ -103,7 +103,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       @enrollments_for_project[[project_id, data_source_id]]
     end
-    
+
     def incomes
       @incomes ||= begin
         incomes = {}
@@ -114,7 +114,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           enrollment_group_id = enrollments.last[:enrollment_group_id]
           assessments = income_source.where(data_source_id: ds_id).
             where(PersonalID: personal_id).
-            where(ProjectEntryID: enrollment_group_id).
+            where(EnrollmentID: enrollment_group_id).
             where(ib_t[:InformationDate].lteq(self.end)).
             where(DataCollectionStage: [3, 1, 2]).
             order(InformationDate: :asc).
@@ -131,7 +131,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       project_entry_ids = enrollments.values.flatten.map{|en| en[:project_entry_id]}.uniq
       @disabilities ||= disability_source.joins(enrollment: :client).
         where(d_t[:InformationDate].lteq(self.end)).
-        where(ProjectEntryID: project_entry_ids).
+        where(EnrollmentID: project_entry_ids).
         order(InformationDate: :asc).
         pluck(*disability_columns.values).map do |row|
           Hash[disability_columns.keys.zip(row)]
@@ -169,7 +169,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     memoize :leavers_for_project
 
     def leavers
-      @leavers ||= begin 
+      @leavers ||= begin
         leavers = Set.new
         enrollments.each do |client_id, enrollments|
           leaver = true
@@ -183,7 +183,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       @leavers
     end
 
-    def beds 
+    def beds
       @beds ||= projects.flat_map(&:inventories).map{|i| i[:BedInventory] || 0}.reduce(:+) || 0
     end
 
@@ -193,9 +193,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def income_columns
       @income_columns ||= [
-        :TotalMonthlyIncome, 
-        :IncomeFromAnySource, 
-        :InformationDate, 
+        :TotalMonthlyIncome,
+        :IncomeFromAnySource,
+        :InformationDate,
         :DataCollectionStage
       ] + amount_columns
     end
@@ -204,7 +204,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       @disability_columns ||= {
         client_id: c_t[:id].to_sql,
         project_id: e_t[:ProjectID].to_sql,
-        project_entry_id: d_t[:ProjectEntryID].to_sql,
+        project_entry_id: d_t[:EnrollmentID].to_sql,
         data_source_id: d_t[:data_source_id].to_sql,
         disability_type: d_t[:DisabilityType].to_sql,
         disability_response: d_t[:DisabilityResponse].to_sql,
@@ -215,20 +215,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def amount_columns
       @amount_columns ||= [
         :Earned,
-        :EarnedAmount, 
-        :UnemploymentAmount, 
-        :SSIAmount, 
-        :SSDIAmount, 
-        :VADisabilityServiceAmount, 
-        :VADisabilityNonServiceAmount, 
-        :PrivateDisabilityAmount, 
-        :WorkersCompAmount, 
-        :TANFAmount, 
-        :GAAmount, 
-        :SocSecRetirementAmount, 
-        :PensionAmount, 
-        :ChildSupportAmount, 
-        :AlimonyAmount, 
+        :EarnedAmount,
+        :UnemploymentAmount,
+        :SSIAmount,
+        :SSDIAmount,
+        :VADisabilityServiceAmount,
+        :VADisabilityNonServiceAmount,
+        :PrivateDisabilityAmount,
+        :WorkersCompAmount,
+        :TANFAmount,
+        :GAAmount,
+        :SocSecRetirementAmount,
+        :PensionAmount,
+        :ChildSupportAmount,
+        :AlimonyAmount,
         :OtherIncomeAmount
       ]
     end
@@ -245,10 +245,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         household_id: she_t[:household_id].to_sql,
         personal_id: c_t[:PersonalID].to_sql,
         data_source_id: e_t[:data_source_id].to_sql,
-        residence_prior: e_t[:ResidencePrior].to_sql,
+        residence_prior: e_t[:LivingSituation].to_sql,
         disabling_condition: e_t[:DisablingCondition].to_sql,
         last_permanent_zip: e_t[:LastPermanentZIP].to_sql,
-        project_entry_id: e_t[:ProjectEntryID].to_sql,
+        project_entry_id: e_t[:EnrollmentID].to_sql,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
         name_data_quality: c_t[:NameDataQuality].to_sql,
@@ -270,7 +270,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         ssn_data_quality: c_t[:SSNDataQuality].to_sql,
         dob: c_t[:DOB].to_sql,
         dob_data_quality: c_t[:DOBDataQuality].to_sql,
-        veteran_status: c_t[:VeteranStatus].to_sql, 
+        veteran_status: c_t[:VeteranStatus].to_sql,
         ethnicity: c_t[:Ethnicity].to_sql,
         gender: c_t[:Gender].to_sql,
         race_none: c_t[:RaceNone].to_sql,
@@ -358,7 +358,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       max_information_date = disabilities.map{|dis| dis[:information_date]}.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
-      end.map do |dis| 
+      end.map do |dis|
         dis[:disability_response]
       end.include? 99
     end
@@ -368,7 +368,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       max_information_date = disabilities.map{|dis| dis[:information_date]}.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
-      end.map do |dis| 
+      end.map do |dis|
         dis[:disability_response]
       end.include? 9
     end
@@ -378,7 +378,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       max_information_date = disabilities.map{|dis| dis[:information_date]}.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
-      end.map do |dis| 
+      end.map do |dis|
         dis[:disability_response]
       end.include? 8
     end

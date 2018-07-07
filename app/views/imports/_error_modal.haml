@@ -4,9 +4,9 @@
   .modal-dialog{role: 'document'}
     .modal-content
       .modal-header
-        %button.close{data: {dismiss: 'modal'}}
-          &times
         %h4 Import Errors
+        %button.close{data: {dismiss: 'modal'}}
+          %i.modal-icon-close
       .modal-body
         - if errors.any?
           - meta = errors.first

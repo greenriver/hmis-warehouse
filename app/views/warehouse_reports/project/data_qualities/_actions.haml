@@ -23,15 +23,11 @@
         %td.text-center
           = f.input :email, as: :boolean, label: false, input_html: {checked: @email}
         %td{style: 'width: 12em;'}
-          .input-group.date{data: {provide: :datepicker}}
-            = f.input :start, as: :string, label: false, input_html: {class: 'form-control', value: @range.start}
-            %span.input-group-addon.icon-calendar
+          = f.input :start, as: :date_picker, label: false, input_html: {class: 'form-control', value: @range.start}
         %td{style: 'width: 12em;'}
-          .input-group.date{data: {provide: :datepicker}}
-            = f.input :end, as: :string, label: false, input_html: {class: 'form-control', value: @range.end}
-            %span.input-group-addon.icon-calendar
+          = f.input :end, as: :date_picker, label: false, input_html: {class: 'form-control', value: @range.end}
         %td
           = f.button :submit, value: 'Run Selected Reports'
-        %td 
+        %td
           = link_to download_warehouse_reports_project_data_quality_path(format: :xlsx), class: 'btn btn-secondary' do
             Download most-recent reports

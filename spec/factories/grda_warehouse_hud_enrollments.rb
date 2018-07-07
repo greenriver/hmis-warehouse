@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     sequence(:ProjectID, 100)
-    sequence(:ProjectEntryID, 1)
+    sequence(:EnrollmentID, 1)
     sequence(:PersonalID, 10)
     sequence(:EntryDate) do |n|
       dates = [
@@ -15,15 +15,15 @@ FactoryGirl.define do
     end
   end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
-    # ProjectEntryID
+    # EnrollmentID
     # PersonalID
     # ProjectID
     # EntryDate
     # HouseholdID
     # RelationshipToHoH
-    # ResidencePrior
+    # LivingSituation
     # OtherResidencePrior
-    # ResidencePriorLengthOfStay
+    # LengthOfStay
     # DisablingCondition
     # EntryFromStreetESSH
     # DateToStreetESSH

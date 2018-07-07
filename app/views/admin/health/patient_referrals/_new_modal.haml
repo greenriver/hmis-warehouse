@@ -1,0 +1,81 @@
+- state = @new_patient_referral.errors.empty? ? 'closed' : 'open'
+.modal.fade#new-patient-referral__modal{role: 'dialog'}
+  .modal-dialog{role: 'document'}
+    .modal-content
+      .modal-header
+        %h3 Add Patient Referral
+        %button.close{type: 'button', data: {dismiss: 'modal'}}
+          %i.modal-icon-close
+      .modal-body
+        - if flash[:error].present?
+          .alert.alert-danger.error= flash[:error]
+        = simple_form_for @new_patient_referral, url: add_patient_referral_path do |f|
+          .row
+            .col-sm-8
+              = f.input :first_name, label: 'First Name'
+              = f.input :middle_initial, label: 'Middle Initial'
+              = f.input :last_name, label: 'Last Name'
+              = f.input :suffix
+              = f.input :gender
+          .row
+            .col-sm-6.col-lg-4
+              = f.input :birthdate, as: :date_picker, label: 'Date of Birth'
+          .row
+            .col-sm-3
+              = f.input :ssn, label: 'SSN'
+          .row
+            .col-sm-3
+              = f.input :medicaid_id, label: 'Medicaid ID'
+          .row
+            .col-sm-6.col-lg-4
+              = f.input :effective_date, as: :date_picker
+          .row
+            .col-sm-8
+              = f.input :accountable_care_organization_id, collection: Health::AccountableCareOrganization.active, label_method: :name, value_method: :id, label: 'Accountable Care Organization'
+              = f.input :agency_id, collection: @agencies, label_menthod: :name, value_method: :id, label: 'Assign Agency'
+              = f.input :health_plan_id, label: 'Health Plan ID'
+              = f.input :cp_assignment_plan, label: 'Member CP Assignment Plan'
+              = f.input :cp_name_dsrip, label: 'CP Name DSRIP'
+              = f.input :cp_name_official, label: 'CP Name Official'
+              = f.input :cp_pid, label: 'CP PID'
+              = f.input :cp_sl, label: 'CP SL'
+              = f.input :enrollment_start_date, as: :date_picker, label: 'Enrollment Start Date'
+              = f.input :start_reason_description, label: 'Start Reason Desc'
+              = f.input :address_line_1, label: 'Residential Address Line 1'
+              = f.input :address_line_2, label: 'Residential Address Line 2'
+              = f.input :address_city, label: 'Residential Address City'
+              = f.input :address_state, label: 'Residential Address State'
+              = f.input :address_zip, label: 'Residential Address ZipCode 1'
+              = f.input :address_zip_plus_4, label: 'Residential Address ZipCode 2'
+              = f.input :email, label: 'Email'
+              = f.input :phone_cell, label: 'Phone Number Cell'
+              = f.input :phone_day, label: 'Phone Number Day'
+              = f.input :phone_night, label: 'Phone Number Night'
+              = f.input :primary_language, label: 'Primary Language Spoken Desc'
+              = f.input :primary_diagnosis, label: 'Primary Diagnosis'
+              = f.input :secondary_diagnosis, label: 'Secondary Diagnosis'
+              = f.input :pcp_last_name, label: 'PCP Name Last'
+              = f.input :pcp_first_name, label: 'PCP Name First'
+              = f.input :pcp_npi, label: 'PCP NPI'
+              = f.input :pcp_address_line_1, label: 'PCP Address Line 1'
+              = f.input :pcp_address_line_2, label: 'PCP Address Line 2'
+              = f.input :pcp_address_city, label: 'PCP Address City'
+              = f.input :pcp_address_state, label: 'PCP Address State'
+              = f.input :pcp_address_zip, label: 'PCP Address ZipCode'
+              = f.input :pcp_address_phone, label: 'PCP Phone Number'
+              = f.input :dmh, label: 'DMH Flag'
+              = f.input :dds, label: 'DDS flag'
+              = f.input :eoea, label: 'EOEA FLAG'
+              = f.input :ed_visits, label: 'ED Visits'
+              = f.input :snf_discharge, label: 'SNF Discharge'
+              = f.input :identification, label: 'Identification Flag'
+              = f.input :record_status, label: 'Record Status'
+          .form__actions.form__actions--right
+            = f.submit 'Add Patient', class: 'btn btn-secondary'
+
+- if state == 'open'
+  - content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        $('#new-patient-referral__modal').modal('show');
+      });

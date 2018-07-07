@@ -2,119 +2,392 @@ button.close {
   background-color: inherit;
   border: 0;
 }
+
 .btn {
-  text-transform: uppercase;
   @include open-sans-bold;
+  padding: $input-btn-padding-y $input-btn-padding-x;
+  min-height: rem(40px);
+  display: inline-flex;
+  align-items: center;
+  [class^='icon'],
+  span {
+    margin-right: space(2);
+  }
+  .caret {
+    margin-left: space(2);
+    margin-right: 0;
+  }
 }
+
+.btn-icon-only {
+  @include open-sans-bold;
+  display: inline-flex;
+  align-items: center;
+  [class^='icon'] {
+    margin-right: 0;
+  }
+}
+
+.btn-sm {
+  padding: $input-btn-sm-padding-y $input-btn-sm-padding-x;
+  min-height: auto;
+}
+
+.btn-xs {
+  padding: $input-btn-xs-padding-y $input-btn-xs-padding-x;
+  min-height: auto;
+}
+
+.btn-shout {
+  text-transform: uppercase;
+}
+
 .btn-default {
   color: $gray-060;
 }
-.btn-default:hover
-{
+
+.btn-default:hover {
   color: $gray-070;
 }
+
 .btn-default:active,
 .btn-default:focus,
 .btn-default:active:hover,
-.open > .btn-default.dropdown-toggle:focus
-{
+.open > .btn-default.dropdown-toggle:focus {
   background-color: $gray-050;
   color: #FFF;
 }
-.open > .btn-default.dropdown-toggle
-{
+
+.open > .btn-default.dropdown-toggle {
   background-color: $gray-050;
   color: #FFF;
 }
+
 .btn-secondary {
   background-color: $gray-030;
   color: $text-color;
   border-color: $gray-030;
 }
+
 .btn-secondary:hover,
 .btn-secondary:focus {
   background-color: darken($gray-030, 10%);
   border-color: darken($gray-030, 10%);
   color: #000;
 }
+
 .btn-action {
   background-color: $cob-sg-blue-006;
   border-color: $cob-sg-blue-006;
   color: #fff;
 }
+
 .btn-action:hover,
 .btn-action:focus {
   background-color: darken($cob-sg-blue-006, 10%);
   border-color: darken($cob-sg-blue-006, 10%);
   color: #fff;
 }
+
+.btn-action-2 {
+  background-color: $link-blue;
+  border-color: $link-blue;
+  color: #FFFFFF;
+}
+
+.btn-action-2:hover,
+.btn-action-2:focus {
+  background-color: darken($link-blue, 10%);
+  border-color: darken($link-blue, 10%);
+  color: #fff;
+}
+
+.btn-group-action-2 {
+  .btn.active,
+  .btn.active:hover,
+  .btn.active:focus {
+    background-color: $link-blue;
+    border-color: $link-blue;
+    color: #FFFFFF;
+  }
+
+}
 .btn-min-width-medium {
   @media (min-width: $screen-xs-min) {
     min-width: 165px;
   }
+
 }
 .btn [class^="icon-"],
 .btn [class*=" icon-"] {
-  font-size: rem(12);
+  font-size: 95%;
 }
-.btn-lg [class^="icon-"],
+
+/* .btn-lg [class^="icon-"],
 .btn-lg [class*=" icon-"] {
   font-size: rem(24);
+} */
+
+.btn-icon-left,
+.btn-icon-right {
+  display: inline-flex;
+  align-items: center;
 }
+
 .btn-icon-left [class^="icon-"],
 .btn-icon-left [class*=" icon-"] {
   margin-right: 8px;
 }
+
 .btn-icon-right [class^="icon-"],
 .btn-icon-right [class*=" icon-"] {
   margin-left: 8px;
 }
+
 .btn-label {
   @include open-sans-condensed-bold;
   text-transform: uppercase;
   font-size: rem(14);
   text-align: left;
 }
+
 .btn-label__primary {
   color: darken($brand-primary, 10);
 }
+
 .buttons-row .btn {
   margin-bottom: 4px;
   margin-left: 4px;
 }
+
 .btn-no-border-radius {
   border-radius: 0;
 }
-.btn-muted
-{
+
+.btn-muted {
   background-color: $cob-sg-blue-004;
   border-color: $cob-sg-blue-004;
 }
+
 .btn-primary__reverse {
   background-color: #fff;
   color: $brand-primary;
   border: 1px solid $gray-030;
 }
+
 .btn__number {
   font-size: rem(26);
   padding: 3px 12px;
   line-height: 1;
 }
+
 .btn-rule-condition {
   border: 1px solid $gray-040;
   background-color: #fff;
   border-radius: 0;
   color: $gray-065;
 }
+
 .btn-rule-condition:hover,
 .btn-rule-condition:focus {
   background-color: $brand-primary;
   border-color: $brand-primary;
   color: #fff;
 }
+
 .btn-rule-condition.active {
   border-color: $brand-primary;
   box-shadow: none;
   background-color: $brand-primary;
   color: #fff;
+
+}
+
+// From CAS
+
+.btn-default,
+.btn-primary {
+  background: $brand-primary;
+  border-color: $brand-primary-d;
+  color: $white;
+  &:hover {
+    background: darken($brand-primary-l, 25%);
+    border-color: $brand-primary-d;
+    color: $white;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-primary-l, 80%);
+    border-color: desaturate($brand-primary, 80%);
+    color: rgba($black, .55);
+    outline: 0;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-primary-l, 35%);
+    box-shadow: 0 0 0 2px rgba($brand-primary, .5);
+    outline: 0;
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-primary-l, 25%);
+    }
+  }
+}
+
+.btn-secondary {
+  background: $white;
+  border-color: $brand-primary;
+  color: $brand-primary-d;
+  &:hover {
+    background: darken($brand-primary-l, 25%);
+    border-color: $brand-primary-d;
+    color: $white;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-primary-l, 80%);
+    border-color: desaturate($brand-primary, 80%);
+    color: rgba($black, .55);
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-primary-l, 35%);
+    box-shadow: 0 0 0 2px rgba($brand-primary, .5);
+    color: $white;
+    outline: 0;
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-primary-l, 25%);
+    }
+  }
+}
+
+.btn-success {
+  background: $brand-success-l;
+  border-color: $brand-success;
+  color: rgba($black, .75);
+  &:hover {
+    background: $brand-success-d;
+    border-color: $brand-primary-d;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-success-l, 35%);
+    box-shadow: 0 0 0 2px rgba($brand-success, .5);
+    outline: 0;
+    color: $white;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-success-l, 80%);
+    border-color: desaturate($brand-success, 80%);
+    color: rgba($black, .55);
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-success-l, 25%);
+    }
+  }
+}
+
+.btn-warning {
+  background: $brand-warning-l;
+  border-color: $brand-warning;
+  color: rgba($black, 55%);
+  &:hover {
+    background: $brand-warning-d;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-warning-l, 35%);
+    box-shadow: 0 0 0 2px rgba($brand-warning, .5);
+    outline: 0;
+    color: $white;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-warning-l, 80%);
+    border-color: desaturate($brand-warning, 80%);
+    color: $black;
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-warning-l, 25%);
+    }
+  }
+}
+
+.btn-danger {
+  background: $brand-danger-l;
+  border-color: $brand-danger;
+  color: rgba($black, 1);
+  &:hover {
+    background: $brand-danger-d;
+    color: $white;
+  }
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active {
+    background: darken($brand-danger-l, 35%);
+    box-shadow: 0 0 0 2px rgba($brand-danger, .5);
+    outline: 0;
+    color: $white;
+  }
+  &:disabled,
+  &.disabled {
+    background: desaturate($brand-danger-l, 80%);
+    border-color: desaturate($brand-danger, 80%);
+    color: rgba($black, .55);
+  }
+  &--outline {
+    &:hover,
+    &:focus {
+      background: rgba($brand-danger-l, 25%);
+    }
+  }
+}
+
+.btn[class*='--outline'] {
+  background: none;
+  border-width: 2px;
+}
+
+.btn-light {
+  &:hover {
+    background: $brand-primary-l;
+  }
+  &:not(:disabled):not(.disabled):active,
+  &:not(:disabled):not(.disabled).active {
+    background: darken($brand-primary-l, 25%);
+    color: $white;
+  }
+}
+
+// Dropdown toggle buttons
+.open > .btn-light.dropdown-toggle,
+.open > .btn-secondary.dropdown-toggle,
+.open > .dropdown-toggle.btn-default,
+.show > .btn-secondary.dropdown-toggle,
+.show > .btn-light.dropdown-toggle,
+.show > .dropdown-toggle.btn-default {
+  background: $brand-primary;
+  color: $white;
 }

@@ -1,3 +1,7 @@
 = content_for :crumbs do
-  = link_to clients_path do
-    &laquo; Back to Clients
+  - if current_user.health_agency.present?
+    = link_to health_my_patients_path do
+      &laquo; My Patients
+  - else
+    = link_to clients_path do
+      &laquo; Back to Clients

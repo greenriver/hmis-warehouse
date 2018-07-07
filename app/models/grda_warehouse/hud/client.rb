@@ -11,56 +11,57 @@ module GrdaWarehouse::Hud
     include Eto::TouchPoints
 
     has_many :client_files
+    has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
     self.table_name = 'Client'
-    self.hud_key = 'PersonalID'
+    self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
 
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 2.minutes end
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
 
     def self.hud_csv_headers(version: nil)
       [
-        "PersonalID",
-        "FirstName",
-        "MiddleName",
-        "LastName",
-        "NameSuffix",
-        "NameDataQuality",
-        "SSN",
-        "SSNDataQuality",
-        "DOB",
-        "DOBDataQuality",
-        "AmIndAKNative",
-        "Asian",
-        "BlackAfAmerican",
-        "NativeHIOtherPacific",
-        "White",
-        "RaceNone",
-        "Ethnicity",
-        "Gender",
-        "OtherGender",
-        "VeteranStatus",
-        "YearEnteredService",
-        "YearSeparated",
-        "WorldWarII",
-        "KoreanWar",
-        "VietnamWar",
-        "DesertStorm",
-        "AfghanistanOEF",
-        "IraqOIF",
-        "IraqOND",
-        "OtherTheater",
-        "MilitaryBranch",
-        "DischargeStatus",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
+        :PersonalID,
+        :FirstName,
+        :MiddleName,
+        :LastName,
+        :NameSuffix,
+        :NameDataQuality,
+        :SSN,
+        :SSNDataQuality,
+        :DOB,
+        :DOBDataQuality,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :NativeHIOtherPacific,
+        :White,
+        :RaceNone,
+        :Ethnicity,
+        :Gender,
+        :OtherGender,
+        :VeteranStatus,
+        :YearEnteredService,
+        :YearSeparated,
+        :WorldWarII,
+        :KoreanWar,
+        :VietnamWar,
+        :DesertStorm,
+        :AfghanistanOEF,
+        :IraqOIF,
+        :IraqOND,
+        :OtherTheater,
+        :MilitaryBranch,
+        :DischargeStatus,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID
       ].freeze
     end
 
@@ -521,7 +522,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -555,7 +556,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -630,8 +631,12 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def show_health_for?(user)
-      patient.present? && patient.accessible_by_user(user).present?  && GrdaWarehouse::Config.get(:healthcare_available)
+    def show_health_pilot_for?(user)
+      patient.present? && patient.accessible_by_user(user).present? && patient.pilot_patient? && GrdaWarehouse::Config.get(:healthcare_available)
+    end
+
+    def show_health_hpc_for?(user)
+      patient.present? && patient.hpc_patient? && patient.patient_referral.present? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     def show_window_demographic_to?(user)
@@ -1647,6 +1652,10 @@ module GrdaWarehouse::Hud
         update_all(client_id: new_id)
       GrdaWarehouse::HudChronic.where(client_id: previous_id).
         update_all(client_id: new_id)
+
+      # Relationships
+      GrdaWarehouse::UserClient.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild
@@ -1847,7 +1856,8 @@ module GrdaWarehouse::Hud
     end
 
     def days_homeless(on_date: Date.today)
-      self.class.days_homeless(client_id: id, on_date: on_date)
+      # attempt to pull this from previously calculated data
+      processed_service_history&.homeless_days&.presence || self.class.days_homeless(client_id: id, on_date: on_date)
     end
 
     # Pull the maximum total monthly income from any open enrollments, looking
@@ -1957,7 +1967,7 @@ module GrdaWarehouse::Hud
             project_name: project_name,
             confidential_project: project.confidential,
             entry_date: entry.first_date_in_program,
-            living_situation: entry.enrollment.ResidencePrior,
+            living_situation: entry.enrollment.LivingSituation,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
             days: dates_served.count,

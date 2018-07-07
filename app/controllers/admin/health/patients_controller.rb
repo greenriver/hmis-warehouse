@@ -1,5 +1,6 @@
 module Admin::Health
-  class PatientsController < ApplicationController
+  class PatientsController < HealthController
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_administer_health!
     before_filter :set_patients, only: [:index, :update]
 
@@ -51,7 +52,7 @@ module Admin::Health
     end
 
     def patient_scope
-      patient_source.all
+      patient_source.pilot
     end
 
     def patient_source

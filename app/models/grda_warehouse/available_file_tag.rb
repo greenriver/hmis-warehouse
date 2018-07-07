@@ -2,8 +2,8 @@ module GrdaWarehouse
   class AvailableFileTag < GrdaWarehouseBase
     include DefaultFileTypes
 
-    scope :ordered, -> do 
-      order(weight: :asc, group: :asc, name: :asc)
+    scope :ordered, -> do
+      order(group: :asc, weight: :asc, name: :asc)
     end
 
     scope :consent_forms, -> do

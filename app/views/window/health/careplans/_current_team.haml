@@ -1,0 +1,27 @@
+%section.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2 Current Care Team
+  - team_members = @patient.team_members
+  - if team_members.blank?
+    .c-card__content.c-card__content--flush.w-100
+      %p.no-data No team members on file
+  - else
+    .c-card__content.pb-0
+      - team_members.each do |member|
+        .c-card__item.pb-4
+          .c-card__item-header.health__team-members.pb-2.pt-2.pl-2
+            .health__team-member--type.mb-0
+              %i{class: Health::Team::Member.icon_for(member.member_type_name)}
+              = member.member_type_name
+          .mt-0.health__team-member--name
+            = member&.full_name
+            %br
+            = member&.organization
+            - if member.email?
+              %br
+              = mail_to member.email, subject: 'Collaborative Care Plan' do
+                %i.icon-envelope-o
+                = member&.email
+            - if member.phone?
+              %br
+              = member.phone

@@ -10,7 +10,7 @@
           - if @project.act_as_project_type.present?
             %br
             %em
-              Acts as: 
+              Acts as:
               = HUD.project_type @project.act_as_project_type
             for HUD Reports
       %tr
@@ -54,7 +54,7 @@
         %td= @project.data_source.short_name
 = render 'census'
 = render 'funders', funders: @project.funders
-= render 'sites', sites: @project.sites
+= render 'geographies', geographies: @project.geographies
 = render 'inventories', inventories: @project.inventories
 = render 'clients'
 

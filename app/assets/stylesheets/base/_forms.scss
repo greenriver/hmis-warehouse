@@ -1,3 +1,25 @@
+.form__actions,
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  &--right {
+    justify-content: flex-end;
+    input,
+    a,
+    button {
+      margin-left: space(2);
+    }
+  }
+  &--stacked {
+    display: inline-flex;
+    flex-direction: column;
+    button {
+      margin-bottom: space(3);
+    }
+  }
+}
+
 form.inline-form {
   display: inline;
 }
@@ -56,18 +78,18 @@ label {
 }
 
 .has-error {
-  @include form-control-validation($cas-red, $cas-red, $cas-red);
+  @include form-control-validation($brand-danger, $brand-danger, $brand-danger);
 }
 
 .error .form-control {
-  border-color: $cas-red;
+  border-color: $brand-danger;
+  background: rgba($brand-danger-l, .1);
 }
 
 .errors,
 .error label,
 .error-block {
-  color: $cas-red;
-  @include open-sans-medium;
+  color: $brand-danger;
 }
 
 .form-group .form-group {
@@ -119,4 +141,114 @@ label {
 
 .client-file .radio input[type="radio"] {
   margin-left: 0px;
+}
+
+// health admin filters patient referrals
+.ui-front .ui-menu {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  padding-left: 0px;
+  li {list-style: none;}
+}
+.ui-menu-item-wrapper {
+  padding: 10px 20px;
+}
+
+.ui-state-active {
+  background-color: $cob-sg-blue-006;
+  color: #FFFFFF;
+}
+
+.radio-button-buttons__container {
+  font-size: 0px;
+  label {
+    position: relative;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+  }
+  span {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: $gray-020;
+    color: $text-color;
+    text-transform: uppercase;
+  }
+  label:not(:last-child) {
+    span {border-right: 1px solid #FFF;}
+  }
+  label:first-child {
+    span {
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+  }
+  label:last-child {
+    span {
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+  label input:checked ~ span {
+    background-color: $brand-primary;
+    color: #FFFFFF;
+  }
+}
+
+.radio-button-list__container {
+  min-width: 100px;
+  label {
+    display: block;
+    position: relative;
+    cursor: pointer;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+  }
+  span {
+    display: block;
+    padding: 6px 12px;
+  }
+  label input:checked ~ span {
+    background-color: $brand-primary;
+    color: #FFFFFF;
+  }
+  label input:hover ~ span,
+  label input:focus ~ span {
+    background-color: $brand-primary;
+    color: #FFFFFF;
+  }
+}
+
+.string-collection-with-other__container {
+  margin-bottom: 30px;
+  .form-group {
+    margin-bottom: 0px;
+  }
+}
+
+.form-group[data-other-value],
+.form-group[data-date-values] {
+  margin-left: space(6);
+}
+
+textarea.form-control {
+  &.sized {
+    min-height: $textarea-min-height;
+  }
+}
+
+.form-group--hanging-label label {
+  white-space: nowrap;
+}
+
+.form-control-faux {
+  display: flex;
+  align-items: center;
+  border-color: $gray-020;
 }

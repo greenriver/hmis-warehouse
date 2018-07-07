@@ -1,6 +1,13 @@
-%ul.well.nav.nav-pills.nav-stacked{data: {spy: :affix}}
-  %li{role: :presentation}= link_to 'Patient Summary', '#summary'
-  %li{role: :presentation}= link_to 'Cost', '#cost'
-  %li{role: :presentation}= link_to 'Appointments', '#appointments-list'
-  %li{role: :presentation}= link_to 'Problems', '#problems-list'
-  %li{role: :presentation}= link_to 'Medications', '#medications-list'
+%ul.nav.sub-nav-tabs
+  %li.nav-item{role: :presentation}= link_to 'Patient Summary', '#summary', class: 'nav-link'
+  %li.nav-item{role: :presentation}= link_to 'Appointments', '#appointments-list', class: 'nav-link'
+  %li.nav-item{role: :presentation}= link_to 'Problems', '#problems-list', class: 'nav-link'
+  %li.nav-item{role: :presentation}= link_to 'Medications', '#medications-list', class: 'nav-link'
+
+
+- content_for :page_js do
+  :javascript
+    $(function(){
+      var $tabs = $('.sub-nav-tabs');
+      $tabs.affix({offset: {top: $tabs.offset().top} });
+    })

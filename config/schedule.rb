@@ -28,7 +28,8 @@ if environment == 'production'
     rake "grda_warehouse:daily"
   end
 
-  every 1.day, at: '7:15 am' do
+  # refresh this every six hours, during the day
+  every 1.day, at: ['7:15 am', '1:15 pm', '7:15 pm']  do
     rake "grda_warehouse:warm_cohort_cache"
   end
 

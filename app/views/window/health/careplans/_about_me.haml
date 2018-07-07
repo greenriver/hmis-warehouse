@@ -1,0 +1,8 @@
+%section.row.health-care-plan__about-me.row
+  .col-sm-10.col-lg-8
+    - sized_textarea_html = {class: 'sized'}
+    %h3 About Me
+    = f.input :patient_health_problems, label: 'My Health Problems', as: :text, input_html: sized_textarea_html
+    = f.input :patient_strengths, label: 'My Strengths', as: :text, input_html: sized_textarea_html
+    = f.input :patient_goals, label: 'My Goals', as: :text, input_html: sized_textarea_html
+    = f.input :patient_barriers, label: 'My Barriers', as: :text, input_html: sized_textarea_html

@@ -1,5 +1,5 @@
 .slab
-  = simple_form_for(@careplan, as: :careplan, url: polymorphic_path(careplan_path_generator, client_id: @client.id)) do |f|
+  = simple_form_for(@careplan, as: :careplan, url: polymorphic_path(careplan_pilot_path_generator, client_id: @client.id)) do |f|
     .pull-right
       =link_to '' do
         %i.icon-printer
@@ -93,7 +93,7 @@
                 Goal
                 = clinical.number
               .goal-form
-                = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
+                = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
                   .row
                     .col-sm-6
                       = f.input :name, label: 'Goal'
@@ -107,7 +107,7 @@
                       = f.input :bh_plan, label: 'BH'
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
         
@@ -129,7 +129,7 @@
                 Goal
                 = clinical.number
               .goal-form
-                = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
+                = simple_form_for(clinical, as: :goal, url: polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id)) do |f|
                   .row
                     .col-sm-6
                       = f.input :name, label: 'Goal'
@@ -143,7 +143,7 @@
                       = f.input :bh_plan, label: 'BH'
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: clinical.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
           - elsif ['Health::Goal::Social'].include?(goal.type)
@@ -153,7 +153,7 @@
                 Goal
                 = social.number
               .goal-form
-                = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id)) do |f|
+                = simple_form_for(social, as: :goal, url: polymorphic_path(careplan_pilot_path_generator + [:goal], id: social.id, client_id: @client.id)) do |f|
                   .row
                     .col-sm-12
                       = f.input :name, label: 'Goal'
@@ -188,7 +188,7 @@
                     
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: social.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
           - elsif ['Health::Goal::SelfManagement'].include?(goal.type)
@@ -198,7 +198,7 @@
                 Goal
                 = self_management.number
               .goal-form
-                = simple_form_for(self_management, as: :goal, url: polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id)) do |f|
+                = simple_form_for(self_management, as: :goal, url: polymorphic_path(careplan_pilot_path_generator + [:goal], id: self_management.id, client_id: @client.id)) do |f|
                   .row
                     .col-sm-6
                       = f.input :name, label: 'Goal'
@@ -209,7 +209,7 @@
                       = f.input :goal_details, as: :text, input_html: {rows: 10}
 
                   .form-actions.pull-right
-                    = link_to polymorphic_path(careplan_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
+                    = link_to polymorphic_path(careplan_pilot_path_generator + [:goal], id: self_management.id, client_id: @client.id), method: :delete, class: 'btn btn-secondary' do 
                       Delete Goal
                     = f.button :submit, value: 'Update Goal'
 

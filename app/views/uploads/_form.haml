@@ -6,21 +6,21 @@
           .row
             .col-xs-8
               %h4.panel-title
-                %a.toggle.collapsed{data: {parent: '#hud-zip-upload', toggle: 'collapse'}, href: '#hmis_611'}
+                %a.toggle{data: {parent: '#hud-zip-upload', toggle: 'collapse'}, href: '#hmis_611'}
                   HMIS 6.11 format
             .col-xs-4.text-right
-              %a.toggle.collapsed{data: {parent: '#hud-zip-upload', toggle: 'collapse'}, href: '#hmis_611'}
-                %i.icon-arrow-circled-right
-                %i.icon-arrow-circled-down.hide
-        #hmis_611.panel-collapse.collapse
+              %a.toggle{data: {parent: '#hud-zip-upload', toggle: 'collapse'}, href: '#hmis_611'}
+                %i.icon-arrow-circled-right.hide
+                %i.icon-arrow-circled-down
+        #hmis_611.panel-collapse
           .panel-body
-            %p 
-              Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in the 
-              = link_to 'http://www.hudhdx.info/Resources/Vendors/5_1_2/HMISCSVSpecifications6_11.docx' do 
+            %p
+              Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in the
+              = link_to 'http://www.hudhdx.info/Resources/Vendors/5_1_2/HMISCSVSpecifications6_11.docx' do
                 6.11 format,
               and must include at a minimum a valid
               %strong
-                Export.csv 
+                Export.csv
               file.  Generally the zip file will include all of the following:
             %ul
               - Importers::HMISSixOneOne::Base.importable_files.keys.sort.each do |f|
@@ -30,38 +30,7 @@
               .form-inputs
                 = f.input :file, as: :file
                 = f.hidden_field :file_cache
-                = f.hidden_field :import_type, value: :hmis_611            
+                = f.hidden_field :import_type, value: :hmis_611
               .form-actions
                 = f.button :submit, value: 'Upload Zip'
-      .panel.panel-default
-        .panel-heading
-          .row
-            .col-xs-8
-              %h4.panel-title
-                %a.toggle.collapsed{data: {parent: '#hud-zip-upload', toggle: 'collapse'}, href: '#hmis_51'}
-                HMIS 5.1 format
-            .col-xs-4.text-right
-              %a.toggle.collapsed{data: {parent: '#hud-zip-upload', toggle: 'collapse'}, href: '#hmis_51'}
-                %i.icon-arrow-circled-right
-                %i.icon-arrow-circled-down.hide
-        #hmis_51.panel-collapse.collapse
-          .panel-body
-            %p 
-              Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in the 
-              = link_to 'http://www.hudhdx.info/Resources/Vendors/5_1/HMIS_CSV_Specifications_5_1.pdf' do 
-                5.0 or 5.1 format,
-              and must include at a minimum a valid
-              %strong
-                Export.csv 
-              file.  Generally the zip file will include all of the following:
-            %ul
-              - Importers::HMISFiveOne::Base.importable_files.keys.sort.each do |f|
-                %li= f
-            = simple_form_for @upload, url: data_source_uploads_path(@data_source) do |f|
-              = f.error_notification
-              .form-inputs
-                = f.input :file, as: :file
-                = f.hidden_field :file_cache
-                = f.hidden_field :import_type, value: :hmis_51            
-              .form-actions
-                = f.button :submit, value: 'Upload Zip'
+

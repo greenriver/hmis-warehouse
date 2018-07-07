@@ -23,7 +23,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::Organization,
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::Hud::ProjectCoc,
-      GrdaWarehouse::Hud::Site,
+      GrdaWarehouse::Hud::Geography,
       GrdaWarehouse::Hud::Export,
       GrdaWarehouse::ClientMatch,
       GrdaWarehouse::ImportLog,

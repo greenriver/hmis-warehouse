@@ -2,33 +2,9 @@ module GrdaWarehouse::Import::HMISFiveOne
   class Inventory < GrdaWarehouse::Hud::Inventory
     include ::Import::HMISFiveOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :InventoryID,
-        :ProjectID,
-        :CoCCode,
-        :InformationDate,
-        :HouseholdType,
-        :BedType,
-        :Availability,
-        :UnitInventory,
-        :BedInventory,
-        :CHBedInventory,
-        :VetBedInventory,
-        :YouthBedInventory,
-        :YouthAgeGroup,
-        :InventoryStartDate,
-        :InventoryEndDate,
-        :HMISParticipatingBeds,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
+
+    setup_hud_column_access( GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '5.1') )
+
     self.hud_key = :InventoryID
 
     def self.file_name

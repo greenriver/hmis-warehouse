@@ -1,10 +1,10 @@
 module Admin::Health
-  class AdminController < ApplicationController
-    before_action :require_can_administer_health!
+  class AdminController < HealthController
+    before_action :require_has_administrative_access_to_health!
 
 
     def index
-      
+
     end
 
   end

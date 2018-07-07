@@ -4,8 +4,9 @@ module Health
     has_paper_trail class_name: Health::HealthVersion.name
     acts_as_paranoid
 
-    belongs_to :careplan, class_name: Health::Careplan.name
-    delegate :patient, to: :careplan
+    # belongs_to :careplan, class_name: Health::Careplan.name
+    # delegate :patient, to: :careplan
+    belongs_to :patient
     belongs_to :editor, class_name: User.name, foreign_key: :user_id
 
     validates_presence_of :name, :number, :type

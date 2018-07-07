@@ -1,0 +1,23 @@
+.c-spinner {
+  &::before {
+    content: '';
+    display: block;
+    margin-right: space(2);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid $white;
+    border-top-color: $brand-primary;
+    animation: spinner .6s linear infinite;
+  }
+}
+
+.c-spinner--gray {
+  &::before {
+    border: 3px solid $gray-020;
+  }
+}
+
+@keyframes spinner {
+  to {transform: rotate(360deg);}
+}
