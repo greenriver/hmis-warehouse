@@ -68,18 +68,27 @@ module Import::HMISSixOneOne::Shared
 
     def needs_update? row:, existing:, soft_delete_time: nil
       # Incoming is newer
-      puts (row[:DateUpdated].to_time > existing.updated_at).inspect
-      return true if row[:DateUpdated].to_time > existing.updated_at
+
+      incoming_newer = row[:DateUpdated].to_time > existing.updated_at
+      if incoming_newer
+        puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
+        return true
+      end
       deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
       exists_in_incoming_file = row[:DateDeleted].blank?
       incoming_updated_on_same_date = row[:DateUpdated].to_date == existing.updated_at.to_date
       # Should be restored
-      puts (deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date).inspect
-      return true if deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
-
+      should_restore = deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
+      if should_restore
+        puts "should restore #{row.inspect} #{existing.updated_at.inspect} #{existing.deleted_at.inspect}"
+        return true
+      end
       # same modification date, changed data
-      puts (incoming_updated_on_same_date && row[:source_hash] != existing.source_hash).inspect
-      return true if incoming_updated_on_same_date && row[:source_hash] != existing.source_hash
+      data_changed = incoming_updated_on_same_date && row[:source_hash] != existing.source_hash
+      if data_changed
+        puts "data changed #{row.inspect} #{existing.updated_at.inspect} #{existing.source_hash.inspect}"
+        return true
+      end
       return false
     end
 
