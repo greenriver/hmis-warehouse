@@ -1,15 +1,13 @@
 %h4 Chronic Details On this Date
 
 = form_tag(edit_client_chronic_path(@client), method: "get") do
-  .row
-    .col-sm-4
-      .o-filtration__option-row
-        .input-group.date{data: {provide: :datepicker}}
-          %input.form-control{name: :date, type: :text, value: @date}
-          %span.input-group-addon.icon-calendar
-    .col-sm-4
-      %span.input-group-btn
-        %button.btn.btn-default{type: :submit} Re-calculate
+  .d-flex
+    .o-filtration
+      .input-group.date{data: {provide: :datepicker}}
+        %input.form-control{name: :date, type: :text, value: @date}
+        %span.input-group-addon.icon-calendar
+    .o-filtration.ml-auto
+      %button.btn.btn-secondary{type: :submit} Re-calculate
 
 %table.table.table-striped.margin-top-03
   %tbody
