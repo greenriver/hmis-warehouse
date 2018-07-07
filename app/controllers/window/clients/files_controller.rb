@@ -30,7 +30,7 @@ module Window::Clients
     def create
       @file = file_source.new
       if !file_params[:file]
-        @file.errors.add :file, "No uploaded file found"   
+        @file.errors.add :file, "No uploaded file found"
         render :new
         return
       end
@@ -48,6 +48,7 @@ module Window::Clients
           name: file.original_filename,
           visible_in_window: window_visible?(allowed_params[:visible_in_window]),
           effective_date: allowed_params[:effective_date],
+          expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
         }
 
@@ -154,6 +155,7 @@ module Window::Clients
           :consent_form_signed_on,
           :consent_form_confirmed,
           :effective_date,
+          :expiration_date,
           :tag_list,
         )
     end
