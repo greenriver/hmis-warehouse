@@ -31,7 +31,7 @@ module Window::Health
 
     def edit
       if @cha_locked
-        flash.notice = _('This CHA has already been reviewed, or a claim was submitted; it is no longer editable')
+        flash.notice = _('A claim was submitted for this CHA; it is no longer editable.')
         redirect_to polymorphic_path(cha_path_generator, id: @cha.id) and return
       end
       # For errors in new/edit forms
@@ -87,7 +87,7 @@ module Window::Health
     end
 
     def set_locked
-      @cha_locked = @cha.reviewed_by || @cha.qualifying_activities.submitted.exists?
+      @cha_locked = @cha.qualifying_activities.submitted.exists?
     end
 
     def set_form

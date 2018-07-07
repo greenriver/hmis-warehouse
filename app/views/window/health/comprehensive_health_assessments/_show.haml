@@ -26,7 +26,7 @@
           = link_to 'Edit', polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-primary btn-primary__reverse', data: { disable_with: 'Loading...', toggle: 'tooltip' }
         - else
           .alert.alert-info
-            = _('This CHA has already been reviewed, or a claim was submitted; it is no longer editable')
+            = _('A claim was submitted for this CHA; it is no longer editable.')
 
   %p.text-right(style="font-size:smaller;font-style:italic;")
     Only answered questions are shown.
