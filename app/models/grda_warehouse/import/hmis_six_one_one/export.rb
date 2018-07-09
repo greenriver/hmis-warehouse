@@ -1,30 +1,10 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class Export < GrdaWarehouse::Hud::Export
     include ::Import::HMISSixOneOne::Shared
+    self.hud_key = :ExportID
+    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '6.11') )
 
-    setup_hud_column_access( 
-      [
-        :ExportID,
-        :SourceType,
-        :SourceID,
-        :SourceName,
-        :SourceContactFirst,
-        :SourceContactLast,
-        :SourceContactPhone,
-        :SourceContactExtension,
-        :SourceContactEmail,
-        :ExportDate,
-        :ExportStartDate,
-        :ExportEndDate,
-        :SoftwareName,
-        :SoftwareVersion,
-        :ExportPeriodType,
-        :ExportDirective,
-        :HashStatus
-      ]
-    )
-
-    validates_presence_of :ExportStartDate, :ExportEndDate, :ExportID, :data_source_id, :ExportDate 
+    validates_presence_of :ExportStartDate, :ExportEndDate, :ExportID, :data_source_id, :ExportDate
 
     def import!
       @existing = self.class.find_by(ExportID: export_id, data_source_id: data_source_id)
@@ -35,11 +15,11 @@ module GrdaWarehouse::Import::HMISSixOneOne
       else
         save
       end
-    end    
+    end
 
     def self.load_from_csv(file_path: , data_source_id: )
       new CSV.read(
-        "#{file_path}/#{data_source_id}/#{file_name}", 
+        "#{file_path}/#{data_source_id}/#{file_name}",
         headers: true
       ).first.to_h.
       merge({file_path: file_path, data_source_id: data_source_id})

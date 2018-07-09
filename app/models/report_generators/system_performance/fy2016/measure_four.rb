@@ -20,7 +20,7 @@ module ReportGenerators::SystemPerformance::Fy2016
       end # End silence ActiveRecord Log
     end
 
-   
+
     def calculate
       # TODO: Because we don't push head of household Housing Status onto dependents, we may need to lookup Housing Status if we aren't the head of household
       if start_report(Reports::SystemPerformance::Fy2016::MeasureFour.first)
@@ -44,21 +44,21 @@ module ReportGenerators::SystemPerformance::Fy2016
       # To get the appropriate Federal Partner Funding Sources (2.6) we need to look at the agency info table provided by Jennifer Flynn from DND
       # Specifically we need 2,3,4,5 which correlate to:
       # FederalPartnerProgram = 'HUD CoC' and Component in ('PSH', 'RRH', 'SSO', 'TH')
-      
+
       # sql = "
       #   select programid, databaseid
       #   from hud_performance_agency_program_info
-      #   where CoCFunded = 1 
+      #   where CoCFunded = 1
       #     and Component in ('PSH', 'RRH', 'SSO', 'TH')
       #     and GrantStartDate <= '#{@report.options['report_end']}'
       #     and (GrantEndDate is null or GrantEndDate >= '#{@report.options['report_start']}')
       #     and ProgramTypeCode in (#{(PH + SH + TH).join(', ')})
       # "
       # Find anyone 18 years or older in a relevant project,
-      # get their latest project entry date within the report range for which the length of stay is >= 365 days. 
+      # get their latest project entry date within the report range for which the length of stay is >= 365 days.
       universe_of_stayers = calculate_stayers
       update_report_progress(percent: 10)
-      # Per Jennifer Flynn, ignore 60 day window around program start anniversary, 
+      # Per Jennifer Flynn, ignore 60 day window around program start anniversary,
       # that was not the instructions given to programs about when to collect assessments
       universe_of_stayers = add_stayer_income(universe_of_stayers)
       update_report_progress(percent: 40)
@@ -68,11 +68,11 @@ module ReportGenerators::SystemPerformance::Fy2016
 
       @support[:four1_c2][:support] = {
         headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
-        counts: universe_of_stayers.map do |client| 
+        counts: universe_of_stayers.map do |client|
           [
-            client[:client_id], 
-            client[:project_name], 
-            client[:first_date_in_program], 
+            client[:client_id],
+            client[:project_name],
+            client[:first_date_in_program],
             client[:last_date_in_program]
           ]
         end
@@ -106,7 +106,7 @@ module ReportGenerators::SystemPerformance::Fy2016
     end
 
     def add_leaver_answers
-      universe_of_leavers = calculate_leavers 
+      universe_of_leavers = calculate_leavers
       update_report_progress(percent: 50)
       universe_of_leavers = add_leaver_income(universe_of_leavers)
       update_report_progress(percent: 90)
@@ -116,11 +116,11 @@ module ReportGenerators::SystemPerformance::Fy2016
 
       @support[:four4_c2][:support] = {
         headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
-        counts: universe_of_leavers.map do |client| 
+        counts: universe_of_leavers.map do |client|
           [
-            client[:client_id], 
-            client[:project_name], 
-            client[:first_date_in_program], 
+            client[:client_id],
+            client[:project_name],
+            client[:first_date_in_program],
             client[:last_date_in_program]
           ]
         end
@@ -155,21 +155,21 @@ module ReportGenerators::SystemPerformance::Fy2016
     def calculate_stayers
       # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
       # Page 24 of 41
-      # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
+      # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days)
       # 3. The client must be an adult to be included in this measure.
       ct = GrdaWarehouse::Hud::Client.arel_table
       sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        sh_t[:client_id].as('client_id').to_sql => :client_id, 
-        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
-        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
-        sh_t[:project_id].as('project_id').to_sql => :project_id, 
-        sh_t[:age].as('age').to_sql => :age, 
-        ct[:DOB].as('DOB').to_sql => :DOB, 
-        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
-        ct[:PersonalID].as('PersonalID').to_sql => :PersonalID, 
-        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
-        sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
+        sh_t[:client_id].as('client_id').to_sql => :client_id,
+        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program,
+        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program,
+        sh_t[:project_id].as('project_id').to_sql => :project_id,
+        sh_t[:age].as('age').to_sql => :age,
+        ct[:DOB].as('DOB').to_sql => :DOB,
+        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id,
+        ct[:PersonalID].as('PersonalID').to_sql => :PersonalID,
+        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id,
+        sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method,
         sh_t[:project_name].as('project_name').to_sql => :project_name,
       }
 
@@ -183,7 +183,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         grant_funded_between(start_date: @report.options['report_start'], end_date: @report.options['report_end'].to_date + 1.day)
 
       stayers_scope = add_filters(scope: stayers_scope)
-      
+
       stayers = stayers_scope.
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
@@ -193,7 +193,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           enrollment
         end.group_by do |row|
           row[:client_id]
-        end.map do |_,enrollments| 
+        end.map do |_,enrollments|
           # Any enrollment with project_tracking_method != 3 will have 365 days
           # based on being open for the full year
           long_enrollments = enrollments.select{|m| m[:project_tracking_method] != 3}
@@ -202,14 +202,14 @@ module ReportGenerators::SystemPerformance::Fy2016
           long_enrollments += bed_night_enrollments.select do |enrollment|
             night_count = GrdaWarehouse::ServiceHistory.service.
               where(
-                client_id: enrollment[:client_id], 
+                client_id: enrollment[:client_id],
                 enrollment_group_id: enrollment[:enrollment_group_id]
               ).select(:date).
               distinct.
               count
             night_count > 365
           end
- 
+
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
           final_enrollment = long_enrollments.sort_by{|m| m[:first_date_in_program]}.last
@@ -230,16 +230,16 @@ module ReportGenerators::SystemPerformance::Fy2016
       ct = GrdaWarehouse::Hud::Client.arel_table
       sh_t = GrdaWarehouse::ServiceHistory.arel_table
       columns = {
-        sh_t[:client_id].as('client_id').to_sql => :client_id, 
-        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program, 
-        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program, 
-        sh_t[:project_id].as('project_id').to_sql => :project_id, 
-        sh_t[:age].as('age').to_sql => :age, 
-        ct[:DOB].as('DOB').to_sql => :DOB, 
-        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id, 
-        ct[:PersonalID].as('PersonalID').to_sql => :PersonalID, 
-        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id, 
-        sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method, 
+        sh_t[:client_id].as('client_id').to_sql => :client_id,
+        sh_t[:first_date_in_program].as('first_date_in_program').to_sql => :first_date_in_program,
+        sh_t[:last_date_in_program].as('last_date_in_program').to_sql => :last_date_in_program,
+        sh_t[:project_id].as('project_id').to_sql => :project_id,
+        sh_t[:age].as('age').to_sql => :age,
+        ct[:DOB].as('DOB').to_sql => :DOB,
+        sh_t[:enrollment_group_id].as('enrollment_group_id').to_sql => :enrollment_group_id,
+        ct[:PersonalID].as('PersonalID').to_sql => :PersonalID,
+        sh_t[:data_source_id].as('data_source_id').to_sql => :data_source_id,
+        sh_t[:project_tracking_method].as('project_tracking_method').to_sql => :project_tracking_method,
         sh_t[:project_name].as('project_name').to_sql => :project_name,
       }
 
@@ -248,14 +248,14 @@ module ReportGenerators::SystemPerformance::Fy2016
         hud_project_type(PH + SH + TH).
         joins(project: :funders).
         where(Funder: {Funder: [2, 3, 4, 5]}).
-        grant_funded_between(start_date: @report.options['report_start'], 
+        grant_funded_between(start_date: @report.options['report_start'],
           end_date: @report.options['report_end'].to_date + 1.day)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistory.entry.
         coc_funded_in(coc_code: COC_CODE).
-        ended_between(start_date: @report.options['report_start'], 
+        ended_between(start_date: @report.options['report_start'],
           end_date: @report.options['report_end'].to_date + 1.days).
         hud_project_type(PH + SH + TH).
         where.not(
@@ -265,7 +265,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         ).
         joins(:client, project: :funders).
         where(Funder: {Funder: [2, 3, 4, 5]}).
-        grant_funded_between(start_date: @report.options['report_start'], 
+        grant_funded_between(start_date: @report.options['report_start'],
           end_date: @report.options['report_end'].to_date + 1.day)
 
       leavers_scope = add_filters(scope: leavers_scope)
@@ -276,7 +276,7 @@ module ReportGenerators::SystemPerformance::Fy2016
           Hash[columns.values.zip(row)]
         end.group_by do |row|
           row[:client_id]
-        end.map do |k,v| 
+        end.map do |k,v|
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
           final_enrollment = v.last
@@ -289,12 +289,12 @@ module ReportGenerators::SystemPerformance::Fy2016
     end
 
     def add_stayer_income universe_of_stayers
-      # add columns to each row for the following: 
+      # add columns to each row for the following:
       # latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
       # latest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
       # earliest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
       # earliest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
-       
+
       universe_of_stayers.each_with_index do |row, index|
         amount_columns = [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount]
         columns = [:TotalMonthlyIncome, :IncomeFromAnySource, :InformationDate, :DataCollectionStage] + amount_columns
@@ -303,7 +303,7 @@ module ReportGenerators::SystemPerformance::Fy2016
 
         assessments = GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: row[:data_source_id]).
           where(PersonalID: row[:PersonalID]).
-          where(ProjectEntryID: row[:enrollment_group_id]).
+          where(EnrollmentID: row[:enrollment_group_id]).
           where(income_table[:InformationDate].lteq(@report.options['report_end'])).
           where(DataCollectionStage: [5, 1]).
           order(InformationDate: :asc).
@@ -367,12 +367,12 @@ module ReportGenerators::SystemPerformance::Fy2016
 
 
     def add_leaver_income universe_of_leavers
-      # add columns to each row for the following: 
+      # add columns to each row for the following:
       # latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
       # latest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
       # earliest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
       # earliest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
-       
+
       universe_of_leavers.each_with_index do |row, index|
         amount_columns = [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount]
         columns = [:TotalMonthlyIncome, :IncomeFromAnySource, :InformationDate, :DataCollectionStage] + amount_columns
@@ -381,7 +381,7 @@ module ReportGenerators::SystemPerformance::Fy2016
 
         assessments = GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: row[:data_source_id]).
           where(PersonalID: row[:PersonalID]).
-          where(ProjectEntryID: row[:enrollment_group_id]).
+          where(EnrollmentID: row[:enrollment_group_id]).
           where(income_table[:InformationDate].lteq(@report.options['report_end'])).
           where(DataCollectionStage: [3, 1]).
           order(InformationDate: :asc).
@@ -397,7 +397,7 @@ module ReportGenerators::SystemPerformance::Fy2016
         latest_group = income_map[3].values.last.first if income_map[3].present?
         earliest_group = income_map[1].values.first.first if income_map[1].present?
 
-        
+
         if latest_group.present?
           universe_of_leavers[index][:latest_income] = 0
           universe_of_leavers[index][:latest_earned_income] = 0

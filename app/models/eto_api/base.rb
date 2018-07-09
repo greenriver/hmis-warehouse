@@ -8,7 +8,7 @@ module EtoApi
     extend Memoist
     attr_accessor :trace
 
-    def initialize(trace: true, api_connection: 'dnd_eto')
+    def initialize(trace: false, api_connection: 'dnd_eto')
       @trace = trace
       @endpoints = {
         security: 'https://services.etosoftware.com/API/Security.svc',
@@ -54,7 +54,7 @@ module EtoApi
     end
 
     private def debug_log(msg)
-      puts msg if self.trace
+      puts msg&.gsub(@credentials[:security][:Password], '') if self.trace && Rails.env.development?
     end
 
     private def api_get_json(url, headers={})

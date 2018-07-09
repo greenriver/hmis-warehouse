@@ -1,43 +1,78 @@
 = render 'instructions'
 = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
-  = f.error_notification
+
+  - if @file.errors.any?
+    .alert.alert-danger
+      %p Failed to upload file. Please review the errors below
+      %ul.error_list
+        - @file.errors.messages.values.first.uniq.each do |msg|
+          %li= msg
   .form-inputs
     %h3 What Does This File Contain?
     .c-card.c-card--flush.client-file.mb-6
-      - @file.class.available_tags.keys.in_groups(2, false) do |batch|
-        .col-sm-6
-          - batch.each do |group_name|
-            - group = @file.class.available_tags[group_name]
-            .form-group
+      .c-card__content.clearfix
+        - @file.class.available_tags.keys.in_groups(2, false) do |batch|
+          .col-sm-6
+            - batch.each do |group_name|
+              - group = @file.class.available_tags[group_name]
+              .form-group
 
-              %h4= group_name
-              - group.each do |item|
-                - selected = params['tag_list'] == item.name
-                .radio
-                  - selected = f.object.tag_list.to_s == item.name
-                  - options = {class: 'jFileTag'}
-                  - if item.note.present?
-                    - options = options.merge({data: {toggle: :popover, trigger: :manual, title: item.name, content: item.note}})
-                  - if item.consent_form
-                    - options = options.merge({data: {consent: true}})
-                  = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
-                  = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
-                  - if item.included_info.present?
-                    %p.margin-left-04
-                      %em= "(includes: #{item.included_info})"
-    .row
+                %h4= group_name
+                - group.each do |item|
+                  - selected = params['tag_list'] == item.name
+                  .radio
+                    - selected = f.object.tag_list.to_s == item.name
+                    - options = {class: 'jFileTag'}
+                    - data = {}
+                    - if item.note.present?
+                      - data.merge!({toggle: :popover, trigger: :manual, title: item.name, content: item.note})
+                    - if item.consent_form
+                      - data.merge!({consent: true})
+                    - if item.requires_effective_date
+                      - data.merge!({requires_effective_date: true})
+                    - if item.requires_expiration_date
+                      - data.merge!({requires_expiration_date: true})
+                    - options.merge!({data: data})
+                    = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
+                    = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
+                    - if item.included_info.present?
+                      %p.margin-left-04
+                        %em= "(includes: #{item.included_info})"
+    .row.jEffectiveDate
       .col-sm-4
         = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }, label: 'Effective date or date signed'
     - if can_confirm_housing_release?
       .consent-form-fields.hidden
         = f.input :consent_form_confirmed, as: :boolean
+    .row.jExpirationDate
+      .col-sm-4
+        = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
     .row
       .col-sm-6
         = f.input :note, as: :text, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
     - if can_manage_client_files?
       = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
-    = f.input :file, as: :file, :required => true
-  .form__actions
-    = f.button :submit, value: 'Upload File', class: 'btn btn-primary'
-    = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-default' do
+    = f.input :file, as: :file, required: true
+  .d-flex
+    = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-secondary ml-auto' do
       Cancel &amp; Return to File List
+    %button.btn.btn-default.ml-4{type: :submit}
+      %i.icon-upload2
+      Upload File
+
+= content_for :page_js do
+  :javascript
+    $('.jFileTag').on('change', function(e){
+      if($(this).data('requires-effective-date')) {
+        $('.jEffectiveDate').show();
+      }
+      else {
+        $('.jEffectiveDate').hide();
+      }
+      if($(this).data('requires-expiration-date')) {
+        $('.jExpirationDate').show();
+      }
+      else {
+        $('.jExpirationDate').hide();
+      }
+    });

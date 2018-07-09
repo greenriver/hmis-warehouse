@@ -3,6 +3,10 @@ module GrdaWarehouse::WarehouseReports
 
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
+    scope :enabled, -> do
+      where(enabled: true)
+    end
+
     scope :viewable_by, -> (user) do
       if user.can_view_all_reports?
         current_scope

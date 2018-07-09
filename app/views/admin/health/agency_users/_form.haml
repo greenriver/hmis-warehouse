@@ -1,0 +1,8 @@
+= simple_form_for @agency_user, url: @form_url do |f|
+  .clearfix
+    = f.input :user_id, as: :hidden
+    %label Assign Agency to
+    %br
+    %label= @user.name_with_email
+    = f.input :agency_id, as: :radio_buttons, collection: @agencies, label_method: :name, value_method: :id, label: false
+    = f.submit 'Assign Agency', class: 'btn btn-primary'

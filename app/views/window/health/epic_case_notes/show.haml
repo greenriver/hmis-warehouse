@@ -1,0 +1,36 @@
+= render 'breadcrumbs'
+= content_for(:modal_title, "Epic Case Note")
+
+%dl
+  %dt Encounter Type
+  %dd= @note.encounter_type
+  %dt Contact Date
+  %dd= @note.contact_date&.to_date
+  %dt Closed
+  %dd
+    - if @note.closed == 'Y'
+      Yes
+    - else
+      No
+  %dt Provider
+  %dd= @note.provider_name
+  %dt Location
+  %dd= @note.location
+  %dt Chief Complaint 1
+  %dd= @note.chief_complaint_1
+  %dt Comment
+  %dd= @note.chief_complaint_1_comment
+  %dt Chief Complaint 2
+  %dd= @note.chief_complaint_2
+  %dt Comment
+  %dd= @note.chief_complaint_2_comment
+  %dt DX 1 ICD10
+  %dd= @note.dx_1_icd10
+  %dt DX 1 Name
+  %dd= @note.dx_1_name
+  %dt DX 2 ICD10
+  %dd= @note.dx_2_icd10
+  %dt DX 2 Name
+  %dd= @note.dx_2_name
+  %dt Homeless Status
+  %dd= @note.homeless_status

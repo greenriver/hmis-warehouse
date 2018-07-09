@@ -18,7 +18,7 @@ module GrdaWarehouse
 
     scope :visible_by?, -> (user) do
       # If you can see all client files, show everything
-      if user.can_manage_client_files? 
+      if user.can_manage_client_files?
         all
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
@@ -37,7 +37,7 @@ module GrdaWarehouse
 
     scope :editable_by?, -> (user) do
       # If you can see all client files, show everything
-      if user.can_manage_client_files? 
+      if user.can_manage_client_files?
         all
       # If all you can see are window files or your own files
       #   show only those you uploaded
@@ -55,11 +55,11 @@ module GrdaWarehouse
     scope :non_consent, -> do
       tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
     end
-    
+
     scope :confirmed, -> do
       where(consent_form_confirmed: true)
     end
-    
+
     scope :unconfirmed, -> do
       where(consent_form_confirmed: [false, nil])
     end
@@ -133,8 +133,8 @@ module GrdaWarehouse
     def set_client_consent
       # If the client consent is not valid,
       # update client to match file (don't overwrite with blanks)
-      # 
-      # If the consent if valid on the client, 
+      #
+      # If the consent if valid on the client,
       # remove consent only if the confirmation was also changed and this is the only confirmed consent file
 
       if ! client.consent_form_valid?
@@ -143,7 +143,7 @@ module GrdaWarehouse
         end
         if consent_form_confirmed
           client.update_columns(
-            housing_release_status: consent_type, 
+            housing_release_status: consent_type,
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id
           )
@@ -154,8 +154,8 @@ module GrdaWarehouse
 
         if consent_form_confirmed
           client.update_columns(
-            housing_release_status: consent_type, 
-            consent_form_signed_on: consent_form_signed_on, 
+            housing_release_status: consent_type,
+            consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id
           )
         elsif no_other_confirmed_consent_files
@@ -179,7 +179,7 @@ module GrdaWarehouse
 
     def file_exists_and_not_too_large
       errors.add :file, "No uploaded file found" if (content&.size || 0) < 100
-      errors.add :file, "Uploaded file must be less than 2 MB" if (content&.size || 0) > 2.megabytes
+      errors.add :file, "File size should be less than 4 MB" if (content&.size || 0) > 4.megabytes
     end
 
     def note_if_other
@@ -211,4 +211,4 @@ module GrdaWarehouse
     end
 
   end
-end  
+end

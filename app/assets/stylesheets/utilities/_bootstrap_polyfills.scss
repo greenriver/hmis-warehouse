@@ -26,6 +26,18 @@
   justify-content: center !important;
 }
 
+.justify-content-between {
+  justify-content: space-between !important;
+}
+
+.justify-content-evenly {
+  justify-content: space-evenly !important;
+}
+
+.justify-content-around {
+  justify-content: space-around !important;
+}
+
 .flex-row-reverse {
   flex-direction: row-reverse !important;
 }
@@ -34,8 +46,79 @@
   flex-wrap: wrap !important;
 }
 
+// Fix addon for deprecation in Bootstrap 4
+
+.input-group {
+  display: flex;
+}
+
+.input-group-addon,
+.input-group-btn {
+  width: auto;
+}
+
+.input-group-addon {
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: $input-padding-y $input-padding-x;
+  border: 1px solid $input-border-color;
+  border-top-right-radius: $input-border-radius;
+  border-bottom-right-radius: $input-border-radius;
+  border-left: 0;
+  background: $brand-primary-ll;
+  &:hover {
+    background: $brand-primary;
+    color: $white;
+  }
+}
+
+
 @each $amount in 100 75 50 25 {
   .w-#{$amount} {
     width: #{$amount}% !important;
   }
+}
+
+// Spacing
+// .mb .mt .ml .mr <- to help with finding the definition in the future
+// .pb .pt .pl .pr <- to help with finding the definition in the future
+@each $direction, $directionName in $directions {
+  @each $num, $space in $spacers {
+    .m#{$direction}-#{$num} {
+      margin-#{$directionName}: $space;
+    }
+    .p#{$direction}-#{$num} {
+      padding-#{$directionName}: $space;
+    }
+  }
+  .m#{$direction}-auto {
+    margin-#{$directionName}: auto;
+  }
+}
+
+.pagination .page-item { }
+
+.pagination > li > a,
+.pagination > li > span,
+.pagination .page-link {
+  padding: $pagination-padding-y $pagination-padding-x;
+}
+
+.pagination .page-link {
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba(69, 118, 135, 0.25)
+  }
+}
+
+.pagination > .active > a,
+.pagination > .active > a:hover,
+.pagination > .active > a:focus,
+.pagination > .active > span,
+.pagination > .active > span:hover,
+.pagination > .active > span:focus {
+  background: $brand-primary-d;
+  border-color: $brand-primary-d;
 }

@@ -1,0 +1,49 @@
+class ExpandPatientReferrals < ActiveRecord::Migration
+  def change
+    add_column :patient_referrals, :middle_initial, :string
+    add_column :patient_referrals, :suffix, :string
+    add_column :patient_referrals, :gender, :string
+    add_column :patient_referrals, :aco_name, :string
+    add_column :patient_referrals, :aco_mco_pid, :integer
+    add_column :patient_referrals, :aco_mco_sl, :string
+    add_column :patient_referrals, :health_plan_id, :string
+    add_column :patient_referrals, :cp_assignment_plan, :string
+    add_column :patient_referrals, :cp_name_dsrip, :string
+    add_column :patient_referrals, :cp_name_official, :string
+    add_column :patient_referrals, :cp_pid, :integer
+    add_column :patient_referrals, :cp_sl, :string
+    add_column :patient_referrals, :enrollment_start_date, :date
+    add_column :patient_referrals, :start_reason_description, :string
+    add_column :patient_referrals, :address_line_1, :string
+    add_column :patient_referrals, :address_line_2, :string
+    add_column :patient_referrals, :address_city, :string
+    add_column :patient_referrals, :address_state, :string
+    add_column :patient_referrals, :address_zip, :string
+    add_column :patient_referrals, :address_zip_plus_4, :string
+    add_column :patient_referrals, :email, :string
+    add_column :patient_referrals, :phone_cell, :string
+    add_column :patient_referrals, :phone_day, :string
+    add_column :patient_referrals, :phone_night, :string
+    add_column :patient_referrals, :primary_language, :string
+    add_column :patient_referrals, :primary_diagnosis, :string
+    add_column :patient_referrals, :secondary_diagnosis, :string
+    add_column :patient_referrals, :pcp_last_name, :string
+    add_column :patient_referrals, :pcp_first_name, :string
+    add_column :patient_referrals, :pcp_npi, :string
+    add_column :patient_referrals, :pcp_address_line_1, :string
+    add_column :patient_referrals, :pcp_address_line_2, :string
+    add_column :patient_referrals, :pcp_address_city, :string
+    add_column :patient_referrals, :pcp_address_state, :string
+    add_column :patient_referrals, :pcp_address_zip, :string
+    add_column :patient_referrals, :pcp_address_phone, :string
+    add_column :patient_referrals, :dmh, :string
+    add_column :patient_referrals, :dds, :string
+    add_column :patient_referrals, :eoea, :string
+    add_column :patient_referrals, :ed_visits, :string
+    add_column :patient_referrals, :snf_discharge, :string
+    add_column :patient_referrals, :identification, :string
+    add_column :patient_referrals, :record_status, :string
+    add_column :patient_referrals, :updated_on, :date
+    add_column :patient_referrals, :exported_on, :date
+  end
+end

@@ -2,83 +2,9 @@ module GrdaWarehouse::Import::HMISSixOneOne
   class Enrollment < GrdaWarehouse::Hud::Enrollment
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :EnrollmentID,
-        :PersonalID,
-        :ProjectID,
-        :EntryDate,
-        :HouseholdID,
-        :RelationshipToHoH,
-        :LivingSituation,
-        :LengthOfStay,
-        :LOSUnderThreshold,
-        :PreviousStreetESSH,
-        :DateToStreetESSH,
-        :TimesHomelessPastThreeYears,
-        :MonthsHomelessPastThreeYears,
-        :DisablingCondition,
-        :DateOfEngagement,
-        :MoveInDate,
-        :DateOfPATHStatus,
-        :ClientEnrolledInPATH,
-        :ReasonNotEnrolled,
-        :WorstHousingSituation,
-        :PercentAMI,
-        :LastPermanentStreet,
-        :LastPermanentCity,
-        :LastPermanentState,
-        :LastPermanentZIP,
-        :AddressDataQuality,
-        :DateOfBCPStatus,
-        :EligibleForRHY,
-        :ReasonNoServices,
-        :RunawayYouth,
-        :SexualOrientation,
-        :FormerWardChildWelfare,
-        :ChildWelfareYears,
-        :ChildWelfareMonths,
-        :FormerWardJuvenileJustice,
-        :JuvenileJusticeYears,
-        :JuvenileJusticeMonths,
-        :UnemploymentFam,
-        :MentalHealthIssuesFam,
-        :PhysicalDisabilityFam,
-        :AlcoholDrugAbuseFam,
-        :InsufficientIncome,
-        :IncarceratedParent,
-        :ReferralSource,
-        :CountOutreachReferralApproaches,
-        :UrgentReferral,
-        :TimeToHousingLoss,
-        :ZeroIncome,
-        :AnnualPercentAMI,
-        :FinancialChange,
-        :HouseholdChange,
-        :EvictionHistory,
-        :SubsidyAtRisk,
-        :LiteralHomelessHistory,
-        :DisabledHoH,
-        :CriminalRecord,
-        :SexOffender,
-        :DependentUnder6,
-        :SingleParent,
-        :HH5Plus,
-        :IraqAfghanistan,
-        :FemVet,
-        :HPScreeningScore,
-        :ThresholdScore,
-        :VAMCStation,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,        
-      ]
-    )
-    
-    self.hud_key = :ProjectEntryID
+    self.hud_key = :EnrollmentID
+    setup_hud_column_access( GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '6.11') )
+    self.hud_key = :EnrollmentID
 
     def self.file_name
       'Enrollment.csv'
@@ -97,17 +23,6 @@ module GrdaWarehouse::Import::HMISSixOneOne
           pluck(:id)
       end
       ids
-    end
-
-    # Currently this translates back to HMIS 5.1
-    # and does other data cleanup as necessary
-    def self.translate_to_db_headers(row)
-      row[:ProjectEntryID] = row.delete(:EnrollmentID)
-      row[:ResidencePrior] = row.delete(:LivingSituation)
-      row[:ResidencePriorLengthOfStay] = row.delete(:LengthOfStay)
-      row[:ResidentialMoveInDate] = row.delete(:MoveInDate)
-      row[:FYSBYouth] = row.delete(:EligibleForRHY)
-      return row
     end
 
     def self.should_log?

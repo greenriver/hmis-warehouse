@@ -1,11 +1,13 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @cohort.name.slice(0,30)) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(@cohort.visible_columns.map(&:title), :style => title)
+  sheet.add_row(['Warehouse ID', 'Alerts'] + @cohort.visible_columns.map(&:title), :style => title)
   @cohort_clients.each do |cohort_client|
-    row = @cohort.visible_columns.map do |column|
+    row = [cohort_client.client_id]
+    row += ([CohortColumns::Meta.new] + @cohort.visible_columns).map do |column|
       column.cohort = @cohort
       column.cohort_names = @cohort_names
+      column.cohort_client = cohort_client
       if column.renderer == 'html'
         column.text_value(cohort_client)
       elsif column.input_type == 'read_only'

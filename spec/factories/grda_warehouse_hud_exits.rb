@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :hud_exit, class: 'GrdaWarehouse::Hud::Exit' do
     sequence(:ExitID, 7)
-    sequence(:ProjectEntryID, 1)
+    sequence(:EnrollmentID, 1)
     sequence(:PersonalID, 10)
     sequence(:ExitDate) do |n|
       dates = [

@@ -4,7 +4,7 @@
 .table-wrapper
   .row
     .col-sm-7.cohort--table-info
-      = "Cohort: #{pluralize(@cohort.cohort_clients.size, 'client')}; #{@cohort.cohort_clients.active.size} active."
+      = "Cohort: #{pluralize(@cohort.cohort_clients.count, 'client')}; #{@cohort.cohort_clients.active.size} active."
     .col-sm-1.text-right
       .jSearchActions
         %span.jSearchStatus.text-muted.hide
@@ -16,6 +16,6 @@
         .jSearchActions.input-group-btn
           %a.disabled.jSearchBack.icon-arrow-left.btn.btn-sm.btn-secondary{href: '#back'}
           %a.disabled.jSearchForward.icon-arrow-right.btn.btn-sm.btn-secondary{href: '#forward'}
-          
-    
+
+
   .cohort-client__table.datatable{class: size}

@@ -2,30 +2,10 @@ module GrdaWarehouse::Import::HMISSixOneOne
   class EmploymentEducation < GrdaWarehouse::Hud::EmploymentEducation
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
-    
-    setup_hud_column_access( 
-      [
-        :EmploymentEducationID,
-        :EnrollmentID,
-        :PersonalID,
-        :InformationDate,
-        :LastGradeCompleted,
-        :SchoolStatus,
-        :Employed,
-        :EmploymentType,
-        :NotEmployedReason,
-        :DataCollectionStage,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
     self.hud_key = :EmploymentEducationID
-    
-    def self.date_provided_column 
+    setup_hud_column_access( GrdaWarehouse::Hud::EmploymentEducation.hud_csv_headers(version: '6.11') )
+
+    def self.date_provided_column
       :InformationDate
     end
 
@@ -33,12 +13,5 @@ module GrdaWarehouse::Import::HMISSixOneOne
       'EmploymentEducation.csv'
     end
 
-    # Currently this translates back to HMIS 5.1
-    # and does other data cleanup as necessary
-    def self.translate_to_db_headers(row)
-      row[:ProjectEntryID] = row.delete(:EnrollmentID)
-      return row
-    end
-    
   end
 end

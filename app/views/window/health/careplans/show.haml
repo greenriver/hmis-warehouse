@@ -1,14 +1,1 @@
-- title = 'Collaborative Care Plan'
-= content_for(:title, title)
-%h1= "#{content_for(:title)} for #{@client.full_name}"
-= render 'window/clients/breadcrumbs'
-= render 'window/clients/tab_navigation', current: polymorphic_path(careplan_path_generator)
-= render 'window/health/patient/patient_status'
-= render 'print_link'
-.row
-  .col-sm-4
-    - unless @readonly
-      = render 'assessments'
-  .col-sm-8
-    = render 'summary'
-    = render 'epic_goals'
+= render 'window/health/careplans/show'

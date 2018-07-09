@@ -86,7 +86,7 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    # log problems to be reported 
+    # log problems to be reported
     def log(msg)
       ( @log ||= [] ) << { sheet: @name, message: msg }
     end
@@ -113,7 +113,7 @@ module GrdaWarehouse::Tasks
       enrollment = e_t.engine.
         where( e_t[:PersonalID].eq personal_id ).
         where( e_t[:data_source_id].eq @data_source_id ).
-        where( e_t[:ProjectEntryID].eq project_entry_id ).
+        where( e_t[:EnrollmentID].eq project_entry_id ).
         where( e_t[:ProjectID].eq project_id ).
         first
       if enrollment
@@ -165,7 +165,7 @@ module GrdaWarehouse::Tasks
         enrollment = e_t.engine.
           where( e_t[:PersonalID].eq personal_id.to_s ).
           where( e_t[:data_source_id].eq @data_source_id ).
-          where( e_t[:ProjectEntryID].eq project_entry_id.to_s ).
+          where( e_t[:EnrollmentID].eq project_entry_id.to_s ).
           where( e_t[:ProjectID].eq project_id ).
           where( e_t[:EntryDate].eq eee_date ).
           first

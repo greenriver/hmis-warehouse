@@ -1,0 +1,43 @@
+= simple_form_for @service, url: @form_url, remote: true do |f|
+  .jServicesForm
+    .row
+      .col-sm-8
+        = f.input :service_type, collection: @service.class.available_types, input_html: {class: :select2, style: 'width: 100%;'}
+    .row
+      .col-sm-8
+        = f.input :provider
+    .row
+      .col-sm-2
+        = f.input :hours
+    .row
+      .col-sm-2
+        = f.input :days
+    .row
+      .col-sm-6
+        = f.input :date_requested, as: :date_picker, input_html: {value: f.object.date_requested || Date.today}
+    .row
+      .col-sm-6
+        = f.input :effective_date, as: :date_picker
+    .row
+      .col-sm-6
+        = f.input :end_date, as: :date_picker
+    .row
+      .col-sm-6
+        = f.input :status, collection: @service.class.available_stati
+    .form__actions
+      - if @service.persisted?
+        .c-btn_group
+          = link_to polymorphic_path(health_path_generator + [:service], id: @service.id), method: :delete, remote: true, data: {confirm: "Please confirm you intend to delete the #{@service.service_type} service."}, class: 'btn btn-danger btn-icon-left' do
+            %i.icon-cross
+            Delete
+      .c-btn-group.ml-auto
+        %a.btn.btn-secondary.jClose{'pjax-modal-close' => '', href: ''} Cancel
+        = f.button :submit, class: 'btn-primary', value: @button_label
+
+
+= content_for :page_js do
+  :javascript
+    $('.select2').select2();
+    $('body').on('click', '.jClose', function(e) {
+      e.preventDefault();
+    });

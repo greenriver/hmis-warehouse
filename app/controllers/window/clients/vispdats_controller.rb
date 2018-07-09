@@ -30,7 +30,7 @@ module Window::Clients
 
     def edit
       render :show and return if @vispdat.show_as_readonly?
-      @consent_form_url = GrdaWarehouse::Config.get(:url_of_blank_consent_form)
+      @consent_form_url = GrdaWarehouse::PublicFile.url_for_location 'client/hmis_consent'
       @file = GrdaWarehouse::ClientFile.new(vispdat_id: @vispdat.id)
     end
 

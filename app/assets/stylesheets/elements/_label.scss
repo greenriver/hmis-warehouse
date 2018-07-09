@@ -1,0 +1,37 @@
+label {
+  color: $gray-070;
+  @include open-sans-medium;
+}
+
+.label-helper {
+  font-style: italic;
+  font-size: 95%;
+  font-weight: normal;
+  &--info,
+  &--optional {
+    color: $brand-primary;
+  }
+  &--required {
+    color: $brand-danger;
+  }
+}
+
+.label {
+  color: rgba(0, 0, 0, .9);
+}
+
+.label--minor {
+  font-weight: normal;
+}
+
+.label-danger {
+  background: $brand-danger-l;
+}
+
+.label-success {
+  background: $brand-success-l;
+}
+
+.label-warning {
+  background: $brand-warning-l;
+}

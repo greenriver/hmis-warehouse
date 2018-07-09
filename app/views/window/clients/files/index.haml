@@ -5,24 +5,4 @@
 .row
   .col-sm-12
     = render 'window/clients/tab_navigation', current: window_client_files_path(@client)
-= render 'file_upload'
-%p.alert.alert-info
-  - if can_manage_window_client_files? && @client.release_valid?
-    = _("#{@client.name} has a consent form on file, you can see any client files.")
-  - elsif can_manage_window_client_files?
-    = _("#{@client.name} does not have a consent form on file, you can only see files you upload.")
-  - else
-    = _("You can only see files you upload.")
-= render 'download_warning'
-- if @client.client_files.any?
-  = render 'batch_download'
-  - if @consent_files.any?
-    .slab
-      %h4 Consent Forms
-      = render 'file_list', files: @consent_files, paginate: false, consent: true
-  - if @files.any?
-    .slab
-      %h4 Other Files
-      = render 'file_list', files: @files, paginate: true, consent: false
-- else
-  No file uploads
+= render 'window/clients/files/index'

@@ -6,6 +6,8 @@ class App.D3Chart.Base
     @margin = margin
     @container_selector = container_selector
     @container = d3.select(container_selector)
+    if ! @container.node()?
+      return
     @dimensions = @_loadDimensions()
     @chart = @_drawChart()
 

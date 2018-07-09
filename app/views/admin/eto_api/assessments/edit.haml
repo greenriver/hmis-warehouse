@@ -1,0 +1,3 @@
+%h1 Edit #{@assessment.name} Touch Point
+= simple_form_for @assessment, url: admin_eto_api_assessment_path(@assessment.id) do |f|
+  =render 'form', f: f

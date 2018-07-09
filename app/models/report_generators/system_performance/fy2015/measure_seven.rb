@@ -10,7 +10,7 @@ module ReportGenerators::SystemPerformance::Fy2015
     SH = [8]
     SO = 4
     RRH = [13]
-    PH_PSH = [3,9,10] # All PH execpt 13, Measure 7 doesn't count RRH
+    PH_PSH = [3,9,10] # All PH except 13, Measure 7 doesn't count RRH
 
     def run!
       tries ||= 0

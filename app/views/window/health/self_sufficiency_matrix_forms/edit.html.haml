@@ -1,0 +1,9 @@
+- @on_health = true # Force the menu
+- title = "Self Sufficiency Matrix Form for #{@client.full_name}"
+- content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= content_for(:title)
+
+  = render 'window/health/breadcrumbs'
+  = render 'form'

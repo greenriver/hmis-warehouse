@@ -3,7 +3,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :meta
     attribute :title, String, lazy: true, default: 'Alerts'
-    
+
     def column_editable?
       false
     end
@@ -31,7 +31,7 @@ module CohortColumns
       return comments
     end
 
-    def value(cohort_client)
+    def value(cohort_client) # OK
       html = ''
       if inactive
         html += content_tag(:i, ' ', class: "icon-warning warning")
@@ -42,14 +42,18 @@ module CohortColumns
       return html
     end
 
+    def text_value cohort_client
+      comments
+    end
+
     def last_activity
-      @last_activity ||= cohort_client.client.service_history_services.homeless.maximum(:date) rescue nil
+      cohort_client.client.processed_service_history&.last_homeless_date
     end
 
     def inactive
-      @inactive ||= begin
-        Date.today - cohort.days_of_inactivity > last_activity.to_date
-      rescue
+      if cohort.days_of_inactivity && last_activity
+        (Date.today - cohort.days_of_inactivity.days) > last_activity.to_date
+      else
         true
       end
     end
@@ -65,10 +69,10 @@ module CohortColumns
 
     def metadata
       {
-        activity: inactivity_class, 
-        ineligible: cohort_client.ineligible?, 
-        cohort_client_id: cohort_client.id, 
-        client_id: cohort_client&.client&.id, 
+        activity: inactivity_class,
+        ineligible: cohort_client.ineligible?,
+        cohort_client_id: cohort_client.id,
+        client_id: cohort_client&.client&.id,
         cohort_client_updated_at: cohort_client.updated_at.to_i,
         last_activity: last_activity,
         inactive: inactive,

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
-model = GrdaWarehouse::Hud::Site
-RSpec.describe model, type: :model do  
+model = GrdaWarehouse::Hud::Geography
+RSpec.describe model, type: :model do
 
   let! :admin_role { create :admin_role }
 

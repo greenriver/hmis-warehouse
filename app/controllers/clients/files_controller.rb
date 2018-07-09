@@ -37,7 +37,9 @@ module Clients
         order(consent_form_confirmed: :desc, consent_form_signed_on: :desc)
     end
 
-
+    def set_window
+      @window = false
+    end
     
     def require_can_manage_these_client_files!
       require_can_manage_client_files!

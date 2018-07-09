@@ -8,9 +8,10 @@
   = render 'clients/chronic_flags', client: @client
 .row
   .col-sm-6
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic}}
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_days}}
       %header
         %h1.h3 Chronic Days
+    = render "chronic_calculator", date: @date
   .col-sm-6
     =render "clients/note_form"
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_notes}}

@@ -2,33 +2,54 @@ module GrdaWarehouse::Hud
   class Service < Base
     include HudSharedScopes
     self.table_name = 'Services'
-    self.hud_key = 'ServicesID'
+    self.hud_key = :ServicesID
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        "ServicesID",
-        "ProjectEntryID",
-        "PersonalID",
-        "DateProvided",
-        "RecordType",
-        "TypeProvided",
-        "OtherTypeProvided",
-        "SubTypeProvided",
-        "FAAmount",
-        "ReferralOutcome",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5.1'
+        [
+          :ServicesID,
+          :ProjectEntryID,
+          :PersonalID,
+          :DateProvided,
+          :RecordType,
+          :TypeProvided,
+          :OtherTypeProvided,
+          :SubTypeProvided,
+          :FAAmount,
+          :ReferralOutcome,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :ServicesID,
+          :EnrollmentID,
+          :PersonalID,
+          :DateProvided,
+          :RecordType,
+          :TypeProvided,
+          :OtherTypeProvided,
+          :SubTypeProvided,
+          :FAAmount,
+          :ReferralOutcome,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     belongs_to :data_source, inverse_of: :services
     belongs_to :direct_client, **hud_belongs(Client), inverse_of: :direct_services
     has_one :client, through: :enrollment, inverse_of: :services
-    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id], inverse_of: :services
+    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :services
     belongs_to :export, **hud_belongs(Export), inverse_of: :services
     has_one :project, through: :enrollment
     has_one :organization, through: :project
@@ -45,7 +66,7 @@ module GrdaWarehouse::Hud
           where( st2[:data_source_id].eq st1[:data_source_id] ).
           where( st2[:PersonalID].eq st1[:PersonalID] ).
           where( st2[:RecordType].eq st1[:RecordType] ).
-          where( st2[:ProjectEntryID].eq st1[:ProjectEntryID] ).
+          where( st2[:EnrollmentID].eq st1[:EnrollmentID] ).
           where( st2[:DateProvided].eq st1[:DateProvided] ).
           where( st2[:id].gt st1[:id] ).
           exists.not

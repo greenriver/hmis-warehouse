@@ -1,11 +1,13 @@
+require 'json/ext'
 module Cohorts
   class ClientsController < ApplicationController
     include PjaxModalController
     include ArelHelper
     include Chronic
     include CohortAuthorization
-
-
+    include CohortClients
+    include ActionView::Helpers::TextHelper
+    
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
@@ -24,77 +26,58 @@ module Cohorts
       respond_to do |format|
         format.json do
           if params[:content].present?
-            if params[:inactive].present?
-              @cohort_clients = @cohort.cohort_clients
-            else
-              @cohort_clients = @cohort.cohort_clients.where(active: true)
-            end
+            set_cohort_clients
             # Allow for individual refresh
             if params[:cohort_client_id].present?
               @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
             end
-            @cohort_clients = @cohort_clients.
-              order(id: :asc).
-              preload(:cohort_client_notes, client: :processed_service_history).
-              page(params[:page].to_i).per(params[:per].to_i)
-
-            render json: data_for_table() and return
+            render text: JSON::fast_generate(data_for_table), type: :json
+            # The above is > 50% faster then
+            # render json: data_for_table
           else
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
           end
         end
         format.html do
-          if params[:inactive].present?
-            @cohort_clients = @cohort.cohort_clients
-          else
-            @cohort_clients = @cohort.cohort_clients.where(active: true)
-          end
-                    
-          @cohort_clients = @cohort_clients.page(params[:page].to_i).per(params[:per].to_i)
+          set_cohort_clients
           render layout: false
         end
       end
     end
 
-    def data_for_table
+    private def data_for_table
       data = []
-      expires = if Rails.env.development? 
-        1.minute 
-      else 
-        8.hours 
+
+      @visible_columns = [CohortColumns::Meta.new]
+      @visible_columns += @cohort.visible_columns
+      if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+        @visible_columns << CohortColumns::Delete.new
       end
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         next if client.blank?
-        cohort_client_data = Rails.cache.fetch(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes, current_user.can_view_clients?, params], expires_in: expires) do
-          @visible_columns = [CohortColumns::Meta.new]
-          cohort_client_data = {}
-          @visible_columns += @cohort.visible_columns
-          if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
-            @visible_columns << CohortColumns::Delete.new
-          end
-          @visible_columns.each do |cohort_column|
-            cohort_column.cohort = @cohort
-            cohort_column.cohort_names = @cohort_names
-            cohort_column.cohort_client = cohort_client
-            editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
-            cohort_client_data[cohort_column.column] = {
-              editable: editable, 
-              value: cohort_column.display_read_only(current_user), 
-              renderer: cohort_column.renderer,
-              cohort_client_id: cohort_client.id,
-              comments: cohort_column.comments,
-            }
+        row = {}
+        @visible_columns.each do |cohort_column|
+          cohort_column.cohort = @cohort
+          cohort_column.cohort_names = @cohort_names
 
-            if cohort_column.column == 'meta'
-              cohort_client_data[cohort_column.column].merge!(cohort_column.metadata)
-            end
+          # set the cohort_client we want this for this column
+          # it will be used to render the corresponding cell
+          cohort_column.cohort_client = cohort_client
+          editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
+          row[cohort_column.column] = {
+            value: cohort_column.display_read_only(current_user),
+            renderer: cohort_column.renderer,
+            cohort_client_id: cohort_client.id,
+            comments: cohort_column.comments,
+            editable: editable,
+          }
+          if cohort_column.column == 'meta'
+            row[cohort_column.column].merge!(cohort_column.metadata)
           end
-          cohort_client_data
         end
-      
-        data << cohort_client_data
+        data << row
       end
       return data
     end
@@ -107,6 +90,7 @@ module Cohorts
     def show
       respond_to do |format|
         format.json do
+          set_cohort_clients
           render json: @client.attributes.merge(updated_at_i: @client.updated_at.to_i)
         end
       end
@@ -129,7 +113,7 @@ module Cohorts
       elsif @population
         # Force service to fall within the correct age ranges for some populations
         service_scope = :current_scope
-        if ['youth', 'children'].include? @population 
+        if ['youth', 'children'].include? @population
           service_scope = @population
         elsif @population == 'parenting_children'
           service_scope = :children
@@ -164,7 +148,7 @@ module Cohorts
             population = @actives[:actives_population]
             # Force service to fall within the correct age ranges for some populations
             service_scope = :current_scope
-            if ['youth', 'children'].include? population 
+            if ['youth', 'children'].include? population
               service_scope = population
             elsif population == 'parenting_children'
               service_scope = :children
@@ -175,8 +159,8 @@ module Cohorts
             end
 
             enrollment_scope = enrollment_scope.with_service_between(
-              start_date: @actives[:start], 
-              end_date: @actives[:end], 
+              start_date: @actives[:start],
+              end_date: @actives[:end],
               service_scope: service_scope
             )
             if @actives[:actives_population].present?
@@ -185,7 +169,7 @@ module Cohorts
           end
           # Active record seems to have trouble with the complicated nature of this scope
           @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
-          
+
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map{|m| m[/\d+/].to_i}
         @clients = client_scope.where(id: @client_ids)
@@ -207,7 +191,7 @@ module Cohorts
     end
 
     def load_cohort_names
-      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
       map do |id, name, short_name|
         [id, short_name.presence || name]
       end.to_h
@@ -218,14 +202,23 @@ module Cohorts
     end
 
     def create
-      if cohort_params[:client_ids].present?
-        cohort_params[:client_ids].split(',').map(&:strip).compact.each do |id|
-          create_cohort_client(@cohort.id, id.to_i)
-        end
-      elsif cohort_params[:client_id].present?
-        create_cohort_client(@cohort.id, cohort_params[:client_id].to_i)
-      end
-      flash[:notice] = "Clients updated for #{@cohort.name}"
+      client_ids = cohort_params[:client_ids]
+      # Add all of the cohort clients quickly with no data
+      incoming = client_ids.split(',').map(&:to_i)
+      existing = cohort_client_source.with_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
+      needed = incoming - existing
+      to_add = needed.map{|id| [id, @cohort.id, Time.now, Time.now]}
+      cohort_client_source.new.insert_batch(
+        cohort_client_source,
+        [:client_id, :cohort_id, :created_at, :updated_at],
+        to_add
+      )
+      to_restore = incoming & cohort_client_source.only_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
+      cohort_client_source.only_deleted.where(cohort_id: @cohort.id, client_id: to_restore).update_all(deleted_at: nil)
+
+      # Go back and get set the data for each client
+      AddCohortClientsJob.perform_later(@cohort.id, client_ids, current_user.id)
+      flash[:notice] = "#{pluralize(needed.count + to_restore.count, 'Client')} added to #{@cohort.name}; Some client data won't be available immediately, but will show up in a few minutes."
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 
@@ -252,41 +245,25 @@ module Cohorts
           end
           format.js do
             @response = {
-              alert: :success, 
-              message: 'Saved', 
-              updated_at: @client.updated_at.to_i, 
+              alert: :success,
+              message: 'Saved',
+              updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
             render json: @response and return
           end
           format.json do
             @response = {
-              alert: :success, 
-              message: 'Saved', 
-              updated_at: @client.updated_at.to_i, 
+              alert: :success,
+              message: 'Saved',
+              updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
             render json: @response and return
           end
-        end        
+        end
       else
         render json: {alert: :danger, message: 'Unable to save change'}
-      end
-    end
-
-    def create_cohort_client(cohort_id, client_id)
-      ch = cohort_client_source.with_deleted.
-        where(cohort_id: cohort_id, client_id: client_id).first_or_initialize
-      ch.deleted_at = nil
-      cohort_source.available_columns.each do |column|
-        if column.has_default_value?
-          column.cohort = @cohort
-          ch[column.column] = column.default_value(client_id)
-        end
-      end
-      if ch.changed? || ch.new_record?
-        ch.save
-        log_create(cohort_id, ch.id)
       end
     end
 
@@ -354,7 +331,7 @@ module Cohorts
         user_id: current_user.id,
         change: 'create',
         changed_at: Time.now,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -366,7 +343,7 @@ module Cohorts
         change: 'destroy',
         changed_at: Time.now,
         reason: reason,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -377,7 +354,7 @@ module Cohorts
         user_id: current_user.id,
         change: 'activate',
         changed_at: Time.now,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -388,7 +365,7 @@ module Cohorts
         user_id: current_user.id,
         change: 'deactivate',
         changed_at: Time.now,
-      }      
+      }
       cohort_client_changes_source.create(attributes)
     end
 
@@ -399,14 +376,14 @@ module Cohorts
       if @cohort.only_window
         client_source.destination.
           where(
-            GrdaWarehouse::WarehouseClient.joins(:data_source). 
+            GrdaWarehouse::WarehouseClient.joins(:data_source).
             where(ds_t[:visible_in_window].eq(true)).
             where(wc_t[:destination_id].eq(c_t[:id])).
-            exists 
+            exists
           )
       else
         client_source.destination
-      end  
+      end
     end
 
     def client_source

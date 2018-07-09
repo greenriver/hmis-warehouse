@@ -3,8 +3,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :veteran
     attribute :title, String, lazy: true, default: 'Veteran'
 
-
-    def value(cohort_client)
+    def value(cohort_client) # OK
       cohort_client.client.veteran?
     end
   end

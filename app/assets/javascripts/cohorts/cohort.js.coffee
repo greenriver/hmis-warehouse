@@ -24,6 +24,7 @@ class App.Cohorts.Cohort
     @updated_ats = options['updated_ats']
     @search_selector = options['search_selector']
     @search_actions_selector = options['search_actions_selector']
+    @population = options['population']
 
     # Testing
     # @client_count = 15
@@ -35,7 +36,7 @@ class App.Cohorts.Cohort
     @raw_data = []
 
     @initialize_handsontable()
-    
+
     @load_pages()
     @listen_for_page_resize()
 
@@ -46,7 +47,7 @@ class App.Cohorts.Cohort
     @initial_sort = {column: 1, sortOrder: direction}
     @current_sort = Object.assign({}, @initial_sort)
     @add_sort_options()
-    @table = new Handsontable $(@table_selector)[0], 
+    @table = new Handsontable $(@table_selector)[0],
       rowHeaders: true
       colHeaders: @column_headers
       correctFormat: true
@@ -61,7 +62,7 @@ class App.Cohorts.Cohort
       comments: true
       afterChange: @after_change
       beforeChange: @before_change
-  
+
   add_sort_options:  =>
     for column in @column_options
       if column.type == 'checkbox'
@@ -152,9 +153,9 @@ class App.Cohorts.Cohort
       @enable_searching()
       @refresh_rate = 10000
       setInterval @check_for_new_data, @refresh_rate
-      
+
       # console.log @raw_data
-      
+
       @set_rank_order()
       @table.render()
     )
@@ -215,13 +216,16 @@ class App.Cohorts.Cohort
         m['column'] = column
         m
       [client]
-    
+
   load_page: () =>
     @current_page += 1
     url =  "#{@client_path}.json?page=#{@current_page}&per=#{@batch_size}&content=true"
     if @include_inactive
       url += "&inactive=true"
-    if @current_page > @pages + 1 
+    if @population?
+      url += "&population=#{@population}"
+
+    if @current_page > @pages + 1
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
     $.get({url: url}).done(@save_batch).then(@load_page)
@@ -233,7 +237,7 @@ class App.Cohorts.Cohort
 
   reinitialize_js: () ->
     $('[data-toggle="tooltip"]').tooltip();
-  
+
   listen_for_page_resize: () =>
     $(window).resize () =>
       @table.render()
@@ -249,7 +253,7 @@ class App.Cohorts.Cohort
   before_edit: (changes, source) =>
     # an array of changes (only ever one for us)
     # changes[0][3] holds new value
-    [row, col, original, current] = changes[0] 
+    [row, col, original, current] = changes[0]
     return if original == current
     physical_index = @table.sortIndex[row][0]
     meta = @raw_data[physical_index].meta
@@ -257,7 +261,8 @@ class App.Cohorts.Cohort
     cohort_column_column = col.replace('.value', '')
     column = @deep_find(@raw_data[physical_index], cohort_column_column)
     # If this is a date field, attempt to catch some common formats
-    if column.renderer == 'date'
+    console.log
+    if column.renderer == 'date' && current.length > 0
        current = moment(current).format('ll')
        @table.setDataAtRowProp(row, col, current)
        changes[0][3] = current
@@ -296,7 +301,7 @@ class App.Cohorts.Cohort
           url : "#{url}.js",
           type: method,
           data: data,
-          dataType: 'json' 
+          dataType: 'json'
         }
 
         $.ajax(options).complete (jqXHR) =>
@@ -312,12 +317,12 @@ class App.Cohorts.Cohort
           @table_data[physical_index][col] = current
           # console.log "saved", row, col, original, current, physical_index
 
-          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 0;'>#{alert_text}</div>"
+          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 70px; z-index: 1500;'>#{alert_text}</div>"
           $('.utility .alert').remove()
           $('.utility').append(alert)
           $('.utility .alert').delay(2000).fadeOut(250)
 
-  check_for_new_data: =>    
+  check_for_new_data: =>
     $.get @check_url, (data) =>
       # console.log 'checking', @updated_ats
       changed = false
@@ -330,7 +335,7 @@ class App.Cohorts.Cohort
       if changed
         # console.log 'Setting new updated ats'
         @updated_ats = data
-          
+
   reload_client: (cohort_client_id) =>
     url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
     $.get url, (data) =>
@@ -348,10 +353,9 @@ class App.Cohorts.Cohort
       sort_column = @table.sortColumn
       sort_direction = @table.sortOrder
       sorting = {column: sort_column, sortOrder: sort_direction}
-      
+
       @table.updateSettings
         cells: (row, col, prop) =>
           @format_cells(row, col, prop, @cell_metadata, @table)
         columnSorting: sorting
       @table.render()
-

@@ -1,8 +1,9 @@
-- if can_view_clients? || can_edit_clients? || can_search_window?
+- if can_view_clients? || can_edit_clients? || can_search_window? || can_manage_cohorts? || can_edit_cohort_clients? || can_edit_assigned_cohorts? || can_view_assigned_cohorts?
   %ul.o-menu__group.list-unstyled
-    %li.o-menu__item
-      = link_to assigned_clients_path, class: 'o-menu__link' do
-        = _('My Clients')
+    - if can_view_clients? || can_edit_clients? || can_search_window?
+      %li.o-menu__item
+        = link_to assigned_clients_path, class: 'o-menu__link' do
+          = _('My Clients')
     - if can_view_clients? || can_edit_clients?
       %li.o-menu__item
         = link_to clients_path, class: 'o-menu__link' do

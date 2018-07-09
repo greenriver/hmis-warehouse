@@ -5,7 +5,7 @@ module Export::HMISSixOneOne::Shared
   included do
     include NotifierConfig
     include ArelHelper
-    
+
     # Date::DATE_FORMATS[:default] = "%Y-%m-%d"
     # Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
     # DateTime::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
@@ -17,7 +17,7 @@ module Export::HMISSixOneOne::Shared
     end
   end
 
-  def export_to_path export_scope:, path:, export: 
+  def export_to_path export_scope:, path:, export:
     reset_lookups()
     export_path = File.join(path, self.class.file_name)
     export_id = export.export_id
@@ -29,7 +29,7 @@ module Export::HMISSixOneOne::Shared
 
       columns = columns_to_pluck
 
-      # Find all of the primary ids 
+      # Find all of the primary ids
       # It is much faster to do the complicated query with correlated sub-queries once
       # and pluck the ids to conserve memory, and then go back and pull the correct records
       # by id, than it is to loop over batches that each have to re-calculate the sub-queries
@@ -65,22 +65,22 @@ module Export::HMISSixOneOne::Shared
   # Override as necessary
   def clean_row(row:, export:, data_source_id:)
     # Override source IDs with WarehouseIDs where they come from other tables
-    
-    # ProjectEntryID needs to go before PersonalID because it
+
+    # EnrollmentID needs to go before PersonalID because it
     # needs access to the source client
-    if row[:ProjectEntryID].present?
-      row[:ProjectEntryID] = enrollment_export_id(row[:ProjectEntryID], row[:PersonalID], data_source_id)
+    if row[:EnrollmentID].present?
+      row[:EnrollmentID] = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
     end
     if row[:PersonalID].present?
       row[:PersonalID] = client_export_id(row[:PersonalID])
     end
     if row[:ProjectID].present?
-      row[:ProjectID] = project_export_id(row[:ProjectID], data_source_id) 
+      row[:ProjectID] = project_export_id(row[:ProjectID], data_source_id)
     end
     if row[:OrganizationID].present?
-      row[:OrganizationID] = organization_export_id(row[:OrganizationID], data_source_id) 
+      row[:OrganizationID] = organization_export_id(row[:OrganizationID], data_source_id)
     end
-    
+
     if export.faked_pii
       export.fake_data.fake_patterns.keys.each do |k|
         if row[k].present?
@@ -114,7 +114,7 @@ module Export::HMISSixOneOne::Shared
       else
         self.class.arel_table[k].as("#{k}_".to_s).to_sql
       end
-    end 
+    end
     @columns_to_pluck << :data_source_id
     return @columns_to_pluck
   end
@@ -150,8 +150,8 @@ module Export::HMISSixOneOne::Shared
     export_scope = export_scope.joins(join_tables)
 
     export_to_path(
-      export_scope: export_scope, 
-      path: path, 
+      export_scope: export_scope,
+      path: path,
       export: export
     )
   end
@@ -164,8 +164,8 @@ module Export::HMISSixOneOne::Shared
       export_scope = self.class.where(project_exits_for_model(project_scope)).modified_within_range(range: (export.start_date..export.end_date))
     end
     export_to_path(
-      export_scope: export_scope, 
-      path: path, 
+      export_scope: export_scope,
+      path: path,
       export: export
     )
   end
@@ -176,7 +176,7 @@ module Export::HMISSixOneOne::Shared
     if self.is_a? GrdaWarehouse::Hud::Enrollment
       return project_entry_id
     end
-    @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:ProjectEntryID, :PersonalID, :data_source_id, :id).
+    @enrollment_lookup ||= GrdaWarehouse::Hud::Enrollment.pluck(:EnrollmentID, :PersonalID, :data_source_id, :id).
       map do |e_id, pers_id, ds_id, id|
         [[e_id, pers_id, ds_id], id]
       end.to_h
@@ -205,7 +205,7 @@ module Export::HMISSixOneOne::Shared
       end.to_h
     @organization_lookup[[organization_id, data_source_id]]
   end
-  
+
   def client_export_id personal_id
     # lookup by warehouse client connection
     if self.is_a? GrdaWarehouse::Hud::Client
@@ -223,10 +223,10 @@ module Export::HMISSixOneOne::Shared
         GrdaWarehouse::Hud::Client.source.
           joins(:warehouse_client_source).
           pluck(
-            :PersonalID, 
+            :PersonalID,
             wc_t[:destination_id].as('destination_id').to_sql
-          ).to_h 
-      end       
+          ).to_h
+      end
     end
     @client_lookup[personal_id]
   end
@@ -241,7 +241,7 @@ module Export::HMISSixOneOne::Shared
   def enrollment_exists_for_model enrollment_scope
     enrollment_scope.where(
       e_t[:PersonalID].eq(self.class.arel_table[:PersonalID]).
-      and(e_t[:ProjectEntryID].eq(self.class.arel_table[:ProjectEntryID])).
+      and(e_t[:EnrollmentID].eq(self.class.arel_table[:EnrollmentID])).
       and(e_t[:data_source_id].eq(self.class.arel_table[:data_source_id]))
     ).exists
   end

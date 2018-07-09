@@ -14,7 +14,10 @@ module CohortColumns
         'SSVF - NECHV', 
         'SSVF - VOA', 
         'VASH', 
-        'VWH'
+        'VWH',
+        'RRH',
+        'Safe Haven',
+        'Chronic Working Group',
       ]
     end
   end

@@ -9,23 +9,48 @@ module GrdaWarehouse::Hud
     has_paper_trail
 
     def self.hud_csv_headers(version: nil)
-      [
-        "ProjectID",
-        "OrganizationID",
-        "ProjectName",
-        "ProjectCommonName",
-        "ContinuumProject",
-        "ProjectType",
-        "ResidentialAffiliation",
-        "TrackingMethod",
-        "TargetPopulation",
-        "PITCount",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+      case version
+      when '5.1'
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID
+        ].freeze
+      else
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :OperatingStartDate,
+          :OperatingEndDate,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :VictimServicesProvider,
+          :HousingType,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
    include Filterable
@@ -76,14 +101,14 @@ module GrdaWarehouse::Hud
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_belongs(Export), inverse_of: :projects
 
-    has_and_belongs_to_many :project_groups, 
+    has_and_belongs_to_many :project_groups,
       class_name: GrdaWarehouse::ProjectGroup.name,
       join_table: :project_project_groups
 
     has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
     has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
     has_many :project_cocs, **hud_many(ProjectCoc), inverse_of: :project
-    has_many :sites, through: :project_cocs, source: :sites
+    has_many :geographies, through: :project_cocs, source: :geographies
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :project
     has_many :income_benefits, through: :enrollments, source: :income_benefits
     has_many :disabilities, through: :enrollments, source: :disabilities
@@ -114,7 +139,7 @@ module GrdaWarehouse::Hud
     scope :hud_residential, -> do
       where(self.project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
     end
-    scope :non_residential, -> do 
+    scope :non_residential, -> do
       where.not(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
     end
     scope :hud_non_residential, -> do
@@ -165,14 +190,14 @@ module GrdaWarehouse::Hud
     end
 
     # NOTE: Careful, this returns duplicates as it joins inventories.
-    # You may want to tack on a distinct, depending on what you need. 
+    # You may want to tack on a distinct, depending on what you need.
     scope :serves_families, -> do
       where(
         id: GrdaWarehouse::Hud::Project.joins(:inventories).
           merge(GrdaWarehouse::Hud::Inventory.serves_families).
           distinct.select(:id)
       )
-      
+
     end
     def serves_families?
       if @serves_families.blank?
@@ -433,10 +458,10 @@ module GrdaWarehouse::Hud
         grant_start_date:    f_t[:StartDate],
         grant_end_date:      f_t[:EndDate],
         coc_code:            pc_t[:CoCCode],
-        hud_geocode:         site_t[:Geocode],
+        hud_geocode:         g_t[:Geocode],
         current_continuum_project: p_t[:ContinuumProject],
       }
-      projects = joins( :funders, :organization, :project_cocs, :sites ).
+      projects = joins( :funders, :organization, :project_cocs, :geographies ).
         order( arel_table[:ProjectID], pc_t[:CoCCode], f_t[:FunderID] ).
         where( pc_t[:CoCCode].in coc_codes )
       spec.each do |header, selector|
@@ -502,7 +527,7 @@ module GrdaWarehouse::Hud
               else
                 i.send(attr)
               end
-            end 
+            end
           end
         end
       end
@@ -516,7 +541,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Sometimes all we have is a name, we still want to try and 
+    # Sometimes all we have is a name, we still want to try and
     # protect those
     def self.confidentialize(name:)
       @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).
@@ -543,12 +568,12 @@ module GrdaWarehouse::Hud
     end
 
     def main_population
-      if serves_families? 
-        'Family' 
+      if serves_families?
+        'Family'
       elsif serves_children?
         'Children'
-      else 
-        'Individuals' 
+      else
+        'Individuals'
       end
     end
 

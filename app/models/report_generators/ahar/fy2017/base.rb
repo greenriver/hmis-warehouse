@@ -1,21 +1,21 @@
 # Notes: see https://www.pivotaltracker.com/file_attachments/68760691/download for spec
 # For each of the SUB_TYPES we need to answer the GLOBAL_QUESTIONS and the specific questions.
 # In addition, we need to answer the summary questions as their own category
-# 
-# In Rails console: 
+#
+# In Rails console:
 # load 'app/models/report_generators/ahar/fy2017/ahar.rb'
 # answers = ReportGenerators::Ahar::Fy2017::Base.new.run!
 
 # Definitions
 # LTS: Long Term Stayers - 180 days within report range
-# 
+#
 # HMIS terms
 # http://www.hudhdx.info/Resources/Vendors/4_0/docs/HUD_HMIS_xsd.html
-# 
+#
 
 module ReportGenerators::Ahar::Fy2017
   class Base
-    include ArelHelper 
+    include ArelHelper
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
 
@@ -27,7 +27,7 @@ module ReportGenerators::Ahar::Fy2017
       end
     end
     TH = [2]
-    ES = [1] 
+    ES = [1]
     ADULT = 18
 
     SUB_TYPES = ['ES-FAM', 'ES-IND', 'PSH-FAM', 'PSH-IND', 'TH-FAM', 'TH-IND']
@@ -79,7 +79,7 @@ module ReportGenerators::Ahar::Fy2017
       @report_end ||= '2016-10-01'
       # Find the first queued report
       report = ReportResult.where(report: report_class.first).where(percent_complete: 0, job_status: nil).first
-      return unless report.present? 
+      return unless report.present?
       log "Starting report #{report.report.name}"
       report.update(percent_complete: 0.01)
 
@@ -135,17 +135,17 @@ module ReportGenerators::Ahar::Fy2017
       ]
       # save our progress
       answer_methods.each_with_index do |method, i|
-        percent = ((i/answer_methods.size.to_f)* 100) 
+        percent = ((i/answer_methods.size.to_f)* 100)
         percent = 0.01 if percent == 0
         Rails.logger.info "Starting #{method}, #{percent.round(2)}% complete"
         report.update(percent_complete: percent)
         GC.start
-        
+
         # Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
         self.send(method)
         Rails.logger.info "Completed #{method}"
       end
-      
+
       report.update(percent_complete: 100, results: @answers, original_results: @answers, validations: @validations, support: @support, completed_at: Time.now)
       log "Completed report #{report.report.name}"
       return @answers
@@ -154,7 +154,7 @@ module ReportGenerators::Ahar::Fy2017
     # These are not exhaustive, but provide some simple sanity checks
     def validate_answers
       @answers.each do |sub_type, answers|
-        
+
         undup_count = answers['Undup_Pers_H'].presence
         adults = 0
         children = 0
@@ -233,7 +233,7 @@ module ReportGenerators::Ahar::Fy2017
             @validations[sub_type]['age'] = "Sum of answers for Clients by Age Age_* (#{current_count}) should equal the unduplicated client count (#{undup_count})"
           end
         end
-        
+
         # validate the sum of prior living situations for individuals is equal to the unduplicated count
         if answers['Lvn_B4_Prg_Ent_ES'].present? && sub_type.include?('IND')
           @validations[sub_type] ||= {}
@@ -377,11 +377,11 @@ module ReportGenerators::Ahar::Fy2017
         when ["ES-FAM"]
           @answers['Summary']['Pers_only_EF'] += 1
         when ["ES-IND"]
-          @answers['Summary']['Pers_only_EI'] += 1 
+          @answers['Summary']['Pers_only_EI'] += 1
         when ["TH-IND"]
           @answers['Summary']['Pers_only_TI'] += 1
         when ["TH-FAM"]
-          @answers['Summary']['Pers_only_TF'] += 1        
+          @answers['Summary']['Pers_only_TF'] += 1
         end
       end
     end
@@ -390,23 +390,23 @@ module ReportGenerators::Ahar::Fy2017
       entries_by_client_id.each do |id, entries|
         next unless vet_check(client_id: id)
         gender = gender_code(client_metadata_by_client_id[id][client_gender_index], false).gsub('Mx_Gnd', 'MX')
-        
+
         psh_ind_stays = entries.select do |e|
           psh = self.class.ph.include?(e[service_history_project_type_index])
           family = entry_belongs_to_family(e)
-          # Pick any PSH stays where the client was not in a family 
+          # Pick any PSH stays where the client was not in a family
           psh && ! family
         end
         most_recent_psh_ind_stay = psh_ind_stays.last
-        
+
         psh_fam_stays = entries.select do |e|
           psh = self.class.ph.include?(e[service_history_project_type_index])
           family = entry_belongs_to_family(e)
-          # Pick any PSH stays where the client was in a family 
+          # Pick any PSH stays where the client was in a family
           psh && family
         end
         most_recent_psh_fam_stay = psh_fam_stays.last
-        
+
         # PSH IND
         if most_recent_psh_ind_stay.present? && most_recent_psh_ind_stay.any?
           psh_ind_life_stage = stage_in_life(id, psh_ind_stays.first)
@@ -458,7 +458,7 @@ module ReportGenerators::Ahar::Fy2017
             @answers['PSH-FAM'][slug] += 1
           end
         end
-      end 
+      end
     end
 
     def add_psh_entry_exit_answers
@@ -520,7 +520,7 @@ module ReportGenerators::Ahar::Fy2017
       end
     end
 
-    # Find distinct (PSH, destination) enrollments for each client 
+    # Find distinct (PSH, destination) enrollments for each client
     # def add_psh_destination_answers
     #   entries_by_client_id.each do |id, entries|
     #     destinations = entries.map do |e|
@@ -544,7 +544,7 @@ module ReportGenerators::Ahar::Fy2017
     # HH_Typ_UY - Unacommpanied child, presenting as an individual
     # HH_Typ_C_Only - Children only, any number
     # HH_Typ_A_Only - Adults only, more than one
-    # 
+    #
     # ... (See documentation)
     #
     # Child < 18
@@ -555,7 +555,7 @@ module ReportGenerators::Ahar::Fy2017
       entries_by_client_id.each do |client_id, entries|
         next unless vet_check(client_id: client_id)
         gender = gender_code(client_metadata_by_client_id[client_id][client_gender_index], false)
-        
+
         entries.each do |entry|
           # We only care about non-families
           household_id = entry[service_history_household_id_index]
@@ -596,7 +596,7 @@ module ReportGenerators::Ahar::Fy2017
                   household_type_slug = 'HH_Typ_Mx'
                 end
               end
-              
+
               @answers[the_sub_type][household_type_slug] += 1
               counted_clients << [client_id, the_sub_type]
             end
@@ -800,7 +800,7 @@ module ReportGenerators::Ahar::Fy2017
       entries_by_client_id.each do |client_id, entries|
         next unless vet_check(client_id: client_id)
         unknown_lengths = Set.new
-        entries.each do |entry|   
+        entries.each do |entry|
           family = entry_belongs_to_family(entry)
           the_sub_type = sub_type(entry[service_history_project_type_index], family)
           # make sure the client has a record in this sub-type so we don't include them
@@ -886,7 +886,7 @@ module ReportGenerators::Ahar::Fy2017
         end
       fam_wheres = []
       fam_ids_by_ds.each do |ds_id, values|
-        # values consists of 
+        # values consists of
         # [household_id, data_source_id]
         fam_wheres << sh_t[:data_source_id].eq(ds_id).and(sh_t[:household_id].in(values.map(&:first))).to_sql
         # "([warehouse_client_service_history].data_source_id = #{ds_id} and household_id in ('#{values.map(&:first).join("','")}'))"
@@ -933,7 +933,7 @@ module ReportGenerators::Ahar::Fy2017
             row = ["#{slug}-FAM", project_name, project_id, ds_id]
             project_counts[row] ||= Set.new
             project_counts[row] << sh[service_history_client_id_index]
-          end  
+          end
           # Count unique clients served as families on each day
           family_served = family_served_data.map do |sh|
             [sh[service_history_client_id_index], sh[service_history_date_index]]
@@ -956,7 +956,7 @@ module ReportGenerators::Ahar::Fy2017
             ! all_vets.include?(row[service_history_client_id_index])
           end
         end
-        
+
         individuals_served_data.each do |sh|
           project_name = sh[service_history_project_name_index]
           project_id = sh[service_history_project_id_index]
@@ -1006,7 +1006,7 @@ module ReportGenerators::Ahar::Fy2017
             project_counts[row] ||= Set.new
             project_counts[row] << m[service_history_client_id_index]
             row
-        end.uniq.map do |sub_type, project_id, ds_id| 
+        end.uniq.map do |sub_type, project_id, ds_id|
           project_name = GrdaWarehouse::Hud::Project
             .where(data_source_id: ds_id, ProjectID: project_id)
             .first.ProjectName
@@ -1036,7 +1036,7 @@ module ReportGenerators::Ahar::Fy2017
         client = client_metadata_by_client_id[id]
         veteran_status = client[client_veteran_status_index]
         veteran = veteran_slug(veteran_status)
-        
+
         distinct_sub_types = entries.map do |entry|
           project_type = entry[service_history_project_type_index]
           family = entry_belongs_to_family(entry)
@@ -1063,7 +1063,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     # Per the error reports:
-    # The sum of all prior living situations (Lvn_B4_Prg_Ent_*) 
+    # The sum of all prior living situations (Lvn_B4_Prg_Ent_*)
     # should equal the sum of all unduplicated clients
     # This implies that we only:
     #   1. count all clients
@@ -1120,11 +1120,11 @@ module ReportGenerators::Ahar::Fy2017
             @support[the_sub_type][household_size_slug(size)][:headers] ||= ['Client ID', 'Last Name', 'First Name', 'Household ID', 'Data Source ID', 'Project ID']
             @support[the_sub_type][household_size_slug(size)][:counts] ||= []
             @support[the_sub_type][household_size_slug(size)][:counts] << [
-              client_id, 
+              client_id,
               client[client_last_name_index],
               client[client_first_name_index],
-              household_id, 
-              data_source_id, 
+              household_id,
+              data_source_id,
               project_id
             ]
           end
@@ -1134,7 +1134,7 @@ module ReportGenerators::Ahar::Fy2017
 
     def add_gender_answers
       entries_by_client_id.each do |id, entries|
-        next unless vet_check(client_id: id)      
+        next unless vet_check(client_id: id)
         distinct_project_types = entries.map do |m|
           project_type = m[service_history_project_type_index]
           family = entry_belongs_to_family(m)
@@ -1178,7 +1178,7 @@ module ReportGenerators::Ahar::Fy2017
     def add_disability_answers
       entries_by_client_id.each do |id, entries|
         next unless vet_check(client_id: id)
-        disability = disability_slug(entries) 
+        disability = disability_slug(entries)
         distinct_project_types = entries.map do |m|
           project_type = m[service_history_project_type_index]
           family = entry_belongs_to_family(m)
@@ -1197,7 +1197,7 @@ module ReportGenerators::Ahar::Fy2017
     # number of people served at HMIS participating providers broken down by age
     def add_age_answers
       entries_by_client_id.each do |id, entries|
-        next unless vet_check(client_id: id)    
+        next unless vet_check(client_id: id)
         distinct_project_types = entries.map do |m|
           project_type = m[service_history_project_type_index]
           family = entry_belongs_to_family(m)
@@ -1221,9 +1221,9 @@ module ReportGenerators::Ahar::Fy2017
         end
       end
     end
-    
-    def veteran_slug code 
-      case code 
+
+    def veteran_slug code
+      case code
       when 1
         'Vet'
       when 99
@@ -1274,7 +1274,7 @@ module ReportGenerators::Ahar::Fy2017
         slug = 'Nat_Haw_Oth_Pac'
         multi += 1
       end
-      if client[client_white_index] == 1 
+      if client[client_white_index] == 1
         if client[client_ethnicity_index] == 1 # Hispanic/Latino
           slug = 'Wh_His_Lat'
         else
@@ -1323,7 +1323,7 @@ module ReportGenerators::Ahar::Fy2017
         disability_status = 'Disabled_Mx'
         # If we answered Universal Data Element: 3.8 Disabling Condition, use that
         if involved_enrollments_by_entry_id_and_data_source_id[[enrollment_group_id, data_source_id]].present?
-          disability_status = HUD::no_yes_reasons_for_missing_data(involved_enrollments_by_entry_id_and_data_source_id[[enrollment_group_id, data_source_id]][enrollment_disabling_condition_index])         
+          disability_status = HUD::no_yes_reasons_for_missing_data(involved_enrollments_by_entry_id_and_data_source_id[[enrollment_group_id, data_source_id]][enrollment_disabling_condition_index])
         end
         # Override the previous answer with a YES if:
         # The previous answer was unknown or no
@@ -1346,7 +1346,7 @@ module ReportGenerators::Ahar::Fy2017
           return 'Disabled_No'
         end
       end
-      # If we didn't find a yes or a know, then we don't know   
+      # If we didn't find a yes or a know, then we don't know
       return 'Disabled_Mx'
     end
 
@@ -1380,7 +1380,7 @@ module ReportGenerators::Ahar::Fy2017
         'Ethn_Mx'
       end
     end
-    
+
     def sub_type project_type, family
       suffix = 'IND'
       if family
@@ -1443,7 +1443,7 @@ module ReportGenerators::Ahar::Fy2017
       end
     end
 
-    protected def psh_length_of_stay_category days      
+    protected def psh_length_of_stay_category days
       case days
       when (1..180)
         '1_180'
@@ -1464,11 +1464,11 @@ module ReportGenerators::Ahar::Fy2017
 
     protected def length_of_stay_category client_id, days, first_entry
       # Limit days to 365 since that's the reporting window
-      days.size = 365 if days.size > 365 
+      days.size = 365 if days.size > 365
 
       gender = gender_code(client_metadata_by_client_id[client_id][client_gender_index], false)
       life_stage = stage_in_life(client_id, first_entry)
-      
+
       suffix = case days.size
       when (1..7)
         '1_7'
@@ -1501,7 +1501,7 @@ module ReportGenerators::Ahar::Fy2017
       else
         'Mx'
       end
-      
+
       "#{life_stage}_#{gender}_Nt_#{suffix}"
     end
 
@@ -1616,7 +1616,7 @@ module ReportGenerators::Ahar::Fy2017
           entries.each do |e|
             days = dates_served_during_enrollment(entry: e)
             project_type = e[service_history_project_type_index]
-            family = entry_belongs_to_family(e)           
+            family = entry_belongs_to_family(e)
             # Avoid double countingdays within one project type
             m[id][sub_type(project_type, family)] += days
           end
@@ -1636,7 +1636,7 @@ module ReportGenerators::Ahar::Fy2017
         end.
         group_by do |m|
           [m[:client_id], m[:enrollment_group_id]]
-        end    
+        end
       end
       return [] unless @dates_by_client_id_enrollment_id[[client_id, enrollment_group_id]].present?
       @dates_by_client_id_enrollment_id[[client_id, enrollment_group_id]].map{|m| m[:date]}
@@ -1656,7 +1656,7 @@ module ReportGenerators::Ahar::Fy2017
       return 'Age_Mx' unless age.present?
       if age < 1
         'Age_LT_1'
-      elsif age >= 1 && age <= 5 
+      elsif age >= 1 && age <= 5
         'Age_1_5'
       elsif age >= 6 && age <= 12
         'Age_6_12'
@@ -1729,7 +1729,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def clients_by_sub_type
-      @clients_by_sub_type ||= begin 
+      @clients_by_sub_type ||= begin
         by_sub_type = SUB_TYPES.map{|m| [m, Set.new]}.to_h
         entries_by_client_id.each do |id, entries|
           entries.each do |entry|
@@ -1793,8 +1793,8 @@ module ReportGenerators::Ahar::Fy2017
         {}.tap do |m|
           project_entries = involved_entries.map{|m| m[service_history_enrollment_group_id_index]}
           project_entries.each_slice(5000) do |entries|
-            m.merge!(GrdaWarehouse::Hud::Enrollment.where(ProjectEntryID: entries).
-              pluck(*enrollment_columns).index_by do |m| 
+            m.merge!(GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: entries).
+              pluck(*enrollment_columns).index_by do |m|
                 [m[enrollment_project_entry_id_index], m[enrollment_data_source_id_index]]
               end
             )
@@ -1859,7 +1859,7 @@ module ReportGenerators::Ahar::Fy2017
       true
     end
 
-    # get everyone flagged as VeteranStatus = 1 and attempt to limit them 
+    # get everyone flagged as VeteranStatus = 1 and attempt to limit them
     # to people who were 18 in their first enrollment within scope
     def all_vets
       @all_vets ||= client_metadata_by_client_id.select do |id, data|
@@ -1904,9 +1904,9 @@ module ReportGenerators::Ahar::Fy2017
             m.merge!(GrdaWarehouse::Hud::Disability.where(PersonalID: p_ids).pluck(*disability_columns).group_by do |m|
               # group them by their destination client id
               client_id_by_source_client_personal_id_and_data_source[[m[disability_personal_id_index], m[disability_data_source_id_index]]]
-              end){|k,v1,v2| v1 + v2} # merge by adding arrays together 
+              end){|k,v1,v2| v1 + v2} # merge by adding arrays together
           end
-        end              
+        end
       end
     end
 
@@ -1921,37 +1921,37 @@ module ReportGenerators::Ahar::Fy2017
     #     :act_as_project_type,
     #   ]
     # end
-    
+
     def act_as_project_overlay
       pt = GrdaWarehouse::Hud::Project.arel_table
       st = GrdaWarehouse::ServiceHistory.arel_table
       nf( 'COALESCE', [ pt[:act_as_project_type], st[:project_type] ] ).as('project_type').to_sql
     end
 
-    def sh_cols 
+    def sh_cols
       @sh_cols ||= service_history_columns.map{|m| m == :project_type ? act_as_project_overlay : m}
     end
 
     def service_history_columns
       @service_history_columns ||= [
-        :client_id, 
-        :data_source_id, 
-        :date, 
-        :first_date_in_program, 
-        :last_date_in_program, 
-        :enrollment_group_id, 
-        :age, 
-        :destination, 
+        :client_id,
+        :data_source_id,
+        :date,
+        :first_date_in_program,
+        :last_date_in_program,
+        :enrollment_group_id,
+        :age,
+        :destination,
         :head_of_household_id,
-        :household_id, 
-        :project_id, 
-        :project_name, 
-        :project_type, 
-        :project_tracking_method, 
-        :organization_id, 
-        :record_type, 
-        :housing_status_at_entry, 
-        :housing_status_at_exit, 
+        :household_id,
+        :project_id,
+        :project_name,
+        :project_type,
+        :project_tracking_method,
+        :organization_id,
+        :record_type,
+        :housing_status_at_entry,
+        :housing_status_at_exit,
         :service_type,
       ]
     end
@@ -1961,8 +1961,8 @@ module ReportGenerators::Ahar::Fy2017
         :PersonalID,
         :LastName,
         :FirstName,
-        :data_source_id, 
-        :Gender, 
+        :data_source_id,
+        :Gender,
         :VeteranStatus,
         :Ethnicity,
         :AmIndAKNative,
@@ -1977,12 +1977,12 @@ module ReportGenerators::Ahar::Fy2017
 
     def enrollment_columns
       @enrollment_columns ||= [
-        :ProjectEntryID, 
-        :data_source_id, 
-        :ResidencePrior, 
-        :ResidencePriorLengthOfStay,
+        :EnrollmentID,
+        :data_source_id,
+        :LivingSituation,
+        :LengthOfStay,
         :DisablingCondition,
-        :LastPermanentZIP, 
+        :LastPermanentZIP,
         :id,
       ]
     end
@@ -2102,7 +2102,7 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def enrollment_project_entry_id_index
-      @enrollment_project_entry_id_index ||= enrollment_columns.find_index(:ProjectEntryID)
+      @enrollment_project_entry_id_index ||= enrollment_columns.find_index(:EnrollmentID)
     end
 
     def enrollment_data_source_id_index
@@ -2118,11 +2118,11 @@ module ReportGenerators::Ahar::Fy2017
     end
 
     def enrollment_prior_residence_index
-      @enrollment_prior_residence_index ||= enrollment_columns.find_index(:ResidencePrior)
+      @enrollment_prior_residence_index ||= enrollment_columns.find_index(:LivingSituation)
     end
 
     def enrollment_prior_residence_length_of_stay_index
-      @enrollment_prior_residence_length_of_stay_index ||= enrollment_columns.find_index(:ResidencePriorLengthOfStay)
+      @enrollment_prior_residence_length_of_stay_index ||= enrollment_columns.find_index(:LengthOfStay)
     end
 
     def disability_personal_id_index
@@ -2144,7 +2144,7 @@ module ReportGenerators::Ahar::Fy2017
     def disability_indefinite_and_impairs_index
       @disability_indefinite_and_impairs_index ||= disability_columns.find_index(:IndefiniteAndImpairs)
     end
-    
+
 
   end
 end

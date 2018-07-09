@@ -1,6 +1,7 @@
 class CohortsController < ApplicationController
   include PjaxModalController
   include CohortAuthorization
+  include CohortClients
   before_action :some_cohort_access!
   before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
@@ -13,18 +14,16 @@ class CohortsController < ApplicationController
   end
 
   def show
+    params[:population] ||= :active
     load_cohort_names
-    cohort_with_preloads = cohort_scope.where(id: cohort_id).
-      preload(cohort_clients: [:cohort_client_notes, {client: :processed_service_history}])
-    # missing_document_state = @cohort.column_state.detect{|m| m.class == ::CohortColumns::MissingDocuments}
-    @cohort = cohort_with_preloads.first
-    
-    if params[:inactive].present?
-      @cohort_clients = @cohort.cohort_clients.joins(:client)
-    else
-      @cohort_clients = @cohort.cohort_clients.joins(:client).where(active: true)
-    end
-    @cohort_client_updates = @cohort.cohort_clients.map{|m| [m.id, m.updated_at.to_i]}.to_h
+    @cohort = cohort_scope.find(cohort_id)
+    # leave off the pagination here and return all the data
+    @cohort_clients = @cohort.search_clients(
+      inactive:  params[:inactive],
+      population: params[:population],
+    )
+    @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map{|m| [m.id, m.updated_at.to_i]}.to_h
+    @population = params[:population]
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
@@ -50,7 +49,7 @@ class CohortsController < ApplicationController
             options.merge!({type: m.renderer})
           else
             options.merge!({renderer: m.renderer})
-            options.merge!({readOnly: true}) unless m.editable 
+            options.merge!({readOnly: true}) unless m.editable
           end
           options
         end
@@ -108,13 +107,13 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-      @cohort_names = cohort_source.pluck(:id, :name, :short_name).
+      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
       map do |id, name, short_name|
         [id, short_name.presence || name]
       end.to_h
     end
 
-  
+
   def flash_interpolation_options
     { resource_name: @cohort&.name }
   end

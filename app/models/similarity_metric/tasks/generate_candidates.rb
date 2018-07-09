@@ -5,7 +5,7 @@ module SimilarityMetric::Tasks
     end
 
     def run!
-      puts "Generating some match candiates: #{@opts.to_json}..."
+      Rails.logger.info "Generating some match candidates: #{@opts.to_json}..."
       start_time = Time.now
       metrics = SimilarityMetric::Base.usable.all.reject(&:bogus?)
       clients = GrdaWarehouse::Hud::Client
@@ -21,10 +21,10 @@ module SimilarityMetric::Tasks
 
       scope.each do |dest|
         if Time.now > (start_time + @opts[:run_length].to_i.minutes)
-          puts "Ending after #{@opts[:run_length]} minutes"
+          Rails.logger.info "Ending after #{@opts[:run_length]} minutes"
           break
         end
-        print "Checking #{dest.id}..."
+        Rails.logger.info "Checking #{dest.id}..."
         candidates = matches.create_candidates!(dest, threshold: @opts[:threshold], metrics: metrics)
         match = matches.create! do |m|
           m.destination_client_id = dest.id
@@ -32,10 +32,10 @@ module SimilarityMetric::Tasks
           m.status = 'processed_sources'
         end
         if candidates.size == 0
-          print "...none found\n"
+          Rails.logger.info "...none found\n"
         end
         candidates.each do |match|
-          print "...added #{match.source_client_id} #{match.destination_client_id} #{match.score}....\n"
+          Rails.logger.info "...added #{match.source_client_id} #{match.destination_client_id} #{match.score}....\n"
         end
       end
     end

@@ -23,7 +23,7 @@ namespace :grda_warehouse do
     end
 
   end
-  
+
   desc "Empty the GRDA warehouse"
   task clear: [:environment] do
     GrdaWarehouse::Utility.clear!
@@ -164,17 +164,17 @@ namespace :grda_warehouse do
   desc "S3 Import HUD Zips from all Data Sources"
   task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
     hmis_version = args.hmis_version || 'hmis_611'
-      
+
     case hmis_version
     when 'hmis_51'
       Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
 
         options = {
-          data_source_id: conf['data_source_id'], 
-          region: conf['region'], 
-          access_key_id: conf['access_key_id'], 
-          secret_access_key: conf['secret_access_key'], 
-          bucket_name: conf['bucket_name'], 
+          data_source_id: conf['data_source_id'],
+          region: conf['region'],
+          access_key_id: conf['access_key_id'],
+          secret_access_key: conf['secret_access_key'],
+          bucket_name: conf['bucket_name'],
           path: conf['path'],
           file_password: conf['file_password']
         }
@@ -182,13 +182,13 @@ namespace :grda_warehouse do
       end
     else
       Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
-        
+
         options = {
-          data_source_id: conf['data_source_id'], 
-          region: conf['region'], 
-          access_key_id: conf['access_key_id'], 
-          secret_access_key: conf['secret_access_key'], 
-          bucket_name: conf['bucket_name'], 
+          data_source_id: conf['data_source_id'],
+          region: conf['region'],
+          access_key_id: conf['access_key_id'],
+          secret_access_key: conf['secret_access_key'],
+          bucket_name: conf['bucket_name'],
           path: conf['path'],
           file_password: conf['file_password']
         }
@@ -239,6 +239,29 @@ namespace :grda_warehouse do
     end
   end
 
+  # rake grda_warehouse:anonymize_client_names['var/data/IL504']
+  desc "Anonymize all client names in Client.csv"
+  task :anonymize_client_names, [:path] => [:environment, "log:info_to_stdout"] do |task, args|
+    raise 'path is required' unless args.path.present?
+    path = args.path
+    file = File.join(path, 'Client.csv')
+    CSV.open("#{file.gsub('.csv', '.anon.csv')}", 'wb') do |csv|
+      CSV.foreach(file, headers: true) do |row|
+        csv << row.headers() if $. == 2
+        row['FirstName'] = "First_#{row['PersonalID']}"
+        row['LastName'] = "Last_#{row['PersonalID']}"
+
+        # Cleanup Excel's nasty dates
+        unless row['DateCreated'].include?('-')
+          row['DOB'] = Date.strptime(row['DOB'], '%m/%d/%Y')&.strftime('%Y-%m-%d') if row['DOB'].present?
+          row['DateCreated'] = Date.strptime(row['DateCreated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
+          row['DateUpdated'] = Date.strptime(row['DateUpdated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
+        end
+        csv << row
+      end
+    end
+  end
+
   desc "Sanity Check Service History; defaults: n=50"
   task :sanity_check_service_history, [:n] => [:environment, "log:info_to_stdout"] do |task, args|
     n = args.n
@@ -269,4 +292,10 @@ namespace :grda_warehouse do
       app.get(pdf_window_client_history_path(client_id: client.id))
     end
   end
+
+  desc "Warm Cohort Cache"
+  task :warm_cohort_cache, [] => [:environment, "log:info_to_stdout"] do |task, args|
+    GrdaWarehouse::Cohort.prepare_active_cohorts
+  end
+
 end

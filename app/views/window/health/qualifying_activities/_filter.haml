@@ -1,0 +1,18 @@
+.row
+  .col-xs-8
+    %h4
+      Filter by Date
+
+= form_tag(client_health_qualifying_activities_path, method: "get") do  
+  .row
+    .col-sm-12
+      .o-filtration__option-row
+        .input-group.date{data: {provide: :datepicker}}
+          %input.form-control{name: :start_date, type: :text, value: @start_date}
+          %span.input-group-addon.icon-calendar
+        .o-filtration__separator to
+        .input-group.date{data: {provide: :datepicker}}
+          %input.form-control{name: :end_date, type: :text, value: @end_date}
+          %span.input-group-addon.icon-calendar
+        %span.input-group-btn
+          %button.btn.btn-default{type: :submit} Search

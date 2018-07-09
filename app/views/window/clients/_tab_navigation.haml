@@ -1,58 +1,74 @@
-:ruby
-  show_health = @client.show_health_for?(current_user) rescue false
-  show_demographic = @client.show_window_demographic_to?(current_user) rescue false
-  tabs = {
-    polymorphic_path(client_path_generator, id: @client.id) => {
-      title: 'Basic Info & Programs',
-      permission: show_demographic,
-     },
-    polymorphic_path(history_path_generator, client_id: @client) => {
-      title: 'History',
-      permission: show_demographic,
-    },
-    polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
-      title: 'Notes',
-      permission: can_edit_window_client_notes? || can_see_own_window_client_notes?
-    },
-    polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
-      title: 'VI-SPDAT',
-      permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
-    },
-    polymorphic_path(files_path_generator, client_id: @client.id) => {
-      title: 'File Uploads',
-      permission: GrdaWarehouse::ClientFile.any_visible_by?(current_user),
-    },
-    polymorphic_path(users_path_generator, client_id: @client) => {
-      title: 'Relationships',
-      permission: can_assign_users_to_clients?,
-    },
-    polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
-     title: 'Health',
-     permission: show_health,
-    },
-    polymorphic_path(careplan_path_generator, client_id: @client.id) => {
-     title: 'Care Plan',
-     permission: show_health,
-    },
-    polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
-      title: 'Metrics',
-      permission: show_health,
+- unless pjax_request?
+  :ruby
+    show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
+    show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
+    show_demographic = @client.show_window_demographic_to?(current_user) rescue false
+    always_visible = {
+      polymorphic_path(client_path_generator, id: @client.id) => {
+        title: 'Basic Info & Programs',
+        permission: show_demographic,
+       },
     }
-  }
+    hmis = {
+      polymorphic_path(history_path_generator, client_id: @client) => {
+        title: 'History',
+        permission: show_demographic,
+      },
+      polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
+        title: 'Notes',
+        permission: can_edit_window_client_notes? || can_see_own_window_client_notes?
+      },
+      polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
+        title: 'VI-SPDAT',
+        permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
+      },
+      polymorphic_path(files_path_generator, client_id: @client.id) => {
+        title: 'File Uploads',
+        permission: GrdaWarehouse::ClientFile.any_visible_by?(current_user),
+      },
+      polymorphic_path(users_path_generator, client_id: @client) => {
+        title: 'Relationships',
+        permission: can_assign_users_to_clients?,
+      },
+    }
+    health = {
+      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+       title: 'Dashboard',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(careplans_path_generator, client_id: @client.id) => {
+       title: 'Care Plan',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(team_members_path_generator, client_id: @client.id) => {
+        title: 'Team Members',
+        permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
+       title: 'Services',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(goals_path_generator, client_id: @client.id) => {
+        title: 'Goals',
+        permission: show_health_hpc,
+      },
+      polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
+       title: 'Files',
+       permission: show_health_hpc,
+      },
+      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
+       title: 'Dashboard',
+       permission: show_health_pilot,
+      },
+      polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
+       title: 'Care Plan',
+       permission: show_health_pilot,
+      },
+      polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client.id) => {
+        title: 'Metrics',
+        permission: show_health_pilot,
+      }
 
-- can_see_tabs = false
-- tabs.each do |action, details|
-  - if details[:permission]
-    - can_see_tabs = true
+    }
 
-- if can_see_tabs
-  %ul.nav.nav-tabs.margin-bottom-02
-    - tabs.each do |action, details|
-      - if action == current
-        - if details[:permission]
-          %li.active.active-tab{role: 'presentation'}
-            %a{href: '#'}
-              = details[:title]
-      - else
-        - if details[:permission]
-          %li= link_to details[:title], action
+  = render 'window/clients/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

@@ -4,7 +4,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history_enrollments, autosave: false
   belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
   belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
-  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :ProjectEntryID, :ProjectID], autosave: false
+  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
   has_one :source_client, through: :enrollment, source: :client, autosave: false
   has_one :enrollment_coc_at_entry, through: :enrollment, autosave: false
   has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
@@ -78,7 +78,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # This is the old logic, still not completely convinced of the new logic
   # They do differ, but I believe the new logic is more correct
-  scope :old_open_between, -> (start_date:, end_date:) do 
+  scope :old_open_between, -> (start_date:, end_date:) do
     at = arel_table
 
     closed_within_range = at[:last_date_in_program].gt(start_date).
@@ -92,7 +92,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(closed_within_range.or(opened_within_range).or(open_throughout))
   end
 
-  scope :open_between, -> (start_date:, end_date:) do 
+  scope :open_between, -> (start_date:, end_date:) do
     at = arel_table
     # Excellent discussion of why this works:
     # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -118,7 +118,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 
-  scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do 
+  scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do
     if chronic_types_only
       project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     else
@@ -205,7 +205,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     coc_funded.in_coc(coc_code: coc_code)
   end
 
-  # Category 3 is "Homeless only under other federal statuses" and 
+  # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
   scope :category_3, -> do
     where(arel_table[:housing_status_at_entry].eq(5).
@@ -228,7 +228,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
-    where(GrdaWarehouse::ServiceHistoryService.where( 
+    where(GrdaWarehouse::ServiceHistoryService.where(
         shs_t[:service_history_enrollment_id].eq(arel_table[:id])
       ).
       where(date: (start_date..end_date)).
@@ -246,7 +246,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     scope :all_clients, -> do
       all
     end
-    
+
     scope :veteran, -> do
       joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
     end
@@ -308,7 +308,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     # End Standard Cohort Scopes
     #################################
 
-  # Only run this on off-hours.  It can take 2-5 hours and hang 
+  # Only run this on off-hours.  It can take 2-5 hours and hang
   # the database
   def self.reindex_table!
     connection.execute("REINDEX TABLE #{table_name}")

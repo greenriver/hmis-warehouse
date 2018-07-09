@@ -1,0 +1,24 @@
+#summary
+  = render 'patient_status'
+  .ho-patient__container
+    .ho-patient__header.mb-2
+      %h3.ho-patient__name
+        = @patient.client.name
+      .ho-patient__details
+        - @patient_summary[:details].each do |detail|
+          .ho-patient__detail
+            %span= "#{detail[0]}: "
+            = detail[1]
+    .ho-patient__content
+      %h4
+        Demographics
+      %table
+        - @patient_summary[:demographics].each do |row|
+          %tr
+            - row.each do |td|
+              %td
+                %small= "#{td[0]}: "
+                = td[1]
+      %h4
+        Allergies
+      %p{style: 'padding-left: 10px;'}= @patient.allergy_list.presence || 'none'

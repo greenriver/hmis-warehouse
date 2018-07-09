@@ -1,0 +1,15 @@
+%h1
+  = "Comprehensive Health Assessment for #{@client.full_name}"
+
+= render 'window/health/breadcrumbs'
+= render 'window/health/patient_release_status'
+
+%div.text-right
+  = link_to 'Upload a Paper CHA', '#cha-upload', class: 'btn btn-primary upload-cha-btn', :'data-upload-error' => @cha.errors[:file].any?
+.cha-form
+  = render 'form'
+
+= content_for :page_js do
+  :coffeescript
+    if $('.upload-cha-btn').data('upload-error')
+      $('.upload-cha-btn').click()
