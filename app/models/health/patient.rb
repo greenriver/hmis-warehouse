@@ -2,13 +2,13 @@ module Health
   class Patient < Base
 
     acts_as_paranoid
-    has_many :appointments, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :medications, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :problems, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :visits, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :epic_goals, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :epic_case_notes, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :epic_team_members, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_case_notes, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -45,6 +45,7 @@ module Health
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
+    scope :bh_cp, -> { where pilot: false }
 
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
