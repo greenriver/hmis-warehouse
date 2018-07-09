@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180707134347) do
+ActiveRecord::Schema.define(version: 20180709184426) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -283,6 +283,32 @@ ActiveRecord::Schema.define(version: 20180707134347) do
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
+
+  create_table "epic_patients", force: :cascade do |t|
+    t.string   "id_in_source",                             null: false
+    t.string   "first_name"
+    t.string   "middle_name"
+    t.string   "last_name"
+    t.text     "aliases"
+    t.date     "birthdate"
+    t.text     "allergy_list"
+    t.string   "primary_care_physician"
+    t.string   "transgender"
+    t.string   "race"
+    t.string   "ethnicity"
+    t.string   "veteran_status"
+    t.string   "ssn"
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+    t.string   "gender"
+    t.datetime "consent_revoked"
+    t.string   "medicaid_id"
+    t.string   "housing_status"
+    t.datetime "housing_status_timestamp"
+    t.boolean  "pilot",                    default: false, null: false
+    t.integer  "data_source_id",           default: 6,     null: false
+    t.datetime "deleted_at"
+  end
 
   create_table "epic_team_members", force: :cascade do |t|
     t.string   "patient_id",     null: false

@@ -194,6 +194,7 @@ module Health
         engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
+      patient.import_epic_team_members
       if rejected?
         # soft delete
         patient.destroy

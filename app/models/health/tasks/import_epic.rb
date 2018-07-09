@@ -29,10 +29,12 @@ module Health::Tasks
         fetch_files() unless @load_locally
         import_files()
         update_consent()
+        sync_epic_pilot_patients()
         return change_counts()
       end
     end
 
+    # This does not remove any data coming from EPIC, only upsirt
     def import klass:, file:
       path = "#{@config['destination']}/#{file}"
       handle = read_csv_file(path: path)
@@ -48,17 +50,14 @@ module Health::Tasks
           clean_key = klass.csv_map[k.to_sym]
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h.except(nil)
-        # Make note that the import of patients is only functional for the pilot
-        if klass == Health::Patient
-          translated_row[:pilot] = true
-        end
+
         entry = klass.where(klass.csv_map[klass.source_key] => key, data_source_id: @data_source_id).
           first_or_create(translated_row) do |patient|
-          if klass == Health::Patient
+          if klass == Health::EpicPatient
             @new_patients << patient[:id_in_source]
           end
         end
-        changed = entry.updated_at < translated_row[:updated_at] rescue false
+        changed = entry.updated_at < translated_row[:updated_at] || klass == Health::EpicPatient rescue false
         if changed
           entry.update(translated_row)
         end
@@ -81,7 +80,7 @@ module Health::Tasks
 
     # only valid for pilot patients
     def update_consent
-      klass = Health::Patient
+      klass = Health::EpicPatient
       file = Health.model_to_filename(klass)
       path = "#{@config['destination']}/#{file}"
 
@@ -97,6 +96,15 @@ module Health::Tasks
       klass.where(id_in_source: @to_revoke).revoke_consent
       notify "Restoring consent for #{@to_restore.size} patients"
       klass.where(id_in_source: @to_restore).restore_consent
+    end
+
+    # keep pilot patients in sync with epic export
+    def sync_epic_pilot_patients
+      Health::EpicPatient.pilot.each do |ep|
+        patient = Health::Patient.where(id_in_source: ep.id_in_source, data_source_id: ep.data_source_id).first_or_create
+        attributes = ep.attributes.select{|k,_| k.to_sym.in?(Health::EpicPatient.csv_map.values)}
+        patient.update(attributes)
+      end
     end
 
     def fetch_files

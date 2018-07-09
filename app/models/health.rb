@@ -12,7 +12,7 @@ module Health
     {
       'appointments.csv' => Health::Appointment,
       'medications.csv' => Health::Medication,
-      'patients.csv' => Health::Patient,
+      'patients.csv' => Health::EpicPatient,
       'problems.csv' => Health::Problem,
       'recent_visits.csv' => Health::Visit,
       'goals.csv' => Health::EpicGoal,

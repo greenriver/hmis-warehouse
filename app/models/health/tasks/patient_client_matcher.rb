@@ -3,9 +3,9 @@ module Health::Tasks
     def run!
       Rails.logger.info 'Loading unprocessed patients'
       started_at = DateTime.now
-      
+
       unprocessed.each do |patient|
-        match_patient_to_client(patient)
+        match_patient_to_client(patient) if patient.pilot_patient?
       end
       return unmatched()
     end
@@ -56,7 +56,7 @@ module Health::Tasks
       end
     end
 
-    def clients 
+    def clients
       @clients ||= hashed(client_destinations.pluck(*client_columns), client_columns)
     end
 
