@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180709184426) do
+ActiveRecord::Schema.define(version: 20180710000126) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -308,6 +308,7 @@ ActiveRecord::Schema.define(version: 20180709184426) do
     t.boolean  "pilot",                    default: false, null: false
     t.integer  "data_source_id",           default: 6,     null: false
     t.datetime "deleted_at"
+    t.date     "death_date"
   end
 
   create_table "epic_team_members", force: :cascade do |t|
@@ -524,6 +525,7 @@ ActiveRecord::Schema.define(version: 20180709184426) do
     t.date     "engagement_date"
     t.integer  "care_coordinator_id"
     t.datetime "deleted_at"
+    t.date     "death_date"
   end
 
   create_table "problems", force: :cascade do |t|

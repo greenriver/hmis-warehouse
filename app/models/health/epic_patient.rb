@@ -67,6 +67,7 @@ module Health
         race: :race,
         ethnicity: :ethnicity,
         vet_status: :veteran_status,
+        death_date: :death_date,
         ssn: :ssn,
         row_created: :created_at,
         row_updated: :updated_at,
