@@ -5,14 +5,14 @@ module Health::Tasks
       started_at = DateTime.now
 
       unprocessed.each do |patient|
-        match_patient_to_client(patient) if patient.pilot_patient?
+        match_patient_to_client(patient)
       end
       return unmatched()
     end
 
     # figure out who doesn't yet have an entry in warehouse clients
     def unprocessed
-      @unprocessed ||= hashed(Health::Patient.unprocessed.pluck(*patient_columns), patient_columns)
+      @unprocessed ||= hashed(Health::Patient.pilot.unprocessed.pluck(*patient_columns), patient_columns)
     end
 
     def unmatched
