@@ -163,7 +163,10 @@ module GrdaWarehouse::Hud
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
 
     def active_cohorts
-      cohort_clients.select{|cc| cc.active? && cc.cohort&.active?}.map(&:cohort).compact.uniq
+      cohort_clients.select do |cc|
+        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
+        cc.active? && cc.cohort&.active? && ! meta.inactive && ! cc.ineligible?
+      end.map(&:cohort).compact.uniq
     end
 
     def active_cohort_ids
