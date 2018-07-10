@@ -1,3 +1,8 @@
+- if @patient.death_date.present?
+  %div.alert.alert-warning
+    %i.alert__icon.icon-warning
+    Patient is deceased as of
+    = @patient.death_date
 #summary
   .ho-patient__container
     .ho-patient__header.mb-2
