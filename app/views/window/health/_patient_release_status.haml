@@ -5,8 +5,8 @@
       #{@patient.name} does not have signed participation and release of information forms on file.
       %br
       Patient information is still available, but you are responsible for limiting your access to only necessary content.
-- if @patient&.epic_patient&.death_date
+- if @patient&.epic_patients&.first&.death_date
   %div.alert.alert-warning
     %i.alert__icon.icon-warning
     Patient is deceased as of
-    = @patient&.epic_patient&.death_date
+    = @patient&.epic_patients&.first&.death_date

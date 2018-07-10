@@ -1,8 +1,8 @@
-- if @patient&.epic_patient&.death_date
+- if @patient&.epic_patients&.first&.death_date
   %div.alert.alert-warning
     %i.alert__icon.icon-warning
     Patient deceased as of
-    = = @patient&.epic_patient&.death_date
+    = @patient&.epic_patients&.first&.death_date
 #summary
   = render 'patient_status'
   .ho-patient__container
