@@ -227,6 +227,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :member_status_reports, only: [:index, :show, :create, :destroy]
     end
   end
 
