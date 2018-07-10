@@ -582,6 +582,7 @@ module GrdaWarehouse::Hud
     end
 
     def active_in_cas?
+      return false if deceased?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
         sync_with_cas
