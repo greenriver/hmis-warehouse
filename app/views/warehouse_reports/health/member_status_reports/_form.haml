@@ -1,7 +1,9 @@
-= simple_form_for @report, url: warehouse_reports_health_member_status_reports_path do |f|
+= simple_form_for @report, as: :report, url: warehouse_reports_health_member_status_reports_path do |f|
   .d-flex
     = f.input :report_start_date, as: :date_picker
     .ml-2
       = f.input :report_end_date, as: :date_picker
+    .ml-2
+      = f.input :receiver, collection: Health::AccountableCareOrganization.active.pluck(:name, :short_name), include_blank: 'All ACOs', input_html: {class: :select2}
     .ml-auto.mt-6
       = f.submit 'Queue Report', class: 'btn btn-primary'

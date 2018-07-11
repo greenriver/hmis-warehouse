@@ -9,6 +9,15 @@ module Health
 
     scope :in_range, -> (range) { where(date_of_activity: range)}
 
+    scope :direct_contact, -> do
+      yes = client_reached[:yes]
+      where(client_reached: yes)
+    end
+
+    scope :face_to_face, -> do
+      where(mode_of_contact: face_to_face_modes)
+    end
+
     belongs_to :source, polymorphic: true
     belongs_to :user
     belongs_to :patient
@@ -70,80 +79,92 @@ module Health
 
     def self.activities
       @activities ||= {
-        outreach: { 
+        outreach: {
           title: 'Outreach for enrollment',
           code: 'G9011',
           weight: 0,
         },
-        cha: { 
+        cha: {
           title: 'Comprehensive Health Assessment',
           code: 'G0506',
           weight: 10,
         },
-        care_planning: { 
+        care_planning: {
           title: 'Care planning',
           code: 'T2024',
           weight: 20,
         },
-        care_coordination: { 
+        care_coordination: {
           title: 'Care coordination',
           code: 'G9005',
           weight: 30,
         },
-        care_transitions: { 
+        care_transitions: {
           title: 'Care transitions (working with care team)',
           code: 'G9007',
           weight: 40,
         },
-        discharge_follow_up: { 
+        discharge_follow_up: {
           title: 'Follow-up within 3 days of hospital discharge (with client)',
           code: 'G9007 U5',
           weight: 50,
         },
-        health_coaching: { 
+        health_coaching: {
           title: 'Health and wellness coaching',
           code: 'G9006',
           weight: 60,
         },
-        community_connection: { 
+        community_connection: {
           title: 'Connection to community and social services',
           code: 'G9004',
           weight: 70,
         },
-        screening_completed: { 
+        screening_completed: {
           title: 'Social services screening completed',
           code: 'T1023',
           weight: 80,
         },
-        referral_to_aco: { 
+        referral_to_aco: {
           title: 'Referral to ACO for Flexible Services',
           code: 'T1023 U6',
           weight: 90,
         },
-        pctp_signed: { 
+        pctp_signed: {
           title: 'Person-Centered Treatment Plan signed',
           code: 'T2024 U4',
           weight: 100,
         },
       }.sort_by{|_, m| m[:weight]}.to_h
     end
-    
+
     def self.date_search(start_date, end_date)
       if start_date.present? && end_date.present?
         self.where("date_of_activity >= ? AND date_of_activity <= ?", start_date, end_date)
       elsif start_date.present?
         self.where("date_of_activity >= ?", start_date)
-      elsif end_date.present? 
+      elsif end_date.present?
         self.where("date_of_activity <= ?", end_date)
       else
         QualifyingActivity.all
       end
     end
 
+    def self.face_to_face? value
+      face_to_face_modes.include?(value)
+    end
+
+    def self.face_to_face_modes
+      keys = [
+        :in_person,
+      ]
+      Health::QualifyingActivity.modes_of_contact.select{ |k,_| keys.include? k }.
+        map{ |m| m[:title] }
+    end
+
     # These validations must come after the above methods
     validates :mode_of_contact, inclusion: {in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s)}, allow_blank: true
     validates :reached_client, inclusion: {in: Health::QualifyingActivity.client_reached.keys.map(&:to_s)}, allow_blank: true
-    validates :activity, inclusion: {in: Health::QualifyingActivity.activities.keys.map(&:to_s)}, allow_blank: true 
+    validates :activity, inclusion: {in: Health::QualifyingActivity.activities.keys.map(&:to_s)}, allow_blank: true
     validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity, :patient_id
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
@@ -157,10 +178,10 @@ module Health
     end
 
     def empty?
-      mode_of_contact.blank? && 
-      reached_client.blank? && 
-      activity.blank? && 
-      claim_submitted_on.blank? && 
+      mode_of_contact.blank? &&
+      reached_client.blank? &&
+      activity.blank? &&
+      claim_submitted_on.blank? &&
       follow_up.blank?
     end
 
@@ -242,8 +263,8 @@ module Health
       modifiers = []
       # attach modifiers from activity
       modifiers << self.class.activities[activity.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-      modifiers << self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :code) 
-      modifiers << self.class.client_reached[reached_client.to_sym].try(:[], :code) 
+      modifiers << self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :code)
+      modifiers << self.class.client_reached[reached_client.to_sym].try(:[], :code)
       return modifiers.reject(&:blank?).compact
     end
   end

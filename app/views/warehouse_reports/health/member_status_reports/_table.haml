@@ -1,0 +1,20 @@
+- if @reports.any?
+  %p= paginate @reports
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Report
+        %th Summary
+        %th Receiver
+        %th Start
+        %th End
+        %th Status
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td
+          %td
+          %td= report.receiver
+          %td= report.report_start_date
+          %td= report.report_end_date
+          %td= report.status

@@ -150,6 +150,13 @@ module Health
       )
     end
 
+    scope :received_qualifying_activities_within, -> (range) do
+      where(
+        id: Health::QualifyingActivity.in_range(range).
+          distinct.select(:patient_id)
+      )
+    end
+
     delegate :effective_date, to: :patient_referral
     delegate :aco, to: :patient_referral
 
@@ -344,6 +351,14 @@ module Health
         member.save(validate: false)
         epic_member.update(processed: Time.now)
       end
+    end
+
+    def most_recent_direct_qualifying_activity
+      qualifying_activities.direct.order(date_of_activity: :desc).limit(1).first
+    end
+
+    def face_to_face_contact_in_range? range
+      qualifying_activities.in_range(range).face_to_face.exists?
     end
 
     def consented? # Pilot

@@ -1,6 +1,22 @@
 class CreateMemberStatusReport < ActiveRecord::Migration
   def change
     create_table :member_status_reports do |t|
+      t.references :user
+      t.references :job
+      t.datetime :started_at
+      t.datetime :completed_at
+      t.string :sender, limit: 100
+      t.integer :sent_row_num
+      t.integer :sent_column_num
+      t.datetime :sent_export_time_stamp
+      t.string :receiver
+      t.date :report_start_date
+      t.date :report_end_date
+      t.timestamps null: false
+      t.datetime :deleted_at, index: true
+    end
+    create_table :member_status_report_patients do |t|
+      t.references :member_status_report
       t.string :medicaid_id, limit: 12
       t.string :member_first_name, limit: 100
       t.string :member_last_name, limit: 100
@@ -28,12 +44,11 @@ class CreateMemberStatusReport < ActiveRecord::Migration
       t.string :care_coordinator_last_name, limit: 100
       t.string :care_coordinator_phone, limit: 10
       t.string :care_coordinator_email, limit: 60
-      t.date :report_start_date
-      t.date :report_end_date
       t.string :record_status, limit: 1
       t.date :record_update_date
       t.date :export_date
-      t.integer :export_batch_id
+      t.timestamps null: false
+      t.datetime :deleted_at, index: true
     end
   end
 end
