@@ -52,6 +52,8 @@ GEM
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 1.5.2, < 3)
       railties (>= 4.0, < 5.1)
+    activerecord-sqlserver-adapter (4.2.18)
+      activerecord (~> 4.2.1)
     activesupport (4.2.8)
       i18n (~> 0.7)
       minitest (~> 5.1)
@@ -71,6 +73,9 @@ GEM
     auto-session-timeout (0.9.5)
     autoprefixer-rails (6.5.4)
       execjs
+    awesome_print (1.8.0)
+    aws-sdk (2.9.28)
+      aws-sdk-resources (= 2.9.28)
     aws-sdk-core (2.9.28)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
@@ -514,6 +519,7 @@ GEM
     thread_safe (0.3.6)
     tilt (2.0.7)
     timecop (0.9.1)
+    tiny_tds (2.1.2)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
     uglifier (3.0.4)
@@ -552,11 +558,14 @@ DEPENDENCIES
   active_record_query_trace
   activerecord-import
   activerecord-session_store
+  activerecord-sqlserver-adapter
   acts-as-taggable-on (~> 4.0)
   after_commit_exception_notification
   attribute_normalizer
   auto-session-timeout
   autoprefixer-rails
+  awesome_print
+  aws-sdk (~> 2)
   aws-sdk-rails
   axlsx!
   axlsx_rails
@@ -656,6 +665,7 @@ DEPENDENCIES
   test_after_commit
   text
   timecop
+  tiny_tds
   uglifier
   validates_email_format_of
   virtus

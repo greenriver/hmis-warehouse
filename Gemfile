@@ -9,6 +9,8 @@ gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', '~> 8.0'
 gem "pg"
+gem 'activerecord-sqlserver-adapter'
+gem 'tiny_tds'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
 gem "rails", '~> 4.2.8'
@@ -109,6 +111,8 @@ gem 'redis-rails'
 
 #AWS SDK
 gem 'aws-sdk-rails', require: false
+gem 'aws-sdk', '~> 2', require: false
+gem 'awesome_print'
 
 gem 'auto-session-timeout'
 
