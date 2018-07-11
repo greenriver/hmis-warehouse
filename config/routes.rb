@@ -194,6 +194,7 @@ Rails.application.routes.draw do
     end
     resources :missing_values, only: [:index]
     resources :active_veterans, only: [:index]
+    resources :tableau_dashboard_export, only: [:index, :create, :show, :destroy]
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
