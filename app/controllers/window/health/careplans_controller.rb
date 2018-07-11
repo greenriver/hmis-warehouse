@@ -63,7 +63,7 @@ module Window::Health
       if @form.present? && @form.health_file.present?
         pdf << CombinePDF.parse(@form.health_file.content)
       end
-      if @cha.present? && @cha.health_file.present?
+      if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
         pdf << CombinePDF.parse(@cha.health_file.content)
       end
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"

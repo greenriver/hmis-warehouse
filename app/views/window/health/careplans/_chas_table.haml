@@ -3,13 +3,20 @@
     %thead
       %tr
         %th Assessment
-        %th Date Completed
+        %th Status
         %th Case Manager
     %tbody
       - @patient.chas.order(completed_at: :desc).each do |form|
         %tr
           %td= link_to 'CHA', polymorphic_path(cha_path_generator, client_id: @client.id, id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
-          %td= form.completed_at&.to_date || 'in progress'
+          %td
+            - if form.reviewed_at.present?
+              = "Reviewed on #{form.reviewed_at.to_date}"
+            - elsif form.completed_at.present?
+              Awaiting Review
+            - else
+              In Progress
+            -#= form.completed_at&.to_date || 'in progress'
           %td= form&.user&.name
 
       - @client.health_touch_points.self_sufficiency.order(collected_at: :desc).each do |form|
