@@ -10,8 +10,8 @@ module Health
     scope :in_range, -> (range) { where(date_of_activity: range)}
 
     scope :direct_contact, -> do
-      yes = client_reached[:yes]
-      where(client_reached: yes)
+      yes = client_reached[:yes][:title]
+      where(reached_client: yes)
     end
 
     scope :face_to_face, -> do
@@ -158,7 +158,7 @@ module Health
         :in_person,
       ]
       Health::QualifyingActivity.modes_of_contact.select{ |k,_| keys.include? k }.
-        map{ |m| m[:title] }
+        map{ |_,m| m[:title] }
     end
 
     # These validations must come after the above methods

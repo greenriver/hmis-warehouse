@@ -12,6 +12,7 @@ class CreateMemberStatusReport < ActiveRecord::Migration
       t.string :receiver
       t.date :report_start_date
       t.date :report_end_date
+      t.string :error
       t.timestamps null: false
       t.datetime :deleted_at, index: true
     end
@@ -26,13 +27,14 @@ class CreateMemberStatusReport < ActiveRecord::Migration
       t.string :member_sex, limit: 1
       t.string :aco_mco_name, limit: 100
       t.string :aco_mco_pid, limit: 9
-      t.string :aco_mco_ls, limit: 10
+      t.string :aco_mco_sl, limit: 10
       t.string :cp_name_official, limit: 100
       t.string :cp_pid, limit: 9
       t.string :cp_sl, limit: 10
       t.string :cp_outreach_status, limit: 30
       t.date :cp_last_contact_date
       t.string :cp_last_contact_face, limit: 1
+      t.string :cp_contact_face
       t.date :cp_participation_form_date
       t.date :cp_care_plan_sent_pcp_date
       t.date :cp_care_plan_returned_pcp_date

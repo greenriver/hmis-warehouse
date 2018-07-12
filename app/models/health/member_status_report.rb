@@ -17,22 +17,8 @@ module Health
       patient_referrals.each do |pr|
         patient = pr.patient
         most_recent_qualifying_activity = patient&.most_recent_direct_qualifying_activity
-        client_recent_face_to_face = if Health::QualifyingActivity.face_to_face?(most_recent_qualifying_activity&.mode_of_contact)
-          'Y'
-        elsif most_recent_qualifying_activity.present?
-          'N'
-        else
-          nil
-        end
-        any_face_to_face = if patient.present?
-          if patient.face_to_face_contact_in_range? report_range
-            'Y'
-          else
-            'N'
-          end
-        else
-          nil
-        end
+        patient_updated_at = [patient&.updated_at, pr&.updated_at, patient&.qualifying_activities&.maximum(:updated_at)].compact.max
+        sender_cp = Health::Cp.sender.first
         attributes = {
           medicaid_id: pr.medicaid_id,
           member_first_name: pr.first_name,
@@ -49,31 +35,53 @@ module Health
           cp_sl: pr.cp_sl,
           cp_outreach_status: pr.outreach_status,
           cp_last_contact_date: most_recent_qualifying_activity&.date_of_activity,
-          cp_last_contact_face: client_recent_face_to_face,
-          cp_contact_face: any_face_to_face,
-          cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on)&.strftime('%Y%M%d'),
-          cp_care_plan_sent_pcp_date: patient&.careplans&.maximum(:provider_signature_requested_at)&.strftime('%Y%M%d'),
-          cp_care_plan_returned_pcp_date: patient&.careplans&.maximum(:provider_signed_on)&.strftime('%Y%M%d'),
-          key_contact_name_first: 'TODO',
-          key_contact_name_last: 'TODO',
-          key_contact_phone: 'TODO',
-          key_contact_email: 'TODO',
+          cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
+          cp_contact_face: any_face_to_face(patient),
+          cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on),
+          cp_care_plan_sent_pcp_date: patient&.careplans&.maximum(:provider_signature_requested_at),
+          cp_care_plan_returned_pcp_date: patient&.careplans&.maximum(:provider_signed_on),
+          key_contact_name_first: sender_cp.key_contact_first_name,
+          key_contact_name_last: sender_cp.key_contact_last_name,
+          key_contact_phone: sender_cp.key_contact_phone&.gsub('-', '')&.truncate(10),
+          key_contact_email: sender_cp.key_contact_email,
           care_coordinator_first_name: patient&.care_coordinator&.first_name,
           care_coordinator_last_name: patient&.care_coordinator&.last_name,
-          care_coordinator_phone: patient&.care_coordinator&.phone,
+          care_coordinator_phone: patient&.care_coordinator&.phone&.gsub('-', '')&.truncate(10),
           care_coordinator_email: patient&.care_coordinator&.email,
-          report_start_date: report_start_date,
-          report_end_date: report_end_date,
+          # report_start_date: report_start_date&.strftime('%Y%M%d'),
+          # report_end_date: report_end_date&.strftime('%Y%M%d'),
           record_status: 'A',
-          record_update_date: [patient&.updated_at, pr&.updated_at, patient&.qualifying_activities.maximum(:updated_at)].compact.max&.strftime('%Y%M%d'),
-          export_date: Date.today.strftime('%Y%M%d'),
+          record_update_date: patient_updated_at.to_date,
+          export_date: Date.today,
         }
-        next unless report_range.include? attributes[:record_update_date]
-        next if receiver.present? && attributes[:aco_mco_name] != receiver
 
-        report_patient = member_status_report_patients.create(attributes)
+        next unless report_range.include? patient_updated_at.to_date
+        next if receiver.present? && attributes[:aco_mco_name] != receiver
+        report_patient = member_status_report_patients.create!(attributes)
       end
       complete_report
+    end
+
+    def any_face_to_face patient
+      if patient.present?
+        if patient.face_to_face_contact_in_range? report_range
+          'Y'
+        else
+          'N'
+        end
+      else
+        nil
+      end
+    end
+
+    def client_recent_face_to_face qa
+      if Health::QualifyingActivity.face_to_face?(qa&.mode_of_contact)
+        'Y'
+      elsif qa.present?
+        'N'
+      else
+        nil
+      end
     end
 
     def patient_referrals
@@ -93,14 +101,14 @@ module Health
     end
 
     def status
-      if started_at.blank?
-        'Queued'
-      elsif completed_at.blank?
-        "Running since #{started_at}"
-      elsif error
+      if error
         error
-      else
+      elsif completed_at.present?
         'Complete'
+      elsif started_at.blank?
+        'Queued'
+      else
+        "Running since #{started_at}"
       end
     end
   end

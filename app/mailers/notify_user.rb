@@ -115,7 +115,7 @@ class NotifyUser < DatabaseMailer
 
   def health_member_status_report_finished user_id
     @user = User.find(user_id)
-    @report_url = warehouse_reports_health_member_status_reports
+    @report_url = warehouse_reports_health_member_status_reports_url
     mail(to: @user.email, subject: "Your Member Status report has finished")
   end
 

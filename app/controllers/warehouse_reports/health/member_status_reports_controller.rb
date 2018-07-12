@@ -11,7 +11,7 @@ module WarehouseReports::Health
         options = default_options
       end
       @report = OpenStruct.new(options)
-      @reports = report_scope.page(params[:page]).per(20)
+      @reports = report_scope.order(created_at: :desc).page(params[:page]).per(20)
     end
 
     def show

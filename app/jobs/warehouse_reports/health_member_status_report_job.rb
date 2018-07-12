@@ -25,7 +25,6 @@ module WarehouseReports
     end
 
     def error(job, exception)
-      binding.pry
       @report = report_source.find(report_id)
       @report.update(error: "Failed: #{exception.message}")
     end

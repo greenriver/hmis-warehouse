@@ -12,9 +12,11 @@
     %tbody
       - @reports.each do |report|
         %tr
-          %td
-          %td
-          %td= report.receiver
+          %td= link_to_if report.completed_at, 'Download Member Status', warehouse_reports_health_member_status_report_url(report)
+
+          %td= link_to_if report.completed_at, 'Summary', warehouse_reports_health_member_status_report_url(report, summary: true)
+
+          %td= report.receiver || 'All'
           %td= report.report_start_date
           %td= report.report_end_date
           %td= report.status

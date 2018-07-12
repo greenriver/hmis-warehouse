@@ -41,7 +41,7 @@ module Health
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
-    has_one :care_coordinator, class_name: User.name
+    belongs_to :care_coordinator, class_name: User.name
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
@@ -354,7 +354,7 @@ module Health
     end
 
     def most_recent_direct_qualifying_activity
-      qualifying_activities.direct.order(date_of_activity: :desc).limit(1).first
+      qualifying_activities.direct_contact.order(date_of_activity: :desc).limit(1).first
     end
 
     def face_to_face_contact_in_range? range
