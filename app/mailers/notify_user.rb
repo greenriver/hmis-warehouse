@@ -91,6 +91,13 @@ class NotifyUser < DatabaseMailer
     @report_url = warehouse_reports_hud_chronic_url(@report)
     mail(to: @user.email, subject: "Your HUD Chronic report has finished")
   end
+  
+  def dashboard_export_report_finished user_id, report_id
+    @user = User.find(user_id)
+    @report = GrdaWarehouse::DashboardExportReport.find(report_id)
+    @reports_url = warehouse_reports_tableau_dashboard_export_index_url
+    mail(to: @user.email, subject: "Your Dashboard Export Report has finished")
+  end
 
   def hmis_export_finished user_id, report_id
     @user = User.find(user_id)

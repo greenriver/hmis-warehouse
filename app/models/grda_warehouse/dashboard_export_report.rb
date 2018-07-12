@@ -1,5 +1,5 @@
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
-  has_one :file, class_name: GrdaWarehouse::DashboardExportFile.name
+  belongs_to :file, class_name: GrdaWarehouse::DashboardExportFile.name
   
   def complete?
     completed_at.present?
@@ -7,7 +7,7 @@ class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
   
   def user_name 
     if user_id.present? 
-      User.find(user_id).file_name
+      User.find(user_id).name
     else
       ''
     end

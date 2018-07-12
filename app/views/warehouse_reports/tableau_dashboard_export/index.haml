@@ -13,19 +13,18 @@
         %thead
           %th CoC Code
           %th User
-          %th Created At
-          %th Completed At
+          %th Started
+          %th Completed
         %tbody
           - @reports.each do |report|
             %tr
               %td= report.display_coc_code
               %td= report.user_name
-              %td= report.created_at
+              %td= report.started_at
               %td= report.completed_at
               %td
-                = link_to action: :show, id: report do
-                  %span.icon-pencil
+                = link_to action: :show, id: report.id do
+                  %span.icon-download2
                   Download
-
-
-= debug GrdaWarehouse::DashboardExportReport.all
+          
+      %p= paginate @reports
