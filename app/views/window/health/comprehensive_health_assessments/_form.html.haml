@@ -350,12 +350,15 @@
                 = cha_select f, prn
               .col-sm-2
                 = cha_string f, code
-        .row
+        .row.mb-4
           .col-sm-12
             %a.btn.btn-secondary.add-medication
               %span.icon-plus
               Add another medication
 
+        - if @medications.present?
+          %h4 Epic Medications
+          = render 'window/health/medications/medications_table', medications: @medications
       .well
         = cha_radios f, :l_q2
 

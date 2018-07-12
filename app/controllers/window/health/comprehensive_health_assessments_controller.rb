@@ -9,6 +9,7 @@ module Window::Health
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
     before_action :set_locked, only: [:show, :edit]
     before_action :set_health_file, only: [:upload, :update]
+    before_action :set_medications, only: [:show, :edit]
 
     def new
       # redirect to edit if there are any incomplete
@@ -84,6 +85,10 @@ module Window::Health
       else
         local_params
       end
+    end
+
+    def set_medications
+      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
     end
 
     def set_locked
