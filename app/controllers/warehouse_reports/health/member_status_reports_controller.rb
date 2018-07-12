@@ -1,6 +1,7 @@
 module WarehouseReports::Health
   class MemberStatusReportsController < ApplicationController
     before_action :require_can_view_member_health_reports!
+    before_action :set_reports, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy]
 
     helper HealthOverviewHelper
@@ -12,7 +13,9 @@ module WarehouseReports::Health
         options = default_options
       end
       @report = OpenStruct.new(options)
-      @reports = report_scope.order(created_at: :desc).page(params[:page]).per(20)
+    end
+
+    def running
     end
 
     def show
@@ -51,6 +54,10 @@ module WarehouseReports::Health
 
     def destroy
 
+    end
+
+    def set_reports
+      @reports = report_scope.order(created_at: :desc).page(params[:page]).per(20)
     end
 
     def default_options
