@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-02 15:27-0400\n"
-"PO-Revision-Date: 2018-07-02 15:27-0400\n"
+"POT-Creation-Date: 2018-07-10 12:13-0600\n"
+"PO-Revision-Date: 2018-07-10 12:13-0600\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -40,6 +40,9 @@ msgid "\"CHA #{section_question.upcase}_SUBHEADER\""
 msgstr ""
 
 msgid "\"CHA #{section}_Q#{question}_A#{n}\""
+msgstr ""
+
+msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
 msgid "A claim was submitted for this SSM; it is no longer editable."
@@ -1021,231 +1024,6 @@ msgid "CHA I_Q2A2"
 msgstr ""
 
 msgid "CHA I_Q2A3"
-msgstr ""
-
-msgid "CHA I_Q2AA1"
-msgstr ""
-
-msgid "CHA I_Q2AA2"
-msgstr ""
-
-msgid "CHA I_Q2AA3"
-msgstr ""
-
-msgid "CHA I_Q2AB1"
-msgstr ""
-
-msgid "CHA I_Q2AB2"
-msgstr ""
-
-msgid "CHA I_Q2AB3"
-msgstr ""
-
-msgid "CHA I_Q2AC1"
-msgstr ""
-
-msgid "CHA I_Q2AC2"
-msgstr ""
-
-msgid "CHA I_Q2AC3"
-msgstr ""
-
-msgid "CHA I_Q2AD1"
-msgstr ""
-
-msgid "CHA I_Q2AD2"
-msgstr ""
-
-msgid "CHA I_Q2AD3"
-msgstr ""
-
-msgid "CHA I_Q2AE1"
-msgstr ""
-
-msgid "CHA I_Q2AE2"
-msgstr ""
-
-msgid "CHA I_Q2AE3"
-msgstr ""
-
-msgid "CHA I_Q2AF1"
-msgstr ""
-
-msgid "CHA I_Q2AF2"
-msgstr ""
-
-msgid "CHA I_Q2AF3"
-msgstr ""
-
-msgid "CHA I_Q2AG1"
-msgstr ""
-
-msgid "CHA I_Q2AG2"
-msgstr ""
-
-msgid "CHA I_Q2AG3"
-msgstr ""
-
-msgid "CHA I_Q2AH1"
-msgstr ""
-
-msgid "CHA I_Q2AH2"
-msgstr ""
-
-msgid "CHA I_Q2AH3"
-msgstr ""
-
-msgid "CHA I_Q2AI1"
-msgstr ""
-
-msgid "CHA I_Q2AI2"
-msgstr ""
-
-msgid "CHA I_Q2AI3"
-msgstr ""
-
-msgid "CHA I_Q2AJ1"
-msgstr ""
-
-msgid "CHA I_Q2AJ2"
-msgstr ""
-
-msgid "CHA I_Q2AJ3"
-msgstr ""
-
-msgid "CHA I_Q2AK1"
-msgstr ""
-
-msgid "CHA I_Q2AK2"
-msgstr ""
-
-msgid "CHA I_Q2AK3"
-msgstr ""
-
-msgid "CHA I_Q2AL1"
-msgstr ""
-
-msgid "CHA I_Q2AL2"
-msgstr ""
-
-msgid "CHA I_Q2AL3"
-msgstr ""
-
-msgid "CHA I_Q2AM1"
-msgstr ""
-
-msgid "CHA I_Q2AM2"
-msgstr ""
-
-msgid "CHA I_Q2AM3"
-msgstr ""
-
-msgid "CHA I_Q2AN1"
-msgstr ""
-
-msgid "CHA I_Q2AN2"
-msgstr ""
-
-msgid "CHA I_Q2AN3"
-msgstr ""
-
-msgid "CHA I_Q2AO1"
-msgstr ""
-
-msgid "CHA I_Q2AO2"
-msgstr ""
-
-msgid "CHA I_Q2AO3"
-msgstr ""
-
-msgid "CHA I_Q2AP1"
-msgstr ""
-
-msgid "CHA I_Q2AP2"
-msgstr ""
-
-msgid "CHA I_Q2AP3"
-msgstr ""
-
-msgid "CHA I_Q2AQ1"
-msgstr ""
-
-msgid "CHA I_Q2AQ2"
-msgstr ""
-
-msgid "CHA I_Q2AQ3"
-msgstr ""
-
-msgid "CHA I_Q2AR1"
-msgstr ""
-
-msgid "CHA I_Q2AR2"
-msgstr ""
-
-msgid "CHA I_Q2AR3"
-msgstr ""
-
-msgid "CHA I_Q2AS1"
-msgstr ""
-
-msgid "CHA I_Q2AS2"
-msgstr ""
-
-msgid "CHA I_Q2AS3"
-msgstr ""
-
-msgid "CHA I_Q2AT1"
-msgstr ""
-
-msgid "CHA I_Q2AT2"
-msgstr ""
-
-msgid "CHA I_Q2AT3"
-msgstr ""
-
-msgid "CHA I_Q2AU1"
-msgstr ""
-
-msgid "CHA I_Q2AU2"
-msgstr ""
-
-msgid "CHA I_Q2AU3"
-msgstr ""
-
-msgid "CHA I_Q2AV1"
-msgstr ""
-
-msgid "CHA I_Q2AV2"
-msgstr ""
-
-msgid "CHA I_Q2AV3"
-msgstr ""
-
-msgid "CHA I_Q2AW1"
-msgstr ""
-
-msgid "CHA I_Q2AW2"
-msgstr ""
-
-msgid "CHA I_Q2AW3"
-msgstr ""
-
-msgid "CHA I_Q2AX1"
-msgstr ""
-
-msgid "CHA I_Q2AX2"
-msgstr ""
-
-msgid "CHA I_Q2AX3"
-msgstr ""
-
-msgid "CHA I_Q2AY1"
-msgstr ""
-
-msgid "CHA I_Q2AY2"
-msgstr ""
-
-msgid "CHA I_Q2AY3"
 msgstr ""
 
 msgid "CHA I_Q2B1"
@@ -3805,9 +3583,6 @@ msgid "Shelter Agency Contacts"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
-msgstr ""
-
-msgid "This CHA has already been reviewed, or a claim was submitted; it is no longer editable"
 msgstr ""
 
 msgid "This is a Family VI-SPDAT"

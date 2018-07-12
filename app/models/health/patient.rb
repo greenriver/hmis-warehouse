@@ -2,13 +2,14 @@ module Health
   class Patient < Base
 
     acts_as_paranoid
-    has_many :appointments, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :medications, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :problems, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :visits, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :epic_goals, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :epic_case_notes, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
-    has_many :epic_team_members, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :patient
+    has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
+    has_many :appointments, through: :epic_patients
+    has_many :medications, through: :epic_patients
+    has_many :problems, through: :epic_patients
+    has_many :visits, through: :epic_patients
+    has_many :epic_goals, through: :epic_patients
+    has_many :epic_case_notes, through: :epic_patients
+    has_many :epic_team_members, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -45,6 +46,7 @@ module Health
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
+    scope :bh_cp, -> { where pilot: false }
 
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
@@ -320,12 +322,14 @@ module Health
         klass = Health::Team::Member.class_from_member_type_name(relationship)
         at = klass.arel_table
         if epic_member.email?
-          member = klass.where(at[:email].lower.eq(epic_member.email).to_sql).first_or_initialize
-        else
+          member = klass.where(at[:email].lower.eq(epic_member&.email.downcase).to_sql).first_or_initialize
+        elsif first_name && last_name
           member = klass.where(
-            at[:first_name].lower.eq(first_name.downcase).
-            and(at[:last_name].lower.eq(last_name.downcase)).to_sql
+            at[:first_name].lower.eq(first_name&.downcase).
+            and(at[:last_name].lower.eq(last_name&.downcase)).to_sql
           ).first_or_initialize
+        else
+          next
         end
         member.assign_attributes(
             patient_id: id,
@@ -356,31 +360,6 @@ module Health
 
     def self.restore_consent # Pilot
       update_all(consent_revoked: nil)
-    end
-
-    def self.csv_map(version: nil)
-      {
-        PAT_ID: :id_in_source,
-        sex: :gender,
-        first_name: :first_name,
-        middle_name: :middle_name,
-        last_name: :last_name,
-        alias_list: :aliases,
-        birthdate: :birthdate,
-        allergy_list: :allergy_list,
-        pcp: :primary_care_physician,
-        tg: :transgender,
-        race: :race,
-        ethnicity: :ethnicity,
-        vet_status: :veteran_status,
-        ssn: :ssn,
-        row_created: :created_at,
-        row_updated: :updated_at,
-        medicaid_id: :medicaid_id,
-        housing_status: :housing_status,
-        housing_status_timestamp: :housing_status_timestamp,
-        program: :pilot,
-      }
     end
 
     def self.clean_value key, value

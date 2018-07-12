@@ -1,3 +1,27 @@
+.cha__section .cha__help-text,
+.cha__section .client__assessment-question,
+.cha__section h5,
+.cha__section h4 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.row.cha__section-columns {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  .col-sm-6,
+  .col-sm-4 {
+    display: table-cell;
+  }
+  .col-sm-6 {
+    width: 50%;
+  }
+  .col-sm-4 {
+    width: 33%;
+  }
+}
+
 #vsm-container {
   display: none !important;
 }

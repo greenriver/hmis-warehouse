@@ -3,7 +3,7 @@ module Health::Tasks
     def run!
       Rails.logger.info 'Loading unprocessed patients'
       started_at = DateTime.now
-      
+
       unprocessed.each do |patient|
         match_patient_to_client(patient)
       end
@@ -12,7 +12,7 @@ module Health::Tasks
 
     # figure out who doesn't yet have an entry in warehouse clients
     def unprocessed
-      @unprocessed ||= hashed(Health::Patient.unprocessed.pluck(*patient_columns), patient_columns)
+      @unprocessed ||= hashed(Health::Patient.pilot.unprocessed.pluck(*patient_columns), patient_columns)
     end
 
     def unmatched
@@ -56,7 +56,7 @@ module Health::Tasks
       end
     end
 
-    def clients 
+    def clients
       @clients ||= hashed(client_destinations.pluck(*client_columns), client_columns)
     end
 

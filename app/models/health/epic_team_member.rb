@@ -1,6 +1,6 @@
 module Health
   class EpicTeamMember < Base
-    belongs_to :patient, primary_key: [:id_in_source, :data_source_id], foreign_key: [:patient_id, :data_source_id], inverse_of: :epic_team_members
+    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_team_members
 
     scope :unprocessed, -> do
       where(processed: nil)
@@ -27,8 +27,9 @@ module Health
     end
 
     # create team members for any matching unprocessed team members
+    # don't add them to pilot patients
     def self.process!
-      Health::Patient.joins(:epic_team_members).merge(Health::EpicTeamMember.unprocessed).
+      Health::Patient.bh_cp.joins(:epic_team_members).merge(Health::EpicTeamMember.unprocessed).
         distinct.each do |patient|
           patient.import_epic_team_members
       end

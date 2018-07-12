@@ -8,7 +8,8 @@ module HealthCharts
         if first_section.present?
           answer = form.answers[:sections].first[:questions].select do |question|
             question[:question] == "A-6. Where did you sleep last night?"
-          end.first[:answer]
+          end.first.try(:[], :answer)
+          next unless answer.present?
           answer = self.class.clean_health_housing_outcome_answer(answer)
           if self.class.health_housing_outcome(answer)
             {
