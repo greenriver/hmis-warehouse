@@ -21,8 +21,7 @@ module Exporters::Tableau
         zip_report_folder(path: path, report_id: report_id)
         add_zip_to_report(path: path, report_id: report_id)
         GrdaWarehouse::DashboardExportReport.find(report_id).update(completed_at: Time.now)
-        remove_path_contents(path: zip_path(path: path, report_id: report_id))
-        remove_path_contents(path: path)
+        remove_path(path: path)
       end
     end
     
@@ -34,12 +33,10 @@ module Exporters::Tableau
       files = Dir.glob(File.join(path, '*')).map{|f| File.basename(f)}
       Zip::File.open(zip_path(path: path, report_id: report_id), Zip::File::CREATE) do |zipfile|
         files.each do |file_name|
-          unless File.exists?(File.join(path, file_name))
-            zipfile.add(
-              file_name, 
-              File.join(path, file_name)
-            )
-          end
+          zipfile.add(
+            file_name, 
+            File.join(path, file_name)
+          )
         end
       end
     end
@@ -55,8 +52,8 @@ module Exporters::Tableau
       report.save!
     end
 
-    def remove_path_contents path: 
-      FileUtils.rmtree(path) if File.exists? path
+    def remove_path path: 
+      FileUtils.rmtree(path)
     end
 
     def available_exports
