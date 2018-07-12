@@ -1,6 +1,7 @@
 module WarehouseReports::Health
   class MemberStatusReportsController < ApplicationController
     before_action :require_can_view_member_health_reports!
+    before_action :set_report, only: [:show, :destroy]
 
     helper HealthOverviewHelper
 
@@ -20,6 +21,18 @@ module WarehouseReports::Health
       #
       # Summary File: Files sent by ACO, MCO, or CP: “[ACO, MCO or CP]_[ACO, MCO or CP Short Name]_MH_SUMMARY_FULL_YYYYMMDD.XLSX”
       # iii. Example: CP_BHCHP-CP_MH_SUMMARY_FULL_20180718.XLSX
+
+      @patients = @report.member_status_report_patients
+      @sender = Health::Cp.sender.first
+      respond_to do |format|
+        format.xlsx do
+          if params[:summary].present?
+            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_SUMMARY_FULL_#{Date.today.strftime('%Y%m%d')}.xlsx\""
+          else
+            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_STATUSOUTREACH_FULL_#{Date.today.strftime('%Y%m%d')}.xlsx\""
+          end
+        end
+      end
     end
 
     def create
@@ -53,6 +66,10 @@ module WarehouseReports::Health
         :report_end_date,
         :receiver
       )
+    end
+
+    def set_report
+      @report = report_scope.find(params[:id].to_i)
     end
 
     def report_source

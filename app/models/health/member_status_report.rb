@@ -62,6 +62,44 @@ module Health
       complete_report
     end
 
+    def self.spreadsheet_columns
+      {
+        medicaid_id: 'Medicaid_ID',
+        member_last_name: 'Member_Name_Last',
+        member_first_name: 'Member_Name_First',
+        member_middle_initial: 'Member_Middle_Initial',
+        member_suffix: 'Member_Suffix',
+        member_date_of_birth: 'Member_Date_of_Birth',
+        member_sex: 'Member_Sex',
+        aco_mco_name: 'ACO_MCO_Name',
+        aco_mco_pid: 'ACO_MCO_PID',
+        aco_mco_sl: 'ACO_MCO_SL',
+        cp_name_official: 'CP_Name_Official',
+        cp_pid: 'CP_PID',
+        cp_sl: 'CP_SL',
+        cp_outreach_status: 'Enrollment_Start_Date',
+        cp_last_contact_date: 'CP_Last_Contact_Date',
+        cp_last_contact_face: 'CP_Last_Contact_Face',
+        cp_contact_face: 'CP_Contact_Face',
+        cp_participation_form_date: 'CP_Participation_Form_Date',
+        cp_care_plan_sent_pcp_date: 'CP_Care_Plan_Sent_PCP_Date',
+        cp_care_plan_returned_pcp_date: 'CP_Care_Plan_Returned_PCP_Date',
+        key_contact_name_first: 'Key_Contact_Name_First',
+        key_contact_name_last: 'Key_Contact_Name_Last',
+        key_contact_phone: 'Key_Contact_Phone',
+        key_contact_email: 'Key_Contact_Email',
+        care_coordinator_first_name: 'Care_Coordinator_Name_First',
+        care_coordinator_last_name: 'Care_Coordinator_Name_Last',
+        care_coordinator_phone: 'Care_Coordinator_Phone',
+        care_coordinator_email: 'Care_Coordinator Email',
+        report_start_date: 'Report_Start_Date',
+        report_end_date: 'Report_End_Date',
+        record_status: 'Record_Status',
+        record_update_date: 'Record_Update_Date',
+        export_date: 'Export_Date',
+      }
+    end
+
     def any_face_to_face patient
       if patient.present?
         if patient.face_to_face_contact_in_range? report_range
