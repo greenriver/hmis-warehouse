@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180710000126) do
+ActiveRecord::Schema.define(version: 20180711174711) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -99,6 +99,8 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.text     "equipment_archive"
     t.text     "team_members_archive"
     t.text     "goals_archive"
+    t.datetime "patient_signature_requested_at"
+    t.datetime "provider_signature_requested_at"
   end
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
@@ -237,6 +239,29 @@ ActiveRecord::Schema.define(version: 20180710000126) do
   add_index "comprehensive_health_assessments", ["patient_id"], name: "index_comprehensive_health_assessments_on_patient_id", using: :btree
   add_index "comprehensive_health_assessments", ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id", using: :btree
   add_index "comprehensive_health_assessments", ["user_id"], name: "index_comprehensive_health_assessments_on_user_id", using: :btree
+
+  create_table "cps", force: :cascade do |t|
+    t.string   "pid"
+    t.string   "sl"
+    t.string   "mmis_enrollment_name"
+    t.string   "short_name"
+    t.string   "pt_part_1"
+    t.string   "pt_part_2"
+    t.string   "address_1"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.string   "key_contact_first_name"
+    t.string   "key_contact_last_name"
+    t.string   "key_contact_email"
+    t.string   "key_contact_phone"
+    t.boolean  "sender",                 default: false, null: false
+    t.string   "receiver_name"
+    t.string   "receiver_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+  end
 
   create_table "data_sources", force: :cascade do |t|
     t.string   "name"
@@ -414,6 +439,66 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.string   "patient_id"
     t.integer  "data_source_id", default: 6, null: false
   end
+
+  create_table "member_status_report_patients", force: :cascade do |t|
+    t.integer  "member_status_report_id"
+    t.string   "medicaid_id",                    limit: 12
+    t.string   "member_first_name",              limit: 100
+    t.string   "member_last_name",               limit: 100
+    t.string   "member_middle_initial",          limit: 1
+    t.string   "member_suffix",                  limit: 20
+    t.date     "member_date_of_birth"
+    t.string   "member_sex",                     limit: 1
+    t.string   "aco_mco_name",                   limit: 100
+    t.string   "aco_mco_pid",                    limit: 9
+    t.string   "aco_mco_sl",                     limit: 10
+    t.string   "cp_name_official",               limit: 100
+    t.string   "cp_pid",                         limit: 9
+    t.string   "cp_sl",                          limit: 10
+    t.string   "cp_outreach_status",             limit: 30
+    t.date     "cp_last_contact_date"
+    t.string   "cp_last_contact_face",           limit: 1
+    t.string   "cp_contact_face"
+    t.date     "cp_participation_form_date"
+    t.date     "cp_care_plan_sent_pcp_date"
+    t.date     "cp_care_plan_returned_pcp_date"
+    t.string   "key_contact_name_first",         limit: 100
+    t.string   "key_contact_name_last",          limit: 100
+    t.string   "key_contact_phone",              limit: 10
+    t.string   "key_contact_email",              limit: 60
+    t.string   "care_coordinator_first_name",    limit: 100
+    t.string   "care_coordinator_last_name",     limit: 100
+    t.string   "care_coordinator_phone",         limit: 10
+    t.string   "care_coordinator_email",         limit: 60
+    t.string   "record_status",                  limit: 1
+    t.date     "record_update_date"
+    t.date     "export_date"
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "member_status_report_patients", ["deleted_at"], name: "index_member_status_report_patients_on_deleted_at", using: :btree
+
+  create_table "member_status_reports", force: :cascade do |t|
+    t.integer  "user_id"
+    t.integer  "job_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string   "sender",                 limit: 100
+    t.integer  "sent_row_num"
+    t.integer  "sent_column_num"
+    t.datetime "sent_export_time_stamp"
+    t.string   "receiver"
+    t.date     "report_start_date"
+    t.date     "report_end_date"
+    t.string   "error"
+    t.datetime "created_at",                         null: false
+    t.datetime "updated_at",                         null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "member_status_reports", ["deleted_at"], name: "index_member_status_reports_on_deleted_at", using: :btree
 
   create_table "participation_forms", force: :cascade do |t|
     t.integer  "patient_id"

@@ -1,0 +1,18 @@
+- title = "CP Member Status and Outreach"
+- content_for :title, title
+%h1= content_for :title
+= render 'form'
+.report-listing
+  = render 'table'
+
+= link_to 'Reports', running_warehouse_reports_health_member_status_reports_path, class: 'jReportBlock', remote: true
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.jReportBlock').hide();
+      setInterval(function() {
+        $('.jReportBlock').click();
+      }, 30000);
+
+    })(jQuery);
