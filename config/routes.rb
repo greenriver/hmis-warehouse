@@ -236,6 +236,10 @@ Rails.application.routes.draw do
         collection do
           get :running
         end
+        member do
+          post :revise
+          post :submit
+        end
       end
     end
   end

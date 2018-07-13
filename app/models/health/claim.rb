@@ -1,5 +1,7 @@
 module Health
   class Claim < HealthBase
+    acts_as_paranoid
+    has_many :qualifying_activities
 
     scope :visible_by?, -> (user) do
       if user.can_administer_health?
@@ -7,6 +9,10 @@ module Health
       else
         none
       end
+    end
+
+    def submitted?
+      submitted_at.present?
     end
 
     def patients
@@ -22,6 +28,7 @@ module Health
       @st_control_number = self.class.next_st_control_number
       @hl = 0
       @sender = Health::Cp.sender.first
+      qualifying_activity_ids = []
       self.claims_file = "#{isa_line}\n"
       self.claims_file += "#{gs_line}\n"
       self.claims_file += "#{st_line}\n"
@@ -40,13 +47,14 @@ module Health
         self.claims_file += "#{patient_diagnosis(patient)}\n"
         patient.qualifying_activities.unsubmitted.
           select{|m| m.procedure_code.present?}.each do |qa|
+            qualifying_activity_ids << qa.id
             self.claims_file += "#{claim_lines(qa)}\n"
         end
       end
-
       self.claims_file += "#{trailer}\n"
-
       self.claims_file.upcase!
+
+      attach_quailifying_activities_to_report(qualifying_activity_ids)
       complete_report
     end
 
@@ -62,6 +70,10 @@ module Health
         max_st_number: @st_control_number
       )
       save!
+    end
+
+    def attach_quailifying_activities_to_report qualifying_activity_ids
+      Health::QualifyingActivity.where(id: qualifying_activity_ids).update_all(claim_id: id)
     end
 
     def status

@@ -7,7 +7,7 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
     before_action :set_blank_form, only: [:edit, :new]
-    before_action :set_health_file, only: [:create, :update]
+    before_action :set_health_file, only: [:update]
 
     def new
       # redirect to edit if there are any on-file
@@ -22,6 +22,7 @@ module Window::Health
 
     def create
       @participation_form = @patient.participation_forms.build(form_params)
+      set_health_file
       validate_form
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.case_manager = current_user

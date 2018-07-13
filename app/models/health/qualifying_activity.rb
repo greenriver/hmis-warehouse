@@ -203,6 +203,18 @@ module Health
       self.load_string_collection(activities.map{|k, mode| [k, mode[:title]] })
     end
 
+    def activity_title key
+      self.class.activities[key.to_sym].try(:[], :title) || key
+    end
+
+    def mode_of_contact_title key
+      self.class.modes_of_contact[key.to_sym].try(:[], :title) || key
+    end
+
+    def client_reached_title key
+      self.class.client_reached[key.to_sym].try(:[], :title) || key
+    end
+
     def mode_of_contact_is_other?
       mode_of_contact == MODE_OF_CONTACT_OTHER
     end

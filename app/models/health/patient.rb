@@ -66,8 +66,8 @@ module Health
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
-      participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
 
@@ -101,8 +101,8 @@ module Health
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
-      participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
 

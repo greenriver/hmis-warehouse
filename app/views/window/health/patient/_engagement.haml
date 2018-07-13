@@ -6,9 +6,6 @@
   - if ! patient.engaged?
     .patient__engagement-countdown
       = "#{pluralize(patient.days_to_engage, 'day')} remaining to obtain PCTP signatures"
-  - elsif patient.qualified_activities_since(date: 1.months.ago).count == 0
-    .patient__engagement-countdown
-      = link_to "#{pluralize(0, 'Qualifying Activities')} this month", url
   - else
     .patient__engagement-engaged
-      = link_to "#{pluralize(patient.qualified_activities_since(date: 1.months.ago).count, 'Qualifying Activities')} this month", url
+      = link_to "#{pluralize(patient.qualified_activities_since(date: Date.today.beginning_of_month).count, 'Qualifying Activities')} in #{Date.today.strftime('%B')}", url

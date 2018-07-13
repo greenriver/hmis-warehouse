@@ -1,0 +1,27 @@
+%h4 Qualifying Activities Prior to #{@report.max_date}
+.o-card-grid
+  - @qualifying_activities.each do |_, qas|
+    .c-card.c-card--padded.c-card--flex
+      .c-card__content
+        .c-card__title= qas.first.patient.name
+        .c-card__description
+          %table.table.table-condensed
+            %thead
+              %tr
+                %th Date
+                %th Staff
+                %th Source
+                %th Activity
+                %th Mode of Contact
+                %th Client Reached
+                %th Procedure Code
+            %tbody
+              - qas.each do |qa|
+                %tr
+                  %td.nobr= qa.date_of_activity
+                  %td= qa.user_full_name
+                  %td= qa.source_type
+                  %td= qa.activity_title(qa.activity)
+                  %td= qa.mode_of_contact_title(qa.mode_of_contact)
+                  %td= qa.client_reached_title(qa.reached_client)
+                  %td= "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"

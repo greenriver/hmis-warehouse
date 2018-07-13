@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180713162722) do
+ActiveRecord::Schema.define(version: 20180713183124) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -120,6 +120,7 @@ ActiveRecord::Schema.define(version: 20180713162722) do
     t.datetime "created_at",               null: false
     t.datetime "updated_at",               null: false
     t.datetime "deleted_at"
+    t.datetime "submitted_at"
   end
 
   add_index "claims", ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree

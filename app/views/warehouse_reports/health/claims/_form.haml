@@ -1,4 +1,4 @@
-- if Health::Cp.sender.exists?
+- if @sender
   = simple_form_for @report, as: :report, url: warehouse_reports_health_claims_path do |f|
     .row
       .col-sm-3
