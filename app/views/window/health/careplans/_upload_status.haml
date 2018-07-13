@@ -1,6 +1,5 @@
 :ruby
-  team        = careplan.team
-  emails      = [ team.pcp_designee&.email.to_s, @patient.email ]
+  emails      = [ 'patient@openpath.biz' ]
   good_emails = emails.all? { |email| email.match(Health::SignableDocument::EMAIL_REGEX) }
 
   warning = <<~WARNING.gsub(/\s+/, ' ')
@@ -19,9 +18,7 @@
       %i.icon-upload2
       Upload
 - else
-  You need a valid email for a PCP and patient to sign. Either one doesn't
-  exist or the email is not properly formatted. They are
-  "#{team.pcp_designee&.email}" and "#{@patient.email}" respectively.
+  You need a valid email for the patient to sign.
 
 %br
 - if doc.signature_request_id.present?

@@ -15,7 +15,7 @@
           %dt Review Date
           %dd= @careplan.review_date&.to_date
 
-  = render 'team_members_table'
+  = render 'window/health/careplans/team_members_table'
 
   %article.health-care-plan__about-me.l-print__section--page
     %h1 About Me
@@ -31,7 +31,7 @@
     .l-print__item
       %h4 My Barriers
       = simple_format @careplan.patient_barriers
-  = render 'goals_table'
+  = render 'window/health/careplans/goals_table'
 
   %article.health-care-plan__services.l-print__section--page
     = render 'window/health/careplans/service_list'

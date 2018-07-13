@@ -22,13 +22,13 @@ module Window::Health
         if cp.primary_signable_document.present?
           doc = cp.primary_signable_document
           doc.refresh_signers!
-          if cp.patient_signed_on.blank? && doc.signed_by?(@patient.email)
-            cp.patient_signed_on = doc.signed_on(@patient.email)
+          if cp.patient_signed_on.blank? && doc.signed_by?('patient@openpath.biz')
+            cp.patient_signed_on = doc.signed_on('patient@openpath.biz')
           end
 
-          if cp.provider_signed_on.blank? && doc.signed_by?(cp.team.pcp_designee&.email)
-            cp.provider_signed_on = doc.signed_on(cp.team.pcp_designee&.email)
-          end
+          # if cp.provider_signed_on.blank? && doc.signed_by?(cp.team.pcp_designee&.email)
+          #   cp.provider_signed_on = doc.signed_on(cp.team.pcp_designee&.email)
+          # end
 
           cp.save!
         end
