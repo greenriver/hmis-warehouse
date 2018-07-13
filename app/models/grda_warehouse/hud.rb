@@ -25,7 +25,7 @@ module GrdaWarehouse::Hud
       'Project.csv' => GrdaWarehouse::Hud::Project,
       'ProjectCoC.csv' => GrdaWarehouse::Hud::ProjectCoc,
       'Services.csv' => GrdaWarehouse::Hud::Service,
-      'Site.csv' => GrdaWarehouse::Hud::Site
+      'Geography.csv' => GrdaWarehouse::Hud::Geography,
     }.freeze
   end
 end

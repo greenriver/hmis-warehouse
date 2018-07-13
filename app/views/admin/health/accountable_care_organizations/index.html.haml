@@ -1,0 +1,26 @@
+- content_for :title,  'Accountable Care Organizations'
+%h1= content_for :title
+
+= render 'menus/health_admin_tabs'
+.row
+  .col-sm-8
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Name
+          %th Short Name
+          %th MCO PID
+          %th MCO SL
+
+      %tbody
+        - @accountable_care_organizations.each do |accountable_care_organization|
+          %tr
+            %td= link_to accountable_care_organization.name, edit_admin_health_accountable_care_organization_path(accountable_care_organization)
+            %td= accountable_care_organization.short_name
+            %td= accountable_care_organization.mco_pid
+            %td= accountable_care_organization.mco_sl
+
+  .col-sm-4
+    = link_to new_admin_health_accountable_care_organization_path, class: 'btn btn-primary' do
+      %i.icon-plus
+      New ACO

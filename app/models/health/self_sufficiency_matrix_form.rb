@@ -2,172 +2,175 @@ module Health
   class SelfSufficiencyMatrixForm < HealthBase
     belongs_to :patient
     belongs_to :user
+    belongs_to :health_file, dependent: :destroy
 
     scope :in_progress, -> { where(completed_at: nil) }
     scope :completed, -> { where.not completed_at: nil }
     scope :incomplete, -> { where(completed_at: nil)}
     scope :recent, -> { order(created_at: :desc).limit(1) }
 
+    attr_accessor :file
+
     SECTIONS = {
       housing: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Homeless or threatened with eviction. (in-crisis)",
         2 => "In transitional, temporary or substandard housing; and/or current rent/mortgage payment is unaffordable (over 30% of income). (vulnerable)",
         3 => "In stable housing that is safe but only marginally adequate. (safe)",
         4 => "Household is in safe, adequate subsidized housing. (stable)",
         5 => "Household is safe, adequate, unsubsidized housing. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       income: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "No income. (in-crisis)",
         2 => "Inadequate income and/or spontaneous or inappropriate spending. (vulnerable)",
         3 => "Can meet basic needs with subsidy; appropriate spending. (safe)",
         4 => "Can meet basic needs and manage debt without assistance. (stable)",
         5 => "Income is sufficient, well managed; has discretionary income and is able to save. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       benefits: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Eligible for benefits but does not currently receive benefits (in-crisis)",
         2 => "Eligible for benefits but does not currently receive benefits AND is in the application process . (vulnerable)",
         3 => "Not currently eligible for non-cash social benefits. (safe)",
         4 => "Currently receiving some non-cash benefits but IS NOT receiving all eligible benefits social benefits. (stable)",
         5 => "Currently receiving ALL eligible non-cash benefits. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       disabilities: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Acute or chronic symptoms affecting housing, employment, social interactions, etc. (in-crisis)",
         2 => "Sometimes or periodically has acute or chronic symptoms affecting housing, employment, social interactions, etc. (vulnerable)",
         3 => "Rarely has acute or chronic symptoms affecting housing, employment, social interactions, etc. (safe)",
         4 => "Asymptomatic – condition controlled by services or medication. (stable)",
         5 => "No identified disability. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       food: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Relies to a significant degree on other sources of free or low-cost food. (in-crisis)",
         2 => "Household is on food stamps. (vulnerable)",
         3 => "Can meet basic food needs, but requires occasional assistance. (safe)",
         4 => "Can meet basic food needs without assistance. (stable)",
         5 => "Can choose to purchase any food household desires. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       employment: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "No job. (in-crisis)",
         2 => "Temporary, part-time or seasonal; inadequate pay, no benefits. (vulnerable)",
         3 => "Employed full time; inadequate pay; few or no benefits. (safe)",
         4 => "Employed full time with adequate pay and benefits. (stable)",
         5 => "Maintains permanent employment with adequate income and benefits. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       education: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Literacy problems and/or no high school diploma/GED are serious barriers to employment. (in-crisis)",
         2 => "Enrolled in literacy and/or GED program and/or has sufficient command of English to where language is not a barrier to employment. (vulnerable)",
         3 => "Has high school diploma/GED. (safe)",
         4 => "Needs additional education/training to improve employment situation and/or to resolve literacy problems to where they are able to function effectively in society. (stable)",
         5 => "Has completed education/training needed to become employable. No literacy problems. Has attended college or has graduated from college. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       mobility: {
+         0 => "Not enough information at this time OR not applicable",
         1 => "No access to transportation, public or private; may have car that is inoperable. (in-crisis)",
         2 => "Transportation is available, but unreliable, unpredictable, unaffordable; may have car but no insurance, license, etc. (vulnerable)",
         3 => "Transportation is available and reliable, but limited and/or inconvenient; drivers are licensed and minimally insured. (safe)",
         4 => "Transportation is generally accessible to meet basic travel needs. (stable)",
         5 => "Transportation is readily available and affordable; car is adequately insured. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       life: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Unable to meet basic needs such as hygiene, food, activities of daily living. (in-crisis)",
         2 => "Can meet a few but not all needs of daily living without assistance. (vulnerable)",
         3 => "Can meet most but not all daily living needs without assistance. (safe)",
         4 => "Able to meet all basic needs of daily living without assistance. (stable)",
         5 => "Able to provide beyond basic needs of daily living for self and family. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       healthcare: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "No medical coverage with immediate need. (in-crisis)",
         2 => "No medical coverage and great difficulty accessing medical care when needed. Some household members may be in poor health. (vulnerable)",
         3 => "Some members (e.g. Children) have medical coverage. (safe)",
         4 => "All members can get medical care when needed, but may strain budget. (stable)",
         5 => "All members are covered by affordable, adequate health insurance. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       physical_health: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Untreated and chronic medical and life-threatening conditions, with inconsistent to minimal follow-up care. (in-crisis)",
-        2 => "Chronic medical conditions, potentially life threating, with inconsistent follow up care. (vulnerable)",
+        2 => "Chronic medical conditions, potentially life-threatening, with inconsistent follow up care. (vulnerable)",
         3 => "Chronic illness generally well managed and attempting to make and keep routine medical and dental appointments (safe)",
         4 => "No chronic illness or stable chronic illness and maintain good preventive medical and dental care practices. (stable)",
         5 => "No chronic illness and maintaining proactive preventive medical and dental care practices. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       mental_health: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Danger to self or others; recurring suicidal ideation; experiencing severe difficulty in day-to-day life due to psychological problems. (in-crisis)",
         2 => "Recurrent mental health symptoms that may affect behavior, but not a danger to self/others; persistent problems with functioning due to mental health symptoms. (vulnerable)",
         3 => "Mild symptoms may be present but are transient; only moderate difficulty in functioning due to mental health problems. (safe)",
         4 => "Minimal symptoms that are expectable responses to life stressors; only slight impairment in functioning. (stable)",
         5 => "Symptoms are absent or rare; good or superior functioning in wide range of activities; no more than every day problems or concerns. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       substance_abuse: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Meets criteria for severe abuse/dependence; resulting problems so severe that institutional living or hospitalization may be necessary. (in-crisis)",
         2 => "Meets criteria for dependence; preoccupation with use and/or obtaining drugs/alcohol; withdrawal or withdrawal avoidance behaviors evident; use results in avoidance or neglect of essential life activities. (vulnerable)",
         3 => "Use within last 6 months; evidence of persistent or recurrent social, occupational, emotional or physical problems related to use (such as disruptive behavior or housing problems); problems have persisted for at least one month. (safe)",
         4 => "Client has used during last 6 months, but no evidence of persistent or recurrent social, occupational, emotional, or physical problems related to use; no evidence of recurrent dangerous use. (stable)",
         5 => "No drug use/alcohol abuse in last 6 months or no drug use/alcohol abuse history. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       criminal: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Current outstanding tickets or warrants. (in-crisis)",
         2 => "Current charges/trial pending, noncompliance with probation/parole. (vulnerable)",
         3 => "Fully compliant with probation/parole terms. (safe)",
         4 => "Has successfully completed probation/parole within past 12 months, no new charges filed. (stable)",
         5 => "No active criminal justice involvement in more that 12 months and/or no felony criminal history. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       legal: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Has significant legal problem(s) and is not addressing them or does not understand that the problem involve legal issues. (in-crisis)",
         2 => "Has identified legal problems but is unable to proceed without legal assistance. (vulnerable)",
         3 => "Has responded to legal issues with appropriate legal assistance. (safe)",
         4 => "Has legal representation and issues are moving towards resolution. (stable)",
         5 => "No legal issues or legal issues have been fully resolved. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       safety: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Home or residence is not safe; immediate level of lethality is extremely high; possible CPS involvement. (in-crisis)",
         2 => "Safety is threatened/temporary protection is available; level of lethality is high. (vulnerable)",
         3 => "Current level of safety is minimally adequate; ongoing safety planning is essential. (safe)",
         4 => "Environment is safe, however, future of such is uncertain; safety planning is important. (stable)",
         5 => "Environment is apparently safe and stable. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       risk: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Mention of suicidal thoughts with actionable plan and/or mention of violent intentions with actionable plan. (in-crisis)",
         2 => "History of suicidal attempts or violent criminal history within the last 12 months. Mention of suicidal thoughts without a plan to carry out action and/or mention of violent intentions to harm others without actionable plan. (vulnerable)",
         3 => "History of suicidal attempts or violent criminal history over 12 months ago. (safe)",
         4 => "History of suicidal attempts or violent criminal history over 12 months ago with mitigating action steps taken to address behavior. (stable)",
         5 => "No mention of suicidal thoughts or violent intentions to harm others. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       family: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Lack of necessary support from family or friends; abuse (DV, child) is present or there is child neglect. (in-crisis)",
         2 => "Family/friends may be supportive, but lack ability or resources to help; family members do not relate well with one another; potential for abuse or neglect. (vulnerable)",
         3 => "Some support from family/friends; family members acknowledge and seek to change negative behaviors; are learning to communicate and support. (safe)",
         4 => "Strong support from family or friends. Household members support each other’s efforts. (stable)",
         5 => "Has healthy/expanding support network; household is stable and communication is consistently open. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       community: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Not applicable due to crisis situation; in “survival” mode. (in-crisis)",
         2 => "Socially isolated and/or no social skills and/or lacks motivation to become involved. (vulnerable)",
         3 => "Lacks knowledge of ways to become involved. (safe)",
         4 => "Some community involvement (advisory group, support group), but has barriers such as transportation, childcare issues. (stable)",
         5 => "Actively involved in community. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
       time: {
+        0 => "Not enough information at this time OR not applicable",
         1 => "Unstructured and chaotic day with little to no awareness of appointments or time management (in-crisis)",
         2 => "Unstructured and chaotic day with some awareness and attendance of appointments (vulnerable)",
         3 => "Loosely structured day with sporadic awareness and attendance of appointments (safe)",
         4 => "Structured day with full awareness of appointments but moderate attendance (stable)",
         5 => "Structured and routine day with full awareness of appointments and attendance. (thriving)",
-        0 => "Not enough information at this time OR not applicable",
       },
     }
 
@@ -218,7 +221,7 @@ module Health
     }
 
     SECTION_FOOTERS = {
-      risk: "Work with guest (and other staff as applicable) around safety planning. Complete the CRIT and/or Suicide assessment after safety planning session."
+      # risk: "Work with guest (and other staff as applicable) around safety planning. Complete the CRIT and/or Suicide assessment after safety planning session."
     }
 
     # for health_charts (match with old for charts code)
@@ -276,8 +279,14 @@ module Health
       end
     end
 
+    def questions_answered
+      questions = SECTIONS.keys.map { |key| self.send("#{key}_score") }.compact
+      questions.delete(0)
+      questions.size
+    end
+
     def average_score
-      (total_score / SECTIONS.keys.size.to_f).round(1)
+      (total_score / questions_answered.to_f).round(1)
     end
 
     # for health_charts

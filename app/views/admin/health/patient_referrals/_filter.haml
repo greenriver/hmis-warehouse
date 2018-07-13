@@ -1,3 +1,7 @@
+- if @active_filter
+  - filter_class = 'client__filter-active'
+- else
+  - filter_class = 'client__filter'
 = simple_form_for :filters, url: filters_path, html: {id: 'filter-form'}, method: :get do |f|
   - if @active_patient_referral_group.present?
     = hidden_field_tag :group, @active_patient_referral_group
@@ -10,7 +14,7 @@
     -# if show_filters?
     .o-page__sort
       - if show_filters?
-        .o-filtration.dropdown.mr-2
+        .o-filtration.dropdown.mr-2{class: filter_class}
           %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
             Filter
             %span.caret
@@ -22,19 +26,20 @@
                 = f.input :added_before, as: :date_picker, required: false, wrapper_html: {class: 'mb-0'}
             .o-filtration__option.row
               .col-sm-12
-                = label_tag 'Claimed?'
+                = label_tag 'Known?'
                 .radio-button-buttons__container.mb-0
-                  - [['All', :all], ['Claimed', :claimed], ['Unclaimed', :unclaimed]].each do |btn|
+                  - [['All', :all], ['Known', :claimed], ['Not known', :unclaimed]].each do |btn|
                     = f.label :relationship, value: btn.last do
                       = f.radio_button :relationship, btn.last
                       %span= btn.first
             .o-filtration__option.row
               .col-sm-10
                 .form-group.mb-0
-                  = label_tag :agency_id, 'Claimed by', class: 'control-label'
-                  .controls.ui-front
-                    = f.hidden_field :agency_id
-                    = text_field_tag :agency_id, @filter_agency&.name, class: 'form-control'
+                  = f.input :agency_id, collection: @agencies, label: 'Response from', include_blank: 'Select to filter', required: false, input_html: {class: :select2, style: 'width: 100%;'}
+            .o-filtration__option.row
+              .col-sm-10
+                .form-group.mb-0
+                  = f.input :assigned_agency_id, collection: @agencies, label: 'Assigned to', include_blank: 'Select to filter', required: false, input_html: {class: :select2, style: 'width: 100%;'}
             .o-filtration__actions.form__actions
               = link_to filters_path, class: 'btn btn-secondary' do
                 %i.icon-cross
@@ -59,24 +64,5 @@
     $(document).ready(function() {
       $(document).on('click', '#filter-form', function(e) {
         e.stopPropagation();
-      });
-      $('#agency_id').autocomplete({
-        source: #{agency_data},
-        focus: function(event, ui) {
-          $('#agency_id').val(ui.item.label)
-          return false
-        },
-        select: function(event, ui) {
-          console.log(ui);
-          $('#agency_id').val(ui.item.label)
-          $('#filters_agency_id').val(ui.item.value);
-          return false
-        },
-        change: function(event, ui) {
-          if(ui.item === null) {
-            $('#agency_id').val('')
-            $('#filters_agency_id').val('');
-          }
-        }
       });
     });

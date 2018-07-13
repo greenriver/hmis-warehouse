@@ -50,29 +50,29 @@ module ReportGenerators::DataQuality::Fy2017
         # 2. The client must be an adult to be included.
 
         columns = {
-          she_t[:client_id].to_sql => :client_id, 
-          she_t[:first_date_in_program].to_sql => :first_date_in_program, 
-          she_t[:last_date_in_program].to_sql => :last_date_in_program, 
-          she_t[:project_id].to_sql => :project_id, 
-          she_t[:age].to_sql => :age, 
-          c_t[:DOB].to_sql => :DOB, 
-          she_t[:enrollment_group_id].to_sql => :enrollment_group_id, 
-          she_t[:data_source_id].to_sql => :data_source_id, 
-          she_t[:project_tracking_method].to_sql => :project_tracking_method, 
+          she_t[:client_id].to_sql => :client_id,
+          she_t[:first_date_in_program].to_sql => :first_date_in_program,
+          she_t[:last_date_in_program].to_sql => :last_date_in_program,
+          she_t[:project_id].to_sql => :project_id,
+          she_t[:age].to_sql => :age,
+          c_t[:DOB].to_sql => :DOB,
+          she_t[:enrollment_group_id].to_sql => :enrollment_group_id,
+          she_t[:data_source_id].to_sql => :data_source_id,
+          she_t[:project_tracking_method].to_sql => :project_tracking_method,
           she_t[:project_name].to_sql => :project_name,
           e_t[:RelationshipToHoH].to_sql => :RelationshipToHoH,
           she_t[:household_id].to_sql => :household_id,
           she_t[:destination].to_sql => :destination,
 
         }
-        
+
         client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report_end)
 
         client_id_scope = add_filters(scope: client_id_scope)
 
         leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ended_between(start_date: @report_start + 1.days, 
+          ended_between(start_date: @report_start + 1.days,
             end_date: @report_end + 1.days).
           where.not(
             client_id: client_id_scope.
@@ -80,7 +80,7 @@ module ReportGenerators::DataQuality::Fy2017
               distinct
           ).
           joins(:client, :enrollment)
-          
+
         leavers_scope = add_filters(scope: leavers_scope)
 
         leavers_scope.
@@ -89,7 +89,7 @@ module ReportGenerators::DataQuality::Fy2017
             Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
-          end.map do |id,enrollments| 
+          end.map do |id,enrollments|
             # We only care about the last enrollment
             enrollment = enrollments.last
             enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
@@ -102,19 +102,19 @@ module ReportGenerators::DataQuality::Fy2017
       @report_end ||= @report.options['report_end'].to_date
       stayers ||= begin
         # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
-        # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days) 
+        # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days)
         # 3. The client must be an adult to be included in this measure.
 
         columns = {
-          she_t[:client_id].to_sql => :client_id, 
-          she_t[:first_date_in_program].to_sql => :first_date_in_program, 
-          she_t[:last_date_in_program].to_sql => :last_date_in_program, 
-          she_t[:project_id].to_sql => :project_id, 
-          she_t[:age].to_sql => :age, 
-          c_t[:DOB].to_sql => :DOB, 
-          she_t[:enrollment_group_id].to_sql => :enrollment_group_id, 
-          she_t[:data_source_id].to_sql => :data_source_id, 
-          she_t[:project_tracking_method].to_sql => :project_tracking_method, 
+          she_t[:client_id].to_sql => :client_id,
+          she_t[:first_date_in_program].to_sql => :first_date_in_program,
+          she_t[:last_date_in_program].to_sql => :last_date_in_program,
+          she_t[:project_id].to_sql => :project_id,
+          she_t[:age].to_sql => :age,
+          c_t[:DOB].to_sql => :DOB,
+          she_t[:enrollment_group_id].to_sql => :enrollment_group_id,
+          she_t[:data_source_id].to_sql => :data_source_id,
+          she_t[:project_tracking_method].to_sql => :project_tracking_method,
           she_t[:project_name].to_sql => :project_name,
           e_t[:RelationshipToHoH].to_sql => :RelationshipToHoH,
           she_t[:household_id].to_sql => :household_id,
@@ -132,7 +132,7 @@ module ReportGenerators::DataQuality::Fy2017
             Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
-          end.map do |id,enrollments| 
+          end.map do |id,enrollments|
             # We only care about the last enrollment
             enrollment = enrollments.last
             enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
@@ -191,14 +191,14 @@ module ReportGenerators::DataQuality::Fy2017
         report: report,
         percent_complete: 0
       ).first
-      return unless @report.present? 
+      return unless @report.present?
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
 
     def finish_report
       @report.update(
-        percent_complete: 100, 
+        percent_complete: 100,
         results: @answers,
         support: @support,
         completed_at: Time.now
@@ -219,7 +219,7 @@ module ReportGenerators::DataQuality::Fy2017
         support: @support,
       )
     end
-    def all_client_count 
+    def all_client_count
       count ||= @all_clients.size
     end
 
@@ -257,7 +257,7 @@ module ReportGenerators::DataQuality::Fy2017
     #   <client_id>: {
     #     key: [ds_id, hh_id...],
     #     household: [enrollments]
-    #   } 
+    #   }
     # }]
     def households
       @households ||= begin
@@ -327,7 +327,7 @@ module ReportGenerators::DataQuality::Fy2017
     def stay_length(client_id:, entry_date:, enrollment_group_id:)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(
-          client_id: client_id, 
+          client_id: client_id,
           first_date_in_program: entry_date,
           enrollment_group_id: enrollment_group_id
         ).joins(:service_history_services).
@@ -377,7 +377,7 @@ module ReportGenerators::DataQuality::Fy2017
         client_id,
         entry_date,
         enrollment_group_id
-      ]] || 0      
+      ]] || 0
     end
 
     def client_disabled?(enrollment:)
@@ -408,19 +408,19 @@ module ReportGenerators::DataQuality::Fy2017
       end
       @client_disabilities[enrollment[:client_id]].present? && @client_disabilities[enrollment[:client_id]] > 0
     end
-    
+
 
     def living_situation_is_homeless enrollment:
       # [living situation] (3.917.1) = 16, 1, 18 or 27
-      [16,1,18,27].include?(enrollment[:ResidencePrior]) ||
-      # [on the night before, did you stay in streets, ES or SH?] (3.917.2c) 
+      [16,1,18,27].include?(enrollment[:LivingSituation]) ||
+      # [on the night before, did you stay in streets, ES or SH?] (3.917.2c)
       enrollment[:PreviousStreetESSH] == 1 ||
       # [project type] (2.4) = 1 or 4 or 8
       [1,4,8].include?(enrollment[:project_type])
     end
 
     def homeless_for_one_year? enrollment:
-      enrollment[:DateToStreetESSH].present? && 
+      enrollment[:DateToStreetESSH].present? &&
       enrollment[:DateToStreetESSH].to_date <= (enrollment[:first_date_in_program] - 365.days)
     end
 

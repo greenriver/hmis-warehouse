@@ -1,7 +1,7 @@
 - title = "Consent Form Processing"
 - content_for :title, title
-%h1= title 
-= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
 
 .warehouse-reports__expiring-consent
   %h3
@@ -12,7 +12,7 @@
         %tr
           %th Client
           - if current_user.can_confirm_housing_release?
-            %th.text-center 
+            %th.text-center
               = _('Available for matching in CAS') + '?'
               %br
               %input#jCasActive.jCheckAll{type: :checkbox}
@@ -20,11 +20,11 @@
           %th Consent Form Signed on
           - if current_user.can_confirm_housing_release?
             %th.text-center Release Type
-            %th.text-center 
+            %th.text-center
               Confirm Consent?
               %br
               %input#jConsent.jCheckAll{type: :checkbox}
-            
+
           - @cohorts_for_unconfirmed.each do |_,cohort|
             %th= cohort[:name]
       %tbody
@@ -33,7 +33,7 @@
           - columns_to_skip = @cohorts_for_unconfirmed.count
           %tr
             %td
-              = link_to(client_path(client)) do 
+              = link_to(client_path(client)) do
                 = client.full_name
             - if current_user.can_confirm_housing_release?
               %td.text-center
@@ -49,23 +49,22 @@
             %td{colspan: 3}
             - @cohorts_for_unconfirmed.each do |_,cohort|
               %td= checkmark cohort[:clients].include?(client.id)
-          - unconfirmed_files.each do |file|  
+          - unconfirmed_files.each do |file|
             %tr
               %td{colspan: 3}
               %td.text-center
                 = link_to preview_client_file_path(client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.consent_form_signed_on&.to_date || 'Not signed'
-              
+
               %td= file.consent_type
               - if current_user.can_confirm_housing_release?
                 %td.text-center
                   = f.input "[confirm_consent][#{file.id}]", as: :boolean, label: false, input_html: {class: 'jConsent'}
                 %td{colspan: columns_to_skip}
-            
+
     .text-right
       = f.button :submit, value: 'Update Clients', input_html: {class: 'btn btn-primary'}
 
-= content_for :page_js do 
+= content_for :page_js do
   :javascript
     $('.datatable').DataTable({searching: false, paging: false, order: []});
-  

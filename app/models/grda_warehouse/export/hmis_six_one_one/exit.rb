@@ -2,74 +2,14 @@ module GrdaWarehouse::Export::HMISSixOneOne
   class Exit < GrdaWarehouse::Import::HMISSixOneOne::Exit
     include ::Export::HMISSixOneOne::Shared
 
-    setup_hud_column_access( 
-      [
-        :ExitID,
-        :ProjectEntryID,
-        :PersonalID,
-        :ExitDate,
-        :Destination,
-        :OtherDestination,
-        :AssessmentDisposition,
-        :OtherDisposition,
-        :HousingAssessment,
-        :SubsidyInformation,
-        :ProjectCompletionStatus,
-        :EarlyExitReason,
-        :ExchangeForSex,
-        :ExchangeForSexPastThreeMonths,
-        :CountOfExchangeForSex,
-        :AskedOrForcedToExchangeForSex,
-        :AskedOrForcedToExchangeForSexPastThreeMonths,
-        :WorkPlaceViolenceThreats,
-        :WorkplacePromiseDifference,
-        :CoercedToContinueWork,
-        :LaborExploitPastThreeMonths,
-        :CounselingReceived,
-        :IndividualCounseling,
-        :FamilyCounseling,
-        :GroupCounseling,
-        :SessionCountAtExit,
-        :PostExitCounselingPlan,
-        :SessionsInPlan,
-        :DestinationSafeClient,
-        :DestinationSafeWorker,
-        :PosAdultConnections,
-        :PosPeerConnections,
-        :PosCommunityConnections,
-        :AftercareDate,
-        :AftercareProvided,
-        :EmailSocialMedia,
-        :Telephone,
-        :InPersonIndividual,
-        :InPersonGroup,
-        :CMExitReason,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
-    )
-    
+    setup_hud_column_access( GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '6.11') )
+
     self.hud_key = :ExitID
 
-     # Setup an association to enrollment that allows us to pull the records even if the 
+     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:ProjectEntryID, :PersonalID, :data_source_id], foreign_key: [:ProjectEntryID, :PersonalID, :data_source_id]
+    belongs_to :enrollment_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
 
-    # Replace 5.1 versions with 6.11
-    # ProjectEntryID with EnrollmentID etc.
-    def clean_headers(headers)
-      headers.map do |k|
-        case k
-        when :ProjectEntryID
-          :EnrollmentID
-        else
-          k
-        end
-      end
-    end
 
     def export! enrollment_scope:, project_scope:, path:, export:
       case export.period_type
@@ -97,8 +37,8 @@ module GrdaWarehouse::Export::HMISSixOneOne
       export_scope = export_scope.joins(join_tables)
 
       export_to_path(
-        export_scope: export_scope, 
-        path: path, 
+        export_scope: export_scope,
+        path: path,
         export: export
       )
     end

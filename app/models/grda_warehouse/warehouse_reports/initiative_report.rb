@@ -80,7 +80,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_type: :project_type,
         date: shs_t[:date].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -99,7 +99,7 @@ module GrdaWarehouse::WarehouseReports
           data_key = "#{::HUD.project_type_brief(project_type)}__#{date}"
           data[data_key] = days
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
@@ -107,7 +107,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         date: shs_t[:date].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -133,7 +133,7 @@ module GrdaWarehouse::WarehouseReports
     def client_counts_by_project_type
       columns = {
         project_type: :project_type,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -147,14 +147,14 @@ module GrdaWarehouse::WarehouseReports
         end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__count"
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
     def client_counts_by_project
       columns = {
         project_id: p_t[:id].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -176,7 +176,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_type: :project_type,
         destination: :destination,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -199,7 +199,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         destination: :destination,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -222,7 +222,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_type: :project_type,
         zipcode: e_t[:LastPermanentZIP].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -246,7 +246,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         zipcode: e_t[:LastPermanentZIP].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -271,7 +271,7 @@ module GrdaWarehouse::WarehouseReports
         project_type: :project_type,
         income: ib_t[:TotalMonthlyIncome].to_sql,
         information_date: ib_t[:InformationDate].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -298,7 +298,7 @@ module GrdaWarehouse::WarehouseReports
           most_recent_income = incomes.sort_by{|row| row[:information_date]}.last[:income] || 0
           all_incomes[project_type] << most_recent_income
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
         # Then store all incomes for averaging
         key = "all_#{key}".to_sym
         @data.merge!(key => all_incomes)
@@ -310,7 +310,7 @@ module GrdaWarehouse::WarehouseReports
         project_id: p_t[:id].to_sql,
         income: ib_t[:TotalMonthlyIncome].to_sql,
         information_date: ib_t[:InformationDate].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -348,7 +348,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_type: :project_type,
         income: ib_t[:TotalMonthlyIncome].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -368,7 +368,7 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
@@ -376,7 +376,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         income: ib_t[:TotalMonthlyIncome].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -403,8 +403,8 @@ module GrdaWarehouse::WarehouseReports
     def living_situation_breakdowns_by_project_type
       columns = {
         project_type: :project_type,
-        living_situation: e_t[:ResidencePrior].to_sql, 
-        client_id: :client_id, 
+        living_situation: e_t[:LivingSituation].to_sql,
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -419,15 +419,15 @@ module GrdaWarehouse::WarehouseReports
         end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.living_situation(row[:living_situation])}"
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
     def living_situation_breakdowns_by_project
       columns = {
         project_id: p_t[:id].to_sql,
-        living_situation: e_t[:ResidencePrior].to_sql,
-        client_id: :client_id, 
+        living_situation: e_t[:LivingSituation].to_sql,
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -450,7 +450,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_type: :project_type,
         date: shs_t[:date].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -482,7 +482,7 @@ module GrdaWarehouse::WarehouseReports
         @data.merge!(key => lengths_of_stay)
 
       end
-      
+
 
     end
 
@@ -490,7 +490,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         date: shs_t[:date].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -528,7 +528,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_type: :project_type,
         dob: c_t[:DOB].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -549,7 +549,7 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] << row if age_bucket[:range].include?(age)
           end
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
@@ -557,7 +557,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         dob: c_t[:DOB].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -585,7 +585,7 @@ module GrdaWarehouse::WarehouseReports
     def race_breakdowns_by_project_type
       columns = {
         project_type: :project_type,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -608,14 +608,14 @@ module GrdaWarehouse::WarehouseReports
             data[data_key] << row if row[race_label] == 1
           end
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
     def race_breakdowns_by_project
       columns = {
         project_id: p_t[:id].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -645,8 +645,8 @@ module GrdaWarehouse::WarehouseReports
     def ethnicity_breakdowns_by_project_type
       columns = {
         project_type: :project_type,
-        ethnicity: c_t[:Ethnicity].to_sql, 
-        client_id: :client_id, 
+        ethnicity: c_t[:Ethnicity].to_sql,
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -660,7 +660,7 @@ module GrdaWarehouse::WarehouseReports
         end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.ethnicity(row[:ethnicity])}"
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
@@ -668,7 +668,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         ethnicity: c_t[:Ethnicity].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -689,8 +689,8 @@ module GrdaWarehouse::WarehouseReports
     def veteran_breakdowns_by_project_type
       columns = {
         project_type: :project_type,
-        veteran: c_t[:VeteranStatus].to_sql, 
-        client_id: :client_id, 
+        veteran: c_t[:VeteranStatus].to_sql,
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -704,7 +704,7 @@ module GrdaWarehouse::WarehouseReports
         end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.veteran_status(row[:veteran])}"
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
@@ -712,7 +712,7 @@ module GrdaWarehouse::WarehouseReports
       columns = {
         project_id: p_t[:id].to_sql,
         veteran: c_t[:VeteranStatus].to_sql,
-        client_id: :client_id, 
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -733,8 +733,8 @@ module GrdaWarehouse::WarehouseReports
     def gender_breakdowns_by_project_type
       columns = {
         project_type: :project_type,
-        gender: c_t[:Gender].to_sql, 
-        client_id: :client_id, 
+        gender: c_t[:Gender].to_sql,
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -748,15 +748,15 @@ module GrdaWarehouse::WarehouseReports
         end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.gender(row[:gender])}"
         end
-        add_data_and_support(key: key, data: data)  
+        add_data_and_support(key: key, data: data)
       end
     end
 
     def gender_breakdowns_by_project
       columns = {
         project_id: p_t[:id].to_sql,
-        gender: c_t[:Gender].to_sql, 
-        client_id: :client_id, 
+        gender: c_t[:Gender].to_sql,
+        client_id: :client_id,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
@@ -784,7 +784,7 @@ module GrdaWarehouse::WarehouseReports
       }
       support[:counts] = data.map do |k, group|
         [
-          k, 
+          k,
           group.map{|row| [row[:client_id], row[:last_name], row[:first_name]]}
         ]
       end.to_h
@@ -795,7 +795,7 @@ module GrdaWarehouse::WarehouseReports
     def enrollment_scope
       @enrollment_scope ||= enrollment_source.entry.send(@sub_population).
         joins(:project, :client).
-        merge(project_scope)      
+        merge(project_scope)
     end
 
     def project_scope
@@ -809,7 +809,7 @@ module GrdaWarehouse::WarehouseReports
     def report_scope
       @report_scope ||= enrollment_scope.
         with_service_between(
-          start_date: @start, 
+          start_date: @start,
           end_date: @end,
           service_scope: sub_population_service_scope
         )
@@ -818,7 +818,7 @@ module GrdaWarehouse::WarehouseReports
     def comparison_scope
       @comparison_scope ||= enrollment_scope.
         with_service_between(
-          start_date: @comparison_start, 
+          start_date: @comparison_start,
           end_date: @comparison_end,
           service_scope: sub_population_service_scope
         )

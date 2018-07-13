@@ -2,7 +2,7 @@
   .jEquipmentForm
     .row
       .col-sm-8
-        = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2, style: 'min-width: 150px;'}
+        = f.input :item, collection: @equipment.class.available_items, input_html: {class: :select2, style: 'width: 100%;'}
     .row
       .col-sm-8
         = f.input :provider
@@ -15,6 +15,9 @@
     .row
       .col-sm-10
         = f.input :comments, as: :text
+    .row
+      .col-sm-8
+        = f.input :status, collection: @equipment.class.available_stati
     .form__actions
       - if @equipment.persisted?
         .c-btn_group
@@ -28,7 +31,8 @@
 
 = content_for :page_js do
   :javascript
-    $('.select2').select2().css('width: 100%;');
+    $('.select2').select2();
     $('.jClose').on('click', function(e) {
       e.preventDefault();
     });
+    

@@ -96,6 +96,8 @@ class Role < ActiveRecord::Base
       :can_view_all_patients, # Read-only - unused
       :can_view_patients_for_own_agency, # Read-only - not implemented as such yet
       :can_add_case_management_notes, # unused
+      :can_manage_accountable_care_organizations,
+      :can_view_member_health_reports, # Use for downloading individual member reports
     ]
   end
 

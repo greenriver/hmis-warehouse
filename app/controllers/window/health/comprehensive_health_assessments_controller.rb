@@ -8,22 +8,32 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
     before_action :set_locked, only: [:show, :edit]
+    before_action :set_health_file, only: [:upload, :update]
+    before_action :set_medications, only: [:show, :edit]
+    before_action :set_problems, only: [:show, :edit]
 
     def new
-      @cha = @patient.chas.build(user: current_user)
-      Health::ChaSaver.new(cha: @cha, user: current_user).create
+      # redirect to edit if there are any incomplete
+      if @patient.chas.incomplete.exists?
+        @cha = @patient.chas.incomplete.recent.last
+      else
+        @cha = @patient.chas.build(user: current_user)
+        Health::ChaSaver.new(cha: @cha, user: current_user).create
+      end
       redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
 
     def update
+      @tt = form_params
       @cha.assign_attributes(form_params)
-      Health::ChaSaver.new(cha: @cha, user: current_user, complete: params[:commit]=='Complete', reviewed: reviewed?).update
+      @cha.file = @health_file if @health_file
+      Health::ChaSaver.new(cha: @cha, user: current_user, complete: completed?, reviewed: reviewed?).update
       respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end
 
     def edit
       if @cha_locked
-        flash.notice = _('This CHA has already been reviewed, or a claim was submitted; it is no longer editable')
+        flash.notice = _('A claim was submitted for this CHA; it is no longer editable.')
         redirect_to polymorphic_path(cha_path_generator, id: @cha.id) and return
       end
       # For errors in new/edit forms
@@ -32,11 +42,12 @@ module Window::Health
       @services = @patient.services.order(date_requested: :desc)
       @equipments = @patient.equipments
       @blank_cha_url = GrdaWarehouse::PublicFile.url_for_location 'patient/cha'
-      
+
       respond_with @cha
     end
-    
+
     def upload
+      @cha.file = @health_file if @health_file
       validate_form
       save_file if @cha.errors.none? && @cha.update(form_params)
       respond_with @cha, location: polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
@@ -48,7 +59,7 @@ module Window::Health
 
     def download
       @file = @cha.health_file
-      send_data @file.content, 
+      send_data @file.content,
         type: @file.content_type,
         filename: File.basename(@file.file.to_s)
     end
@@ -65,7 +76,7 @@ module Window::Health
     end
 
     def form_params
-      local_params = params.require(:form).permit( 
+      local_params = params.require(:form).permit(
         :reviewed_by_supervisor,
         :completed,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
@@ -77,24 +88,39 @@ module Window::Health
       end
     end
 
+    def set_medications
+      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
+    end
+
+    def set_problems
+      @problems = @patient.problems.order(onset_date: :desc)
+    end
+
     def set_locked
-      @cha_locked = @cha.reviewed_by || @cha.qualifying_activities.submitted.exists?
+      @cha_locked = @cha.qualifying_activities.submitted.exists?
     end
 
     def set_form
       @cha = @patient.chas.where(id: params[:id]).first
     end
 
-    def save_file
-      file = params.dig(:form, :file)
-      if file
-        health_file = Health::ComprehensiveHealthAssessmentFile.new(
+    def set_health_file
+      if file = params.dig(:form, :file)
+        @health_file = Health::ComprehensiveHealthAssessmentFile.new(
           user_id: current_user.id,
           client_id: @client.id,
           file: file,
-          content: file&.read
+          content: file&.read,
+          content_type: file.content_type
         )
-        @cha.health_file = health_file
+      elsif @cha.health_file.present?
+        @health_file = @cha.health_file
+      end
+    end
+
+    def save_file
+      if @health_file
+        @cha.health_file = @health_file
         @cha.save
       end
     end
@@ -110,7 +136,7 @@ module Window::Health
     end
 
     def completed?
-      form_params[:completed] == 'yes'
+      form_params[:completed] == 'yes' || form_params[:completed] == '1'
     end
 
   end

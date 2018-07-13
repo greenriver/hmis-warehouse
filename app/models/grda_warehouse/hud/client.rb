@@ -17,7 +17,7 @@ module GrdaWarehouse::Hud
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
     self.table_name = 'Client'
-    self.hud_key = 'PersonalID'
+    self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
 
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
@@ -25,43 +25,43 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       [
-        "PersonalID",
-        "FirstName",
-        "MiddleName",
-        "LastName",
-        "NameSuffix",
-        "NameDataQuality",
-        "SSN",
-        "SSNDataQuality",
-        "DOB",
-        "DOBDataQuality",
-        "AmIndAKNative",
-        "Asian",
-        "BlackAfAmerican",
-        "NativeHIOtherPacific",
-        "White",
-        "RaceNone",
-        "Ethnicity",
-        "Gender",
-        "OtherGender",
-        "VeteranStatus",
-        "YearEnteredService",
-        "YearSeparated",
-        "WorldWarII",
-        "KoreanWar",
-        "VietnamWar",
-        "DesertStorm",
-        "AfghanistanOEF",
-        "IraqOIF",
-        "IraqOND",
-        "OtherTheater",
-        "MilitaryBranch",
-        "DischargeStatus",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
+        :PersonalID,
+        :FirstName,
+        :MiddleName,
+        :LastName,
+        :NameSuffix,
+        :NameDataQuality,
+        :SSN,
+        :SSNDataQuality,
+        :DOB,
+        :DOBDataQuality,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :NativeHIOtherPacific,
+        :White,
+        :RaceNone,
+        :Ethnicity,
+        :Gender,
+        :OtherGender,
+        :VeteranStatus,
+        :YearEnteredService,
+        :YearSeparated,
+        :WorldWarII,
+        :KoreanWar,
+        :VietnamWar,
+        :DesertStorm,
+        :AfghanistanOEF,
+        :IraqOIF,
+        :IraqOND,
+        :OtherTheater,
+        :MilitaryBranch,
+        :DischargeStatus,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID
       ].freeze
     end
 
@@ -163,7 +163,10 @@ module GrdaWarehouse::Hud
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
 
     def active_cohorts
-      cohort_clients.select{|cc| cc.active? && cc.cohort&.active?}.map(&:cohort).compact.uniq
+      cohort_clients.select do |cc|
+        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
+        cc.active? && cc.cohort&.active? && ! meta.inactive && ! cc.ineligible?
+      end.map(&:cohort).compact.uniq
     end
 
     def active_cohort_ids
@@ -522,7 +525,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -556,7 +559,7 @@ module GrdaWarehouse::Hud
           ).join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:ProjectEntryID].eq(d_t2[:ProjectEntryID])).
+            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
             and(e_t[:DateDeleted].eq(nil))
           ).join(c_t2).on(
              e_t[:PersonalID].eq(c_t2[:PersonalID]).
@@ -579,6 +582,7 @@ module GrdaWarehouse::Hud
     end
 
     def active_in_cas?
+      return false if deceased?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
         sync_with_cas
@@ -1724,19 +1728,6 @@ module GrdaWarehouse::Hud
         select(:date).distinct
     end
 
-    def self.dates_in_hud_chronic_homeless_last_three_years_scope client_id:, on_date: Date.today, chronic_only: true
-      Rails.cache.fetch([client_id, "dates_in_hud_chronic_homeless_last_three_years_scope", on_date], expires_in: CACHE_EXPIRY) do
-        end_date = on_date.to_date
-        start_date = end_date - 3.years
-        GrdaWarehouse::ServiceHistoryService.service.
-          where(client_id: client_id).
-          hud_homeless(chronic_types_only: true).
-          where(date: start_date..end_date).
-          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id, on_date: end_date)).
-          select(:date).distinct
-      end
-    end
-
     # ES, SO, SH, or TH with no overlapping PH
     def self.dates_homeless_in_last_three_years_scope client_id:, on_date: Date.today
       Rails.cache.fetch([client_id, "dates_homeless_in_last_three_years_scope", on_date], expires_in: CACHE_EXPIRY) do
@@ -1755,6 +1746,32 @@ module GrdaWarehouse::Hud
       Rails.cache.fetch([client_id, "dates_literally_homeless_in_last_three_years_scope", on_date], expires_in: CACHE_EXPIRY) do
         end_date = on_date.to_date
         start_date = end_date - 3.years
+        GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
+          homeless.
+          where(date: start_date..end_date).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
+          select(:date).distinct
+      end
+    end
+
+    # ES, SO, SH, or TH with no overlapping PH
+    def self.dates_homeless_in_last_year_scope client_id:, on_date: Date.today
+      Rails.cache.fetch([client_id, "dates_homeless_in_last_year_scope", on_date], expires_in: CACHE_EXPIRY) do
+        end_date = on_date.to_date
+        start_date = end_date - 1.years
+        GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
+          homeless.
+          where(date: start_date..end_date).
+          where.not(date: dates_in_ph_last_three_years_scope(client_id: client_id, on_date: on_date)).
+          select(:date).distinct
+      end
+    end
+
+    # ES, SO, or SH with no overlapping TH or PH
+    def self.dates_literally_homeless_in_last_year_scope client_id:, on_date: Date.today
+      Rails.cache.fetch([client_id, "dates_literally_homeless_in_last_year_scope", on_date], expires_in: CACHE_EXPIRY) do
+        end_date = on_date.to_date
+        start_date = end_date - 1.years
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           homeless.
           where(date: start_date..end_date).
@@ -1805,14 +1822,34 @@ module GrdaWarehouse::Hud
       homeless_months_in_last_three_years(on_date: on_date).count
     end
 
-    def homeless_months_in_hud_chronic_in_last_three_years(on_date: Date.today)
-      self.class.dates_in_hud_chronic_homeless_last_three_years_scope(client_id: id, on_date: on_date).
+    def homeless_months_in_last_year(on_date: Date.today)
+      self.class.dates_homeless_in_last_year_scope(client_id: id, on_date: on_date).
         pluck(:date).
         map{ |date| [date.month, date.year]}.uniq
     end
 
-    def months_homeless_in_hud_chronic_in_last_three_years(on_date: Date.today)
-      homeless_months_in_hud_chronic_in_last_three_years(on_date: on_date).count
+    def months_homeless_in_last_year(on_date: Date.today)
+      homeless_months_in_last_year(on_date: on_date).count
+    end
+
+    def literally_homeless_months_in_last_three_years(on_date: Date.today)
+      self.class.dates_literally_homeless_in_last_three_years_scope(client_id: id, on_date: on_date).
+        pluck(:date).
+        map{ |date| [date.month, date.year]}.uniq
+    end
+
+    def months_literally_homeless_in_last_three_years(on_date: Date.today)
+      literally_homeless_months_in_last_three_years(on_date: on_date).count
+    end
+
+    def literally_homeless_months_in_last_year(on_date: Date.today)
+      self.class.dates_literally_homeless_in_last_year_scope(client_id: id, on_date: on_date).
+        pluck(:date).
+        map{ |date| [date.month, date.year]}.uniq
+    end
+
+    def months_literally_homeless_in_last_year(on_date: Date.today)
+      literally_homeless_months_in_last_year(on_date: on_date).count
     end
 
     def self.dates_housed_scope(client_id:, on_date: Date.today)
@@ -1879,26 +1916,6 @@ module GrdaWarehouse::Hud
       end.count(true)
     end
 
-    # def months_served_since date:
-    #   service_history.
-    #     service
-    #     .homeless
-    #     .where(date: date..Date.today)
-    #     .order(date: :asc)
-    #     .pluck(:date)
-    #     .map{|m| [m.month, m.year]}
-    #     .uniq
-    #     .count
-    # end
-
-    def months_served_between start_date:, end_date:
-      days_chronic_in_last_three_years = self.class.dates_in_hud_chronic_homeless_last_three_years_scope(client_id: id, on_date: Date.today, chronic_only: true).pluck(:date)
-      days_chronic_in_last_three_years.select{|date| (start_date.to_date..end_date.to_date).include?(date.to_date)}.
-        map{|m| [m.month, m.year]}.
-        uniq.
-        count
-    end
-
     def self.service_types
       @service_types ||= begin
         service_types = ['service']
@@ -1944,7 +1961,7 @@ module GrdaWarehouse::Hud
             project_name: project_name,
             confidential_project: project.confidential,
             entry_date: entry.first_date_in_program,
-            living_situation: entry.enrollment.ResidencePrior,
+            living_situation: entry.enrollment.LivingSituation,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
             days: dates_served.count,

@@ -3,10 +3,7 @@
 - content_for(:title, title)
 .o-page
   .o-page__header
-    %h1
-      = content_for(:title)
-  .pull-right
-    - unless @form.claim_submitted?
-      = link_to 'Delete', polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure?"}
+    %h1= content_for(:title)
+
   = render 'window/health/breadcrumbs'
   = render 'form'

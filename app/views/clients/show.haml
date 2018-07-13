@@ -17,7 +17,7 @@
           - if can_track_anomalies?
             = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
               Track Issues
-    
+
     = render 'window/clients/aliases'
 
   %section.o-dashboard__block--primary.client__summary
@@ -35,7 +35,7 @@
         %header
           %h1.h3 Residential Enrollments
           .c-color-key.ml-auto
-            %span.c-color-key__swatch.c-color-key__swatch--positive
+            %span.c-color-key__swatch.enrollment__new-episode--key
             %span.c-color-key__title New Episode
 
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
@@ -68,8 +68,8 @@
           %h1.h3 Zip Code of Last Permanent Address
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'zip-details'}}
         %header
-          %h1.h3 Zip Details  
-    .col-sm-12  
+          %h1.h3 Zip Details
+    .col-sm-12
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
         %header
           %h1.h3 Income and Benefits

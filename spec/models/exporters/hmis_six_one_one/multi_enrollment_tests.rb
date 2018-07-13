@@ -1,12 +1,12 @@
 RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
 
-  def involved_projects 
+  def involved_projects
     GrdaWarehouse::Hud::Project.where(id: involved_project_ids)
   end
-  def involved_enrollments 
+  def involved_enrollments
     GrdaWarehouse::Hud::Enrollment.where(ProjectID: involved_projects.select(:ProjectID))
   end
-  def involved_clients 
+  def involved_clients
     GrdaWarehouse::Hud::Client.joins(:enrollments).where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].in(involved_enrollments.pluck(:id)))
   end
 
@@ -25,8 +25,8 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
         # puts 3.weeks.ago.to_date
         # puts 1.weeks.ago.to_date
         # puts projects.map(&:ProjectID).inspect
-        # puts enrollments.map{|m| [m.ProjectID, m.ProjectEntryID, m.EntryDate]}.inspect
-        # puts exits.map{|m| [ m.ProjectEntryID, m.ExitDate]}.inspect
+        # puts enrollments.map{|m| [m.ProjectID, m.EnrollmentID, m.EntryDate]}.inspect
+        # puts exits.map{|m| [ m.EnrollmentID, m.ExitDate]}.inspect
         exporter.export_enrollments()
         @enrollment_class = GrdaWarehouse::Export::HMISSixOneOne::Enrollment
       end
@@ -87,13 +87,13 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
           csv_ids = csv.map{|m| m[current_hud_key]}.sort
           # source_ids = send(item[:list]).first(3).map(&:id).map(&:to_s).sort
 
-          involved_enrollment_project_entry_ids = involved_enrollments.pluck(:ProjectEntryID)
-          source_ids = send(item[:list]).select do |m| 
-            involved_enrollment_project_entry_ids.include? m.ProjectEntryID
+          involved_enrollment_project_entry_ids = involved_enrollments.pluck(:EnrollmentID)
+          source_ids = send(item[:list]).select do |m|
+            involved_enrollment_project_entry_ids.include? m.EnrollmentID
           end.map(&:id).map(&:to_s).sort.first(3)
           expect(csv_ids).to eq source_ids
         end
-        if item[:klass].column_names.include?('ProjectEntryID')
+        if item[:klass].column_names.include?('EnrollmentID')
           it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
             # binding.pry if item[:list] == :exits
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
@@ -102,7 +102,7 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
             expect(csv_ids).to eq source_ids
           end
         end
-        
+
       end
     end
   end

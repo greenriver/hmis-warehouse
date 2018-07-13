@@ -1,8 +1,9 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
+- @any_editable = @patient.careplans.editable.exists?
 %section.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2 Person-Centered Treatment Plan
-    - unless @patient.careplans.editable.exists?
+    - unless @any_editable
       = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-primary btn-sm' do
         Create a Care Plan
   .c-card__content.c-card__content--flush
@@ -37,7 +38,7 @@
                 - if careplan.editable?
                   = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
                     Edit
-                - else
+                - elsif ! @any_editable
                   = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
                     Revise
 

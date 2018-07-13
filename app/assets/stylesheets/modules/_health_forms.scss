@@ -91,6 +91,26 @@
   clear: left;
 }
 
+.cha-form .cha__help-text,
+.cha-form h4,
+.cha-form label.control-label,
+.cha__section .cha__help-text,
+.cha__section .client__assessment-question,
+.cha__section h5,
+.cha__section h4 {
+  font-size: 14px;
+  font-weight: bold;
+  font-family: "Open Sans", sans-serif;
+}
+
+.cha__section .client__assessment-question {
+  margin-left: 0px;
+}
+
+.cha__section .client__assessment-answer {
+  text-indent: 0;
+}
+
 .cha__help-text
 {
   font-weight: bold;
@@ -100,7 +120,7 @@
 .i_q,
 .l_q
 {
-  float: left;
+  // float: left;
   .client__assessment-answer
   {
     text-indent: 0;
@@ -109,17 +129,17 @@
 
 .g_q
 {
-  width: 50%;
+  // width: 50%;
 }
 
 .i_q
 {
-  width: 30%;
+  // width: 30%;
 }
 
 .l_q
 {
-  width: 14%;
+  // width: 14%;
 }
 
 .patient__care_coordinator select

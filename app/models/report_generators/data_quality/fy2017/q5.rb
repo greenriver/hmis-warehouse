@@ -19,7 +19,7 @@ module ReportGenerators::DataQuality::Fy2017
         @clients_with_issues = Set.new
         @es_sh_so_clients = fetch_clients(ES + SH + SO)
         if @es_sh_so_clients.any?
-          
+
           add_es_sh_so_answers()
         end
         update_report_progress(percent: 25)
@@ -46,25 +46,25 @@ module ReportGenerators::DataQuality::Fy2017
         adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
       add_issues(field: :q5_b2, clients: adult_or_hoh_clients)
-      
+
       approximate_start_date_issues = date_missing(
-        item: :DateToStreetESSH, 
+        item: :DateToStreetESSH,
         clients: adult_or_hoh_clients
       )
       add_issues(field: :q5_e2, clients: approximate_start_date_issues)
 
       times_homeless_missing_issues = item_missing(
-        item: :TimesHomelessPastThreeYears, 
+        item: :TimesHomelessPastThreeYears,
         clients: adult_or_hoh_clients
       )
       add_issues_with_times_homeless(field: :q5_f2, clients: times_homeless_missing_issues)
-      
+
       months_homeless_missing_issues = item_missing(
-        item: :MonthsHomelessPastThreeYears, 
+        item: :MonthsHomelessPastThreeYears,
         clients: adult_or_hoh_clients
       )
       add_issues_with_months_homeless(field: :q5_g2, clients: months_homeless_missing_issues)
-      
+
       poor_quality = Set.new
       poor_quality += approximate_start_date_issues.keys
       poor_quality += times_homeless_missing_issues.keys
@@ -81,7 +81,7 @@ module ReportGenerators::DataQuality::Fy2017
         adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
       add_issues(field: :q5_b3, clients: adult_or_hoh_clients)
-      
+
       institution_time_issues = issues_with_institution_time(clients: @th_clients)
       add_issues(field: :q5_c3, clients: institution_time_issues)
 
@@ -89,25 +89,25 @@ module ReportGenerators::DataQuality::Fy2017
       add_issues(field: :q5_d3, clients: housing_time_issues)
 
       approximate_start_date_issues = date_missing(
-        item: :DateToStreetESSH, 
+        item: :DateToStreetESSH,
         clients: adult_or_hoh_clients
       )
       add_issues(field: :q5_e3, clients: approximate_start_date_issues)
 
       times_homeless_missing_issues = item_missing(
-        item: :TimesHomelessPastThreeYears, 
+        item: :TimesHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
       add_issues_with_times_homeless(field: :q5_f3, clients: times_homeless_missing_issues)
-      
+
       months_homeless_missing_issues = item_missing(
-        item: :MonthsHomelessPastThreeYears, 
+        item: :MonthsHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
       add_issues_with_months_homeless(field: :q5_g3, clients: months_homeless_missing_issues)
-      
+
       poor_quality = Set.new
       poor_quality += institution_time_issues.keys
       poor_quality += housing_time_issues.keys
@@ -125,7 +125,7 @@ module ReportGenerators::DataQuality::Fy2017
         adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
       add_issues(field: :q5_b4, clients: adult_or_hoh_clients)
-      
+
       institution_time_issues = issues_with_institution_time(clients: @th_clients)
       add_issues(field: :q5_c4, clients: institution_time_issues)
 
@@ -133,25 +133,25 @@ module ReportGenerators::DataQuality::Fy2017
       add_issues(field: :q5_d4, clients: housing_time_issues)
 
       approximate_start_date_issues = date_missing(
-        item: :DateToStreetESSH, 
+        item: :DateToStreetESSH,
         clients: adult_or_hoh_clients
       )
       add_issues(field: :q5_e4, clients: approximate_start_date_issues)
 
       times_homeless_missing_issues = item_missing(
-        item: :TimesHomelessPastThreeYears, 
+        item: :TimesHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
       add_issues_with_times_homeless(field: :q5_f4, clients: times_homeless_missing_issues)
-      
+
       months_homeless_missing_issues = item_missing(
-        item: :MonthsHomelessPastThreeYears, 
+        item: :MonthsHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
       add_issues_with_months_homeless(field: :q5_g4, clients: months_homeless_missing_issues)
-      
+
       poor_quality = Set.new
       poor_quality += institution_time_issues.keys
       poor_quality += housing_time_issues.keys
@@ -176,7 +176,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: clients.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -192,7 +192,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: clients.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -209,7 +209,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: clients.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -224,8 +224,8 @@ module ReportGenerators::DataQuality::Fy2017
         enrollment = enrollments.last
         should_exist = false
         if extra_restrictions
-          should_exist = previously_homeless?(enrollment) || 
-            previously_institutionalized?(enrollment) || 
+          should_exist = previously_homeless?(enrollment) ||
+            previously_institutionalized?(enrollment) ||
             briefly_housed?(enrollment)
         else
           should_exist = true
@@ -236,18 +236,18 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def previously_homeless? enrollment
-      [16,1,18,27].include?(enrollment[:ResidencePrior])
+      [16,1,18,27].include?(enrollment[:LivingSituation])
     end
 
     def previously_institutionalized? enrollment
-      [15,6,7,24,4,5].include?(enrollment[:ResidencePrior]) && 
-      [10,11,2,3].include?(enrollment[:ResidencePriorLengthOfStay]) &&
+      [15,6,7,24,4,5].include?(enrollment[:LivingSituation]) &&
+      [10,11,2,3].include?(enrollment[:LengthOfStay]) &&
       enrollment[:PreviousStreetESSH] == 1
     end
 
     def briefly_housed? enrollment
-      [14,23,21,3,22,19,25,20,26,12,13,2,8,9,99,nil].include?(enrollment[:ResidencePrior]) && 
-      [10,11].include?(enrollment[:ResidencePriorLengthOfStay]) &&
+      [14,23,21,3,22,19,25,20,26,12,13,2,8,9,99,nil].include?(enrollment[:LivingSituation]) &&
+      [10,11].include?(enrollment[:LengthOfStay]) &&
       enrollment[:PreviousStreetESSH] == 1
     end
 
@@ -261,39 +261,39 @@ module ReportGenerators::DataQuality::Fy2017
     def issues_with_institution_time clients:
       clients.select do |_, enrollments|
         enrollment = enrollments.last
-        [15,6,7,24,4,5].include?(enrollment[:ResidencePrior]) && [8,9,99,nil].include?(enrollment[:ResidencePriorLengthOfStay])
+        [15,6,7,24,4,5].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
       end
     end
 
     def issues_with_housing_time clients:
       clients.select do |_, enrollments|
         enrollment = enrollments.last
-        [14,23,21,3,22,19,25,20,26,12,13,2,8,9].include?(enrollment[:ResidencePrior]) && [8,9,99,nil].include?(enrollment[:ResidencePriorLengthOfStay]) 
+        [14,23,21,3,22,19,25,20,26,12,13,2,8,9].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
       end
     end
 
 
     def fetch_clients(project_types)
       columns = {
-        client_id: she_t[:client_id].to_sql, 
+        client_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         DOB: c_t[:DOB].to_sql,
-        project_type: she_t[:computed_project_type].to_sql, 
+        project_type: she_t[:computed_project_type].to_sql,
         project_id: she_t[:project_id].to_sql,
         data_source_id: she_t[:data_source_id].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         last_date_in_program: she_t[:last_date_in_program].to_sql,
         project_name: she_t[:project_name].to_sql,
         destination: she_t[:destination].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
-        ResidencePrior: e_t[:ResidencePrior].to_sql,
-        ResidencePriorLengthOfStay: e_t[:ResidencePriorLengthOfStay].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        LivingSituation: e_t[:LivingSituation].to_sql,
+        LengthOfStay: e_t[:LengthOfStay].to_sql,
         DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
         TimesHomelessPastThreeYears: e_t[:TimesHomelessPastThreeYears].to_sql,
         MonthsHomelessPastThreeYears: e_t[:MonthsHomelessPastThreeYears].to_sql,
         PreviousStreetESSH: e_t[:PreviousStreetESSH].to_sql,
       }
-      
+
       all_client_scope.
         hud_project_type(project_types).
         includes(:enrollment).

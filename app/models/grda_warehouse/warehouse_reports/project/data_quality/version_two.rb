@@ -26,7 +26,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :finish_report,
       ]
       progress_methods.each_with_index do |method, i|
-        percent = ((i/progress_methods.size.to_f)* 100) 
+        percent = ((i/progress_methods.size.to_f)* 100)
         percent = 0.01 if percent == 0
         Rails.logger.info "Starting #{method}, #{percent.round(2)}% complete"
         self.send(method)
@@ -93,7 +93,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               [row[:data_source_id], row[:enrollment_group_id]]
             end
             enrollment_groups = enrollments_in_project.keys.map(&:last)
-            services = GrdaWarehouse::Hud::Service.where(ProjectEntryID: enrollment_groups).distinct.pluck(:data_source_id, :ProjectEntryID)
+            services = GrdaWarehouse::Hud::Service.where(EnrollmentID: enrollment_groups).distinct.pluck(:data_source_id, :EnrollmentID)
             empties = enrollments_in_project.keys - services
             empty_enrollments[project.id] = enrollments_in_project.values_at(*empties)
           else
@@ -118,9 +118,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               client_id = destination_id_for_client(enrollment[:id])
               [
                 client_id,
-                enrollment[:first_name], 
-                enrollment[:last_name], 
-                enrollment[:project_name], 
+                enrollment[:first_name],
+                enrollment[:last_name],
+                enrollment[:project_name],
                 enrollment[:first_date_in_program],
                 enrollment[:last_date_in_program],
               ]
@@ -139,9 +139,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           )&.values&.flatten(1)
           if enrollments_in_project.present? && enrollments_in_project.any?
             family_enrollments = enrollments_in_project.
-              group_by do |m| 
+              group_by do |m|
                 [m[:data_source_id], m[:household_id]]
-              end.select do |(_, hh_id), m| 
+              end.select do |(_, hh_id), m|
                 hh_id.nil? || m.size == 1
               end
             individuals[project.id] = family_enrollments.values.flatten(1)
@@ -164,9 +164,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             client_id = destination_id_for_client(service[:id])
             [
               client_id,
-              service[:first_name], 
-              service[:last_name], 
-              service[:project_name], 
+              service[:first_name],
+              service[:last_name],
+              service[:project_name],
               service[:first_date_in_program],
               service[:last_date_in_program],
             ]
@@ -183,7 +183,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)&.values&.flatten(1)
           if enrollments_in_project.present? && enrollments_in_project.any?
             family_enrollments = enrollments_in_project.
-              group_by do |m| 
+              group_by do |m|
                 [m[:data_source_id], m[:household_id]]
               end.select do |(_, hh_id), m|
                 unique_clients = m.map do |enrollment|
@@ -214,10 +214,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             client_id = destination_id_for_client(service[:id])
             [
               client_id,
-              service[:first_name], 
+              service[:first_name],
               service[:last_name],
               service[:household_id],
-              service[:project_name], 
+              service[:project_name],
               service[:first_date_in_program],
               service[:last_date_in_program],
             ]
@@ -262,9 +262,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             client_id = destination_id_for_client(service[:id])
             [
               client_id,
-              service[:first_name], 
-              service[:last_name], 
-              service[:project_name], 
+              service[:first_name],
+              service[:last_name],
+              service[:project_name],
               service[:first_date_in_program],
               service[:last_date_in_program],
               service[:late_service],
@@ -288,7 +288,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           # if the enrollment is still open
           end_date = self.end
           if row[:last_date_in_program].present? && row[:last_date_in_program] < self.end
-            end_date = row[:last_date_in_program]          
+            end_date = row[:last_date_in_program]
           end
           thirty_days_before_end = end_date - 30.days
           max_date = client_scope.joins(:service_history_services).where(
@@ -315,9 +315,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             client_id = destination_id_for_client(service[:id])
             [
               client_id,
-              service[:first_name], 
-              service[:last_name], 
-              service[:project_name], 
+              service[:first_name],
+              service[:last_name],
+              service[:project_name],
               service[:first_date_in_program],
               service[:last_date_in_program],
               service[:max_date],
@@ -337,8 +337,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           enrollments_in_project.each do |enrollment|
             if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
               dob_entry[project.id] << [
-                destination_id_for_client(enrollment[:id]), 
-                enrollment[:first_name], 
+                destination_id_for_client(enrollment[:id]),
+                enrollment[:first_name],
                 enrollment[:last_name],
                 enrollment[:dob],
                 enrollment[:first_date_in_program],
@@ -360,9 +360,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_enrolled_length_of_stay
-      project_counts = projects.map do |project| 
+      project_counts = projects.map do |project|
         [
-          project.id, 
+          project.id,
           {
             average: 0,
             buckets: {}
@@ -423,10 +423,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Days Served'],
             counts: services.map do |service|
               [
-                destination_id_for_client(service[:id]), 
-                service[:first_name], 
-                service[:last_name], 
-                service[:project_name], 
+                destination_id_for_client(service[:id]),
+                service[:first_name],
+                service[:last_name],
+                service[:project_name],
                 service[:first_date_in_program],
                 service[:last_date_in_program],
                 service[:service_count]
@@ -440,10 +440,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
           counts: services.map do |service|
             [
-              destination_id_for_client(service[:id]), 
-              service[:first_name], 
-              service[:last_name], 
-              service[:project_name], 
+              destination_id_for_client(service[:id]),
+              service[:first_name],
+              service[:last_name],
+              service[:project_name],
               service[:first_date_in_program],
               service[:last_date_in_program],
             ]
@@ -462,7 +462,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         totals["refused_#{word}"] = Set.new
         totals["unknown_#{word}"] = Set.new
       end
-      
+
       projects.each do |project|
         counts = {}
         self.class.missing_refused_names.keys.each do |word|
@@ -520,12 +520,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           select(:client_id).
           distinct.
           count
-        missing_clients = counts.values.reduce(&:+).map(&:first).to_set
+        incorrect_clients = counts.values.reduce(&:+).map(&:first).to_set
+        missing_clients = counts.select{|k,_| k.include?('missing')}.values.reduce(&:+).map(&:first).to_set
+        refused_clients = counts.select{|k,_| k.include?('refused')}.values.reduce(&:+).map(&:first).to_set
+        does_not_know_clients = counts.select{|k,_| k.include?('unknown')}.values.reduce(&:+).map(&:first).to_set
+
         totals[:total_missing] ||= Set.new
         totals[:total_missing] += missing_clients
         answers[:project_missing][project.id][:total_missing] = missing_clients.size
         answers[:project_missing][project.id][:total_missing_percentage] = in_percentage(missing_clients.size, clients_in_project.size)
-        answers[:project_missing][project.id][:score] = in_percentage(missing_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:total_refused] = refused_clients.size
+        answers[:project_missing][project.id][:total_refused_percentage] = in_percentage(refused_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:total_unknown] = does_not_know_clients.size
+        answers[:project_missing][project.id][:total_unknown_percentage] = in_percentage(does_not_know_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:total_incorrect] = incorrect_clients.size
+        answers[:project_missing][project.id][:total_incorrect_percentage] = in_percentage(incorrect_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:score] = in_percentage(incorrect_clients.size, clients_in_project.size)
       end
       answers[:project_missing][:totals] = totals.map do |key, clients|
         [key, clients.count]
@@ -567,21 +577,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         # last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
       }
     end
-    
+
     def base_colums_for_support enrollment
       [
-        enrollment[:id], 
-        enrollment[:first_name], 
-        enrollment[:last_name], 
+        enrollment[:id],
+        enrollment[:first_name],
+        enrollment[:last_name],
       ]
     end
 
     def columns_for_missing_support enrollment
       base_colums_for_support(enrollment) + [
-        enrollment[:name_data_quality], 
-        enrollment[:ssn], 
-        enrollment[:ssn_data_quality], 
-        enrollment[:dob], 
+        enrollment[:name_data_quality],
+        enrollment[:ssn],
+        enrollment[:ssn_data_quality],
+        enrollment[:dob],
         enrollment[:dob_data_quality],
       ]
     end
@@ -664,11 +674,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def columns_for_race_support enrollment
       base_colums_for_support(enrollment) + [
-        enrollment[:race_none], 
-        enrollment[:am_ind_ak_native], 
-        enrollment[:asian], 
-        enrollment[:black_af_american], 
-        enrollment[:native_hi_other_pacific], 
+        enrollment[:race_none],
+        enrollment[:am_ind_ak_native],
+        enrollment[:asian],
+        enrollment[:black_af_american],
+        enrollment[:native_hi_other_pacific],
         enrollment[:white],
       ]
     end
@@ -680,14 +690,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       return counts
     end
-    
+
     def add_refused_destinations client_id:, enrollment:, counts:
       if refused?(enrollment[:destination])
         counts['refused_destination'] << columns_for_destination_support(enrollment)
       end
       return counts
     end
-    
+
     def add_unknown_destinations client_id:, enrollment:, counts:
       if unknown?(enrollment[:destination])
         counts['unknown_destination'] << columns_for_destination_support(enrollment)
@@ -822,7 +832,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       bed_utilization = []
       support = {}
       totals = {counts: Hash.new(0), data: Hash.new(Set.new)}
-      
+
       client_columns = [:client_id, c_t[:FirstName].as('first_name').to_sql, c_t[:LastName].as('last_name').to_sql]
       filter = ::Filters::DateRange.new(start: self.start, end: self.end)
       projects.each do |project|
@@ -876,7 +886,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             counts: data[attr]
           }
         end
-        
+
         bed_utilization << project_counts
 
       end
@@ -887,7 +897,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           counts: totals[:data][attr]
         }
       end
-      
+
       add_answers(
         {
           bed_utilization: bed_utilization,
@@ -895,20 +905,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         },
         support
       )
-      
+
     end
 
     def self.bed_utilization_attributes
       [
-        :average_daily, 
-        :first_of_month, 
+        :average_daily,
+        :first_of_month,
         :fifteenth_of_month,
         :last_of_month,
       ]
     end
 
-    def set_bed_coverage_data      
-      bed_coverage = 0 
+    def set_bed_coverage_data
+      bed_coverage = 0
       bed_coverage_percent = 0
       if hmis_beds > 0
         bed_coverage = "#{beds} / #{hmis_beds}"
@@ -1017,11 +1027,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers = {
         total_clients: clients.size,
         total_leavers: leavers.size,
-        missing_name: missing_name.size,   
-        missing_ssn: missing_ssn.size,   
-        missing_dob: missing_dob.size,     
-        missing_veteran: missing_veteran.size,       
-        missing_ethnicity: missing_ethnicity.size,       
+        missing_name: missing_name.size,
+        missing_ssn: missing_ssn.size,
+        missing_dob: missing_dob.size,
+        missing_veteran: missing_veteran.size,
+        missing_ethnicity: missing_ethnicity.size,
         missing_race: missing_race.size,
         missing_gender: missing_gender.size,
         refused_name: refused_name.size,
@@ -1066,7 +1076,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         missing_dob: {
           headers: ['Client ID'],
           counts: missing_dob.map{|m| Array.wrap(m)}
-        },  
+        },
         missing_veteran: {
           headers: ['Client ID'],
           counts: missing_veteran.map{|m| Array.wrap(m)}
@@ -1074,7 +1084,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         missing_ethnicity: {
           headers: ['Client ID'],
           counts: missing_ethnicity.map{|m| Array.wrap(m)}
-        },   
+        },
         missing_race: {
           headers: ['Client ID'],
           counts: missing_race.map{|m| Array.wrap(m)}
@@ -1169,10 +1179,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
 
       missing_disabling_condition_percentage = (missing_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
-      missing_prior_living_percentage = (missing_prior_living.size.to_f/client_count*100).round(2) rescue 0     
+      missing_prior_living_percentage = (missing_prior_living.size.to_f/client_count*100).round(2) rescue 0
       refused_disabling_condition_percentage = (refused_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
       refused_prior_living_percentage = (refused_prior_living.size.to_f/client_count*100).round(2) rescue 0
-      
+
       # missing and refused destinations will be NaN if there are no leavers
       if leavers.count == 0
         missing_destination_percentage = 0
@@ -1281,22 +1291,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       increased_non_cash = Set.new
       increased_overall = Set.new
       earned_types = [
-        :EarnedAmount, 
+        :EarnedAmount,
       ]
       non_cash_types = [
-        :UnemploymentAmount, 
-        :SSIAmount, 
-        :SSDIAmount, 
-        :VADisabilityServiceAmount, 
-        :VADisabilityNonServiceAmount, 
-        :PrivateDisabilityAmount, 
-        :WorkersCompAmount, 
-        :TANFAmount, 
-        :GAAmount, 
-        :SocSecRetirementAmount, 
-        :PensionAmount, 
-        :ChildSupportAmount, 
-        :AlimonyAmount, 
+        :UnemploymentAmount,
+        :SSIAmount,
+        :SSDIAmount,
+        :VADisabilityServiceAmount,
+        :VADisabilityNonServiceAmount,
+        :PrivateDisabilityAmount,
+        :WorkersCompAmount,
+        :TANFAmount,
+        :GAAmount,
+        :SocSecRetirementAmount,
+        :PensionAmount,
+        :ChildSupportAmount,
+        :AlimonyAmount,
         :OtherIncomeAmount
       ]
       all_income_types = earned_types + non_cash_types
@@ -1356,7 +1366,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       days_served = (self.end - self.start).to_i
       average_usage = (total_services_provided.to_f/days_served).round(2)
       average_stay_length = (total_services_provided.to_f/clients.size).round(2)
-      capacity = if beds > 0 
+      capacity = if beds > 0
         (average_usage.to_f/beds*100).round(2) rescue 0
       else
         0

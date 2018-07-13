@@ -11,7 +11,6 @@ module Health
     def create
       @careplan.class.transaction do
         @careplan.save!
-        @careplan.ensure_team_exists
         @careplan.import_team_members
       end
     end
@@ -42,6 +41,6 @@ module Health
         patient_id: @careplan.patient_id
       )
     end
-    
+
   end
 end

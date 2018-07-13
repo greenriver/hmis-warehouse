@@ -1,3 +1,27 @@
+.cha__section .cha__help-text,
+.cha__section .client__assessment-question,
+.cha__section h5,
+.cha__section h4 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.row.cha__section-columns {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  .col-sm-6,
+  .col-sm-4 {
+    display: table-cell;
+  }
+  .col-sm-6 {
+    width: 50%;
+  }
+  .col-sm-4 {
+    width: 33%;
+  }
+}
+
 #vsm-container {
   display: none !important;
 }
@@ -98,9 +122,13 @@ footer {
 {
   width: 100%;
   font-size: 0.7rem;
-  tr    { page-break-inside:avoid; page-break-after:auto }
-  thead { display:table-header-group }
-  tfoot { display:table-footer-group }
+  tr
+  {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
 }
 
 
@@ -137,6 +165,17 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .l-print table {
   width: 100%;
   border-collapse: collapse;
+}
+.l-print tr
+{
+  page-break-inside: avoid;
+  page-break-after: auto;
+}
+.l-print thead {
+  display: table-header-group;
+}
+.l-print tfoot {
+  display: table-footer-group;
 }
 
 .l-print table thead tr th {
@@ -420,15 +459,30 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
     clear: left;
   }
 }
-
-.l-print .g_q {
-  width: 50%;
+.g_q2a
+{
+  clear: left;
 }
+
 
 .l-print .i_q {
   width: 30%;
 }
 
 .l-print .l_q {
-  width: 14%;
+  width: 30%;
+}
+
+.row
+{
+  clear: both;
+  width: 100%;
+}
+.row .col-sm-6
+{
+  width: 50%;
+}
+.col-sm-4
+{
+  width: 30%;
 }

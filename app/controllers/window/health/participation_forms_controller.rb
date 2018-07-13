@@ -7,9 +7,16 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
     before_action :set_blank_form, only: [:edit, :new]
+    before_action :set_health_file, only: [:create, :update]
 
     def new
-      @participation_form = @patient.participation_forms.build
+      # redirect to edit if there are any on-file
+      if @patient.participation_forms.exists?
+        @participation_form = @patient.participation_forms.recent.last
+        render :edit and return
+      else
+        @participation_form = @patient.participation_forms.build
+      end
       render :new
     end
 
@@ -18,7 +25,8 @@ module Window::Health
       validate_form
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.case_manager = current_user
-      
+      @participation_form.file = @health_file if @health_file
+
       if ! request.xhr?
         saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
         save_file if @participation_form.errors.none? && saved
@@ -38,12 +46,13 @@ module Window::Health
     def edit
       respond_with @participation_form
     end
-    
+
     def update
       validate_form unless @participation_form.health_file.present?
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.assign_attributes(form_params)
-            
+      @participation_form.file = @health_file if @health_file
+
       if ! request.xhr?
         saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
         save_file if @participation_form.errors.none? && saved
@@ -56,9 +65,23 @@ module Window::Health
       end
     end
 
+    def set_health_file
+      if file = params.dig(:form, :file)
+        @health_file = Health::ParticipationFormFile.new(
+          user_id: current_user.id,
+          client_id: @client.id,
+          file: file,
+          content: file&.read,
+          content_type: file.content_type
+        )
+      elsif @participation_form.health_file.present?
+        @health_file = @participation_form.health_file
+      end
+    end
+
     def download
       @file = @participation_form.health_file
-      send_data @file.content, 
+      send_data @file.content,
         type: @file.content_type,
         filename: File.basename(@file.file.to_s)
     end
@@ -75,7 +98,7 @@ module Window::Health
     end
 
     def form_params
-      local_params = params.require(:form).permit( 
+      local_params = params.require(:form).permit(
         :signature_on,
         :reviewed_by_supervisor,
         :location
@@ -96,15 +119,8 @@ module Window::Health
     end
 
     def save_file
-      file = params.dig(:form, :file)
-      if file
-        health_file = Health::ParticipationFormFile.new(
-          user_id: current_user.id,
-          client_id: @client.id,
-          file: file,
-          content: file&.read
-        )
-        @participation_form.health_file = health_file
+      if @health_file
+        @participation_form.health_file = @health_file
         @participation_form.save
       end
     end

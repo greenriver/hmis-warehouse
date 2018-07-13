@@ -10,15 +10,18 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
   scope :triage, -> { where name: 'Triage Assessment'}
   scope :confidential, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential) 
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential)
   end
-  scope :non_confidential, -> do 
+  scope :non_confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.non_confidential)
   end
   scope :window, -> do
     joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
   end
 
+  scope :health, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health)
+  end
   scope :window_with_details, -> do
     window.merge(GrdaWarehouse::HMIS::Assessment.window)
   end
@@ -31,7 +34,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where.not(collected_at: nil)
   end
 
-  scope :case_management_notes, -> do 
+  scope :case_management_notes, -> do
     where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
   end
   scope :health_touch_points, -> do
@@ -51,7 +54,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return 'Unknown' unless answers.present?
     answers = self.answers.with_indifferent_access
     answers[:sections].each do |m|
-      m[:questions].each do |m| 
+      m[:questions].each do |m|
         return m[:answer] if m[:answer].present? && m[:question] == 'A-2. Primary Language Spoken'
       end
     end
@@ -68,7 +71,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       section[:section_title].downcase == 'assessment score'
     end&.first
     return nil unless relevant_section.present?
-    
+
     relevant_question = relevant_section[:questions].select do |question|
       question[:question].downcase.starts_with?('veterans score')
     end&.first.try(:[], :answer)
@@ -93,7 +96,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       section[:section_title].downcase == 'assessment score'
     end&.first
     return nil unless relevant_section.present?
-    
+
     relevant_question = relevant_section[:questions].select do |question|
       question[:question].downcase == 'boston coordinated entry assessment total score'
     end&.first.try(:[], :answer)
@@ -106,7 +109,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       section[:section_title].downcase == 'housing resources'
     end&.first
     return false unless relevant_section.present?
-    
+
     relevant_question = relevant_section[:questions].select do |question|
       question[:question].downcase.include? "it looks like you have a head of household who is 24 years old"
     end&.first.try(:[], :answer)
@@ -119,7 +122,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       section[:section_title].downcase == 'housing resources'
     end&.first
     return false unless relevant_section.present?
-    
+
     relevant_question = relevant_section[:questions].select do |question|
       question[:question].downcase.include? "increase and maximize all income sources"
     end&.first.try(:[], :answer)

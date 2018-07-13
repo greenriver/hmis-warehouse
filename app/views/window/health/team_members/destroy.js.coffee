@@ -11,4 +11,5 @@
   <% end %>
   $signaturesContainer = $('.careplan-signatures')
   $signaturesContainer.html("<%= j render('window/health/careplans/careplan_form_signatures', f: form) %>")
+  $('.select2').select2();
 <% end %>

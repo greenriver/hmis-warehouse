@@ -22,7 +22,7 @@ class DataSourcesController < ApplicationController
     @organizations = @data_source.organizations.
       joins(:projects).
       merge( p_t.engine.viewable_by current_user ).
-      includes(:projects, projects: [:project_cocs, :sites, :inventories]).
+      includes(:projects, projects: [:project_cocs, :geographies, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
 
@@ -93,11 +93,11 @@ class DataSourcesController < ApplicationController
     params.require(:grda_warehouse_data_source).
       permit(
         :visible_in_window,
-        projects_attributes: 
+        projects_attributes:
         [
           :id,
-          :act_as_project_type, 
-          :hud_coc_code, 
+          :act_as_project_type,
+          :hud_coc_code,
           :hud_continuum_funded,
           :confidential,
         ]
@@ -107,9 +107,9 @@ class DataSourcesController < ApplicationController
   private def new_data_source_params
     params.require(:grda_warehouse_data_source).
       permit(
-        :name, 
-        :short_name, 
-        :munged_personal_id, 
+        :name,
+        :short_name,
+        :munged_personal_id,
         :source_type,
         :visible_in_window,
         :authoritative,
@@ -130,19 +130,19 @@ class DataSourcesController < ApplicationController
 
   private def require_can_view_imports_projects_or_organizations!
     can_view = can_view_imports? || can_view_projects? || can_view_organizations? || can_edit_anything_super_user?
-    return true if can_view    
+    return true if can_view
     not_authorized!
   end
 
   private def require_can_edit_projects_or_everything!
     can_view = can_edit_projects? || can_edit_anything_super_user?
-    return true if can_view    
+    return true if can_view
     not_authorized!
   end
 
   private def require_can_edit_data_sources_or_everything!
     can_view = can_edit_data_sources? || can_edit_anything_super_user?
-    return true if can_view    
+    return true if can_view
     not_authorized!
   end
 end

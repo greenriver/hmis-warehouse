@@ -8,6 +8,7 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
     before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
+    before_action :set_health_file, only: [:create, :update]
 
     def show
       render :show
@@ -17,7 +18,7 @@ module Window::Health
       last_form = Health::SdhCaseManagementNote.last_form
       @note = @patient.sdh_case_management_notes.
         build(
-          user: current_user, 
+          user: current_user,
           completed_on: DateTime.current,
           housing_placement_date: last_form&.housing_placement_date,
           client_phone_number: last_form&.client_phone_number)
@@ -29,6 +30,8 @@ module Window::Health
     def create
       create_params = note_params.merge({user: current_user})
       @note = @patient.sdh_case_management_notes.build(create_params)
+      @note.file = @health_file if @health_file
+
       saved = @note.save
       if saved
         save_file
@@ -48,6 +51,8 @@ module Window::Health
 
     def update
       @activity_count = @note.activities.size
+      @note.file = @health_file if @health_file
+
       if params[:commit] == 'Save Case Note'
         @note.update_attributes(note_params.merge(updated_at: Time.now))
         save_file if @note.errors.none?
@@ -115,17 +120,28 @@ module Window::Health
       @note = Health::SdhCaseManagementNote.find(params[:id])
     end
 
-    def save_file
-      file = params.dig(:health_sdh_case_management_note, :file)
-      if file
-        health_file = Health::SdhCaseManagementNoteFile.new(
+    def set_health_file
+      note = params.dig(:health_sdh_case_management_note, :file_note)
+      if file = params.dig(:health_sdh_case_management_note, :file)
+        @health_file = Health::SdhCaseManagementNoteFile.new(
           user_id: current_user.id,
           client_id: @client.id,
           file: file,
-          content: file&.read
+          content: file&.read,
+          content_type: file.content_type,
+          note: note
         )
-        @note.health_file = health_file
-        @note.save(validate: false)
+      elsif @note.health_file.present?
+        @health_file = @note.health_file
+        @health_file.note = note
+      end
+    end
+
+    def save_file
+      if @health_file
+        @health_file.save
+        @note.health_file = @health_file
+        @note.save
       end
     end
 
@@ -146,6 +162,8 @@ module Window::Health
       end
       # remove empty element from topics array
       (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
+      # remove empty element from client action array
+      (params[:health_sdh_case_management_note][:client_action]||[]).reject!{|v| v.blank?}
     end
 
     def add_calculated_params_to_activities!(permitted_params)
@@ -170,16 +188,16 @@ module Window::Health
         :housing_status,
         :housing_status_other,
         :housing_placement_date,
-        :client_action,
         :client_action_medication_reconciliation_clinician,
         :notes_from_encounter,
         :client_phone_number,
         :completed_on,
+        client_action: [],
         topics: [],
         activities_attributes: [
           :id,
-          :mode_of_contact, 
-          :mode_of_contact_other, 
+          :mode_of_contact,
+          :mode_of_contact_other,
           :reached_client,
           :reached_client_collateral_contact,
           :activity,
@@ -187,16 +205,13 @@ module Window::Health
           :follow_up,
           :_destroy
         ]
-      ).reject do |k, v|
-        k != 'topics' && v.blank?
-      end
-      puts permitted_params
+      )
       add_calculated_params_to_activities!(permitted_params)
     end
 
     def flash_interpolation_options
       { resource_name: 'Case Management Note' }
     end
-  
+
   end
 end

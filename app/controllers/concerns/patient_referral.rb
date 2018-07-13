@@ -3,10 +3,11 @@ module PatientReferral
   include ArelHelper
 
   Filters = Struct.new(
-    :search, 
-    :added_before, 
-    :relationship, 
-    :agency_id, 
+    :search,
+    :added_before,
+    :relationship,
+    :agency_id,
+    :assigned_agency_id,
     :sort_by
   )
 
@@ -28,14 +29,16 @@ module PatientReferral
     filter_params = params[:filters] || {}
     @filters = Filters.new(
       filter_params[:search],
-      filter_params[:added_before], 
-      filter_params[:relationship], 
+      filter_params[:added_before],
+      filter_params[:relationship],
       filter_params[:agency_id],
+      filter_params[:assigned_agency_id],
       (filter_params[:sort_by]||'created_at')
     )
     load_search
     filter_added_before
     filter_agency
+    filter_assigned_agency
     filter_relationship
     load_sort
   end
@@ -53,14 +56,16 @@ module PatientReferral
 
   def filter_added_before
     if @filters.added_before.present?
+      @active_filter = true
       date = DateTime.parse(@filters.added_before)
       added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
-      @patient_referrals = @patient_referrals.where(arel_table[:created_at].lt(added_before_date))
+      @patient_referrals = @patient_referrals.where(hpr_t[:created_at].lt(added_before_date))
     end
   end
 
   def filter_agency
     if @filters.agency_id.present?
+      @active_filter = true
       @filter_agency = Health::Agency.find(@filters.agency_id)
       @patient_referrals = @patient_referrals.
         where(hapr_t[:agency_id].eq(@filters.agency_id)).
@@ -68,9 +73,20 @@ module PatientReferral
     end
   end
 
+  def filter_assigned_agency
+    if @filters.assigned_agency_id.present?
+      @active_filter = true
+      @filter_agency = Health::Agency.find(@filters.assigned_agency_id)
+      @patient_referrals = @patient_referrals.
+        where(agency_id: @filters.assigned_agency_id).
+        references(:relationships)
+    end
+  end
+
   def filter_relationship
     if @filters.relationship.present?
       if @filters.relationship != 'all'
+        @active_filter = true
         r = @filters.relationship == 'claimed'
         @patient_referrals = @patient_referrals.
           where(hapr_t[:id].not_eq(nil)).
@@ -131,15 +147,15 @@ module PatientReferral
       :primary_diagnosis,
       :secondary_diagnosis,
       :pcp_last_name,
-      :pcp_last_name, 
-      :pcp_first_name, 
-      :pcp_npi, 
-      :pcp_address_line_1, 
-      :pcp_address_line_2, 
-      :pcp_address_city, 
-      :pcp_address_state, 
-      :pcp_address_zip, 
-      :pcp_address_phone, 
+      :pcp_last_name,
+      :pcp_first_name,
+      :pcp_npi,
+      :pcp_address_line_1,
+      :pcp_address_line_2,
+      :pcp_address_city,
+      :pcp_address_state,
+      :pcp_address_zip,
+      :pcp_address_phone,
       :dmh,
       :dds,
       :eoea,

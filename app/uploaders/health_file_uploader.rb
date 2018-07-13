@@ -20,7 +20,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # def store_dir
   #   "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   # end
-  # 
+  #
   # def cache_dir
   #   "#{Rails.root}/tmp/uploads-cache/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   # end
@@ -44,7 +44,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # version :thumb do
   #   process :resize_to_fit => [50, 50]
   # end
-  # 
+  #
   process :extract_file_metadata!
 
   version :preview do
@@ -74,15 +74,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
   WHITELIST = IceNine.deep_freeze(%w(
-    image/jpeg
-    image/png
-    image/gif
     application/pdf
-    application/msword
-    application/vnd.openxmlformats-officedocument.wordprocessingml.document
-    text/csv
-    application/vnd.ms-excel
-    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
   ))
 
   MANIPULATEABLE = IceNine.deep_freeze(
@@ -132,13 +124,20 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # def extension_white_list
   #   %w(pdf jpg jpeg doc docx xls xlsx gif png txt rtf)
   # end
-  
+
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING
   def size_range
-    0..2.megabytes #Up to two megabytes
+    0..25.megabytes #Up to two megabytes
   end
 
+  def max_size_in_bytes
+    size_range.last
+  end
+
+  def max_size_in_mb
+    (max_size_in_bytes / 1024 / 1024).round
+  end
   # Override the filename of the uploaded files:
   # Avoid using model.id or version_name here, see uploader/store.rb for details.
   # def filename

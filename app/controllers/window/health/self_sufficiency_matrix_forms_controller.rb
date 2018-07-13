@@ -5,11 +5,17 @@ module Window::Health
     include WindowClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_form, only: [:show, :edit, :update, :destroy]
+    before_action :set_form, only: [:show, :edit, :update, :destroy, :download, :remove_file, :upload]
     before_action :set_claim_submitted, only: [:show, :edit]
+    before_action :set_health_file, only: [:upload, :update]
 
     def new
-      @form = @patient.self_sufficiency_matrix_forms.build(user: current_user)
+      # redirect to edit if there are any incomplete
+      if @patient.self_sufficiency_matrix_forms.in_progress.exists?
+        @form = @patient.self_sufficiency_matrix_forms.in_progress.recent.last
+      else
+        @form = @patient.self_sufficiency_matrix_forms.build(user: current_user)
+      end
       Health::SsmSaver.new(ssm: @form, user: current_user).create
       redirect_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
     end
@@ -21,14 +27,15 @@ module Window::Health
     def edit
       if @claim_submitted
         flash.notice = "This qualifying activity has already been submitted and cannot be edited."
-        redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return 
+        redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return
       end
       @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form
     end
-    
+
     def update
       @form.assign_attributes(form_params)
+      @form.file = @health_file if @health_file
       Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
@@ -38,10 +45,57 @@ module Window::Health
       redirect_to polymorphic_path(careplans_path_generator)
     end
 
+    def upload
+      if params[:form]
+        @form.file = @health_file if @health_file
+        save_file if @form.errors.none? && @form.update(form_params)
+      else
+        flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.'
+      end
+      respond_with @form, location: polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
+    end
+
+    def download
+      @file = @form.health_file
+      send_data @file.content,
+        type: @file.content_type,
+        filename: File.basename(@file.file.to_s)
+    end
+
+    def remove_file
+      @form.health_file.destroy
+      respond_with @form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+    end
+
+    def set_health_file
+      if file = params.dig(:form, :file)
+        @health_file = Health::SsmFile.new(
+          user_id: current_user.id,
+          client_id: @client.id,
+          file: file,
+          content: file&.read,
+          content_type: file.content_type
+        )
+      elsif @form.health_file.present?
+        @health_file = @form.health_file
+      end
+    end
+
+    def save_file
+      if @health_file
+        @form.health_file = @health_file
+        if @form.health_file.invalid?
+          flash[:error] = @form.health_file.errors.full_messages.join(';')
+        else
+          @form.save
+        end
+      end
+    end
+
     private
 
     def form_params
-      params.require(:form).permit( 
+      params.require(:form).permit(
         :point_completed,
         :housing_score,
         :housing_notes,
@@ -88,7 +142,7 @@ module Window::Health
     end
 
     def set_form
-      @form = @patient.self_sufficiency_matrix_forms.find_by(id: params[:id])
+      @form = @patient.self_sufficiency_matrix_forms.find_by(id: params[:id].to_i)
     end
 
     def set_claim_submitted

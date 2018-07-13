@@ -19,7 +19,7 @@ module Importers::HMISSixOneOne
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id: ,
-      logger: Rails.logger, 
+      logger: Rails.logger,
       debug: true,
       remove_files: true
     )
@@ -32,7 +32,6 @@ module Importers::HMISSixOneOne
       @remove_files = remove_files
       setup_import(data_source: @data_source)
     end
-    
 
     def import!
       # return if already_running_for_data_source?
@@ -100,7 +99,7 @@ module Importers::HMISSixOneOne
       @import.upload_id = @upload.id if @upload.present?
       @import.save
     end
-    
+
     def import_enrollments()
       import_enrollment_based_class(enrollment_source)
     end
@@ -108,7 +107,7 @@ module Importers::HMISSixOneOne
     def import_exits()
       import_enrollment_based_class(exit_source)
     end
-    
+
     def import_services()
       import_enrollment_based_class(service_source)
     end
@@ -116,7 +115,7 @@ module Importers::HMISSixOneOne
     def import_enrollment_cocs()
       import_enrollment_based_class(enrollment_coc_source)
     end
-    
+
     def import_disabilities()
       import_enrollment_based_class(disability_source)
     end
@@ -124,16 +123,22 @@ module Importers::HMISSixOneOne
     def import_employment_educations()
       import_enrollment_based_class(employment_education_source)
     end
-        
+
     def import_health_and_dvs()
       import_enrollment_based_class(health_and_dv_source)
     end
-    
+
     def import_income_benefits()
       import_enrollment_based_class(income_benefits_source)
     end
-    
-    # This dump should be authoritative for any enrollment that was open during the 
+
+    def self.pre_calculate_source_hashes!
+      importable_files.each do |_, klass|
+        klass.pre_calculate_source_hashes!
+      end
+    end
+
+    # This dump should be authoritative for any enrollment that was open during the
     # specified date range at any of the involved projects
     # Models this needs to handle
     # Enrollment
@@ -156,8 +161,8 @@ module Importers::HMISSixOneOne
         file = importable_files.key(klass)
         next unless @import.summary[klass.file_name].present?
         @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
-          projects: @projects, 
-          range: @range, 
+          projects: @projects,
+          range: @range,
           data_source_id: @data_source.id,
           deleted_at: @soft_delete_time,
         })
@@ -176,7 +181,7 @@ module Importers::HMISSixOneOne
       @import.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
     end
 
-    # This dump should be authoritative for any inventory and ProjectCoC 
+    # This dump should be authoritative for any inventory and ProjectCoC
     # that is connected to an included project
     def remove_project_related_data
       [
@@ -187,8 +192,8 @@ module Importers::HMISSixOneOne
         file = importable_files.key(klass)
         next unless @import.summary[klass.file_name].present?
         @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
-          projects: @projects, 
-          range: @range, 
+          projects: @projects,
+          range: @range,
           data_source_id: @data_source.id,
           deleted_at: @soft_delete_time,
         })
@@ -201,8 +206,8 @@ module Importers::HMISSixOneOne
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
         stats = klass.import_enrollment_related!(
-          data_source_id: @data_source.id, 
-          file_path: @file_path, 
+          data_source_id: @data_source.id,
+          file_path: @file_path,
           stats: @import.summary[file],
           soft_delete_time: @soft_delete_time
         )
@@ -226,8 +231,8 @@ module Importers::HMISSixOneOne
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
         stats = klass.import_project_related!(
-          data_source_id: @data_source.id, 
-          file_path: @file_path, 
+          data_source_id: @data_source.id,
+          file_path: @file_path,
           stats: @import.summary[file]
         )
         errors = stats.delete(:errors)
@@ -243,7 +248,7 @@ module Importers::HMISSixOneOne
         add_error(file_path: klass.file_name, message: message, line: '')
       end
     end
-    
+
     def import_clients
       import_project_based_class(client_source)
     end
@@ -263,7 +268,7 @@ module Importers::HMISSixOneOne
     def import_geographies
       import_enrollment_based_class(geography_source)
     end
-    
+
     def import_funders
       import_project_based_class(funder_source)
     end
@@ -274,7 +279,7 @@ module Importers::HMISSixOneOne
 
     def set_involved_projects
       project_source.load_from_csv(
-        file_path: @file_path, 
+        file_path: @file_path,
         data_source_id: @data_source.id
       )
     end
@@ -286,7 +291,7 @@ module Importers::HMISSixOneOne
     def load_export_file
       begin
         @export ||= export_source.load_from_csv(
-          file_path: @file_path, 
+          file_path: @file_path,
           data_source_id: @data_source.id
         )
       rescue Errno::ENOENT => exception
@@ -325,10 +330,10 @@ module Importers::HMISSixOneOne
     # Headers need to match our style
     def clean_header_row(header_row, klass)
       source_headers = CSV.parse_line(header_row)
-      indexed_headers = klass.hud_csv_headers.map do |k| 
+      indexed_headers = klass.hud_csv_headers.map do |k|
         [k.to_s.downcase, k]
       end.to_h
-      source_headers.map do |k| 
+      source_headers.map do |k|
         indexed_headers[k.downcase].to_s
       end
     end
@@ -342,9 +347,9 @@ module Importers::HMISSixOneOne
         # case for import, so we'll fix that up here and use ours going forward
         header = clean_header_row(header_row, klass)
         write_to = CSV.open(
-          destination_path, 
-          'wb', 
-          headers: header, 
+          destination_path,
+          'wb',
+          headers: header,
           write_headers: true,
           force_quotes: true
           )
@@ -407,7 +412,7 @@ module Importers::HMISSixOneOne
       @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
 
-    # make sure we have an ExportID in every file that 
+    # make sure we have an ExportID in every file that
     # reflects the start date of the export
     def set_useful_export_id(row:, export_id:)
       row['ExportID'] = "#{row['ExportID']}_#{export_id_addition}"
@@ -431,7 +436,7 @@ module Importers::HMISSixOneOne
       file_lines = IO.readlines(file_path).size - 1
       setup_summary(File.basename(file_path))
       @import.summary[File.basename(file_path)][:total_lines] = file_lines
-      log("Processing #{file_lines} lines in: #{file_path}") 
+      log("Processing #{file_lines} lines in: #{file_path}")
       File.open(file_path, "r:#{file_encoding}:utf-8")
     end
 
@@ -453,7 +458,7 @@ module Importers::HMISSixOneOne
     def setup_summary(file)
       @import.summary[file] ||= {
         total_lines: -1,
-        lines_added: 0, 
+        lines_added: 0,
         lines_updated: 0,
         lines_restored: 0,
         total_errors: 0,
@@ -513,7 +518,7 @@ module Importers::HMISSixOneOne
     def employment_education_source
       self.class.employment_education_source
     end
-    
+
     def self.enrollment_source
       GrdaWarehouse::Import::HMISSixOneOne::Enrollment
     end
@@ -590,7 +595,7 @@ module Importers::HMISSixOneOne
     def project_coc_source
       self.class.project_coc_source
     end
-    
+
     def self.service_source
       GrdaWarehouse::Import::HMISSixOneOne::Service
     end
@@ -622,7 +627,7 @@ module Importers::HMISSixOneOne
 
     def add_error(file_path:, message:, line:)
       file = File.basename(file_path)
-      
+
       @import.import_errors[file] ||= []
       @import.import_errors[file] << {
          text: "Error in #{file}",

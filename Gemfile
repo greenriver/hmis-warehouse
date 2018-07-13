@@ -9,6 +9,8 @@ gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', '~> 8.0'
 gem "pg"
+gem 'activerecord-sqlserver-adapter'
+gem 'tiny_tds'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
 gem "rails", '~> 4.2.8'
@@ -86,6 +88,7 @@ gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
+gem 'combine_pdf'
 
 gem 'whenever', require: false
 gem 'ruby-progressbar', require: false
@@ -109,6 +112,8 @@ gem 'redis-rails'
 
 #AWS SDK
 gem 'aws-sdk-rails', require: false
+gem 'aws-sdk', '~> 2', require: false
+gem 'awesome_print'
 
 gem 'auto-session-timeout'
 

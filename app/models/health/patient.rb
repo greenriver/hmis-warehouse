@@ -2,19 +2,25 @@ module Health
   class Patient < Base
 
     acts_as_paranoid
-    has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
+    has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
+    has_many :appointments, through: :epic_patients
+    has_many :medications, through: :epic_patients
+    has_many :problems, through: :epic_patients
+    has_many :visits, through: :epic_patients
+    has_many :epic_goals, through: :epic_patients
+    has_many :epic_case_notes, through: :epic_patients
+    has_many :epic_team_members, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
-    has_many :teams, through: :careplans
-    has_many :team_members, class_name: Health::Team::Member.name, through: :team
+    # has_many :teams, through: :careplans
+    # has_many :team_members, class_name: Health::Team::Member.name, through: :team
+    has_many :team_members, class_name: Health::Team::Member.name
 
-    has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
+    # has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
+    has_many :goals, class_name: Health::Goal::Base.name
+    # NOTE: not sure if this is the right order but it seems they should have some kind of order
+    has_many :hpc_goals, -> {order 'health_goals.start_date'}, class_name: Health::Goal::Hpc.name
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
@@ -35,11 +41,12 @@ module Health
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
-    has_one :care_coordinator, class_name: User.name
+    belongs_to :care_coordinator, class_name: User.name
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
+    scope :bh_cp, -> { where pilot: false }
 
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
@@ -62,6 +69,8 @@ module Health
       participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
+
       where(
         arel_table[:client_id].not_in(hmis_ssm_client_ids).
         and(
@@ -75,6 +84,9 @@ module Health
         ).
         or(
           arel_table[:id].not_in(Arel.sql cha_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].not_in(Arel.sql pctp_signed_patient_id_scope.to_sql)
         )
       )
     end
@@ -92,6 +104,7 @@ module Health
       participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
 
       where(
         arel_table[:client_id].in(hmis_ssm_client_ids).
@@ -106,6 +119,9 @@ module Health
         ).
         and(
           arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql)
+        ).
+        and(
+          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql)
         )
       )
     end
@@ -134,6 +150,13 @@ module Health
       )
     end
 
+    scope :received_qualifying_activities_within, -> (range) do
+      where(
+        id: Health::QualifyingActivity.in_range(range).
+          distinct.select(:patient_id)
+      )
+    end
+
     delegate :effective_date, to: :patient_referral
     delegate :aco, to: :patient_referral
 
@@ -155,7 +178,11 @@ module Health
       end
     end
 
-    def days_to_engage 
+    def available_team_members
+      team_members.map{|t| [t.full_name, t.id]}
+    end
+
+    def days_to_engage
       return 0 unless engagement_date.present?
       (engagement_date - Date.today).to_i.clamp(0, 180)
     end
@@ -167,7 +194,7 @@ module Health
     def health_files
       Health::HealthFile.where(client_id: client.id)
     end
-    
+
     def accessible_by_user user
       return false unless user.present?
       return true if user.can_administer_health?
@@ -197,14 +224,14 @@ module Health
 
     def most_recent_ssn
       [
-        [self.ssn.presence, updated_at.to_i], 
+        [self.ssn.presence, updated_at.to_i],
         [recent_cha&.ssn.presence, recent_cha&.updated_at.to_i],
         [client.SSN.presence, client.DateUpdated.to_i]
       ].sort_by(&:last).map(&:first).compact.reverse.first
     end
 
     def preferred_communication
-      recent_cha&.answer(:r_q1).presence || '(unknown)'
+      recent_cha&.answer(:r_q1)
     end
 
     def most_recent_phone
@@ -216,7 +243,7 @@ module Health
     end
 
     def phone_message_ok
-      if preferred_communication == 'Phone' && 
+      if preferred_communication == 'Phone' &&
         recent_cha&.answer(:r_q2) == 'Yes'
         ', message ok'
       end
@@ -250,7 +277,7 @@ module Health
     end
 
     def email
-      recent_cha&.answer(:r_q1b).presence || '(unknown)'
+      recent_cha&.answer(:r_q1b).presence
     end
 
     def advanced_directive
@@ -286,6 +313,54 @@ module Health
       qualifying_activities.in_range(date..Date.tomorrow)
     end
 
+    def import_epic_team_members
+      # I think this updates this for changes made here PT story #158636393
+      potential_team = epic_team_members.unprocessed.to_a
+      return unless potential_team.any?
+      potential_team.each do |epic_member|
+        if epic_member.name.include?(',')
+          (last_name, first_name) = epic_member.name.split(', ', 2)
+        else
+          (first_name, last_name) = epic_member.name.split(' ', 2)
+        end
+        user = User.find_by(email: 'noreply@greenriver.com')
+        # Use the PCP type if we have it
+        relationship = epic_member.pcp_type || epic_member.relationship
+        klass = Health::Team::Member.class_from_member_type_name(relationship)
+        at = klass.arel_table
+        if epic_member.email?
+          member = klass.where(at[:email].lower.eq(epic_member&.email.downcase).to_sql).first_or_initialize
+        elsif first_name && last_name
+          member = klass.where(
+            at[:first_name].lower.eq(first_name&.downcase).
+            and(at[:last_name].lower.eq(last_name&.downcase)).to_sql
+          ).first_or_initialize
+        else
+          next
+        end
+        member.assign_attributes(
+            patient_id: id,
+            user_id: user.id,
+            first_name: first_name,
+            last_name: last_name,
+            title: epic_member.relationship,
+            email: epic_member.email,
+            phone: epic_member.phone,
+            organization: epic_member.email&.split('@')&.last || 'Unknown'
+          )
+        member.save(validate: false)
+        epic_member.update(processed: Time.now)
+      end
+    end
+
+    def most_recent_direct_qualifying_activity
+      qualifying_activities.direct_contact.order(date_of_activity: :desc).limit(1).first
+    end
+
+    def face_to_face_contact_in_range? range
+      qualifying_activities.in_range(range).face_to_face.exists?
+    end
+
     def consented? # Pilot
       consent_revoked.blank?
     end
@@ -300,31 +375,6 @@ module Health
 
     def self.restore_consent # Pilot
       update_all(consent_revoked: nil)
-    end
-
-    def self.csv_map(version: nil)
-      {
-        PAT_ID: :id_in_source,
-        sex: :gender,
-        first_name: :first_name,
-        middle_name: :middle_name,
-        last_name: :last_name,
-        alias_list: :aliases,
-        birthdate: :birthdate,
-        allergy_list: :allergy_list,
-        pcp: :primary_care_physician,
-        tg: :transgender,
-        race: :race,
-        ethnicity: :ethnicity,
-        vet_status: :veteran_status,
-        ssn: :ssn,
-        row_created: :created_at,
-        row_updated: :updated_at,
-        medicaid_id: :medicaid_id,
-        housing_status: :housing_status,
-        housing_status_timestamp: :housing_status_timestamp,
-        program: :pilot,
-      }
     end
 
     def self.clean_value key, value
@@ -356,7 +406,7 @@ module Health
           end.first
           status = client.class.health_housing_bucket(answer[:answer])
           OpenStruct.new({
-            date: form.collected_at.to_date, 
+            date: form.collected_at.to_date,
             postitive_outcome: client.class.health_housing_positive_outcome?(answer[:answer]),
             outcome: status,
             detail: answer[:answer],
@@ -386,12 +436,12 @@ module Health
     end
 
     def self.column_from_sort(column: nil, direction: nil)
-      { 
+      {
         [:patient_last_name, :asc] => arel_table[:last_name].asc,
         [:patient_last_name, :desc] => arel_table[:last_name].desc,
         [:patient_first_name, :asc] => arel_table[:first_name].asc,
         [:patient_first_name, :desc] => arel_table[:first_name].desc,
-      }[[column.to_sym, direction.to_sym]] || default  
+      }[[column.to_sym, direction.to_sym]] || default
     end
 
     def self.default_sort_column
@@ -423,7 +473,7 @@ module Health
           .and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
       else
         query = "%#{text.downcase}%"
-        
+
         where = patient_t[:last_name].lower.matches(query).
           or(patient_t[:first_name].lower.matches(query)).
           or(patient_t[:id_in_source].lower.matches(query))

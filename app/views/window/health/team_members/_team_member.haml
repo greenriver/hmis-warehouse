@@ -8,8 +8,11 @@
             Restore
       - elsif delete
         .health__team-member__action.health__team-member--delete
-          = link_to polymorphic_path(careplan_path_generator + [:team, :member], careplan_id: @careplan.id, id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do 
-            %span.icon-cross
+          = link_to polymorphic_path([:edit] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id, id: member.id), data: { loads_in_pjax_modal: true }, class: 'mr-1' do
+            %span.icon-pencil
+          - unless member.in_use?
+            = link_to polymorphic_path(careplan_path_generator + [:team, :member], careplan_id: @careplan.id, id: member.id, client_id: @client.id), method: :delete, data: {confirm: "Please confirm you intend to delete #{member.full_name} from the team."}, remote: true do
+              %span.icon-cross
     .health__team-member--type
       %i{class: Health::Team::Member.icon_for(member.member_type_name)}
       = member.member_type_name
@@ -17,10 +20,11 @@
       = member&.full_name
       %br
       = member&.organization
-      %br
-      = mail_to member.email, subject: 'Collaborative Care Plan' do
-        %i.icon-envelope-o
-        = member&.email
+      - if member.email?
+        %br
+        = mail_to member.email, subject: 'Collaborative Care Plan' do
+          %i.icon-envelope-o
+          = member&.email
       - if member.phone?
         %br
         = member.phone

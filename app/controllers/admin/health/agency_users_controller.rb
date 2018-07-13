@@ -1,6 +1,6 @@
 module Admin::Health
   class AgencyUsersController < HealthController
-    before_action :require_has_administartive_access_to_health!
+    before_action :require_has_administrative_access_to_health!
     before_action :require_can_administer_health!
     before_action :load_user, only: [:new, :edit]
     before_action :load_agencies, only: [:new, :edit]
