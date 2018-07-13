@@ -98,9 +98,13 @@ footer {
 {
   width: 100%;
   font-size: 0.7rem;
-  tr    { page-break-inside:avoid; page-break-after:auto }
-  thead { display:table-header-group }
-  tfoot { display:table-footer-group }
+  tr
+  {
+    page-break-inside: avoid;
+    page-break-after: auto
+  }
+  thead { display: table-header-group }
+  tfoot { display: table-footer-group }
 }
 
 
@@ -137,6 +141,17 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .l-print table {
   width: 100%;
   border-collapse: collapse;
+}
+.l-print tr
+{
+  page-break-inside: avoid;
+  page-break-after: auto
+}
+.l-print thead {
+  display: table-header-group
+}
+.l-print tfoot {
+  display: table-footer-group
 }
 
 .l-print table thead tr th {
