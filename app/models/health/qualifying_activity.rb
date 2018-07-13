@@ -279,5 +279,9 @@ module Health
       modifiers << self.class.client_reached[reached_client.to_sym].try(:[], :code)
       return modifiers.reject(&:blank?).compact
     end
+
+    def procedure_valid?
+      false
+    end
   end
 end

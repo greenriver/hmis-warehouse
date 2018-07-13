@@ -24,4 +24,6 @@
                   %td= qa.activity_title(qa.activity)
                   %td= qa.mode_of_contact_title(qa.mode_of_contact)
                   %td= qa.client_reached_title(qa.reached_client)
-                  %td= "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
+                  %td
+                    = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
+                    = debug qa.procedure_valid?
