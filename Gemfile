@@ -10,7 +10,6 @@ gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', '~> 8.0'
 gem "pg"
 gem 'activerecord-sqlserver-adapter'
-gem 'tiny_tds'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
 gem "rails", '~> 4.2.8'
@@ -177,4 +176,9 @@ group :development, :staging do
   # Faker queries translations db in development to look for user overrides of fake data
   # There is no way to disable this
   gem 'faker', '>= 1.7.2', require: false
+end
+
+# This is really unhappy on travis
+group :production, :development, :staging do
+  gem 'tiny_tds'
 end
