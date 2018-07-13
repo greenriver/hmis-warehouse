@@ -263,7 +263,9 @@
             %a.btn.btn-secondary.add-diagnosis
               %span.icon-plus
               Add another diagnosis
-
+        - if @problems.present?
+          %h4 Epic Problems
+          = render 'window/health/problems/problems_table', problems: @problems
 
       .c-card__header--external
         %h3#section-j

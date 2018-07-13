@@ -5,6 +5,8 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
+    before_action :set_medications, only: [:show]
+    before_action :set_problems, only: [:show]
 
     def index
       @goal = Health::Goal::Base.new
@@ -135,6 +137,14 @@ module Window::Health
 
     def set_careplan
       @careplan = careplan_source.find(params[:id].to_i)
+    end
+
+    def set_medications
+      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
+    end
+
+    def set_problems
+      @problems = @patient.problems.order(onset_date: :desc)
     end
 
     def careplan_source

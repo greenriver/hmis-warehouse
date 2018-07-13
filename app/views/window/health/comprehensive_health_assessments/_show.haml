@@ -132,3 +132,9 @@
                   =l answer&.to_date
                 - else
                   = answer
+      - if section == 'I' && @problems.present?
+        %h4 Epic Problems
+        = render 'window/health/problems/problems_table', problems: @problems
+      - if section == 'L' && @medications.present?
+        %h4 Epic Medications
+        = render 'window/health/medications/medications_table', medications: @medications
