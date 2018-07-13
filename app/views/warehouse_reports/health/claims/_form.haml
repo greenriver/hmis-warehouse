@@ -1,0 +1,11 @@
+- if Health::Cp.sender.exists?
+  = simple_form_for @report, as: :report, url: warehouse_reports_health_claims_path do |f|
+    .row
+      .col-sm-3
+        = f.input :max_date, as: :date_picker, label: 'Show claims before'
+      .col-sm-2.pt-no-label
+        = f.submit 'Queue Report', class: 'btn btn-primary'
+
+- else
+  %p.alert.alert-warning
+    No CP sender record exists.

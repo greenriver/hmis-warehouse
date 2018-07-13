@@ -157,6 +157,13 @@ module Health
       )
     end
 
+    scope :with_unsubmitted_qualifying_activities_within, -> (range) do
+      where(
+        id: Health::QualifyingActivity.unsubmitted.in_range(range).
+          distinct.select(:patient_id)
+      )
+    end
+
     delegate :effective_date, to: :patient_referral
     delegate :aco, to: :patient_referral
 

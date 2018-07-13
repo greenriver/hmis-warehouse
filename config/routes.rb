@@ -232,6 +232,11 @@ Rails.application.routes.draw do
           get :running
         end
       end
+      resources :claims, only: [:index, :show, :create, :destroy] do
+        collection do
+          get :running
+        end
+      end
     end
   end
 
