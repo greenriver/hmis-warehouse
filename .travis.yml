@@ -1,6 +1,9 @@
 language: ruby
 
+sudo: required
 before_script:
+  - sudo spec/bin/install-openssl.sh
+  - sudo spec/bin/install-freetds.sh
   - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
   - cp config/secrets.yml.sample config/secrets.yml
   - mkdir app/assets/stylesheets/theme/styles
