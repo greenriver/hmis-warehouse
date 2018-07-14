@@ -17,13 +17,19 @@
                 %th Procedure Code
             %tbody
               - qas.each do |qa|
-                %tr
+                - validity_class = 'qa-invalid'
+                - if qa.procedure_valid?
+                  - validity_class = 'qa-valid'
+                %tr{class: validity_class}
                   %td.nobr= qa.date_of_activity
                   %td= qa.user_full_name
                   %td= qa.source_type
                   %td= qa.activity_title(qa.activity)
                   %td= qa.mode_of_contact_title(qa.mode_of_contact)
                   %td= qa.client_reached_title(qa.reached_client)
-                  %td
-                    = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
-                    = debug qa.procedure_valid?
+                  %td.qa__procedure-code
+                    - if qa.procedure_valid?
+                      = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
+                    - else
+                      %span{data: {toggle: :tooltip, title: "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s} is not a valid Procedure Code"}}
+                        = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"

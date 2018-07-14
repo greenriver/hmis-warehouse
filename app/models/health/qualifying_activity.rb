@@ -106,7 +106,7 @@ module Health
         },
         discharge_follow_up: {
           title: 'Follow-up within 3 days of hospital discharge (with client)',
-          code: 'G9007 U5',
+          code: 'G9007>U5',
           weight: 50,
         },
         health_coaching: {
@@ -126,12 +126,12 @@ module Health
         },
         referral_to_aco: {
           title: 'Referral to ACO for Flexible Services',
-          code: 'T1023 U6',
+          code: 'T1023>U6',
           weight: 90,
         },
         pctp_signed: {
           title: 'Person-Centered Treatment Plan signed',
-          code: 'T2024 U4',
+          code: 'T2024>U4',
           weight: 100,
         },
       }.sort_by{|_, m| m[:weight]}.to_h
@@ -281,7 +281,94 @@ module Health
     end
 
     def procedure_valid?
-      false
+      procedure_code = self.procedure_code
+      modifiers = self.modifiers
+      # Some special cases
+      return false if modifiers.include?('U2') && modifiers.include?('U3')
+      return false if modifiers.include?('U1') && modifiers.include?('HQ')
+      if procedure_code.to_s == 'T2024' && modifiers.include?('U4') || procedure_code.to_s == 'T2024>U4'
+        procedure_code = 'T2024>U4'
+        modifiers = modifiers.uniq - ['U4']
+      elsif procedure_code.to_s == 'G9007' && modifiers.include?('U5') || procedure_code.to_s == 'G9007>U5'
+        procedure_code = 'G9007>U5'
+        modifiers = modifiers.uniq - ['U5']
+      elsif procedure_code.to_s == 'T1023' && modifiers.include?('U6') || procedure_code.to_s == 'T1023>U6'
+        procedure_code = 'T1023>U6'
+        modifiers = modifiers.uniq - ['U6']
+      else
+        procedure_code = procedure_code&.to_sym
+      end
+      return false if procedure_code.blank?
+      return true if modifiers.empty?
+
+      # Check that all of the modifiers we have occur in the acceptable modifiers
+      (modifiers - valid_options[procedure_code]).empty?
+    end
+
+    def valid_options
+      @valid_options ||= {
+        G9011: [
+          'U1',
+          'U2',
+          'U3',
+          'UK',
+        ],
+        G0506: [
+          'U1',
+          'U2',
+          'UK',
+        ],
+        T2024: [
+          'U1',
+          'U2',
+          'U3',
+        ],
+        'T2024>U4' => [
+          'U1',
+          'U2',
+        ],
+        G9005: [
+          'U1',
+          'U2',
+          'U3',
+          'UK',
+        ],
+        G9007: [
+          'U1',
+          'U2',
+          'U3',
+          'UK',
+        ],
+        'G9007>U5' => [
+          'U1',
+          'U2',
+        ],
+        G8427: [
+          'U1',
+          'U2',
+          'U3',
+        ],
+        G9006: [
+          'U1',
+          'U2',
+          'HQ',
+        ],
+        G9004: [
+          'U1',
+          'U2',
+          'U3',
+        ],
+        T1023: [
+          'U1',
+          'U2',
+          'U3',
+        ],
+        'T1023>U6' => [
+          'U1',
+          'U2',
+          'U3',
+        ],
+      }
     end
   end
 end
