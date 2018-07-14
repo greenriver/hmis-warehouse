@@ -1,9 +1,19 @@
 .cha__section .cha__help-text,
 .cha__section .client__assessment-question,
 .cha__section h5,
-.cha__section h4 {
+.cha__section h4,
+.ssm-print .client__assessment-question {
   font-size: 14px;
   font-weight: bold;
+}
+// .ssm-print wrapper for ssm from epic to force print styles
+.ssm-print .client__assessment-question {
+  padding-bottom: 0.5em;
+}
+
+.ssm-print .client__assessment-answer {
+  padding-bottom: 1.5em;
+  margin-left: 1em;
 }
 
 .row.cha__section-columns {
