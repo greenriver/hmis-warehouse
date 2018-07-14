@@ -46,6 +46,14 @@ $(document).on 'change', '.jMarkComplete', (e) ->
     # console.log('disabling')
     $('.jMarkReviewed').prop('disabled', 'disabled')
 
+$(document).on 'change', '.jSetReviewer', (e) ->
+  if $(e.target).is(':checked')
+    if !$('.jReviewer').val()
+      name = $('.jReviewer').data('name')
+      $('.jReviewer').val(name)
+  else
+    $('.jReviewer').val('')
+
 # disable the review box when we load.  Usually we'd call trigger on the
 # .jMarkComplete, but that triggers a save
 if $('.jMarkComplete').is(':not(:checked)')
