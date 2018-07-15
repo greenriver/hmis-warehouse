@@ -1,6 +1,11 @@
 language: ruby
 
 sudo: required
+
+before_install:
+  - sudo spec/bin/install-openssl.sh
+  - sudo spec/bin/install-freetds.sh
+
 before_script:
   - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
   - cp config/secrets.yml.sample config/secrets.yml
@@ -25,5 +30,3 @@ addons:
   postgresql: "9.5"
   apt_packages:
     libmagic-dev
-    freetds-dev
-    freetds-bin
