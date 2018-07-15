@@ -12,10 +12,11 @@ module WarehouseReports
 
     #download
     def show
-      @file = report_source.find(params[:id]).file
+      @report = report_source.find(params[:id].to_i)
+      @file = @report.file
       send_data @file.content,
         type: @file.content_type,
-        filename: File.basename(@file.file.to_s)
+        filename: "#{@report.display_coc_code}.zip"
     end
 
     def create
