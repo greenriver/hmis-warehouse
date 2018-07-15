@@ -172,7 +172,7 @@ group :test do
   gem 'after_commit_exception_notification'
 end
 
-group :development, :staging do
+group :development, :staging, :test do
   # Faker queries translations db in development to look for user overrides of fake data
   # There is no way to disable this
   gem 'faker', '>= 1.7.2', require: false
