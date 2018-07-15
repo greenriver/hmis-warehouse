@@ -1,10 +1,11 @@
+%p Any content entered below will trigger a site-wide alert message visible to all users.
 = simple_form_for alert, url: @form_url do |f|
   = f.error_notification
 
   .row
     .col-sm-6
       .form-inputs
-        = f.input :html, label: "HTML", as: :text          
+        = f.input :html, label: "HTML", as: :text
 
       .form-actions
         = f.button :submit, "Submit", class: 'btn btn-primary'
