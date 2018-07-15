@@ -119,4 +119,10 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: "Your Member Status report has finished")
   end
 
+  def health_claims_finished user_id
+    @user = User.find(user_id)
+    @report_url = warehouse_reports_health_claims_url
+    mail(to: @user.email, subject: "Your Claims file has been generated")
+  end
+
 end

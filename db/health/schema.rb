@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180711174711) do
+ActiveRecord::Schema.define(version: 20180713183124) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -105,6 +105,25 @@ ActiveRecord::Schema.define(version: 20180711174711) do
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
   add_index "careplans", ["user_id"], name: "index_careplans_on_user_id", using: :btree
+
+  create_table "claims", force: :cascade do |t|
+    t.integer  "user_id"
+    t.date     "max_date"
+    t.integer  "job_id"
+    t.integer  "max_isa_control_number"
+    t.integer  "max_group_control_number"
+    t.integer  "max_st_number"
+    t.text     "claims_file"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string   "error"
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.datetime "deleted_at"
+    t.datetime "submitted_at"
+  end
+
+  add_index "claims", ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree
 
   create_table "claims_amount_paid_location_month", force: :cascade do |t|
     t.string  "medicaid_id",  null: false
@@ -261,6 +280,8 @@ ActiveRecord::Schema.define(version: 20180711174711) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "deleted_at"
+    t.string   "npi"
+    t.string   "ein"
   end
 
   create_table "data_sources", force: :cascade do |t|
@@ -642,6 +663,7 @@ ActiveRecord::Schema.define(version: 20180711174711) do
     t.integer  "patient_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "claim_id"
   end
 
   create_table "release_forms", force: :cascade do |t|
