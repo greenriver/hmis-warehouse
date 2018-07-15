@@ -63,15 +63,12 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
     end
     it 'there should be three source enrollment records' do
-      puts GrdaWarehouse::Hud::Enrollment.pluck(:EnrollmentID, :EntryDate)
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
     end
     it 'there should be three service history entry records' do
-       puts GrdaWarehouse::ServiceHistoryEnrollment.pluck(:enrollment_group_id, :first_date_in_program, :last_date_in_program)
       expect(GrdaWarehouse::ServiceHistoryEnrollment.entry.count).to eq(3)
     end
     it 'there should be two service history exit records' do
-      puts GrdaWarehouse::ServiceHistoryEnrollment.pluck(:enrollment_group_id, :first_date_in_program, :last_date_in_program)
       expect(GrdaWarehouse::ServiceHistoryEnrollment.exit.count).to eq(2)
     end
     it 'it should import all source services regardless of enrollment start and end' do
