@@ -13,18 +13,18 @@
         %thead
           %th CoC Code
           %th User
-          %th Started
-          %th Completed
+          %th Status
+          %th
         %tbody
           - @reports.each do |report|
             %tr
               %td= report.display_coc_code
               %td= report.user_name
-              %td= report.started_at
-              %td= report.completed_at
+              %td= report.status
               %td
-                = link_to action: :show, id: report.id do
-                  %span.icon-download2
-                  Download
-          
+                - if report.completed_at
+                  = link_to action: :show, id: report.id do
+                    %span.icon-download2
+                    Download
+
       %p= paginate @reports
