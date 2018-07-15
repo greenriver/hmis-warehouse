@@ -1,0 +1,13 @@
+= render 'window/health/patient_release_status'
+.scrollspy
+  = render 'on_page_nav'
+
+%h2 Patient Summary
+- if @patient.present?
+  = render 'patient_summary'
+  = render 'patient_dashboard'
+  = render 'patient_details'
+
+  = render 'patient_js'
+- else
+  %p No patient record found.

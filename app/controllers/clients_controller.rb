@@ -25,6 +25,7 @@ class ClientsController < ApplicationController
     else
       client_scope
     end
+    @clients = @clients.preload(:processed_service_history)
     sort_filter_index()
   end
 
@@ -46,6 +47,7 @@ class ClientsController < ApplicationController
   # display an assessment form in a modal
   def assessment
     @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
+    @client = @form.client
     render 'assessment_form'
   end
 

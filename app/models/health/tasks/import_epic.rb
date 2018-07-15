@@ -10,22 +10,31 @@ module Health::Tasks
 
     def initialize(logger: Rails.logger, load_locally: false)
       setup_notifier('HealthImporter')
-      
+
       @logger = logger
-      @config = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+
       @load_locally = load_locally
+
       @to_revoke = []
       @to_restore = []
       @new_patients = []
     end
 
     def run!
-      fetch_files() unless @load_locally
-      import_files()
-      update_consent()
-      return change_counts()
+      configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      configs.each do |_, config|
+        @config = config
+        ds = Health::DataSource.find_by(name: config['data_source_name'])
+        @data_source_id = ds.id
+        fetch_files() unless @load_locally
+        import_files()
+        update_consent()
+        sync_epic_pilot_patients()
+        return change_counts()
+      end
     end
 
+    # This does not remove any data coming from EPIC, only upsirt
     def import klass:, file:
       path = "#{@config['destination']}/#{file}"
       handle = read_csv_file(path: path)
@@ -40,14 +49,15 @@ module Health::Tasks
         translated_row = row.to_h.map do |k,v|
           clean_key = klass.csv_map[k.to_sym]
           [clean_key, klass.clean_value(clean_key, v)]
-        end.to_h
-        entry = klass.where(klass.csv_map[klass.source_key] => key).
+        end.to_h.except(nil)
+
+        entry = klass.where(klass.csv_map[klass.source_key] => key, data_source_id: @data_source_id).
           first_or_create(translated_row) do |patient|
-          if klass == Health::Patient
+          if klass == Health::EpicPatient
             @new_patients << patient[:id_in_source]
           end
         end
-        changed = entry.updated_at < translated_row[:updated_at] rescue false
+        changed = entry.updated_at < translated_row[:updated_at] || klass == Health::EpicPatient rescue false
         if changed
           entry.update(translated_row)
         end
@@ -63,31 +73,19 @@ module Health::Tasks
     def change_counts
       {
         new_patients: @new_patients.size,
-        consented: @to_restore.size, 
+        consented: @to_restore.size,
         revoked_consent: @to_revoke.size,
       }
     end
 
-    # def notify_health_admin_of_changes
-    #   if @new_patients.size > 0 || @to_revoke.any? || @to_restore.any?
-    #     User.can_administer_health.each do |user|
-    #       HealthConsentChangeMailer.consent_changed(
-    #         new_patients: @new_patients.size,
-    #         consented: @to_restore.size, 
-    #         revoked_consent: @to_revoke.size, 
-    #         user: user
-    #       ).deliver_later
-    #     end 
-    #   end
-    # end
-
+    # only valid for pilot patients
     def update_consent
-      klass = Health::Patient
+      klass = Health::EpicPatient
       file = Health.model_to_filename(klass)
       path = "#{@config['destination']}/#{file}"
 
-      consented = klass.consented.pluck(:id_in_source)
-      revoked = klass.consent_revoked.pluck(:id_in_source)
+      consented = klass.pilot.consented.pluck(:id_in_source)
+      revoked = klass.pilot.consent_revoked.pluck(:id_in_source)
       incoming = []
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
         incoming << row[klass.source_key.to_s]
@@ -100,9 +98,18 @@ module Health::Tasks
       klass.where(id_in_source: @to_restore).restore_consent
     end
 
+    # keep pilot patients in sync with epic export
+    def sync_epic_pilot_patients
+      Health::EpicPatient.pilot.each do |ep|
+        patient = Health::Patient.where(id_in_source: ep.id_in_source, data_source_id: ep.data_source_id).first_or_create
+        attributes = ep.attributes.select{|k,_| k.to_sym.in?(Health::EpicPatient.csv_map.values)}
+        patient.update(attributes)
+      end
+    end
+
     def fetch_files
       sftp = Net::SFTP.start(
-        @config['host'], 
+        @config['host'],
         @config['username'],
         password: @config['password'],
         # verbose: :debug,
@@ -126,7 +133,11 @@ module Health::Tasks
     def header_row_matches file:, klass:
       expected = klass.csv_map.keys.sort
       found = CSV.parse(file.first).first.map(&:to_sym).sort
-      found == expected
+      if klass.name == "Health::EpicCaseNote"
+        (expected - found).size == 0
+      else
+        found == expected
+      end
     end
 
     def notify msg

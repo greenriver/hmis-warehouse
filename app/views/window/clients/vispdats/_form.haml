@@ -5,11 +5,11 @@
     .modal-dialog
       .modal-content
         .modal-header
-          %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
-            %span{"aria-hidden" => "true"} &times;
           %h4.modal-title
             %i.icon-upload2
             Upload Consent Form
+          %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+            %i.modal-icon-close{"aria-hidden" => "true"}
         .modal-body
           = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
           = f.input :effective_date, as: :date_picker
@@ -47,7 +47,7 @@
     .row
       .col-sm-12
         %h3 Consent Form
-        %p 
+        %p
           Please indicate if the client has a Drug & Alcohol Release, and an HIV/AIDS Release.
           - if @consent_form_url.present?
             = link_to @consent_form_url do
@@ -286,7 +286,7 @@
         %label= @vispdat.question(:drug_use)
       .col-sm-3
         = f.input :drinking_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:drinking_answers), label: false
-    
+
     - if @vispdat.youth?
       .row
         .col-sm-9

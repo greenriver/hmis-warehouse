@@ -8,7 +8,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.processed_service_history&.disability_verification_date&.to_s
+      cohort_client.disability_verification_date&.to_s
     end
   end
 end

@@ -1,9 +1,21 @@
 @mixin card {
   background: $white;
-  padding: space(4);
   color: $text-color;
   border-radius:  $border-radius-default;
-  border: 1px solid $gray-020;
+  border: 1px solid $gray-025;
+}
+
+@mixin internal_card_heading {
+  border-top: $gray-020 1px solid;
+  border-bottom: $gray-020 1px solid;
+  background: $gray-015;
+  color: $gray-080;
+  margin-bottom: space(4);
+  margin-top: 0;
+  margin-left: -16px;
+  margin-right: -16px;
+  padding: 16px;
+  font-size: rem(16px);
 }
 
 @mixin poppins {
@@ -99,6 +111,10 @@
   @include lora;
   font-weight: 400;
   font-style: italic;
+}
+
+@mixin icon {
+  font-family: 'icomoon';
 }
 
 @mixin vertical-align($position: relative) {

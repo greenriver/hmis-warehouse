@@ -1,0 +1,68 @@
+- if @active_filter
+  - filter_class = 'client__filter-active'
+- else
+  - filter_class = 'client__filter'
+= simple_form_for :filters, url: filters_path, html: {id: 'filter-form'}, method: :get do |f|
+  - if @active_patient_referral_group.present?
+    = hidden_field_tag :group, @active_patient_referral_group
+  .o-page__controls
+    .o-page__search
+      .input-group
+        = f.input :search, label: false, wrapper_html: {class: 'mb-0 w-100'}
+        %span.input-group-btn
+          %button.btn.btn-secondary{type: :submit} Search
+    -# if show_filters?
+    .o-page__sort
+      - if show_filters?
+        .o-filtration.dropdown.mr-2{class: filter_class}
+          %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+            Filter
+            %span.caret
+          .o-filtration__container.dropdown-menu{style: 'padding: 10px;'}
+            .o-filtration__header
+              %h3.client__filter-header Filter patients
+            .o-filtration__option.row
+              .col-sm-8
+                = f.input :added_before, as: :date_picker, required: false, wrapper_html: {class: 'mb-0'}
+            .o-filtration__option.row
+              .col-sm-12
+                = label_tag 'Known?'
+                .radio-button-buttons__container.mb-0
+                  - [['All', :all], ['Known', :claimed], ['Not known', :unclaimed]].each do |btn|
+                    = f.label :relationship, value: btn.last do
+                      = f.radio_button :relationship, btn.last
+                      %span= btn.first
+            .o-filtration__option.row
+              .col-sm-10
+                .form-group.mb-0
+                  = f.input :agency_id, collection: @agencies, label: 'Response from', include_blank: 'Select to filter', required: false, input_html: {class: :select2, style: 'width: 100%;'}
+            .o-filtration__option.row
+              .col-sm-10
+                .form-group.mb-0
+                  = f.input :assigned_agency_id, collection: @agencies, label: 'Assigned to', include_blank: 'Select to filter', required: false, input_html: {class: :select2, style: 'width: 100%;'}
+            .o-filtration__actions.form__actions
+              = link_to filters_path, class: 'btn btn-secondary' do
+                %i.icon-cross
+                Clear Filters
+              %button.btn.btn-primary.ml-auto{type: 'submit'}
+                %i.icon-filter
+                Filter
+      .dropdown
+        %button.btn.btn-secondary#sort-partient-referrals{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
+          Sort
+          %span.caret
+        .dropdown-menu
+          .radio-button-list__container
+            - [['Referral Date', 'created_at'], ['Last Name', 'last_name']].each do |item|
+              = f.label :sort_by, value: item.last do
+                = f.radio_button :sort_by, item.last, onclick: "$(this).parents('form').submit()"
+                %span= item.first
+
+- agency_data = @agencies.map{|a| {label: a.name, value: a.id}}.to_json
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $(document).on('click', '#filter-form', function(e) {
+        e.stopPropagation();
+      });
+    });

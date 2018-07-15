@@ -20,7 +20,13 @@ module HealthPatient
       @client = GrdaWarehouse::Hud::Client.find(params[:client_id].to_i)
     end
     protected def set_patient
-      @patient = Health::Patient.accessible_by_user(current_user).find_by_client_id(params[:client_id].to_i)
+      @patient = Health::Patient.accessible_by_user(current_user).find_by(client_id: params[:client_id].to_i)
+    end
+
+    # For now, all patients are visible to all health users
+    # BUT, all patients must have a referral 
+    protected def set_hpc_patient
+      @patient = Health::Patient.joins(:patient_referral).find_by(client_id: params[:client_id].to_i)
     end
   end
 end

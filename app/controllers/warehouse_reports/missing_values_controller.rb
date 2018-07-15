@@ -16,7 +16,7 @@ module WarehouseReports
       Gender
       VeteranStatus
       DisablingCondition
-      ResidencePrior
+      LivingSituation
       LastPermanentZIP
     ) & POTENTIAL_COLUMNS
 
@@ -359,6 +359,6 @@ module WarehouseReports
           end
         end
     end
-    
+
   end
 end

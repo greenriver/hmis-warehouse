@@ -1,0 +1,82 @@
+= wicked_pdf_stylesheet_link_tag 'print', media: 'print'
+
+- title = "Care Plan for #{@patient.name} as of #{Date.today}"
+- content_for :title, title
+
+.l-print
+  %article.l-print__section
+    %ul.l-print__summary-items
+      %li
+        %dl
+          %dt Initial Date
+          %dd= @careplan.initial_date&.to_date
+      %li
+        %dl
+          %dt Review Date
+          %dd= @careplan.review_date&.to_date
+
+  = render 'team_members_table'
+
+  %article.health-care-plan__about-me.l-print__section--page
+    %h1 About Me
+    .l-print__item
+      %h4 My Health Problems
+      = simple_format @careplan.patient_health_problems
+    .l-print__item
+      %h4 My Strengths
+      = simple_format @careplan.patient_strengths
+    .l-print__item
+      %h4 My Goals
+      = simple_format @careplan.patient_goals
+    .l-print__item
+      %h4 My Barriers
+      = simple_format @careplan.patient_barriers
+  = render 'goals_table'
+
+  %article.health-care-plan__services.l-print__section--page
+    = render 'window/health/careplans/service_list'
+
+  %article.health-care-plan__equipments.l-print__section--page
+    = render 'window/health/careplans/equipment_list'
+
+  %article.health-care-plan__ssm.l-print__section--page.no-break
+    %h1 Self-Sufficiency Matrix
+    - if @form.is_a? GrdaWarehouse::HmisForm
+      .ssm-print= render @ssm_partial
+    - else
+      = render @ssm_partial
+
+  %article.health-care-plan__cha.l-print__section--page
+    %h1 Comprehensive Health Assessment
+    = render 'window/health/comprehensive_health_assessments/show'
+
+  %article.health-care-plan__responsible-parties
+    %h1 Responsible Parties
+
+    %dl.l-print__item
+      %dt.inline Patient:
+      %dd.inline= @patient.name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.patient_signed_on&.to_date
+
+    %dl.l-print__item
+      %dt.inline Responsible Team Member:
+      %dd.inline= @careplan.responsible_team_member&.full_name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.responsible_team_member_signed_on
+
+    %dl.l-print__item
+      %dt.inline Representative:
+      %dd.inline= @careplan.representative&.full_name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.representative_signed_on
+
+    %dl.l-print__item
+      %dt.inline Provider:
+      %dd.inline= @careplan.provider&.full_name
+      %dd.l-print__signature &nbsp;
+      %dt.inline Signed On:
+      %dd.inline= @careplan.provider_signed_on&.to_date

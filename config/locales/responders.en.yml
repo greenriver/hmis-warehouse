@@ -10,6 +10,14 @@ en:
       destroy:
         notice: '%{resource_name} was successfully destroyed.'
         alert: '%{resource_name} could not be destroyed.'
+    health:
+      self_sufficiency_matrix_forms:
+        create:
+          notice: 'Self-Sufficiency Matrix successfully created.'
+        update:
+          notice: 'Self-Sufficiency Matrix successfully updated.'
+        destroy:
+          notice: 'Self-Sufficiency Matrix deleted.'
     clients:
       vispdats:
         create:

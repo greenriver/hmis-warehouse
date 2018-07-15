@@ -4,7 +4,8 @@ class WarehouseReportsController < ApplicationController
   skip_before_action :report_visible?
   def index
 
-    all_report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.ordered.
+    all_report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.
+      ordered.
       group_by(&:report_group)
     if current_user.can_view_all_reports?
       @report_definitions = all_report_definitions

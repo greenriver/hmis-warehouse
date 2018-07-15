@@ -1,0 +1,23 @@
+.jEquipmentList.overflow-scroll
+  %table.table.equipment__list.mb-0
+    %thead
+      %tr
+        %th Item
+        %th Provider
+        %th Quantity
+        %th Effective Date
+        %th Comments
+        %th Status
+        %th
+    %tbody
+      - if @equipments.blank?
+        %tr.jEmpty
+          %td{colspan: 6}
+            %p.no-data
+              No DME listed.
+              = link_to polymorphic_path([:new] + health_path_generator + [:durable_equipment]), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary ml-2' do 
+                %i.icon-plus
+                Add Equipment Item
+      - else       
+        - @equipments.each do |equipment|
+          = render 'window/health/durable_equipments/equipment_row', equipment: equipment

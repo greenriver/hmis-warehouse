@@ -4,7 +4,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Missing Documents'
 
     def value(cohort_client) # OK
-      cohort_client.client.processed_service_history&.missing_documents
+      cohort_client.missing_documents
     end
   end
 end

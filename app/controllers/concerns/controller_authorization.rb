@@ -81,4 +81,5 @@ module ControllerAuthorization
       redirect_to window_clients_path
     end
   end
+
 end

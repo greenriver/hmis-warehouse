@@ -7,10 +7,10 @@
   }
 
 %h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'cas-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .row
   .col-sm-12
-    
+
 .row
   .col-sm-12
     = simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
@@ -35,4 +35,4 @@
       var chart = $('#counts');
       var efficiency_chart = new App.WarehouseReports.Cas.DecisionEfficiency(chart);
     });
-      
+

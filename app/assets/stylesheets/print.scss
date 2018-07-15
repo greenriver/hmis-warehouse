@@ -1,3 +1,37 @@
+.cha__section .cha__help-text,
+.cha__section .client__assessment-question,
+.cha__section h5,
+.cha__section h4,
+.ssm-print .client__assessment-question {
+  font-size: 14px;
+  font-weight: bold;
+}
+// .ssm-print wrapper for ssm from epic to force print styles
+.ssm-print .client__assessment-question {
+  padding-bottom: 0.5em;
+}
+
+.ssm-print .client__assessment-answer {
+  padding-bottom: 1.5em;
+  margin-left: 1em;
+}
+
+.row.cha__section-columns {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  .col-sm-6,
+  .col-sm-4 {
+    display: table-cell;
+  }
+  .col-sm-6 {
+    width: 50%;
+  }
+  .col-sm-4 {
+    width: 33%;
+  }
+}
+
 #vsm-container {
   display: none !important;
 }
@@ -41,7 +75,7 @@ footer {
   font-size: 0.7em;
   display: inline-block;
 }
-.service-type__entry 
+.service-type__entry
 {
   border: 2px solid rgb(73, 95, 121);
 }
@@ -57,7 +91,7 @@ footer {
 {
   border: 2px solid rgb(45, 118, 124);
 }
-.service-type__first 
+.service-type__first
 {
   border: 2px solid rgb(86, 114, 170);
 }
@@ -98,7 +132,367 @@ footer {
 {
   width: 100%;
   font-size: 0.7rem;
-  tr    { page-break-inside:avoid; page-break-after:auto }
-  thead { display:table-header-group }
-  tfoot { display:table-footer-group }
+  tr
+  {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+}
+
+
+$print-layout-header-height: 50px;
+$pdf-default-font-size: 12px;
+$pdf-h1-font-size: 20px;
+$pdf-text-line-height: 1.25em;
+$pdf-table-border-color: darken(#f9f9f9, 3%);
+
+@mixin pdf-heading {
+  font-size: $pdf-h1-font-size;
+  border-bottom: 3px solid #CCC;
+  padding-bottom: 5px;
+  color: #091F2F;
+  margin-top: 5px;
+}
+
+.l-print {
+  position: relative;
+  font-family: sans-serif;
+}
+
+.l-print,
+.l-print table {
+  font-size: $pdf-default-font-size;
+}
+
+.l-print button,
+.l-print .btn,
+.l-print a {
+  display: none;
+}
+
+.l-print table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.l-print tr
+{
+  page-break-inside: avoid;
+  page-break-after: auto;
+}
+.l-print thead {
+  display: table-header-group;
+}
+.l-print tfoot {
+  display: table-footer-group;
+}
+
+.l-print table thead tr th {
+  background: $pdf-table-border-color;
+  text-align: left;
+  padding: 8px 5px;
+}
+
+.l-print table tbody tr {
+  td {
+    vertical-align: middle;
+    padding: 8px 5px;
+    border-bottom: 1px solid $pdf-table-border-color;
+    &,
+    p {
+      line-height: $pdf-text-line-height;
+    }
+    p {
+      margin: 0 0 3px 0;
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.l-print h1 {
+  @include pdf-heading;
+}
+
+.l-print h4 {
+  margin-bottom: 5px;
+}
+
+.l-print p {
+  margin-top: 0;
+  line-height: $pdf-text-line-height;
+}
+
+.l-print dl {
+  dt {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  dd {
+    margin-bottom: 3px;
+    margin-left: 5px;
+    &:empty {
+      display: none;
+    }
+    &.l-print__signature {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      margin-left: 0;
+      width: 500px;
+      height: 50px;
+      border-bottom: 1px solid #000;
+    }
+    &.breaker {
+      display: block !important;
+      margin-bottom: 5px;
+    }
+  }
+  dt,
+  dd {
+    &.inline {
+      display: inline;
+    }
+  }
+  &.l-print__item {
+    margin-bottom: 75px;
+  }
+}
+
+.l-print .no-break {
+  page-break-inside: avoid;
+}
+
+.l-print .minor-text {
+  font-style: italic;
+  color: #999999;
+}
+
+.l-print__page-content {
+  padding: $print-layout-header-height 25px;
+}
+
+.l-print__summary-items {
+  display: flex;
+  padding: 0;
+  list-style-type: none;
+  li {
+    &:first-of-type {
+      margin-right: 50px;
+    }
+  }
+}
+
+.l-print__section {
+  margin-bottom: 40px;
+}
+
+.l-print__section--page {
+  page-break-after: always;
+  margin-bottom: 40px;
+  padding-top: 10px;
+}
+
+.l-print__item-wrapper {
+  .l-print__item {
+    margin-bottom: 20px;
+  }
+}
+
+.l-print__item {
+  margin-bottom: 20px;
+}
+
+.l-print__item--bordered {
+  border-bottom: 1px solid #CCC;
+  &:last-of-type {
+    border: 0;
+  }
+}
+
+.l-print__header,
+.l-print__footer {
+  max-height: $print-layout-header-height;
+  font-family: sans-serif;
+}
+
+.l-print__header h1 {
+  font-size: 16px;
+}
+
+.l-print__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.l-print__footer-page-number {
+  margin-left: auto;
+}
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Specific to Care Plan PDF
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.l-print [class^='health-care-plan'] {
+  h3 {
+    @include pdf-heading;
+  }
+}
+
+.l-print .health-care-plan__services table {
+  tr td {
+    &:first-of-type {
+      width: 125px;
+    }
+  }
+}
+
+.l-print .health-care-plan__equipments table {
+  tr td {
+    &:last-of-type {
+      width: 200px;
+    }
+  }
+}
+
+.l-print .client__assessment-question,
+.l-print .client__assessment-answer {
+  margin-bottom: 2px;
+}
+
+.l-print .client__assessment-question--title {
+  margin-bottom: 5px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.l-print .client__assessment-answer--text {
+  margin-top: 3px;
+}
+
+.l-print .client__assessment-answer--notes {
+  p {
+    margin-top: 3px;
+    margin-bottom: 20px;
+  }
+}
+
+.l-print .client__assessment-overall-summary {
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.l-print .client__assessment-section-summary {
+  page-break-inside: avoid;
+}
+
+.l-print .client__assessment-question-summary {
+  margin-top: 0;
+  padding-left: 10px;
+  page-break-inside: avoid;
+}
+
+
+.l-print .client__assessment-totals {
+  padding-top: 5px;
+  page-break-inside: avoid;
+}
+
+.l-print .client__assessment-total {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 50px;
+  &:last-of-type {
+    margin: 0
+  }
+  .client__assessment-question {
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .client__assessment-answer {
+    font-weight: bold;
+    font-size: 20px;
+  }
+}
+
+.l-print .health-care-plan__cha {
+  .client__assessment-section-summary {
+    margin-bottom: 45px;
+    page-break-inside: auto;
+  }
+  .client__assessment-question {
+    line-height: $pdf-text-line-height;
+    font-weight: bold;
+  }
+  .client__assessment-answer {
+    line-height: $pdf-text-line-height;
+    margin-bottom: 15px;
+    &,
+    ul {
+      margin-top: 5px;
+      padding-left: 15px;
+    }
+  }
+  h4 {
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: bold;
+  }
+}
+
+.l-print .cha__section {
+  clear: left;
+  page-break-inside: avoid;
+  &::after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+}
+
+.l-print .g_q,
+.l-print .i_q,
+.l-print .l_q {
+  float: left;
+  page-break-inside: avoid;
+  margin-bottom: 10px;
+  .client__assessment-answer {
+    text-indent: 0;
+    padding-right: 5px;
+  }
+  &.clear-left {
+    clear: left;
+  }
+}
+.g_q2a
+{
+  clear: left;
+}
+
+
+.l-print .i_q {
+  width: 30%;
+}
+
+.l-print .l_q {
+  width: 30%;
+}
+
+.row
+{
+  clear: both;
+  width: 100%;
+}
+.row .col-sm-6
+{
+  width: 50%;
+}
+.col-sm-4
+{
+  width: 30%;
 }

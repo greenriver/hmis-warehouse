@@ -1,0 +1,8 @@
+- if @no_agency_user_warning.present?
+  .alert.alert-danger.error= @no_agency_user_warning
+- else
+  = render 'admin/health/patient_referrals/header'
+  = render 'admin/health/patient_referrals/tabs'
+  = render 'admin/health/patient_referrals/paginate'
+  = render 'admin/health/patient_referrals/patient_referrals'
+  = render 'claim_patient_referral_js'

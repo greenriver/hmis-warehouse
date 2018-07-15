@@ -1,0 +1,2 @@
+$('.existing-file').fadeOut ->
+  @.remove()

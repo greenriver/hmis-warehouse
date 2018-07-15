@@ -4,11 +4,10 @@
       %tr
         %th.text-center Select
         %th Preview
+        %th Download
         %th Document
-        %th Note
         - if can_manage_client_files?
           %th Visible in <br> Window
-        %th Uploaded
         %th
           Effective Date /
           %br
@@ -16,6 +15,8 @@
         - if consent
           %th.text-center Consent Type
           %th.text-center Consent Confirmed
+        - else
+          %th Expiration Date
         %th.text-center
       %tbody
         - files.each do |file|

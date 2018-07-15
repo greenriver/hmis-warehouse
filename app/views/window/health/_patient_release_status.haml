@@ -1,0 +1,12 @@
+- unless @patient.release_forms.valid.exists?
+  .alert.alert--flex.alert-danger
+    %i.alert__icon.icon-warning
+    %p
+      #{@patient.name} does not have signed participation and release of information forms on file.
+      %br
+      Patient information is still available, but you are responsible for limiting your access to only necessary content.
+- if @patient&.epic_patients&.first&.death_date
+  %div.alert.alert-warning
+    %i.alert__icon.icon-warning
+    Patient is deceased as of
+    = @patient&.epic_patients&.first&.death_date

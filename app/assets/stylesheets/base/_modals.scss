@@ -4,13 +4,35 @@
 
 .modal-header {
   border-bottom: 2px solid $gray-040;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .modal-header .close {
-  font-size: rem(14);
+  margin-left: auto;
+}
+
+.modal-icon-close {
+  font-style: normal;
+  &::before {
+    @include icon;
+    content: '\ea0f';
+    font-size: rem(18);
+    color: $gray-070;
+  }
+}
+
+.modal-dialog {
+  @include media-breakpoint-down(sm) {
+    width: calc(100vw - 30px) !important;
+    margin-right: 15px !important;
+    margin-left: 15px !important;
+  }
 }
 
 .modal-dialog input[type=submit] {
+  justify-content: center;
   float: right;
   min-width: 120px;
 }
@@ -24,4 +46,8 @@
 
 .import__errors {
   overflow: scroll;
+}
+
+[data-pjax-modal-loading] {
+  min-height: 300px;
 }

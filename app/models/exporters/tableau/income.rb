@@ -1,7 +1,7 @@
 module Exporters::Tableau::Income
   include ArelHelper
   include TableauExport
-  
+
   module_function
   def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
 
@@ -9,7 +9,7 @@ module Exporters::Tableau::Income
 
       spec = {
         grouping_variable:       she_t[:id],
-        entry_exit_uid:          e_t[:ProjectEntryID],
+        entry_exit_uid:          e_t[:EnrollmentID],
         entry_exit_client_id:    she_t[:client_id],
         earned_income:           ib_t[:Earned],
         ssi_ssdi:                ib_t[:SSI],

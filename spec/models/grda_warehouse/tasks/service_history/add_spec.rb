@@ -50,7 +50,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
   describe 'When adding complex service histories ' do
     before(:all) do
       @delete_later = []
-      setup_complex_import()  
+      setup_complex_import()
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -80,7 +80,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       expect(client.service_history.service.count).to eq(7)
     end
     it 'it should generate service history records for entry-exit projects' do
-      
+
     end
   end # end
 
@@ -96,7 +96,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       # duplicate the fixture file as it gets manipulated
       FileUtils.cp_r(source_file_path, import_path)
       @delete_later << import_path unless import_path == source_file_path
-  
+
       importer = Importers::HMISSixOneOne::Base.new(
         file_path: path,
         data_source_id: data_source.id,
@@ -123,7 +123,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       # duplicate the fixture file as it gets manipulated
       FileUtils.cp_r(source_file_path, import_path)
       @delete_later << import_path unless import_path == source_file_path
-  
+
       importer = Importers::HMISSixOneOne::Base.new(
         file_path: path,
         data_source_id: data_source.id,
@@ -133,5 +133,5 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
-  end  
+  end
 end

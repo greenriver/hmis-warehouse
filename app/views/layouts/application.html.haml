@@ -39,7 +39,7 @@
 
       .l-main__content{ class: ('with-menu' if user_signed_in?) }
         %main
-          .container-fluid{class: container_classes}
+          .container-fluid.mb-4{class: container_classes}
             .utility.d-none--empty<
               = render "utility"
             - if content_for? :modal_title

@@ -49,7 +49,7 @@ module GrdaWarehouse::Tasks
           client_source.find(id).invalidate_service_history
           add_attempt(id)
         else
-        end 
+        end
       end
       update_attempts()
       if messages.any?
@@ -96,7 +96,7 @@ module GrdaWarehouse::Tasks
       destinations.reject! do |id|
         max_attempts_reached(id)
       end
-      @destinations = destinations.map do |m| 
+      @destinations = destinations.map do |m|
         [m, {
           service_history: {
             enrollments: 0,
@@ -107,13 +107,13 @@ module GrdaWarehouse::Tasks
             exits: 0,
           },
           source_personal_ids: []
-        }] 
+        }]
       end.to_h
     end
 
     def load_personal_ids
       # This is brittle, if active record decides to change the name of the joined table, it won't work
-      source_client_table = Arel::Table.new 'source_clients_Client' 
+      source_client_table = Arel::Table.new 'source_clients_Client'
 
       client_source.joins(:source_clients).
         where(id: @destinations.keys).
@@ -152,7 +152,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(source_enrollments: :project).
         where(id: batch).
         group(:id).
-        pluck(:id, nf( 'COUNT', [nf('DISTINCT', [e_t[:ProjectEntryID], e_t[:data_source_id]])] ).to_sql).
+        pluck(:id, nf( 'COUNT', [nf('DISTINCT', [e_t[:EnrollmentID], e_t[:data_source_id]])] ).to_sql).
       each do |id, source_enrollment_count|
         @destinations[id][:source][:enrollments] = source_enrollment_count
       end
@@ -166,8 +166,8 @@ module GrdaWarehouse::Tasks
         where(id: batch).
         group(:id).
         pluck(
-          :id, 
-          nf('COUNT', [nf('DISTINCT', [ex_t[:ProjectEntryID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql
+          :id,
+          nf('COUNT', [nf('DISTINCT', [ex_t[:EnrollmentID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql
         ).
       each do |id, source_exit_count|
         @destinations[id][:source][:exits] = source_exit_count
@@ -193,6 +193,6 @@ module GrdaWarehouse::Tasks
     def clients_processed_source
       GrdaWarehouse::WarehouseClientsProcessed.where(routine: 'service_history')
     end
-    
+
   end
 end

@@ -4,8 +4,8 @@ module CohortColumns
     attribute :title, String, lazy: true, default: 'Related Users'
 
 
-    def value(cohort_client) # TODO: N+1
-      cohort.time_dependant_client_data[cohort_client.client_id][:related_users]
+    def value(cohort_client) # OK
+      cohort_client.related_users
     end
   end
 end

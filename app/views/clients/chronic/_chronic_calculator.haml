@@ -1,0 +1,45 @@
+%h4 Chronic Details On this Date
+
+= form_tag(edit_client_chronic_path(@client), method: "get") do
+  .d-flex
+    .o-filtration
+      .input-group.date{data: {provide: :datepicker}}
+        %input.form-control{name: :date, type: :text, value: @date}
+        %span.input-group-addon.icon-calendar
+    .o-filtration.ml-auto
+      %button.btn.btn-secondary{type: :submit} Re-calculate
+
+%table.table.table-striped.margin-top-03
+  %tbody
+    %tr
+      %td Months in ES, SH, SO, or TH in the last 3 years
+      %td
+        = @client.months_homeless_in_last_three_years(on_date: date)
+    %tr
+      %td Months in ES, SH, SO, or TH in the last year
+      %td
+        = @client.months_homeless_in_last_year(on_date: date)
+    %tr
+      %td Homeless episodes in the last 3 years
+      %td= @client.homeless_episodes_since(date: (date - 3.years))
+    %tr
+      %td
+        Days homeless in the last 3 years
+        %span.icon-info{data: { toggle: 'tooltip', title: "Using the chronic calculator algorithm for #{date}" } }
+      %td= @client.homeless_dates_for_chronic_in_past_three_years(date: date).count
+    %tr
+      %td
+        Disabled?
+        %td= @client.disabled?(on_date: date) ? 'Yes' : 'No'
+    %tr
+      %td
+        Days literally homeless (ES, SO, or SH) in the past 3 years
+        %td= @client.literally_homeless_last_three_years(on_date: date)
+    %tr
+      %td
+        Months literally homeless (ES, SO, or SH) in the past 3 years
+        %td= @client.months_literally_homeless_in_last_three_years(on_date: date)
+    %tr
+      %td
+        Months literally homeless (ES, SO, or SH) in the past 1 year
+        %td= @client.months_literally_homeless_in_last_year(on_date: date)

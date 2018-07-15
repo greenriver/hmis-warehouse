@@ -15,7 +15,7 @@ module Import::HMISSixOneOne::Shared
     # end
 
   end
-  
+
   def log(message)
     @notifier.ping message if @notifier
     logger.info message if @debug
@@ -35,7 +35,7 @@ module Import::HMISSixOneOne::Shared
     end
 
     def force_nulls(row)
-      row.each do |k,v| 
+      row.each do |k,v|
         row[k] = v.presence
       end
     end
@@ -67,12 +67,28 @@ module Import::HMISSixOneOne::Shared
     end
 
     def needs_update? row:, existing:, soft_delete_time: nil
+      # Incoming is newer
       incoming_newer = row[:DateUpdated].to_time > existing.updated_at
+      if incoming_newer
+        # puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
+        return true
+      end
       deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
       exists_in_incoming_file = row[:DateDeleted].blank?
-      incoming_updated_at_the_same_time = row[:DateUpdated].to_time == existing.updated_at
-
-      incoming_newer || deleted_previously && exists_in_incoming_file && incoming_updated_at_the_same_time
+      incoming_updated_on_same_date = row[:DateUpdated].to_date == existing.updated_at.to_date
+      # Should be restored
+      should_restore = deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
+      if should_restore
+        # puts "should restore #{row.inspect} #{existing.updated_at.inspect} #{existing.deleted_at.inspect}"
+        return true
+      end
+      # same modification date, changed data
+      data_changed = incoming_updated_on_same_date && row[:source_hash] != existing.source_hash
+      if data_changed
+        # puts "data changed #{row.inspect} #{existing.inspect}"
+        return true
+      end
+      return false
     end
 
     def delete_involved projects:, range:, data_source_id:, deleted_at:
@@ -100,16 +116,16 @@ module Import::HMISSixOneOne::Shared
     def fetch_existing_for_project_batch data_source_id:, keys:
       self.with_deleted.where(data_source_id: data_source_id).
         where(self.hud_key => keys).
-        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id).map do |key, updated_at, deleted_at, id|
-          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id})]
+        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id, :source_hash).map do |key, updated_at, deleted_at, id, source_hash|
+          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id, source_hash: source_hash})]
         end.to_h
     end
 
     def fetch_existing_for_enrollment_batch data_source_id:, keys:
       self.with_deleted.where(data_source_id: data_source_id).
         where(self.hud_key => keys).
-        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id).map do |key, updated_at, deleted_at, id|
-          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id})]
+        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id, :source_hash).map do |key, updated_at, deleted_at, id, source_hash|
+          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id, source_hash: source_hash})]
         end.to_h
     end
 
@@ -135,7 +151,8 @@ module Import::HMISSixOneOne::Shared
           )
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
-            # in some cases this replaces the renamed hud key, 
+            row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
+            # in some cases this replaces the renamed hud key,
             # so it has to happen before checking for the existing
             existing = existing_items[row[self.hud_key]]
             if should_add?(existing)
@@ -177,6 +194,7 @@ module Import::HMISSixOneOne::Shared
           )
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
+            row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
             existing = existing_items[row[self.hud_key]]
             # binding.pry if self.name == 'GrdaWarehouse::Import::HMISSixOneOne::Enrollment'
             if should_add?(existing)
@@ -204,9 +222,36 @@ module Import::HMISSixOneOne::Shared
             log_added(to_add)
           end
         end
-        
+
       end
       stats
+    end
+
+    def calculate_source_hash values
+      Digest::SHA256.hexdigest string_for_source_hash(values)
+    end
+
+    # Since we are using Postgres to calculate these the first time
+    # we need to match the postgres format
+    def string_for_source_hash values
+      values.compact.map do |m|
+        if m.is_a?(Date)
+          m.strftime('%F')
+        elsif m.is_a?(Time)
+          m.utc.strftime('%F %T')
+        else
+          m
+        end
+      end.join(':')
+    end
+
+    def pg_source_hash_calculation_query
+      columns = (hud_csv_headers - [:ExportID]).map{|m| '"' + m.to_s + '"'}.join(',')
+      "UPDATE #{quoted_table_name} SET source_hash = encode(digest(concat_ws(':', #{columns}), 'sha256'), 'hex')"
+    end
+
+    def pre_calculate_source_hashes!
+      connection.execute pg_source_hash_calculation_query
     end
 
     def log_added data
@@ -266,7 +311,7 @@ module Import::HMISSixOneOne::Shared
     def hud_csv_headers
       @hud_csv_headers
     end
-    
+
     def setup_hud_column_access(columns)
       @hud_csv_headers = columns
       columns.each do |column|

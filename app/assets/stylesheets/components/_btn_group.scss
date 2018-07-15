@@ -1,0 +1,10 @@
+.c-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.c-btn-group a,
+.c-btn-group button,
+.c-btn-group input[type='submit'] {
+  margin: 0 space(1);
+}

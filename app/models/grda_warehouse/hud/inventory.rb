@@ -2,35 +2,34 @@ module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes
     self.table_name = 'Inventory'
-    self.hud_key = 'InventoryID'
+    self.hud_key = :InventoryID
     acts_as_paranoid column: :DateDeleted
     include ArelHelper
     require 'csv'
-    
+
     def self.hud_csv_headers(version: nil)
       [
-        "InventoryID",
-        "ProjectID",
-        "CoCCode",
-        "InformationDate",
-        "HouseholdType",
-        "BedType",
-        "Availability",
-        "UnitInventory",
-        "BedInventory",
-        "CHBedInventory",
-        "VetBedInventory",
-        "YouthBedInventory",
-        "YouthAgeGroup",
-        "InventoryStartDate",
-        "InventoryEndDate",
-        "HMISParticipatingBeds",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
-      ]
+        :InventoryID,
+        :ProjectID,
+        :CoCCode,
+        :InformationDate,
+        :HouseholdType,
+        :Availability,
+        :UnitInventory,
+        :BedInventory,
+        :CHBedInventory,
+        :VetBedInventory,
+        :YouthBedInventory,
+        :BedType,
+        :InventoryStartDate,
+        :InventoryEndDate,
+        :HMISParticipatingBeds,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
+      ].freeze
     end
 
     FAMILY_HOUSEHOLD_TYPE = 3
@@ -72,7 +71,7 @@ module GrdaWarehouse::Hud
       where(i_t[:HouseholdType].not_eq(FAMILY_HOUSEHOLD_TYPE).
           or(i_t[:HouseholdType].eq(nil)))
     end
-    
+
     scope :individual, -> do
       serves_individuals
     end
@@ -109,7 +108,7 @@ module GrdaWarehouse::Hud
                 v = v.to_formatted_s(:db)
               end
               v
-            end 
+            end
           end
         end
       end

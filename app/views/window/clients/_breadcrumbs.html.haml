@@ -1,5 +1,9 @@
 = content_for :crumbs do
-  = link_to window_clients_path do
-    &laquo; 
-    = _('Front Door Triage')
-    Search
+  - if current_user.health_agency.present?
+    = link_to health_my_patients_path do
+      &laquo; My Patients
+  - else
+    = link_to window_clients_path do
+      &laquo; 
+      = _('Front Door Triage')
+      Search
