@@ -5,6 +5,8 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
+    before_action :set_medications, only: [:show]
+    before_action :set_problems, only: [:show]
 
     def index
       @goal = Health::Goal::Base.new
@@ -32,7 +34,13 @@ module Window::Health
       end
 
       # Include most-recent SSM & CHA
-      @form = @patient.self_sufficiency_matrix_forms.recent.first
+      # @form = @patient.self_sufficiency_matrix_forms.recent.first
+      @form = @patient.ssms.last
+      if @form.is_a? Health::SelfSufficiencyMatrixForm
+        @ssm_partial = 'window/health/self_sufficiency_matrix_forms/show'
+      elsif @form.is_a? GrdaWarehouse::HmisForm
+        @ssm_partial = 'clients/assessment_form'
+      end
       @cha = @patient.comprehensive_health_assessments.recent.first
       # debugging
       # render layout: false
@@ -60,7 +68,7 @@ module Window::Health
         # toc: {}
       )
       pdf = CombinePDF.parse(pctp)
-      if @form.present? && @form.health_file.present?
+      if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
         pdf << CombinePDF.parse(@form.health_file.content)
       end
       if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
@@ -135,6 +143,14 @@ module Window::Health
 
     def set_careplan
       @careplan = careplan_source.find(params[:id].to_i)
+    end
+
+    def set_medications
+      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
+    end
+
+    def set_problems
+      @problems = @patient.problems.order(onset_date: :desc)
     end
 
     def careplan_source

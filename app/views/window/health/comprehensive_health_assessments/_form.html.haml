@@ -263,7 +263,9 @@
             %a.btn.btn-secondary.add-diagnosis
               %span.icon-plus
               Add another diagnosis
-
+        - if @problems.present?
+          %h4 Epic Problems
+          = render 'window/health/problems/problems_table', problems: @problems
 
       .c-card__header--external
         %h3#section-j
@@ -350,12 +352,15 @@
                 = cha_select f, prn
               .col-sm-2
                 = cha_string f, code
-        .row
+        .row.mb-4
           .col-sm-12
             %a.btn.btn-secondary.add-medication
               %span.icon-plus
               Add another medication
 
+        - if @medications.present?
+          %h4 Epic Medications
+          = render 'window/health/medications/medications_table', medications: @medications
       .well
         = cha_radios f, :l_q2
 
@@ -472,15 +477,15 @@
         Complete & Review
       .well
         = f.input :completed, as: :boolean, label: 'Mark complete?', checked_value: 'yes', unchecked_value: 'no', input_html: { checked: @cha.complete?, class: [:jMarkComplete] }
+
         - if @cha.reviewed_by.present?
           .form-group.mb-0
             %label Reviewed by Supervisor
-            %p.form-control-static= @cha.reviewed_by&.name
+            %p.form-control-static= @cha.reviewer
         - else
-          - if can_approve_cha?
-            = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no', hint: 'CHA must be complete before it can be reviewed', input_html: {class: [:jMarkReviewed] }
-          - else
-            Not yet reviewed
+          = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no', hint: 'CHA must be complete before it can be reviewed', input_html: {class: [:jMarkReviewed, :jSetReviewer] }
+          = f.input :reviewer, input_html: {data: {name: current_user.name}, class: 'jReviewer'}
+
 
       .form__actions.form__actions--right
         = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default mr-1', data: { disable_with: 'Saving...' }

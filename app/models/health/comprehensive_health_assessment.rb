@@ -809,7 +809,7 @@ module Health
 
     attr_accessor *QUESTION_ANSWER_OPTIONS.keys
 
-    before_save :set_answers, :set_reviewer
+    before_save :set_answers, :set_reviewed_at
 
     validate :validate_health_file_if_present
 
@@ -817,9 +817,8 @@ module Health
      completed_at.present?
     end
 
-    private def set_reviewer
+    private def set_reviewed_at
       if reviewed_by
-        self.reviewer = reviewed_by.name
         self.reviewed_at = DateTime.current
       end
     end
