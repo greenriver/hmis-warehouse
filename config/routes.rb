@@ -194,7 +194,11 @@ Rails.application.routes.draw do
     end
     resources :missing_values, only: [:index]
     resources :active_veterans, only: [:index]
-    resources :tableau_dashboard_export, only: [:index, :create, :show, :destroy]
+    resources :tableau_dashboard_export, only: [:index, :create, :show, :destroy] do
+      collection do
+        get :running
+      end
+    end
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
@@ -231,6 +235,15 @@ Rails.application.routes.draw do
       resources :member_status_reports, only: [:index, :show, :create, :destroy] do
         collection do
           get :running
+        end
+      end
+      resources :claims, only: [:index, :show, :create, :destroy] do
+        collection do
+          get :running
+        end
+        member do
+          post :revise
+          post :submit
         end
       end
     end

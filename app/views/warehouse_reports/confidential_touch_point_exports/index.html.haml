@@ -3,7 +3,7 @@
 %h1= title
 %p This report will pull all ETO TouchPoint responses for the selected touch point during the selected date range.  These are limited to TouchPoints at projects that have been marked confidential.
 
-= render '/warehouse_reports/breadcrumbs', tab: 'health-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
 
 - if GrdaWarehouse::Config.get(:eto_api_available)
   .row
