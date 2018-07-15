@@ -1,0 +1,6 @@
+= render :partial => 'menus/admin_tabs'
+- title = 'New Warehouse Alert'
+- content_for :title, title
+
+%h1= content_for :title
+= render "form", alert: @alert

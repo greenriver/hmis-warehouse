@@ -1,0 +1,5 @@
+- alert = WarehouseAlert.ordered&.first
+- if alert.present? && alert.html.present?
+  = link_to admin_warehouse_alert_path(WarehouseAlert.ordered&.first), class: 'btn btn-warning o-header__nav' do
+    %i.icon-warning
+    Alert!
