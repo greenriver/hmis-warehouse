@@ -1,12 +1,7 @@
 language: ruby
-
-sudo: required
+cache: bundler
 
 bundler_args: --without production
-
-before_install:
-  - sudo ./spec/bin/install-openssl.sh
-  - sudo ./spec/bin/install-freetds.sh
 
 before_script:
   - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
