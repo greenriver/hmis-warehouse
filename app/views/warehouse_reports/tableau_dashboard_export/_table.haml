@@ -1,0 +1,19 @@
+%p= paginate @reports
+.table-responsive
+  %table.table.table-condensed
+    %thead
+      %th CoC Code
+      %th User
+      %th Status
+      %th
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td= report.display_coc_code
+          %td= report.user_name
+          %td= report.status
+          %td
+            - if report.completed_at
+              = link_to action: :show, id: report.id do
+                %span.icon-download2
+                Download

@@ -1,12 +1,12 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
-- title = "CP Member Status and Outreach"
+- title = "Claims Download"
 - content_for :title, title
 %h1= content_for :title
 = render 'form'
 .report-listing
   = render 'table'
 
-= link_to 'Reports', running_warehouse_reports_health_member_status_reports_path, class: 'jReportBlock', remote: true
+= link_to 'Reports', running_warehouse_reports_health_claims_path, class: 'jReportBlock', remote: true
 
 = content_for :page_js do
   :javascript

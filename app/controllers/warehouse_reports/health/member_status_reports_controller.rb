@@ -4,8 +4,6 @@ module WarehouseReports::Health
     before_action :set_reports, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy]
 
-    helper HealthOverviewHelper
-
     def index
       if params[:report].present?
         options = report_params

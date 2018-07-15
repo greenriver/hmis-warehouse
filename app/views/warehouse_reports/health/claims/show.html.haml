@@ -1,0 +1,32 @@
+= render 'breadcrumbs'
+- title = "Claims Review for Unsubmitted Claims Prior to #{@report.max_date}"
+- content_for :title, title
+%h1= content_for :title
+
+.mb-6
+  - if @report.completed_at
+    - if @report.qualifying_activities.maximum(:updated_at) > @report.created_at
+      = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", disabled: true, class: 'btn btn-secondary btn-sm', data: {toggle: :tooltip, title: 'This claims file is out of date, please re-generate a new one.'} do
+        %i.icon-download2
+        Download Claims File
+    - else
+      = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", class: 'btn btn-secondary btn-sm' do
+        %i.icon-download2
+        Download Claims File
+    - if ! @report.submitted?
+      = link_to submit_warehouse_reports_health_claim_path(@report), method: :post, class: 'btn btn-secondary btn-sm' do
+        %i.checkmark
+        Mark as submitted to #{@sender.receiver_name}
+      = link_to revise_warehouse_reports_health_claim_path(@report), method: :post, class: 'btn btn-secondary btn-sm' do
+        %i.settings_backup_restore
+        Re-generate this claims file
+    - else
+      .alert.alert-info.mt-6
+        %p
+          %i.icon-info
+          Claim file submitted on #{@report.submitted_at.to_date}
+
+- if @report.qualifying_activities.any?
+  = render 'qualifying_activities'
+- else
+  %p There are no unsubmitted claims.
