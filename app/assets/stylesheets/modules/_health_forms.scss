@@ -146,3 +146,17 @@
 {
   min-width: 14rem;
 }
+
+.qa-valid
+{
+  border-left: 4px solid $brand-success;
+}
+
+.qa-invalid
+{
+  border-left: 4px solid $brand-danger;
+  .qa__procedure-code
+  {
+    background-color: lighten($brand-danger, 40);
+  }
+}

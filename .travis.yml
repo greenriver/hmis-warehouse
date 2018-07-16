@@ -1,4 +1,7 @@
 language: ruby
+cache: bundler
+
+bundler_args: --without production staging development
 
 before_script:
   - cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml

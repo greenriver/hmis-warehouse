@@ -1107,6 +1107,17 @@ ActiveRecord::Schema.define(version: 20180713143703) do
   add_index "contacts", ["entity_id"], name: "index_contacts_on_entity_id", using: :btree
   add_index "contacts", ["type"], name: "index_contacts_on_type", using: :btree
 
+  create_table "dashboard_export_reports", force: :cascade do |t|
+    t.integer  "file_id"
+    t.integer  "user_id"
+    t.integer  "job_id"
+    t.string   "coc_code"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+  end
+
   create_table "data_monitorings", force: :cascade do |t|
     t.integer "resource_id",     null: false
     t.date    "census"

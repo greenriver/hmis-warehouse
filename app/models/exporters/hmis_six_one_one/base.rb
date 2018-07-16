@@ -19,7 +19,7 @@ module Exporters::HmisSixOneOne
       hash_status: 1,
       faked_pii: false,
       include_deleted: false,
-      user_id:nil,
+      user_id: nil,
       faked_environment: :development
     )
       setup_notifier('HMIS Exporter 6.11')

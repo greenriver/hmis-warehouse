@@ -1,0 +1,22 @@
+- title = "Tableau Dashboard Export"
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+
+= render 'form'
+
+%h3= 'Previous Reports'
+.report-listing
+  = render 'table'
+
+= link_to 'Reports', running_warehouse_reports_tableau_dashboard_export_index_path, class: 'jReportBlock', remote: true
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      $('.jReportBlock').hide();
+      setInterval(function() {
+        $('.jReportBlock').click();
+      }, 30000);
+
+    })(jQuery);

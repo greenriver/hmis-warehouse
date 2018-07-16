@@ -10,16 +10,17 @@
         %dt.inline Date Completed:
         %dd.inline= @cha.completed_at&.to_date || 'in progress'
         %dd.breaker
-        %dt.inline Case Worker:
+        %dt.inline Completed By:
         %dd.inline= @cha.user&.name
         %dd.breaker
         - if @cha.health_file.present?
           %dt.inline File (see attached):
           %dd.inline= link_to @cha.health_file&.name, polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha)
 
-      - if @cha.reviewed_by
-        %strong Supervisor Review:
-        = @cha.reviewed_by&.name
+        - if @cha.reviewed_by
+          %dd.breaker
+          %dt.inline Reviewed By:
+          %dd.inline= @cha.reviewer
     - if @cha.editable_by?(current_user)
       .ml-auto
         - if ! @cha_locked

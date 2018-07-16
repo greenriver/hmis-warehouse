@@ -477,15 +477,15 @@
         Complete & Review
       .well
         = f.input :completed, as: :boolean, label: 'Mark complete?', checked_value: 'yes', unchecked_value: 'no', input_html: { checked: @cha.complete?, class: [:jMarkComplete] }
+
         - if @cha.reviewed_by.present?
           .form-group.mb-0
             %label Reviewed by Supervisor
-            %p.form-control-static= @cha.reviewed_by&.name
+            %p.form-control-static= @cha.reviewer
         - else
-          - if can_approve_cha?
-            = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no', hint: 'CHA must be complete before it can be reviewed', input_html: {class: [:jMarkReviewed] }
-          - else
-            Not yet reviewed
+          = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no', hint: 'CHA must be complete before it can be reviewed', input_html: {class: [:jMarkReviewed, :jSetReviewer] }
+          = f.input :reviewer, input_html: {data: {name: current_user.name}, class: 'jReviewer'}
+
 
       .form__actions.form__actions--right
         = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default mr-1', data: { disable_with: 'Saving...' }

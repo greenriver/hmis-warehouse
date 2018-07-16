@@ -51,7 +51,7 @@ module Exporters::Tableau::EntryExit
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
       }
-
+  
       scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
@@ -63,7 +63,6 @@ module Exporters::Tableau::EntryExit
         order( e_t[:id].asc ).
         order( she_t[:first_date_in_program].desc ).
         order( she_t[:last_date_in_program].desc )
-
 
       if coc_code.present?
         scope = scope.merge( pc_t.engine.in_coc coc_code: coc_code )

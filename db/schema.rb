@@ -275,6 +275,7 @@ ActiveRecord::Schema.define(version: 20180710174713) do
     t.boolean  "can_manage_care_coordinators",                        default: false
     t.boolean  "can_manage_accountable_care_organizations",           default: false
     t.boolean  "can_view_member_health_reports",                      default: false
+    t.boolean  "can_edit_warehouse_alerts",                           default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -406,6 +407,14 @@ ActiveRecord::Schema.define(version: 20180710174713) do
   end
 
   add_index "versions", ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id", using: :btree
+
+  create_table "warehouse_alerts", force: :cascade do |t|
+    t.integer  "user_id"
+    t.string   "html"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+  end
 
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"

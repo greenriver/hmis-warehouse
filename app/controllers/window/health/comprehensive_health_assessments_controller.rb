@@ -78,14 +78,17 @@ module Window::Health
     def form_params
       local_params = params.require(:form).permit(
         :reviewed_by_supervisor,
+        :reviewer,
         :completed,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
       )
-      if ! current_user.can_approve_cha?
-        local_params.except(:reviewed_by_supervisor)
-      else
-        local_params
-      end
+      # update anyone can review a cha now
+      # if ! current_user.can_approve_cha?
+      #   local_params.except(:reviewed_by_supervisor)
+      # else
+      #   local_params
+      # end
+      local_params
     end
 
     def set_medications
@@ -132,7 +135,9 @@ module Window::Health
     end
 
     def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_cha?
+      # update anyone can review a cha now
+      # form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_cha?
+      form_params[:reviewed_by_supervisor]=='yes'
     end
 
     def completed?
