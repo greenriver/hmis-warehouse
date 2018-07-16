@@ -18,6 +18,7 @@ ActiveRecord::Schema.define(version: 20180716181552) do
   enable_extension "fuzzystrmatch"
   enable_extension "pg_stat_statements"
   enable_extension "pgcrypto"
+  enable_extension "pg_stat_statements"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -2855,13 +2856,13 @@ ActiveRecord::Schema.define(version: 20180716181552) do
     t.boolean  "enrolled_homeless_shelter"
     t.boolean  "enrolled_homeless_unsheltered"
     t.boolean  "enrolled_permanent_housing"
-    t.integer  "eto_coordinated_entry_assessment_score"
+    t.decimal  "eto_coordinated_entry_assessment_score"
     t.string   "household_members"
     t.string   "last_homeless_visit"
     t.jsonb    "open_enrollments"
     t.boolean  "rrh_desired"
-    t.integer  "vispdat_priority_score"
-    t.integer  "vispdat_score"
+    t.decimal  "vispdat_priority_score"
+    t.decimal  "vispdat_score"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
