@@ -1,3 +1,37 @@
+.cha__section .cha__help-text,
+.cha__section .client__assessment-question,
+.cha__section h5,
+.cha__section h4,
+.ssm-print .client__assessment-question {
+  font-size: 14px;
+  font-weight: bold;
+}
+// .ssm-print wrapper for ssm from epic to force print styles
+.ssm-print .client__assessment-question {
+  padding-bottom: 0.5em;
+}
+
+.ssm-print .client__assessment-answer {
+  padding-bottom: 1.5em;
+  margin-left: 1em;
+}
+
+.row.cha__section-columns {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  .col-sm-6,
+  .col-sm-4 {
+    display: table-cell;
+  }
+  .col-sm-6 {
+    width: 50%;
+  }
+  .col-sm-4 {
+    width: 33%;
+  }
+}
+
 #vsm-container {
   display: none !important;
 }
@@ -101,10 +135,10 @@ footer {
   tr
   {
     page-break-inside: avoid;
-    page-break-after: auto
+    page-break-after: auto;
   }
-  thead { display: table-header-group }
-  tfoot { display: table-footer-group }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
 }
 
 
@@ -145,13 +179,13 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .l-print tr
 {
   page-break-inside: avoid;
-  page-break-after: auto
+  page-break-after: auto;
 }
 .l-print thead {
-  display: table-header-group
+  display: table-header-group;
 }
 .l-print tfoot {
-  display: table-footer-group
+  display: table-footer-group;
 }
 
 .l-print table thead tr th {

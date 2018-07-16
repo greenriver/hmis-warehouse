@@ -34,7 +34,13 @@ module Window::Health
       end
 
       # Include most-recent SSM & CHA
-      @form = @patient.self_sufficiency_matrix_forms.recent.first
+      # @form = @patient.self_sufficiency_matrix_forms.recent.first
+      @form = @patient.ssms.last
+      if @form.is_a? Health::SelfSufficiencyMatrixForm
+        @ssm_partial = 'window/health/self_sufficiency_matrix_forms/show'
+      elsif @form.is_a? GrdaWarehouse::HmisForm
+        @ssm_partial = 'clients/assessment_form'
+      end
       @cha = @patient.comprehensive_health_assessments.recent.first
       # debugging
       # render layout: false
@@ -62,10 +68,10 @@ module Window::Health
         # toc: {}
       )
       pdf = CombinePDF.parse(pctp)
-      if @form.present? && @form.health_file.present?
+      if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
         pdf << CombinePDF.parse(@form.health_file.content)
       end
-      if @cha.present? && @cha.health_file.present?
+      if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
         pdf << CombinePDF.parse(@cha.health_file.content)
       end
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"

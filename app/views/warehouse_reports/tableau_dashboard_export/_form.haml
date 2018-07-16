@@ -1,0 +1,7 @@
+= simple_form_for :report, url: warehouse_reports_tableau_dashboard_export_index_path do |f|
+  = f.error_notification
+  .row.margin-bottom-02
+    .col-sm-3
+      = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), include_blank: "CoC Code (All)", required: false, label: false
+    .col-sm-3
+      = f.button :submit, value: 'Queue report'

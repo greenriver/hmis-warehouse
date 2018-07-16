@@ -194,6 +194,11 @@ Rails.application.routes.draw do
     end
     resources :missing_values, only: [:index]
     resources :active_veterans, only: [:index]
+    resources :tableau_dashboard_export, only: [:index, :create, :show, :destroy] do
+      collection do
+        get :running
+      end
+    end
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
@@ -492,7 +497,9 @@ Rails.application.routes.draw do
     end
     resources :available_file_tags, only: [:index, :new, :create, :destroy, :edit, :update]
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
+    resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
+
   end
   resource :account, only: [:edit, :update]
   resources :public_files, only: [:show]

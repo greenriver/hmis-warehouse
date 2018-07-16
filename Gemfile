@@ -9,6 +9,7 @@ gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', '~> 8.0'
 gem "pg"
+gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
 gem "rails", '~> 4.2.8'
@@ -109,6 +110,8 @@ gem 'redis-rails'
 
 #AWS SDK
 gem 'aws-sdk-rails', require: false
+gem 'aws-sdk', '~> 2', require: false
+gem 'awesome_print'
 
 gem 'auto-session-timeout'
 
@@ -169,8 +172,13 @@ group :test do
   gem 'after_commit_exception_notification'
 end
 
-group :development, :staging do
+group :development, :staging, :test do
   # Faker queries translations db in development to look for user overrides of fake data
   # There is no way to disable this
   gem 'faker', '>= 1.7.2', require: false
+end
+
+# This is really unhappy on travis
+group :production, :development, :staging do
+  gem 'tiny_tds'
 end
