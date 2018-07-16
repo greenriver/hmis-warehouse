@@ -399,6 +399,19 @@ module Health
       return full_name
     end
 
+    def build_team_memeber!(care_coordinator_id, current_user)
+      user = User.find(care_coordinator_id)
+      team_member = Health::Team::CareCoordinator.new(
+        patient_id: id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        organization: user.health_agency&.name,
+        user_id: current_user.id
+      )
+      team_member.save!
+    end
+
     def available_care_coordinators
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
