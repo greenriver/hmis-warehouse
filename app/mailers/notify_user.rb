@@ -59,7 +59,7 @@ class NotifyUser < DatabaseMailer
       mail(to: user&.email, subject: "A note was added.")
     end
   end
-  
+
   def anomaly_identified client_id:, user_id:
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
     users_to_notify = User.where(notify_on_anomaly_identified: true).
@@ -91,6 +91,13 @@ class NotifyUser < DatabaseMailer
     @report_url = warehouse_reports_hud_chronic_url(@report)
     mail(to: @user.email, subject: "Your HUD Chronic report has finished")
   end
+  
+  def dashboard_export_report_finished user_id, report_id
+    @user = User.find(user_id)
+    @report = GrdaWarehouse::DashboardExportReport.find(report_id)
+    @reports_url = warehouse_reports_tableau_dashboard_export_index_url
+    mail(to: @user.email, subject: "Your Dashboard Export Report has finished")
+  end
 
   def hmis_export_finished user_id, report_id
     @user = User.find(user_id)
@@ -111,6 +118,18 @@ class NotifyUser < DatabaseMailer
     @report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.find(report_id)
     @report_url = warehouse_reports_active_veteran_url(@report)
     mail(to: @user.email, subject: "Your Active Veterans report has finished")
+  end
+
+  def health_member_status_report_finished user_id
+    @user = User.find(user_id)
+    @report_url = warehouse_reports_health_member_status_reports_url
+    mail(to: @user.email, subject: "Your Member Status report has finished")
+  end
+
+  def health_claims_finished user_id
+    @user = User.find(user_id)
+    @report_url = warehouse_reports_health_claims_url
+    mail(to: @user.email, subject: "Your Claims file has been generated")
   end
 
 end

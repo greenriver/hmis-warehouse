@@ -41,7 +41,7 @@ module Health
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
-    has_one :care_coordinator, class_name: User.name
+    belongs_to :care_coordinator, class_name: User.name
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
@@ -66,8 +66,8 @@ module Health
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
-      participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
 
@@ -101,8 +101,8 @@ module Health
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
-      participation_form_patient_id_scope = Health::ParticipationForm.reviewed.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.reviewed.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
 
@@ -146,6 +146,20 @@ module Health
     scope :no_qualifying_activities_this_month, -> do
       where.not(
         id: Health::QualifyingActivity.in_range(Date.today.beginning_of_month..Date.today).
+          distinct.select(:patient_id)
+      )
+    end
+
+    scope :received_qualifying_activities_within, -> (range) do
+      where(
+        id: Health::QualifyingActivity.in_range(range).
+          distinct.select(:patient_id)
+      )
+    end
+
+    scope :with_unsubmitted_qualifying_activities_within, -> (range) do
+      where(
+        id: Health::QualifyingActivity.unsubmitted.in_range(range).
           distinct.select(:patient_id)
       )
     end
@@ -346,6 +360,14 @@ module Health
       end
     end
 
+    def most_recent_direct_qualifying_activity
+      qualifying_activities.direct_contact.order(date_of_activity: :desc).limit(1).first
+    end
+
+    def face_to_face_contact_in_range? range
+      qualifying_activities.in_range(range).face_to_face.exists?
+    end
+
     def consented? # Pilot
       consent_revoked.blank?
     end
@@ -375,6 +397,19 @@ module Health
       full_name = "#{first_name} #{middle_name} #{last_name}"
       full_name << " (#{aliases})" if aliases.present?
       return full_name
+    end
+
+    def build_team_memeber!(care_coordinator_id, current_user)
+      user = User.find(care_coordinator_id)
+      team_member = Health::Team::CareCoordinator.new(
+        patient_id: id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        organization: user.health_agency&.name,
+        user_id: current_user.id
+      )
+      team_member.save!
     end
 
     def available_care_coordinators

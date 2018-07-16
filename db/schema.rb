@@ -11,12 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(version: 20180716141934) do
+=======
+ActiveRecord::Schema.define(version: 20180710174713) do
+>>>>>>> release-14
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
   enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
 
   create_table "activity_logs", force: :cascade do |t|
     t.string   "item_model"
@@ -192,7 +196,10 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_view_organizations",                              default: false
     t.boolean  "can_edit_organizations",                              default: false
     t.boolean  "can_edit_data_sources",                               default: false
+<<<<<<< HEAD
     t.boolean  "can_search_window",                                   default: false
+=======
+>>>>>>> release-14
     t.boolean  "can_view_client_window",                              default: false
     t.boolean  "can_upload_hud_zips",                                 default: false
     t.boolean  "can_edit_translations",                               default: false
@@ -200,21 +207,40 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_manage_client_files",                             default: false
     t.boolean  "can_manage_window_client_files",                      default: false
+<<<<<<< HEAD
     t.boolean  "can_see_own_file_uploads",                            default: false
+=======
+>>>>>>> release-14
     t.boolean  "can_manage_config",                                   default: false
     t.boolean  "can_edit_dq_grades",                                  default: false
     t.boolean  "can_view_vspdat",                                     default: false
     t.boolean  "can_edit_vspdat",                                     default: false
+<<<<<<< HEAD
     t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_create_clients",                                  default: false
     t.boolean  "can_view_client_history_calendar",                    default: false
+=======
+    t.boolean  "can_administer_health",                               default: false
+    t.boolean  "can_edit_client_health",                              default: false
+    t.boolean  "can_view_client_health",                              default: false
+    t.boolean  "health_role",                                         default: false, null: false
+    t.boolean  "can_view_aggregate_health",                           default: false
+    t.boolean  "can_create_clients",                                  default: false
+    t.boolean  "can_view_client_history_calendar",                    default: false
+    t.boolean  "can_search_window",                                   default: false
+    t.boolean  "can_see_own_file_uploads",                            default: false
+    t.boolean  "can_submit_vspdat",                                   default: false
+>>>>>>> release-14
     t.boolean  "can_edit_client_notes",                               default: false
     t.boolean  "can_edit_window_client_notes",                        default: false
     t.boolean  "can_see_own_window_client_notes",                     default: false
     t.boolean  "can_manage_cohorts",                                  default: false
     t.boolean  "can_edit_cohort_clients",                             default: false
+<<<<<<< HEAD
     t.boolean  "can_edit_assigned_cohorts",                           default: false
     t.boolean  "can_view_assigned_cohorts",                           default: false
+=======
+>>>>>>> release-14
     t.boolean  "can_assign_users_to_clients",                         default: false
     t.boolean  "can_view_client_user_assignments",                    default: false
     t.boolean  "can_export_hmis_data",                                default: false
@@ -223,6 +249,7 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_view_all_reports",                                default: false
     t.boolean  "can_assign_reports",                                  default: false
     t.boolean  "can_view_assigned_reports",                           default: false
+<<<<<<< HEAD
     t.boolean  "can_manage_organization_users",                       default: false
     t.boolean  "can_administer_health",                               default: false
     t.boolean  "can_edit_client_health",                              default: false
@@ -232,7 +259,14 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_add_administrative_event",                        default: false
     t.boolean  "can_view_project_data_quality_client_details",        default: false
     t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
+=======
+    t.boolean  "can_edit_assigned_cohorts",                           default: false
+    t.boolean  "can_view_assigned_cohorts",                           default: false
+    t.boolean  "can_manage_organization_users",                       default: false
+>>>>>>> release-14
     t.boolean  "can_manage_health_agency",                            default: false, null: false
+    t.boolean  "can_view_project_data_quality_client_details",        default: false
+    t.boolean  "can_add_administrative_event",                        default: false
     t.boolean  "can_approve_patient_assignments",                     default: false
     t.boolean  "can_manage_claims",                                   default: false
     t.boolean  "can_manage_all_patients",                             default: false
@@ -249,8 +283,13 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_add_case_management_notes",                       default: false
     t.boolean  "can_manage_care_coordinators",                        default: false
     t.boolean  "can_manage_accountable_care_organizations",           default: false
+<<<<<<< HEAD
     t.boolean  "can_edit_warehouse_alerts",                           default: false
     t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
+=======
+    t.boolean  "can_view_member_health_reports",                      default: false
+    t.boolean  "can_edit_warehouse_alerts",                           default: false
+>>>>>>> release-14
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree

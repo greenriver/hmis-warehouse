@@ -34,6 +34,7 @@ module Health
         Health::Team::Behavioral,
         Health::Team::Representative,
         Health::Team::Other,
+        Health::CareCoordinator
       ]
     end
 

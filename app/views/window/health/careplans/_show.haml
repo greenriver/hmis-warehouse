@@ -41,7 +41,10 @@
 
   %article.health-care-plan__ssm.l-print__section--page.no-break
     %h1 Self-Sufficiency Matrix
-    = render 'window/health/self_sufficiency_matrix_forms/show'
+    - if @form.is_a? GrdaWarehouse::HmisForm
+      .ssm-print= render @ssm_partial
+    - elsif @ssm_partial
+      = render @ssm_partial
 
   %article.health-care-plan__cha.l-print__section--page
     %h1 Comprehensive Health Assessment

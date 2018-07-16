@@ -9,11 +9,16 @@
       - @patient.ssms.each do |form|
         %tr
           - if form.is_a? Health::SelfSufficiencyMatrixForm
-            %td= link_to 'SSM', polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td
+              = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: form.id), data: { loads_in_pjax_modal: true } do
+                %div SSM
             %td= form.completed_at&.to_date || 'in progress'
             %td= form&.user&.name
           - if form.is_a? GrdaWarehouse::HmisForm
-            %td= link_to form.assessment_type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td
+              = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
+                %div=form.assessment_type
+                .padding-left-02 From Epic
             %td= form.collected_at.to_date
             %td= form.staff
 
