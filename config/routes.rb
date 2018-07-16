@@ -49,6 +49,11 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
+        member do
+          delete :remove_file
+          get :download
+          patch :upload
+        end
       end
       resources :participation_forms do
         member do
