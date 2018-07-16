@@ -29,8 +29,9 @@
               = f.error_notification
               .form-inputs
                 = f.input :file, as: :file
+                - if can_upload_deidentified_hud_hmis_files?
+                  = f.input :deidentified, as: :boolean, label: "Are all of the Client Names in Client.csv blank?"
                 = f.hidden_field :file_cache
                 = f.hidden_field :import_type, value: :hmis_611
               .form-actions
                 = f.button :submit, value: 'Upload Zip'
-

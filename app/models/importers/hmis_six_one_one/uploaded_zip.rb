@@ -6,13 +6,15 @@ module Importers::HMISSixOneOne
       data_source_id:,
       logger: Rails.logger, 
       debug: true,
-      upload_id:
+      upload_id:, 
+      deidentified: false
     )
       super(
         file_path: file_path, 
         data_source_id: data_source_id, 
         logger: logger, 
-        debug: debug
+        debug: debug,
+        deidentified: deidentified
       )
       @file_path = "#{file_path}/#{Time.now.to_i}"
       @local_path = "#{@file_path}/#{@data_source.id}"

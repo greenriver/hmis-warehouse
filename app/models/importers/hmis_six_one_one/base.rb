@@ -21,7 +21,8 @@ module Importers::HMISSixOneOne
       data_source_id: ,
       logger: Rails.logger,
       debug: true,
-      remove_files: true
+      remove_files: true,
+      deidentified: false
     )
       setup_notifier('HMIS Importer 6.11')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
@@ -30,6 +31,7 @@ module Importers::HMISSixOneOne
       @debug = debug
       @soft_delete_time = Time.now.change(usec: 0) # Active Record milliseconds and Rails don't always agree, so zero those out so future comparisons work.
       @remove_files = remove_files
+      @deidentified = deidentified
       setup_import(data_source: @data_source)
     end
 
@@ -375,6 +377,9 @@ module Importers::HMISSixOneOne
           end
           begin
             row = CSV.parse_line(line, headers: header)
+            if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'   
+              klass.deidentify_client_name row           
+            end
             if row.count == header.count
               row = set_useful_export_id(row: row, export_id: export_id_addition)
               track_max_updated(row)
