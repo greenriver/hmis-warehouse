@@ -1,4 +1,4 @@
-%p If the Self-Sufficiency Matrix Form was conducted on paper, you may upload a scanned version here.
+%p If the Self-Sufficiency Matrix Form was conducted on paper, you may upload a scanned PDF here.
 .row
   .col-sm-12
     = simple_form_for @form, url: polymorphic_path([:upload] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), as: :form, multipart: true do |f|

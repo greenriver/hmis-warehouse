@@ -43,7 +43,7 @@
     %h1 Self-Sufficiency Matrix
     - if @form.is_a? GrdaWarehouse::HmisForm
       .ssm-print= render @ssm_partial
-    - else
+    - elsif @ssm_partial
       = render @ssm_partial
 
   %article.health-care-plan__cha.l-print__section--page
