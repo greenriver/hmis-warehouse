@@ -11,12 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180716141934) do
+ActiveRecord::Schema.define(version: 20180716181011) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "fuzzystrmatch"
   enable_extension "hstore"
+  enable_extension "fuzzystrmatch"
 
   create_table "activity_logs", force: :cascade do |t|
     t.string   "item_model"
@@ -208,16 +208,6 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_create_clients",                                  default: false
     t.boolean  "can_view_client_history_calendar",                    default: false
-    t.boolean  "can_administer_health",                               default: false
-    t.boolean  "can_edit_client_health",                              default: false
-    t.boolean  "can_view_client_health",                              default: false
-    t.boolean  "health_role",                                         default: false, null: false
-    t.boolean  "can_view_aggregate_health",                           default: false
-    t.boolean  "can_create_clients",                                  default: false
-    t.boolean  "can_view_client_history_calendar",                    default: false
-    t.boolean  "can_search_window",                                   default: false
-    t.boolean  "can_see_own_file_uploads",                            default: false
-    t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_edit_client_notes",                               default: false
     t.boolean  "can_edit_window_client_notes",                        default: false
     t.boolean  "can_see_own_window_client_notes",                     default: false
@@ -242,12 +232,7 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_add_administrative_event",                        default: false
     t.boolean  "can_view_project_data_quality_client_details",        default: false
     t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
-    t.boolean  "can_edit_assigned_cohorts",                           default: false
-    t.boolean  "can_view_assigned_cohorts",                           default: false
-    t.boolean  "can_manage_organization_users",                       default: false
     t.boolean  "can_manage_health_agency",                            default: false, null: false
-    t.boolean  "can_view_project_data_quality_client_details",        default: false
-    t.boolean  "can_add_administrative_event",                        default: false
     t.boolean  "can_approve_patient_assignments",                     default: false
     t.boolean  "can_manage_claims",                                   default: false
     t.boolean  "can_manage_all_patients",                             default: false
@@ -266,8 +251,8 @@ ActiveRecord::Schema.define(version: 20180716141934) do
     t.boolean  "can_manage_accountable_care_organizations",           default: false
     t.boolean  "can_edit_warehouse_alerts",                           default: false
     t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
+    t.boolean  "can_upload_whitelisted_hud_hmis_files",               default: false
     t.boolean  "can_view_member_health_reports",                      default: false
-    t.boolean  "can_edit_warehouse_alerts",                           default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
