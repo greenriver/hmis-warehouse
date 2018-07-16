@@ -4,9 +4,10 @@ module Window::Health
     include WindowClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy]
+    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload]
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
+    before_action :set_health_file, only: [:upload, :update]
 
     def index
       @goal = Health::Goal::Base.new
@@ -68,6 +69,9 @@ module Window::Health
         # toc: {}
       )
       pdf = CombinePDF.parse(pctp)
+      if @careplan.health_file.present?
+        pdf << CombinePDF.parse(@careplan.health_file.content)
+      end
       if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
         pdf << CombinePDF.parse(@form.health_file.content)
       end
@@ -135,6 +139,53 @@ module Window::Health
       @form_button = 'Save Care Plan'
 
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
+    end
+
+    def upload
+      if params[:form]
+        @careplan.file = @health_file if @health_file
+        save_file
+      else
+        flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.'
+      end
+      respond_with @careplan, location: polymorphic_path([:edit] + careplan_path_generator, id: @careplan.id)
+    end
+
+    def download
+      @file = @careplan.health_file
+      send_data @file.content,
+        type: @file.content_type,
+        filename: File.basename(@file.file.to_s)
+    end
+
+    def remove_file
+      @careplan.health_file.destroy
+      respond_with @careplan, location: polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
+    end
+
+    def set_health_file
+      if file = params.dig(:form, :file)
+        @health_file = Health::SsmFile.new(
+          user_id: current_user.id,
+          client_id: @client.id,
+          file: file,
+          content: file&.read,
+          content_type: file.content_type
+        )
+      elsif @careplan.health_file.present?
+        @health_file = @careplan.health_file
+      end
+    end
+
+    def save_file
+      if @health_file
+        @careplan.health_file = @health_file
+        if @careplan.health_file.invalid?
+          flash[:error] = @careplan.health_file.errors.full_messages.join(';')
+        else
+          @careplan.save
+        end
+      end
     end
 
     def self_sufficiency_assessment
