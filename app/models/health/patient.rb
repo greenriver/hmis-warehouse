@@ -10,6 +10,7 @@ module Health
     has_many :epic_goals, through: :epic_patients
     has_many :epic_case_notes, through: :epic_patients
     has_many :epic_team_members, through: :epic_patients
+    has_many :epic_qualifying_activities, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
