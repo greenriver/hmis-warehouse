@@ -1,0 +1,23 @@
+%p If the Care Plan was conducted on paper, you may upload a scanned PDF here, you will still need to note signature dates above.
+.row
+  .col-sm-12
+    = simple_form_for @careplan, url: polymorphic_path([:upload] + careplan_path_generator, client_id: @client.id, id: @careplan.id), as: :form, multipart: true do |f|
+
+      = f.error_notification
+      .row
+        .col-sm-6
+          = f.input :file, as: :file
+        .col-sm-6
+          - if @careplan.health_file.present?
+            .form-group
+              %label Existing File
+              %div
+                .btn-group.existing-file
+                  = link_to polymorphic_path([:download] + careplan_path_generator, client_id: @client.id, id: @careplan.id ), class: 'btn btn-default' do
+                    = @careplan.health_file&.name
+                  = link_to polymorphic_path([:remove_file] + careplan_path_generator, client_id: @client.id, id: @careplan.id ), class: 'btn btn-danger', method: :delete, remote: true do
+                    %span.icon-cross{ style: "color:white; margin:0" }
+
+      .d-flex
+        .ml-auto
+          = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }, style: 'background-color: #3c6776'

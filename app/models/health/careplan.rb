@@ -10,6 +10,8 @@ module Health
     # has_many :team_members, through: :team, source: :members
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
+    belongs_to :health_file, dependent: :destroy
+    attr_accessor :file
 
     has_many :services, through: :patient, class_name: Health::Service.name
     has_many :equipments, through: :patient, class_name: Health::Equipment.name

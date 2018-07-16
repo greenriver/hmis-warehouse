@@ -10,6 +10,7 @@ module Health
     has_many :epic_goals, through: :epic_patients
     has_many :epic_case_notes, through: :epic_patients
     has_many :epic_team_members, through: :epic_patients
+    has_many :epic_qualifying_activities, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -397,6 +398,19 @@ module Health
       full_name = "#{first_name} #{middle_name} #{last_name}"
       full_name << " (#{aliases})" if aliases.present?
       return full_name
+    end
+
+    def build_team_memeber!(care_coordinator_id, current_user)
+      user = User.find(care_coordinator_id)
+      team_member = Health::Team::CareCoordinator.new(
+        patient_id: id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        organization: user.health_agency&.name,
+        user_id: current_user.id
+      )
+      team_member.save!
     end
 
     def available_care_coordinators
