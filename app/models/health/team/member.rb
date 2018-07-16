@@ -48,7 +48,7 @@ module Health
         'Designated Representative' => 'icon-users',
         'ACO Care Manager' => 'icon-nurse-clipboard',
         'PCP Designee' => 'icon-medical-provider',
-        'Care Coordinator' => 'icon-helping-hands'
+        'Care Coordinator' => 'icon-helping-hands',
       }[member_type_name]
     end
 
