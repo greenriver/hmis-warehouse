@@ -1,5 +1,4 @@
 module Window::Health
-  #TDB: unsure about parent class.
   class SignableDocumentsController < IndividualPatientController
     include WindowClientPathGenerator
     before_action :set_client, except: [:signature]
@@ -7,10 +6,8 @@ module Window::Health
     before_action :set_careplan, except: [:signature]
 
     # This supports signing without logging in:
-    skip_before_action :authenticate_user!, :only => [:signature]
-    skip_before_action :require_some_patient_access!, :only => [:signature]
-
-    # TDB: Any special permission checking I need to do?
+    skip_before_action :authenticate_user!, only: [:signature]
+    skip_before_action :require_some_patient_access!, only: [:signature]
 
     def create
       @team = @careplan.team
@@ -47,11 +44,13 @@ module Window::Health
     end
 
     def signature
+      @doc = Health::SignableDocument.find(params[:id])
+      if current_user.present?
+        @doc.update(expires_at: Health::SignableDocument.patient_expiration_window)
+      end
       sign_out if params[:sign_out].present?
 
-      @doc = Health::SignableDocument.find(params[:id])
-
-      if @doc.signer_hash(params[:email]) != params[:hash]
+      if @doc.signer_hash(params[:email]) != params[:hash] || @doc.expired?
         not_authorized!
         return
       end

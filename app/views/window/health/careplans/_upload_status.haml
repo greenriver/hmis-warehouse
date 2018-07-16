@@ -9,7 +9,7 @@
   WARNING
 
 - if good_emails
-  = link_to client_health_careplan_signable_documents_path(@client, careplan), method: :post, data: {confirm: warning} do
+  = link_to polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id}), method: :post, data: {confirm: warning} do
     - if doc.persisted?
       %span{style: 'color: orange'}
         %i.icon-upload2

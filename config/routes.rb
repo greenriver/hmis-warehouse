@@ -46,15 +46,13 @@ Rails.application.routes.draw do
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
-
-        if !window
-          resources :signable_documents, only: [:show, :create] do
-            member do
-              post :remind
-              get :signature
-            end
+        resources :signable_documents, only: [:show, :create] do
+          member do
+            post :remind
+            get :signature
           end
         end
+
 
         get :self_sufficiency_assessment
         get :print

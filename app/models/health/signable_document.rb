@@ -10,8 +10,17 @@ module Health
     validate :sane_number_signed
 
     belongs_to :signable, polymorphic: true
+    belongs_to :health_file, dependent: :destroy
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
+
+    def self.patient_expiration_window
+      1.hours.from_now
+    end
+
+    def expired?
+      expires_at.blank? || expires_at < Time.now
+    end
 
     def make_document_signable!
       cc_email_addresses = (ENV['HELLO_SIGN_CC_EMAILS']||'').split(/;/)
@@ -49,6 +58,18 @@ module Health
 
         self.hs_initial_response = response.data
         self.hs_initial_response_at = Time.now
+
+        # Save a copy of this file to our health file
+        @health_file = Health::SignableDocumentFile.create(
+          file: file,
+          user_id: self.user_id,
+          content: self.pdf_content_to_upload,
+          name: 'care_plan.pdf',
+          content_type:'application/pdf',
+          client_id: signable.patient.client.id,
+        )
+        self.health_file_id = @health_file.id
+        raise 'hi' #FIXME: @health_file is not valid because "You are not allowed to upload files"
       end
 
       save!
