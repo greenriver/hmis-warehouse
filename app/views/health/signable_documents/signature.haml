@@ -7,7 +7,7 @@
       HelloSign.open({
         url: '#{@signature_request_url}',
         allowCancel: true,
-        skipDomainVerification: #{(!Rails.env.production?).to_s},
+        skipDomainVerification: #{(Rails.env.development?).to_s},
         messageListener: function(eventData) {
           console.log(eventData.signature_id);
           console.log(eventData.event);

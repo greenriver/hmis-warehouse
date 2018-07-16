@@ -106,7 +106,7 @@ module Health
     end
 
     def signer_hash(email)
-      Digest::MD5.hexdigest(_signature_id_for(email)+ENV['HELLO_SIGN_HASH_SALT'])
+      Digest::MD5.hexdigest(_signature_id_for(email)+ENV['HELLO_SIGN_HASH_SALT'].to_s)
     end
 
     # Can't send reminders through HS when doing embedded documents.
