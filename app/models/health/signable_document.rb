@@ -10,7 +10,7 @@ module Health
     validate :sane_number_signed
 
     belongs_to :signable, polymorphic: true
-    belongs_to :health_file, dependent: :destroy
+    belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
 
@@ -60,19 +60,50 @@ module Health
         self.hs_initial_response_at = Time.now
 
         # Save a copy of this file to our health file
-        @health_file = Health::SignableDocumentFile.create(
-          file: file,
+        @health_file = Health::HealthFile.new(
           user_id: self.user_id,
-          content: self.pdf_content_to_upload,
-          name: 'care_plan.pdf',
-          content_type:'application/pdf',
           client_id: signable.patient.client.id,
+          file: Rails.root.join(file.path).open,
+          content: Rails.root.join(file.path).read,
+          content_type: 'application/pdf',
+          name: 'care_plan.pdf',
+          size: Rails.root.join(file.path).size,
+          type: Health::SignableDocumentFile.name
         )
+        # There are issues with saving this that doesn't come through an upload form
+        @health_file.save(validate: false)
         self.health_file_id = @health_file.id
-        raise 'hi' #FIXME: @health_file is not valid because "You are not allowed to upload files"
       end
-
       save!
+    end
+
+    def update_health_file_from_hello_sign
+      Tempfile.open(encoding: 'ascii-8bit') do |file|
+        file.write self.remote_pdf_content
+        file.flush
+        health_file = Health::HealthFile.new(
+            user_id: self.user_id,
+            client_id: signable.patient.client.id,
+            file: Rails.root.join(file.path).open,
+            content: Rails.root.join(file.path).read,
+            content_type: 'application/pdf',
+            name: 'care_plan.pdf',
+            size: Rails.root.join(file.path).size,
+            type: Health::SignableDocumentFile.name
+          )
+        health_file.save(validate: false)
+        self.health_file_id = health_file.id
+      end
+      save!
+    end
+
+    def update_signers(careplan)
+      if careplan.patient_signed_on.blank? && self.signed_by?('patient@openpath.biz')
+        careplan.patient_signed_on = self.signed_on('patient@openpath.biz')
+        # ensure we capture the signed document
+        # TODO: sometimes this is too soon and gets an unsigned version
+        update_health_file_from_hello_sign
+      end
     end
 
     def signature_request_url(email)
@@ -137,22 +168,18 @@ module Health
     end
 
     #TDB: Hook to a HelloSign callback
+    # signature_request_all_signed
+    # Store the signed document in Health Files and attach
     def post_completion_hook
       return unless all_signed?
 
-      # "app/controllers/window/health/sdh_case_management_notes_controller.rb"
-      # "app/models/health/sdh_case_management_note.rb"
-
-      @note = @patient.sdh_case_management_notes.
-        build(user: creator_user_id, completed_on: DateTime.current)
-      @note.activities.build
-      @note.save!
 
     end
 
     #TDB: Hook to a HelloSign callback
     def refresh_signers!
       return if all_signed?
+      # return false if self.hs_last_response.blank?
 
       self.hs_last_response_at = Time.now
       self.hs_last_response = hs_client.get_signature_request(signature_request_id: self.signature_request_id).data

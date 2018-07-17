@@ -2,6 +2,8 @@ module Window::Health
   class CareplansController < IndividualPatientController
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthCareplan
+
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload]
@@ -12,9 +14,9 @@ module Window::Health
     def index
       @goal = Health::Goal::Base.new
       @readonly = false
-      @careplans = @patient.careplans
+      @careplans = @patient.careplans.sorted
       # most-recent careplan
-      @careplan = @careplans.sorted.first
+      @careplan = @careplans.first
       @disable_goal_actions = true
       @goals = @careplan&.hpc_goals
 
@@ -23,77 +25,15 @@ module Window::Health
         if cp.primary_signable_document.present?
           doc = cp.primary_signable_document
           doc.refresh_signers!
-          if cp.patient_signed_on.blank? && doc.signed_by?('patient@openpath.biz')
-            cp.patient_signed_on = doc.signed_on('patient@openpath.biz')
-          end
-
-          # if cp.provider_signed_on.blank? && doc.signed_by?(cp.team.pcp_designee&.email)
-          #   cp.provider_signed_on = doc.signed_on(cp.team.pcp_designee&.email)
-          # end
-
+          doc.update_signers(cp)
           cp.save!
         end
       end
     end
 
     def show
-      @goal = Health::Goal::Base.new
-      @readonly = false
+      pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      # make sure we have the most recent-services, DME, team members, and goals if
-      # the plan is editable
-      if @careplan.editable?
-        @careplan.archive_services
-        @careplan.archive_equipment
-        @careplan.archive_goals
-        @careplan.archive_team_members
-        @careplan.save
-      end
-
-      # Include most-recent SSM & CHA
-      # @form = @patient.self_sufficiency_matrix_forms.recent.first
-      @form = @patient.ssms.last
-      if @form.is_a? Health::SelfSufficiencyMatrixForm
-        @ssm_partial = 'window/health/self_sufficiency_matrix_forms/show'
-      elsif @form.is_a? GrdaWarehouse::HmisForm
-        @ssm_partial = 'clients/assessment_form'
-      end
-      @cha = @patient.comprehensive_health_assessments.recent.first
-      # debugging
-      # render layout: false
-
-      # render(
-      #   pdf: file_name,
-      #   layout: false,
-      #   encoding: "UTF-8",
-      #   page_size: 'Letter',
-      #   header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-      #   footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-      #   # Show table of contents by providing the 'toc' property
-      #   # toc: {}
-      # )
-
-      pctp = render_to_string(
-        pdf: file_name,
-        template: 'window/health/careplans/show',
-        layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter',
-        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-        # Show table of contents by providing the 'toc' property
-        # toc: {}
-      )
-      pdf = CombinePDF.parse(pctp)
-      if @careplan.health_file.present?
-        pdf << CombinePDF.parse(@careplan.health_file.content)
-      end
-      if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
-        pdf << CombinePDF.parse(@form.health_file.content)
-      end
-      if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-        pdf << CombinePDF.parse(@cha.health_file.content)
-      end
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
     end
 
@@ -202,26 +142,6 @@ module Window::Health
           @careplan.save
         end
       end
-    end
-
-    def self_sufficiency_assessment
-      @assessment = @client.self_sufficiency_assessments.last
-    end
-
-    def set_careplan
-      @careplan = careplan_source.find(params[:id].to_i)
-    end
-
-    def set_medications
-      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
-    end
-
-    def set_problems
-      @problems = @patient.problems.order(onset_date: :desc)
-    end
-
-    def careplan_source
-      Health::Careplan
     end
 
     def careplan_params

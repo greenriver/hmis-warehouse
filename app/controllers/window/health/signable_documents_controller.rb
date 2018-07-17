@@ -1,9 +1,13 @@
 module Window::Health
   class SignableDocumentsController < IndividualPatientController
     include WindowClientPathGenerator
+    include HealthCareplan
+
     before_action :set_client, except: [:signature]
     before_action :set_patient, except: [:signature]
     before_action :set_careplan, except: [:signature]
+    before_action :set_medications, except: [:signature]
+    before_action :set_problems, except: [:signature]
 
     # This supports signing without logging in:
     skip_before_action :authenticate_user!, only: [:signature]
@@ -29,8 +33,8 @@ module Window::Health
       else
         flash[:error] = "#{@doc.errors.full_messages.join('. ')}"
       end
-
-      redirect_back fallback_location: client_health_careplans_path(@client)
+      redirect_to polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: @careplan.id, id: @doc.id, email: 'patient@openpath.biz', hash: @doc.signer_hash('patient@openpath.biz')})
+      # redirect_back fallback_location: client_health_careplans_path(@client)
     end
 
     def remind
@@ -62,42 +66,12 @@ module Window::Health
 
     private
 
-    # TDB: Need to DRY up this and CareplansController show method.
-    # TDB: This just proves it works. Maybe it doesn't need to be over there
-    # TDB: anymore?
-    # TDB: "app/controllers/window/health/careplans_controller.rb
     def get_pdf
-      @goal = Health::Goal::Base.new
-      @readonly = false
+      pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      # make sure we have the most recent-services and DME if
-      # the plan is editable
-      if @careplan.editable?
-        @careplan.archive_services
-        @careplan.archive_equipment
-        @careplan.save
-      end
+      @pdf = pdf.to_pdf
 
-      # Include most-recent SSM & CHA
-      @form = @patient.self_sufficiency_matrix_forms.recent.first
-      @cha = @patient.comprehensive_health_assessments.recent.first
-
-      html = render_to_string('window/health/careplans/show.haml', layout: false)
-
-      @pdf = WickedPdf.new.pdf_from_string(
-        html,
-        pdf: file_name,
-        layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter',
-        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-      )
     end
 
-    def set_careplan
-      # TDB: Not confident in doing proper authorization here
-      @careplan = @patient.careplans.find(params[:careplan_id])
-    end
   end
 end

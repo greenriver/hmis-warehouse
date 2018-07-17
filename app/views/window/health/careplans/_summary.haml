@@ -6,9 +6,9 @@
     - unless @any_editable
       = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-primary btn-sm' do
         Create a Care Plan
-  .c-card__content.c-card__content--flush
+  .c-card__content.c-card__content--flush.overflow-scroll
     - if @careplans.present?
-      %table.table
+      %table.table.table-responsive
         %thead
           %tr
             %th Signed
@@ -17,7 +17,6 @@
             %th Provider Signed
             %th Updated
             %th Responsible Team Member
-            %th Hello Sign
             %th Actions
         %tbody
           - @careplans.each do |careplan|
@@ -28,11 +27,29 @@
                   %span{style: 'color: green'}
                     %i.icon-checkmark
               %td= careplan.created_at.to_date
-              %td= careplan.patient_signed_on&.to_date
+              %td
+                - if careplan.patient_signed_on
+                  - if doc.present? && doc.health_file_id
+                    = link_to polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: doc.health_file_id) do
+                      = careplan.patient_signed_on&.to_date
+                  - else
+                    = careplan.patient_signed_on&.to_date
+                - else
+                  - if doc.signature_request_id.blank?
+                    - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id})
+                    = link_to url, method: :post, class: 'btn btn-sm btn-secondary' do
+                      %i.icon-exit
+                      Collect patient signature
+
+                  - elsif !doc.signed_by?('patient@openpath.biz')
+                    - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: 'patient@openpath.biz', hash: doc.signer_hash('patient@openpath.biz'), post_sign_path: url_for, sign_out: true})
+                    = link_to url, class: 'btn btn-sm btn-secondary' do
+                      %i.icon-exit
+                      Collect patient signature
+
               %td= careplan.provider_signed_on&.to_date
               %td= careplan.updated_at.to_date
               %td= careplan.responsible_team_member&.full_name
-              %td= render "upload_status", careplan: careplan, doc: doc
               %td
                 = render "signable_document", careplan: careplan, doc: doc
                 - if careplan.editable?
