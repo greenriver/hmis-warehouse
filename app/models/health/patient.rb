@@ -402,7 +402,8 @@ module Health
 
     def build_team_memeber!(care_coordinator_id, current_user)
       user = User.find(care_coordinator_id)
-      team_member = Health::Team::CareCoordinator.new(
+      team_member = Health::Team::CareCoordinator.where(patient_id: id, email: user.email).first_or_initialize
+      team_member.assign_attributes(
         patient_id: id,
         first_name: user.first_name,
         last_name: user.last_name,
