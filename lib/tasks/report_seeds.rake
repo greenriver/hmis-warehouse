@@ -138,7 +138,7 @@ namespace :reports do
       rs = ReportResultsSummaries::Lsa::Fy2018.where(name: 'LSA 2018').first_or_create
       rs.update(weight: 0)
 
-      r = Reports::Lsa::Fy2018::Base.where(name: 'Longitudinal System Analysis FY 2018').first_or_create
+      r = Reports::Lsa::Fy2018::All.where(name: 'Longitudinal System Analysis FY 2018').first_or_create
       .update(weight: 1, report_results_summary: rs)
 
   end

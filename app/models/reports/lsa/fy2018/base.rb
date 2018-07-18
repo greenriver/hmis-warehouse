@@ -76,7 +76,9 @@ module Reports::Lsa::Fy2018
     def project_group_string options
       if (pg_ids = options['project_group_ids']&.compact) && pg_ids&.any?
         names = GrdaWarehouse::ProjectGroup.where(id: pg_ids).pluck(:name)
-        return "; Project Groups: #{names.join(', ')}"
+        if names.any?
+          return "; Project Groups: #{names.join(', ')}"
+        end
       end
       ''
     end

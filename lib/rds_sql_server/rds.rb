@@ -20,8 +20,16 @@ class Rds
   DB_NAME            = 'sql_server_openpath'
   MAX_WAIT_TIME      = 1.hour
 
-  def initialize(identifier: DEFAULT_IDENTIFIER)
-    self.identifier = identifier
+  def self.identifier= identifier
+    @identifier = identifier
+  end
+
+  def self.identifier
+    @identifier
+  end
+
+  def initialize()
+    self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
 
     Aws.config.update({
       region: REGION,
@@ -35,7 +43,7 @@ class Rds
   define_method(:start!)     { self.client.start_db_instance(db_instance_identifier: self.identifier) }
   define_method(:stop!)      { self.client.stop_db_instance(db_instance_identifier: self.identifier) }
   define_method(:terminate!) { self.client.delete_db_instance(db_instance_identifier: self.identifier, skip_final_snapshot: true) }
-  define_method(:host)       { my_instance.endpoint&.address }
+  define_method(:host)       { my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
   define_method(:database)   { DB_NAME }
 
@@ -43,19 +51,22 @@ class Rds
     create!
     wait!
     create_database!
-    Rails.logger.info "SQL Server Host detected: #{self.host}"
-
-    Rails.logger.info "There are #{sqlservers.length} SQL Server database servers detected"
 
     require_relative 'bootstraper'
     Bootstraper.new.run!
 
-    #terminate! 
+    #terminate!
+  end
+
+  def setup!
+    create!
+    wait!
+    create_database!
   end
 
   def create!
     return if exists?
-
+    # FIXME: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.Concepts.General.SSL.Using.html#SQLServer.Concepts.General.SSL.Forcing
     @response = self.client.create_db_instance({
       db_instance_class: DB_INSTANCE_CLASS,
       db_instance_identifier: self.identifier,
@@ -98,7 +109,7 @@ class Rds
 
     sleep 2
 
-    require_relative 'sql_server_bootstrap_model'
+    load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
 
     SqlServerBootstrapModel.connection.execute(<<~SQL)
       select 1;
@@ -108,12 +119,15 @@ class Rds
   def create_database!
     Rails.logger.info "Creating database #{database}..."
 
-    require_relative 'sql_server_bootstrap_model'
+    load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
 
     SqlServerBootstrapModel.connection.execute(<<~SQL)
       if not exists(select * from sys.databases where name = '#{database}')
         create database #{database}
     SQL
+
+    Rails.logger.info "SQL Server Host detected: #{self.host}"
+    Rails.logger.info "There are #{sqlservers.length} SQL Server database servers detected"
   end
 
   def my_instance

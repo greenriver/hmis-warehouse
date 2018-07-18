@@ -1,5 +1,3 @@
-require_relative 'rds'
-
 class SqlServerBase < ActiveRecord::Base
   rds = Rds.new
 

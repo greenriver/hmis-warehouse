@@ -2,50 +2,27 @@ module ReportGenerators::Lsa::Fy2018
   class Base
   include ArelHelper
 
-    def add_filters scope:
+    def setup_filters
+      # convert various inputs to project ids for the HUD HMIS export
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
         project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
         @report.options['project_id'] |= project_group_project_ids
       end
+      data_source_id = @report.options['data_source_id'].presence&.to_i
+      if data_source_id.present?
+        @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id)
+      end
+      coc_codes = @report.options['coc_code']
+      if coc_codes.present?
+        @report.options['project_id'] |= GrdaWarehouse::Hud::Project.joins(:project_cocs).
+          merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_codes)).distinct.pluck(:id)
+      end
       if @report.options['project_id'].delete_if(&:blank?).any?
-        project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(Project: { id: project_ids})
+        @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
+      else
+        @project_ids = GrdaWarehouse::Hud::Project.pluck(:id)
       end
-      if @report.options['data_source_id'].present?
-        scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
-      end
-      if @report.options['coc_code'].present?
-        scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      end
-      if @report.options['sub_population'].present?
-        scope = sub_population_scope scope, @report.options['sub_population']
-      end
-
-      return scope
-    end
-
-    def sub_population_scope scope, sub_population
-      scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
-        youth: scope.unaccompanied_youth,
-        parenting_youth: scope.parenting_youth,
-        parenting_children: scope.parenting_juvenile,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
-        children: scope.children_only,
-      }
-      scope_hash[sub_population.to_sym]
-    end
-
-    # Age should be calculated at report start or enrollment start, whichever is greater
-    def age_for_report(dob:, enrollment:)
-      @report_start ||= @report.options['report_start'].to_date
-      entry_date = enrollment[:first_date_in_program]
-      return enrollment[:age] if dob.blank? || entry_date > @report_start
-      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
     def set_report_start_and_end
