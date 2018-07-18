@@ -463,6 +463,7 @@ module Health
     end
 
     def available_care_coordinators
+      return [] unless health_agency.present?
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
     end
