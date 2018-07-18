@@ -20,7 +20,7 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name], # in use
         _prov_id:                         she_t[:project_id], # in use
         prog_type:                        she_t[model.project_type_column], # in use
-        coc_code:                         g_t[:CoCCode], # in use
+        coc_code:                         ec_t[:CoCCode], # in use
         entry_exit_entry_date:            she_t[:first_date_in_program], # in use
         entry_exit_exit_date:             she_t[:last_date_in_program], # in use
         client_age_at_entry:              she_t[:age], # in use
@@ -51,11 +51,11 @@ module Exporters::Tableau::EntryExit
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
       }
-  
+
       scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-        joins( project: :geographies, enrollment: :client).
+        joins( enrollment: :client).
         includes(enrollment: [:exit, :enrollment_coc_at_entry]).
         references(enrollment: [:exit, :enrollment_coc_at_entry]).
         # for aesthetics
@@ -65,7 +65,7 @@ module Exporters::Tableau::EntryExit
         order( she_t[:last_date_in_program].desc )
 
       if coc_code.present?
-        scope = scope.merge( pc_t.engine.in_coc coc_code: coc_code )
+        scope = scope.merge( ec_t.engine.in_coc coc_code: coc_code )
       end
 
       spec.each do |header, selector|
