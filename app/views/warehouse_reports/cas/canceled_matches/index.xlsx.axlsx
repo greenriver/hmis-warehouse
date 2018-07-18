@@ -13,6 +13,7 @@ wb.add_worksheet(name: "CAS Canceled Matches") do |sheet|
     'Sub-Program',
     "#{_('Shelter Agency Contacts')}",
     "#{_('HSA Contacts')}",
+    'Link',
   ])
   @matches.each do |match|
     previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
@@ -28,6 +29,7 @@ wb.add_worksheet(name: "CAS Canceled Matches") do |sheet|
       match.sub_program_name,
       match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.join('; '),
       match.hsa_contacts.map{|contact| contact.values.join(' ')}.join('; '),
+      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}",
     ])
   end
 end

@@ -39,7 +39,7 @@
               - previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
 
               %tr
-                %td= match.match_id
+                %td= link_to match.match_id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}", target: '_blank'
                 %td= match.match_started_at&.to_date
                 %td= "(#{match.decision_order}) #{match.match_step}"
                 %td= match.updated_at.to_date
