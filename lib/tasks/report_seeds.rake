@@ -2,7 +2,7 @@
 namespace :reports do
   desc "Load Available Report Types"
   task :seed => [:environment, "log:info_to_stdout"] do
-      # Summary 
+      # Summary
       # rs = ReportResultsSummaries::SystemPerformance::Fy2015.where(name: 'HUD System Performance FY 2015').first_or_create
       # rs.update(weight: 0)
 
@@ -38,7 +38,7 @@ namespace :reports do
       # r.update(weight: 6, report_results_summary: rs)
       # r = Reports::SystemPerformance::Fy2016::MeasureSeven.where(name: 'HUD System Performance FY 2016 - Measure 7').first_or_create
       # r.update(weight: 7, report_results_summary: rs)
-      # 
+      #
       rs = ReportResultsSummaries::SystemPerformance::Fy2017.where(name: 'HUD System Performance FY 2017').first_or_create
       rs.update(weight: 0)
 
@@ -134,6 +134,13 @@ namespace :reports do
       r.update(weight: 6, report_results_summary: rs)
       r = Reports::DataQuality::Fy2017::Q7.where(name: 'HUD Data Quality Report FY 2017 - Q7').first_or_create
       r.update(weight: 7, report_results_summary: rs)
+
+      rs = ReportResultsSummaries::Lsa::Fy2018.where(name: 'LSA 2018').first_or_create
+      rs.update(weight: 0)
+
+      r = Reports::Lsa::Fy2018::Base.where(name: 'Longitudinal System Analysis FY 2018').first_or_create
+      .update(weight: 1, report_results_summary: rs)
+
   end
   desc "Remove all report types"
   task :clear => [:environment, "log:info_to_stdout"] do
