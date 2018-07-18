@@ -24,6 +24,8 @@
             %th Canceled Reason
             %th Previous Step
             %th Previous Step Completed On
+            %th Program
+            %th Sub-Program
             %th= "#{_('Shelter Agency Contacts')}"
             %th= "#{_('HSA Contacts')}"
 
@@ -38,12 +40,14 @@
 
               %tr
                 %td= match.match_id
-                %td= match.match_started_at.to_date
+                %td= match.match_started_at&.to_date
                 %td= "(#{match.decision_order}) #{match.match_step}"
                 %td= match.updated_at.to_date
                 %td= match.administrative_cancel_reason
                 %td= previous_step&.match_step
                 %td= previous_step&.updated_at&.to_date
+                %td= match.program_name
+                %td= match.sub_program_name
                 %td
                   - match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.each do |contact|
                     = contact

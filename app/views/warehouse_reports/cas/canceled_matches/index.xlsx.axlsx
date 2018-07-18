@@ -9,6 +9,8 @@ wb.add_worksheet(name: "CAS Canceled Matches") do |sheet|
     'Canceled Reason',
     'Previous Step',
     'Previous Step Completed On',
+    'Program',
+    'Sub-Program',
     "#{_('Shelter Agency Contacts')}",
     "#{_('HSA Contacts')}",
   ])
@@ -16,12 +18,14 @@ wb.add_worksheet(name: "CAS Canceled Matches") do |sheet|
     previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
     sheet.add_row([
       match.match_id,
-      match.match_started_at.to_date,
+      match.match_started_at&.to_date,
       "(#{match.decision_order}) #{match.match_step}",
-      match.updated_at.to_date,
+      match.updated_at&.to_date,
       match.administrative_cancel_reason,
       previous_step&.match_step,
       previous_step&.updated_at&.to_date,
+      match.program_name,
+      match.sub_program_name,
       match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.join('; '),
       match.hsa_contacts.map{|contact| contact.values.join(' ')}.join('; '),
     ])
