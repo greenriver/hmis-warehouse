@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180713143703) do
+ActiveRecord::Schema.define(version: 20180718152629) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -861,6 +861,8 @@ ActiveRecord::Schema.define(version: 20180713143703) do
     t.json     "admin_contacts"
     t.json     "clent_contacts"
     t.json     "hsp_contacts"
+    t.string   "program_name"
+    t.string   "sub_program_name"
   end
 
   add_index "cas_reports", ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true, using: :btree
