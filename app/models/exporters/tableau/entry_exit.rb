@@ -5,7 +5,22 @@ module Exporters::Tableau::EntryExit
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       model = she_t.engine
+      scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: nil)
 
+      if path.present?
+        CSV.open path, 'wb', headers: true do |csv|
+          export model, spec, scope, start_date, end_date, csv
+        end
+        return true
+      else
+        CSV.generate headers: true do |csv|
+          export model, spec, scope, start_date, end_date, csv
+        end
+      end
+    end
+
+    def scope_for_export start_date: default_start, end_date: default_end, coc_code: nil
+      model = she_t.engine
       spec = {
         data_source:                      she_t[:data_source_id],
         personal_id:                      c_t[:PersonalID],
@@ -72,18 +87,7 @@ module Exporters::Tableau::EntryExit
         next if selector.nil?
         scope = scope.select selector.as(header.to_s)
       end
-
-
-      if path.present?
-        CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, scope, start_date, end_date, csv
-        end
-        return true
-      else
-        CSV.generate headers: true do |csv|
-          export model, spec, scope, start_date, end_date, csv
-        end
-      end
+      return scope
     end
 
     def export model, spec, scope, start_date, end_date, csv
