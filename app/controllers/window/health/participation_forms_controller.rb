@@ -93,8 +93,7 @@ module Window::Health
         health_file_attributes: [
           :id,
           :file,
-          :file_cache,
-          :note
+          :file_cache
         ]
       )
       if ! current_user.can_approve_participation?

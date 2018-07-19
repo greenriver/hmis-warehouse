@@ -7,7 +7,7 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
     before_action :set_blank_form, only: [:new, :edit]
-    before_action :set_health_file, only: [:update]
+    # before_action :set_health_file, only: [:update]
 
     def new
       # redirect to edit if there are any on-file
@@ -22,20 +22,23 @@ module Window::Health
 
     def create
       @release_form = @patient.release_forms.build(form_params)
-      set_health_file
+      # set_health_file
+      if @release_form.health_file.present?
+        @release_form.health_file.set_calculated!(current_user.id, @client.id)
+      end
       validate_form
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
-      @release_form.file = @health_file if @health_file
+      # @release_form.file = @health_file if @health_file
 
       if ! request.xhr?
         saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
-        save_file if @release_form.errors.none? && saved
+        # save_file if @release_form.errors.none? && saved
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       else
         if @release_form.valid?
           saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
-          save_file if @release_form.errors.none? && saved
+          # save_file if @release_form.errors.none? && saved
         end
       end
     end
@@ -52,16 +55,18 @@ module Window::Health
       validate_form unless @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
-      @release_form.file = @health_file if @health_file
-
+      # @release_form.file = @health_file if @health_file
+      if @release_form.health_file&.new_record?
+        @release_form.health_file.set_calculated!(current_user.id, @client.id)
+      end
       if ! request.xhr?
         saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
-        save_file if @release_form.errors.none? && saved
+        # save_file if @release_form.errors.none? && saved
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       else
         if @release_form.valid?
           saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
-          save_file if @release_form.errors.none? && saved
+          # save_file if @release_form.errors.none? && saved
         end
       end
     end
@@ -74,23 +79,26 @@ module Window::Health
     end
 
     def remove_file
-      @release_form.health_file.destroy
+      if @release_form.health_file.present?
+        @release_form.health_file.destroy
+      end
+      @release_form.build_health_file
       respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
-    def set_health_file
-      if file = params.dig(:form, :file)
-        @health_file = Health::ReleaseFormFile.new(
-          user_id: current_user.id,
-          client_id: @client.id,
-          file: file,
-          content: file&.read,
-          content_type: file.content_type
-        )
-      elsif @release_form.health_file.present?
-        @health_file = @release_form.health_file
-      end
-    end
+    # def set_health_file
+    #   if file = params.dig(:form, :file)
+    #     @health_file = Health::ReleaseFormFile.new(
+    #       user_id: current_user.id,
+    #       client_id: @client.id,
+    #       file: file,
+    #       content: file&.read,
+    #       content_type: file.content_type
+    #     )
+    #   elsif @release_form.health_file.present?
+    #     @health_file = @release_form.health_file
+    #   end
+    # end
 
     private
 
@@ -102,7 +110,12 @@ module Window::Health
       local_params = params.require(:form).permit(
         :signature_on,
         :file_location,
-        :reviewed_by_supervisor
+        :reviewed_by_supervisor,
+        health_file_attributes: [
+          :id,
+          :file,
+          :file_cache
+        ]
       )
       if ! current_user.can_approve_release?
         local_params.except(:reviewed_by_supervisor)
@@ -119,15 +132,29 @@ module Window::Health
       @blank_release_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release'
     end
 
-    def save_file
-      if @health_file
-        @release_form.health_file = @health_file
-        @release_form.save
+    def form_url(opts={})
+      if @release_form.new_record?
+        polymorphic_path(release_forms_path_generator, client_id: @client.id)
+      else
+        polymorphic_path(release_form_path_generator, client_id: @client.id, id: @release_form.id)
       end
+    end
+    helper_method :form_url
+
+    # def save_file
+    #   if @health_file
+    #     @release_form.health_file = @health_file
+    #     @release_form.save
+    #   end
+    # end
+
+    def health_file_params_blank?
+      attrs = form_params[:health_file_attributes] || {}
+      attrs[:file].blank? && attrs[:file_cache].blank?
     end
 
     def validate_form
-      if params.dig(:form, :file).blank? && form_params[:file_location].blank?
+      if health_file_params_blank? && form_params[:file_location].blank?
         @release_form.errors.add :file_location, "Please include either a file location or upload."
       end
     end

@@ -42,7 +42,7 @@ module Health
         errors.add :location, "Please include either a file location or upload."
       end
       if health_file.present? && health_file.invalid?
-        errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ')
+        errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
     end
   end

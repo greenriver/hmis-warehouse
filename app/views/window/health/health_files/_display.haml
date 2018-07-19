@@ -21,6 +21,7 @@
           $('.j-existing-file-form-group').fadeOut('slow', function() {
             $(this).remove();
             $('form').find('input[type="file"]').show();
+            $('form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
           });
         });
       });
