@@ -53,7 +53,10 @@ module Health
 
     belongs_to :patient
     belongs_to :user
-    belongs_to :health_file, dependent: :destroy
+    # belongs_to :health_file, dependent: :destroy
+    has_one :health_file, class_name: 'Health::SdhCaseManagementNoteFile', foreign_key: :parent_id, dependent: :destroy
+    accepts_nested_attributes_for :health_file, allow_destroy: true, reject_if: proc {|att| att['file'].blank? && att['file_cache'].blank? && att['note'].blank?}
+    validates_associated :health_file
 
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 

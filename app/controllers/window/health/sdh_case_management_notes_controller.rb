@@ -8,7 +8,7 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
     before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
-    before_action :set_health_file, only: [:create, :update]
+    # before_action :set_health_file, only: [:create, :update]
 
     def show
       render :show
@@ -46,20 +46,26 @@ module Window::Health
 
     def edit
       @activities = @note.activities.sort_by(&:id)
+      unless @note.health_file
+        @note.build_health_file
+      end
       respond_with @note
     end
 
     def update
       @activity_count = @note.activities.size
-      @note.file = @health_file if @health_file
-
+      @note.assign_attributes(note_params.merge(updated_at: Time.now))
       if params[:commit] == 'Save Case Note'
-        @note.update_attributes(note_params.merge(updated_at: Time.now))
-        save_file if @note.errors.none?
+        if @note.health_file&.new_record?
+          @note.health_file.user_id = current_user.id
+          @note.health_file.client_id = @client.id
+          @note.health_file.content = @note.health_file.file.read
+          @note.health_file.content_type = @note.health_file.file.content_type
+          @note.health_file.name = @note.health_file.file.filename
+        end
+        @note.save
       else
-        @note.assign_attributes(note_params.merge(updated_at: Time.now))
         @note.save(validate: false)
-        save_file
       end
       @noteAdded = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
@@ -79,8 +85,10 @@ module Window::Health
     end
 
     def remove_file
-      @note.health_file.destroy
-      @note.update_attributes(health_file: nil)
+      if @note.health_file.present?
+        @note.health_file.destroy
+      end
+      @note.build_health_file
       respond_with @note, location: polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
     end
 
@@ -120,30 +128,30 @@ module Window::Health
       @note = Health::SdhCaseManagementNote.find(params[:id])
     end
 
-    def set_health_file
-      note = params.dig(:health_sdh_case_management_note, :file_note)
-      if file = params.dig(:health_sdh_case_management_note, :file)
-        @health_file = Health::SdhCaseManagementNoteFile.new(
-          user_id: current_user.id,
-          client_id: @client.id,
-          file: file,
-          content: file&.read,
-          content_type: file.content_type,
-          note: note
-        )
-      elsif @note.health_file.present?
-        @health_file = @note.health_file
-        @health_file.note = note
-      end
-    end
+    # def set_health_file
+    #   note = params.dig(:health_sdh_case_management_note, :file_note)
+    #   if file = params.dig(:health_sdh_case_management_note, :file)
+    #     @health_file = Health::SdhCaseManagementNoteFile.new(
+    #       user_id: current_user.id,
+    #       client_id: @client.id,
+    #       file: file,
+    #       content: file&.read,
+    #       content_type: file.content_type,
+    #       note: note
+    #     )
+    #   elsif @note.health_file.present?
+    #     @health_file = @note.health_file
+    #     @health_file.note = note
+    #   end
+    # end
 
-    def save_file
-      if @health_file
-        @health_file.save
-        @note.health_file = @health_file
-        @note.save
-      end
-    end
+    # def save_file
+    #   if @health_file
+    #     @health_file.save
+    #     @note.health_file = @health_file
+    #     @note.save
+    #   end
+    # end
 
     def load_template_activity
       @template_activity = Health::QualifyingActivity.new(user: current_user, user_full_name: current_user.name)
@@ -155,6 +163,10 @@ module Window::Health
       # COPY is used to add activities via js see health/sdh_case_management_note/form_js addActivity
       (params[:health_sdh_case_management_note][:activities_attributes]||{}).reject!{|k,v| k == "COPY"}
       # remove :_destroy on ajax
+      # remove health_file on ajax
+      if params[:commit] != 'Save Case Note'
+        params[:health_sdh_case_management_note].except!(:health_file_attributes)
+      end
       if params[:commit] != 'Save Case Note' && params[:commit] != 'Remove Activity'
         (params[:health_sdh_case_management_note][:activities_attributes]||{}).keys.each do |key|
           (params[:health_sdh_case_management_note][:activities_attributes]||{})[key].reject!{|k,v| k == "_destroy"}
@@ -176,6 +188,14 @@ module Window::Health
       end
       permitted_params
     end
+
+    # def add_calculated_params_to_health_file!(permitted_params)
+    #   permitted_params[:health_file_attributes].merge!({
+    #     user_id: current_user.id,
+    #     client_id: @client.id,
+    #   })
+    #   permitted_params
+    # end
 
     def note_params
       clean_note_params!
@@ -204,8 +224,15 @@ module Window::Health
           :date_of_activity,
           :follow_up,
           :_destroy
+        ],
+        health_file_attributes: [
+          :id,
+          :file,
+          :file_cache,
+          :note
         ]
       )
+      # add_calculated_params_to_health_file!(permitted_params)
       add_calculated_params_to_activities!(permitted_params)
     end
 
