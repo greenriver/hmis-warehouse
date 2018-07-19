@@ -3,6 +3,6 @@
   <% form = f%>
 <% end %>
 
-container = $('.j-file-upload')
-container.empty()
-container.append("<%= j render(partial: 'fields_for_upload', locals: {f: form}) %>")
+var container = $('.j-file-upload');
+container.empty();
+container.append("<%= j render(partial: 'fields_for_upload', locals: {f: form}) %>");

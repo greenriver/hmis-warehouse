@@ -1,20 +1,17 @@
 - if f.object.can_display_health_file?
-  - download_path = f.object.downloadable? ? polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: f.object.id ) : 'javascript:void(0)'
+  - download_path = f.object.downloadable? ? polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ) : 'javascript:void(0)'
   - download_data = f.object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-  - remove_path = polymorphic_path([:remove_file] + sdh_case_management_note_path_generator, client_id: @client.id, id: f.object.id)
+  - remove_path = f.object.persisted? ? polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ) : '#'
   = render 'window/health/health_files/display', download_path: download_path, download_data: download_data, remove_path: remove_path, filename: f.object.health_file&.name
   = f.simple_fields_for :health_file do |hf|
     = hf.input :file, as: :file, input_html: {style: 'display:none;'}, label: false
     = hf.input :file_cache, as: :hidden
-    = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
 
 - elsif f.object.health_file.present?
   = f.simple_fields_for :health_file do |hf|
     = hf.input :file, as: :file
     = hf.input :file_cache, as: :hidden
-    = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
 - else
-  = f.simple_fields_for :health_file, Health::SdhCaseManagementNoteFile.new() do |hf|
+  = f.simple_fields_for :health_file, Health::ParticipationFormFile.new() do |hf|
     = hf.input :file, as: :file
     = hf.input :file_cache, as: :hidden
-    = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'

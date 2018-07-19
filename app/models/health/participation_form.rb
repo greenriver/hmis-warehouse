@@ -3,13 +3,18 @@ module Health
 
     belongs_to :case_manager, class_name: 'User'
     belongs_to :reviewed_by, class_name: 'User'
-    belongs_to :health_file, dependent: :destroy
+    # belongs_to :health_file, dependent: :destroy
+
+    has_one :health_file, class_name: 'Health::ParticipationFormFile', foreign_key: :parent_id, dependent: :destroy
+    accepts_nested_attributes_for :health_file, allow_destroy: true, reject_if: proc {|att| att['file'].blank? && att['file_cache'].blank?}
+    validates_associated :health_file
 
     validates :signature_on, presence: true
     validate :file_or_location
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
+    #TODO this needs to be changed for new health_file
     scope :valid, -> do
       where(arel_table[:location].not_in([:nil, '']).or(arel_table[:health_file_id].not_eq(nil)))
     end
@@ -24,11 +29,19 @@ module Health
       end
     end
 
+    def can_display_health_file?
+      health_file.present? && health_file.file.present?
+    end
+
+    def downloadable?
+      health_file.present? && health_file.persisted?
+    end
+
     def file_or_location
-      if file.blank? && location.blank?
+      if health_file.blank? && location.blank?
         errors.add :location, "Please include either a file location or upload."
       end
-      if file.present? && file.invalid?
+      if health_file.present? && health_file.invalid?
         errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
     end

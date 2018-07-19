@@ -6,8 +6,7 @@ module Window::Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
-    before_action :set_blank_form, only: [:edit, :new]
-    before_action :set_health_file, only: [:update]
+    before_action :set_blank_form, only: [:edit, :new, :remove_file]
 
     def new
       # redirect to edit if there are any on-file
@@ -22,20 +21,20 @@ module Window::Health
 
     def create
       @participation_form = @patient.participation_forms.build(form_params)
-      set_health_file
+      
+      if @participation_form.health_file.present?
+        @participation_form.health_file.set_calculated!(current_user.id, @client.id)
+      end
       validate_form
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.case_manager = current_user
-      @participation_form.file = @health_file if @health_file
 
       if ! request.xhr?
         saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
-        save_file if @participation_form.errors.none? && saved
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       else
         if @participation_form.valid?
           saved = Health::ReleaseSaver.new(form: @participation_form, user: current_user).create
-          save_file if @participation_form.errors.none? && saved
         end
       end
     end
@@ -52,31 +51,16 @@ module Window::Health
       validate_form unless @participation_form.health_file.present?
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.assign_attributes(form_params)
-      @participation_form.file = @health_file if @health_file
-
+      if @participation_form.health_file&.new_record?
+        @participation_form.health_file.set_calculated!(current_user.id, @client.id)
+      end
       if ! request.xhr?
         saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
-        save_file if @participation_form.errors.none? && saved
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       else
         if @participation_form.valid?
           saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
-          save_file if @participation_form.errors.none? && saved
         end
-      end
-    end
-
-    def set_health_file
-      if file = params.dig(:form, :file)
-        @health_file = Health::ParticipationFormFile.new(
-          user_id: current_user.id,
-          client_id: @client.id,
-          file: file,
-          content: file&.read,
-          content_type: file.content_type
-        )
-      elsif @participation_form.health_file.present?
-        @health_file = @participation_form.health_file
       end
     end
 
@@ -88,7 +72,10 @@ module Window::Health
     end
 
     def remove_file
-      @participation_form.health_file.destroy
+      if @participation_form.health_file.present?
+        @participation_form.health_file.destroy
+      end
+      @participation_form.build_health_file
       respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
@@ -102,7 +89,13 @@ module Window::Health
       local_params = params.require(:form).permit(
         :signature_on,
         :reviewed_by_supervisor,
-        :location
+        :location,
+        health_file_attributes: [
+          :id,
+          :file,
+          :file_cache,
+          :note
+        ]
       )
       if ! current_user.can_approve_participation?
         local_params.except(:reviewed_by_supervisor)
@@ -119,15 +112,22 @@ module Window::Health
       @blank_participation_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/participation'
     end
 
-    def save_file
-      if @health_file
-        @participation_form.health_file = @health_file
-        @participation_form.save
+    def form_url(opts={})
+      if @participation_form.new_record?
+        polymorphic_path(participation_forms_path_generator, client_id: @client.id)
+      else
+        polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @participation_form.id)
       end
+    end
+    helper_method :form_url
+
+    def health_file_params_blank?
+      attrs = form_params[:health_file_attributes] || {}
+      attrs[:file].blank? && attrs[:file_cache].blank?
     end
 
     def validate_form
-      if params.dig(:form, :file).blank? && form_params[:location].blank?
+      if health_file_params_blank? && form_params[:location].blank?
         @participation_form.errors.add :location, "Please include either a file location or upload."
       end
     end

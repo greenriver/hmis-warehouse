@@ -85,6 +85,14 @@ module Health
 
     attr_accessor :file
 
+    def can_display_health_file?
+      health_file.present? && health_file.file.present?
+    end
+
+    def downloadable?
+      health_file.present? && health_file.persisted?
+    end
+
     def remove_housing_placement_date
       unless housing_status_includes_date?
         self.housing_placement_date = nil

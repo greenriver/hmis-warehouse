@@ -8,7 +8,6 @@ module Window::Health
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
     before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
-    # before_action :set_health_file, only: [:create, :update]
 
     def show
       render :show
@@ -57,11 +56,7 @@ module Window::Health
       @note.assign_attributes(note_params.merge(updated_at: Time.now))
       if params[:commit] == 'Save Case Note'
         if @note.health_file&.new_record?
-          @note.health_file.user_id = current_user.id
-          @note.health_file.client_id = @client.id
-          @note.health_file.content = @note.health_file.file.read
-          @note.health_file.content_type = @note.health_file.file.content_type
-          @note.health_file.name = @note.health_file.file.filename
+          @note.health_file.set_calculated!(current_user.id, @client.id)
         end
         @note.save
       else
@@ -128,31 +123,6 @@ module Window::Health
       @note = Health::SdhCaseManagementNote.find(params[:id])
     end
 
-    # def set_health_file
-    #   note = params.dig(:health_sdh_case_management_note, :file_note)
-    #   if file = params.dig(:health_sdh_case_management_note, :file)
-    #     @health_file = Health::SdhCaseManagementNoteFile.new(
-    #       user_id: current_user.id,
-    #       client_id: @client.id,
-    #       file: file,
-    #       content: file&.read,
-    #       content_type: file.content_type,
-    #       note: note
-    #     )
-    #   elsif @note.health_file.present?
-    #     @health_file = @note.health_file
-    #     @health_file.note = note
-    #   end
-    # end
-
-    # def save_file
-    #   if @health_file
-    #     @health_file.save
-    #     @note.health_file = @health_file
-    #     @note.save
-    #   end
-    # end
-
     def load_template_activity
       @template_activity = Health::QualifyingActivity.new(user: current_user, user_full_name: current_user.name)
     end
@@ -189,14 +159,6 @@ module Window::Health
       permitted_params
     end
 
-    # def add_calculated_params_to_health_file!(permitted_params)
-    #   permitted_params[:health_file_attributes].merge!({
-    #     user_id: current_user.id,
-    #     client_id: @client.id,
-    #   })
-    #   permitted_params
-    # end
-
     def note_params
       clean_note_params!
       permitted_params = params.require(:health_sdh_case_management_note).permit(
@@ -232,7 +194,6 @@ module Window::Health
           :note
         ]
       )
-      # add_calculated_params_to_health_file!(permitted_params)
       add_calculated_params_to_activities!(permitted_params)
     end
 
