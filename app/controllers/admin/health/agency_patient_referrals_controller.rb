@@ -2,7 +2,8 @@ module Admin::Health
   class AgencyPatientReferralsController < HealthController
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
-    before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
+    # before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
+    before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral]
     before_action :load_new_patient_referral, only: [:review, :reviewed]
 
     include PatientReferral
@@ -10,9 +11,9 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
-      if @agency.present?
+      if @user_agencies.any?
         @agency_patient_referral_ids = Health::AgencyPatientReferral.
-          where(agency_id: @agency.id).
+          where(agency_id: @user_agencies.map(&:id)).
           select(:patient_referral_id)
         @patient_referrals = Health::PatientReferral.
           unassigned.includes(:relationships).
@@ -46,11 +47,11 @@ module Admin::Health
           title: 'Reviewed as not our patient',
         }
       ]
-      if @agency.present?
+      if @user_agencies.any?
         @patient_referrals = Health::PatientReferral.
           unassigned.
           joins(:relationships).
-          where(agency_patient_referrals: {agency_id: @agency.id}).
+          where(agency_patient_referrals: {agency_id: @user_agencies.map(&:id)}).
           where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
           preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
         load_index_vars
@@ -95,10 +96,18 @@ module Admin::Health
       )
     end
 
-    def load_agency_user
-      @agency_user = current_user.agency_user
-      @agency = @agency_user&.agency
-      if !@agency
+    # def load_agency_user
+    #   @agency_user = current_user.agency_user
+    #   @agency = @agency_user&.agency
+    #   if !@agency
+    #     @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
+    #   end
+    # end
+
+    def load_agency_users
+      @agency_users = current_user.agency_users
+      @user_agencies = current_user.health_agencies
+      if !@user_agencies.any?
         @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
       end
     end
