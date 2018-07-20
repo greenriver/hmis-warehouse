@@ -26,89 +26,89 @@ module HmisSqlServer
   end
 
   class Affiliation < SqlServerBase
-    self.table_name = :Affiliation
+    self.table_name = :hmis_Affiliation
     include TsqlImport
 
   end
 
   class Client < SqlServerBase
-    self.table_name = :Client
+    self.table_name = :hmis_Client
     include TsqlImport
 
   end
 
   class Disability < SqlServerBase
-    self.table_name = :Disabilities
+    self.table_name = :hmis_Disabilities
     include TsqlImport
 
   end
   class EmploymentEducation < SqlServerBase
-    self.table_name = :EmploymentEducation
+    self.table_name = :hmis_EmploymentEducation
     include TsqlImport
 
   end
   class Enrollment < SqlServerBase
-    self.table_name = :Enrollment
+    self.table_name = :hmis_Enrollment
     include TsqlImport
 
   end
   class EnrollmentCoc < SqlServerBase
-    self.table_name = :EnrollmentCoC
+    self.table_name = :hmis_EnrollmentCoC
     include TsqlImport
 
   end
   class Exit < SqlServerBase
-    self.table_name = :Exit
+    self.table_name = :hmis_Exit
     include TsqlImport
 
   end
   class Export < SqlServerBase
-    self.table_name = :Export
+    self.table_name = :hmis_Export
     include TsqlImport
 
   end
   class Funder < SqlServerBase
-    self.table_name = :Funder
+    self.table_name = :hmis_Funder
     include TsqlImport
 
   end
   class HealthAndDv < SqlServerBase
-    self.table_name = :HealthAndDV
+    self.table_name = :hmis_HealthAndDV
     include TsqlImport
 
   end
   class IncomeBenefit < SqlServerBase
-    self.table_name = :IncomeBenefits
+    self.table_name = :hmis_IncomeBenefits
     include TsqlImport
 
   end
   class Inventory < SqlServerBase
-    self.table_name = :Inventory
+    self.table_name = :hmis_Inventory
     include TsqlImport
 
   end
   class Organization < SqlServerBase
-    self.table_name = :Organization
+    self.table_name = :hmis_Organization
     include TsqlImport
 
   end
   class Project < SqlServerBase
-    self.table_name = :Project
+    self.table_name = :hmis_Project
     include TsqlImport
 
   end
   class ProjectCoc < SqlServerBase
-    self.table_name = :ProjectCoC
+    self.table_name = :hmis_ProjectCoC
     include TsqlImport
 
   end
   class Service < SqlServerBase
-    self.table_name = :Services
+    self.table_name = :hmis_Services
     include TsqlImport
 
   end
   class Geography < SqlServerBase
-    self.table_name = :Geography
+    self.table_name = :hmis_Geography
     include TsqlImport
 
   end
