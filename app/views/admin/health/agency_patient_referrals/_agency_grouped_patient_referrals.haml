@@ -1,0 +1,9 @@
+- @relationships.each do |agency, relationships|
+  .row
+    .col-xs-12
+      %h4= agency.name
+      - relationships.each do |r|
+        - @display_claim_buttons_for = [agency]
+        .row
+          .col-xs-12
+            = render 'admin/health/patient_referrals/patient_referral', pr: r.patient_referral

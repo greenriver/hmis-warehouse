@@ -11,13 +11,16 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
+      @display_claim_buttons_for = @user_agencies
       if @user_agencies.any?
         @agency_patient_referral_ids = Health::AgencyPatientReferral.
           where(agency_id: @user_agencies.map(&:id)).
-          select(:patient_referral_id)
+          group_by(&:patient_referral_id).
+          delete_if{|k, v| v.size != @user_agencies.size}.
+          keys
         @patient_referrals = Health::PatientReferral.
           unassigned.includes(:relationships).
-          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids.to_sql))).
+          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
           references(:relationships).
           preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       end
@@ -48,13 +51,21 @@ module Admin::Health
         }
       ]
       if @user_agencies.any?
-        @patient_referrals = Health::PatientReferral.
-          unassigned.
-          joins(:relationships).
-          where(agency_patient_referrals: {agency_id: @user_agencies.map(&:id)}).
-          where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
-          preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
+        # @patient_referrals = Health::PatientReferral.
+        #   unassigned.
+        #   joins(:relationships).
+        #   where(agency_patient_referrals: {agency_id: @user_agencies.map(&:id)}).
+        #   where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
+        #   preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
         load_index_vars
+        @relationships = Health::AgencyPatientReferral.
+          joins(:patient_referral).
+          where(agency_id: @user_agencies.map(&:id)).
+          where(claimed: @active_patient_referral_group == 'our patient').
+          where(patient_referrals: {agency_id: nil, rejected: false}).
+          preload(:patient_referral).
+          group_by(&:agency)
+          
       end
       render 'index'
     end
