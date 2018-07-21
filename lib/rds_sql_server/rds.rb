@@ -28,6 +28,14 @@ class Rds
     @identifier
   end
 
+  def self.timeout= timeout
+    @timeout = timeout
+  end
+
+  def self.timeout
+    @timeout || 5000
+  end
+
   def initialize()
     self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
 

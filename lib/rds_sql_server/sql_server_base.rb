@@ -5,7 +5,7 @@ class SqlServerBase < ActiveRecord::Base
     "adapter"       => "sqlserver",
     "host"          => rds.host,
     "pool"          => 5,
-    "timeout"       => 5000,
+    "timeout"       => Rds.timeout,
     "port"          => 1433,
     "username"      => Rds::USERNAME,
     "password"      => Rds::PASSWORD,
