@@ -70,6 +70,7 @@ class Rds
     create!
     wait!
     create_database!
+    wait_for_database!
   end
 
   def create!
@@ -122,6 +123,24 @@ class Rds
     SqlServerBootstrapModel.connection.execute(<<~SQL)
       select 1;
     SQL
+  end
+
+  def wait_for_database!
+    load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
+
+    Timeout.timeout(MAX_WAIT_TIME) do
+      db_exists = 0
+      while db_exists == 0
+        db_exists = SqlServerBootstrapModel.connection.execute(<<~SQL)
+          if not exists(select * from sys.databases where name = '#{database}')
+            select 0;
+          else
+            select 1;
+        SQL
+        Rails.logger.debug "No DB yet" if db_exists == 0
+        sleep 5
+      end
+    end
   end
 
   def create_database!

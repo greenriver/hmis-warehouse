@@ -48,8 +48,11 @@ module ReportGenerators::Lsa::Fy2018
 
           run_lsa_queries()
           fetch_results()
+          zip_report_folder()
+          attach_report_zip()
+          remove_report_files()
         ensure
-          # remove_temporary_rds()
+          remove_temporary_rds()
         end
         finish_report()
       else
@@ -58,7 +61,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def sql_server_identifier
-      "#{ ENV.fetch('CLIENT') }-#{ Rails.env }-LSA".downcase
+      "#{ ENV.fetch('CLIENT') }-#{ Rails.env }-LSA-#{@report.id}".downcase
     end
 
     def create_hmis_csv_export
@@ -88,6 +91,36 @@ module ReportGenerators::Lsa::Fy2018
       File.join('var', 'lsa', @report.id.to_s)
     end
 
+    def zip_path
+      File.join(unzip_path, "#{@report.id.to_s}.zip")
+    end
+
+    def zip_report_folder
+      files = Dir.glob(File.join(unzip_path, '*')).map{|f| File.basename(f)}
+      Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
+        files.each do |file_name|
+          zipfile.add(
+            file_name,
+            File.join(unzip_path, file_name)
+          )
+        end
+      end
+    end
+
+    def attach_report_zip
+      report_file = GrdaWarehouse::ReportResultFile.new(user_id: @report.user_id)
+      file = Pathname.new(zip_path).open
+      report_file.content = file.read
+      report_file.content_type = 'application/zip'
+      report_file.save!
+      @report.file_id = report_file.id
+      @report.save!
+    end
+
+    def remove_report_files
+      FileUtils.rm_rf(unzip_path)
+    end
+
     def populate_hmis_tables
       load 'lib/rds_sql_server/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = @hmis_export.unzip_to(unzip_path)
@@ -109,14 +142,33 @@ module ReportGenerators::Lsa::Fy2018
           insert_batch(klass, headers, content)
         end
       end
-      #TODO: Remove expanded files
+      FileUtils.rm_rf(extract_path)
     end
 
     def fetch_results
       load 'lib/rds_sql_server/lsa_sql_server.rb'
-
-      puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
-      binding.pry
+      LsaSqlServer.models_by_filename.each do |filename, klass|
+        path = File.join(unzip_path, filename)
+        # for some reason the example files are quoted, except the LSA files, which are not
+        force_quotes = ! klass.name.include?('LSA')
+        CSV.open(path, "wb", force_quotes: force_quotes) do |csv|
+          csv << klass.attribute_names
+          klass.all.each do |item|
+            row = []
+            item.attributes.values.each do |m|
+              if m.is_a?(Date)
+                row << m.strftime('%F')
+              elsif m.is_a?(Time)
+                row << m.utc.strftime('%F %T')
+              else
+                row << m
+              end
+            end
+            csv << row
+          end
+        end
+      end
+      # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
     end
 
     def setup_lsa_report
