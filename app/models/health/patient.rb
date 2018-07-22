@@ -407,7 +407,7 @@ module Health
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
-        organization: user.health_agency&.name,
+        organization: health_agency&.name,
         user_id: current_user.id
       )
       team_member.save!
