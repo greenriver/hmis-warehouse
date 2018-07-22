@@ -3,7 +3,7 @@ module LsaSqlServer
 
   module_function def models_by_filename
     {
-      'LSAReport.csv' => LsaSqlServer::LsaReport,
+      'LSAReport.csv' => LsaSqlServer::LSAReport,
       'LSAHousehold.csv' => LsaSqlServer::LSAHousehold,
       'LSAPerson.csv' => LsaSqlServer::LSAPerson,
       'LSAExit.csv' => LsaSqlServer::LSAExit,

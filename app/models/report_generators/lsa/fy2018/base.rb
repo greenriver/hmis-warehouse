@@ -13,15 +13,13 @@ module ReportGenerators::Lsa::Fy2018
       if data_source_id.present?
         @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id)
       end
-      coc_codes = @report.options['coc_code']
-      if coc_codes.present?
-        @report.options['project_id'] |= GrdaWarehouse::Hud::Project.joins(:project_cocs).
-          merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_codes)).distinct.pluck(:id)
-      end
+      @coc_code = @report.options['coc_code']
       if @report.options['project_id'].delete_if(&:blank?).any?
         @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
+        @lsa_scope = 2
       else
         @project_ids = GrdaWarehouse::Hud::Project.pluck(:id)
+        @lsa_scope = 1
       end
     end
 
