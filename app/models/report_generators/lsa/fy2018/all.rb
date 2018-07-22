@@ -66,7 +66,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      return GrdaWarehouse::HmisExport.find(56)
+      # return GrdaWarehouse::HmisExport.find(56)
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: @report_start,
