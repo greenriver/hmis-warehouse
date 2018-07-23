@@ -3,8 +3,8 @@ class AddHashedOnlyHmisExportsReport < ActiveRecord::Migration
       'Operational Reports' => [
         {
           url: 'warehouse_reports/hashed_only_hmis_exports',
-          name: 'Hashed Only HMIS Exports',
-          description: 'Hashed only HMIS exports',
+          name: 'HUD HMIS CSV Exports (Hashed Only)',
+          description: 'Export data in the HUD HMIS exchange format with PII hashed',
         },
       ],
     }
