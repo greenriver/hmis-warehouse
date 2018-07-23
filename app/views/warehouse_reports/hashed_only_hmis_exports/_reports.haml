@@ -1,0 +1,20 @@
+- @job_reports.each do |run_at, report|
+  %tr{class: 'jIncompleteReport'}
+    %td= run_at
+    %td= report.user&.name
+    %td= render 'spinner'
+    %td= render 'parameters', report: report
+    %td
+- @exports.each do |report|
+  %tr
+    %td
+      = report.created_at
+    %td
+      = report.user&.name
+    %td
+      = link_to warehouse_reports_hmis_export_url(report) do
+        Download
+    %td= render 'parameters', report: report
+    %td
+      = link_to warehouse_reports_hmis_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
+        %i.icon-cross
