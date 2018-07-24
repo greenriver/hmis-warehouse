@@ -36,7 +36,9 @@ module ReportGenerators::Lsa::Fy2018
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
           @hmis_export = create_hmis_csv_export()
+          # puts 'done exporting'
           setup_temporary_rds()
+          # puts 'RDS setup done'
           setup_hmis_table_structure()
           setup_lsa_table_structure()
           setup_lsa_reference_tables()

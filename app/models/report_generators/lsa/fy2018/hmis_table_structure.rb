@@ -1,3 +1,4 @@
+load 'lib/rds_sql_server/sql_server_base.rb'
 SqlServerBase.connection.execute (<<~SQL);
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_Affiliation' AND xtype='U')
     DROP TABLE [hmis_Affiliation]

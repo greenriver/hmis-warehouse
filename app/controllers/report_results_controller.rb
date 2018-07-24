@@ -4,10 +4,38 @@ class ReportResultsController < ApplicationController
   before_action :set_report_result, only: [:show, :edit, :update, :destroy]
   helper_method :sort_column, :sort_direction
   helper_method :default_pit_date, :default_chronic_date
+  include ArelHelper
 
   # GET /report_results
   def index
     @results = report_result_scope
+
+    if @results.first.report.class.name.include?('::Lsa::')
+      @missing_data = {
+        missing_project_type: [],
+        missing_geocode: [],
+        missing_gepgraphy_type: [],
+      }
+      # There are a few required project descriptor fields.  Without these the report won't run cleanly
+      @missing_data[:missing_project_type] = GrdaWarehouse::Hud::Project.joins(:organization).
+        coc_funded.residential.
+        where(HousingType: nil).
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
+        map{|p, o| "#{o} - #{p}"}
+      @missing_data[:missing_geocode] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.residential).
+        where(Geocode: nil).
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
+        map{|p, o| "#{o} - #{p}"}
+      @missing_data[:missing_gepgraphy_type] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.residential).
+        where(GeographyType: nil).
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
+        map{|p, o| "#{o} - #{p}"}
+      @missing_projects = @missing_data.values.flatten.uniq.sort
+      @show_missing_data = @missing_projects.any?
+    end
+
     at = @results.arel_table
     # sort / paginate
     sort = at[sort_column.to_sym].send(sort_direction)

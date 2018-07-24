@@ -112,6 +112,7 @@ class Rds
     Timeout.timeout(MAX_WAIT_TIME) do
       while host.blank?
         Rails.logger.debug "no host yet"
+        # puts "no host yet"
         sleep 5
       end
     end
@@ -138,6 +139,7 @@ class Rds
             select 1;
         SQL
         Rails.logger.debug "No DB yet" if db_exists == 0
+        # puts "No DB yet" if db_exists == 0
         sleep 5
       end
     end
