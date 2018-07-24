@@ -196,7 +196,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_hmis_table_structure
       Rds.identifier = sql_server_identifier
-      load 'app/models/report_generators/lsa/fy2018/hmis_table_structure.rb'
+      load 'lib/rds_sql_server/lsa/fy2018/hmis_table_structure.rb'
     end
 
     def setup_lsa_table_indexes
@@ -234,12 +234,12 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_lsa_reference_tables
       Rds.identifier = sql_server_identifier
-      load 'app/models/report_generators/lsa/fy2018/lsa_reference_table_structure.rb'
+      load 'lib/rds_sql_server/lsa/fy2018/lsa_reference_table_structure.rb'
     end
 
     def setup_lsa_table_structure
       Rds.identifier = sql_server_identifier
-      load 'app/models/report_generators/lsa/fy2018/lsa_table_structure.rb'
+      load 'lib/rds_sql_server/lsa/fy2018/lsa_table_structure.rb'
     end
 
 
@@ -247,7 +247,7 @@ module ReportGenerators::Lsa::Fy2018
     def run_lsa_queries
       Rds.identifier = sql_server_identifier
       Rds.timeout = 600_000
-      load 'app/models/report_generators/lsa/fy2018/lsa_queries.rb'
+      load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
     end
   end
 end
