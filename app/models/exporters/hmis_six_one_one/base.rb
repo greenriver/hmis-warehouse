@@ -4,18 +4,18 @@ module Exporters::HmisSixOneOne
   class Base
     include NotifierConfig
     include ArelHelper
-    
+
     attr_accessor :logger, :notifier_config, :file_path, :export
 
     def initialize(
       file_path: 'var/hmis_export',
-      logger: Rails.logger, 
+      logger: Rails.logger,
       debug: true,
       start_date:,
       end_date:,
       projects:,
       period_type: 3,
-      directive: 3,
+      directive: 2,
       hash_status: 1,
       faked_pii: false,
       include_deleted: false,
@@ -30,7 +30,7 @@ module Exporters::HmisSixOneOne
       @projects = projects
       @period_type = period_type
       @directive = directive
-      @hash_status = hash_status     
+      @hash_status = hash_status
       @faked_pii = faked_pii
       @user = current_user rescue User.find(user_id)
       @include_deleted = include_deleted
@@ -102,7 +102,7 @@ module Exporters::HmisSixOneOne
       Zip::File.open(zip_path(), Zip::File::CREATE) do |zipfile|
        files.each do |filename|
         zipfile.add(
-          File.join(@export.export_id, filename), 
+          File.join(@export.export_id, filename),
           File.join(@file_path, filename)
         )
         end
@@ -115,56 +115,56 @@ module Exporters::HmisSixOneOne
 
     def export_projects
       project_source.new.export!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
 
     def export_project_cocs
       project_coc_source.new.export_project_related!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
 
     def export_organizations
       organization_source.new.export!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
 
     def export_inventories
       inventory_source.new.export_project_related!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
 
     def export_geographies
       geography_source.new.export_project_related!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
 
     def export_funders
       funder_source.new.export_project_related!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
 
     def export_affiliations
       affiliation_source.new.export_project_related!(
-        project_scope: project_scope, 
-        path: @file_path, 
+        project_scope: project_scope,
+        path: @file_path,
         export: @export
       )
     end
@@ -173,7 +173,7 @@ module Exporters::HmisSixOneOne
       enrollment_source.new.export!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -182,7 +182,7 @@ module Exporters::HmisSixOneOne
       enrollment_coc_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -190,7 +190,7 @@ module Exporters::HmisSixOneOne
     def export_clients
       client_source.new.export!(
         client_scope: client_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -199,7 +199,7 @@ module Exporters::HmisSixOneOne
       disability_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -208,7 +208,7 @@ module Exporters::HmisSixOneOne
       employment_education_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -217,7 +217,7 @@ module Exporters::HmisSixOneOne
       exit_source.new.export!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -226,7 +226,7 @@ module Exporters::HmisSixOneOne
       health_and_dv_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -235,7 +235,7 @@ module Exporters::HmisSixOneOne
       income_benefits_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -244,7 +244,7 @@ module Exporters::HmisSixOneOne
       service_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
-        path: @file_path, 
+        path: @file_path,
         export: @export
       )
     end
@@ -288,7 +288,7 @@ module Exporters::HmisSixOneOne
           p_scope = p_scope.with_deleted
         end
         p_scope
-      end      
+      end
     end
 
     def enrollment_exists_for_client
@@ -301,7 +301,7 @@ module Exporters::HmisSixOneOne
       when 3
         e_scope = e_scope.open_during_range(@range)
       when 1
-        
+
       end
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).
@@ -339,7 +339,7 @@ module Exporters::HmisSixOneOne
     def create_export_directory
       # make sure the path is clean
       FileUtils.rmtree(@file_path) if File.exists? @file_path
-      FileUtils.mkdir_p(@file_path) 
+      FileUtils.mkdir_p(@file_path)
     end
 
     def build_export_file
@@ -415,7 +415,7 @@ module Exporters::HmisSixOneOne
     def employment_education_source
       self.class.employment_education_source
     end
-    
+
     def self.enrollment_source
       GrdaWarehouse::Export::HMISSixOneOne::Enrollment
     end
@@ -492,7 +492,7 @@ module Exporters::HmisSixOneOne
     def project_coc_source
       self.class.project_coc_source
     end
-    
+
     def self.service_source
       GrdaWarehouse::Export::HMISSixOneOne::Service
     end
@@ -505,7 +505,7 @@ module Exporters::HmisSixOneOne
     end
     def geography_source
       self.class.geography_source
-    end 
+    end
 
     def log(message)
       @notifier.ping message if @notifier

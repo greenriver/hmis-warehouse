@@ -1,0 +1,47 @@
+- if @show_missing_data
+  .alert.alert-warning
+    The LSA report requires some project descriptors.  The following projects are missing either Project HousingType, Geography Geocode, or Geography GeographyType.
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Project
+        %th HousingType
+        %th Geocode
+        %th GeographyType
+    %tbody
+      - @missing_projects.each do |project|
+        %tr
+          %td= project
+          %td= checkmark_or_x(! @missing_data[:missing_project_type].include?(project))
+          %td= checkmark_or_x(! @missing_data[:missing_geocode].include?(project))
+          %td= checkmark_or_x(! @missing_data[:missing_gepgraphy_type].include?(project))
+
+- else
+  = simple_form_for :report_result do |f|
+    %h3 Queue Report
+    .slab
+      = f.error_notification
+      .row.margin-bottom-02
+        .col-sm-4
+          = f.input :project_id, collection: Reports::Lsa::Fy2018::Base.available_projects, required: false, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: 'select2'}
+          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.all, required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true, class: 'select2' }
+          = f.input :data_source_id, collection: Reports::Lsa::Fy2018::Base.available_data_sources, required: false, input_html: {name: 'report_result[options][data_source_id]', class: 'select2'}
+        .col-sm-4
+          = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: GrdaWarehouse::Config.get(:site_coc_codes),  input_html: {name: 'report_result[options][coc_code]', class: :select2}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: true
+        .col-sm-4
+          .form-group
+            %label.control-lable.string
+              %abbr{data: {original_title: "required"}} *
+              Start Date
+            = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(Date.today.year-2,10,1)}, label: false
+          .form-group
+            %label.control-lable.string.required
+              %abbr{data: {original_title: "required"}} *
+              End Date
+            = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.today.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
+      .row
+        .col-sm-12.margin-bottom-12
+          .form-actions
+            = f.button :button, class: 'btn btn-primary pull-right' do
+              %span.icon-plus
+              Queue Report Run
