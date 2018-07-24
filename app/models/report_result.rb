@@ -61,10 +61,6 @@ class ReportResult < ActiveRecord::Base
     report.as_xml self
   end
 
-  def as_zip
-    raise 'FIXME'
-  end
-
   def file
     GrdaWarehouse::ReportResultFile.where(id: file_id)
   end
