@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180710000126) do
+ActiveRecord::Schema.define(version: 20180716151309) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -55,7 +55,7 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id",   default: 1, null: false
+    t.integer  "data_source_id",   default: 6, null: false
   end
 
   create_table "careplan_equipment", force: :cascade do |t|
@@ -99,10 +99,32 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.text     "equipment_archive"
     t.text     "team_members_archive"
     t.text     "goals_archive"
+    t.datetime "patient_signature_requested_at"
+    t.datetime "provider_signature_requested_at"
+    t.integer  "health_file_id"
   end
 
   add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
   add_index "careplans", ["user_id"], name: "index_careplans_on_user_id", using: :btree
+
+  create_table "claims", force: :cascade do |t|
+    t.integer  "user_id"
+    t.date     "max_date"
+    t.integer  "job_id"
+    t.integer  "max_isa_control_number"
+    t.integer  "max_group_control_number"
+    t.integer  "max_st_number"
+    t.text     "claims_file"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string   "error"
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.datetime "deleted_at"
+    t.datetime "submitted_at"
+  end
+
+  add_index "claims", ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree
 
   create_table "claims_amount_paid_location_month", force: :cascade do |t|
     t.string  "medicaid_id",  null: false
@@ -238,6 +260,31 @@ ActiveRecord::Schema.define(version: 20180710000126) do
   add_index "comprehensive_health_assessments", ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id", using: :btree
   add_index "comprehensive_health_assessments", ["user_id"], name: "index_comprehensive_health_assessments_on_user_id", using: :btree
 
+  create_table "cps", force: :cascade do |t|
+    t.string   "pid"
+    t.string   "sl"
+    t.string   "mmis_enrollment_name"
+    t.string   "short_name"
+    t.string   "pt_part_1"
+    t.string   "pt_part_2"
+    t.string   "address_1"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.string   "key_contact_first_name"
+    t.string   "key_contact_last_name"
+    t.string   "key_contact_email"
+    t.string   "key_contact_phone"
+    t.boolean  "sender",                 default: false, null: false
+    t.string   "receiver_name"
+    t.string   "receiver_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+    t.string   "npi"
+    t.string   "ein"
+  end
+
   create_table "data_sources", force: :cascade do |t|
     t.string   "name"
     t.datetime "deleted_at"
@@ -279,7 +326,7 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.datetime "goal_created_at"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
-    t.integer  "data_source_id",           default: 1, null: false
+    t.integer  "data_source_id",           default: 6, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
@@ -306,9 +353,24 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 1,     null: false
+    t.integer  "data_source_id",           default: 6,     null: false
     t.datetime "deleted_at"
     t.date     "death_date"
+  end
+
+  create_table "epic_qualifying_activities", force: :cascade do |t|
+    t.string   "patient_id",           null: false
+    t.string   "id_in_source",         null: false
+    t.string   "patient_encounter_id"
+    t.string   "entered_by"
+    t.string   "role"
+    t.date     "date_of_activity"
+    t.string   "activity"
+    t.string   "mode"
+    t.string   "reached"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "data_source_id"
   end
 
   create_table "epic_team_members", force: :cascade do |t|
@@ -412,8 +474,68 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
+
+  create_table "member_status_report_patients", force: :cascade do |t|
+    t.integer  "member_status_report_id"
+    t.string   "medicaid_id",                    limit: 12
+    t.string   "member_first_name",              limit: 100
+    t.string   "member_last_name",               limit: 100
+    t.string   "member_middle_initial",          limit: 1
+    t.string   "member_suffix",                  limit: 20
+    t.date     "member_date_of_birth"
+    t.string   "member_sex",                     limit: 1
+    t.string   "aco_mco_name",                   limit: 100
+    t.string   "aco_mco_pid",                    limit: 9
+    t.string   "aco_mco_sl",                     limit: 10
+    t.string   "cp_name_official",               limit: 100
+    t.string   "cp_pid",                         limit: 9
+    t.string   "cp_sl",                          limit: 10
+    t.string   "cp_outreach_status",             limit: 30
+    t.date     "cp_last_contact_date"
+    t.string   "cp_last_contact_face",           limit: 1
+    t.string   "cp_contact_face"
+    t.date     "cp_participation_form_date"
+    t.date     "cp_care_plan_sent_pcp_date"
+    t.date     "cp_care_plan_returned_pcp_date"
+    t.string   "key_contact_name_first",         limit: 100
+    t.string   "key_contact_name_last",          limit: 100
+    t.string   "key_contact_phone",              limit: 10
+    t.string   "key_contact_email",              limit: 60
+    t.string   "care_coordinator_first_name",    limit: 100
+    t.string   "care_coordinator_last_name",     limit: 100
+    t.string   "care_coordinator_phone",         limit: 10
+    t.string   "care_coordinator_email",         limit: 60
+    t.string   "record_status",                  limit: 1
+    t.date     "record_update_date"
+    t.date     "export_date"
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "member_status_report_patients", ["deleted_at"], name: "index_member_status_report_patients_on_deleted_at", using: :btree
+
+  create_table "member_status_reports", force: :cascade do |t|
+    t.integer  "user_id"
+    t.integer  "job_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string   "sender",                 limit: 100
+    t.integer  "sent_row_num"
+    t.integer  "sent_column_num"
+    t.datetime "sent_export_time_stamp"
+    t.string   "receiver"
+    t.date     "report_start_date"
+    t.date     "report_end_date"
+    t.string   "error"
+    t.datetime "created_at",                         null: false
+    t.datetime "updated_at",                         null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "member_status_reports", ["deleted_at"], name: "index_member_status_reports_on_deleted_at", using: :btree
 
   create_table "participation_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -441,16 +563,16 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.string   "first_name"
     t.string   "last_name"
     t.date     "birthdate"
-    t.string   "medicaid_id"
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false, null: false
-    t.integer  "rejected_reason",                  default: 0,     null: false
-    t.integer  "patient_id"
     t.string   "ssn"
+    t.string   "medicaid_id"
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
+    t.integer  "agency_id"
+    t.boolean  "rejected",                         default: false,   null: false
+    t.integer  "rejected_reason",                  default: 0,       null: false
+    t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date"
+    t.datetime "effective_date",                   default: "now()"
     t.string   "middle_initial"
     t.string   "suffix"
     t.string   "gender"
@@ -521,7 +643,7 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 1,     null: false
+    t.integer  "data_source_id",           default: 6,     null: false
     t.date     "engagement_date"
     t.integer  "care_coordinator_id"
     t.datetime "deleted_at"
@@ -538,7 +660,7 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -557,6 +679,7 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.integer  "patient_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "claim_id"
   end
 
   create_table "release_forms", force: :cascade do |t|
@@ -665,6 +788,27 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.string   "status"
   end
 
+  create_table "signable_documents", force: :cascade do |t|
+    t.integer  "signable_id",                                                              null: false
+    t.string   "signable_type",                                                            null: false
+    t.boolean  "primary",                default: true,                                    null: false
+    t.integer  "user_id",                                                                  null: false
+    t.jsonb    "hs_initial_request"
+    t.jsonb    "hs_initial_response"
+    t.datetime "hs_initial_response_at"
+    t.jsonb    "hs_last_response"
+    t.datetime "hs_last_response_at"
+    t.string   "hs_subject",             default: "Signature Request",                     null: false
+    t.string   "hs_title",               default: "Signature Request",                     null: false
+    t.text     "hs_message",             default: "You've been asked to sign a document."
+    t.jsonb    "signers",                default: [],                                      null: false
+    t.jsonb    "signed_by",              default: [],                                      null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "signable_documents", ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree
+
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false
     t.string   "first_name",   null: false
@@ -726,7 +870,7 @@ ActiveRecord::Schema.define(version: 20180710000126) do
     t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
-    t.integer  "data_source_id",  default: 1, null: false
+    t.integer  "data_source_id",  default: 6, null: false
   end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"

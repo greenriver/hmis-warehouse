@@ -19,16 +19,9 @@
     .c-card__header.c-card__header--external
       %h3 Responsible Parties
     .c-card__content
-      .row.mb-4
-        .col-md-6
-          .form-group.mb-3
-            %label.control-label.optional Patient
-            .controls.form-control.form-control-faux
-              = @patient.name
-          = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
       .row.careplan-signatures
         = render 'careplan_form_signatures', f: f
-        
+
 
     .form__actions.mt-6.mb-8
       .c-btn-group
@@ -38,6 +31,8 @@
       .c-btn-group.ml-auto
         = f.button :submit, @form_button
 
+.well.form__upload
+  = render 'upload'
 
 
 = javascript_include_tag 'moment.min.js'

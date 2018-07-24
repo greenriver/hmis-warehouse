@@ -16,8 +16,8 @@ module Health::Claims
         values.each_with_index do |v, index|
           key = result.keys[index]
           result[key] = {
-            Total_Cost: display_value(key, v[0], number_to_currency(v[0], precision: 0)), 
-            Months: display_value(key, v[1], v[1]), 
+            Total_Cost: display_value(key, v[0], number_to_currency(v[0], precision: 0)),
+            Months: display_value(key, v[1], v[1]),
             Cost_PMPM: display_value(key, v[2], number_to_currency(v[2], precision: 0))
           }
         end
@@ -32,8 +32,8 @@ module Health::Claims
         values.each_with_index do |v, index|
           key = result.keys[index]
           result[key] = {
-            ED_Visits: display_value(key, v[0], v[0]), 
-            IP_Admits: display_value(key, v[1], v[1]), 
+            ED_Visits: display_value(key, v[0], v[0]),
+            IP_Admits: display_value(key, v[1], v[1]),
             Average_Days_to_Readmit: display_value(key, v[2], v[2])
           }
         end
@@ -58,14 +58,14 @@ module Health::Claims
           # ['Team', team]
         ]
         result[:demographics].push([
-          ['Age', @patient.client.age], 
+          ['Age', @patient.client.age],
           ['Gender', @patient.gender],
-          ['Disability Flag', disability_flag],  
+          ['Disability Flag', disability_flag],
         ])
         result[:demographics].push([
           ['DOB', @patient.birthdate],
           ['Race / Ethnicity', "#{@patient.race} / #{@patient.ethnicity}"],
-          ['Veteran Status', @patient.veteran_status] 
+          ['Veteran Status', @patient.veteran_status]
         ])
       end
       result
@@ -94,7 +94,7 @@ module Health::Claims
       implementation_ip_admit_ave = @patient_roster.implementation_admits.to_f / implementation_months rescue 0
       baseline_ip_admit_ave = @patient_roster.baseline_admits.to_f / baseline_months rescue 0
       implementation = [
-        implementation_ave_ed_visits&.round(1), 
+        implementation_ave_ed_visits&.round(1),
         implementation_ip_admit_ave&.round(1),
         @patient_roster.average_days_to_implementation&.round(),
       ]
@@ -110,8 +110,8 @@ module Health::Claims
       implementation_sum = @patient.amount_paids.implementation.map(&:total).sum&.round() rescue 0
       implementation_count = @patient.amount_paids.implementation.map(&:total).count&.round()
       patient = [
-        implementation_sum, 
-        implementation_count, 
+        implementation_sum,
+        implementation_count,
       ]
       baseline_sum = @patient.amount_paids.baseline.map(&:total).sum&.round() rescue 0
       baseline_count = @patient.amount_paids.baseline.map(&:total).count&.round() rescue 0
@@ -140,7 +140,7 @@ module Health::Claims
 
     def baseline_variance(implementation, baseline)
       if implementation && baseline && baseline != 0
-        (((implementation - baseline)/baseline.to_f)*100).round()
+        (((implementation - baseline)/baseline.to_f)*100).round() rescue 'N/A'
       else
         'N/A'
       end

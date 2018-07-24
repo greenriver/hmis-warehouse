@@ -89,6 +89,29 @@ module Health
       reason.gsub('_', ' ')
     end
 
+    # Valid values
+    # Not Yet Started
+    # In Process
+    # Engaged
+    # Unreachable/Unable to Contact
+    # Declined Participation
+    # Deceased
+    def outreach_status
+      if patient&.death_date || patient&.epic_patients&.map(&:death_date)&.any? || (rejected && rejected_reason == 'Deceased')
+         'Deceased'
+      elsif patient&.engaged?
+        'Engaged'
+      elsif rejected && rejected_reason == 'Declined'
+        'Declined Participation'
+      elsif rejected && rejected_reason.in?(['Unreachable', 'Moved_out_of_Geographic_Area'])
+        'Unreachable/Unable to Contact'
+      elsif patient.present?
+        'In Process'
+      else
+        'Not Yet Started'
+      end
+    end
+
     def display_claimed_by_other(agency)
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unknown'}.size

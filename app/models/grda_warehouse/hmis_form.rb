@@ -38,7 +38,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
   end
   scope :health_touch_points, -> do
-    where(arel_table[:collection_location].matches('Social Determinants of Health%'))
+    health_assessments = joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health).distinct.pluck(:id)
+    sdh_assessments = where(arel_table[:collection_location].matches('Social Determinants of Health%')).pluck(:id)
+    where(id: health_assessments + sdh_assessments)
   end
 
   scope :rrh_assessment, -> do

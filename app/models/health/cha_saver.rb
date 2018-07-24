@@ -11,6 +11,17 @@ module Health
 
       @cha.completed_at = Time.current if @complete
       @cha.reviewed_by = @user if @reviewed
+      # if they check the checkbox 
+      # and then uncheck before hitting save button
+      # some of these values were sticking around
+      # clear everything
+      @cha.reviewed_by = nil if !@reviewed
+      @cha.reviewed_at = nil if !@reviewed
+      @cha.reviewer = nil if !@reviewed
+      # fall back to reviewer being reviewed_by if they don't provide a name
+      if @reviewed && !@cha.reviewer.present?
+        @cha.reviewer = @cha.reviewed_by.name
+      end
     end
 
     def create

@@ -9,6 +9,8 @@ module Window::Health
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
     before_action :set_locked, only: [:show, :edit]
     before_action :set_health_file, only: [:upload, :update]
+    before_action :set_medications, only: [:show, :edit]
+    before_action :set_problems, only: [:show, :edit]
 
     def new
       # redirect to edit if there are any incomplete
@@ -76,14 +78,25 @@ module Window::Health
     def form_params
       local_params = params.require(:form).permit(
         :reviewed_by_supervisor,
+        :reviewer,
         :completed,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
       )
-      if ! current_user.can_approve_cha?
-        local_params.except(:reviewed_by_supervisor)
-      else
-        local_params
-      end
+      # update anyone can review a cha now
+      # if ! current_user.can_approve_cha?
+      #   local_params.except(:reviewed_by_supervisor)
+      # else
+      #   local_params
+      # end
+      local_params
+    end
+
+    def set_medications
+      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
+    end
+
+    def set_problems
+      @problems = @patient.problems.order(onset_date: :desc)
     end
 
     def set_locked
@@ -122,7 +135,9 @@ module Window::Health
     end
 
     def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_cha?
+      # update anyone can review a cha now
+      # form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_cha?
+      form_params[:reviewed_by_supervisor]=='yes'
     end
 
     def completed?

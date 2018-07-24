@@ -16,6 +16,9 @@ module Window::Health
 
     def update
       @patient.update(patient_params)
+      if patient_params[:care_coordinator_id].present?
+        @patient.build_team_memeber!(patient_params[:care_coordinator_id], current_user)
+      end
       if request.xhr?
         head :ok and return
       else

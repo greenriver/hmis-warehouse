@@ -520,12 +520,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           select(:client_id).
           distinct.
           count
-        missing_clients = counts.values.reduce(&:+).map(&:first).to_set
+        incorrect_clients = counts.values.reduce(&:+).map(&:first).to_set
+        missing_clients = counts.select{|k,_| k.include?('missing')}.values.reduce(&:+).map(&:first).to_set
+        refused_clients = counts.select{|k,_| k.include?('refused')}.values.reduce(&:+).map(&:first).to_set
+        does_not_know_clients = counts.select{|k,_| k.include?('unknown')}.values.reduce(&:+).map(&:first).to_set
+
         totals[:total_missing] ||= Set.new
         totals[:total_missing] += missing_clients
         answers[:project_missing][project.id][:total_missing] = missing_clients.size
         answers[:project_missing][project.id][:total_missing_percentage] = in_percentage(missing_clients.size, clients_in_project.size)
-        answers[:project_missing][project.id][:score] = in_percentage(missing_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:total_refused] = refused_clients.size
+        answers[:project_missing][project.id][:total_refused_percentage] = in_percentage(refused_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:total_unknown] = does_not_know_clients.size
+        answers[:project_missing][project.id][:total_unknown_percentage] = in_percentage(does_not_know_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:total_incorrect] = incorrect_clients.size
+        answers[:project_missing][project.id][:total_incorrect_percentage] = in_percentage(incorrect_clients.size, clients_in_project.size)
+        answers[:project_missing][project.id][:score] = in_percentage(incorrect_clients.size, clients_in_project.size)
       end
       answers[:project_missing][:totals] = totals.map do |key, clients|
         [key, clients.count]

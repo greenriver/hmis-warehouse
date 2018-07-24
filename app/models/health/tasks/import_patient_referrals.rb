@@ -5,12 +5,14 @@ module Health::Tasks
   class ImportPatientReferrals
     FULL_STRING = 'ASSIGNMENT_FULL'
     SUMMARY_STRING = 'SUMMARY_FULL'
-    attr_accessor :directory, :referrals_file 
+    attr_accessor :directory, :referrals_file
     def initialize(directory: 'var/health/referrals')
       @directory = directory
       @logger = Rails.logger
     end
 
+    # TODO: Add logic for partial files (if they don't include dis-enrollments, this logic should work with some
+    # tweaks to how it handles finding the files)
     def import!
       configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
       configs.each do |_, config|
@@ -26,7 +28,7 @@ module Health::Tasks
           validate_headers(file, file_path)
           headers = file.row(file.first_row)
           db_headers = Health::PatientReferral.column_headers.invert.values_at(*headers)
-          
+
           (2..file.last_row).each do |i|
             row = Hash[db_headers.zip(file.row(i))]
             patient_referral = Health::PatientReferral.where(medicaid_id: row[:medicaid_id]).
@@ -47,7 +49,7 @@ module Health::Tasks
           Health::PatientReferralImport.create(file_name: file_path)
         end
       end
-      
+
       remove_files()
     end
 
@@ -76,7 +78,7 @@ module Health::Tasks
 
     def fetch_files config
       sftp = sftp_connect(config)
-      
+
       source_path = File.join(config['path'], 'referrals')
       sftp.download!(source_path, directory, recursive: true)
 
@@ -85,7 +87,7 @@ module Health::Tasks
 
     def sftp_connect config
       Net::SFTP.start(
-        config['host'], 
+        config['host'],
         config['username'],
         password: config['password'],
         # verbose: :debug,
@@ -124,6 +126,6 @@ module Health::Tasks
     def notify msg
       @logger.info msg
       @notifier.ping msg if @send_notifications
-    end  
+    end
   end
 end

@@ -46,8 +46,12 @@ module Window::Health
     end
 
     def upload
-      @form.file = @health_file if @health_file
-      save_file if @form.errors.none? && @form.update(form_params)
+      if params[:form]
+        @form.file = @health_file if @health_file
+        save_file if @form.errors.none? && @form.update(form_params)
+      else
+        flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.'
+      end
       respond_with @form, location: polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
     end
 
@@ -80,7 +84,11 @@ module Window::Health
     def save_file
       if @health_file
         @form.health_file = @health_file
-        @form.save
+        if @form.health_file.invalid?
+          flash[:error] = @form.health_file.errors.full_messages.join(';')
+        else
+          @form.save
+        end
       end
     end
 

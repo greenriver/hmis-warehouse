@@ -1,0 +1,22 @@
+- if @reports.any?
+  %p= paginate @reports
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Report
+        %th Summary
+        %th Receiver
+        %th Start
+        %th End
+        %th Status
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td= link_to_if report.completed_at, 'Member Status', "#{warehouse_reports_health_member_status_report_url(report)}.xlsx"
+
+          %td= link_to_if report.completed_at, 'Summary', "#{warehouse_reports_health_member_status_report_url(report)}.xlsx?summary=true"
+
+          %td= report.receiver || 'All'
+          %td= report.report_start_date
+          %td= report.report_end_date
+          %td= report.status
