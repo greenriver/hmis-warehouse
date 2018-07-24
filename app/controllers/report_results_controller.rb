@@ -18,17 +18,17 @@ class ReportResultsController < ApplicationController
       }
       # There are a few required project descriptor fields.  Without these the report won't run cleanly
       @missing_data[:missing_project_type] = GrdaWarehouse::Hud::Project.joins(:organization).
-        coc_funded.residential.
+        coc_funded.hud_residential.
         where(HousingType: nil).
         pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
         map{|p, o| "#{o} - #{p}"}
       @missing_data[:missing_geocode] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
-        merge(GrdaWarehouse::Hud::Project.coc_funded.residential).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(Geocode: nil).
         pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
         map{|p, o| "#{o} - #{p}"}
       @missing_data[:missing_gepgraphy_type] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
-        merge(GrdaWarehouse::Hud::Project.coc_funded.residential).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(GeographyType: nil).
         pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
         map{|p, o| "#{o} - #{p}"}
