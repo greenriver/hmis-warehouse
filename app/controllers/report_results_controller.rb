@@ -10,7 +10,7 @@ class ReportResultsController < ApplicationController
   def index
     @results = report_result_scope
 
-    if @results.first.report.class.name.include?('::Lsa::')
+    if @report.class.name.include?('::Lsa::')
       @missing_data = {
         missing_project_type: [],
         missing_geocode: [],
