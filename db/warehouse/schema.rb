@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180716142944) do
+ActiveRecord::Schema.define(version: 20180716181552) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2614,7 +2614,7 @@ ActiveRecord::Schema.define(version: 20180716142944) do
   create_table "uploads", force: :cascade do |t|
     t.integer  "data_source_id"
     t.integer  "user_id"
-    t.string   "file",                             null: false
+    t.string   "file",                              null: false
     t.float    "percent_complete"
     t.string   "unzipped_path"
     t.json     "unzipped_files"
@@ -2622,13 +2622,14 @@ ActiveRecord::Schema.define(version: 20180716142944) do
     t.json     "import_errors"
     t.string   "content_type"
     t.binary   "content"
-    t.datetime "created_at",                       null: false
-    t.datetime "updated_at",                       null: false
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
     t.datetime "started_at"
     t.datetime "completed_at"
     t.datetime "deleted_at"
     t.integer  "delayed_job_id"
-    t.boolean  "deidentified",     default: false
+    t.boolean  "deidentified",      default: false
+    t.boolean  "project_whitelist", default: false
   end
 
   add_index "uploads", ["deleted_at"], name: "index_uploads_on_deleted_at", using: :btree
@@ -2889,6 +2890,13 @@ ActiveRecord::Schema.define(version: 20180716142944) do
   end
 
   add_index "weather", ["url"], name: "index_weather_on_url", using: :btree
+
+  create_table "whitelisted_projects_for_clients", force: :cascade do |t|
+    t.integer  "data_source_id", null: false
+    t.string   "ProjectID",      null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   add_foreign_key "Affiliation", "data_sources"
   add_foreign_key "Client", "data_sources"
