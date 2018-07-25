@@ -59,7 +59,7 @@ module Window::Clients
 
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
-      rescue Exception => e
+      rescue => e
         # flash[:error] = e.message
         render action: :new
         return
