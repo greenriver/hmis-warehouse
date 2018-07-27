@@ -21,13 +21,44 @@ module GrdaWarehouse
     end
 
     def save_zip_to(path)
-      reconstitute_path = File.join(path, file.file.filename)
-      FileUtils.mkdir_p(path) unless File.directory?(path)
-      File.open(reconstitute_path, 'w+b') do |file|
+      reconstitute_path = ::File.join(path, file.file.filename)
+      FileUtils.mkdir_p(path) unless ::File.directory?(path)
+      ::File.open(reconstitute_path, 'w+b') do |file|
         file.write(content)
       end
       reconstitute_path
     end
+
+    # unzip the export to a path, returns directory path containing csv files
+    def unzip_to path
+      Rails.logger.info "Re-constituting zip file to: #{path}"
+      zip_path = save_zip_to(path)
+      begin
+        unzipped_files = []
+        extract_path = zip_path.gsub('.zip', '')
+        Rails.logger.info "Unzipping #{zip_path} to #{extract_path}"
+        Zip::File.open(zip_path) do |zip_file|
+          zip_file.each do |entry|
+            file_name = entry.name.split('/').last
+            next unless file_name.include?('.csv')
+            Rails.logger.info "Extracting #{file_name}"
+            unzip_path = "#{extract_path}/#{file_name}"
+            Rails.logger.info "To: #{extract_path}"
+            unzip_parent = ::File.dirname(unzip_path)
+            FileUtils.mkdir_p(unzip_parent) unless ::File.directory?(unzip_parent)
+            entry.extract(unzip_path)
+            unzipped_files << [GrdaWarehouse::Hud.hud_filename_to_model(file_name).name, unzip_path] if file_name.include?('.csv')
+          end
+        end
+      rescue StandardError => ex
+        Rails.logger.error ex.message
+        raise "Unable to extract file: #{zip_path}"
+      end
+      # If the file was extracted successfully, delete the source file,
+      ::File.delete(zip_path) if ::File.exist?(zip_path)
+      return extract_path
+    end
+
 
   end
 end

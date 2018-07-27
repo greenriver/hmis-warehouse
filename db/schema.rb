@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180716181011) do
+ActiveRecord::Schema.define(version: 20180722112728) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -169,6 +169,7 @@ ActiveRecord::Schema.define(version: 20180716181011) do
     t.json     "validations"
     t.json     "support"
     t.integer  "delayed_job_id"
+    t.integer  "file_id"
   end
 
   add_index "report_results", ["deleted_at"], name: "index_report_results_on_deleted_at", using: :btree
@@ -254,29 +255,30 @@ ActiveRecord::Schema.define(version: 20180716181011) do
     t.boolean  "can_view_assigned_cohorts",                           default: false
     t.boolean  "can_manage_organization_users",                       default: false
     t.boolean  "can_add_administrative_event",                        default: false
-    t.boolean  "can_manage_health_agency",                            default: false, null: false
     t.boolean  "can_view_project_data_quality_client_details",        default: false
-    t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
-    t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
-    t.boolean  "can_upload_whitelisted_hud_hmis_files",               default: false
-    t.boolean  "can_edit_warehouse_alerts",                           default: false
+    t.boolean  "can_manage_health_agency",                            default: false, null: false
     t.boolean  "can_approve_patient_assignments",                     default: false
     t.boolean  "can_manage_claims",                                   default: false
     t.boolean  "can_manage_all_patients",                             default: false
     t.boolean  "can_manage_patients_for_own_agency",                  default: false
-    t.boolean  "can_manage_care_coordinators",                        default: false
-    t.boolean  "can_approve_cha",                                     default: false
-    t.boolean  "can_approve_ssm",                                     default: false
-    t.boolean  "can_approve_release",                                 default: false
-    t.boolean  "can_approve_participation",                           default: false
     t.boolean  "can_edit_all_patient_items",                          default: false
     t.boolean  "can_edit_patient_items_for_own_agency",               default: false
     t.boolean  "can_create_care_plans_for_own_agency",                default: false
     t.boolean  "can_view_all_patients",                               default: false
     t.boolean  "can_view_patients_for_own_agency",                    default: false
     t.boolean  "can_add_case_management_notes",                       default: false
+    t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
+    t.boolean  "can_approve_patient_items_for_agency",                default: false
+    t.boolean  "can_approve_cha",                                     default: false
+    t.boolean  "can_approve_ssm",                                     default: false
+    t.boolean  "can_approve_release",                                 default: false
+    t.boolean  "can_approve_participation",                           default: false
+    t.boolean  "can_manage_care_coordinators",                        default: false
     t.boolean  "can_manage_accountable_care_organizations",           default: false
     t.boolean  "can_view_member_health_reports",                      default: false
+    t.boolean  "can_edit_warehouse_alerts",                           default: false
+    t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
+    t.boolean  "can_upload_whitelisted_hud_hmis_files",               default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
