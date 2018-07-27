@@ -12,9 +12,9 @@
     %td
       = report.user&.name
     %td
-      = link_to warehouse_reports_hmis_export_url(report) do
+      = link_to warehouse_reports_hashed_only_hmis_export_url(report) do
         Download
     %td= render 'parameters', report: report
     %td
-      = link_to warehouse_reports_hmis_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
+      = link_to warehouse_reports_hashed_only_hmis_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
         %i.icon-cross

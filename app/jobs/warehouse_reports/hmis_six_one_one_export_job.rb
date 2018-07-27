@@ -4,7 +4,7 @@ module WarehouseReports
 
     queue_as :hmis_six_one_one_export
 
-    def perform options
+    def perform options, report_url: warehouse_reports_hmis_exports_url
       options = options.with_indifferent_access
       report = Exporters::HmisSixOneOne::Base.new(
         start_date: options[:start_date],
@@ -16,7 +16,7 @@ module WarehouseReports
         include_deleted: options[:include_deleted],
         user_id: options[:user_id]
       ).export!
-      NotifyUser.hmis_export_finished(options[:user_id], report.id).deliver_later
+      NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later
     end
 
     def log msg, underline: false
@@ -24,7 +24,7 @@ module WarehouseReports
       Rails.logger.info msg
       Rails.logger.info "="*msg.length if underline
     end
-    
-    
+
+
   end
 end
