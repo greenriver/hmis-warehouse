@@ -1,11 +1,3 @@
-.row
-  .col-sm-7
-    %h1= content_for :title
-  .col-sm-5.text-right
-    - if @consent_form_url.present?
-      = link_to @consent_form_url, class: 'btn btn-secondary' do
-        %span.icon-download2
-        Blank consent form
-    = link_to polymorphic_path([:new] + file_path_generator, client_id: @client.id), class: 'btn btn-primary' do
-      %span.icon-plus
-      Upload a file
+= link_to polymorphic_path([:new] + file_path_generator, client_id: @client.id), class: 'btn btn-primary' do
+  %span.icon-plus
+  Upload a file
