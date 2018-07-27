@@ -7,7 +7,7 @@ class ReportResult < ActiveRecord::Base
   belongs_to :delayed_job, class_name: Delayed::Job.name
 
   scope :most_recent, -> do
-    where(percent_complete: 100).group(:type).maximum(:updated_at) 
+    where(percent_complete: 100).group(:type).maximum(:updated_at)
   end
 
   delegate :download_type, to: :report
@@ -21,7 +21,7 @@ class ReportResult < ActiveRecord::Base
   # 1. Set a timestamp as the group,
   # 2. Set the import_id
   # 3. Mark as 0% complete
-  
+
   def last_run
     created_at
   end
@@ -59,6 +59,10 @@ class ReportResult < ActiveRecord::Base
 
   def as_xml
     report.as_xml self
+  end
+
+  def file
+    GrdaWarehouse::ReportResultFile.where(id: file_id)
   end
 
   def to_partial_path

@@ -4,10 +4,38 @@ class ReportResultsController < ApplicationController
   before_action :set_report_result, only: [:show, :edit, :update, :destroy]
   helper_method :sort_column, :sort_direction
   helper_method :default_pit_date, :default_chronic_date
+  include ArelHelper
 
   # GET /report_results
   def index
     @results = report_result_scope
+
+    if @report.class.name.include?('::Lsa::')
+      @missing_data = {
+        missing_project_type: [],
+        missing_geocode: [],
+        missing_gepgraphy_type: [],
+      }
+      # There are a few required project descriptor fields.  Without these the report won't run cleanly
+      @missing_data[:missing_project_type] = GrdaWarehouse::Hud::Project.joins(:organization).
+        coc_funded.hud_residential.
+        where(HousingType: nil).
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
+        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
+      @missing_data[:missing_geocode] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+        where(Geocode: nil).
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
+        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
+      @missing_data[:missing_gepgraphy_type] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+        where(GeographyType: nil).
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
+        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
+      @missing_projects = @missing_data.values.flatten.uniq
+      @show_missing_data = @missing_projects.any?
+    end
+
     at = @results.arel_table
     # sort / paginate
     sort = at[sort_column.to_sym].send(sort_direction)
@@ -30,7 +58,7 @@ class ReportResultsController < ApplicationController
           redirect_to action: :show
         end
         response.headers['Content-Type'] = 'text/csv'
-        response.headers['Content-Disposition'] = "attachment; filename=\"#{@report.name}-#{@result.created_at}.csv\""
+        response.headers['Content-Disposition'] = "attachment; filename=\"#{@report.name}-#{@result.created_at.strftime('%Y-%m-%dT%H%M ')}.csv\""
       end
       format.xml do
         unless @result.results.present?
@@ -38,7 +66,15 @@ class ReportResultsController < ApplicationController
           redirect_to action: :show
         end
         response.headers['Content-Type'] = 'text/xml'
-        response.headers['Content-Disposition'] = "attachment; filename=\"#{@report.name}-#{@result.created_at}.xml\""
+        response.headers['Content-Disposition'] = "attachment; filename=\"#{@report.name}-#{@result.created_at.strftime('%Y-%m-%dT%H%M ')}.xml\""
+      end
+      format.zip do
+        if @result.file_id.blank? || @result.download_type != :zip
+          flash[:alert] = "Unable to download zip file for #{@report.name}"
+          redirect_to action: :show
+        end
+        file = @result.file.first
+        send_data file.content, filename: "#{@report.name}-#{@result.created_at.strftime('%Y-%m-%dT%H%M ')}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end
@@ -84,8 +120,8 @@ class ReportResultsController < ApplicationController
     end
     if run_report_engine
       job = Delayed::Job.enqueue Reporting::RunReportJob.new(
-        report: @report, 
-        result_id: @result.id, 
+        report: @report,
+        result_id: @result.id,
         options: options
       ), queue: :default_priority
       @result.update(delayed_job_id: job.id)
@@ -137,11 +173,11 @@ class ReportResultsController < ApplicationController
       allowed_params = params.require(:report_result).permit(
         :name,
         options: [
-          :project, 
-          :data_source, 
-          :pit_date, 
-          :chronic_date, 
-          :report_start, 
+          :project,
+          :data_source,
+          :pit_date,
+          :chronic_date,
+          :report_start,
           :report_end,
           :data_source_id,
           :coc_code,
@@ -153,7 +189,7 @@ class ReportResultsController < ApplicationController
         ],
         results: ReportGenerators::Ahar::Fy2016::Base.questions,
       )
-      
+
     end
 
     def sort_column
@@ -167,7 +203,7 @@ class ReportResultsController < ApplicationController
     def default_pit_date
       'Jan 31, 2018'
     end
-    
+
     def default_chronic_date
       'Jan 31, 2018'
     end

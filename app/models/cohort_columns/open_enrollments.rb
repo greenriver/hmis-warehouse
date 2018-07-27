@@ -29,13 +29,15 @@ module CohortColumns
     end
 
     def display_read_only user
-      value(cohort_client).map do |project_type, text|
-        content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
-          content_tag(:em, class: 'service-type__program-type') do
-            text
+      if open_enrollments = value(cohort_client)
+        open_enrollments.map do |project_type, text|
+          content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
+            content_tag(:em, class: 'service-type__program-type') do
+              text
+            end
           end
-        end
-      end.join(' ').html_safe
+        end.join(' ').html_safe
+      end
     end
   end
 end
