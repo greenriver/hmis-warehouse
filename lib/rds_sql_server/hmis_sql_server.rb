@@ -25,91 +25,90 @@ module HmisSqlServer
     }.freeze
   end
 
-  class Affiliation < SqlServerBase
+  class LsaBase  < SqlServerBase
+    include TsqlImport
+
+    def clean_row_for_import row:, headers:
+      # replace blanks with nil
+      row.map(&:presence)
+    end
+  end
+
+  class Affiliation < LsaBase
     self.table_name = :hmis_Affiliation
-    include TsqlImport
 
   end
 
-  class Client < SqlServerBase
+  class Client < LsaBase
     self.table_name = :hmis_Client
-    include TsqlImport
 
   end
 
-  class Disability < SqlServerBase
+  class Disability < LsaBase
     self.table_name = :hmis_Disabilities
-    include TsqlImport
 
   end
-  class EmploymentEducation < SqlServerBase
+  class EmploymentEducation < LsaBase
     self.table_name = :hmis_EmploymentEducation
-    include TsqlImport
 
   end
-  class Enrollment < SqlServerBase
+  class Enrollment < LsaBase
     self.table_name = :hmis_Enrollment
-    include TsqlImport
 
   end
-  class EnrollmentCoc < SqlServerBase
+  class EnrollmentCoc < LsaBase
     self.table_name = :hmis_EnrollmentCoC
-    include TsqlImport
 
   end
-  class Exit < SqlServerBase
+  class Exit < LsaBase
     self.table_name = :hmis_Exit
-    include TsqlImport
 
   end
-  class Export < SqlServerBase
+  class Export < LsaBase
     self.table_name = :hmis_Export
-    include TsqlImport
 
   end
-  class Funder < SqlServerBase
+  class Funder < LsaBase
     self.table_name = :hmis_Funder
-    include TsqlImport
 
   end
-  class HealthAndDv < SqlServerBase
+  class HealthAndDv < LsaBase
     self.table_name = :hmis_HealthAndDV
-    include TsqlImport
 
   end
-  class IncomeBenefit < SqlServerBase
+  class IncomeBenefit < LsaBase
     self.table_name = :hmis_IncomeBenefits
-    include TsqlImport
 
   end
-  class Inventory < SqlServerBase
+  class Inventory < LsaBase
     self.table_name = :hmis_Inventory
-    include TsqlImport
 
   end
-  class Organization < SqlServerBase
+  class Organization < LsaBase
     self.table_name = :hmis_Organization
-    include TsqlImport
 
   end
-  class Project < SqlServerBase
+  class Project < LsaBase
     self.table_name = :hmis_Project
-    include TsqlImport
+
+    def clean_row_for_import row:, headers:
+      # Default to no for VictimServicesProvider
+      field_index = headers.index('VictimServicesProvider')
+      row[field_index] = row[field_index].presence || 0
+      super(row: row, headers: headers)
+    end
 
   end
-  class ProjectCoc < SqlServerBase
+  class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
-    include TsqlImport
 
   end
-  class Service < SqlServerBase
+  class Service < LsaBase
     self.table_name = :hmis_Services
-    include TsqlImport
 
   end
-  class Geography < SqlServerBase
+  class Geography < LsaBase
     self.table_name = :hmis_Geography
-    include TsqlImport
 
   end
 end

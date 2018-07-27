@@ -20,19 +20,19 @@ class ReportResultsController < ApplicationController
       @missing_data[:missing_project_type] = GrdaWarehouse::Hud::Project.joins(:organization).
         coc_funded.hud_residential.
         where(HousingType: nil).
-        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
-        map{|p, o| "#{o} - #{p}"}
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
+        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
       @missing_data[:missing_geocode] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
         merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(Geocode: nil).
-        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
-        map{|p, o| "#{o} - #{p}"}
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
+        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
       @missing_data[:missing_gepgraphy_type] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
         merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(GeographyType: nil).
-        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql).
-        map{|p, o| "#{o} - #{p}"}
-      @missing_projects = @missing_data.values.flatten.uniq.sort
+        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
+        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
+      @missing_projects = @missing_data.values.flatten.uniq
       @show_missing_data = @missing_projects.any?
     end
 

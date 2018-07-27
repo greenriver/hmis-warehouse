@@ -1,7 +1,16 @@
-= render 'file_upload'
-= render 'download_warning'
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right
+    = render 'file_upload'
 = render 'permission_warning'
-= render 'health_warning'
+.row
+  .col-sm-8
+    = render 'download_warning'
+    = render 'health_warning'
+  .col-sm-4
+    = render 'blank_file_list', file_list_title: 'Blank Files'
+
 - if @client.client_files.any?
   - if @consent_files.any?
     %section

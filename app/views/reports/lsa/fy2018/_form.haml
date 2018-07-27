@@ -5,13 +5,15 @@
     %thead
       %tr
         %th Project
+        %th Project Type
         %th HousingType
         %th Geocode
         %th GeographyType
     %tbody
       - @missing_projects.each do |project|
         %tr
-          %td= project
+          %td= project[:project]
+          %th= ::HUD.project_type_brief project[:project_type]
           %td= checkmark_or_x(! @missing_data[:missing_project_type].include?(project))
           %td= checkmark_or_x(! @missing_data[:missing_geocode].include?(project))
           %td= checkmark_or_x(! @missing_data[:missing_gepgraphy_type].include?(project))
