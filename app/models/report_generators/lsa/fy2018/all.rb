@@ -133,13 +133,7 @@ module ReportGenerators::Lsa::Fy2018
         if content.any?
           # this fixes dates that default to 1900-01-01 if you send an empty string
           content.map! do |row|
-            row.map! do |data|
-              if data.present?
-                data
-              else
-                nil
-              end
-            end
+            row = klass.new.clean_row_for_import(row: row, headers: headers)
           end
           insert_batch(klass, headers, content)
         end
