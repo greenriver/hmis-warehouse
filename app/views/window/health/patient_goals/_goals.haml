@@ -11,9 +11,9 @@
           - @patient.hpc_goals.each_with_index do |goal, index|
             = render goal, readonly: true, index: (index + 1)
         - else
-          %p.no-data.jEmpty
-            No goals currently.
-          .c-card__internal-primary-action.jEmpty
-            = link_to new_goal_path, class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+          .jEmpty
+            %p.jEmpty
+              No goals currently.
+            = link_to new_goal_path, class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
               %i.icon-plus
               Add Goal
