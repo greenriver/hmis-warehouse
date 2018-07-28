@@ -44,7 +44,7 @@ module GrdaWarehouse::Tasks
         ],
         method: :vispdat1
       },
-      "Report 4" => {
+      "LPG" => {
         headers: [
           "Entry Exit Provider Id",
           "LPG",
