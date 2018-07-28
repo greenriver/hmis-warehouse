@@ -4,7 +4,7 @@
   $('.jTeamMember[data-id="<%= @member.id %>"]').remove()
   $container = $('.health__team-members')
   if not $container.find('.jTeamMember').length
-    $container.append " <p class='no-data'>No team members currently.</p> "
+    $container.append " <div class='j-no-data'><p class='ml-3'>No team members currently.</p></div> "
   <% form = nil %>
   <% simple_form_for @careplan, url: polymorphic_path(careplan_path_generator, id: @careplan) do |f| %>
     <% form = f %>

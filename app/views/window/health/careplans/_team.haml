@@ -11,7 +11,7 @@
           - @patient.team_members.each do |member|
             = render 'window/health/team_members/team_member', member: member, restore: false, delete: true
         - else
-          .col-sm-4
+          .j-no-data.ml-3
             %p
               No team members currently.
             = link_to polymorphic_path([:new] + careplan_path_generator + [:team, :member], careplan_id: @careplan.id), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
