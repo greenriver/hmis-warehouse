@@ -21,16 +21,16 @@
       - if params[:q]
         = hidden_field_tag :q, params[:q]
 
-      .row.o-filtration__option
+      .o-filtration__option.row
         .col-sm-12
           %label Dates Served
           .o-filtration__option-row
             .input-group.date{data: {provide: :datepicker}}
-              %input.form-control{name: :start_date, type: :date, value: @start_date}
+              %input.form-control{name: :start_date, type: :text, value: @start_date}
               %span.input-group-addon.icon-calendar
             .o-filtration__separator to
             .input-group.date{data: {provide: :datepicker}}
-              %input.form-control{name: :end_date, type: :date, value: @end_date}
+              %input.form-control{name: :end_date, type: :text, value: @end_date}
               %span.input-group-addon.icon-calendar
 
       .row.o-filtration__option

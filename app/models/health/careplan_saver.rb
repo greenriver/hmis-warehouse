@@ -17,15 +17,21 @@ module Health
 
 
     def update
-      @careplan.class.transaction do
-        if @careplan.just_signed?
-          @qualifying_activity.activity = 'Person-Centered Treatment Plan signed'
+      succss = true
+      begin
+        @careplan.class.transaction do
+          if @careplan.just_signed?
+            @qualifying_activity.activity = 'Person-Centered Treatment Plan signed'
+          end
+          @careplan.save!
+          @qualifying_activity.source_id = @careplan.id
+          @qualifying_activity.save
+          @careplan.set_lock
         end
-        @careplan.save!
-        @qualifying_activity.source_id = @careplan.id
-        @qualifying_activity.save
-        @careplan.set_lock
+      rescue Exception => e
+        success = false
       end
+      return success
     end
 
     protected def setup_qualifying_activity

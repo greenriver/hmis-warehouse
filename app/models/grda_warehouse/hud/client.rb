@@ -1360,11 +1360,15 @@ module GrdaWarehouse::Hud
             or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
         end
       end
-      client_ids = client_scope.
-        joins(:warehouse_client_source).searchable.
-        where(where).
-        preload(:destination_client).
-        map{|m| m.destination_client.id}
+      begin
+        client_ids = client_scope.
+          joins(:warehouse_client_source).searchable.
+          where(where).
+          preload(:destination_client).
+          map{|m| m.destination_client.id}
+      rescue RangeError => e
+        return none
+      end
 
       client_ids << text if numeric && self.destination.where(id: text).exists?
       where(id: client_ids)

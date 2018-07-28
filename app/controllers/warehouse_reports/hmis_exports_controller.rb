@@ -25,7 +25,7 @@ module WarehouseReports
     end
 
     def set_exports
-      @exports = export_source.ordered.
+      @exports = export_scope.ordered.
         for_list.
         limit(50)
     end
@@ -33,7 +33,7 @@ module WarehouseReports
     def create
       @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
       if @filter.valid?
-        WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json)
+        WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
         redirect_to warehouse_reports_hmis_exports_path
       else
         render :index
@@ -56,6 +56,10 @@ module WarehouseReports
 
     def export_source
       GrdaWarehouse::HmisExport
+    end
+
+    def export_scope
+      export_source.all
     end
 
     def report_params

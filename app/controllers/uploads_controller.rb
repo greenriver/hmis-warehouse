@@ -48,7 +48,7 @@ class UploadsController < ApplicationController
       when 'hmis_51'
         job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
       when 'hmis_611'
-        job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
+        job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @deidentified), queue: :default_priority
       end
       @upload.update(delayed_job_id: job.id)
     end
@@ -57,7 +57,7 @@ class UploadsController < ApplicationController
 
   private def upload_params
     params.require(:grda_warehouse_upload).
-      permit(:file)
+      permit(:file, :deidentified, :project_whitelist)
   end
 
   private def data_source_source
