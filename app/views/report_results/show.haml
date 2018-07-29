@@ -37,6 +37,10 @@
         %span.icon-download2
         Download
         = @result.download_type.upcase
+    - if @result.download_type.present? && @result.download_type == :zip
+      = link_to({format: @result.download_type},{class: 'btn btn-primary'}) do
+        %span.icon-download2
+        Download
 - if @result.job_status.present?
   .alert.alert-danger
     = @result.job_status
