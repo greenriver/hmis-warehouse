@@ -50,7 +50,7 @@ module Health
     end
 
     def require_user_has_health_agency!
-      return true if current_user.health_agency.present?
+      return true if current_user.health_agencies.any?
       not_authorized!
     end
   end
