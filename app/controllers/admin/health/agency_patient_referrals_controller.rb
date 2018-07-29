@@ -63,9 +63,11 @@ module Admin::Health
           where(agency_id: @user_agencies.map(&:id)).
           where(claimed: @active_patient_referral_group == 'our patient').
           where(patient_referrals: {agency_id: nil, rejected: false}).
-          preload(:patient_referral).
-          group_by(&:agency)
-          
+          preload(patient_referral: [:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client}]).
+          group_by do |row|
+            @user_agencies.select{|agency| agency.id == row.agency_id}.first
+          end
+
       end
       render 'index'
     end
