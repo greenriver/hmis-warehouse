@@ -1,10 +1,11 @@
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
+  require 'memoist'
   include ArelHelper
   validates :name, presence: true
   validates :short_name, presence: true
 
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
-  
+
   has_many :import_logs
   has_many :services, class_name: GrdaWarehouse::Hud::Service.name, inverse_of: :data_source
   has_many :enrollments, class_name: GrdaWarehouse::Hud::Enrollment.name, inverse_of: :data_source
@@ -19,7 +20,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
-  
+
   scope :importable, -> do
     source.where(authoritative: false)
   end
@@ -27,15 +28,15 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   scope :source, -> do
     where.not(source_type: nil)
   end
-  
+
   scope :destination, -> do
     where(source_type: nil)
   end
-  
+
   scope :importable_via_samba, -> do
     importable.where(source_type: "samba")
   end
-  
+
   scope :importable_via_sftp, -> do
     importable.where(source_type: "sftp")
   end
@@ -224,5 +225,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def has_data?
     exports.any?
+  end
+
+  class << self
+    extend Memoist
+    def health_authoritative_id
+      authoritative.where(short_name: 'Health')&.first&.id
+    end
+    memoize :health_authoritative_id
   end
 end

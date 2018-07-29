@@ -21,7 +21,9 @@ module Importers::HMISSixOneOne
       data_source_id: ,
       logger: Rails.logger,
       debug: true,
-      remove_files: true
+      remove_files: true,
+      deidentified: false,
+      project_whitelist: false
     )
       setup_notifier('HMIS Importer 6.11')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
@@ -30,6 +32,8 @@ module Importers::HMISSixOneOne
       @debug = debug
       @soft_delete_time = Time.now.change(usec: 0) # Active Record milliseconds and Rails don't always agree, so zero those out so future comparisons work.
       @remove_files = remove_files
+      @deidentified = deidentified
+      @project_whitelist = project_whitelist
       setup_import(data_source: @data_source)
     end
 
@@ -214,7 +218,7 @@ module Importers::HMISSixOneOne
         errors = stats.delete(:errors)
         setup_summary(klass.file_name)
         @import.summary[klass.file_name].merge!(stats)
-        if errors.any?
+        if errors.present?
           errors.each do |error|
             add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
           end
@@ -238,7 +242,7 @@ module Importers::HMISSixOneOne
         errors = stats.delete(:errors)
         setup_summary(klass.file_name)
         @import.summary[klass.file_name].merge!(stats)
-        if errors.any?
+        if errors.present?
           errors.each do |error|
             add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
           end
@@ -358,6 +362,7 @@ module Importers::HMISSixOneOne
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
+      
       read_from.each_line do |line|
         begin
           while short_line?(line, comma_count)
@@ -375,6 +380,10 @@ module Importers::HMISSixOneOne
           end
           begin
             row = CSV.parse_line(line, headers: header)
+            # logger.debug "#{row}"
+            if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'   
+              klass.deidentify_client_name row           
+            end
             if row.count == header.count
               row = set_useful_export_id(row: row, export_id: export_id_addition)
               track_max_updated(row)

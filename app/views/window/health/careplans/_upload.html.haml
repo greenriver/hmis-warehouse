@@ -2,8 +2,12 @@
 .row
   .col-sm-12
     = simple_form_for @careplan, url: polymorphic_path([:upload] + careplan_path_generator, client_id: @client.id, id: @careplan.id), as: :form, multipart: true do |f|
-
-      = f.error_notification
+      - error_messages = @careplan.errors.full_messages
+      - if error_messages.size == 1 && error_messages[0] == "Provider can't be blank"
+        - if @careplan.health_file.present?
+          .alert.alert-danger Please review the problems above:
+      - else
+        = f.error_notification
       .row
         .col-sm-6
           = f.input :file, as: :file

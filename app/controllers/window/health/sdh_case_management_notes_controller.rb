@@ -14,7 +14,7 @@ module Window::Health
     end
 
     def new
-      last_form = Health::SdhCaseManagementNote.last_form
+      last_form = @patient.sdh_case_management_notes.last_form
       @note = @patient.sdh_case_management_notes.
         build(
           user: current_user,

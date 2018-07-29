@@ -59,5 +59,9 @@ module GrdaWarehouse::Hud
       end
     end
 
+    scope :in_coc, -> (coc_code:) do
+      where(CoCCode: coc_code)
+    end
+
   end
 end

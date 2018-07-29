@@ -5,7 +5,22 @@ module Exporters::Tableau::EntryExit
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       model = she_t.engine
+      scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: nil)
 
+      if path.present?
+        CSV.open path, 'wb', headers: true do |csv|
+          export model, spec, scope, start_date, end_date, csv
+        end
+        return true
+      else
+        CSV.generate headers: true do |csv|
+          export model, spec, scope, start_date, end_date, csv
+        end
+      end
+    end
+
+    def scope_for_export start_date: default_start, end_date: default_end, coc_code: nil
+      model = she_t.engine
       spec = {
         data_source:                      she_t[:data_source_id],
         personal_id:                      c_t[:PersonalID],
@@ -20,7 +35,7 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name], # in use
         _prov_id:                         she_t[:project_id], # in use
         prog_type:                        she_t[model.project_type_column], # in use
-        coc_code:                         g_t[:CoCCode], # in use
+        coc_code:                         ec_t[:CoCCode], # in use
         entry_exit_entry_date:            she_t[:first_date_in_program], # in use
         entry_exit_exit_date:             she_t[:last_date_in_program], # in use
         client_age_at_entry:              she_t[:age], # in use
@@ -51,11 +66,11 @@ module Exporters::Tableau::EntryExit
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
       }
-  
+
       scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-        joins( project: :geographies, enrollment: :client).
+        joins( enrollment: :client).
         includes(enrollment: [:exit, :enrollment_coc_at_entry]).
         references(enrollment: [:exit, :enrollment_coc_at_entry]).
         # for aesthetics
@@ -65,25 +80,14 @@ module Exporters::Tableau::EntryExit
         order( she_t[:last_date_in_program].desc )
 
       if coc_code.present?
-        scope = scope.merge( pc_t.engine.in_coc coc_code: coc_code )
+        scope = scope.merge( ec_t.engine.in_coc coc_code: coc_code )
       end
 
       spec.each do |header, selector|
         next if selector.nil?
         scope = scope.select selector.as(header.to_s)
       end
-
-
-      if path.present?
-        CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, scope, start_date, end_date, csv
-        end
-        return true
-      else
-        CSV.generate headers: true do |csv|
-          export model, spec, scope, start_date, end_date, csv
-        end
-      end
+      return scope
     end
 
     def export model, spec, scope, start_date, end_date, csv
