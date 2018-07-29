@@ -33,6 +33,7 @@ module Window::Clients
 
     def create
       @file = file_source.new
+
       if !file_params[:file]
         @file.errors.add :file, "No uploaded file found"
         render :new
@@ -57,13 +58,24 @@ module Window::Clients
         }
 
         @file.assign_attributes(attrs)
-
         @file.tag_list.add(tag_list)
-        @file.save!
+        
+        requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?{|x| x.requires_effective_date}
+        requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?{|x| x.requires_expiration_date}
+      
+        if requires_effective_date && requires_expiration_date
+          @file.save!(context: :requires_expiration_and_effective_dates)
+        elsif requires_effective_date
+          @file.save!(context: :requires_effective_date)
+        elsif requires_expiration_date
+          @file.save!(context: :requires_expiration_date)
+        else 
+          @file.save!
+        end
 
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
-      rescue Exception => e
+      rescue => e
         # flash[:error] = e.message
         render action: :new
         return
