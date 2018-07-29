@@ -39,13 +39,11 @@
                   - if doc.signature_request_id.blank?
                     - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id})
                     = link_to url, method: :post, class: 'btn btn-sm btn-secondary' do
-                      %i.icon-exit
                       Collect patient signature
 
                   - elsif !doc.signed_by?('patient@openpath.biz')
                     - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: 'patient@openpath.biz', hash: doc.signer_hash('patient@openpath.biz'), post_sign_path: url_for, sign_out: true})
                     = link_to url, class: 'btn btn-sm btn-secondary' do
-                      %i.icon-exit
                       Collect patient signature
 
               %td= careplan.provider_signed_on&.to_date
