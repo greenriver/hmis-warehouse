@@ -1,6 +1,7 @@
 module Health
   class EpicQualifyingActivity < Base
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities
+    has_one :patient, through: :epic_patient
 
     scope :unprocessed, -> do
       where.not(id: Health::QualifyingActivity.where(source_type: name).select(:source_id))
@@ -27,6 +28,9 @@ module Health
     def create_qualifying_activity!
       # prevent duplication creation
       return true if Health::QualifyingActivity.where(source_type: self.class.name, source_id: id).exists?
+      # Don't add qualifying activities if we can't determine the patient
+      return true unless patient.present?
+
       user = User.setup_system_user()
       Health::QualifyingActivity.create!(
         patient_id: patient.id,

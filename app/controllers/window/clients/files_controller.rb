@@ -11,6 +11,10 @@ module Window::Clients
     def index
       @consent_editable = consent_editable?
       @consent_form_url = GrdaWarehouse::PublicFile.url_for_location 'client/hmis_consent'
+      @blank_files = GrdaWarehouse::PublicFile.known_hmis_locations.to_a.map do |location, title|
+        {title: title, url: GrdaWarehouse::PublicFile.url_for_location(location)}
+      end
+
       @consent_files = consent_scope
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)

@@ -186,6 +186,48 @@ module Health
       end
     end
 
+    # Priority:
+    # Authoritative: Epic (epic_patient)
+    # Updates from MassHealth (patient_referral)
+    def update_demographics_from_sources
+      if patient_referral
+        self.first_name = patient_referral.first_name
+        self.middle_name = patient_referral.middle_initial
+        self.last_name = patient_referral.last_name
+        self.birthdate = patient_referral.birthdate
+        self.gender = patient_referral.gender
+      end
+      if epic_patient
+        self.first_name = epic_patient.first_name
+        self.middle_name = epic_patient.middle_name
+        self.last_name = epic_patient.last_name
+        self.aliases = epic_patient.aliases
+        self.birthdate = epic_patient.birthdate
+        self.allergy_list = epic_patient.allergy_list
+        self.primary_care_physician = epic_patient.primary_care_physician
+        self.transgender = epic_patient.transgender
+        self.race = epic_patient.race
+        self.ethnicity = epic_patient.ethnicity
+        self.veteran_status = epic_patient.veteran_status
+        self.ssn = epic_patient.ssn
+        self.gender = epic_patient.gender
+        self.housing_status = epic_patient.housing_status
+        self.housing_status_timestamp = epic_patient.housing_status_timestamp
+        self.death_date = epic_patient.death_date
+      end
+      self.save if self.changed?
+      if client.present? && client.data_source_id == GrdaWarehouse::DataSource.health_authoritative_id
+        client.FirstName = self.first_name
+        client.LastName = self.last_name
+        client.SSN = self.ssn
+        client.save if client.changed?
+      end
+    end
+
+    def self.update_demographic_from_sources
+      all.each(&:update_demographics_from_sources)
+    end
+
     def available_team_members
       team_members.map{|t| [t.full_name, t.id]}
     end
@@ -282,6 +324,12 @@ module Health
       else
         nil
       end
+    end
+
+    # most recently updated Epic Patient
+    def epic_patient
+      return false unless epic_patients.exists?
+      epic_patients.order(updated_at: :desc).first
     end
 
     def email
@@ -402,7 +450,8 @@ module Health
 
     def build_team_memeber!(care_coordinator_id, current_user)
       user = User.find(care_coordinator_id)
-      team_member = Health::Team::CareCoordinator.new(
+      team_member = Health::Team::CareCoordinator.where(patient_id: id, email: user.email).first_or_initialize
+      team_member.assign_attributes(
         patient_id: id,
         first_name: user.first_name,
         last_name: user.last_name,
@@ -414,6 +463,7 @@ module Health
     end
 
     def available_care_coordinators
+      return [] unless health_agency.present?
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
     end

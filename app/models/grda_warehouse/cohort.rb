@@ -69,11 +69,11 @@ module GrdaWarehouse
       @client_search_result = scope.preload(
         {
           cohort_client_notes: :user,
-          client: [:processed_service_history, {cohort_clients: :cohort}]
+          client: [:source_clients, :processed_service_history, {cohort_clients: :cohort}]
         }
       )
     end
-    
+
     private def needs_client_search
       raise "call #search_clients first; scope: #{@client_search_scope.present?}; results: #{@client_search_result.count}" unless @client_search_scope.present? && @client_search_result.present?
     end
@@ -224,6 +224,8 @@ module GrdaWarehouse
         ::CohortColumns::RrhAssessmentContactInfo.new(),
         ::CohortColumns::RrhSsvfEligible.new(),
         ::CohortColumns::Reported.new(),
+        ::CohortColumns::Race.new(),
+        ::CohortColumns::Ethnicity.new(),
       ]
     end
 
