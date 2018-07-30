@@ -16,7 +16,7 @@ module Health
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     #TODO this needs to be changed for new health_file
     scope :valid, -> do
-      where(arel_table[:location].not_in([:nil, '']).or(arel_table[:health_file_id].not_eq(nil)))
+      where(arel_table[:location].not_in([:nil, '']).or(arel_table[:id].in(Health::ParticipationFormFile.select(:parent_id))))
     end
 
     attr_accessor :reviewed_by_supervisor, :file

@@ -15,9 +15,8 @@ module Health
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
-    #TODO this needs to be changed for new health_file
     scope :valid, -> do
-      where(arel_table[:file_location].not_in([:nil, '']).or(arel_table[:health_file_id].not_eq(nil)))
+      where(arel_table[:file_location].not_in([:nil, '']).or(arel_table[:id].in(Health::ReleaseFormFile.select(:parent_id))))
     end
 
     attr_accessor :reviewed_by_supervisor, :file
