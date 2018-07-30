@@ -12,7 +12,7 @@
         - path = admin_health_admin_index_path
         - if can_approve_patient_assignments?
           - path = review_admin_health_patient_referrals_path
-        - elsif (can_manage_health_agency? || can_manage_patients_for_own_agency?) && current_user.health_agency.present?
+        - elsif (can_manage_health_agency? || can_manage_patients_for_own_agency?) && current_user.health_agencies.any?
           - path = review_admin_health_agency_patient_referrals_path
         
         = link_to path, class: 'o-menu__link' do

@@ -1,0 +1,22 @@
+%strong= agency.name
+- relationship = pr.relationship_to(agency) || pr.relationships.build(agency: agency, claimed: nil)
+- path = relationship.new_record? ? admin_health_agency_patient_referrals_path : admin_health_agency_patient_referral_path(relationship)
+= simple_form_for relationship, url: path, namespace: "relationship_for_#{pr.id}", html: {data: {behavior: 'claim patient'}} do |f|
+  = f.input :agency_id, as: :hidden
+  = f.input :patient_referral_id, as: :hidden
+  = f.input :claimed, as: :hidden
+  -#
+    - if relationship.new_record?
+      - collection = [['Our Patient', true], ['Not Our Patient', false]]
+    - else
+      - collection = relationship.claimed? ? [['Not Our Patient', false]] : [['Our Patient', true]]
+  - collection = [['Our Patient', true], ['Not Our Patient', false]]
+  - collection.each do |c|
+    - btn_classes = ['padding-right-02', 'btn', 'btn-sm', 'mb-2']
+    - if relationship.claimed? && c[0] == 'Our Patient'
+      - btn_classes.push('btn-primary')
+    - elsif !relationship.claimed? && relationship.claimed != nil && c[0] == 'Not Our Patient'
+      - btn_classes.push('btn-primary')
+    - else
+      - btn_classes.push('btn-secondary')
+    = link_to c.first, '#', data: {behavior: 'claim patient', value: c.last.to_s}, class: btn_classes

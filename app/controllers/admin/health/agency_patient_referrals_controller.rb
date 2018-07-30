@@ -2,7 +2,8 @@ module Admin::Health
   class AgencyPatientReferralsController < HealthController
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
-    before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
+    # before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
+    before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral]
     before_action :load_new_patient_referral, only: [:review, :reviewed]
 
     include PatientReferral
@@ -10,13 +11,16 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
-      if @agency.present?
+      @display_claim_buttons_for = @user_agencies
+      if @user_agencies.any?
         @agency_patient_referral_ids = Health::AgencyPatientReferral.
-          where(agency_id: @agency.id).
-          select(:patient_referral_id)
+          where(agency_id: @user_agencies.map(&:id)).
+          group_by(&:patient_referral_id).
+          delete_if{|k, v| v.size != @user_agencies.size}.
+          keys
         @patient_referrals = Health::PatientReferral.
           unassigned.includes(:relationships).
-          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids.to_sql))).
+          where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
           references(:relationships).
           preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       end
@@ -46,14 +50,24 @@ module Admin::Health
           title: 'Reviewed as not our patient',
         }
       ]
-      if @agency.present?
-        @patient_referrals = Health::PatientReferral.
-          unassigned.
-          joins(:relationships).
-          where(agency_patient_referrals: {agency_id: @agency.id}).
-          where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
-          preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
+      if @user_agencies.any?
+        # @patient_referrals = Health::PatientReferral.
+        #   unassigned.
+        #   joins(:relationships).
+        #   where(agency_patient_referrals: {agency_id: @user_agencies.map(&:id)}).
+        #   where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
+        #   preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
         load_index_vars
+        @relationships = Health::AgencyPatientReferral.
+          joins(:patient_referral).
+          where(agency_id: @user_agencies.map(&:id)).
+          where(claimed: @active_patient_referral_group == 'our patient').
+          where(patient_referrals: {agency_id: nil, rejected: false}).
+          preload(patient_referral: [:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client}]).
+          group_by do |row|
+            @user_agencies.select{|agency| agency.id == row.agency_id}.first
+          end
+
       end
       render 'index'
     end
@@ -95,10 +109,18 @@ module Admin::Health
       )
     end
 
-    def load_agency_user
-      @agency_user = current_user.agency_user
-      @agency = @agency_user&.agency
-      if !@agency
+    # def load_agency_user
+    #   @agency_user = current_user.agency_user
+    #   @agency = @agency_user&.agency
+    #   if !@agency
+    #     @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
+    #   end
+    # end
+
+    def load_agency_users
+      @agency_users = current_user.agency_users
+      @user_agencies = current_user.health_agencies
+      if !@user_agencies.any?
         @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
       end
     end
