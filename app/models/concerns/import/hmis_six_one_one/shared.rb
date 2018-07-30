@@ -43,7 +43,7 @@ module Import::HMISSixOneOne::Shared
     def limit_to_hud_headers(row)
       row.to_h.slice(*hud_csv_headers)
     end
-
+    
     def clean_row_for_import(row)
       row = force_nulls(row)
       row = limit_to_hud_headers(row)
@@ -75,7 +75,7 @@ module Import::HMISSixOneOne::Shared
       end
       deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
       exists_in_incoming_file = row[:DateDeleted].blank?
-      incoming_updated_on_same_date = row[:DateUpdated].to_date == existing.updated_at.to_date
+      incoming_updated_on_same_date = row[:DateUpdated].utc.to_date == existing.updated_at.utc.to_date
       # Should be restored
       should_restore = deleted_previously && exists_in_incoming_file && incoming_updated_on_same_date
       if should_restore

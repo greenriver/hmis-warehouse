@@ -16,7 +16,9 @@ module Health
         when 'not_engaged'
           @patients = @patients.not_engaged
         when 'no_activities'
-          @patients = @patients.engaged.no_qualifying_activities_this_month
+          # @patients = @patients.engaged.no_qualifying_activities_this_month
+          # @elliot engaged means they would have a qualifying activity?
+          @patients = @patients.no_qualifying_activities_this_month
         when 'engagement_ending'
           @patients = @patients.engagement_ending
         end
@@ -48,7 +50,7 @@ module Health
     end
 
     def require_user_has_health_agency!
-      return true if current_user.health_agency.present?
+      return true if current_user.health_agencies.any?
       not_authorized!
     end
   end

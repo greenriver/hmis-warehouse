@@ -4,7 +4,8 @@
   .c-card__header.c-card__header--external
     %h2 Person-Centered Treatment Plan
     - unless @any_editable
-      = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-primary btn-sm' do
+      = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-secondary btn-sm' do
+        %i.icon-plus
         Create a Care Plan
   .c-card__content.c-card__content--flush.overflow-scroll
     - if @careplans.present?
@@ -49,7 +50,6 @@
 
               %td= careplan.provider_signed_on&.to_date
               %td= careplan.updated_at.to_date
-              %td= careplan.responsible_team_member&.full_name
               %td
                 = render "signable_document", careplan: careplan, doc: doc
                 - if careplan.editable?

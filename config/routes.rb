@@ -166,6 +166,11 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    resources :hashed_only_hmis_exports, except: [:edit, :update, :new] do
+      collection do
+        get :running
+      end
+    end
     resources :initiatives, except: [:edit, :update, :new] do
       get '(/:token)', controller: 'initiatives', action: :show, on: :member
       collection do
@@ -493,7 +498,7 @@ Rails.application.routes.draw do
       end
       resources :users, only: [:index] do
         post :update, on: :collection
-        resources :agency_users, only: [:new, :edit, :create, :update]
+        resources :agency_users, only: [:new, :create]
       end
       resources :roles, only: [:index, :edit, :update]
     end

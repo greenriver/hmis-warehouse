@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180716202012) do
+ActiveRecord::Schema.define(version: 20180717174942) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -413,6 +413,7 @@ ActiveRecord::Schema.define(version: 20180716202012) do
     t.string   "note"
     t.string   "name"
     t.float    "size"
+    t.integer  "parent_id"
   end
 
   add_index "health_files", ["type"], name: "index_health_files_on_type", using: :btree

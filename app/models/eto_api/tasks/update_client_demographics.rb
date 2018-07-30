@@ -18,7 +18,7 @@ module EtoApi::Tasks
       @one_off = one_off
 
       setup_notifier('ETO API Importer')
-      
+
       #@api.trace = false
     end
 
@@ -40,7 +40,7 @@ module EtoApi::Tasks
       # 635 = Assigned Counselor
       #
       # 639 = Main Outreach Counselor
-      
+
       # Loop over all items in the config
       api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
       api_config.to_a.reverse.to_h.each do |key, conf|
@@ -78,7 +78,7 @@ module EtoApi::Tasks
               current_hmis_clients = GrdaWarehouse::HmisClient.count
               current_hmis_forms = GrdaWarehouse::HmisForm.count
               msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
-              Rails.logger.info msg 
+              Rails.logger.info msg
               notifier.ping msg if send_notifications
               return
             end
@@ -96,7 +96,7 @@ module EtoApi::Tasks
       subject_id = client.hmis_client.subject_id
       return unless subject_id.present?
       # hard-coding touch_point_id: 75 because that's the only one we care about at the moment
-      
+
       site_id = client.site_id_in_data_source
 
       # See /admin/eto_api/assessments for details
@@ -108,10 +108,10 @@ module EtoApi::Tasks
         responses = @api.list_touch_point_responses(site_id: site_id, subject_id: subject_id, touch_point_id: tp_id)
         if responses
           save_touch_points(
-            site_id: site_id, 
-            touch_point_id: tp_id, 
-            responses: responses, 
-            client_id: client.client_id, 
+            site_id: site_id,
+            touch_point_id: tp_id,
+            responses: responses,
+            client_id: client.client_id,
             subject_id: subject_id
           )
         end
@@ -128,7 +128,7 @@ module EtoApi::Tasks
         hmis_client.subject_id = api_response['SubjectID']
         hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
         hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Conselor')
-        
+
         cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
         hmis_client.case_manager_name = cm.try(:[], 'EntityName')
         hmis_client.case_manager_attributes = cm if hmis_client.case_manager_name.present?
@@ -158,8 +158,8 @@ module EtoApi::Tasks
         response_id = api_response["TouchPointResponseID"]
         program_id = api_response["ProgramID"]
         hmis_form = GrdaWarehouse::HmisForm.where(
-          client_id: client_id, 
-          subject_id: subject_id, 
+          client_id: client_id,
+          subject_id: subject_id,
           response_id: response_id,
           assessment_id: touch_point_id,
           data_source_id: @data_source_id,
@@ -172,26 +172,45 @@ module EtoApi::Tasks
         #       questions: [{question: 'Question Title', answer: 'Value submitted', type: 'Radio'}]
         #     }]
         #   }
-        # We have yet to determine how to discover where ElementTypes are defined, 
+        # We have yet to determine how to discover where ElementTypes are defined,
         # but through investigation
         # we know:
-        # ElementType: 
+        # ElementType:
         # 35: Section header
         # 6: Radio
         # 4: Drop-down
         # 9: Date
         # 5: Text
-        # 2: TextArea  
+        # 2: TextArea
+        # 24: Phone
+        # 27: Table? Repeating field? Group?
+        # 1: table header? group?
         answers = {}
         answers[:assessment_title] = assessment_name
         answers[:assessment_identifier] = api_response['TouchPointIdentifier']
         answers[:sections] = []
         section = nil
+
         assessment['TouchPointElement'].each do |element|
           element_type = display_as_form_element(element_type: element['ElementType'])
           if element_type == 'Section header'
             answers[:sections] << section if section.present?
             section = {section_title: element['Stimulus'], questions: []}
+          elsif element['GridOrTable'].present?
+            element['GridOrTable']['Elements'].each do |sub_element|
+              sub_element_type = display_as_form_element(element_type: sub_element['ElementType'])
+              if sub_element_type == 'Section header'
+                answers[:sections] << section if section.present?
+                section = {section_title: sub_element['Stimulus'], questions: []}
+              else
+                value = response_element(element_id: sub_element['ElementID'], response: api_response).try(:[], 'Value')
+                section[:questions] << {
+                  question: sub_element['Stimulus'],
+                  answer: value,
+                  type: sub_element_type,
+                }
+              end
+            end
           else
             value = response_element(element_id: element['ElementID'], response: api_response).try(:[], 'Value')
             section[:questions] << {
@@ -202,7 +221,7 @@ module EtoApi::Tasks
             # Some special cases
             if element['Stimulus'] == 'A-1. At what point is this data being collected?'
                hmis_form.assessment_type = value
-            end                
+            end
           end
         end
         # Save off the last section
@@ -231,6 +250,7 @@ module EtoApi::Tasks
       # 9: Date
       # 5: Text
       # 2: TextArea
+      # 24: Phone
       types = {
         35 => 'Section header',
         6 => 'Radio',
@@ -238,6 +258,8 @@ module EtoApi::Tasks
         9 => 'Date',
         5 => 'Textfield',
         2 => 'Textarea',
+        24 => 'Textfield',
+        1 => 'Section header', # this appears to be a TH element, but it's unclear
       }
       types.try(:[], element_type)
     end
@@ -252,9 +274,9 @@ module EtoApi::Tasks
       @api.entity_by_id(entity_id: item_entity_id.to_i, site_id: client.site_id_in_data_source)
     end
 
-    private def defined_value client:, response:, label: 
+    private def defined_value client:, response:, label:
       item_cdid = @api.attribute_id(attribute_name: label, site_id: client.site_id_in_data_source)
-      item_value = response['CustomDemoData'].detect do 
+      item_value = response['CustomDemoData'].detect do
         |m| m['CDID'].to_i == item_cdid
       end.try(:[], 'value')
       return nil unless item_value.present?
