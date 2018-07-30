@@ -1,6 +1,4 @@
-- path = @participation_form.new_record? ? polymorphic_path(participation_forms_path_generator, client_id: @client.id) : polymorphic_path(participation_form_path_generator, client_id: @client.id, id: @participation_form.id)
-
-= simple_form_for @participation_form, url: path, as: :form, remote: request.xhr? do |f|
+= simple_form_for @participation_form, url: form_url, as: :form, remote: request.xhr? do |f|
 
   = f.error_notification
 
@@ -21,18 +19,8 @@
             Blank Participation Form
 
     .row
-      .col-sm-6
-        = f.input :file, as: :file
-      .col-sm-6
-        - if @participation_form.health_file.present?
-          .form-group
-            %label Existing File
-            %div
-              .btn-group.existing-file
-                = link_to polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ), class: 'btn btn-default' do
-                  = @participation_form.health_file&.name
-                = link_to polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ), class: 'btn btn-danger btn-icon-only', method: :delete, remote: true do
-                  %span.icon-cross{ style: "color:white; margin:0" }
+      .col-sm-6.j-file-upload
+        = render 'upload_fields', f: f
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
