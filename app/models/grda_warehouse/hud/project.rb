@@ -7,6 +7,8 @@ module GrdaWarehouse::Hud
     self.hud_key = :ProjectID
     acts_as_paranoid column: :DateDeleted
     has_paper_trail
+    
+    has_one :Project, through: :Affiliation
 
     def self.hud_csv_headers(version: nil)
       case version
