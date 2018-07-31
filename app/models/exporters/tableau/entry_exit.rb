@@ -65,7 +65,7 @@ module Exporters::Tableau::EntryExit
         rrh_time_in_shelter:              nil, # in use
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
-        local_planning_group:             nil, # in use
+        local_planning_group:             p_t[:local_planning_group], # in use
       }
     end
 
@@ -76,8 +76,8 @@ module Exporters::Tableau::EntryExit
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
         joins( enrollment: :client).
-        includes(enrollment: [:exit, :enrollment_coc_at_entry]).
-        references(enrollment: [:exit, :enrollment_coc_at_entry]).
+        includes(enrollment: [:exit, :enrollment_coc_at_entry, :project]).
+        references(enrollment: [:exit, :enrollment_coc_at_entry, :project]).
         # for aesthetics
         order( she_t[:client_id].asc ).
         order( e_t[:id].asc ).
