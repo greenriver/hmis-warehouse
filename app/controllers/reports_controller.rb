@@ -43,7 +43,7 @@ class ReportsController < ApplicationController
   # DELETE /services/1
   def destroy
     @report.destroy
-    redirect_to reports_url, notice: "Report: #{@report.name} was successfully destroyed."
+    redirect_to reports_url, notice: "Report: #{@report.name} was successfully removed."
   end
 
   private

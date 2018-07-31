@@ -64,7 +64,7 @@ class ImportsController < ApplicationController
   # DELETE /imports/1
   def destroy
     @import.destroy
-    flash[:notice] = _('Import was successfully destroyed.')
+    flash[:notice] = _('Import was successfully removed.')
     redirect_to imports_url
   end
 
