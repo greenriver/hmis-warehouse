@@ -13,8 +13,13 @@
 #    /*"
 # 4. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
 
-load 'lib/rds_sql_server/rds.rb'
-load 'lib/rds_sql_server/sql_server_base.rb'
+# This check is a proxy for all the vars you really need in the rds.rb file
+# This if-statement prevents the lack of the vars from killing the app.
+if ENV['RDS_AWS_ACCESS_KEY_ID'].present?
+  load 'lib/rds_sql_server/rds.rb'
+  load 'lib/rds_sql_server/sql_server_base.rb'
+end
+
 module ReportGenerators::Lsa::Fy2018
   class All < Base
     include TsqlImport
