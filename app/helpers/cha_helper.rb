@@ -1,5 +1,18 @@
 module ChaHelper
 
+  def cha_section_is_blank?(answers)
+    answers.values.map do |question_answer|
+      answer = question_answer['answer']
+      answer.is_a?(Array) ? answer.reject(&:blank?) : answer
+    end.select do |answer|
+      if answer.is_a?(Array)
+        !answer.compact.all?(&:blank?)
+      else
+        !answer.blank?
+      end
+    end.blank?
+  end
+
   def cha_select f, field
     f.input field,
       label: _("CHA #{field.upcase}"),
