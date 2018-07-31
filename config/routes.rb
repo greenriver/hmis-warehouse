@@ -288,7 +288,9 @@ Rails.application.routes.draw do
       patch :unmerge
       resource :cas_active, only: :update
     end
-    resource :history, only: [:show], controller: 'clients/history'
+    resource :history, only: [:show], controller: 'clients/history' do
+      post :queue, on: :collection
+    end
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
@@ -326,6 +328,7 @@ Rails.application.routes.draw do
       get :image
       resource :history, only: [:show], controller: 'clients/history' do
         get :pdf, on: :collection
+        post :queue, on: :collection
       end
       resources :vispdats, controller: 'clients/vispdats' do
         member do

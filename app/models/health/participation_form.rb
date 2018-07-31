@@ -1,6 +1,6 @@
 module Health
   class ParticipationForm < HealthBase
-
+    include ArelHelper
     belongs_to :case_manager, class_name: 'User'
     belongs_to :reviewed_by, class_name: 'User'
     # belongs_to :health_file, dependent: :destroy
@@ -14,9 +14,15 @@ module Health
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
-    #TODO this needs to be changed for new health_file
     scope :valid, -> do
-      where(arel_table[:location].not_in([:nil, '']).or(arel_table[:id].in(Health::ParticipationFormFile.select(:parent_id))))
+      parent_ids = Health::ParticipationFormFile.where.not(parent_id: nil).select(:parent_id).to_sql
+
+      where(
+        arel_table[:location].not_in([:nil, '']).
+        or(
+          arel_table[:id].in(lit(parent_ids))
+        )
+      )
     end
 
     attr_accessor :reviewed_by_supervisor, :file
@@ -30,7 +36,7 @@ module Health
     end
 
     def can_display_health_file?
-      health_file.present? && health_file.file.present?
+      health_file.present? && health_file.size
     end
 
     def downloadable?

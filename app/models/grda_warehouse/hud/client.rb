@@ -757,9 +757,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_confirmed?
-      client_files.consent_forms.where(
-        consent_form_signed_on: consent_form_signed_on
-      ).first&.consent_form_confirmed
+      client_files.consent_forms.signed.confirmed.exists?
     end
 
     def newest_consent_form
@@ -1645,6 +1643,10 @@ module GrdaWarehouse::Hud
 
       # move any patients
       Health::Patient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any health files (these should really be attached to patients)
+      Health::HealthFile.where(client_id: previous_id).
         update_all(client_id: new_id)
 
       # move any vi-spdats
