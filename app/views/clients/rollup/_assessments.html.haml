@@ -20,7 +20,7 @@
           %td= form.staff
           %td.zero-width
             - if rest.any?
-              %a.btn.btn-secondary.btn-xs.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+              %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
                 %span.icon-plus
         - rest.each do |form|
           %tr{ class: cz, style: 'display:none;' }
