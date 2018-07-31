@@ -1,0 +1,9 @@
+- url = polymorphic_path([:queue] + history_path_generator, client_id: @client.id)
+= simple_form_for :pdf, url: url, method: :post do |f|
+  .row
+    .col-sm-5
+      %p Generate Homeless Verification PDF
+    .col-sm-4
+      = f.input_field :years, collection: {'Last 3 years' => 3, 'Last 5 years' => 5}, include_blank: false, label: false, class: :select2, style: 'width: 100%;'
+    .col-sm-3
+      = f.submit 'Generate PDF', class: "btn btn-secondary"
