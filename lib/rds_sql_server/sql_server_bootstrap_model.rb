@@ -11,7 +11,9 @@ class SqlServerBootstrapModel < ActiveRecord::Base
     "username"      => Rds::USERNAME,
     "password"      => Rds::PASSWORD,
     "database"      => 'master',
-    "login_timeout" => 2 # seconds
+    "login_timeout" => 2, # seconds
+    "sslmode"      => 'verify-full',
+    "sslcert"      => 'config/cacert.pem'
   }
 
   establish_connection(conf)

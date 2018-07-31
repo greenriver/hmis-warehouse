@@ -10,7 +10,9 @@ class SqlServerBase < ActiveRecord::Base
     "username"      => Rds::USERNAME,
     "password"      => Rds::PASSWORD,
     "database"      => rds.database,
-    "login_timeout" => 2 # seconds
+    "login_timeout" => 2, # seconds
+    "sslmode"      => 'verify-full',
+    "sslcert"      => 'config/cacert.pem'
   }
 
   establish_connection(conf)
