@@ -1,6 +1,6 @@
 module Health
   class ReleaseForm < HealthBase
-
+    include ArelHelper
     belongs_to :patient
     belongs_to :user
     belongs_to :reviewed_by, class_name: 'User'
@@ -16,7 +16,14 @@ module Health
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :valid, -> do
-      where(arel_table[:file_location].not_in([:nil, '']).or(arel_table[:id].in(Health::ReleaseFormFile.select(:parent_id))))
+      parent_ids = Health::ReleaseFormFile.where.not(parent_id: nil).select(:parent_id).to_sql
+
+      where(
+        arel_table[:file_location].not_in([:nil, '']).
+        or(
+          arel_table[:id].in(lit(parent_ids))
+        )
+      )
     end
 
     attr_accessor :reviewed_by_supervisor, :file
