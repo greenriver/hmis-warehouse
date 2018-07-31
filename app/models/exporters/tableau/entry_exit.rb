@@ -65,6 +65,7 @@ module Exporters::Tableau::EntryExit
         rrh_time_in_shelter:              nil, # in use
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
+        local_planning_group:             nil, # in use
       }
 
       scope = model.in_project_type(project_types).entry.
