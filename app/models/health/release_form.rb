@@ -30,7 +30,7 @@ module Health
     end
 
     def can_display_health_file?
-      health_file.present? && health_file.file.present?
+      health_file.present? && health_file.size
     end
 
     def downloadable?
