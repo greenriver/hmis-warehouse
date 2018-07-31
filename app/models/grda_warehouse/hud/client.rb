@@ -1647,6 +1647,10 @@ module GrdaWarehouse::Hud
       Health::Patient.where(client_id: previous_id).
         update_all(client_id: new_id)
 
+      # move any health files (these should really be attached to patients)
+      Health::HealthFile.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
       # move any vi-spdats
       GrdaWarehouse::Vispdat::Base.where(client_id: previous_id).
         update_all(client_id: new_id)

@@ -102,7 +102,7 @@ class Rds
       publicly_accessible: true,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: "db_subnet_group",
-      db_parameter_group_name: "default.sqlserver-web-14.0",
+      db_parameter_group_name: "sqlserver-web-14-tls",
       option_group_name: "default:sqlserver-web-14-00",
       port: 1433,
     })

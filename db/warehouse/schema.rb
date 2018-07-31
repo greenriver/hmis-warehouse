@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180723180257) do
+ActiveRecord::Schema.define(version: 20180731125029) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -112,6 +112,7 @@ ActiveRecord::Schema.define(version: 20180723180257) do
     t.string   "rrh_assessment_contact_info"
     t.datetime "rrh_assessment_collected_at"
     t.string   "source_hash"
+    t.boolean  "generate_manual_history_pdf",                        default: false, null: false
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree

@@ -49,7 +49,7 @@ module GrdaWarehouse::Tasks
           "Entry Exit Provider Id",
           "LPG",
         ],
-        method: :report4,
+        method: :lpg,
       },
     }
 
@@ -178,7 +178,7 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def report4(sheet)
+    def lpg(sheet)
       sheet.to_a[2..-1].each do |row|
         next if row.none?(&:present?)
         project_id_etc, group = row
