@@ -18,9 +18,10 @@ module WarehouseReports::Health
     end
 
     def show
+      patient_t = Health::Patient.arel_table
       @qualifying_activities = @report.qualifying_activities.joins(:patient).
-        order(date_of_activity: :desc).
-        group_by(&:patient_id)
+        order(patient_t[:last_name].asc, patient_t[:first_name].asc, date_of_activity: :desc).
+        page(params[:page]).per(25)
     end
 
     def create
