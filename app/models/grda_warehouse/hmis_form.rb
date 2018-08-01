@@ -198,11 +198,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def follow_up qa
-    qa[:questions].select{|m| m[:question] == 'Notes and follow-up'}.first[:answer]
+    qa[:questions].select{|m| m[:question] == 'Notes and follow-up'}.first.try(:[], :answer)
   end
 
   def collateral_contact qa
-    qa[:questions].select{|m| m[:question] == 'Collateral contact - with whom?'}.first[:answer]
+    qa[:questions].select{|m| m[:question] == 'Collateral contact - with whom?'}.first.try(:[], :answer)
   end
 
   def care_hub_reached_key qa
@@ -213,7 +213,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def clean_reached_title qa
-    qa[:questions].select{|m| m[:question] == 'Reached client?'}.first[:answer]
+    qa[:questions].select{|m| m[:question] == 'Reached client?'}.first.try(:[], :answer)
   end
 
 
@@ -225,7 +225,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def clean_mode_title qa
-    qa[:questions].select{|m| m[:question] == 'Mode of contact'}.first[:answer]
+    qa[:questions].select{|m| m[:question] == 'Mode of contact'}.first.try(:[], :answer)
   end
 
   def care_hub_activity_key qa
@@ -236,7 +236,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def clean_activity_title qa
-    activity = qa[:questions].select{|m| m[:question] == 'Which of these activities took place?'}.first[:answer]
+    activity = qa[:questions].select{|m| m[:question] == 'Which of these activities took place?'}.first.try(:[], :answer)
     case activity
     when 'Comprehensive assessment'
       'Comprehensive Health Assessment'
