@@ -2,7 +2,7 @@ require "application_responder"
 
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
-  respond_to :html, :js, :json, :csv
+  respond_to :html, :js, :json, :csv, :text
 
   include ControllerAuthorization
   include ActivityLogger
@@ -126,7 +126,7 @@ class ApplicationController < ActionController::Base
     # Health
     all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
     migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError.new "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0 
+    raise ActiveRecord::MigrationError.new "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
   end
 
   def pjax_request?

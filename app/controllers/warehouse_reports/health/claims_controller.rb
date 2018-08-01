@@ -95,7 +95,7 @@ module WarehouseReports::Health
     end
 
     def report_source
-      Health::Claim
+      ::Health::Claim
     end
 
     def report_scope
