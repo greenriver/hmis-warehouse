@@ -2030,12 +2030,12 @@ module GrdaWarehouse::Hud
     
     def affiliated_projects_str_for_enrollment enrollment
       affiliated_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: enrollment[:ProjectID]).affiliated_projects.pluck(:ProjectName)
-      return !affiliated_project_names.empty? ? "Affiliated Projects: #{affiliated_project_names.to_sentence}" : ""    
+      affiliated_project_names.present? ? "Affiliated Projects: #{affiliated_project_names.to_sentence}" : ""    
     end
     
     def residential_projects_str_for_enrollment enrollment
       residential_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: enrollment[:ProjectID]).residential_projects.pluck(:ProjectName)
-      return !residential_project_names.empty? ? "Residential Projects: #{residential_project_names.to_sentence}" : ""    
+      residential_project_names.present? ? "Residential Projects: #{residential_project_names.to_sentence}" : ""    
     end
     
     def program_tooltip_data_for_enrollment enrollment
