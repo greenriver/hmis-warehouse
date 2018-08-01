@@ -141,7 +141,7 @@ class ReportResultsController < ApplicationController
   # DELETE /report_results/1
   def destroy
     @result.destroy
-    flash[:notice] = _('Report successfully destroyed.')
+    flash[:notice] = _('Report successfully removed.')
     redirect_to report_report_results_url
   end
 
