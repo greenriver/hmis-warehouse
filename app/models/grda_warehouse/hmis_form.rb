@@ -180,15 +180,23 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     user = User.setup_system_user()
     Health::QualifyingActivity.transaction do
       eto_qualifying_activities.each do |qa|
-        Health::QualifyingActivity.create!(
-          patient_id: patient.id,
-          date_of_activity: collected_at.to_date,
-          user_full_name: staff,
+        activity = {
           mode_of_contact: care_hub_mode_key(qa),
           reached_client: care_hub_reached_key(qa),
           reached_client_collateral_contact: collateral_contact(qa),
           activity: care_hub_activity_key(qa),
           follow_up: follow_up(qa),
+        }
+        next unless activity[:follow_up] && activity[:mode_of_contact] && activity[:activity] && activity[:reached_client]
+        Health::QualifyingActivity.create!(
+          patient_id: patient.id,
+          date_of_activity: collected_at.to_date,
+          user_full_name: staff,
+          mode_of_contact: activity[:mode_of_contact],
+          reached_client: activity[:reached_client],
+          reached_client_collateral_contact: activity[:reached_client_collateral_contact],
+          activity: activity[:activity],
+          follow_up: activity[:follow_up],
           source_type: self.class.name,
           source_id: id,
           user_id: user.id
