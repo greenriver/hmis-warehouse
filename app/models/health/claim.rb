@@ -45,7 +45,7 @@ module Health
         self.claims_file += "#{patient_payer(patient)}\n"
         self.claims_file += "#{patient_claims_header(patient)}\n"
         self.claims_file += "#{patient_diagnosis(patient)}\n"
-        patient.qualifying_activities.unsubmitted.
+        patient.qualifying_activities.unsubmitted.submittable.
           select{|m| m.procedure_code.present?}.each do |qa|
             qualifying_activity_ids << qa.id
             self.claims_file += "#{claim_lines(qa)}\n"
