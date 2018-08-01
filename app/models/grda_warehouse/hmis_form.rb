@@ -37,6 +37,18 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   scope :case_management_notes, -> do
     where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
   end
+
+  scope :has_qualifying_activities, -> do
+    where(name: ['Case Management Daily Note'])
+  end
+
+  scope :has_unprocessed_quailifying_activities, -> do
+    processed_ids = Health::QualifyingActivity.where(source_type: self.name).
+      distinct.
+      pluck(:source_id)
+    has_qualifying_activities.where.not(id: processed_ids)
+  end
+
   scope :health_touch_points, -> do
     health_assessments = joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health).distinct.pluck(:id)
     sdh_assessments = where(arel_table[:collection_location].matches('Social Determinants of Health%')).pluck(:id)
@@ -141,6 +153,105 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     relevant_section[:questions].map do |question|
       "<div><strong>#{question[:question]}</strong> #{question[:answer]}</div>"
     end.join(' ')
+  end
+
+  def qualifying_activities
+    Health::QualifyingActivity.where(source_type: self.class.name, source_id: id)
+  end
+
+  def has_eto_qualifying_activities?
+    name.in?(['Case Management Daily Note']) && eto_qualifying_activities.any?
+  end
+
+  def eto_qualifying_activities
+    @eto_qualifying_activities ||= answers[:sections].select{|m| m[:section_title].include?('Qualifying Activity') && m[:questions].first[:answer].present?}
+  end
+
+  def create_qualifying_activity!
+    return true unless GrdaWarehouse::Config.get(:healthcare_available)
+    # Only some have qualifying activities
+    return true unless has_eto_qualifying_activities?
+    # prevent duplication creation
+    return true if Health::QualifyingActivity.where(source_type: self.class.name, source_id: id).exists?
+    # Don't add qualifying activities if we can't determine the patient
+    return true unless patient = client&.destination_client&.patient
+
+
+    user = User.setup_system_user()
+    Health::QualifyingActivity.transaction do
+      eto_qualifying_activities.each do |qa|
+        activity = {
+          mode_of_contact: care_hub_mode_key(qa),
+          reached_client: care_hub_reached_key(qa),
+          reached_client_collateral_contact: collateral_contact(qa),
+          activity: care_hub_activity_key(qa),
+          follow_up: follow_up(qa),
+        }
+        next unless activity[:follow_up] && activity[:mode_of_contact] && activity[:activity] && activity[:reached_client]
+        qualifying_activity = Health::QualifyingActivity.new(
+          patient_id: patient.id,
+          date_of_activity: collected_at.to_date,
+          user_full_name: staff,
+          mode_of_contact: activity[:mode_of_contact],
+          reached_client: activity[:reached_client],
+          reached_client_collateral_contact: activity[:reached_client_collateral_contact],
+          activity: activity[:activity],
+          follow_up: activity[:follow_up],
+          source_type: self.class.name,
+          source_id: id,
+          user_id: user.id
+        )
+        qualifying_activity.save if qualifying_activity.valid?
+      end
+    end
+  end
+
+  def follow_up qa
+    qa[:questions].select{|m| m[:question] == 'Notes and follow-up'}.first.try(:[], :answer)
+  end
+
+  def collateral_contact qa
+    qa[:questions].select{|m| m[:question] == 'Collateral contact - with whom?'}.first.try(:[], :answer)
+  end
+
+  def care_hub_reached_key qa
+    @care_hub_client_reached ||= Health::QualifyingActivity.client_reached.map do |k, reached|
+      [reached[:title], k]
+    end.to_h
+    @care_hub_client_reached[clean_reached_title(qa)]
+  end
+
+  def clean_reached_title qa
+    qa[:questions].select{|m| m[:question] == 'Reached client?'}.first.try(:[], :answer)
+  end
+
+
+  def care_hub_mode_key qa
+    @care_hub_modes_of_contact ||= Health::QualifyingActivity.modes_of_contact.map do |k, mode|
+      [mode[:title], k]
+    end.to_h
+    @care_hub_modes_of_contact[clean_mode_title(qa)]
+  end
+
+  def clean_mode_title qa
+    qa[:questions].select{|m| m[:question] == 'Mode of contact'}.first.try(:[], :answer)
+  end
+
+  def care_hub_activity_key qa
+    @care_hub_activities ||= Health::QualifyingActivity.activities.map do |k, activity|
+      [activity[:title], k]
+    end.to_h
+    @care_hub_activities[clean_activity_title(qa)]
+  end
+
+  def clean_activity_title qa
+    activity = qa[:questions].select{|m| m[:question] == 'Which of these activities took place?'}.first.try(:[], :answer)
+    case activity
+    when 'Comprehensive assessment'
+      'Comprehensive Health Assessment'
+    else
+      activity
+    end
   end
 
 

@@ -757,9 +757,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_confirmed?
-      client_files.consent_forms.where(
-        consent_form_signed_on: consent_form_signed_on
-      ).first&.consent_form_confirmed
+      client_files.consent_forms.signed.confirmed.exists?
     end
 
     def newest_consent_form

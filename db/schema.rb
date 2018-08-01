@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180722112728) do
+ActiveRecord::Schema.define(version: 20180801164521) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -362,6 +362,7 @@ ActiveRecord::Schema.define(version: 20180722112728) do
     t.boolean  "notify_on_anomaly_identified",      default: false,       null: false
     t.string   "coc_codes",                         default: [],                       array: true
     t.string   "email_schedule",                    default: "immediate", null: false
+    t.boolean  "active",                            default: true,        null: false
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree

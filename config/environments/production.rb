@@ -29,7 +29,10 @@ Rails.application.configure do
       enable_starttls_auto: true,
     }
   end
-  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false }
+
+  cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
+  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false, ssl: cache_ssl }
+
   config.action_controller.perform_caching = true
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,

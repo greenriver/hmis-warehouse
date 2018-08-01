@@ -19,7 +19,7 @@ module Exporters::Tableau::EntryExit
       end
     end
 
-    def scope_for_export start_date: default_start, end_date: default_end, coc_code: nil
+    def spec
       model = she_t.engine
       spec = {
         data_source:                      she_t[:data_source_id],
@@ -65,14 +65,19 @@ module Exporters::Tableau::EntryExit
         rrh_time_in_shelter:              nil, # in use
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
+        local_planning_group:             p_t[:local_planning_group], # in use
       }
+    end
+
+    def scope_for_export start_date: default_start, end_date: default_end, coc_code: nil
+      model = she_t.engine
 
       scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
         joins( enrollment: :client).
-        includes(enrollment: [:exit, :enrollment_coc_at_entry]).
-        references(enrollment: [:exit, :enrollment_coc_at_entry]).
+        includes(enrollment: [:exit, :enrollment_coc_at_entry, :project]).
+        references(enrollment: [:exit, :enrollment_coc_at_entry, :project]).
         # for aesthetics
         order( she_t[:client_id].asc ).
         order( e_t[:id].asc ).
