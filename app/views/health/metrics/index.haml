@@ -5,7 +5,7 @@
 - else
   %h2= content_for :title
 = render 'window/clients/breadcrumbs'
-= render 'window/clients/tab_navigation', current: polymorphic_path(health_path_generator + [:metrics])
+= render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:metrics])
 .row
   .col-sm-12
     - warehouse_report_path = warehouse_reports_health_overview_index_path

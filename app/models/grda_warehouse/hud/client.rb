@@ -640,7 +640,7 @@ module GrdaWarehouse::Hud
     end
 
     def show_health_hpc_for?(user)
-      patient.present? && patient.hpc_patient? && patient.patient_referral.present? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
+      patient.present? && patient.hpc_patient? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     def show_window_demographic_to?(user)
