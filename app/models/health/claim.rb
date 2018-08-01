@@ -23,6 +23,7 @@ module Health
 
     def run!
       start_report
+      qa_t = Health::QualifyingActivity.arel_table
       @isa_control_number = self.class.next_isa_control_number
       @group_control_number = self.class.next_group_control_number
       @st_control_number = self.class.next_st_control_number
@@ -46,6 +47,7 @@ module Health
         self.claims_file += "#{patient_claims_header(patient)}\n"
         self.claims_file += "#{patient_diagnosis(patient)}\n"
         patient.qualifying_activities.unsubmitted.submittable.
+          where(qa_t[:date_of_activity].lteq(max_date)).
           select{|m| m.procedure_code.present?}.each do |qa|
             qualifying_activity_ids << qa.id
             self.claims_file += "#{claim_lines(qa)}\n"
