@@ -272,6 +272,42 @@ module Health
       @recent_cmn ||= sdh_case_management_notes.recent.with_phone&.first
     end
 
+    # Provide a means of seeing all the case notes, regardless of data source in one location
+    def case_notes_for_display
+      case_notes = []
+      case_notes += client.health_touch_points.case_management_notes.order(collected_at: :desc).map do |form|
+        {
+          type: :touch_point,
+          id: form.id,
+          title: form.assessment_type,
+          sub_title: 'From ETO',
+          date: form.collected_at&.to_date,
+          user: form.staff,
+        }
+      end
+      case_notes += sdh_case_management_notes.order(completed_on: :desc).map do |form|
+        {
+          type: :warehouse,
+          id: form.id,
+          title: form.topics.join(', ').html_safe,
+          sub_title: form.title || 'No Title',
+          date: form.completed_on&.to_date,
+          user: form.user&.name,
+        }
+      end
+      case_notes += epic_case_notes.order(contact_date: :desc).map do |form|
+        {
+          type: :epic,
+          id: form.id,
+          title: form.encounter_type,
+          sub_title: 'From Epic',
+          date: form.contact_date&.to_date,
+          user: form.provider_name,
+        }
+      end
+      case_notes.sort_by{|m| m[:date]}.reverse
+    end
+
     def most_recent_ssn
       [
         [self.ssn.presence, updated_at.to_i],
