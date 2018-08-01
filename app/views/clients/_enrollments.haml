@@ -58,14 +58,7 @@
             .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
         %td
-          - affiliated_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: e[:ProjectID]).affiliated_projects.pluck(:ProjectName)
-          - affiliated_projects_str = !affiliated_project_names.empty? ? "Affiliated Projects: #{affiliated_project_names.to_sentence}" : ""
-          - residential_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: e[:ProjectID]).residential_projects.pluck(:ProjectName)
-          - residential_projects_str = !residential_project_names.empty? ? "Residential Projects: #{residential_project_names.to_sentence}" : ""
-          
-          - affiliations_tooltip_data = !affiliated_project_names.empty? && !residential_project_names.empty? ? {toggle: :tooltip, title: "#{affiliated_projects_str} \n #{residential_projects_str}"} : {}
-          
-          %span{data: affiliations_tooltip_data}
+          %span{data: @client.program_tooltip_data_for_enrollment(e)}
             - if include_links
               = link_to e[:project_name], project_path(id: e[:project_id])
             - else

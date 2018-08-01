@@ -2027,6 +2027,28 @@ module GrdaWarehouse::Hud
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
     end
+    
+    def affiliated_projects_str_for_enrollment enrollment
+      affiliated_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: enrollment[:ProjectID]).affiliated_projects.pluck(:ProjectName)
+      return !affiliated_project_names.empty? ? "Affiliated Projects: #{affiliated_project_names.to_sentence}" : ""    
+    end
+    
+    def residential_projects_str_for_enrollment enrollment
+      residential_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: enrollment[:ProjectID]).residential_projects.pluck(:ProjectName)
+      return !residential_project_names.empty? ? "Residential Projects: #{residential_project_names.to_sentence}" : ""    
+    end
+    
+    def program_tooltip_data_for_enrollment enrollment
+      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment)
+      residential_projects_str = residential_projects_str_for_enrollment(enrollment)
+      
+      #only show tooltip if there are projects to list
+      if affiliated_projects_str.present? && residential_projects_str.present? 
+        {toggle: :tooltip, title: "#{affiliated_projects_str} \n #{residential_projects_str}"} 
+      else 
+        {}
+      end
+    end
 
     private def calculated_end_of_enrollment enrollment:, enrollments:
       if enrollment.project.street_outreach_and_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
