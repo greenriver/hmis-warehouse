@@ -20,13 +20,23 @@ module Window::Health
       @disable_goal_actions = true
       @goals = @careplan&.hpc_goals
 
-      #TDB: background this and/or wire up callbacks from HS
-      @careplans.each do |cp|
-        if cp.primary_signable_document.present?
-          doc = cp.primary_signable_document
-          doc.refresh_signers!
-          doc.update_signers(cp)
-          cp.save!
+      # Callbacks don't work in development, so we have to do something like this
+      if Rails.env.development?
+        @careplans.each do |cp|
+          if cp.primary_signable_document.present?
+
+            doc = cp.primary_signable_document
+
+            # This is trying to ensure we run the same thing here as we do for the callback from HS
+            json = {signature_request: doc.fetch_signature_request}.to_json
+            response = HelloSignController::CallbackResponse.new(json)
+            begin
+              response.process!
+            rescue ActiveRecord::RecordNotFound
+              Rails.logger.fatal "Ignoring a document we couldn't track down."
+            end
+
+          end
         end
       end
     end

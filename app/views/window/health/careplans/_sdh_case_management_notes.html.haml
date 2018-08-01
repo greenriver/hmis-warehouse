@@ -22,7 +22,7 @@
               %div= note.topics.join(', ').html_safe
               .padding-left-02= note.title || 'No Title'
           %td= note.completed_on&.to_date
-          %td= note.user.name
+          %td= note.user&.name
       - @patient.epic_case_notes.order(contact_date: :desc).each do |note|
         %tr
           %td

@@ -25,6 +25,8 @@ module Health
     def make_document_signable!
       cc_email_addresses = (ENV['HELLO_SIGN_CC_EMAILS']||'').split(/;/)
 
+      raise "Must save first before making a document signable (so we have the id)" if new_record?
+
       request = {
         test_mode: (ENV.fetch('HELLO_SIGN_TEST_MODE') { Rails.env.production? ? 0 : 1}),
         client_id: ENV['HELLO_SIGN_CLIENT_ID'],
@@ -93,21 +95,32 @@ module Health
           )
         health_file.save(validate: false)
         self.health_file_id = health_file.id
+
+        #TDB: is this right?
+        self.signable.update_attribute(:health_file_id, health_file.id)
       end
       save!
     end
 
-    def update_signers(careplan)
+    def update_careplan_and_health_file!(careplan)
       if careplan.patient_signed_on.blank? && self.signed_by?('patient@openpath.biz')
         careplan.patient_signed_on = self.signed_on('patient@openpath.biz')
-        # ensure we capture the signed document
-        # TODO: sometimes this is too soon and gets an unsigned version
-        update_health_file_from_hello_sign
+        careplan.save!
+
+        #update_health_file_from_hello_sign
+        # Need to wait for pdf to be ready
+        UpdateHealthFileFromHelloSignJob.
+          set(wait: 30.seconds).
+          perform_later(self.id)
       end
     end
 
     def signature_request_url(email)
       if !email.match(EMAIL_REGEX)
+        return nil
+      end
+
+      if signed_by?(email)
         return nil
       end
 
@@ -167,22 +180,11 @@ module Health
       HelloSignMailer.careplan_signature_request(doc: self, email: email).deliver
     end
 
-    #TDB: Hook to a HelloSign callback
-    # signature_request_all_signed
-    # Store the signed document in Health Files and attach
-    def post_completion_hook
-      return unless all_signed?
-
-
-    end
-
-    #TDB: Hook to a HelloSign callback
-    def refresh_signers!
+    def update_who_signed_from_hello_sign_callback!(callback_payload=fetch_signature_request)
       return if all_signed?
-      # return false if self.hs_last_response.blank?
 
       self.hs_last_response_at = Time.now
-      self.hs_last_response = hs_client.get_signature_request(signature_request_id: self.signature_request_id).data
+      self.hs_last_response = callback_payload
       sig_hashes = self.hs_last_response['signatures'].select { |sig| sig['status_code'] == 'signed' }
       new_signers = sig_hashes.map { |sig| sig['signer_email_address']  }
       self.signed_by = new_signers
@@ -197,6 +199,10 @@ module Health
       return false if signers.length == 0
 
       signers.all? { |signer| signed_by?(signer.email) }
+    end
+
+    def fetch_signature_request
+      hs_client.get_signature_request(signature_request_id: self.signature_request_id).data
     end
 
     private
@@ -221,7 +227,7 @@ module Health
     end
 
     def hs_client
-      @client ||= HelloSign::Client.new(api_key: ENV['HELLO_SIGN_API_KEY'])
+      @client ||= ::HelloSign::Client.new(api_key: ENV['HELLO_SIGN_API_KEY'])
     end
 
     def sane_number_signed

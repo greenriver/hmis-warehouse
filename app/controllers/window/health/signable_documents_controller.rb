@@ -60,7 +60,7 @@ module Window::Health
       end
 
       @signature_request_url = @doc.signature_request_url(params[:email])
-    rescue HelloSign::Error
+    rescue HelloSign::Error, HelloSign::Error::Conflict
       render 'error'
     end
 

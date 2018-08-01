@@ -525,6 +525,8 @@ Rails.application.routes.draw do
   resource :account, only: [:edit, :update]
   resources :public_files, only: [:show]
 
+  post 'hello-sign' => 'hello_sign#callback'
+
   unless Rails.env.production?
     resource :style_guide, only: :none do
       get :careplan

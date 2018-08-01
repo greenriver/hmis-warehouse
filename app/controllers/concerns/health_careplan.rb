@@ -69,6 +69,7 @@ module HealthCareplan
         # toc: {}
       )
       pdf = CombinePDF.parse(pctp)
+
       if @careplan.health_file.present?
         pdf << CombinePDF.parse(@careplan.health_file.content)
       end
