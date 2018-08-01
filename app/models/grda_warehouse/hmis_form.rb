@@ -188,7 +188,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
           follow_up: follow_up(qa),
         }
         next unless activity[:follow_up] && activity[:mode_of_contact] && activity[:activity] && activity[:reached_client]
-        qualifying_activity = ealth::QualifyingActivity.new(
+        qualifying_activity = Health::QualifyingActivity.new(
           patient_id: patient.id,
           date_of_activity: collected_at.to_date,
           user_full_name: staff,
