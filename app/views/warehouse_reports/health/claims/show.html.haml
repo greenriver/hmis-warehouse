@@ -27,6 +27,9 @@
           Claim file submitted on #{@report.submitted_at.to_date}
 
 - if @report.qualifying_activities.any?
+  %p= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
+  %p= paginate @qualifying_activities
   = render 'qualifying_activities'
+  %p= paginate @qualifying_activities
 - else
   %p There are no unsubmitted claims.

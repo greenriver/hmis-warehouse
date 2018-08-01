@@ -6,6 +6,14 @@ module Health
 
     scope :submitted, -> {where.not(claim_submitted_on: nil)}
     scope :unsubmitted, -> {where(claim_submitted_on: nil)}
+    scope :submittable, -> do
+      where.not(
+        mode_of_contact: nil,
+        reached_client: nil,
+        activity: nil,
+        follow_up: nil
+      )
+    end
 
     scope :in_range, -> (range) { where(date_of_activity: range)}
 
