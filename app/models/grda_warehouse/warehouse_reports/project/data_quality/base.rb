@@ -330,7 +330,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def send_notifications
-      (project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts).uniq.each do |contact|
+      contacts = project_contacts + organization_contacts + project_group_contacts + organization_project_group_contacts
+      contacts.index_by(&:email).values.each do |contact|
         ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
       end
       notifications_sent()

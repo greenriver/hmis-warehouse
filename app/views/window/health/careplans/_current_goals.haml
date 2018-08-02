@@ -8,3 +8,13 @@
   - else
     .c-card__content
       %p.no-data No goals on file
+
+%section.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2 Epic Goals from Pilot
+  - if @epic_goals.present?
+    - @epic_goals.each do |goal|
+      = render goal
+  - else
+    .c-card__content
+      %p.no-data No epic goals on file

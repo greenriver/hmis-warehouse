@@ -4,6 +4,7 @@ class ProjectDataQualityReportMailer < DatabaseMailer
     @projects = projects
     @report = report
     @contact = contact
+    
     @project_name = if @report.project_id.present?
       @report.project.ProjectName
     else

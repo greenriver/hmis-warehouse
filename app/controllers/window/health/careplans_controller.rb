@@ -1,5 +1,6 @@
 module Window::Health
   class CareplansController < IndividualPatientController
+    helper ChaHelper
     include PjaxModalController
     include WindowClientPathGenerator
     before_action :set_client
@@ -8,6 +9,7 @@ module Window::Health
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
     before_action :set_health_file, only: [:upload, :update]
+    before_action :set_epic_goals, only: [:index]
 
     def index
       @goal = Health::Goal::Base.new
@@ -202,6 +204,10 @@ module Window::Health
 
     def set_problems
       @problems = @patient.problems.order(onset_date: :desc)
+    end
+
+    def set_epic_goals
+      @epic_goals = @patient.epic_goals.visible
     end
 
     def careplan_source
