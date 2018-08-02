@@ -1,5 +1,6 @@
 module Window::Health
   class CareplansController < IndividualPatientController
+    helper ChaHelper
     include PjaxModalController
     include WindowClientPathGenerator
     include HealthCareplan

@@ -7,8 +7,10 @@
         %tr
           %th Document
           %th Uploaded
+          %th Uploaded By
         %tbody
           - @files.each do |file|
             %tr
               %td= link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
               %td= file.created_at.to_date
+              %td= file.user.name

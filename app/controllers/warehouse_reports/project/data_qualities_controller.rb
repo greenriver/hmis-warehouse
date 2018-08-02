@@ -41,7 +41,7 @@ module WarehouseReports::Project
       else
         # kick off report generation
         queue_report(id_column: :project_id, keys: @project_ids)
-        queue_report(id_column: :project_group_id, keys: @project_group_ids)
+        queue_report(id_column: :project_group_id, keys: @project_group_ids) 
         redirect_to action: :show
       end
     end

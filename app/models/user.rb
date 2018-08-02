@@ -27,6 +27,8 @@ class User < ActiveRecord::Base
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
+  scope :active, -> {where active: true}
+  scope :inactive, -> {where active: false}
 
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
@@ -70,6 +72,10 @@ class User < ActiveRecord::Base
       joins(:roles).
       where(roles: {permission => true})
     end
+  end
+
+  def active_for_authentication?
+    super && active
   end
 
   def has_administrative_access_to_health?

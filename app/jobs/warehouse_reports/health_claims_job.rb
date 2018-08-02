@@ -29,7 +29,7 @@ module WarehouseReports
     end
 
     def report_source
-      Health::Claim
+      ::Health::Claim
     end
 
   end

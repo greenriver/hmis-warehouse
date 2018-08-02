@@ -24,7 +24,7 @@ module Eto::TouchPoints
     def most_recent_coc_assessment_score
       assessment = coc_assessment_touch_points.newest_first.limit(1).first
       return nil unless assessment.present?
-      score_section = coc_assessment_touch_points.first.answers[:sections].select do |m|
+      score_section = assessment.answers[:sections].select do |m|
         m[:section_title] == "Assessment Score"
       end&.first
       return nil unless score_section.present?

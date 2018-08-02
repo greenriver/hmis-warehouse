@@ -1,6 +1,6 @@
 %h4 Qualifying Activities Prior to #{@report.max_date}
 .o-card-grid
-  - @qualifying_activities.each do |_, qas|
+  - @qualifying_activities.group_by(&:patient_id).each do |_, qas|
     .c-card.c-card--padded.c-card--flex
       .c-card__content
         .c-card__title= qas.first.patient.name
