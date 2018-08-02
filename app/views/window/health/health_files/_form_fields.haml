@@ -1,15 +1,8 @@
 - if f.object.can_display_health_file?
-  = render 'window/health/health_files/display', download_path: @download_path, download_data: @download_data, remove_path: @remove_path, filename: f.object.health_file&.name
-- elsif f.object.health_file.present?
-  = f.simple_fields_for :health_file do |hf|
-    = hf.input :file, as: :file
-    = hf.input :file_cache, as: :hidden
-  - if include_submit
-    .d-flex
-      .ml-auto
-        = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }, style: 'background-color: #3c6776'
+  = render 'window/health/health_files/display', download_path: @download_path, download_data: @download_data, remove_path: @remove_path, filename: f.object.health_file&.name, f: f
 - else
-  = f.simple_fields_for :health_file, @upload_object.build_health_file do |hf|
+  - health_file = f.object.health_file || f.object.build_health_file
+  = f.simple_fields_for :health_file, health_file do |hf|
     = hf.input :file, as: :file
     = hf.input :file_cache, as: :hidden
   - if include_submit

@@ -34,14 +34,6 @@ module Health
       end
     end
 
-    # def can_display_health_file?
-    #   health_file.present? && health_file.size
-    # end
-
-    # def downloadable?
-    #   health_file.present? && health_file.persisted?
-    # end
-
     def file_or_location
       if health_file.blank? && file_location.blank?
         errors.add :file_location, "Please include either a file location or upload."

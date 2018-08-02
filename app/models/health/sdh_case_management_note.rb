@@ -82,16 +82,6 @@ module Health
     # keep the date around until they hit save
     after_validation :remove_housing_placement_date
 
-    # attr_accessor :file
-
-    # def can_display_health_file?
-    #   health_file.present? && health_file.size
-    # end
-
-    # def downloadable?
-    #   health_file.present? && health_file.persisted?
-    # end
-
     def remove_housing_placement_date
       unless housing_status_includes_date?
         self.housing_placement_date = nil
@@ -224,8 +214,8 @@ module Health
     end
 
     def validate_health_file_if_present
-      if file.present? && file.invalid?
-        errors.add :file, file.errors.messages.try(:[], :file)&.uniq&.join('; ')
+      if health_file.present? && health_file.invalid?
+        errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
     end
 

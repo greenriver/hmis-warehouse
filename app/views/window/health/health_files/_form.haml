@@ -1,3 +1,3 @@
-= simple_form_for @upload_object, url: upload_url, as: :health_file, multipart: true do |f|
+= simple_form_for @upload_object, url: upload_url, as: :health_file, html: {multipart: true} do |f|
   = f.error_notification
   = render 'window/health/health_files', f: f, include_submit: true

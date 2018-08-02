@@ -12,6 +12,11 @@
           %span.icon-cross{style: 'color: white;margin:0;'}
 
 -# allow delete if this is displayed because of validation error
+- if @remove_path == '#'
+  .j-existing-file__form{style: 'display:none;'}
+    = f.simple_fields_for :health_file do |hf|
+      = hf.input :file, as: :file
+      = hf.input :file_cache, as: :hidden
 - if remove_path == '#'
   - content_for :page_js do
     :javascript
@@ -20,8 +25,8 @@
           e.preventDefault();
           $('.j-existing-file-form-group').fadeOut('slow', function() {
             $(this).remove();
-            $('form').find('input[type="file"]').show();
-            $('form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
+            $('.j-existing-file__form').show()
+            $('.j-existing-file__form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
           });
         });
       });
