@@ -9,11 +9,12 @@ module WarehouseReports::ClientDetails
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-      
+
       @start_date = @range.start
       @end_date = @range.end
 
       @enrollments = active_client_service_history(range: @range)
+      @clients = GrdaWarehouse::Hud::Client.where(id: @enrollments.keys).preload(:source_clients).index_by(&:id)
 
       respond_to do |format|
         format.html {}
@@ -40,21 +41,23 @@ module WarehouseReports::ClientDetails
 
     def service_history_columns
       {
-        client_id: she_t[:client_id].as('client_id').to_sql, 
-        project_id:  she_t[:project_id].as('project_id').to_sql, 
-        first_date_in_program:  she_t[:first_date_in_program].as('first_date_in_program').to_sql, 
-        last_date_in_program:  she_t[:last_date_in_program].as('last_date_in_program').to_sql, 
-        project_name:  she_t[:project_name].as('project_name').to_sql, 
-        project_type:  she_t[service_history_source.project_type_column].as('project_type').to_sql, 
-        organization_id:  she_t[:organization_id].as('organization_id').to_sql,
-        first_name: c_t[:FirstName].as('first_name').to_sql,
-        last_name: c_t[:LastName].as('last_name').to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
+        client_id: she_t[:client_id].to_sql,
+        project_id:  she_t[:project_id].to_sql,
+        first_date_in_program:  she_t[:first_date_in_program].to_sql,
+        last_date_in_program:  she_t[:last_date_in_program].to_sql,
+        project_name:  she_t[:project_name].to_sql,
+        project_type:  she_t[service_history_source.project_type_column].to_sql,
+        organization_id:  she_t[:organization_id].to_sql,
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        destination: she_t[:destination].to_sql,
+        living_situation: e_t[:LivingSituation].to_sql,
       }
     end
 
-    def active_client_service_history range: 
-      homeless_service_history_source.joins(:client).
+    def active_client_service_history range:
+      homeless_service_history_source.joins(:client, :enrollment).
         with_service_between(start_date: range.start, end_date: range.end).
         open_between(start_date: range.start, end_date: range.end).
         distinct.
