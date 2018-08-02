@@ -1,8 +1,3 @@
-<% form = nil %>
-<% simple_form_for @cha, url: upload_url  do |f| %>
-  <% form = f%>
-<% end %>
-
 var container = $('.j-file-upload');
 container.empty();
-container.append("<%= j render(partial: 'upload', locals: {f: form}) %>");
+container.append("<%= j render(partial: 'upload') %>");

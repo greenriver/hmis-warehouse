@@ -114,7 +114,7 @@ module Window::Health
       end
       @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : 'javascript:void(0)'
       @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.persisted? ? polymorphic_path([:remove_file] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : '#'
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : '#'
     end
 
     def set_form

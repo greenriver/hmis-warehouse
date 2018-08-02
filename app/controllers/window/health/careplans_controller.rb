@@ -11,7 +11,7 @@ module Window::Health
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload]
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
-    before_action :set_upload_object, only: [:edit, :update, :revise, :upload, :remove_file, :download]
+    before_action :set_upload_object, only: [:edit, :update, :revise, :remove_file, :download]
     
 
     def index
@@ -149,14 +149,10 @@ module Window::Health
 
     def set_upload_object
       @upload_object = @careplan
-      if action_name == 'upload'
-        @location = polymorphic_path([:edit] + careplan_path_generator, id: @careplan.id)
-      elsif action_name == 'remove_file'
-        @location = polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
-      end
+      @location = polymorphic_path([:edit] + careplan_path_generator, id: @careplan.id)
       @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + careplan_path_generator, client_id: @client.id, id: @careplan.id ) : 'javascript:void(0)'
       @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.persisted? ? polymorphic_path([:remove_file] + careplan_path_generator, client_id: @client.id, id: @careplan.id ) : '#'
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + careplan_path_generator, client_id: @client.id, id: @careplan.id ) : '#'
     end
 
     def self_sufficiency_assessment

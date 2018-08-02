@@ -89,7 +89,7 @@ module Window::Health
       end
       @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ) : 'javascript:void(0)'
       @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.persisted? ? polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ) : '#'
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ) : '#'
     end
 
     def set_medications

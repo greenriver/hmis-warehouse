@@ -17,6 +17,10 @@
     = f.simple_fields_for :health_file do |hf|
       = hf.input :file, as: :file
       = hf.input :file_cache, as: :hidden
+    - if include_submit
+      .d-flex
+        .ml-auto
+          = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }, style: 'background-color: #3c6776'
 - if remove_path == '#'
   - content_for :page_js do
     :javascript

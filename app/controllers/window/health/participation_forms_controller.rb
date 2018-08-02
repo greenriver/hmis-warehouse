@@ -67,21 +67,6 @@ module Window::Health
       end
     end
 
-    # def download
-    #   @file = @participation_form.health_file
-    #   send_data @file.content,
-    #     type: @file.content_type,
-    #     filename: File.basename(@file.file.to_s)
-    # end
-
-    # def remove_file
-    #   if @participation_form.health_file.present?
-    #     @participation_form.health_file.destroy
-    #   end
-    #   @participation_form.build_health_file
-    #   respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-    # end
-
     private
 
     def flash_interpolation_options

@@ -1,10 +1,12 @@
 - if f.object.can_display_health_file?
-  = render 'window/health/health_files/display', download_path: @download_path, download_data: @download_data, remove_path: @remove_path, filename: f.object.health_file&.name, f: f
+  = render 'window/health/health_files/display', download_path: @download_path, download_data: @download_data, remove_path: @remove_path, filename: f.object.health_file&.name, f: f, include_submit: include_submit, include_note: include_note
 - else
   - health_file = f.object.health_file || f.object.build_health_file
   = f.simple_fields_for :health_file, health_file do |hf|
     = hf.input :file, as: :file
     = hf.input :file_cache, as: :hidden
+  - if include_note
+    = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
   - if include_submit
     .d-flex
       .ml-auto
