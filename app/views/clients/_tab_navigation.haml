@@ -81,5 +81,9 @@
         title: 'Metrics',
         permission: show_health_pilot,
       },
+      polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
+        title: 'Metrics',
+        permission: show_health_hpc,
+      },
     }
   = render 'window/clients/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
