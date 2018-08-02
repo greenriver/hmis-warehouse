@@ -26,6 +26,7 @@ module Health
       self.client_id = client_id
       self.content = self.file.read
       self.content_type = self.file.content_type
+      self.size = self.content&.size
       self.name = self.file.filename
     end
   end

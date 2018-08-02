@@ -1,4 +1,4 @@
-= simple_form_for @careplan, url: @form_url do |f|
+= simple_form_for @careplan, url: form_url do |f|
   = f.error_notification
   %section.row
     .col-sm-6.col-lg-4
@@ -21,18 +21,19 @@
     .c-card__content
       .row.careplan-signatures
         = render 'careplan_form_signatures', f: f
+  
+  .well.form__upload.j-file-upload
+    %p= @careplan.errors.full_messages
+    = render 'upload', f: f
 
+  .form__actions.mt-6.mb-8
+    .c-btn-group
+      = link_to polymorphic_path(careplan_path_generator, id: @careplan), method: :delete, class: 'btn btn-danger', data: {confirm: "Would you really like to delete the Care Plan?"} do
+        %i.icon-cross
+        Delete Care Plan
+    .c-btn-group.ml-auto
+      = f.button :submit, @form_button
 
-    .form__actions.mt-6.mb-8
-      .c-btn-group
-        = link_to polymorphic_path(careplan_path_generator, id: @careplan), method: :delete, class: 'btn btn-danger', data: {confirm: "Would you really like to delete the Care Plan?"} do
-          %i.icon-cross
-          Delete Care Plan
-      .c-btn-group.ml-auto
-        = f.button :submit, @form_button
-
-.well.form__upload
-  = render 'upload'
 
 
 = javascript_include_tag 'moment.min.js'

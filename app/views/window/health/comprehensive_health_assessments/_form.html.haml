@@ -1,7 +1,6 @@
 = content_for :body_data_scrollspy, true
 
-- url = polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id, format: :js)
-= simple_form_for @cha, url: polymorphic_path(cha_path_generator, client_id: @client.id, id: @cha.id), as: :form, html: { data: { url: url }} do |f|
+= simple_form_for @cha, url: form_url, as: :form, html: { data: { url: form_url(format_js: true) }} do |f|
 
   .form.form--with-nav.j-form.autosave
     = render 'form_navigation'
@@ -491,7 +490,7 @@
     %hr
     %h3#cha-upload
       Paper CHA Upload (optional)
-    .well
+    .well.j-file-upload
       = render 'upload'
 
 .cha__saving-indicator.j-saving-indicator.c-loading.ml-auto.mr-auto.hidden

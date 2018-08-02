@@ -53,10 +53,9 @@ module Health
 
     belongs_to :patient
     belongs_to :user
-    # belongs_to :health_file, dependent: :destroy
+    
     has_one :health_file, class_name: 'Health::SdhCaseManagementNoteFile', foreign_key: :parent_id, dependent: :destroy
-    accepts_nested_attributes_for :health_file, allow_destroy: true, reject_if: proc {|att| att['file'].blank? && att['file_cache'].blank? && att['note'].blank?}
-    validates_associated :health_file
+    include HealthFiles
 
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
@@ -83,15 +82,15 @@ module Health
     # keep the date around until they hit save
     after_validation :remove_housing_placement_date
 
-    attr_accessor :file
+    # attr_accessor :file
 
-    def can_display_health_file?
-      health_file.present? && health_file.size
-    end
+    # def can_display_health_file?
+    #   health_file.present? && health_file.size
+    # end
 
-    def downloadable?
-      health_file.present? && health_file.persisted?
-    end
+    # def downloadable?
+    #   health_file.present? && health_file.persisted?
+    # end
 
     def remove_housing_placement_date
       unless housing_status_includes_date?

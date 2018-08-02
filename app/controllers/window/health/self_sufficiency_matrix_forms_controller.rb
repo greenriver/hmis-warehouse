@@ -3,11 +3,13 @@ module Window::Health
 
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthFileController
+
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :destroy, :download, :remove_file, :upload]
     before_action :set_claim_submitted, only: [:show, :edit]
-    before_action :set_health_file, only: [:upload, :update]
+    before_action :set_upload_object, only: [:edit, :update, :upload, :remove_file, :download]
 
     def new
       # redirect to edit if there are any incomplete
@@ -35,7 +37,6 @@ module Window::Health
 
     def update
       @form.assign_attributes(form_params)
-      @form.file = @health_file if @health_file
       Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
@@ -45,52 +46,15 @@ module Window::Health
       redirect_to polymorphic_path(careplans_path_generator)
     end
 
-    def upload
-      if params[:form]
-        @form.file = @health_file if @health_file
-        save_file if @form.errors.none? && @form.update(form_params)
-      else
-        flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.'
-      end
-      respond_with @form, location: polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
+    def form_url
+      polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id)
     end
+    helper_method :form_url
 
-    def download
-      @file = @form.health_file
-      send_data @file.content,
-        type: @file.content_type,
-        filename: File.basename(@file.file.to_s)
+    def upload_url
+      polymorphic_path([:upload] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id)
     end
-
-    def remove_file
-      @form.health_file.destroy
-      respond_with @form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-    end
-
-    def set_health_file
-      if file = params.dig(:form, :file)
-        @health_file = Health::SsmFile.new(
-          user_id: current_user.id,
-          client_id: @client.id,
-          file: file,
-          content: file&.read,
-          content_type: file.content_type
-        )
-      elsif @form.health_file.present?
-        @health_file = @form.health_file
-      end
-    end
-
-    def save_file
-      if @health_file
-        @form.health_file = @health_file
-        if @form.health_file.invalid?
-          flash[:error] = @form.health_file.errors.full_messages.join(';')
-        else
-          @form.save
-        end
-      end
-    end
+    helper_method :upload_url
 
     private
 
@@ -139,6 +103,18 @@ module Window::Health
         :time_notes,
         :collection_location
       )
+    end
+
+    def set_upload_object
+      @upload_object = @form
+      if action_name == 'upload'
+        @location = polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id)
+      elsif action_name == 'remove_file'
+        @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      end
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
+      @remove_path = @upload_object.persisted? ? polymorphic_path([:remove_file] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : '#'
     end
 
     def set_form
