@@ -1,0 +1,27 @@
+.form-group.j-existing-file-form-group
+  %label Existing File
+  %div
+    .btn-group.existing-file
+      = link_to download_path, class: 'btn btn-default', data: download_data do
+        = filename
+      - if remove_path == '#'
+        = link_to remove_path, class: 'btn btn-danger btn-icon-only' do
+          %span.icon-cross{style: 'color: white;margin:0;'}
+      - else
+        = link_to remove_path, class: 'btn btn-danger btn-icon-only', method: :delete, remote: true do
+          %span.icon-cross{style: 'color: white;margin:0;'}
+
+-# allow delete if this is displayed because of validation error
+- if remove_path == '#'
+  - content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        $('.j-existing-file-form-group .btn-danger').click(function(e) {
+          e.preventDefault();
+          $('.j-existing-file-form-group').fadeOut('slow', function() {
+            $(this).remove();
+            $('form').find('input[type="file"]').show();
+            $('form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
+          });
+        });
+      });

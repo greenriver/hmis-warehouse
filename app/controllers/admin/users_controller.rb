@@ -22,6 +22,7 @@ module Admin
       @users = @users
         .order(sort_column => sort_direction)
         .page(params[:page]).per(25)
+      @inactive_users = User.inactive
     end
 
     def edit
@@ -33,7 +34,7 @@ module Admin
       existing_health_roles = @user.roles.health.to_a
       begin
         User.transaction do
-          @user.skip_reconfirmation! 
+          @user.skip_reconfirmation!
           @user.update(user_params)
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
@@ -49,8 +50,8 @@ module Admin
 
     def destroy
       @user = user_scope.find params[:id]
-      @user.destroy
-      redirect_to({action: :index}, notice: 'User deleted')
+      @user.update(active: false)
+      redirect_to({action: :index}, notice: 'User deactivated')
     end
 
     def title_for_show
@@ -65,7 +66,7 @@ module Admin
     end
 
     private def user_scope
-      User
+      User.active
     end
 
     private def user_params
@@ -107,6 +108,6 @@ module Admin
       log_item(@user) if @user.present?
     end
 
-    
+
   end
 end

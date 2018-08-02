@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180716151309) do
+ActiveRecord::Schema.define(version: 20180717174942) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -413,6 +413,7 @@ ActiveRecord::Schema.define(version: 20180716151309) do
     t.string   "note"
     t.string   "name"
     t.float    "size"
+    t.integer  "parent_id"
   end
 
   add_index "health_files", ["type"], name: "index_health_files_on_type", using: :btree
@@ -805,6 +806,8 @@ ActiveRecord::Schema.define(version: 20180716151309) do
     t.jsonb    "signed_by",              default: [],                                      null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "expires_at"
+    t.integer  "health_file_id"
   end
 
   add_index "signable_documents", ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree

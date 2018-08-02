@@ -4,7 +4,7 @@ module ServiceHistoryServiceConcern
     scope :service, -> { where record_type: service_types }
     scope :extrapolated, -> { where record_type: :extrapolated }
     # The following scope is sometimes used to determine if any "real" service
-    # was performed within a date range, it isn't correctly interpreted 
+    # was performed within a date range, it isn't correctly interpreted
     # if used with ServiceHistoryEnrollment.with_service_between
     # unless it is explicitly a string
     scope :service_excluding_extrapolated, -> { where("record_type = 'service'") }
@@ -50,8 +50,12 @@ module ServiceHistoryServiceConcern
     end
 
     scope :service_in_last_three_years, -> {
-      service_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
+      service_in_prior_years(years: 3)
     }
+
+    scope :service_in_prior_years, -> (years: 3) do
+      service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.today)
+    end
 
     def self.service_types
       service_types = ['service']

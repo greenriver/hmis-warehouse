@@ -8,6 +8,7 @@
         %th Receiver
         %th Start
         %th End
+        %th Run by
         %th Status
     %tbody
       - @reports.each do |report|
@@ -19,4 +20,5 @@
           %td= report.receiver || 'All'
           %td= report.report_start_date
           %td= report.report_end_date
+          %td= report.user&.name
           %td= report.status

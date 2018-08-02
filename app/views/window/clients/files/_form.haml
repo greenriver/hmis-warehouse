@@ -30,8 +30,10 @@
                       - data.merge!({consent: true})
                     - if item.requires_effective_date
                       - data.merge!({requires_effective_date: true})
+                      - @requires_effective_date = true
                     - if item.requires_expiration_date
                       - data.merge!({requires_expiration_date: true})
+                      - @requires_expiration_date = true
                     - options.merge!({data: data})
                     = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
                     = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)

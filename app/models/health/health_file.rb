@@ -20,5 +20,13 @@ module Health
     def title
       self.class.model_name.human
     end
+
+    def set_calculated!(user_id, client_id)
+      self.user_id = user_id
+      self.client_id = client_id
+      self.content = self.file.read
+      self.content_type = self.file.content_type
+      self.name = self.file.filename
+    end
   end
 end

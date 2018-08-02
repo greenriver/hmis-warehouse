@@ -186,6 +186,48 @@ module Health
       end
     end
 
+    # Priority:
+    # Authoritative: Epic (epic_patient)
+    # Updates from MassHealth (patient_referral)
+    def update_demographics_from_sources
+      if patient_referral
+        self.first_name = patient_referral.first_name
+        self.middle_name = patient_referral.middle_initial
+        self.last_name = patient_referral.last_name
+        self.birthdate = patient_referral.birthdate
+        self.gender = patient_referral.gender
+      end
+      if epic_patient
+        self.first_name = epic_patient.first_name
+        self.middle_name = epic_patient.middle_name
+        self.last_name = epic_patient.last_name
+        self.aliases = epic_patient.aliases
+        self.birthdate = epic_patient.birthdate
+        self.allergy_list = epic_patient.allergy_list
+        self.primary_care_physician = epic_patient.primary_care_physician
+        self.transgender = epic_patient.transgender
+        self.race = epic_patient.race
+        self.ethnicity = epic_patient.ethnicity
+        self.veteran_status = epic_patient.veteran_status
+        self.ssn = epic_patient.ssn
+        self.gender = epic_patient.gender
+        self.housing_status = epic_patient.housing_status
+        self.housing_status_timestamp = epic_patient.housing_status_timestamp
+        self.death_date = epic_patient.death_date
+      end
+      self.save if self.changed?
+      if client.present? && client.data_source_id == GrdaWarehouse::DataSource.health_authoritative_id
+        client.FirstName = self.first_name
+        client.LastName = self.last_name
+        client.SSN = self.ssn
+        client.save if client.changed?
+      end
+    end
+
+    def self.update_demographic_from_sources
+      all.each(&:update_demographics_from_sources)
+    end
+
     def available_team_members
       team_members.map{|t| [t.full_name, t.id]}
     end
@@ -228,6 +270,42 @@ module Health
 
     def recent_case_management_note
       @recent_cmn ||= sdh_case_management_notes.recent.with_phone&.first
+    end
+
+    # Provide a means of seeing all the case notes, regardless of data source in one location
+    def case_notes_for_display
+      case_notes = []
+      case_notes += client.health_touch_points.case_management_notes.order(collected_at: :desc).map do |form|
+        {
+          type: :touch_point,
+          id: form.id,
+          title: form.assessment_type,
+          sub_title: 'From ETO',
+          date: form.collected_at&.to_date,
+          user: form.staff,
+        }
+      end
+      case_notes += sdh_case_management_notes.order(completed_on: :desc).map do |form|
+        {
+          type: :warehouse,
+          id: form.id,
+          title: form.topics.join(', ').html_safe,
+          sub_title: form.title || 'No Title',
+          date: form.completed_on&.to_date,
+          user: form.user&.name,
+        }
+      end
+      case_notes += epic_case_notes.order(contact_date: :desc).map do |form|
+        {
+          type: :epic,
+          id: form.id,
+          title: form.encounter_type,
+          sub_title: 'From Epic',
+          date: form.contact_date&.to_date,
+          user: form.provider_name,
+        }
+      end
+      case_notes.sort_by{|m| m[:date]}.reverse
     end
 
     def most_recent_ssn
@@ -282,6 +360,12 @@ module Health
       else
         nil
       end
+    end
+
+    # most recently updated Epic Patient
+    def epic_patient
+      return false unless epic_patients.exists?
+      epic_patients.order(updated_at: :desc).first
     end
 
     def email
@@ -402,18 +486,20 @@ module Health
 
     def build_team_memeber!(care_coordinator_id, current_user)
       user = User.find(care_coordinator_id)
-      team_member = Health::Team::CareCoordinator.new(
+      team_member = Health::Team::CareCoordinator.where(patient_id: id, email: user.email).first_or_initialize
+      team_member.assign_attributes(
         patient_id: id,
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
-        organization: user.health_agency&.name,
+        organization: health_agency&.name,
         user_id: current_user.id
       )
       team_member.save!
     end
 
     def available_care_coordinators
+      return [] unless health_agency.present?
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
     end

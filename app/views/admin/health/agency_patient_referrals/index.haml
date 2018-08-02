@@ -4,5 +4,8 @@
   = render 'admin/health/patient_referrals/header'
   = render 'admin/health/patient_referrals/tabs'
   = render 'admin/health/patient_referrals/paginate'
-  = render 'admin/health/patient_referrals/patient_referrals'
+  - if @user_agencies.many? && @patient_referral_groups.present?
+    = render 'admin/health/agency_patient_referrals/agency_grouped_patient_referrals'
+  - else
+    = render 'admin/health/patient_referrals/patient_referrals'
   = render 'claim_patient_referral_js'

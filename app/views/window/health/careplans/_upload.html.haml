@@ -1,4 +1,4 @@
-%p If the Care Plan was conducted on paper, you may upload a scanned PDF here, you will still need to note signature dates above.
+%p If the Care Plan was conducted on paper, you may upload a scanned PDF here. You will still need to note signature dates above.
 .row
   .col-sm-12
     = simple_form_for @careplan, url: polymorphic_path([:upload] + careplan_path_generator, client_id: @client.id, id: @careplan.id), as: :form, multipart: true do |f|

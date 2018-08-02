@@ -112,12 +112,13 @@ module Health
       end
     end
 
-    def display_claimed_by_other(agency)
+    def display_claimed_by_other(agencies)
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unknown'}.size
       if other_size > 0
-        if cb.include?(agency.name)
-          other_size = other_size - 1
+        claimed_by_agencies = (cb & agencies.map(&:name))
+        if claimed_by_agencies.any?
+          other_size = other_size - claimed_by_agencies.size
         end
         if other_size > 0
           agency = 'Agency'.pluralize(other_size)

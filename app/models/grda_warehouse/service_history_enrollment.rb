@@ -175,12 +175,16 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     entry_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
   }
   scope :enrollments_open_in_last_three_years, -> {
-    t = DateTime.current - 3.years
+    enrollment_open_in_prior_years(years: 3)
+  }
+
+  scope :enrollment_open_in_prior_years, -> (years: 3) do
+    t = DateTime.current - years.years
     at = arel_table
     where(
       at[:last_date_in_program].eq(nil).or(at[:first_date_in_program].gt(t)).or(at[:last_date_in_program].gt(t))
     )
-  }
+  end
 
   scope :started_between, -> (start_date: , end_date: ) do
     where(first_date_in_program: (start_date..end_date))

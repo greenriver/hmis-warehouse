@@ -4,7 +4,7 @@ require 'dotenv'
 Dotenv.load('.env', '.env.local')
 
 namespace :health do
- 
+
   desc "Import and match health data"
   task daily: [:environment, "log:info_to_stdout"] do
     Importing::RunHealthImportJob.new.perform
@@ -29,11 +29,35 @@ namespace :health do
     Health::Tasks::ImportPatientReferrals.new.import!
   end
 
+  desc "Fix HealthFile relationships"
+  task fix_health_file_relationships: [:environment, "log:info_to_stdout"] do
+    Health::HealthFile.where(parent_id: nil).each do |file|
+      case file.type
+      when "Health::SsmFile"
+        form_id = Health::SelfSufficiencyMatrixForm.where(health_file_id: file.id).pluck(:id).first
+      when "Health::ParticipationFormFile"
+        form_id = Health::ParticipationForm.where(health_file_id: file.id).pluck(:id).first
+      when "Health::ComprehensiveHealthAssessmentFile"
+        form_id = Health::ComprehensiveHealthAssessment.where(health_file_id: file.id).pluck(:id).first
+      when "Health::SdhCaseManagementNoteFile"
+        form_id = Health::SdhCaseManagementNote.where(health_file_id: file.id).pluck(:id).first
+      when "Health::ReleaseFormFile"
+        form_id = Health::ReleaseForm.where(health_file_id: file.id).pluck(:id).first
+      when "Health::SignableDocumentFile"
+        form_id = Health::SignableDocument.where(health_file_id: file.id).pluck(:id).first
+      end
+      if form_id
+        file.assign_attributes(parent_id: form_id)
+        file.save(validate: false)
+      end
+    end
+  end
+
   desc "Generate HPC Patient Referrals for development/staging"
   task dev_create_patient_referrals: [:environment, "log:info_to_stdout"] do
     return if Rails.env.production?
     require 'faker'
-    20.times do 
+    20.times do
       patient = Health::PatientReferral.new
       patient.first_name = Faker::Name.first_name
       patient.last_name = Faker::Name.last_name
@@ -44,7 +68,7 @@ namespace :health do
     end
   end
 
-  
+
   desc "Import development data"
   task :dev_import, [:reset] => [:environment, "log:info_to_stdout"] do |task, args|
     unless Rails.env.development?
@@ -77,15 +101,15 @@ namespace :health do
 
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
- 
+
     task :drop do
       Rake::Task["db:drop"].invoke
     end
- 
+
     task :create do
       Rake::Task["db:create"].invoke
     end
- 
+
     task :setup do
       Rake::Task["db:setup"].invoke
     end
@@ -105,35 +129,35 @@ namespace :health do
         Rake::Task["db:migrate:down"].invoke
       end
     end
- 
+
     task :rollback do
       Rake::Task["db:rollback"].invoke
     end
- 
+
     task :seed do
       Rake::Task["db:seed"].invoke
     end
- 
+
     task :version do
       Rake::Task["db:version"].invoke
     end
- 
+
     namespace :schema do
       task :load do
         Rake::Task["db:schema:load"].invoke
       end
- 
+
       task :dump do
         Rake::Task["db:schema:dump"].invoke
       end
     end
- 
+
     namespace :test do
       task :prepare do
         Rake::Task["db:test:prepare"].invoke
       end
     end
- 
+
     # append and prepend proper tasks to all the tasks defined here above
     ns.tasks.each do |task|
       task.enhance ["health:set_custom_config"] do
@@ -141,14 +165,14 @@ namespace :health do
       end
     end
   end
- 
+
   task :set_custom_config do
     # save current vars
     @original_config = {
       env_schema: ENV['SCHEMA'],
       config: Rails.application.config.dup
     }
- 
+
     # set config variables for custom database
     ENV['SCHEMA'] = "db/health/schema.rb"
     Rails.application.config.paths['db'] = ["db/health"]
@@ -158,7 +182,7 @@ namespace :health do
     db_config = Rails.application.config.paths['config/database'].to_a.first
     ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
   end
- 
+
   task :revert_to_original_config do
     # reset config variables to original values
     db_config = Rails.application.config.paths['config/database'].to_a.first

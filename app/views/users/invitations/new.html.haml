@@ -1,5 +1,7 @@
-%h2
-  = t "devise.invitations.new.header"
+.row
+  .col-sm-6
+    %h2
+      = t "devise.invitations.new.header"
 =simple_form_for resource, as: resource_name, url: invitation_path(resource_name), html: { method: :post} do |f| 
   = devise_error_messages! 
 

@@ -13,47 +13,70 @@
   .o-page__controls
     .o-page__search
       = render 'search_form'
-  .table-utilities
-    %p= page_entries_info @users, entry_name: _('user account')
-    :ruby
-      columns = ['last_name', 'first_name', 'email']
-      directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
-      titles = {}
-      directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
 
-  .row
-    .col-sm-12
-      .table-responsive
-        %table.table.table-condensed
-          %thead
-            %tr
-              - titles.each do | k, title |
-                %th
-                  = sort_link(titles[k], k, directions)
-                  %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
-              %th Status
-              %th Roles
-              %th
-              %th
-          %tbody
-            - @users.each do |user|
+%ul.nav.nav-tabs
+  %li.nav-item.active
+    %a.nav-link.active{href: '#active', role: "presentation", data: {toggle: :tab}}
+      Active Accounts
+  %li.nav-item
+    %a.nav-link{href: '#inactive', role: "presentation", data: {toggle: :tab}}
+      Inactive Accounts
+.tab-content
+  .tab-pane.active#active
+    .table-utilities
+      %p= page_entries_info @users, entry_name: _('user account')
+      :ruby
+        columns = ['last_name', 'first_name', 'email']
+        directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
+        titles = {}
+        directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
+
+    .row
+      .col-sm-12
+        .table-responsive
+          %table.table.table-condensed
+            %thead
               %tr
-                %td= user.last_name
-                %td= user.first_name
-                %td
-                  = user.email
-                %td= render 'user_invitation_status', user: user
-                %td= user.roles.map(&:name).join(', ')
-                %td
-                  = link_to admin_user_audit_path(user) do
-                    %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
-                %td
-                  = link_to action: :edit, id: user do
-                    %span.icon-pencil
-                    Edit
-                %td
-                  = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"} do
-                    %span.icon-cross
-                    Delete
+                - titles.each do | k, title |
+                  %th
+                    = sort_link(titles[k], k, directions)
+                    %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
+                %th Status
+                %th Roles
+                %th
+                %th
+            %tbody
+              - @users.each do |user|
+                %tr
+                  %td= user.last_name
+                  %td= user.first_name
+                  %td
+                    = user.email
+                  %td= render 'user_invitation_status', user: user
+                  %td= user.roles.map(&:name).join(', ')
+                  %td
+                    = link_to admin_user_audit_path(user) do
+                      %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                  %td
+                    = link_to action: :edit, id: user do
+                      %span.icon-pencil
+                      Edit
+                  %td
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"} do
+                      %span.icon-cross
+                      Delete
 
-      %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
+        %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
+  .tab-pane#inactive
+    .table-responsive
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th Name
+            %th Email
+        %tbody
+          - @inactive_users.each do |user|
+            %tr
+              %td= user.name
+              %td
+                = user.email

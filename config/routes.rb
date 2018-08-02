@@ -158,6 +158,11 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    resources :hashed_only_hmis_exports, except: [:edit, :update, :new] do
+      collection do
+        get :running
+      end
+    end
     resources :initiatives, except: [:edit, :update, :new] do
       get '(/:token)', controller: 'initiatives', action: :show, on: :member
       collection do
@@ -275,7 +280,9 @@ Rails.application.routes.draw do
       patch :unmerge
       resource :cas_active, only: :update
     end
-    resource :history, only: [:show], controller: 'clients/history'
+    resource :history, only: [:show], controller: 'clients/history' do
+      post :queue, on: :collection
+    end
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
@@ -313,6 +320,7 @@ Rails.application.routes.draw do
       get :image
       resource :history, only: [:show], controller: 'clients/history' do
         get :pdf, on: :collection
+        post :queue, on: :collection
       end
       resources :vispdats, controller: 'clients/vispdats' do
         member do
@@ -485,7 +493,7 @@ Rails.application.routes.draw do
       end
       resources :users, only: [:index] do
         post :update, on: :collection
-        resources :agency_users, only: [:new, :edit, :create, :update]
+        resources :agency_users, only: [:new, :create]
       end
       resources :roles, only: [:index, :edit, :update]
     end

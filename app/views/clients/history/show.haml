@@ -3,6 +3,9 @@
 = render 'clients/breadcrumbs'
 = render 'clients/tab_navigation', current: polymorphic_path(history_path_generator, client_id: @client)
 %h1= title
+.c-card
+  .c-card__content
+    = render 'pdf_generation_form'
 = render 'history_key'
 = render 'service_calendar'
-    
+
