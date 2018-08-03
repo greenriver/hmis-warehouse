@@ -53,9 +53,40 @@ module Health
 
     def self.update_qualifying_activities!
       Health::QualifyingActivity.transaction do
+        # Remember previous decisions about claim reports and payableness
+        @claim_report_ids = {}
+        Health::QualifyingActivity.unsubmitted.
+          where(
+            source_type: Health::EpicQualifyingActivity.name
+          ).where.not(
+            claim_id: nil
+          ).pluck(:source_id, :claim_id).each do |source_id, claim_id|
+            @claim_report_ids[claim_id] ||= []
+            @claim_report_ids[claim_id] << source_id
+          end
+        @force_pay_ids = Health::QualifyingActivity.unsubmitted.
+          where(
+            source_type: Health::EpicQualifyingActivity.name,
+            force_payable: true
+          ).pluck(:source_id)
+
         # remove and re-create all un-submitted qualifying activities that are backed by Epic
         Health::QualifyingActivity.unsubmitted.where(source_type: Health::EpicQualifyingActivity.name).delete_all
-        processed.merge(Health::QualifyingActivity.unsubmitted).each(&:create_qualifying_activity!)
+        unprocessed.each(&:create_qualifying_activity!)
+
+        # restore previous decisions
+        Health::QualifyingActivity.unsubmitted.
+          where(
+            source_type: Health::EpicQualifyingActivity.name,
+            source_id: @force_pay_ids
+          ).update_all(force_payable: true)
+        @claim_report_ids.each do |claim_id, source_ids|
+          Health::QualifyingActivity.unsubmitted.
+            where(
+              source_type: Health::EpicQualifyingActivity.name,
+              source_id: source_ids
+            ).update_all(claim_id: claim_id)
+        end
       end
     end
 
