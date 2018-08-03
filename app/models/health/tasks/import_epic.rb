@@ -8,7 +8,8 @@ module Health::Tasks
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 
-    def initialize(logger: Rails.logger, load_locally: false)
+    # if load_locally, then the files must be in 'var/health'
+    def initialize(logger: Rails.logger, load_locally: false, configs: nil)
       setup_notifier('HealthImporter')
 
       @logger = logger
@@ -18,11 +19,12 @@ module Health::Tasks
       @to_revoke = []
       @to_restore = []
       @new_patients = []
+      @configs = configs
     end
 
     def run!
-      configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
-      configs.each do |_, config|
+      @configs ||= YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      @configs.each do |_, config|
         @config = config
         ds = Health::DataSource.find_by(name: config['data_source_name'])
         @data_source_id = ds.id
@@ -50,10 +52,11 @@ module Health::Tasks
         clean_values << row.to_h.map do |k,v|
           clean_key = klass.csv_map[k.to_sym]
           [clean_key, klass.clean_value(clean_key, v)]
-        end.to_h.except(nil)
+        end.to_h.except(nil).merge(data_source_id: @data_source_id)
       end
-
-      if above_acceptable_change_threshold(klass, clean_values.size, klass.count)
+      count_incoming = clean_values.size
+      count_existing = klass.count
+      if above_acceptable_change_threshold(klass, count_incoming, count_existing)
         msg = "ALERT: Refusing to import #{klass.name} change is too great.  Incoming: #{count_incoming} Existing: #{count_existing}"
         notify msg
         return
@@ -61,13 +64,15 @@ module Health::Tasks
 
       klass.transaction do
         klass.delete_all
-        insert_batch klass, clean_values.keys, clean_values, transaction: false, batch_size: 500
+        insert_batch klass, clean_values.first.keys, clean_values.map(&:values), transaction: false, batch_size: 500
       end
     end
 
     # currently just a 10% change will prevent import/deletion
+    # always allow import if we don't have any in the warehouse
     def above_acceptable_change_threshold klass, incoming, existing
-      (incoming - existing).abs.to_f / existing)) > 0.1
+      return false if existing == 0
+      ((incoming - existing).abs.to_f / existing) > 0.1
     end
 
     def import_files
@@ -149,6 +154,7 @@ module Health::Tasks
     def notify msg
       @logger.info msg
       @notifier.ping msg if @send_notifications
+      puts msg
     end
   end
 end

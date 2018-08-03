@@ -10,14 +10,14 @@ module Health
     end
 
     # override as necessary
+    # don't forget to call super
     def self.clean_value key, value
       value
     end
 
     # override as necessary
-    def self.clean_row row:, data_source_id:
+    def clean_row row:, data_source_id:
       row
     end
-
   end
 end

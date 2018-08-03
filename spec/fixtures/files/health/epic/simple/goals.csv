@@ -1,11 +1,11 @@
 PAT_ID,GOAL_ID,goal_created,entered_by,title,contents,REC_VAL_COMPLIAN_YN,row_created,row_updated
-A1234624,132223,2018-05–20 14:54:00.000,Kayli Schmeler,Patient taking medication as prescribed,Pt to take meds,Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
-A1234595,132225,2018-05–21 14:54:00.000,Mabelle Tillman,attend groups,Patient will attend groups weekly  ,Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
-A1234578,132227,2018-05–20 14:54:00.000,Ezequiel Hane,reduce anxiety,Patient will experience decreased anxiety,N,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
-A1234608,132229,2018-05–21 14:54:00.000,"Jody, McKenzie",to walk out of this rehab soon,Pt shares rehab is working.   ,,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
-A1234577,132231,2018-05–20 14:54:00.000,Carlee Strosin,Weight < 200 lb,Pt will diet.   ,Y,2018-07-10 09:39:06.453,2018-07-28 09:25:14.380
-A1234600,132233,2018-05–21 14:54:00.000,Deon Schiller,Cut out extra servings of food,Pt is more serious about going on a diet.  ,Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
-A1234586,132235,2018-05–20 14:54:00.000,Aisha Johnston,alleviate symptoms of PTSD/ intrusive memories ,1. Identify what triggers pt stressful memories and other symptoms   2. Find ways to cope with feelings  3. Become more aware  4. Raise esteem,,2018-08-02 09:32:57.217,2018-08-02 09:32:57.217
-A1234624,132237,2018-05–21 14:54:00.000,"Sebastian, Goldner",manage symtoms of anxiety ,1. Develop skills to help anxiety   2. Attend schedule appointments - 100% attendance  3. Practice breathing,Y,2018-08-02 09:32:57.217,2018-08-02 09:32:57.217
-A1234595,132239,2018-05–20 14:54:00.000,Randy Kulas,maintain sobriety ,1. Attend individual therapy   2. Process events and review prevention skills   3. Attend meetings and remain,Y,2018-08-02 09:32:57.217,2018-08-02 09:32:57.217
-A1234578,132241,2018-05–21 14:54:00.000,Marty Zieme,Patient taking medication as prescribed,"Take medication, and refuse to take meds.   ",Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
+A1234624,132223,2018-05-20 14:54:00.000,Kayli Schmeler,Patient taking medication as prescribed,Pt to take meds,Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
+A1234595,132225,2018-05-21 14:54:00.000,Mabelle Tillman,attend groups,Patient will attend groups weekly  ,Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
+A1234578,132227,2018-05-20 14:54:00.000,Ezequiel Hane,reduce anxiety,Patient will experience decreased anxiety,N,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
+A1234608,132229,2018-05-21 14:54:00.000,"Jody, McKenzie",to walk out of this rehab soon,Pt shares rehab is working.   ,,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
+A1234577,132231,2018-05-20 14:54:00.000,Carlee Strosin,Weight < 200 lb,Pt will diet.   ,Y,2018-07-10 09:39:06.453,2018-07-28 09:25:14.380
+A1234600,132233,2018-05-21 14:54:00.000,Deon Schiller,Cut out extra servings of food,Pt is more serious about going on a diet.  ,Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453
+A1234586,132235,2018-05-20 14:54:00.000,Aisha Johnston,alleviate symptoms of PTSD/ intrusive memories ,1. Identify what triggers pt stressful memories and other symptoms   2. Find ways to cope with feelings  3. Become more aware  4. Raise esteem,,2018-08-02 09:32:57.217,2018-08-02 09:32:57.217
+A1234624,132237,2018-05-21 14:54:00.000,"Sebastian, Goldner",manage symtoms of anxiety ,1. Develop skills to help anxiety   2. Attend schedule appointments - 100% attendance  3. Practice breathing,Y,2018-08-02 09:32:57.217,2018-08-02 09:32:57.217
+A1234595,132239,2018-05-20 14:54:00.000,Randy Kulas,maintain sobriety ,1. Attend individual therapy   2. Process events and review prevention skills   3. Attend meetings and remain,Y,2018-08-02 09:32:57.217,2018-08-02 09:32:57.217
+A1234578,132241,2018-05-21 14:54:00.000,Marty Zieme,Patient taking medication as prescribed,"Take medication, and refuse to take meds.   ",Y,2018-07-10 09:39:06.453,2018-07-10 09:39:06.453

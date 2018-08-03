@@ -22,16 +22,19 @@ module Health
         DX_2_ICD10: :dx_2_icd10,
         DX_2_NAME: :dx_2_name,
         HOMELESS_STATUS: :homeless_status,
+        row_created: :created_at,
+        row_updated: :updated_at,
       }
     end
 
     def self.clean_value key, value
-      case value
+      value = case value
       when 'NULL'
-        value = nil
+        nil
       else
         value
       end
+      super(key, value)
     end
   end
 end
