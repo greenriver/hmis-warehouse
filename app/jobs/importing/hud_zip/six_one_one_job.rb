@@ -17,7 +17,7 @@ module Importing::HudZip
         project_whitelist: @project_whitelist
       )
       importer.pre_process! if @project_whitelist
-      importer.import! unless @project_whitelist
+      importer.import!
     end
 
     def enqueue(job)
