@@ -1,5 +1,5 @@
 module Health
-  class EpicGoal < Base
+  class EpicGoal < EpicBase
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals
 
     scope :visible, -> do
@@ -7,7 +7,7 @@ module Health
     end
 
     self.source_key = :GOAL_ID
-    
+
     def self.csv_map(version: nil)
       {
         PAT_ID: :patient_id,

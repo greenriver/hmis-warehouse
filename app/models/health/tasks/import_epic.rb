@@ -43,25 +43,31 @@ module Health::Tasks
         notify msg
         raise msg
       end
+      clean_values = []
+      instance = klass.new # need an instance to cache some queries
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
-      # CSV.foreach(path, 'r:bom|utf-8', headers: true) do |row|
-        key = row[klass.source_key.to_s]
-        translated_row = row.to_h.map do |k,v|
+        row = instance.clean_row(row: row, data_source_id: @data_source_id)
+        clean_values << row.to_h.map do |k,v|
           clean_key = klass.csv_map[k.to_sym]
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h.except(nil)
-
-        entry = klass.where(klass.csv_map[klass.source_key] => key, data_source_id: @data_source_id).
-          first_or_create(translated_row) do |patient|
-          if klass == Health::EpicPatient
-            @new_patients << patient[:id_in_source]
-          end
-        end
-        changed = entry.updated_at < translated_row[:updated_at] || klass == Health::EpicPatient rescue false
-        if changed
-          entry.update(translated_row)
-        end
       end
+
+      if above_acceptable_change_threshold(klass, clean_values.size, klass.count)
+        msg = "ALERT: Refusing to import #{klass.name} change is too great.  Incoming: #{count_incoming} Existing: #{count_existing}"
+        notify msg
+        return
+      end
+
+      klass.transaction do
+        klass.delete_all
+        insert_batch klass, clean_values.keys, clean_values, transaction: false, batch_size: 500
+      end
+    end
+
+    # currently just a 10% change will prevent import/deletion
+    def above_acceptable_change_threshold klass, incoming, existing
+      (incoming - existing).abs.to_f / existing)) > 0.1
     end
 
     def import_files

@@ -1,5 +1,5 @@
 module Health
-  class Base < HealthBase
+  class EpicBase < Base
     self.abstract_class = true
 
     def self.source_key= key
@@ -7,19 +7,6 @@ module Health
     end
     def self.source_key
       @source_key
-    end
-
-    def self.known_sub_classes
-      [
-        Health::Appointment,
-        Health::Careplan,
-        Health::Medication,
-        Health::Patient,
-        Health::Problem,
-        Health::Team,
-        Health::Visit,
-        Health::EpicGoal,
-      ]
     end
 
     # override as necessary

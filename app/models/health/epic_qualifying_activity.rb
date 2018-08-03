@@ -1,10 +1,15 @@
 module Health
-  class EpicQualifyingActivity < Base
+  class EpicQualifyingActivity < EpicBase
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities
     has_one :patient, through: :epic_patient
+    has_one :qualifying_activity, -> { where source_type: Health::EpicQualifyingActivity.name }, primary_key: :id, foreign_key: :source_id
 
     scope :unprocessed, -> do
       where.not(id: Health::QualifyingActivity.where(source_type: name).select(:source_id))
+    end
+
+    scope :processed, -> do
+      joins(:qualifying_activity)
     end
 
     self.source_key = :QA_ID
@@ -27,7 +32,7 @@ module Health
 
     def create_qualifying_activity!
       # prevent duplication creation
-      return true if Health::QualifyingActivity.where(source_type: self.class.name, source_id: id).exists?
+      return true if qualifying_activity.present?
       # Don't add qualifying activities if we can't determine the patient
       return true unless patient.present?
 
@@ -44,6 +49,12 @@ module Health
         source_id: id,
         user_id: user.id
       )
+    end
+
+    def self.update_qualifying_activities!
+      Delete all unsubmitted QA associated with EpicQualifyingActivity
+
+      processed.merge(Health::QualifyingActivity.unsubmitted).each(&:create_qualifying_activity!)
     end
 
 
