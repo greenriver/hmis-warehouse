@@ -23,14 +23,14 @@ class UploadsController < ApplicationController
     # Prevent create if user forgot to include file
     if !upload_params[:file]
       @upload = upload_source.new
-      flash[:alert] = _("You must attach a file in the form.")    
+      flash[:alert] = _("You must attach a file in the form.")
       render :new
       return
     end
     file = upload_params[:file]
     @upload = upload_source.new(upload_params.merge({
-      percent_complete: 0.0, 
-      data_source_id: @data_source.id, 
+      percent_complete: 0.0,
+      data_source_id: @data_source.id,
       user_id: current_user.id,
       content_type: file.content_type,
       content: file.read,
@@ -48,7 +48,7 @@ class UploadsController < ApplicationController
       when 'hmis_51'
         job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
       when 'hmis_611'
-        job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @deidentified), queue: :default_priority
+        job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
       end
       @upload.update(delayed_job_id: job.id)
     end
@@ -76,7 +76,7 @@ class UploadsController < ApplicationController
     @upload = upload_source.find(params[:id].to_i)
   end
 
-  def upload_source 
+  def upload_source
     GrdaWarehouse::Upload
   end
 end
