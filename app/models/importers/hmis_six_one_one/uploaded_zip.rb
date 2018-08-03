@@ -27,16 +27,21 @@ module Importers::HMISSixOneOne
       @import.save
     end
 
-    def import!
-      return unless @upload.present?
+    def pre_process!
       file_path = reconstitute_upload()
       expand(file_path: file_path)
-
       if @upload.project_whitelist
         calculate_whitelisted_personal_ids(@local_path)
         remove_unwhitelisted_client_data(@local_path)
         replace_original_upload_file(file_path)
+        remove_import_files
       end
+    end
+
+    def import!
+      return unless @upload.present?
+      file_path = reconstitute_upload()
+      expand(file_path: file_path)
       super()
       mark_upload_complete()
     end
