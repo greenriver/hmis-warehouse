@@ -5,8 +5,8 @@
   = f.simple_fields_for :health_file, health_file do |hf|
     = hf.input :file, as: :file
     = hf.input :file_cache, as: :hidden
-  - if include_note
-    = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
+    - if include_note
+      = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
   - if include_submit
     .d-flex
       .ml-auto
