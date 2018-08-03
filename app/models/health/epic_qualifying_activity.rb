@@ -52,9 +52,11 @@ module Health
     end
 
     def self.update_qualifying_activities!
-      Delete all unsubmitted QA associated with EpicQualifyingActivity
-
-      processed.merge(Health::QualifyingActivity.unsubmitted).each(&:create_qualifying_activity!)
+      Health::QualifyingActivity.transaction do
+        # remove and re-create all un-submitted qualifying activities that are backed by Epic
+        Health::QualifyingActivity.unsubmitted.where(source_type: Health::EpicQualifyingActivity.name).delete_all
+        processed.merge(Health::QualifyingActivity.unsubmitted).each(&:create_qualifying_activity!)
+      end
     end
 
 
