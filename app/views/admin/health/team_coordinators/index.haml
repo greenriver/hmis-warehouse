@@ -18,9 +18,9 @@
       - @coordinators.each do |coordinator|
         %tr
           %td
-            = @team_coordinators[coordinator.user_id].name
+            = @team_coordinators[coordinator.user_id]&.name
           %td
-            = @care_coordinators[coordinator.care_coordinator_id].name
+            = @care_coordinators[coordinator.care_coordinator_id]&.name
           %td
             = link_to admin_health_team_coordinator_path(coordinator.id), class: 'btn btn-danger btn-icon-only btn-sm', method: :delete do
               %i.icon-cross
