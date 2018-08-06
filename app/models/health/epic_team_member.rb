@@ -36,7 +36,7 @@ module Health
     end
 
     def previously_processed_ids
-      previously_processed_ids ||= self.class.processed.pluck(:id_in_source, :data_source_id, :processed).
+      @previously_processed_ids ||= self.class.processed.pluck(:id_in_source, :data_source_id, :processed).
         index_by{|id, ds, _| [id, ds]}.to_h
     end
 

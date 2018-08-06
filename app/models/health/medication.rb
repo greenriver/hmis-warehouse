@@ -17,15 +17,5 @@ module Health
         row_updated: :updated_at,
       }
     end
-
-    # def self.clean_value key, value
-    #   case key
-    #   # Just preserve the date part, the time seems to get in the way
-    #   when :start_date, :ordered_date
-    #     value&.split(' ').try(:[], 0)
-    #   else
-    #     value
-    #   end
-    # end
   end
 end

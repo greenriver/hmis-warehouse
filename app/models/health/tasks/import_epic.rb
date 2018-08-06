@@ -154,7 +154,6 @@ module Health::Tasks
     def notify msg
       @logger.info msg
       @notifier.ping msg if @send_notifications
-      puts msg
     end
   end
 end
