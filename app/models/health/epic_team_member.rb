@@ -45,7 +45,7 @@ module Health
     end
 
     def clean_row row:, data_source_id:
-      row << {processed: previously_processed(id_in_source: row[self.class.source_key], data_source_id: data_source_id)}
+      row << {processed: previously_processed(id_in_source: row[self.class.source_key], data_source_id: data_source_id.to_i)}
       row
     end
 
