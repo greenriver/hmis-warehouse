@@ -86,10 +86,10 @@ namespace :health do
       if args.reset.present?
         Rails.logger.info 'Removing all health data'
         Health::Base.known_sub_classes.each do |klass|
-          klass.delete_all
+          # klass.delete_all
         end
         Health::Claims::Base.known_sub_classes.each do |klass|
-          klass.delete_all
+          # klass.delete_all
         end
       end
       Health::Tasks::ImportEpic.new(load_locally: true).run!
