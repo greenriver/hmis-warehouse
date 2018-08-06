@@ -84,7 +84,7 @@ module Health
       when :pilot
         value == 'SDH Pilot'
       else
-        value
+        value.presence
       end
       super(key, value)
     end

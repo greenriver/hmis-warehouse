@@ -9,7 +9,7 @@ module Health::Tasks
     attr_accessor :send_notifications, :notifier_config, :logger
 
     # if load_locally, then the files must be in 'var/health'
-    def initialize(logger: Rails.logger, load_locally: false, configs: nil)
+    def initialize(logger: Rails.logger, load_locally: false, configs: nil, prevent_massive_change: true)
       setup_notifier('HealthImporter')
 
       @logger = logger
@@ -20,6 +20,7 @@ module Health::Tasks
       @to_restore = []
       @new_patients = []
       @configs = configs
+      @prevent_massive_change = prevent_massive_change
     end
 
     def run!
@@ -71,6 +72,7 @@ module Health::Tasks
     # currently just a 10% change will prevent import/deletion
     # always allow import if we don't have any in the warehouse
     def above_acceptable_change_threshold klass, incoming, existing
+      return false unless @prevent_massive_change
       return false if existing == 0
       ((incoming - existing).abs.to_f / existing) > 0.1
     end
