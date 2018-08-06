@@ -6,32 +6,21 @@
         %th Date Completed
         %th Case Manager
     %tbody
-      - @client.health_touch_points.case_management_notes.order(collected_at: :desc).each do |form|
+      - @patient.case_notes_for_display.each do |form|
+        - case form[:type]
+        - when :touch_point
+          - url = assessment_client_path(id: form[:id])
+        - when :epic
+          - url = polymorphic_path(health_path_generator + [:epic_case_note], client_id: @client.id, id: form[:id])
+        - else
+          - url = polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: form[:id])
         %tr
           %td
-            = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
-              -# What are topics for old notes?
-              %h4= form.assessment_type
-              .padding-left-02 From ETO
-          %td= form.collected_at&.to_date
-          %td= form.staff
-      - @patient.sdh_case_management_notes.each do |note|
-        %tr
-          %td
-            = link_to polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: note.id), data: {loads_in_pjax_modal: true} do
-              %div= note.topics.join(', ').html_safe
-              .padding-left-02= note.title || 'No Title'
-          %td= note.completed_on&.to_date
-          %td= note.user.name
-      - @patient.epic_case_notes.order(contact_date: :desc).each do |note|
-        %tr
-          %td
-            = link_to polymorphic_path(health_path_generator + [:epic_case_note], client_id: @client.id, id: note.id), data: { loads_in_pjax_modal: true } do
-              %h4= note.encounter_type
-              .padding-left-02 From Epic
-          %td= note.contact_date&.to_date
-          %td= note.provider_name
-
+            = link_to url, data: { loads_in_pjax_modal: true } do
+              %h4= form[:title]
+              .padding-left-02= form[:sub_title]
+          %td= form[:date]
+          %td= form[:user]
 - else
   %p.no-data No Case Management Notes on file
 
@@ -40,7 +29,7 @@
     $('.datatable-sdh').DataTable({
       searching: false,
       ordering: false,
-      pageLength: 20,
+      pageLength: 10,
       lengthChange: false,
       pagingType: 'simple'
     })

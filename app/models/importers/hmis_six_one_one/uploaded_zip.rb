@@ -27,16 +27,21 @@ module Importers::HMISSixOneOne
       @import.save
     end
 
-    def import!
-      return unless @upload.present?
+    def pre_process!
       file_path = reconstitute_upload()
       expand(file_path: file_path)
-
       if @upload.project_whitelist
         calculate_whitelisted_personal_ids(@local_path)
         remove_unwhitelisted_client_data(@local_path)
         replace_original_upload_file(file_path)
+        remove_import_files
       end
+    end
+
+    def import!
+      return unless @upload.present?
+      file_path = reconstitute_upload()
+      expand(file_path: file_path)
       super()
       mark_upload_complete()
     end
@@ -55,6 +60,7 @@ module Importers::HMISSixOneOne
           @whitelisted_personal_ids.add(row['PersonalID'])
         end
       end
+      log "Found #{@whitelisted_personal_ids.size} Whitelisted Personal IDs"
     end
 
     def remove_unwhitelisted_client_data file_path
@@ -69,6 +75,7 @@ module Importers::HMISSixOneOne
         service_source,
         client_source,
       ].each do |klass|
+        log "Removing un-whitelisted rows from #{klass.name}"
         file = File.join(file_path, importable_files.key(klass))
         clean_file = File.join(file_path, "clean_#{importable_files.key(klass)}")
         CSV.open(clean_file, 'wb') do |csv|

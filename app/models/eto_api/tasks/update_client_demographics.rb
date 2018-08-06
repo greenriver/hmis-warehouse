@@ -190,21 +190,23 @@ module EtoApi::Tasks
         answers[:assessment_identifier] = api_response['TouchPointIdentifier']
         answers[:sections] = []
         section = nil
+        sub_section = nil
+        sub_sections = []
 
         assessment['TouchPointElement'].each do |element|
           element_type = display_as_form_element(element_type: element['ElementType'])
           if element_type == 'Section header'
-            answers[:sections] << section if section.present?
+            answers[:sections] << section if section.present? # save off the previous section
             section = {section_title: element['Stimulus'], questions: []}
           elsif element['GridOrTable'].present?
             element['GridOrTable']['Elements'].each do |sub_element|
               sub_element_type = display_as_form_element(element_type: sub_element['ElementType'])
               if sub_element_type == 'Section header'
-                answers[:sections] << section if section.present?
-                section = {section_title: sub_element['Stimulus'], questions: []}
+                sub_sections << sub_section if sub_section.present? # save off the previous sub-section
+                sub_section = {section_title: sub_element['Stimulus'], questions: []}
               else
                 value = response_element(element_id: sub_element['ElementID'], response: api_response).try(:[], 'Value')
-                section[:questions] << {
+                sub_section[:questions] << {
                   question: sub_element['Stimulus'],
                   answer: value,
                   type: sub_element_type,
@@ -224,8 +226,15 @@ module EtoApi::Tasks
             end
           end
         end
+        # Save off the last sub_section
+        sub_sections << sub_section if sub_section.present?
         # Save off the last section
         answers[:sections] << section if section.present?
+        sub_sections.each do |section|
+          answers[:sections] << section
+        end
+
+
         staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
         hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
         hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])
