@@ -421,12 +421,16 @@ module Health
         klass = Health::Team::Member.class_from_member_type_name(relationship)
         at = klass.arel_table
         if epic_member.email?
-          member = klass.where(at[:email].lower.eq(epic_member&.email.downcase).to_sql).first_or_initialize
+          member = klass.where(at[:email].lower.eq(epic_member&.email.downcase).to_sql).
+            where(patient_id: id).
+            first_or_initialize
         elsif first_name && last_name
           member = klass.where(
             at[:first_name].lower.eq(first_name&.downcase).
             and(at[:last_name].lower.eq(last_name&.downcase)).to_sql
-          ).first_or_initialize
+          ).
+          where(patient_id: id).
+          first_or_initialize
         else
           next
         end
