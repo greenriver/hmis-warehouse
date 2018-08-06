@@ -153,7 +153,6 @@ module Exporters::Tableau::EntryExit
           # when :rel_to_hoh
           #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id
-            binding.pry
             if row['confidential'] == 't'
               "#{GrdaWarehouse::Hud::Project.confidential_project_name} (#{HUD.project_type_brief(row['prog_type']&.to_i)})"
             else
