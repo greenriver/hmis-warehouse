@@ -1975,6 +1975,8 @@ module GrdaWarehouse::Hud
             class: "client__service_type_#{entry.computed_project_type}",
             most_recent_service: most_recent_service,
             new_episode: new_episode,
+            enrollment_id: entry.enrollment.EnrollmentID,
+            data_source_id: entry.enrollment.data_source_id,
             # support: dates_served,
           }
         end
@@ -2028,14 +2030,43 @@ module GrdaWarehouse::Hud
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
     end
     
+    def affiliated_residential_projects enrollment
+      @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
+        [
+          [affiliation.project.ProjectID, affiliation.project.data_source_id],
+          affiliation.residential_project.ProjectName,
+        ]
+      end.group_by(&:first)
+      @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
+    end
+    
+    def affiliated_projects enrollment
+      @project_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).
+        map do |affiliation|
+        [
+          [affiliation.residential_project.ProjectID, affiliation.residential_project.data_source_id],
+          affiliation.project.ProjectName,
+        ]
+      end.group_by(&:first)
+      @project_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
+    end
+            
     def affiliated_projects_str_for_enrollment enrollment
-      affiliated_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: enrollment[:ProjectID]).affiliated_projects.pluck(:ProjectName)
-      affiliated_project_names.present? ? "Affiliated Projects: #{affiliated_project_names.to_sentence}" : ""    
+      project_names = affiliated_projects(enrollment)
+      if project_names.any?
+        "Affiliated Projects: #{project_names.to_sentence}"
+      else 
+        ""
+      end      
     end
     
     def residential_projects_str_for_enrollment enrollment
-      residential_project_names = GrdaWarehouse::Hud::Project.find_by(ProjectID: enrollment[:ProjectID]).residential_projects.pluck(:ProjectName)
-      residential_project_names.present? ? "Residential Projects: #{residential_project_names.to_sentence}" : ""    
+      project_names = affiliated_residential_projects(enrollment)
+      if project_names.any?
+        "Residential Projects: #{project_names.to_sentence}"
+      else 
+        ""
+      end
     end
     
     def program_tooltip_data_for_enrollment enrollment

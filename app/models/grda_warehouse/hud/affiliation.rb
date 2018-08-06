@@ -4,7 +4,6 @@ module GrdaWarehouse::Hud
     self.table_name = 'Affiliation'
     self.hud_key = :AffiliationID
     acts_as_paranoid column: :DateDeleted
-    has_many :users
 
     def self.hud_csv_headers(version: nil)
       [
