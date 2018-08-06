@@ -1,5 +1,5 @@
 module Health
-  class Medication < Base
+  class Medication < EpicBase
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :medications
 
