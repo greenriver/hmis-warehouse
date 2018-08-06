@@ -32,9 +32,15 @@ namespace :health do
   desc "Fix HealthFile relationships"
   task fix_health_file_relationships: [:environment, "log:info_to_stdout"] do
     Health::HealthFile.where(parent_id: nil).each do |file|
+      careplan_bug = false
       case file.type
       when "Health::SsmFile"
         form_id = Health::SelfSufficiencyMatrixForm.where(health_file_id: file.id).pluck(:id).first
+        if !form_id
+          # bug in careplan controller saving careplan files as ssm files
+          careplan_bug = true
+          form_id = Health::Careplan.where(health_file_id: file.id).pluck(:id).first
+        end
       when "Health::ParticipationFormFile"
         form_id = Health::ParticipationForm.where(health_file_id: file.id).pluck(:id).first
       when "Health::ComprehensiveHealthAssessmentFile"
@@ -46,7 +52,9 @@ namespace :health do
       when "Health::SignableDocumentFile"
         form_id = Health::SignableDocument.where(health_file_id: file.id).pluck(:id).first
       end
-      if form_id
+      if form_id && careplan_bug
+        file.assign_attributes(parent_id: form_id, type: 'Health::CareplanFile')
+      elsif form_id
         file.assign_attributes(parent_id: form_id)
         file.save(validate: false)
       end

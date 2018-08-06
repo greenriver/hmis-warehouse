@@ -796,7 +796,9 @@ module Health
     belongs_to :patient
     belongs_to :user
     belongs_to :reviewed_by, class_name: 'User'
-    belongs_to :health_file, dependent: :destroy
+    
+    has_one :health_file, class_name: 'Health::ComprehensiveHealthAssessmentFile', foreign_key: :parent_id, dependent: :destroy
+    include HealthFiles
 
     enum status: {not_started: 0, in_progress: 1, complete: 2}
 
