@@ -8,6 +8,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
     end
   end
   describe 'Importing into an empty database' do
+    let!(:ds) { create :health_ds_1 }
     configs = {
       a: {
         'data_source_name' => "BHCHP EPIC",
