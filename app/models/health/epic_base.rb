@@ -12,7 +12,7 @@ module Health
     # override as necessary
     # don't forget to call super
     def self.clean_value key, value
-      value
+      value.presence
     end
 
     # override as necessary

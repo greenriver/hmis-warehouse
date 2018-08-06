@@ -32,7 +32,7 @@ module Health
       when 'NULL'
         nil
       else
-        value
+        value.presence
       end
       super(key, value)
     end
