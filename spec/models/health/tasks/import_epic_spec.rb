@@ -6,15 +6,16 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
     Health.models_by_health_filename.each do |_, klass|
       klass.delete_all
     end
+    Health::DataSource.delete_all
   end
   describe 'Importing into an empty database' do
-    let!(:ds) { create :health_ds_1 }
     configs = {
       a: {
         'data_source_name' => "BHCHP EPIC",
         'destination' => 'var/health/testing',
-      }
+      },
     }
+
     describe 'None of the associated models contain any data' do
       Health.models_by_health_filename.each do |_, klass|
         count = klass.count
@@ -24,10 +25,10 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       end
     end
     describe 'After the initial import' do
+      Health::DataSource.create!(name: "BHCHP EPIC")
       dest_path = configs[:a]['destination']
       FileUtils.mkdir_p(dest_path) unless Dir.exists?(dest_path)
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
-
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
         record_count = File.readlines(File.join(dest_path, file_name)).size - 1
