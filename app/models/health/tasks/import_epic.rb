@@ -51,7 +51,7 @@ module Health::Tasks
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
         row = instance.clean_row(row: row, data_source_id: @data_source_id)
         clean_values << row.to_h.map do |k,v|
-          clean_key = klass.csv_map[k.to_sym]
+          clean_key = klass.csv_map[k.to_sym] || k.to_sym
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h.except(nil).merge(data_source_id: @data_source_id)
       end

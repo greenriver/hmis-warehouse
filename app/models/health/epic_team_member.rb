@@ -37,7 +37,7 @@ module Health
 
     def previously_processed_ids
       @previously_processed_ids ||= self.class.processed.pluck(:id_in_source, :data_source_id, :processed).
-        index_by{|id, ds, _| [id, ds]}.to_h
+        map{|id, ds, processed| [[id, ds], processed]}.to_h
     end
 
     def previously_processed id_in_source:, data_source_id:
@@ -45,7 +45,7 @@ module Health
     end
 
     def clean_row row:, data_source_id:
-      row << {processed: previously_processed(id_in_source: row[self.class.source_key], data_source_id: data_source_id.to_i)}
+      row << {'processed' => previously_processed(id_in_source: row[self.class.source_key.to_s], data_source_id: data_source_id.to_i)}
       row
     end
 
