@@ -474,7 +474,7 @@ module Health
       when :pilot
         value == 'SDH Pilot'
       else
-        value.presence
+        value
       end
     end
 
