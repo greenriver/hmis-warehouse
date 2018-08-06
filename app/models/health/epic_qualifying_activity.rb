@@ -1,5 +1,6 @@
 module Health
   class EpicQualifyingActivity < EpicBase
+    include NotifierConfig
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities
     has_one :patient, through: :epic_patient
     has_one :qualifying_activity, -> { where source_type: Health::EpicQualifyingActivity.name }, primary_key: :id, foreign_key: :source_id
@@ -37,7 +38,7 @@ module Health
       return true unless patient.present?
 
       user = User.setup_system_user()
-      Health::QualifyingActivity.create!(
+      qa = Health::QualifyingActivity.new(
         patient_id: patient.id,
         date_of_activity: date_of_activity,
         user_full_name: entered_by,
@@ -49,6 +50,14 @@ module Health
         source_id: id,
         user_id: user.id
       )
+
+      if qa.valid?
+        qa.save
+      else
+        msg = "Unable to create Qualifying Activity for EpicQualifyingActivity: #{id}, QA would not be valid"
+        @notifier.ping msg if @send_notifications
+        return
+      end
     end
 
     def self.update_qualifying_activities!
