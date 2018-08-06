@@ -82,6 +82,7 @@ Rails.application.routes.draw do
           patch :upload
         end
       end
+      resources :metrics, only: [:index]
       namespace :pilot do
         resources :patient, only: [:index]
         resources :metrics, only: [:index]

@@ -10,20 +10,39 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Project',
     'Entry Date',
     'Exit Date',
-    'Enrollment ID'
+    'Length of Stay (to-date)',
+    'Enrollment ID',
+    'Living Situation',
+    'Destination',
+    'Race',
+    'Ethnicity',
   ], :style => title)
   @enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
+      length_of_stay = if enrollment[:last_date_in_program]
+        enrollment[:last_date_in_program] - enrollment[:first_date_in_program]
+      else
+        Date.today - enrollment[:first_date_in_program]
+      end
+      race = @clients[client_id].source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join('; ')
+      ethnicity = @clients[client_id].source_clients.map(&:Ethnicity)&.select{|v| v.in?([0,1])}&.map do |v|
+        ::HUD.ethnicity(v)
+      end.uniq&.sort&.join('; ')
       row = [
         client_id,
         enrollment[:first_name],
         enrollment[:last_name],
-        HUD.project_type(enrollment[:project_type]), 
+        HUD.project_type(enrollment[:project_type]),
         enrollment[:project_name],
         enrollment[:first_date_in_program],
         enrollment[:last_date_in_program],
+        length_of_stay.to_i,
         enrollment[:enrollment_group_id],
-      ] 
+        HUD.living_situation(enrollment[:living_situation]),
+        HUD.destination(enrollment[:destination]),
+        race,
+        ethnicity,
+      ]
       sheet.add_row(row)
     end
   end

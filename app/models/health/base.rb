@@ -5,7 +5,7 @@ module Health
     def self.source_key= key
       @source_key = key
     end
-    def self.source_key 
+    def self.source_key
       @source_key
     end
 
@@ -22,9 +22,5 @@ module Health
       ]
     end
 
-    # override as necessary
-    def self.clean_value key, value
-      value
-    end
   end
 end

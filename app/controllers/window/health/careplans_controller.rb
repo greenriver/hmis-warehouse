@@ -11,6 +11,7 @@ module Window::Health
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
     before_action :set_health_file, only: [:upload, :update]
+    before_action :set_epic_goals, only: [:index]
 
     def index
       @goal = Health::Goal::Base.new
@@ -153,6 +154,30 @@ module Window::Health
           @careplan.save
         end
       end
+    end
+
+    def self_sufficiency_assessment
+      @assessment = @client.self_sufficiency_assessments.last
+    end
+
+    def set_careplan
+      @careplan = careplan_source.find(params[:id].to_i)
+    end
+
+    def set_medications
+      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
+    end
+
+    def set_problems
+      @problems = @patient.problems.order(onset_date: :desc)
+    end
+
+    def set_epic_goals
+      @epic_goals = @patient.epic_goals.visible
+    end
+
+    def careplan_source
+      Health::Careplan
     end
 
     def careplan_params
