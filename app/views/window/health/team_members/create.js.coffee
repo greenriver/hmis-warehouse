@@ -6,7 +6,7 @@
   $container = $('.health__team-members')
   $container.append(html)
   $('.modal:visible .close').trigger('click')
-  $container.find('.no-data').remove()
+  $container.find('.j-no-data').remove()
   <% form = nil %>
   <% simple_form_for @careplan, url: polymorphic_path(careplan_path_generator, id: @careplan) do |f| %>
     <% form = f %>

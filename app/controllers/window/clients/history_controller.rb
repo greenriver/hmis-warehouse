@@ -20,6 +20,17 @@ module Window::Clients
       end.uniq
     end
 
+    def queue
+      @years = (params[:pdf].try(:[], :years) || 3).to_i
+      @client.update(generate_manual_history_pdf: true)
+      job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
+        client_id: @client.id,
+        years: @years,
+      ), queue: :default_priority
+      flash[:notice] = "Homeless Verification PDF queued for generation.  The PDF will be available for download under the Files tab within a few minutes."
+      redirect_to action: :show
+    end
+
     def pdf
       show
       @user = User.setup_system_user()
@@ -54,13 +65,19 @@ module Window::Clients
 
       @file.client_id = @client.id
       @file.user_id = User.find_by(email: 'noreply@greenriver.com').id
-      @file.note = 'Auto Generated'
+      @file.note = "Auto Generated for prior #{@years} years"
       @file.name = file_name
       @file.visible_in_window = true
       @file.effective_date = Date.today
       @file.tag_list.add(['Homeless Verification'])
       @file.save!
-      @client.update(generate_history_pdf: false)
+      # allow for multiple mechanisms to trigger this without getting in the way
+      # of CAS triggering it.
+      if @client.generate_manual_history_pdf
+        @client.update(generate_manual_history_pdf: false)
+      else
+        @client.update(generate_history_pdf: false)
+      end
       head :ok
     end
 
@@ -98,7 +115,8 @@ module Window::Clients
 
     def set_pdf_dates
       @dates = {}
-      enrollment_scope.homeless.enrollments_open_in_last_three_years.
+      @years = (params[:years] || 3).to_i
+      enrollment_scope.homeless.enrollment_open_in_prior_years(years: @years).
         includes(:service_history_services, :organization).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
@@ -118,7 +136,7 @@ module Window::Clients
             record[:organization_name] = enrollment.organization.OrganizationName
           end
           @dates[enrollment.date] << record
-          enrollment.service_history_services.service_in_last_three_years.
+          enrollment.service_history_services.service_in_prior_years(years: @years).
           each do |service|
             @dates[service.date] ||= []
             record = {
@@ -152,7 +170,7 @@ module Window::Clients
     alias_method :set_client_from_client_id, :set_client
 
     def require_client_needing_processing!
-      if @client.generate_history_pdf
+      if @client.generate_history_pdf || @client.generate_manual_history_pdf
         return true
       end
       not_authorized!

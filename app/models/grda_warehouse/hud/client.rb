@@ -757,9 +757,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_confirmed?
-      client_files.consent_forms.where(
-        consent_form_signed_on: consent_form_signed_on
-      ).first&.consent_form_confirmed
+      client_files.consent_forms.signed.confirmed.exists?
     end
 
     def newest_consent_form
@@ -1360,11 +1358,15 @@ module GrdaWarehouse::Hud
             or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
         end
       end
-      client_ids = client_scope.
-        joins(:warehouse_client_source).searchable.
-        where(where).
-        preload(:destination_client).
-        map{|m| m.destination_client.id}
+      begin
+        client_ids = client_scope.
+          joins(:warehouse_client_source).searchable.
+          where(where).
+          preload(:destination_client).
+          map{|m| m.destination_client.id}
+      rescue RangeError => e
+        return none
+      end
 
       client_ids << text if numeric && self.destination.where(id: text).exists?
       where(id: client_ids)
@@ -1641,6 +1643,10 @@ module GrdaWarehouse::Hud
 
       # move any patients
       Health::Patient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any health files (these should really be attached to patients)
+      Health::HealthFile.where(client_id: previous_id).
         update_all(client_id: new_id)
 
       # move any vi-spdats

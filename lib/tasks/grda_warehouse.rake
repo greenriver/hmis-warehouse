@@ -286,10 +286,11 @@ namespace :grda_warehouse do
 
   desc "Save Service History Snapshots"
   task :save_service_history_snapshots, [] => [:environment, "log:info_to_stdout"] do |task, args|
-    app = ActionDispatch::Integration::Session.new(Rails.application)
-    include Rails.application.routes.url_helpers
     GrdaWarehouse::Hud::Client.needs_history_pdf.each do |client|
-      app.get(pdf_window_client_history_path(client_id: client.id))
+      job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
+        client_id: client.id,
+        years: 3,
+      ), queue: :default_priority
     end
   end
 

@@ -1,11 +1,16 @@
+- agency ||= nil
 .col-sm-3
-  - cb = pr.display_claimed_by_other(@agency)
+  - cb = pr.display_claimed_by_other(@user_agencies)
   - if cb.present?
     %div.margin-bottom-02
       %strong Known by:
       %div= cb
 .col-sm-4
   %div
+    - @display_claim_buttons_for.each do |a|
+      = render 'claim_buttons', agency: a, pr: pr
+
+-#
     - relationship = pr.relationship_to(@agency) || pr.relationships.build(agency: @agency, claimed: nil)
     - path = relationship.new_record? ? admin_health_agency_patient_referrals_path : admin_health_agency_patient_referral_path(relationship)
     = simple_form_for relationship, url: path, namespace: "relationship_for_#{pr.id}", html: {data: {behavior: 'claim patient'}} do |f|

@@ -27,6 +27,8 @@ class User < ActiveRecord::Base
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
+  scope :active, -> {where active: true}
+  scope :inactive, -> {where active: false}
 
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
@@ -70,6 +72,10 @@ class User < ActiveRecord::Base
       joins(:roles).
       where(roles: {permission => true})
     end
+  end
+
+  def active_for_authentication?
+    super && active
   end
 
   def has_administrative_access_to_health?
@@ -238,13 +244,26 @@ class User < ActiveRecord::Base
     User.where(id: sub_ids - manager_ids)
   end
 
-  def health_agency
-    agency_user&.agency
+  # def health_agency
+  #   agency_user&.agency
+  # end
+
+  # def agency_user
+  #   Health::AgencyUser.where(user_id: id).last
+  # end
+
+  def health_agencies
+    agency_users.map(&:agency)
   end
 
-  def agency_user
-    Health::AgencyUser.where(user_id: id).last
+  def health_agency_names
+    health_agencies.map(&:name)
   end
+
+  def agency_users
+    Health::AgencyUser.where(user_id: id)
+  end
+
   # send email upon creation or only in a periodic digest
   def continuous_email_delivery?
     email_schedule.nil? || email_schedule == 'immediate'

@@ -1,6 +1,5 @@
-require_relative 'rds'
-
-class SqlServerBase < ActiveRecord::Base
+# Must connect to "master" database to create the writable database we'll use
+class SqlServerBootstrapModel < ActiveRecord::Base
   rds = Rds.new
 
   conf = {
@@ -11,8 +10,10 @@ class SqlServerBase < ActiveRecord::Base
     "port"          => 1433,
     "username"      => Rds::USERNAME,
     "password"      => Rds::PASSWORD,
-    "database"      => rds.database,
-    "login_timeout" => 2 # seconds
+    "database"      => 'master',
+    "login_timeout" => 2, # seconds
+    "sslmode"      => 'verify-full',
+    "sslcert"      => 'config/cacert.pem'
   }
 
   establish_connection(conf)

@@ -9,7 +9,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
     # enrollment has been deleted
     has_many :enrollments_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
 
-
+    
     def export! client_scope:, path:, export:
       case export.period_type
       when 3

@@ -7,6 +7,8 @@ module Importing
       change_counts.merge!(Health::Tasks::PatientClientMatcher.new.run!)
       Health::EpicTeamMember.process!
       Health::EpicQualifyingActivity.unprocessed.each(&:create_qualifying_activity!)
+      GrdaWarehouse::HmisForm.has_unprocessed_quailifying_activities.each(&:create_qualifying_activity!)
+      Health::Patient.update_demographic_from_sources
 
       if change_counts.values.sum > 0
         User.can_administer_health.each do |user|

@@ -5,21 +5,7 @@
     = f.input :notes_from_encounter, input_html: {rows: 10}, label: 'Additional information'
 
 .row
-  .col-sm-8
-    = f.input :file, as: :file
-    - if f.object.health_file.present?
-      .form-group
-        %label Existing File
-        %div
-          .btn-group.existing-file
-            = link_to polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: f.object.id ), class: 'btn btn-default' do
-              = f.object.health_file&.name
-            = link_to polymorphic_path([:remove_file] + sdh_case_management_note_path_generator, client_id: @client.id, id: f.object.id), class: 'btn btn-danger btn-icon-only', method: :delete, remote: true do
-              %span.icon-cross{style: 'color: white;margin:0;'}
-.row
-  .col-sm-8
-    .form_group.text.optional
-      %label.control-label.text.optional File description
-      .controls
-        = text_area 'health_sdh_case_management_note', :file_note, value: f.object.health_file&.note, class: 'form-control text optional', rows: 10
+  .col-sm-8.j-file-upload
+    = render 'fields_for_upload', f: f
+    
 

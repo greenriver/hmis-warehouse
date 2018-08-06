@@ -12,7 +12,7 @@ module CohortColumns
     end
 
     def text_value cohort_client
-      cohort_client.client.consent_form_id.present? && cohort_client.client.consent_form_signed_on.present?
+      cohort_client.client.consent_confirmed?
     end
   end
 end

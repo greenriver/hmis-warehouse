@@ -30,7 +30,7 @@ module WarehouseReports
     end
 
     def report_source
-      Health::MemberStatusReport
+      ::Health::MemberStatusReport
     end
 
   end
