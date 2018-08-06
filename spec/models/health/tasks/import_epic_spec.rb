@@ -24,7 +24,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
     end
     describe 'After the initial import' do
       dest_path = configs[:a]['destination']
-      Dir.mkdir(dest_path) unless Dir.exists?(dest_path)
+      FileUtils.mkdir(dest_path) unless Dir.exists?(dest_path)
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
 
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
