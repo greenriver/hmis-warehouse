@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180807130101) do
+ActiveRecord::Schema.define(version: 20180807182636) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -683,6 +683,8 @@ ActiveRecord::Schema.define(version: 20180807130101) do
     t.integer  "claim_id"
     t.boolean  "force_payable",                     default: false, null: false
     t.boolean  "naturally_payable",                 default: false, null: false
+    t.datetime "sent_at"
+    t.integer  "duplicate_id"
   end
 
   create_table "release_forms", force: :cascade do |t|

@@ -1,19 +1,37 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
-- title = "Claims Download"
+- title = "Claims Processing"
 - content_for :title, title
 %h1= content_for :title
-= render 'form'
-.report-listing
-  = render 'table'
 
-= link_to 'Reports', running_warehouse_reports_health_claims_path, class: 'jReportBlock', remote: true
+
+%ul.nav.nav-tabs
+  %li.nav-item.active
+    %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
+      Un-Payable
+  %li.nav-item
+    %a.nav-link{href: '#duplicate', role: "presentation", data: {toggle: :tab}}
+      Duplicate
+  %li.nav-item
+    %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
+      Payable
+
+.tab-content
+  .tab-pane.active#unpayable
+    = simple_form_for :force_payable, url: qualifying_activities_warehouse_reports_health_claims_path do |f|
+      .unpayable-wrapper
+      .d-flex
+        .form-actions.ml-auto
+          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
+  .tab-pane#duplicate
+    .duplicate-wrapper
+  .tab-pane#payable
+    .payable-wrapper
+
 
 = content_for :page_js do
   :javascript
     (function($) {
-      $('.jReportBlock').hide();
-      setInterval(function() {
-        $('.jReportBlock').click();
-      }, 30000);
-
+      var rollupPath = #{qualifying_activities_for_patients_warehouse_reports_health_claims_path().to_json};
+      var patient_ids = #{@patient_ids.each_slice(@slice_size).map{ |slice| slice.join(',') }.to_json};
+      var pages = App.Health.ClaimsLoader(patient_ids, rollupPath);
     })(jQuery);

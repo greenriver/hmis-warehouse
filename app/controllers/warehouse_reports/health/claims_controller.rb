@@ -1,20 +1,64 @@
 module WarehouseReports::Health
   class ClaimsController < ApplicationController
+    include WindowClientPathGenerator
     before_action :require_can_administer_health!
-    before_action :set_reports, only: [:index, :running]
+    # before_action :set_reports, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy, :revise, :submit]
     before_action :set_sender
 
     def index
-      if params[:report].present?
-        options = report_params
-      else
-        options = default_options
-      end
-      @report = OpenStruct.new(options)
+      @max_date = Date.today
+      @start_date = @max_date - 6.months
+      @slice_size = 3
+      @patient_ids = Health::Patient.order(last_name: :asc, first_name: :asc).
+        joins(:patient_referral).
+        with_unsubmitted_qualifying_activities_within(@start_date..@max_date).distinct.
+        pluck(:id, :first_name, :last_name).map(&:first)
     end
 
     def running
+    end
+
+    def qualifying_activities
+      qa_ids = params[:force_payable].keys.map(&:to_i)
+      @qas = Health::QualifyingActivity.unsubmitted.where(id: qa_ids).
+        index_by(&:id)
+
+      params[:force_payable].each do |qa_id, force_payable|
+        qa = @qas[qa_id.to_i]
+        qa.force_payable = force_payable == "true"
+        qa.save(validate: false) if qa.changed?
+        qa.reload
+      end
+      redirect_to action: :index
+    end
+
+    def qualifying_activities_for_patients
+      patient_ids = params[:patient_ids].split(',').compact.map(&:to_i)
+      qualifying_activities = Health::QualifyingActivity.unsubmitted.
+        where(patient_id: patient_ids).
+        order(date_of_activity: :asc, id: :asc).
+        preload(patient: :client)
+      @payable = {}
+      @unpayable = {}
+      @duplicate = {}
+      qualifying_activities.each do |qa|
+        # force re-calculation
+        qa.calculate_payability!
+        # Bucket results
+        if ! qa.naturally_payable? && ! qa.duplicate?
+          @unpayable[qa.patient_id] ||= []
+          @unpayable[qa.patient_id] << qa
+        elsif qa.duplicate?
+          @duplicate[qa.patient_id] ||= []
+          @duplicate[qa.patient_id] << qa
+        else
+          @payable[qa.patient_id] ||= []
+          @payable[qa.patient_id] << qa
+        end
+      end
+      raise 'hi'
+      render layout: false
     end
 
     def show

@@ -190,6 +190,10 @@ module Health
       !submitted?
     end
 
+    def duplicate?
+      duplicate_id.present?
+    end
+
     def empty?
       mode_of_contact.blank? &&
       reached_client.blank? &&
@@ -199,11 +203,11 @@ module Health
     end
 
     # rules change, figure out what's currently payable and mark them as such
-    def self.update_naturally_payable!
-      unsubmitted.each do |qa|
-        qa.update(naturally_payable: qa.procedure_valid? && qa.meets_restrictions?)
-      end
-    end
+    # def self.update_naturally_payable!
+    #   unsubmitted.each do |qa|
+    #     qa.update(naturally_payable: qa.procedure_valid? && qa.meets_restrictions?)
+    #   end
+    # end
 
     def self.load_string_collection(collection)
       [['None', '']] + collection.map do |k, v|
@@ -328,7 +332,45 @@ module Health
     # Check duplicate rules (only first of some types per day is payable)
     # Check for date restrictions (some QA must be completed within a set date range)
     def meets_restrictions?
-      return true unless restricted_procedure_codes.include? qa.procedure_code
+      return true unless restricted_procedure_codes.include? procedure_code
+      if in_first_three_months_procedure_codes.include? procedure_code
+        return occurred_prior_to_engagement_date
+      end
+      if once_per_day_procedure_codes.include? procedure_code
+        return first_of_type_for_day_for_patient?
+      end
+
+      return true
+    end
+
+    def first_of_type_for_day_for_patient?
+      same_of_type_for_day_for_patient.minimum(:id) == self.id
+    end
+
+    def same_of_type_for_day_for_patient
+      self.class.where(
+        activity: activity,
+        patient_id: patient_id,
+        date_of_activity: date_of_activity,
+      )
+    end
+
+    def first_of_type_for_day_for_patient_not_self
+      same_of_type_for_day_for_patient.where.not(id: id).minimum(:id)
+    end
+
+    def calculate_payability!
+      self.duplicate_id = first_of_type_for_day_for_patient_not_self
+      self.naturally_payable = procedure_valid? && meets_restrictions?
+      self.save
+    end
+
+    def any_submitted_of_type_for_day_for_patient?
+      same_of_type_for_day_for_patient.submitted.exists?
+    end
+
+    def occurred_prior_to_engagement_date
+      date_of_activity.present? && patient.engagement_date.present? && date_of_activity <= patient.engagement_date
     end
 
     def once_per_day_procedure_codes
