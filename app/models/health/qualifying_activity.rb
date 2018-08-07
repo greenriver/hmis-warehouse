@@ -1,5 +1,6 @@
 module Health
   class QualifyingActivity < HealthBase
+    include ArelHelper
 
     MODE_OF_CONTACT_OTHER = 'other'
     REACHED_CLIENT_OTHER = 'collateral'
@@ -24,6 +25,10 @@ module Health
 
     scope :face_to_face, -> do
       where(mode_of_contact: face_to_face_modes)
+    end
+
+    scope :payable, -> do
+      where(hqa_t[:naturally_payable].eq(true).or(hqa_t[:force_payable].eq(true)))
     end
 
     belongs_to :source, polymorphic: true
@@ -193,6 +198,13 @@ module Health
       follow_up.blank?
     end
 
+    # rules change, figure out what's currently payable and mark them as such
+    def self.update_naturally_payable!
+      unsubmitted.each do |qa|
+        qa.update(naturally_payable: qa.procedure_valid? && qa.meets_restrictions?)
+      end
+    end
+
     def self.load_string_collection(collection)
       [['None', '']] + collection.map do |k, v|
         [v, k]
@@ -311,6 +323,32 @@ module Health
 
       # Check that all of the modifiers we have occur in the acceptable modifiers
       (modifiers - valid_options[procedure_code]).empty?
+    end
+
+    # Check duplicate rules (only first of some types per day is payable)
+    # Check for date restrictions (some QA must be completed within a set date range)
+    def meets_restrictions?
+      return true unless restricted_procedure_codes.include? qa.procedure_code
+    end
+
+    def once_per_day_procedure_codes
+      [
+        'G0506',
+        'T2024',
+        'T2024>U4',
+        'T1023',
+        'T1023>U6',
+      ]
+    end
+
+    def in_first_three_months_procedure_codes
+      [
+        'G9011',
+      ]
+    end
+
+    def restricted_procedure_codes
+      once_per_day_procedure_codes + in_first_three_months_procedure_codes
     end
 
     def valid_options
