@@ -69,7 +69,7 @@ module Import::HMISSixOneOne::Shared
     def needs_update? row:, existing:, soft_delete_time: nil
       # Incoming is newer
       return false if row[:DateUpdated].blank?
-      incoming_newer = row[:DateUpdated].to_time > existing.updated_at
+      incoming_newer = row[:DateUpdated].to_time > existing.updated_at #MAYBE rescue return false
       if incoming_newer
         # puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
         return true
