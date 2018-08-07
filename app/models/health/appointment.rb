@@ -1,8 +1,8 @@
 module Health
-  class Appointment < Base
+  class Appointment < EpicBase
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :appointments
-    scope :limited, -> do 
+    scope :limited, -> do
       where.not(department: ignore_departments)
     end
 

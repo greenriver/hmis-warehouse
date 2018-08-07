@@ -1,5 +1,5 @@
 module Health
-  class EpicPatient < Base
+  class EpicPatient < EpicBase
 
     acts_as_paranoid
     has_one :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
@@ -80,12 +80,13 @@ module Health
     end
 
     def self.clean_value key, value
-      case key
+      value = case key
       when :pilot
         value == 'SDH Pilot'
       else
         value
       end
+      super(key, value)
     end
 
     def name

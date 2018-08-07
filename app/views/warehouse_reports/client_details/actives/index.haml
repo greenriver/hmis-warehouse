@@ -6,9 +6,8 @@
     %h1= title
   .col-sm-4.text-right
     - if  can_view_clients?
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary', data: {toggle: :tooltip, title: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race, Ethnicity.'}}) do
         Download Excel
-
 = render 'filter'
 .row
   .col-sm-12

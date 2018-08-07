@@ -362,7 +362,7 @@ module Importers::HMISSixOneOne
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
-      
+
       read_from.each_line do |line|
         begin
           while short_line?(line, comma_count)
@@ -381,8 +381,8 @@ module Importers::HMISSixOneOne
           begin
             row = CSV.parse_line(line, headers: header)
             # logger.debug "#{row}"
-            if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'   
-              klass.deidentify_client_name row           
+            if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'
+              klass.deidentify_client_name row
             end
             if row.count == header.count
               row = set_useful_export_id(row: row, export_id: export_id_addition)
