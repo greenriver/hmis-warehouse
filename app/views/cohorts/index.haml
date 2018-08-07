@@ -1,6 +1,14 @@
 - title = 'Cohorts'
 - content_for :title, title
-%h1= content_for :title
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    .row
+      .col-sm-12
+        = link_to cohort_column_options_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+          %span.icon-pencil
+          Edit Cohort Column Options
 
 %ul.nav.nav-tabs{role: :tablist}
   %li.active{role: :presentation}

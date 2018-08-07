@@ -1,0 +1,5 @@
+= render "breadcrumbs"
+ 
+%h1 Edit Cohort Column Option
+= simple_form_for @cohort_column_option, url: cohort_column_option_path(@cohort_column_option.id) do |f|
+  = render 'form', f: f

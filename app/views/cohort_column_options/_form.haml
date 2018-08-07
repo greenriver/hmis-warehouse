@@ -1,0 +1,13 @@
+= f.error_notification
+
+.row
+  .col-sm-6
+    .form-inputs
+      = f.input :cohort_column, required: true
+      = f.input :value, as: :text
+      = f.input :weight, as: :integer, required: true
+      = f.input :active, required: true, as: :boolean
+                
+
+    .form-actions
+      = f.button :submit, "Submit", class: 'btn btn-primary'
