@@ -43,11 +43,17 @@
       - if @project.affiliated_projects.any?
         %tr
           %th Affiliated Projects
-          %td= @project.affiliated_projects.pluck(:ProjectName).to_sentence
+          %td
+            - @project.affiliated_projects.each do |project|
+              = link_to project_path(project) do
+                = project.ProjectName
       - if @project.residential_projects.any?
         %tr
-          %th Residential Projects
-          %td= @project.residential_projects.pluck(:ProjectName).to_sentence
+          %th Affiliated Residential Projects
+          %td
+            - @project.residential_projects.each do |project|
+              = link_to project_path(project) do
+                = project.ProjectName
   .col-sm-4
     %h4 HMIS Info
     %table.table.table-condensed.table-hover

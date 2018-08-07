@@ -2035,7 +2035,7 @@ module GrdaWarehouse::Hud
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
     end
-    
+
     def affiliated_residential_projects enrollment
       @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
         [
@@ -2045,7 +2045,7 @@ module GrdaWarehouse::Hud
       end.group_by(&:first)
       @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
     end
-    
+
     def affiliated_projects enrollment
       @project_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).
         map do |affiliation|
@@ -2056,33 +2056,34 @@ module GrdaWarehouse::Hud
       end.group_by(&:first)
       @project_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
     end
-            
+
     def affiliated_projects_str_for_enrollment enrollment
       project_names = affiliated_projects(enrollment)
       if project_names.any?
-        "Affiliated Projects: #{project_names.to_sentence}"
-      else 
-        ""
-      end      
+        "Affiliated with #{project_names.to_sentence}"
+      else
+        nil
+      end
     end
-    
+
     def residential_projects_str_for_enrollment enrollment
       project_names = affiliated_residential_projects(enrollment)
       if project_names.any?
-        "Residential Projects: #{project_names.to_sentence}"
-      else 
-        ""
+        "Affiliated with #{project_names.to_sentence}"
+      else
+        nil
       end
     end
-    
+
     def program_tooltip_data_for_enrollment enrollment
       affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment)
       residential_projects_str = residential_projects_str_for_enrollment(enrollment)
-      
+
       #only show tooltip if there are projects to list
-      if affiliated_projects_str.present? && residential_projects_str.present? 
-        {toggle: :tooltip, title: "#{affiliated_projects_str} \n #{residential_projects_str}"} 
-      else 
+      if affiliated_projects_str.present? || residential_projects_str.present?
+        title = [affiliated_projects_str, residential_projects_str].compact.join("\n")
+        {toggle: :tooltip, title: "#{title}"}
+      else
         {}
       end
     end
