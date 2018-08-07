@@ -40,6 +40,20 @@
         %tr
           %th Project Data Quality Reports
           %td= link_to 'View Reports', project_data_quality_reports_path(@project)
+      - if @project.affiliated_projects.any?
+        %tr
+          %th Affiliated Projects
+          %td
+            - @project.affiliated_projects.each do |project|
+              = link_to project_path(project) do
+                = project.ProjectName
+      - if @project.residential_projects.any?
+        %tr
+          %th Affiliated Residential Projects
+          %td
+            - @project.residential_projects.each do |project|
+              = link_to project_path(project) do
+                = project.ProjectName
   .col-sm-4
     %h4 HMIS Info
     %table.table.table-condensed.table-hover
