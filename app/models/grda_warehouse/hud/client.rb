@@ -2039,8 +2039,8 @@ module GrdaWarehouse::Hud
     def affiliated_residential_projects enrollment
       @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
         [
-          [affiliation.project.ProjectID, affiliation.project.data_source_id],
-          affiliation.residential_project.ProjectName,
+          [affiliation.project&.ProjectID, affiliation.project&.data_source_id],
+          affiliation.residential_project&.ProjectName,
         ]
       end.group_by(&:first)
       @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
