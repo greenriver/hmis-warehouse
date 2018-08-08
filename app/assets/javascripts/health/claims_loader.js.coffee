@@ -10,6 +10,7 @@ class App.Health.ClaimsLoader
             $('.payable-wrapper').append($(data).filter('.payable'))
             $('.unpayable-wrapper').append($(data).filter('.unpayable'))
             $('.duplicate-wrapper').append($(data).filter('.duplicate'))
+            $(document).find('.jLoading').remove()
             $(document).dequeue("fx")
           .fail ()->
             console.log('failed')

@@ -31,6 +31,10 @@ module Health
       where(hqa_t[:naturally_payable].eq(true).or(hqa_t[:force_payable].eq(true)))
     end
 
+    scope :duplicate, -> do
+      where.not(duplicate_id: nil)
+    end
+
     belongs_to :source, polymorphic: true
     belongs_to :user
     belongs_to :patient
@@ -362,7 +366,7 @@ module Health
     def calculate_payability!
       self.duplicate_id = first_of_type_for_day_for_patient_not_self
       self.naturally_payable = procedure_valid? && meets_restrictions?
-      self.save
+      self.save(validate: false)
     end
 
     def any_submitted_of_type_for_day_for_patient?

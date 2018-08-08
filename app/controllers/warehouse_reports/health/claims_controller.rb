@@ -1,5 +1,6 @@
 module WarehouseReports::Health
   class ClaimsController < ApplicationController
+    include ArelHelper
     include WindowClientPathGenerator
     before_action :require_can_administer_health!
     # before_action :set_reports, only: [:index, :running]
@@ -7,12 +8,12 @@ module WarehouseReports::Health
     before_action :set_sender
 
     def index
-      if Health::Claim.incomplete.exists?
+      if Health::Claim.incomplete.exists? || Health::Claim.queued.exists?
         @running = true
-        # TODO: show running message
+        @report = Health::Claim.incomplete.last || Health::Claim.queued.last
       elsif Health::Claim.completed.unsubmitted.exists?
         @unsubmitted = true
-        # TODO: show Download and mark as sent to MassHealth
+        @report = Health::Claim.completed.unsubmitted.last
       else
         @max_date = Date.today
         @start_date = @max_date - 6.months
@@ -76,13 +77,13 @@ module WarehouseReports::Health
     end
 
     def create
-      raise 'hi'
-      @report = Health::Claim.create!(report_params.merge(user_id: current_user.id))
+      @report = Health::Claim.create!(user_id: current_user.id, max_date: Date.today)
+      @report.attach_quailifying_activities_to_report
       job = Delayed::Job.enqueue(
         ::WarehouseReports::HealthClaimsJob.new(
-          report_params.merge(
-            report_id: @report.id, current_user_id: current_user.id
-          )
+          report_id: @report.id,
+          current_user_id: current_user.id,
+          max_date: @report.max_date
         ),
         queue: :low_priority
       )
@@ -91,7 +92,9 @@ module WarehouseReports::Health
     end
 
     def destroy
-
+      Health::QualifyingActivity.where(claim_id: @report.id).update_all(claim_submitted_on: nil)
+      @report.destroy
+      respond_with @report, location: warehouse_reports_health_claims_path
     end
 
     def revise
@@ -115,12 +118,12 @@ module WarehouseReports::Health
     end
 
     def submit
-      submitted_at = Time.now
+      sent_at = Time.now
       Health::Claim.transaction do
-        @report.qualifying_activities.update_all(claim_submitted_on: submitted_at)
-        @report.update(submitted_at: submitted_at)
+        @report.qualifying_activities.update_all(sent_at: sent_at)
+        @report.update(submitted_at: sent_at)
       end
-      redirect_to action: :show
+      redirect_to action: :index
     end
 
     def set_reports

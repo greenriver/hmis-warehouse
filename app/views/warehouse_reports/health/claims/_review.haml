@@ -1,0 +1,54 @@
+.c-card.c-card--padded.c-card--flex
+  .c-card__content
+    = simple_form_for :report, url: warehouse_reports_health_claims_path do |f|
+      %p After reviewing the qualifying activities below, use this button to generate a claims file for #{@sender.receiver_name}.
+      = f.submit 'Generate Claims File', class: "btn btn-primary"
+
+%ul.nav.nav-tabs
+  %li.nav-item.active
+    %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
+      Un-Payable
+  %li.nav-item
+    %a.nav-link{href: '#duplicate', role: "presentation", data: {toggle: :tab}}
+      Duplicate
+  %li.nav-item
+    %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
+      Payable
+
+.tab-content
+  .tab-pane.active#unpayable
+    %p
+      The following qualifying activities are un-payable per the
+      %strong #{@sender.receiver_name} Community Partners Manual: Qualifying Activity Reporting.
+    %p
+      Any qualifying activities marked
+      %strong force payable: yes
+      will be included in the submission, any marked
+      %strong no,
+      will remain on this list until they are adjusted such that they are payable, or until they are 6 months old.
+    = simple_form_for :force_payable, url: qualifying_activities_warehouse_reports_health_claims_path do |f|
+      .d-flex
+        .form-actions.ml-auto
+          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
+      .unpayable-wrapper
+        .jLoading.text-center Loading...
+      .d-flex
+        .form-actions.ml-auto
+          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
+  .tab-pane#duplicate
+    %p
+      The following qualifying activities are payable once per day, the procedure codes are valid, but the qualifying activities have occurred more than once per day per patient.  One of each of the qualifying activities below has either been submitted to #{@sender.receiver_name} or will be included in this claims file.
+    .duplicate-wrapper
+  .tab-pane#payable
+    %p
+      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked "force payable" on the "Un-Payable" tab will be included.
+    .payable-wrapper
+
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var rollupPath = #{qualifying_activities_for_patients_warehouse_reports_health_claims_path().to_json};
+      var patient_ids = #{@patient_ids.each_slice(@slice_size).map{ |slice| slice.join(',') }.to_json};
+      var pages = App.Health.ClaimsLoader(patient_ids, rollupPath);
+    })(jQuery);

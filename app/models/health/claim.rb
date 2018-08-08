@@ -28,14 +28,17 @@ module Health
       started.where completed_at: nil
     end
 
+    scope :queued, -> do
+      where started_at: nil
+    end
+
     def submitted?
       submitted_at.present?
     end
 
     def patients
-      start_date = max_date - 6.months
       Health::Patient.joins(:patient_referral).
-        with_unsubmitted_qualifying_activities_within(start_date..max_date)
+        where(id: qualifying_activities.select(:patient_id).distinct)
     end
 
     def run!
@@ -62,7 +65,7 @@ module Health
         self.claims_file += "#{patient_payer(patient)}\n"
         self.claims_file += "#{patient_claims_header(patient)}\n"
         self.claims_file += "#{patient_diagnosis(patient)}\n"
-        patient.qualifying_activities.unsubmitted.submittable.
+        patient.qualifying_activities.unsubmitted.payable.
           where(hqa_t[:date_of_activity].lteq(max_date)).
           select{|m| m.procedure_code.present?}.each do |qa|
             qualifying_activity_ids << qa.id
@@ -72,7 +75,6 @@ module Health
       self.claims_file += "#{trailer}\n"
       self.claims_file.upcase!
 
-      attach_quailifying_activities_to_report(qualifying_activity_ids)
       complete_report
     end
 
@@ -90,8 +92,16 @@ module Health
       save!
     end
 
-    def attach_quailifying_activities_to_report qualifying_activity_ids
-      Health::QualifyingActivity.where(id: qualifying_activity_ids).update_all(claim_id: id)
+    def attach_quailifying_activities_to_report
+      start_date = max_date - 6.months
+      Health::QualifyingActivity.unsubmitted.payable.
+        in_range(start_date..max_date).
+        update_all(claim_id: id, claim_submitted_on: Date.today)
+      # Also mark any duplicates as submitted to prevent them from showing up the the UI
+      # in the future
+      Health::QualifyingActivity.unsubmitted.duplicate.
+        in_range(start_date..max_date).
+        update_all(claim_id: id, claim_submitted_on: Date.today)
     end
 
     def status
