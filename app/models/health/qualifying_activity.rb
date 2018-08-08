@@ -367,14 +367,20 @@ module Health
     end
 
     def first_of_type_for_day_for_patient_not_self
-      same_of_type_for_day_for_patient.where.not(id: id).minimum(:id)
+      min_id = same_of_type_for_day_for_patient.minimum(:id)
+      return nil if min_id == id
+      return min_id
     end
 
     def calculate_payability!
-      # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
-      self.duplicate_id = first_of_type_for_day_for_patient_not_self
       # Meets general restrictions
       self.naturally_payable = procedure_valid? && meets_date_restrictions?
+      if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
+        # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
+        self.duplicate_id = first_of_type_for_day_for_patient_not_self
+      else
+        self.duplicate_id = nil
+      end
       self.save(validate: false) if self.changed?
     end
 

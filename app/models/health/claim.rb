@@ -108,14 +108,12 @@ module Health
       save!
     end
 
+    def start_date
+      max_date - 6.months
+    end
+
     def attach_quailifying_activities_to_report
-      start_date = max_date - 6.months
-      Health::QualifyingActivity.unsubmitted.payable.
-        in_range(start_date..max_date).
-        update_all(claim_id: id)
-      # Also mark any duplicates as submitted to prevent them from showing up the the UI
-      # in the future
-      Health::QualifyingActivity.unsubmitted.duplicate.
+      Health::QualifyingActivity.unsubmitted.
         in_range(start_date..max_date).
         update_all(claim_id: id)
     end
