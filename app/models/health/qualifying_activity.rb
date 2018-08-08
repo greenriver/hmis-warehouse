@@ -233,17 +233,17 @@ module Health
 
     def activity_title key
       return '' unless key
-      self.class.activities[key.to_sym].try(:[], :title) || key
+      self.class.activities[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_title key
       return '' unless key
-      self.class.modes_of_contact[key.to_sym].try(:[], :title) || key
+      self.class.modes_of_contact[key&.to_sym].try(:[], :title) || key
     end
 
     def client_reached_title key
       return '' unless key
-      self.class.client_reached[key.to_sym].try(:[], :title) || key
+      self.class.client_reached[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_is_other?
