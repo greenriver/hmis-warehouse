@@ -281,25 +281,25 @@ module Health
 
     def title_for_mode_of_contact
       if mode_of_contact.present?
-        self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :title)
+        self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :title)
       end
     end
 
     def title_for_client_reached
       if reached_client.present?
-        self.class.client_reached[reached_client.to_sym].try(:[], :title)
+        self.class.client_reached[reached_client&.to_sym].try(:[], :title)
       end
     end
 
     def title_for_activity
       if activity.present?
-        self.class.activities[activity.to_sym].try(:[], :title)
+        self.class.activities[activity&.to_sym].try(:[], :title)
       end
     end
 
     def procedure_code
       # ignore any modifiers
-      self.class.activities[activity.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
+      self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
     end
 
     def modifiers
