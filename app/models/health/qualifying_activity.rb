@@ -375,7 +375,9 @@ module Health
       self.naturally_payable = procedure_valid? && meets_date_restrictions?
       if self.naturally_payable
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
-        self.duplicate_id = ! meets_repeat_restrictions? && first_of_type_for_day_for_patient_not_self
+        unless meets_repeat_restrictions?
+          self.duplicate_id = first_of_type_for_day_for_patient_not_self
+        end
       end
       self.save(validate: false) if self.changed?
     end
