@@ -41,7 +41,11 @@
     .duplicate-wrapper
   .tab-pane#payable
     %p
-      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked "force payable" on the "Un-Payable" tab will be included.
+      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked
+      %strong force payable
+      on the
+      %strong Un-Payable
+      tab will be included.
     .payable-wrapper
 
 
@@ -51,4 +55,17 @@
       var rollupPath = #{qualifying_activities_for_patients_warehouse_reports_health_claims_path().to_json};
       var patient_ids = #{@patient_ids.each_slice(@slice_size).map{ |slice| slice.join(',') }.to_json};
       var pages = App.Health.ClaimsLoader(patient_ids, rollupPath);
+
+      // manage some button classes manually to get the colors we want
+      $(document).on('change', '.jForcePayable input', function(e) {
+        var cell = $(e.currentTarget).closest('.jForcePayable');
+        var checked_no_label = $(cell).find('.jNo input:checked').closest('label');
+        var unchecked_no_label = $(cell).find('.jNo input:not(:checked)').closest('label');
+        var checked_yes_label = $(cell).find('.jYes input:checked').closest('label');
+        var unchecked_yes_label = $(cell).find('.jYes input:not(:checked)').closest('label');
+        checked_no_label.removeClass('btn-secondary').addClass('btn-danger');
+        unchecked_no_label.removeClass('btn-danger').addClass('btn-secondary');
+        checked_yes_label.removeClass('btn-secondary').addClass('btn-success');
+        unchecked_yes_label.removeClass('btn-success').addClass('btn-secondary');
+      });
     })(jQuery);

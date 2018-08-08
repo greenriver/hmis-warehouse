@@ -15,7 +15,7 @@
                 %th Mode of Contact
                 %th Client Reached
                 %th Procedure Code
-                %th Force Payable?
+                %th.nobr Force Payable?
             %tbody
               - qas.each do |qa|
                 - validity_class = 'qa-invalid'
@@ -34,11 +34,13 @@
                     - else
                       %span{data: {toggle: :tooltip, title: "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s} is not a valid Procedure Code"}}
                         = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
-                  %td
-                    %label
-                      = radio_button_tag "force_payable[#{qa.id}]", false, ! qa.force_payable
-                      No
-                    %br
-                    %label
-                      = radio_button_tag "force_payable[#{qa.id}]", true, qa.force_payable
-                      Yes
+                  %td.text-center.jForcePayable
+                    .btn-group.btn-group-toggle{data: {toggle: :buttons}}
+                      - btn_classes = if ! qa.force_payable then 'btn-danger active' else 'btn-secondary' end
+                      %label.btn.btn-xs.jNo{class: btn_classes}
+                        = radio_button_tag "force_payable[#{qa.id}]", false, ! qa.force_payable
+                        No
+                      - btn_classes = if qa.force_payable then 'btn-success active' else 'btn-secondary' end
+                      %label.btn.btn-xs.jYes{class: btn_classes}
+                        = radio_button_tag "force_payable[#{qa.id}]", true, qa.force_payable
+                        Yes
