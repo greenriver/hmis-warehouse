@@ -132,4 +132,10 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: "Your Claims file has been generated")
   end
 
+  def health_qa_pre_calculation_finished user_id
+    @user = User.find(user_id)
+    @report_url = warehouse_reports_health_claims_url
+    mail(to: @user.email, subject: "Qualifying Activity Payability has been calculated")
+  end
+
 end

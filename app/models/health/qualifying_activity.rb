@@ -371,14 +371,10 @@ module Health
     end
 
     def calculate_payability!
+      # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
+      self.duplicate_id = first_of_type_for_day_for_patient_not_self
       # Meets general restrictions
       self.naturally_payable = procedure_valid? && meets_date_restrictions?
-      if self.naturally_payable
-        # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
-        unless meets_repeat_restrictions?
-          self.duplicate_id = first_of_type_for_day_for_patient_not_self
-        end
-      end
       self.save(validate: false) if self.changed?
     end
 

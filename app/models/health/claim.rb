@@ -3,6 +3,7 @@ module Health
     include ArelHelper
     acts_as_paranoid
     has_many :qualifying_activities
+    validates_presence_of :max_date
 
     scope :visible_by?, -> (user) do
       if user.can_administer_health?
@@ -33,7 +34,11 @@ module Health
     end
 
     scope :queued, -> do
-      where started_at: nil
+      where started_at: nil, precalculated_at: nil
+    end
+
+    scope :precalculated, -> do
+      where.not(precalculated_at: nil).where(started_at: nil)
     end
 
     def submitted?
@@ -45,8 +50,15 @@ module Health
         where(id: qualifying_activities.select(:patient_id).distinct)
     end
 
+    def pre_calculate_qualifying_activity_payability!
+      attach_quailifying_activities_to_report
+      qualifying_activities.each(&:calculate_payability!)
+      update(precalculated_at: Time.now)
+    end
+
     def run!
       start_report
+      mark_qualifying_activites_as_submitted
       @isa_control_number = self.class.next_isa_control_number
       @group_control_number = self.class.next_group_control_number
       @st_control_number = self.class.next_st_control_number
@@ -100,12 +112,16 @@ module Health
       start_date = max_date - 6.months
       Health::QualifyingActivity.unsubmitted.payable.
         in_range(start_date..max_date).
-        update_all(claim_id: id, claim_submitted_on: Date.today)
+        update_all(claim_id: id)
       # Also mark any duplicates as submitted to prevent them from showing up the the UI
       # in the future
       Health::QualifyingActivity.unsubmitted.duplicate.
         in_range(start_date..max_date).
-        update_all(claim_id: id, claim_submitted_on: Date.today)
+        update_all(claim_id: id)
+    end
+
+    def mark_qualifying_activites_as_submitted
+      qualifying_activities.update_all(claim_submitted_on: Date.today)
     end
 
     def status
