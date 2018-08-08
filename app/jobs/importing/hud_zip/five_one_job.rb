@@ -9,7 +9,7 @@ module Importing::HudZip
 
     def perform
       Importers::HMISFiveOne::UploadedZip.new(
-        data_source_id: @data_source_id, 
+        data_source_id: @data_source_id,
         upload_id: @upload_id
       ).import!
     end
@@ -18,7 +18,7 @@ module Importing::HudZip
     end
 
     def max_attempts
-      2
+      1
     end
   end
 end
