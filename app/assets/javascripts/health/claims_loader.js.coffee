@@ -8,7 +8,7 @@ class App.Health.ClaimsLoader
       do (p) =>
         $(document).queue "fx", =>
           $.get @rollupPath, patient_ids: p, (data) =>
-            $(document).find('.jLoading').find('.current-count').text(@patient_batches.length - $(document).queue("fx").length)
+            $(document).find('.jLoading').find('.current-count').text(@patient_batches.length - $(document).queue("fx").length + 1)
             $('.payable-wrapper').append($(data).filter('.payable'))
             $('.unpayable-wrapper').append($(data).filter('.unpayable'))
             $('.duplicate-wrapper').append($(data).filter('.duplicate'))
