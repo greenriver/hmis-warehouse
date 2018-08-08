@@ -24,7 +24,7 @@ module Importing::HudZip
     end
 
     def max_attempts
-      2
+      1
     end
   end
 end

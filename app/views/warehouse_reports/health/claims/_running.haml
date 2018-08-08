@@ -1,0 +1,5 @@
+%p
+  - if @report.started_at
+    A claims file is being generated, this usually takes a few minutes.  Generation started on #{@report.started_at.strftime('%b %e, %Y at %I:%M%P')}.
+  - else
+    A claims file is queued for generation.  Please check back in a few minutes.

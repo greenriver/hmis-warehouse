@@ -149,6 +149,9 @@ module ArelHelper
   def hapr_t
     Health::AgencyPatientReferral.arel_table
   end
+  def hqa_t
+    Health::QualifyingActivity.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -357,6 +360,9 @@ module ArelHelper
     end
     def hapr_t
       Health::AgencyPatientReferral.arel_table
+    end
+    def hqa_t
+      Health::QualifyingActivity.arel_table
     end
   end
 end
