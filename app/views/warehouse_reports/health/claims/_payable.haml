@@ -1,11 +1,11 @@
-%h4 Qualifying Activities Prior to #{@report.max_date}
 .o-card-grid
-  - @qualifying_activities.group_by(&:patient_id).each do |_, qas|
+  - qa_group.each do |_, qas|
+    - sample_qa = qas.first
     .c-card.c-card--padded.c-card--flex
       .c-card__content
-        .c-card__title= qas.first.patient.name
+        .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client.id)
         .c-card__description
-          %table.table.table-condensed.table-striped
+          %table.table.table-condensed.table-striped.table-hover
             %thead
               %tr
                 %th Date
@@ -20,7 +20,7 @@
                 - validity_class = 'qa-invalid'
                 - if qa.procedure_valid?
                   - validity_class = 'qa-valid'
-                %tr{class: validity_class}
+                %tr{class: validity_class, data: {id: qa.id}}
                   %td.nobr= qa.date_of_activity
                   %td= qa.user_full_name
                   %td= qa.source_type

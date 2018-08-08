@@ -78,6 +78,11 @@ module Health
             source_type: Health::EpicQualifyingActivity.name,
             force_payable: true
           ).pluck(:source_id)
+        @naturally_payable_ids = Health::QualifyingActivity.unsubmitted.
+          where(
+            source_type: Health::EpicQualifyingActivity.name,
+            naturally_payable: true
+          ).pluck(:source_id)
 
         # remove and re-create all un-submitted qualifying activities that are backed by Epic
         Health::QualifyingActivity.unsubmitted.where(source_type: Health::EpicQualifyingActivity.name).delete_all
@@ -89,6 +94,11 @@ module Health
             source_type: Health::EpicQualifyingActivity.name,
             source_id: @force_pay_ids
           ).update_all(force_payable: true)
+        Health::QualifyingActivity.unsubmitted.
+          where(
+            source_type: Health::EpicQualifyingActivity.name,
+            source_id: @naturally_payable_ids
+          ).update_all(naturally_payable: true)
         @claim_report_ids.each do |claim_id, source_ids|
           Health::QualifyingActivity.unsubmitted.
             where(
