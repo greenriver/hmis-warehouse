@@ -336,13 +336,17 @@ module Health
       (modifiers - valid_options[procedure_code]).empty?
     end
 
-    # Check duplicate rules (only first of some types per day is payable)
     # Check for date restrictions (some QA must be completed within a set date range)
-    def meets_restrictions?
+    def meets_date_restrictions?
       return true unless restricted_procedure_codes.include? procedure_code
       if in_first_three_months_procedure_codes.include? procedure_code
         return occurred_prior_to_engagement_date
       end
+      return true
+    end
+
+    # Check duplicate rules (only first of some types per day is payable)
+    def meets_repeat_restrictions?
       if once_per_day_procedure_codes.include? procedure_code
         return first_of_type_for_day_for_patient?
       end
@@ -367,8 +371,10 @@ module Health
     end
 
     def calculate_payability!
-      self.duplicate_id = first_of_type_for_day_for_patient_not_self
-      self.naturally_payable = procedure_valid? && meets_restrictions?
+      # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
+      self.duplicate_id = first_of_type_for_day_for_patient_not_self && ! meets_repeat_restrictions?
+      # Meets general restrictions
+      self.naturally_payable = procedure_valid? && meets_date_restrictions?
       self.save(validate: false)
     end
 
