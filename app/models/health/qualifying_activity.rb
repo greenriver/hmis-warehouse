@@ -389,7 +389,7 @@ module Health
     end
 
     def occurred_prior_to_engagement_date
-      date_of_activity.present? && patient.engagement_date.present? && date_of_activity <= patient.engagement_date
+      date_of_activity.present? && patient&.engagement_date && date_of_activity <= patient.engagement_date
     end
 
     def once_per_day_procedure_codes
