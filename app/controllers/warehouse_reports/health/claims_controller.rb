@@ -3,7 +3,6 @@ module WarehouseReports::Health
     include ArelHelper
     include WindowClientPathGenerator
     before_action :require_can_administer_health!
-    # before_action :set_reports, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy, :revise, :submit]
     before_action :set_sender
 
@@ -15,6 +14,7 @@ module WarehouseReports::Health
         @unsubmitted = true
         @report = Health::Claim.completed.unsubmitted.last
       else
+        @recent_report = @report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
         @max_date = Date.today
         @start_date = @max_date - 6.months
         @slice_size = 3

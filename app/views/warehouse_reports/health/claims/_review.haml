@@ -2,6 +2,8 @@
   .c-card__content
     = simple_form_for :report, url: warehouse_reports_health_claims_path do |f|
       %p After reviewing the qualifying activities below, use this button to generate a claims file for #{@sender.receiver_name}.
+      - if @recent_report
+        %p The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.
       = f.submit 'Generate Claims File', class: "btn btn-primary"
 
 %ul.nav.nav-tabs

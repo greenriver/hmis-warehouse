@@ -16,6 +16,10 @@ module Health
       where submitted_at: nil
     end
 
+    scope :submitted, -> do
+      where.not submitted_at: nil
+    end
+
     scope :completed, -> do
       where.not completed_at: nil
     end
