@@ -33,7 +33,7 @@
         .form-actions.ml-auto
           = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
       .unpayable-wrapper
-        .jLoading.text-center Loading...
+        = render 'loading'
       .d-flex
         .form-actions.ml-auto
           = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
@@ -41,6 +41,7 @@
     %p
       The following qualifying activities are payable once per day, the procedure codes are valid, but the qualifying activities have occurred more than once per day per patient.  One of each of the qualifying activities below has either been submitted to #{@sender.receiver_name} or will be included in this claims file.
     .duplicate-wrapper
+      = render 'loading'
   .tab-pane#payable
     %p
       The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked
@@ -49,6 +50,7 @@
       %strong Un-Payable
       tab will be included.
     .payable-wrapper
+      = render 'loading'
 
 
 = content_for :page_js do
