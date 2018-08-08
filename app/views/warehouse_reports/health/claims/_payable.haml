@@ -20,12 +20,10 @@
                 - validity_class = 'qa-invalid'
                 - if qa.procedure_valid?
                   - validity_class = 'qa-valid'
-                %tr{class: validity_class}
+                %tr{class: validity_class, data: {id: qa.id}}
                   %td.nobr= qa.date_of_activity
                   %td= qa.user_full_name
-                  %td
-                    = qa.id
-                    = qa.source_type
+                  %td= qa.source_type
                   %td= qa.activity_title(qa.activity)
                   %td= qa.mode_of_contact_title(qa.mode_of_contact)
                   %td= qa.client_reached_title(qa.reached_client)

@@ -7,13 +7,21 @@ module WarehouseReports::Health
     before_action :set_sender
 
     def index
-      @max_date = Date.today
-      @start_date = @max_date - 6.months
-      @slice_size = 3
-      @patient_ids = Health::Patient.order(last_name: :asc, first_name: :asc).
-        joins(:patient_referral).
-        with_unsubmitted_qualifying_activities_within(@start_date..@max_date).distinct.
-        pluck(:id, :first_name, :last_name).map(&:first)
+      if Health::Claim.incomplete.exists?
+        @running = true
+        # TODO: show running message
+      elsif Health::Claim.completed.unsubmitted.exists?
+        @unsubmitted = true
+        # TODO: show Download and mark as sent to MassHealth
+      else
+        @max_date = Date.today
+        @start_date = @max_date - 6.months
+        @slice_size = 3
+        @patient_ids = Health::Patient.order(last_name: :asc, first_name: :asc).
+          joins(:patient_referral).
+          with_unsubmitted_qualifying_activities_within(@start_date..@max_date).distinct.
+          pluck(:id, :first_name, :last_name).map(&:first)
+      end
     end
 
     def running
@@ -46,18 +54,17 @@ module WarehouseReports::Health
         # force re-calculation
         qa.calculate_payability!
         # Bucket results
-        if ! qa.naturally_payable? && ! qa.duplicate?
-          @unpayable[qa.patient_id] ||= []
-          @unpayable[qa.patient_id] << qa
-        elsif qa.duplicate?
+        if qa.duplicate? && qa.naturally_payable?
           @duplicate[qa.patient_id] ||= []
           @duplicate[qa.patient_id] << qa
+        elsif ! qa.naturally_payable?
+          @unpayable[qa.patient_id] ||= []
+          @unpayable[qa.patient_id] << qa
         else
           @payable[qa.patient_id] ||= []
           @payable[qa.patient_id] << qa
         end
       end
-      raise 'hi'
       render layout: false
     end
 
@@ -69,6 +76,7 @@ module WarehouseReports::Health
     end
 
     def create
+      raise 'hi'
       @report = Health::Claim.create!(report_params.merge(user_id: current_user.id))
       job = Delayed::Job.enqueue(
         ::WarehouseReports::HealthClaimsJob.new(

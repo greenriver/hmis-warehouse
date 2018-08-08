@@ -12,6 +12,22 @@ module Health
       end
     end
 
+    scope :unsubmitted, -> do
+      where submitted_at: nil
+    end
+
+    scope :completed, -> do
+      where.not completed_at: nil
+    end
+
+    scope :started, -> do
+      where.not started_at: nil
+    end
+
+    scope :incomplete, -> do
+      started.where completed_at: nil
+    end
+
     def submitted?
       submitted_at.present?
     end
