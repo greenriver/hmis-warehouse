@@ -302,9 +302,9 @@ module Health
     def modifiers
       modifiers = []
       # attach modifiers from activity
-      modifiers << self.class.activities[activity.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-      modifiers << self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :code)
-      modifiers << self.class.client_reached[reached_client.to_sym].try(:[], :code)
+      modifiers << self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
+      modifiers << self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+      modifiers << self.class.client_reached[reached_client&.to_sym].try(:[], :code)
       return modifiers.reject(&:blank?).compact
     end
 
@@ -414,10 +414,12 @@ module Health
           'U1',
           'U2',
           'U3',
+          'UK',
         ],
         'T2024>U4' => [
           'U1',
           'U2',
+          'UK',
         ],
         G9005: [
           'U1',
@@ -439,6 +441,7 @@ module Health
           'U1',
           'U2',
           'U3',
+          'UK',
         ],
         G9006: [
           'U1',
@@ -449,6 +452,7 @@ module Health
           'U1',
           'U2',
           'U3',
+          'UK',
         ],
         T1023: [
           'U1',

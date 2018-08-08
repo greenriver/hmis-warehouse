@@ -17,7 +17,7 @@ module WarehouseReports::Health
         @recent_report = @report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
         @max_date = Date.today
         @start_date = @max_date - 6.months
-        @slice_size = 3
+        @slice_size = 50
         @patient_ids = Health::Patient.order(last_name: :asc, first_name: :asc).
           joins(:patient_referral).
           with_unsubmitted_qualifying_activities_within(@start_date..@max_date).distinct.
