@@ -58,13 +58,12 @@
             .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
         %td
-          -# = binding.pry
           %span{data: @client.program_tooltip_data_for_enrollment(e)}
             - if include_links
               = link_to e[:project_name], project_path(id: e[:project_id])
             - else
               = e[:project_name]
-          
+
         %td
           - living_situation = HUD.living_situation(e[:living_situation])
           - if living_situation == e[:living_situation]
