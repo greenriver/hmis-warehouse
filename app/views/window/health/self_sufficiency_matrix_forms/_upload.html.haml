@@ -1,23 +1,4 @@
 %p If the Self-Sufficiency Matrix Form was conducted on paper, you may upload a scanned PDF here.
 .row
   .col-sm-12
-    = simple_form_for @form, url: polymorphic_path([:upload] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), as: :form, multipart: true do |f|
-
-      = f.error_notification
-      .row
-        .col-sm-6
-          = f.input :file, as: :file
-        .col-sm-6
-          - if @form.health_file.present?
-            .form-group
-              %label Existing File
-              %div
-                .btn-group.existing-file
-                  = link_to polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id ), class: 'btn btn-default' do
-                    = @form.health_file&.name
-                  = link_to polymorphic_path([:remove_file] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id ), class: 'btn btn-danger', method: :delete, remote: true do
-                    %span.icon-cross{ style: "color:white; margin:0" }
-
-      .d-flex
-        .ml-auto
-          = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }, style: 'background-color: #3c6776'
+    = render 'window/health/health_files/form'

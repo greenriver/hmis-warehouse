@@ -2,7 +2,9 @@ module Health
   class SelfSufficiencyMatrixForm < HealthBase
     belongs_to :patient
     belongs_to :user
-    belongs_to :health_file, dependent: :destroy
+    
+    has_one :health_file, class_name: 'Health::SsmFile', foreign_key: :parent_id, dependent: :destroy
+    include HealthFiles
 
     scope :in_progress, -> { where(completed_at: nil) }
     scope :completed, -> { where.not completed_at: nil }

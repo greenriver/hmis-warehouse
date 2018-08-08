@@ -1,0 +1,35 @@
+.o-card-grid
+  - qa_group.each do |_, qas|
+    - sample_qa = qas.first
+    .c-card.c-card--padded.c-card--flex
+      .c-card__content
+        .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client.id)
+        .c-card__description
+          %table.table.table-condensed.table-striped.table-hover
+            %thead
+              %tr
+                %th Date
+                %th Staff
+                %th Source
+                %th Activity
+                %th Mode of Contact
+                %th Client Reached
+                %th Procedure Code
+            %tbody
+              - qas.each do |qa|
+                - validity_class = 'qa-invalid'
+                - if qa.procedure_valid?
+                  - validity_class = 'qa-valid'
+                %tr{class: validity_class, data: {id: qa.id}}
+                  %td.nobr= qa.date_of_activity
+                  %td= qa.user_full_name
+                  %td= qa.source_type
+                  %td= qa.activity_title(qa.activity)
+                  %td= qa.mode_of_contact_title(qa.mode_of_contact)
+                  %td= qa.client_reached_title(qa.reached_client)
+                  %td.qa__procedure-code
+                    - if qa.procedure_valid?
+                      = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
+                    - else
+                      %span{data: {toggle: :tooltip, title: "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s} is not a valid Procedure Code"}}
+                        = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"

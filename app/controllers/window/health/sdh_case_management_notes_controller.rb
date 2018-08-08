@@ -3,12 +3,15 @@ module Window::Health
 
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthFileController
+    
     before_action :require_can_edit_patient_items_for_own_agency!, only: [:new, :create, :edit, :update]
     before_action :set_client
     before_action :set_hpc_patient
     before_action :load_template_activity, only: [:edit, :update]
     before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
-
+    before_action :set_upload_object, only: [:edit, :update, :remove_file, :download]
+    
     def show
       render :show
     end
@@ -24,23 +27,6 @@ module Window::Health
       @note.activities.build
       @note.save(validate: false)
       redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
-    end
-
-    def create
-      create_params = note_params.merge({user: current_user})
-      @note = @patient.sdh_case_management_notes.build(create_params)
-      @note.file = @health_file if @health_file
-
-      saved = @note.save
-      if saved
-        save_file
-        flash[:notice] = "New SDH Management Note Created."
-        redirect_to polymorphic_path(careplans_path_generator)
-      else
-        flash[:error] = "Please fix the errors below."
-        load_template_activity
-        render :new
-      end
     end
 
     def edit
@@ -70,21 +56,6 @@ module Window::Health
     def destroy
       @note.destroy!
       redirect_to polymorphic_path(careplans_path_generator)
-    end
-
-    def download
-      @file = @note.health_file
-      send_data @file.content,
-        type: @file.content_type,
-        filename: File.basename(@file.file.to_s)
-    end
-
-    def remove_file
-      if @note.health_file.present?
-        @note.health_file.destroy
-      end
-      @note.build_health_file
-      respond_with @note, location: polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
     end
 
     def form_url(opts = {})
@@ -118,6 +89,16 @@ module Window::Health
     helper_method :display_note_object
 
     private
+
+    def set_upload_object
+      @upload_object = @note
+      if action_name == 'remove_file'
+        @location = polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
+      end
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id ) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) : '#'
+    end
 
     def load_note
       @note = Health::SdhCaseManagementNote.find(params[:id])

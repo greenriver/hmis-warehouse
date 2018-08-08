@@ -14,7 +14,7 @@
         = link_to 'Delete', polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete this SSM?"}
   .row
     .col-sm-8
-      = simple_form_for @form, url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id), as: :form, html: { class: 'ssm-form', data: { url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id, format: :js) }} do |f|
+      = simple_form_for @upload_object, url: form_url, as: :form, html: { class: 'ssm-form', data: { url: polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form.id, format: :js) }} do |f|
 
         = f.error_notification
 
@@ -38,5 +38,5 @@
         .form__actions.form__actions--right.mb-6
           = f.button :submit, 'Save'
 
-      .well.form__upload
+      .well.form__upload.j-file-upload
         = render 'upload'

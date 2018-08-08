@@ -35,6 +35,10 @@ namespace :health do
       case file.type
       when "Health::SsmFile"
         form_id = Health::SelfSufficiencyMatrixForm.where(health_file_id: file.id).pluck(:id).first
+        if !form_id # re-classify any SSMFiles that were attached to care plans as CareplanFiles
+          form_id = Health::Careplan.where(health_file_id: file.id).maximum(:id)
+          file.assign_attributes( type: 'Health::CareplanFile')
+        end
       when "Health::ParticipationFormFile"
         form_id = Health::ParticipationForm.where(health_file_id: file.id).pluck(:id).first
       when "Health::ComprehensiveHealthAssessmentFile"

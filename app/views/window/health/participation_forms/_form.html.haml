@@ -1,4 +1,4 @@
-= simple_form_for @participation_form, url: form_url, as: :form, remote: request.xhr? do |f|
+= simple_form_for @participation_form, url: form_url, as: :form, remote: request.xhr?, html: {multipart: true} do |f|
 
   = f.error_notification
 

@@ -259,6 +259,8 @@ Rails.application.routes.draw do
       resources :claims, only: [:index, :show, :create, :destroy] do
         collection do
           get :running
+          get :qualifying_activities_for_patients
+          post :qualifying_activities
         end
         member do
           post :revise

@@ -10,7 +10,7 @@
         %dd
           - if @client.housing_release_status.present?
             %i.icon-unlocked
-            = @client.housing_release_status
+            = _(@client.housing_release_status)
           - else
             %i.icon-lock
             Not Signed
@@ -32,7 +32,7 @@
             %i.fa.fa-times-circle.o-color--warning.inline-icon
             Form Not Signed
     - if show_file_existence
-      %p.o-text--semibold The following attributes are determined based exclusively on the existance of an uploaded file.
+      %p.o-text--semibold The following attributes are determined based exclusively on the existence of an uploaded file.
       %p
         = checkmark_or_x(@client.ha_eligible)
         %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]

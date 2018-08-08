@@ -1981,6 +1981,8 @@ module GrdaWarehouse::Hud
             class: "client__service_type_#{entry.computed_project_type}",
             most_recent_service: most_recent_service,
             new_episode: new_episode,
+            enrollment_id: entry.enrollment.EnrollmentID,
+            data_source_id: entry.enrollment.data_source_id,
             # support: dates_served,
           }
         end
@@ -2032,6 +2034,58 @@ module GrdaWarehouse::Hud
 
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
+    end
+
+    def affiliated_residential_projects enrollment
+      @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
+        [
+          [affiliation.project.ProjectID, affiliation.project.data_source_id],
+          affiliation.residential_project.ProjectName,
+        ]
+      end.group_by(&:first)
+      @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
+    end
+
+    def affiliated_projects enrollment
+      @project_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).
+        map do |affiliation|
+        [
+          [affiliation.residential_project.ProjectID, affiliation.residential_project.data_source_id],
+          affiliation.project.ProjectName,
+        ]
+      end.group_by(&:first)
+      @project_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
+    end
+
+    def affiliated_projects_str_for_enrollment enrollment
+      project_names = affiliated_projects(enrollment)
+      if project_names.any?
+        "Affiliated with #{project_names.to_sentence}"
+      else
+        nil
+      end
+    end
+
+    def residential_projects_str_for_enrollment enrollment
+      project_names = affiliated_residential_projects(enrollment)
+      if project_names.any?
+        "Affiliated with #{project_names.to_sentence}"
+      else
+        nil
+      end
+    end
+
+    def program_tooltip_data_for_enrollment enrollment
+      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment)
+      residential_projects_str = residential_projects_str_for_enrollment(enrollment)
+
+      #only show tooltip if there are projects to list
+      if affiliated_projects_str.present? || residential_projects_str.present?
+        title = [affiliated_projects_str, residential_projects_str].compact.join("\n")
+        {toggle: :tooltip, title: "#{title}"}
+      else
+        {}
+      end
     end
 
     private def calculated_end_of_enrollment enrollment:, enrollments:
