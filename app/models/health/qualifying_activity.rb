@@ -31,6 +31,10 @@ module Health
       where(hqa_t[:naturally_payable].eq(true).or(hqa_t[:force_payable].eq(true)))
     end
 
+    scope :unpayable, -> do
+      where(naturally_payable: false, force_payable: false)
+    end
+
     scope :duplicate, -> do
       where.not(duplicate_id: nil)
     end
