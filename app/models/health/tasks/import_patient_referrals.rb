@@ -5,6 +5,8 @@ module Health::Tasks
   class ImportPatientReferrals
     FULL_STRING = 'ASSIGNMENT_FULL'
     SUMMARY_STRING = 'SUMMARY_FULL'
+    CHANGE_STRING = 'ASSIGNMENT_CHG'
+    SUMMARY_CHANGE_STRING = 'SUMMARY_CHG'
     attr_accessor :directory, :referrals_file
     def initialize(directory: 'var/health/referrals')
       @directory = directory
@@ -30,6 +32,12 @@ module Health::Tasks
           db_headers = Health::PatientReferral.column_headers.invert.values_at(*headers)
 
           (2..file.last_row).each do |i|
+            # send a note, and skip if we found anything other than a new or active referral
+            # TODO: handle deletions and inactivations
+            if ! row[:record_status].in?(['A', 'N'])
+              notify 'Patient Referral Importer found a record that is not Active or New, please see import_patient_referrals.rb, skipping for now'
+              next
+            end
             row = Hash[db_headers.zip(file.row(i))]
             patient_referral = Health::PatientReferral.where(medicaid_id: row[:medicaid_id]).
               first_or_initialize
@@ -59,7 +67,12 @@ module Health::Tasks
     end
 
     def available
-      Dir.glob("#{directory}/*/*#{FULL_STRING}*").map{|m| m.gsub(directory, '')}
+      Dir.glob(
+        [
+          "#{directory}/*/*#{FULL_STRING}*",
+          "#{directory}/*/*#{CHANGE_STRING}*",
+        ]
+      ).map{|m| m.gsub(directory, '')}
     end
 
     def processed
@@ -96,7 +109,7 @@ module Health::Tasks
     end
 
     def update_summary_receipt(local_path, header_count, row_count)
-      summary_file_path = local_path.gsub(FULL_STRING, SUMMARY_STRING)
+      summary_file_path = local_path.gsub(FULL_STRING, SUMMARY_STRING).gsub(CHANGE_STRING, SUMMARY_CHANGE_STRING)
       receipt_file_path = summary_file_path.gsub('.xlsx', "R.xlsx")
       summary_file = RubyXL::Parser.parse(summary_file_path)
       reply_sheet = 0

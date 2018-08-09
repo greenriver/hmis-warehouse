@@ -449,8 +449,8 @@ module Health
       end
     end
 
-    def most_recent_direct_qualifying_activity
-      qualifying_activities.direct_contact.order(date_of_activity: :desc).limit(1).first
+    def most_recent_direct_qualifying_activity_in_range range
+      qualifying_activities.in_range(range).direct_contact.order(date_of_activity: :desc).limit(1).first
     end
 
     def face_to_face_contact_in_range? range

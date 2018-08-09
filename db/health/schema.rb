@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180807182636) do
+ActiveRecord::Schema.define(version: 20180808190244) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -122,6 +122,7 @@ ActiveRecord::Schema.define(version: 20180807182636) do
     t.datetime "updated_at",               null: false
     t.datetime "deleted_at"
     t.datetime "submitted_at"
+    t.datetime "precalculated_at"
   end
 
   add_index "claims", ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree
@@ -686,6 +687,12 @@ ActiveRecord::Schema.define(version: 20180807182636) do
     t.datetime "sent_at"
     t.integer  "duplicate_id"
   end
+
+  add_index "qualifying_activities", ["claim_id"], name: "index_qualifying_activities_on_claim_id", using: :btree
+  add_index "qualifying_activities", ["date_of_activity"], name: "index_qualifying_activities_on_date_of_activity", using: :btree
+  add_index "qualifying_activities", ["patient_id"], name: "index_qualifying_activities_on_patient_id", using: :btree
+  add_index "qualifying_activities", ["source_id"], name: "index_qualifying_activities_on_source_id", using: :btree
+  add_index "qualifying_activities", ["source_type"], name: "index_qualifying_activities_on_source_type", using: :btree
 
   create_table "release_forms", force: :cascade do |t|
     t.integer  "patient_id"

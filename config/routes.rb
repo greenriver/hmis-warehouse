@@ -256,13 +256,14 @@ Rails.application.routes.draw do
           get :running
         end
       end
-      resources :claims, only: [:index, :show, :create, :destroy] do
+      resources :claims, only: [:index, :show, :destroy] do
         collection do
           get :running
-          get :qualifying_activities_for_patients
+          post :precalculate
           post :qualifying_activities
         end
         member do
+          post :generate_claims_file
           post :revise
           post :submit
         end

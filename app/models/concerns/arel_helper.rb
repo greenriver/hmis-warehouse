@@ -143,6 +143,9 @@ module ArelHelper
   def enx_t
     GrdaWarehouse::EnrollmentExtra.arel_table
   end
+  def hp_t
+    Health::Patient.arel_table
+  end
   def hpr_t
     Health::PatientReferral.arel_table
   end
@@ -354,6 +357,9 @@ module ArelHelper
     end
     def enx_t
       GrdaWarehouse::EnrollmentExtra.arel_table
+    end
+    def hp_t
+      Health::Patient.arel_table
     end
     def hpr_t
       Health::PatientReferral.arel_table
