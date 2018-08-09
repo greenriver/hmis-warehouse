@@ -19,7 +19,7 @@ module Health
         patient = pr.patient
 
         most_recent_qualifying_activity = patient&.most_recent_direct_qualifying_activity_in_range(report_range)
-        qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq
+        qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq || []
         patient_change_dates = [patient&.updated_at, pr&.updated_at ].compact&.map(&:to_date)
         patient_updated_at = (report_range.to_a & (qa_activity_dates + patient_change_dates).compact).max
 
