@@ -24,7 +24,7 @@ module Health
     end
 
     scope :face_to_face, -> do
-      where(mode_of_contact: face_to_face_modes)
+      where(mode_of_contact: :in_person)
     end
 
     scope :payable, -> do
