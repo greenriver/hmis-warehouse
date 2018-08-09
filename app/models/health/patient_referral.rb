@@ -14,7 +14,8 @@ module Health
       Graduated: 4,
       Enrollee_requested_change: 5,
       'ACO/MCO requested change' => 6,
-      Medical_exception: 2,
+      Medical_exception: 8,
+      Reported_Eligibility_Loss: 9,
       Deceased: 7,
     }
 
