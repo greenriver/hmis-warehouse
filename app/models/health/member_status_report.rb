@@ -25,6 +25,9 @@ module Health
         # We will only know the date requested for hello-sign signatures, default to the signed date
         pcp_signature_requested = patient&.careplans&.maximum(:provider_signature_requested_at) || patient&.careplans&.maximum(:provider_signed_on)
 
+        # Leave off anyone who hasn't had an update within the range
+        next unless patient_updated_at.present?
+
         attributes = {
           medicaid_id: pr.medicaid_id,
           member_first_name: pr.first_name,
