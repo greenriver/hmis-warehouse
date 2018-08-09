@@ -36,6 +36,7 @@ module Health
     end
 
     belongs_to :source, polymorphic: true
+    belongs_to :epic_source, polymorphic: true
     belongs_to :user
     belongs_to :patient
 
@@ -312,6 +313,7 @@ module Health
     end
 
     def procedure_valid?
+      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
       procedure_code = self.procedure_code
       modifiers = self.modifiers
       # Some special cases

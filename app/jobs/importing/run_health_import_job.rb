@@ -7,7 +7,10 @@ module Importing
       change_counts.merge!(Health::Tasks::PatientClientMatcher.new.run!)
       Health::EpicTeamMember.process!
       Health::EpicQualifyingActivity.update_qualifying_activities!
-      GrdaWarehouse::HmisForm.has_unprocessed_quailifying_activities.each(&:create_qualifying_activity!)
+      Health::QualifyingActivity.transaction do
+        Health::QualifyingActivity.where(source_type: GrdaWarehouse::HmisForm.name).unsubmitted.delete_all
+        GrdaWarehouse::HmisForm.has_qualifying_activities.each(&:create_qualifying_activity!)
+      end
       Health::Patient.update_demographic_from_sources
 
       if change_counts.values.sum > 0
