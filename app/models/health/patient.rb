@@ -337,7 +337,7 @@ module Health
     end
 
     def recent_cha
-      @recent_cha ||= chas.recent&.first
+      @recent_cha ||= comprehensive_health_assessments.recent&.first
     end
 
     def recent_case_management_note
