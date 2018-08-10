@@ -119,7 +119,7 @@ module Health
     end
 
     def mark_qualifying_activites_as_submitted
-      qualifying_activities.update_all(claim_submitted_on: Date.today)
+      qualifying_activities.payable.update_all(claim_submitted_on: Date.today)
     end
 
     def status
