@@ -104,7 +104,7 @@ module Health
         'Engaged'
       elsif rejected && rejected_reason == 'Declined'
         'Declined Participation'
-      elsif rejected && rejected_reason.in?(['Unreachable', 'Moved_out_of_Geographic_Area'])
+      elsif rejected && rejected_reason.in?(['Unreachable'])
         'Unreachable/Unable to Contact'
       elsif patient.present?
         'In Process'
