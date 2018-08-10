@@ -2,10 +2,9 @@
 module Health
   class SsmSaver
 
-    def initialize user:, ssm: Health::SelfSufficiencyMatrixForm.new, complete: false
+    def initialize user:, ssm: Health::SelfSufficiencyMatrixForm.new
       @user = user
       @ssm = ssm
-      @complete = complete
       @qualifying_activity = setup_qualifying_activity
     end
 
@@ -17,9 +16,11 @@ module Health
 
     def update
       @ssm.class.transaction do 
-        @ssm.completed_at = Time.current if @complete
+        if !@ssm.completed_at.present?
+          @ssm.completed_at = Time.current
+        end
         @ssm.save!
-        if @complete
+        if @ssm.completed_at.present?
           @qualifying_activity.source_id = @ssm.id
           @qualifying_activity.save
         end

@@ -35,6 +35,10 @@
                   %p.has-error
                     %span.help-block= Health::SelfSufficiencyMatrixForm::SECTION_FOOTERS[section_key]
 
+        %section.c-card
+          .c-card__content
+            = f.input :completed_at, as: :date_picker
+            
         .form__actions.form__actions--right.mb-6
           = f.button :submit, 'Save'
 

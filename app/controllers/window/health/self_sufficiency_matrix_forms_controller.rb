@@ -31,13 +31,14 @@ module Window::Health
         flash.notice = "This qualifying activity has already been submitted and cannot be edited."
         redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return
       end
+      @form.completed_at = Time.current unless @form.completed_at.present?
       @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form
     end
 
     def update
       @form.assign_attributes(form_params)
-      Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
+      Health::SsmSaver.new(ssm: @form, user: current_user).update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
 
@@ -101,7 +102,8 @@ module Window::Health
         :community_notes,
         :time_score,
         :time_notes,
-        :collection_location
+        :collection_location,
+        :completed_at
       )
     end
 
