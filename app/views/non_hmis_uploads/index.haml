@@ -1,0 +1,37 @@
+= render 'uploads/breadcrumbs'
+.row
+  .col-sm-8
+    %h1 Uploads
+  .col-sm-4
+    -# TODO: Add role
+    .pull-right
+      = link_to new_data_source_non_hmis_upload_path, class: 'btn btn-primary pull-right' do 
+        %span.icon-plus
+        Upload NON-HMIS
+
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Filename
+            %th Uploaded By
+            %th Uploaded On
+            %th Completed In
+        %tbody
+          - @uploads.each do |upload|
+            %tr
+              %td= upload.file.to_s.split('/').last
+              %td= upload.user&.name
+              %td= upload.created_at
+              %td
+                = upload.import_time
+                -# TODO
+                  - if upload.import_log.present?
+                    = link_to upload.import_time, import_path(id: upload.import_log.id)
+                  - else
+                    = upload.import_time
+               
+
+%p= paginate @uploads
