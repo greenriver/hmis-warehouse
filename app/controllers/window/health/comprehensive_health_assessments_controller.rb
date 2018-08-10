@@ -105,7 +105,7 @@ module Window::Health
     end
 
     def set_form
-      @cha = @patient.chas.where(id: params[:id]).first
+      @cha = @patient.comprehensive_health_assessments.where(id: params[:id]).first
     end
 
     def reviewed?
