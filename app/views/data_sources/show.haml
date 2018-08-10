@@ -19,7 +19,7 @@
             %td
               = link_to data_source_uploads_path(@data_source) do
                 View
-        - if @data_source.non_hmis_uploads.any?
+        - if @data_source.non_hmis_uploads.any? && current_user.can_upload_dashboard_extras?
           %tr
             %th NON-HMIS Uploads
             %td
@@ -38,10 +38,10 @@
         = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
           %span.icon-plus
           Upload HUD HMIS ZIP
-      -# TODO permisson goes here
-      = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-primary' do
-        %span.icon-plus
-        Upload NON-HMIS
+      - if can_upload_dashboard_extras?
+        = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-primary' do
+          %span.icon-plus
+          Upload NON-HMIS
   - if @data_source.has_data?
     .row.table-utilities
       .col-sm-12

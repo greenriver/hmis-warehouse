@@ -1,5 +1,6 @@
 class NonHmisUploadsController < ApplicationController
 
+  before_action :require_can_upload_dashboard_extras!
   before_action :set_data_source
 
   def index
