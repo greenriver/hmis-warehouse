@@ -35,7 +35,7 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name], # in use
         _prov_id:                         she_t[:project_id], # in use
         prog_type:                        she_t[model.project_type_column], # in use
-        coc_code:                         ec_t[:CoCCode], # in use
+        coc_code:                         p_t[:CoCCode], # in use
         entry_exit_entry_date:            she_t[:first_date_in_program], # in use
         entry_exit_exit_date:             she_t[:last_date_in_program], # in use
         client_age_at_entry:              she_t[:age], # in use
