@@ -43,6 +43,9 @@ Rails.application.routes.draw do
       resources :team_members, controller: :patient_team_members
       resources :goals, controller: :patient_goals
       resources :epic_case_notes, only: [:show]
+      resources :epic_ssms, only: [:show]
+      resources :epic_chas, only: [:show]
+      resources :epic_careplans, only: [:show]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
@@ -251,6 +254,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :agency_performance, only: [:index]
       resources :member_status_reports, only: [:index, :show, :create, :destroy] do
         collection do
           get :running

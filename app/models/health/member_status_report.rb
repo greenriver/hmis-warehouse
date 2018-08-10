@@ -22,6 +22,11 @@ module Health
         qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq || []
         patient_change_dates = [patient&.updated_at, pr&.updated_at ].compact&.map(&:to_date)
         patient_updated_at = (report_range.to_a & (qa_activity_dates + patient_change_dates).compact).max
+        # We will only know the date requested for hello-sign signatures, default to the signed date
+        pcp_signature_requested = patient&.careplans&.maximum(:provider_signature_requested_at) || patient&.careplans&.maximum(:provider_signed_on)
+
+        # Leave off anyone who hasn't had an update within the range
+        next unless patient_updated_at.present?
 
         attributes = {
           medicaid_id: pr.medicaid_id,
@@ -42,7 +47,7 @@ module Health
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
           cp_contact_face: any_face_to_face_for_patient_in_range(patient, report_range),
           cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on),
-          cp_care_plan_sent_pcp_date: patient&.careplans&.maximum(:provider_signature_requested_at),
+          cp_care_plan_sent_pcp_date: pcp_signature_requested,
           cp_care_plan_returned_pcp_date: patient&.careplans&.maximum(:provider_signed_on),
           key_contact_name_first: sender_cp.key_contact_first_name,
           key_contact_name_last: sender_cp.key_contact_last_name,

@@ -22,6 +22,7 @@ module Health
     scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
     scope :rejected, -> {where(rejected: true)}
+    scope :with_patient, -> { where.not patient_id: nil }
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true
@@ -104,7 +105,7 @@ module Health
         'Engaged'
       elsif rejected && rejected_reason == 'Declined'
         'Declined Participation'
-      elsif rejected && rejected_reason.in?(['Unreachable', 'Moved_out_of_Geographic_Area'])
+      elsif rejected && rejected_reason.in?(['Unreachable'])
         'Unreachable/Unable to Contact'
       elsif patient.present?
         'In Process'

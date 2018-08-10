@@ -1,0 +1,32 @@
+- title = "Health Agency Performance Between #{@report.range.first} and #{@report.range.last}"
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
+%table.table.table-condensed.table-stripped
+  %thead
+    %tr
+      %th Agency
+      %th Patients Assigned
+      %th Consented
+      %th With CHA
+      %th Without CHA
+      %th With SSM
+      %th Without SSM
+      %th With Signed Care Plan
+      %th Without Signed Care Plan
+      %th With No Qualifying Activities between #{@report.range.first} and #{@report.range.last}
+  %tbody
+    - @agencies.each do |agency|
+      %tr
+        %td= agency.name
+        %td= agency.patient_referrals
+        %td= agency.consented_patient_count
+        %td= agency.with_chas.size
+        %td= agency.without_chas.size
+        %td= agency.with_ssms.size
+        %td= agency.without_ssms.size
+        %td= agency.with_signed_careplans.size
+        %td= agency.without_signed_careplans.size
+        %td= agency.without_qualifying_activities_within_range.size
+

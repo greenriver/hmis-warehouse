@@ -137,7 +137,8 @@ module WarehouseReports::Health
     def submit
       sent_at = Time.now
       Health::Claim.transaction do
-        @report.qualifying_activities.update_all(sent_at: sent_at)
+        @report.qualifying_activities.payable.update_all(sent_at: sent_at)
+        @report.qualifying_activities.unpayable.update_all(claim_submitted_on: nil, claim_id: nil)
         @report.update(submitted_at: sent_at)
       end
       redirect_to action: :index

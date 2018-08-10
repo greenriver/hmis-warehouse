@@ -43,7 +43,7 @@
         %span.icon-checkmark.mr-1.o-color--gray-l
         Self-Sufficiency Matrix
   %li
-    - cha = @patient.chas.recent.first
+    - cha = @patient.comprehensive_health_assessments.recent.first
     - if cha && ! cha.reviewed_by.present?
       = link_to polymorphic_path([:edit] + cha_path_generator, client_id: @client.id, id: cha&.id) do
         %span.icon-checkmark.mr-1.o-color--gray-l

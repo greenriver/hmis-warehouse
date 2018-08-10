@@ -19,16 +19,19 @@ module Health
     scope :in_range, -> (range) { where(date_of_activity: range)}
 
     scope :direct_contact, -> do
-      yes = client_reached[:yes][:title]
-      where(reached_client: yes)
+      where(reached_client: :yes)
     end
 
     scope :face_to_face, -> do
-      where(mode_of_contact: face_to_face_modes)
+      where(mode_of_contact: :in_person)
     end
 
     scope :payable, -> do
       where(hqa_t[:naturally_payable].eq(true).or(hqa_t[:force_payable].eq(true)))
+    end
+
+    scope :unpayable, -> do
+      where(naturally_payable: false, force_payable: false)
     end
 
     scope :duplicate, -> do

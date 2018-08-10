@@ -2,7 +2,7 @@
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header
       Comprehensive Health Assessments
-    - unless @patient.chas.incomplete.exists?
+    - unless @patient.comprehensive_health_assessments.incomplete.exists?
       = link_to polymorphic_path( [:new] + cha_path_generator), class: 'btn btn-secondary btn-sm ml-auto' do
         %i.icon-plus
         Add CHA
