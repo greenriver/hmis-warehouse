@@ -143,6 +143,9 @@ module ArelHelper
   def enx_t
     GrdaWarehouse::EnrollmentExtra.arel_table
   end
+  def hmis_form_t
+    GrdaWarehouse::HmisForm.arel_table
+  end
   def hp_t
     Health::Patient.arel_table
   end
@@ -154,6 +157,15 @@ module ArelHelper
   end
   def hqa_t
     Health::QualifyingActivity.arel_table
+  end
+  def hpf_t
+    Health::ParticipationForm.arel_table
+  end
+  def hpff_t
+    Health::ParticipationFormFile.arel_table
+  end
+  def h_ssm_t
+    Health::SelfSufficiencyMatrixForm.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -358,6 +370,9 @@ module ArelHelper
     def enx_t
       GrdaWarehouse::EnrollmentExtra.arel_table
     end
+    def hmis_form_t
+      GrdaWarehouse::HmisForm.arel_table
+    end
     def hp_t
       Health::Patient.arel_table
     end
@@ -369,6 +384,15 @@ module ArelHelper
     end
     def hqa_t
       Health::QualifyingActivity.arel_table
+    end
+    def hpf_t
+      Health::ParticipationForm.arel_table
+    end
+    def hpff_t
+      Health::ParticipationFormFile.arel_table
+    end
+    def h_ssm_t
+      Health::SelfSufficiencyMatrixForm.arel_table
     end
   end
 end

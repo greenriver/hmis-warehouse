@@ -17,7 +17,7 @@ module Health
 
 
     def update
-      succss = true
+      success = true
       begin
         @careplan.class.transaction do
           if @careplan.just_signed?

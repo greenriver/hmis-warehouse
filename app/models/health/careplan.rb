@@ -10,7 +10,7 @@ module Health
     # has_many :team_members, through: :team, source: :members
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
-    
+
     has_one :health_file, class_name: 'Health::CareplanFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
@@ -46,6 +46,10 @@ module Health
     end
     scope :sorted, -> do
       order(updated_at: :desc)
+    end
+
+    scope :pcp_signed, -> do
+      where.not(provider_signed_on: nil)
     end
     # End Scopes
 
