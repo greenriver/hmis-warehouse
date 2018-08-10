@@ -1,6 +1,6 @@
 module Health
   class Patient < Base
-
+    include ArelHelper
     acts_as_paranoid
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
@@ -11,6 +11,9 @@ module Health
     has_many :epic_case_notes, through: :epic_patients
     has_many :epic_team_members, through: :epic_patients
     has_many :epic_qualifying_activities, through: :epic_patients
+    has_many :epic_careplans, through: :epic_patients
+    has_many :epic_chas, through: :epic_patients
+    has_many :epic_ssms, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
@@ -57,6 +60,39 @@ module Health
       text_search(text, patient_scope: current_scope)
     end
 
+    scope :has_signed_participation_form, -> do
+      joins(:participation_forms).merge(Health::ParticipationForm.signed)
+    end
+
+    scope :has_ssm, -> do
+       # This lives in the warehouse DB and must be materialized
+      hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
+      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
+
+      where(
+        arel_table[:client_id].in(hmis_ssm_client_ids).
+        or(
+          arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
+        )
+      )
+    end
+
+    scope :has_cha, -> do
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
+
+      where(
+        arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql).
+        or(
+          arel_table[:id].in(Arel.sql epic_cha_patient_id_scope.to_sql)
+        )
+      )
+    end
+
     # at least one of the following is true
     # No SSM
     # No Participation Form
@@ -65,17 +101,25 @@ module Health
     scope :not_engaged, -> do
       # This lives in the warehouse DB and must be materialized
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
-
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
+      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
+
       participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
+
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
+
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
+      epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
         arel_table[:client_id].not_in(hmis_ssm_client_ids).
         and(
           arel_table[:id].not_in(Arel.sql ssm_patient_id_scope.to_sql)
+        ).
+        and(
+          arel_table[:id].not_in(Arel.sql epic_ssm_patient_id_scope.to_sql)
         ).
         or(
           arel_table[:id].not_in(Arel.sql participation_form_patient_id_scope.to_sql)
@@ -84,10 +128,16 @@ module Health
           arel_table[:id].not_in(Arel.sql release_form_patient_id_scope.to_sql)
         ).
         or(
-          arel_table[:id].not_in(Arel.sql cha_patient_id_scope.to_sql)
+          arel_table[:id].not_in(Arel.sql cha_patient_id_scope.to_sql).
+          and(
+            arel_table[:id].not_in(Arel.sql epic_cha_patient_id_scope.to_sql)
+          )
         ).
         or(
-          arel_table[:id].not_in(Arel.sql pctp_signed_patient_id_scope.to_sql)
+          arel_table[:id].not_in(Arel.sql pctp_signed_patient_id_scope.to_sql).
+          and(
+            arel_table[:id].not_in(Arel.sql epic_careplan_patient_id_scope.to_sql)
+          )
         )
       )
     end
@@ -100,17 +150,23 @@ module Health
     scope :engaged, -> do
       # This lives in the warehouse DB and must be materialized
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
-
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
+      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
+
       participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
+      epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
         arel_table[:client_id].in(hmis_ssm_client_ids).
         or(
           arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql)
+        ).
+        or(
+          arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
         ).
         and(
           arel_table[:id].in(Arel.sql participation_form_patient_id_scope.to_sql)
@@ -122,7 +178,10 @@ module Health
           arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql)
         ).
         and(
-          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql)
+          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql).
+          or(
+            arel_table[:id].in(Arel.sql epic_careplan_patient_id_scope.to_sql)
+          )
         )
       )
     end
@@ -239,6 +298,19 @@ module Health
 
     def chas
       comprehensive_health_assessments
+
+      @chas ||= (
+          comprehensive_health_assessments.order(completed_at: :desc).to_a +
+          epic_chas.order(cha_updated_at: :desc)
+        ).sort_by do |f|
+        if f.is_a? Health::ComprehensiveHealthAssessment
+          f.completed_at || DateTime.current
+        elsif f.is_a? GrdaWarehouse::HmisForm
+          f.collected_at || DateTime.current
+        elsif f.is_a? Health::EpicCha
+          f.cha_updated_at || DateTime.current
+        end
+      end
     end
 
     def health_files
@@ -392,11 +464,17 @@ module Health
     end
 
     def ssms
-      @ssms ||= (hmis_ssms.order(collected_at: :desc).to_a + self_sufficiency_matrix_forms.order(completed_at: :desc).to_a).sort_by do |f|
+      @ssms ||= (
+          hmis_ssms.order(collected_at: :desc).to_a +
+          self_sufficiency_matrix_forms.order(completed_at: :desc).to_a +
+          epic_ssms.order(ssm_updated_at: :desc)
+        ).sort_by do |f|
         if f.is_a? Health::SelfSufficiencyMatrixForm
           f.completed_at || DateTime.current
         elsif f.is_a? GrdaWarehouse::HmisForm
           f.collected_at || DateTime.current
+        elsif f.is_a? Health::EpicSsm
+          f.ssm_updated_at || DateTime.current
         end
       end
     end
