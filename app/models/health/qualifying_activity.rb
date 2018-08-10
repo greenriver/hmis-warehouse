@@ -19,8 +19,7 @@ module Health
     scope :in_range, -> (range) { where(date_of_activity: range)}
 
     scope :direct_contact, -> do
-      yes = client_reached[:yes][:title]
-      where(reached_client: yes)
+      where(reached_client: :yes)
     end
 
     scope :face_to_face, -> do
