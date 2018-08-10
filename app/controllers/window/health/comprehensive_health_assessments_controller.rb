@@ -16,10 +16,10 @@ module Window::Health
 
     def new
       # redirect to edit if there are any incomplete
-      if @patient.chas.incomplete.exists?
-        @cha = @patient.chas.incomplete.recent.last
+      if @patient.comprehensive_health_assessments.incomplete.exists?
+        @cha = @patient.comprehensive_health_assessments.incomplete.recent.last
       else
-        @cha = @patient.chas.build(user: current_user)
+        @cha = @patient.comprehensive_health_assessments.build(user: current_user)
         Health::ChaSaver.new(cha: @cha, user: current_user).create
       end
       redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
