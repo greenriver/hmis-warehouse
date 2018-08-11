@@ -64,8 +64,4 @@ class NonHmisUploadsController < ApplicationController
     @data_source = data_source_source.find(params[:data_source_id].to_i)
   end
 
-  def upload_source
-    GrdaWarehouse::NonHmisUpload
-  end
-
 end
