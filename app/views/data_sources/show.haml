@@ -3,7 +3,7 @@
 %h1= @data_source.name
 = simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
   .row
-    .col-sm-6
+    .col-sm-8
       %table.table.table-condensed
         %tr
           %th Last Import Run
@@ -19,6 +19,11 @@
             %td
               = link_to data_source_uploads_path(@data_source) do
                 View
+        - if @data_source.non_hmis_uploads.any? && current_user.can_upload_dashboard_extras?
+          %tr
+            %th NON-HMIS Uploads
+            %td
+              = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
         - if can_edit_data_sources?
           %tr
             %th
@@ -28,11 +33,17 @@
         %tr
           %th Viewable by the following users, regardless of visibility in window
           %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
-    .col-sm-6.text-right
+    .col-sm-4.text-right
       - if ! @data_source.authoritative? && can_upload_hud_zips?
-        = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
-          %span.icon-plus
-          Upload HUD HMIS ZIP
+        .data-source__upload-button.mb-4
+          = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
+            %span.icon-plus
+            Upload HUD HMIS ZIP
+      - if can_upload_dashboard_extras?
+        .data-source__upload-button
+          = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-primary' do
+            %span.icon-plus
+            Upload Dashboard Extras
   - if @data_source.has_data?
     .row.table-utilities
       .col-sm-12

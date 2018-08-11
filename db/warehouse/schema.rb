@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180810142730) do
+ActiveRecord::Schema.define(version: 20180810175903) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1440,6 +1440,24 @@ ActiveRecord::Schema.define(version: 20180810142730) do
     t.boolean "individual_elder",                            default: false, null: false
     t.boolean "head_of_household",                           default: false, null: false
   end
+
+  create_table "non_hmis_uploads", force: :cascade do |t|
+    t.integer  "data_source_id"
+    t.integer  "user_id"
+    t.integer  "delayed_job_id"
+    t.string   "file",             null: false
+    t.float    "percent_complete"
+    t.json     "import_errors"
+    t.string   "content_type"
+    t.binary   "content"
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "deleted_at"
+  end
+
+  add_index "non_hmis_uploads", ["deleted_at"], name: "index_non_hmis_uploads_on_deleted_at", using: :btree
 
   create_table "project_data_quality", force: :cascade do |t|
     t.integer  "project_id"

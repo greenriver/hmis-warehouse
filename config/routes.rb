@@ -398,6 +398,7 @@ Rails.application.routes.draw do
   resources :service_history_logs, only: [:index]
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
+    resources :non_hmis_uploads, except: [:update, :destroy, :edit]
   end
 
   resources :organizations, only: [:index, :show] do
