@@ -23,6 +23,10 @@ module Health
       )
     end
 
+    scope :signed, -> do
+      where.not(signature_on: nil)
+    end
+
     attr_accessor :reviewed_by_supervisor, :file
 
     before_save :set_reviewer

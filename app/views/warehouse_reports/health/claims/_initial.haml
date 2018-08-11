@@ -1,0 +1,8 @@
+%p Before qualifying activities can be converted to claims, they must be evaluated for payability.  Click the button below to begin this process.
+- if @recent_report
+  %p The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.
+= simple_form_for :report, url: precalculate_warehouse_reports_health_claims_path do |f|
+  .row
+    .col-sm-4
+      = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities on or before'
+      = f.submit 'Calculate Payability', class: "btn btn-primary"

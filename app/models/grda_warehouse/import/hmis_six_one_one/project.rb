@@ -37,7 +37,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
     end
 
     def existing_is_newer
-      existing.to_h.present? && existing.updated_at >= date_updated
+      existing.to_h.present? && existing.updated_at > date_updated
     end
 
     def project_type_unchanged

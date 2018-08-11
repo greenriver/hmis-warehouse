@@ -1,10 +1,22 @@
-.c-card.c-card--padded.c-card--flex
-  .c-card__content
-    = simple_form_for :report, url: warehouse_reports_health_claims_path do |f|
-      %p After reviewing the qualifying activities below, use this button to generate a claims file for #{@sender.receiver_name}.
-      - if @recent_report
-        %p The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.
-      = f.submit 'Generate Claims File', class: "btn btn-primary"
+.row
+  .col-sm-6
+    .c-card.c-card--padded.c-card--flex
+      .c-card__content
+        %h3.mt-0 Go Forward
+        = simple_form_for :report, url: generate_claims_file_warehouse_reports_health_claim_path(@report) do |f|
+          %p
+            Please review the following qualifying activities that occurred between #{@report.start_date} and #{@report.max_date}.  After reviewing, generate a claims file for submission to #{@sender.receiver_name}.
+            - if @recent_report
+              (The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.)
+          = f.submit 'Generate Claims File', class: "btn btn-primary"
+  .col-sm-6
+    .c-card.c-card--padded.c-card--flex
+      .c-card__content
+        %h3.mt-0 Go Back
+        %p If changes need to be made to Qualifying Activities, you must unlock them, make the changes and return here to re-calculate payability.
+        = link_to warehouse_reports_health_claim_path(@report), method: :delete, class: 'btn btn-danger ml-2' do
+          %i.icon-cross
+          Allow Edits to Qualifying Activities
 
 %ul.nav.nav-tabs
   %li.nav-item.active
@@ -32,15 +44,18 @@
       .d-flex
         .form-actions.ml-auto
           = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
-      .unpayable-wrapper
-        .jLoading.text-center Loading...
+      .unpayable-wrapper.overflow-scroll
+        %p Found #{pluralize(@unpayable.count, 'client')} with #{pluralize(@unpayable.values.flatten.count, 'unpayable qualifying activity')}.
+        = render 'unpayable', qa_group: @unpayable
       .d-flex
         .form-actions.ml-auto
           = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
   .tab-pane#duplicate
     %p
       The following qualifying activities are payable once per day, the procedure codes are valid, but the qualifying activities have occurred more than once per day per patient.  One of each of the qualifying activities below has either been submitted to #{@sender.receiver_name} or will be included in this claims file.
-    .duplicate-wrapper
+    .duplicate-wrapper.overflow-scroll
+      %p Found #{pluralize(@duplicate.count, 'client')} with #{pluralize(@duplicate.values.flatten.count, 'duplicate qualifying activity')}.
+      = render 'payable', qa_group: @duplicate
   .tab-pane#payable
     %p
       The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked
@@ -48,16 +63,13 @@
       on the
       %strong Un-Payable
       tab will be included.
-    .payable-wrapper
-
+    .payable-wrapper.overflow-scroll
+      %p Found #{pluralize(@payable.count, 'client')} with #{pluralize(@payable.values.flatten.count, 'payable qualifying activity')}.
+      = render 'payable', qa_group: @payable
 
 = content_for :page_js do
   :javascript
     (function($) {
-      var rollupPath = #{qualifying_activities_for_patients_warehouse_reports_health_claims_path().to_json};
-      var patient_ids = #{@patient_ids.each_slice(@slice_size).map{ |slice| slice.join(',') }.to_json};
-      var pages = App.Health.ClaimsLoader(patient_ids, rollupPath);
-
       // manage some button classes manually to get the colors we want
       $(document).on('change', '.jForcePayable input', function(e) {
         var cell = $(e.currentTarget).closest('.jForcePayable');
