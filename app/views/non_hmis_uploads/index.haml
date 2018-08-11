@@ -1,13 +1,13 @@
+- content_for :title, 'Dashboard Extras Uploads'
 = render 'uploads/breadcrumbs'
 .row
   .col-sm-8
-    %h1 Uploads
+    %h1= content_for :title
   .col-sm-4
-    -# TODO: Add role
     .pull-right
-      = link_to new_data_source_non_hmis_upload_path, class: 'btn btn-primary pull-right' do 
+      = link_to new_data_source_non_hmis_upload_path, class: 'btn btn-primary pull-right' do
         %span.icon-plus
-        Upload NON-HMIS
+        Upload Dashboard Extras
 
 .row.table-utilities
   .col-sm-12
@@ -32,6 +32,6 @@
                     = link_to upload.import_time, import_path(id: upload.import_log.id)
                   - else
                     = upload.import_time
-               
+
 
 %p= paginate @uploads

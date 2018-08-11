@@ -1,7 +1,11 @@
+- content_for :title, 'Upload Dashboard Extras'
+%h1= content_for :title
 .row
   .col-sm-10
-    %h4 Dashboard Extras
-    %p Use this form to upload dashboard extras
+    %p
+      Use this form to upload dashboard extras. This file should be an
+      %strong xlsx
+      file containing ROI, VI-SPDAT, and LPG related info.
     = simple_form_for @upload, url: data_source_non_hmis_uploads_path(@data_source) do |f|
       = f.error_notification
       .form-inputs
@@ -9,4 +13,4 @@
         = f.hidden_field :file_cache
       .form-actions
         = f.button :submit, value: 'Upload'
-            
+
