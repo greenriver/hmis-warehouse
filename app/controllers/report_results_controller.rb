@@ -18,7 +18,7 @@ class ReportResultsController < ApplicationController
       }
       # There are a few required project descriptor fields.  Without these the report won't run cleanly
       @missing_data[:missing_project_type] = GrdaWarehouse::Hud::Project.joins(:organization).
-        coc_funded.hud_residential.
+        coc_funded.where(computed_project_type: [1,2,3,8,9,10,13]).
         where(HousingType: nil).
         pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
         map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
