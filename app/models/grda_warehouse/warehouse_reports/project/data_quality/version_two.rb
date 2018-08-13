@@ -710,7 +710,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if missing_disability?(disabilities)
         counts['missing_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 99)
       end
-      if missing?(enrollment[:residence_prior])
+      if missing?(enrollment[:residence_prior]) && adult?(enrollment[:age])  && enrollment[:head_of_household]
         counts['missing_residence_prior'] << columns_for_residence_prior_support(enrollment)
       end
       # if missing?(enrollment[:last_permanent_zip])
@@ -724,7 +724,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if refused_diability?(disabilities)
         counts['refused_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 9)
       end
-      if refused?(enrollment[:residence_prior])
+      if refused?(enrollment[:residence_prior]) && adult?(enrollment[:age]) && enrollment[:head_of_household]
         counts['refused_residence_prior'] << columns_for_residence_prior_support(enrollment)
       end
       # if refused?(enrollment[:last_permanent_zip])
@@ -738,7 +738,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if unknown_disability?(disabilities)
         counts['unknown_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 8)
       end
-      if unknown?(enrollment[:residence_prior])
+      if unknown?(enrollment[:residence_prior]) && adult?(enrollment[:age]) && enrollment[:head_of_household]
         counts['unknown_residence_prior'] << columns_for_residence_prior_support(enrollment)
       end
       # if unknown?(enrollment[:last_permanent_zip])
@@ -749,6 +749,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def add_missing_demo client:, counts:
       alternate_clients = source_clients_for_source_client(source_client_id: client[:destination_id], data_source_id: client[:data_source_id])
+      alternate_all_adults = alternate_clients.map{|m| adult?(age(m[:dob]))}.all?
       if alternate_clients.map{|m| m[:first_name]}.all?(&:blank?) || alternate_clients.map{|m| m[:last_name]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:name_data_quality])}.all?
         counts['missing_name'] << columns_for_name_support(client)
       end
@@ -758,7 +759,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| m[:dob]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:dob_data_quality])}.all?
         counts['missing_dob'] << columns_for_dob_support(client)
       end
-      if alternate_clients.map{|m| m[:veteran_status]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:veteran_status])}.all?
+      if alternate_all_adults && (alternate_clients.map{|m| m[:veteran_status]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:veteran_status])}.all?)
         counts['missing_veteran'] << columns_for_veteran_support(client)
       end
       if alternate_clients.map{|m| m[:ethnicity]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ethnicity])}.all?
@@ -778,6 +779,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def add_refused_demo client:, counts:
       alternate_clients = source_clients_for_source_client(source_client_id: client[:destination_id], data_source_id: client[:data_source_id])
+      alternate_all_adults = alternate_clients.map{|m| adult?(age(m[:dob]))}.all?
       if alternate_clients.map{|m| refused?(m[:name_data_quality])}.all?
         counts['refused_name'] << columns_for_name_support(client)
       end
@@ -787,7 +789,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| refused?(m[:dob_data_quality])}.all?
         counts['refused_dob'] << columns_for_dob_support(client)
       end
-      if alternate_clients.map{|m| refused?(m[:veteran_status])}.all?
+      if alternate_all_adults && alternate_clients.map{|m| refused?(m[:veteran_status])}.all?
         counts['refused_veteran'] << columns_for_veteran_support(client)
       end
       if alternate_clients.map{|m| refused?(m[:ethnicity])}.all?
@@ -804,6 +806,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def add_unknown_demo client:, counts:
       alternate_clients = source_clients_for_source_client(source_client_id: client[:destination_id], data_source_id: client[:data_source_id])
+      alternate_all_adults = alternate_clients.map{|m| adult?(age(m[:dob]))}.all?
       if alternate_clients.map{|m| unknown?(m[:name_data_quality])}.all?
         counts['unknown_name'] << columns_for_name_support(client)
       end
@@ -813,7 +816,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| unknown?(m[:dob_data_quality])}.all?
         counts['unknown_dob'] << columns_for_dob_support(client)
       end
-      if alternate_clients.map{|m| unknown?(m[:veteran_status])}.all?
+      if alternate_all_adults && alternate_clients.map{|m| unknown?(m[:veteran_status])}.all?
         counts['unknown_veteran'] << columns_for_missing_support(client)
       end
       if alternate_clients.map{|m| unknown?(m[:ethnicity])}.all?
@@ -972,7 +975,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if client[:dob].blank? || missing?(client[:dob_data_quality])
           missing_dob << client[:destination_id]
         end
-        if client[:veteran_status].blank? || missing?(client[:veteran_status])
+        if (client[:veteran_status].blank? || missing?(client[:veteran_status])) && adult?(age(client[:dob]))
           missing_veteran << client[:destination_id]
         end
         if client[:ethnicity].blank? || missing?(client[:ethnicity])
@@ -995,7 +998,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if client[:dob].blank? || refused?(client[:dob_data_quality])
           refused_dob << client[:destination_id]
         end
-        if client[:veteran_status].blank? || refused?(client[:veteran_status])
+        if (client[:veteran_status].blank? || refused?(client[:veteran_status])) && adult?(age(client[:dob]))
           refused_veteran << client[:destination_id]
         end
         if client[:ethnicity].blank? || refused?(client[:ethnicity])
