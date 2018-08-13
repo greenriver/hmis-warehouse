@@ -21,7 +21,7 @@
                 View
         - if @data_source.non_hmis_uploads.any? && current_user.can_upload_dashboard_extras?
           %tr
-            %th NON-HMIS Uploads
+            %th Dashboard Extras Uploads
             %td
               = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
         - if can_edit_data_sources?

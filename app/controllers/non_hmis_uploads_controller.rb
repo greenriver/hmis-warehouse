@@ -14,6 +14,11 @@ class NonHmisUploadsController < ApplicationController
     @upload = upload_source.new
   end
 
+  def show
+    @upload = upload_source.find(params[:id].to_i)
+    send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s))
+  end
+
   def create
     run_import = false
     # Prevent create if user forgot to include file
