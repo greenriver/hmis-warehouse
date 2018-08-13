@@ -1,22 +1,22 @@
 module CohortColumns
   class Destination < Select
     attribute :column, String, lazy: true, default: :destination
-    attribute :title, String, lazy: true, default: 'Destination'
+    attribute :title, String, lazy: true, default: _('Destination (Program Type)')
     attribute :hint, String, lazy: true, default: 'Do not complete until housed.'
 
     def description
       'Manually entered destination'
     end
-    
+
 
     def available_options
       [
-        '', 
-        'CoC', 
-        'Deceased', 
-        'DMH Group Home', 
-        'DMH Rental Assistance', 
-        'DMH Safe Haven', 
+        '',
+        'CoC',
+        'Deceased',
+        'DMH Group Home',
+        'DMH Rental Assistance',
+        'DMH Safe Haven',
         'Institutional Setting: Specify in Notes',
         'MRVP',
         'Long Term Medical Care Facility - Nursing Home/Respite',
