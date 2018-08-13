@@ -10,7 +10,6 @@ module Health
 
     def agency_counts
       agencies.map do |id, name|
-        referral_count = patient_referrals.values().count(id)
         patient_ids = patient_referrals.select{ |_, agency_id| agency_id == id }.keys
 
         consented_patients = consent_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
@@ -32,8 +31,7 @@ module Health
           {
             id: id,
             name: name,
-            patient_referrals: referral_count,
-            consented_patient_count: consented_patients.size,
+            patient_referrals: patient_ids,
             consented_patients: consented_patients,
             unconsented_patients: unconsented_patients,
             with_ssms: with_ssms,
@@ -65,6 +63,7 @@ module Health
     def patient_referrals
       @patient_referrals ||= Health::PatientReferral.assigned.
         with_patient.
+        joins(:patient).
         where(agency_id: agency_scope.select(:id)).
         pluck(:patient_id, :agency_id).to_h
     end
