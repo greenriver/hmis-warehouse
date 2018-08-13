@@ -427,6 +427,23 @@ module GrdaWarehouse::Hud
       end
     end
 
+    scope :am_ind_ak_native, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:AmIndAKNative].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :black_af_american, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:BlackAfAmerican].eq(1)).
+          select(:destination_id)
+      )
+    end
+    # AmIndAKNative Asian BlackAfAmerican NativeHIOtherPacific White RaceNone
+
     ####################
     # Callbacks
     ####################
