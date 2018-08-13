@@ -1,9 +1,10 @@
-= cache(['clients', 'cohorts', @client, @client.active_cohorts.count, can_view_projects?, controller_path], expires_in: 4.hours) do
+- expires_in = if Rails.env.production? then 4.hours else 1.minutes end
+= cache(['clients', 'cohorts', @client, @client.active_cohorts.count, can_view_projects?, controller_path], expires_in: expires_in) do
   .d-none--empty.mr-6
-    - if @client.active_cohorts.any?
+    - if @client.cohorts_for_dashboard.any?
       .mb-6
         %h3.mt-0 Cohorts
         .c-card.c-card--padded.c-card--flush
           %ul.client-cohorts.list-unstyled
-            - @client.active_cohorts.uniq.each do |cohort|
+            - @client.cohorts_for_dashboard.uniq.each do |cohort|
               %li= link_to_if cohort.class.has_some_cohort_access(current_user), cohort.name, cohort_path(cohort)
