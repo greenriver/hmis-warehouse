@@ -42,7 +42,7 @@ module WarehouseReports::Health
       end
 
       @start_date = params[:filter].try(:[], :start_date).presence || @start_date
-      @end_date = params[:filter].try(:[], :start_date).presence || @end_date
+      @end_date = params[:filter].try(:[], :end_date).presence || @end_date
 
     end
   end
