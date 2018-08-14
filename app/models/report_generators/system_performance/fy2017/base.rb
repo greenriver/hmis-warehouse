@@ -2,6 +2,7 @@ module ReportGenerators::SystemPerformance::Fy2017
   class Base
   include ArelHelper
 
+    # Scope coming in is based on GrdaWarehouse::ServiceHistoryEnrollment
     def add_filters scope:
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
@@ -21,6 +22,12 @@ module ReportGenerators::SystemPerformance::Fy2017
       if @report.options['sub_population'].present?
         scope = sub_population_scope scope, @report.options['sub_population']
       end
+      if @report.options['race_code'].present?
+        scope = race_scope scope, @report.options['race_code']
+      end
+      if @report.options['ethnicity_code'].present?
+        scope = ethnicity_scope scope, @report.options['ethnicity_code']
+      end
 
       return scope
     end
@@ -39,6 +46,32 @@ module ReportGenerators::SystemPerformance::Fy2017
       }
       scope_hash[sub_population.to_sym]
     end
+
+    def race_scope scope, race_code
+      available_scopes = [
+        :race_am_ind_ak_native,
+        :race_black_af_american,
+        :race_native_hi_other_pacific,
+        :race_white,
+        :race_none,
+      ]
+      return scope unless available_scopes.include?(race_code.to_sym)
+      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(race_code.to_sym))
+    end
+
+    def ethnicity_scope scope, ethnicity_code
+      available_scopes = {
+        0 => :ethnicity_non_hispanic_non_latino,
+        1 => :ethnicity_hispanic_latino,
+        8 => :ethnicity_unknown,
+        9 => :ethnicity_refused,
+        99 => :ethnicity_not_collected,
+      }
+      ethnicity_scope = available_scopes[ethnicity_code&.to_i]
+      return scope unless ethnicity_scope.present?
+      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(ethnicity_scope))
+    end
+
 
     # Age should be calculated at report start or enrollment start, whichever is greater
     def age_for_report(dob:, enrollment:)
@@ -74,14 +107,14 @@ module ReportGenerators::SystemPerformance::Fy2017
         report: report,
         percent_complete: 0
       ).first
-      return unless @report.present? 
+      return unless @report.present?
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
 
     def finish_report
       @report.update(
-        percent_complete: 100, 
+        percent_complete: 100,
         results: @answers,
         support: @support,
         completed_at: Time.now

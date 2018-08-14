@@ -122,6 +122,12 @@ class ReportResultsController < ApplicationController
       coc_codes = @result.options['coc_codes'].select(&:present?)
       options.merge!({coc_codes: coc_codes})
     end
+    if @report.has_race_options?
+      race_code = @result.options['race_code'].presence
+      options.merge!({race_code: race_code}) if race_code.present?
+      ethnicity_code = @result.options['ethnicity_code'].presence&.to_i
+      options.merge!({ethnicity_code: ethnicity_code}) if ethnicity_code.present?
+    end
     if run_report_engine
       job = Delayed::Job.enqueue Reporting::RunReportJob.new(
         report: @report,
@@ -186,6 +192,8 @@ class ReportResultsController < ApplicationController
           :data_source_id,
           :coc_code,
           :sub_population,
+          :race_code,
+          :ethnicity_code,
           coc_codes: [],
           project_id: [],
           project_type:[],

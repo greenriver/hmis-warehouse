@@ -20,6 +20,10 @@ module Reports::SystemPerformance::Fy2017
       true
     end
 
+    def has_race_options?
+      true
+    end
+
     def title_for_options
       'Limits'
     end
@@ -30,6 +34,20 @@ module Reports::SystemPerformance::Fy2017
 
     def self.available_data_sources
       GrdaWarehouse::DataSource.importable
+    end
+
+    def self.available_races
+      {
+        AmIndAKNative: :race_am_ind_ak_native,
+        BlackAfAmerican: :race_black_af_american,
+        NativeHIOtherPacific: :race_native_hi_other_pacific,
+        White: :race_white,
+        RaceNone: :race_none,
+      }
+    end
+
+    def self.available_ethnicities
+
     end
 
     def self.available_sub_populations
@@ -54,6 +72,8 @@ module Reports::SystemPerformance::Fy2017
       display_string << project_id_string(options)
       display_string << project_group_string(options)
       display_string << sub_population_string(options)
+      display_string << race(options)
+      display_string << ethnicity(options)
       display_string
     end
 
@@ -61,10 +81,10 @@ module Reports::SystemPerformance::Fy2017
 
     def project_id_string options
       str = ''
-      if options['project_id'].present? 
+      if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}" 
+            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
@@ -86,6 +106,24 @@ module Reports::SystemPerformance::Fy2017
         return "; Sub Population: #{sub_population.humanize.titleize}"
       end
       ''
+    end
+
+    def race options
+      if options['race_code'].present?
+        race = self.class.available_races.invert[options['race_code']]
+        return "; Race: #{race}"
+      else
+        ''
+      end
+    end
+
+    def ethnicity options
+      if options['ethnicity_code'].present?
+        ethnicity = HUD.ethnicity(options['ethnicity_code'].to_i)
+        return "; Ethnicity: #{ethnicity}"
+      else
+        ''
+      end
     end
 
 
