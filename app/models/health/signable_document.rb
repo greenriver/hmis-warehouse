@@ -10,7 +10,8 @@ module Health
     validate :sane_number_signed
 
     belongs_to :signable, polymorphic: true
-    belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
+    # belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
+    has_one :health_file, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
 
@@ -60,9 +61,9 @@ module Health
 
         self.hs_initial_response = response.data
         self.hs_initial_response_at = Time.now
-
+        
         # Save a copy of this file to our health file
-        @health_file = Health::HealthFile.new(
+        @health_file = Health::SignableDocumentFile.new(
           user_id: self.user_id,
           client_id: signable.patient.client.id,
           file: Rails.root.join(file.path).open,
@@ -70,11 +71,10 @@ module Health
           content_type: 'application/pdf',
           name: 'care_plan.pdf',
           size: Rails.root.join(file.path).size,
-          type: Health::SignableDocumentFile.name
+          parent_id: self.id
         )
         # There are issues with saving this that doesn't come through an upload form
         @health_file.save(validate: false)
-        self.health_file_id = @health_file.id
       end
       save!
     end
