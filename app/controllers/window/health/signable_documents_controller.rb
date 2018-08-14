@@ -2,6 +2,7 @@ module Window::Health
   class SignableDocumentsController < IndividualPatientController
     include WindowClientPathGenerator
     include HealthCareplan
+    helper ChaHelper
 
     before_action :set_client, except: [:signature]
     before_action :set_patient, except: [:signature]
