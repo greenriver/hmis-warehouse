@@ -1,5 +1,5 @@
 = search_form_for @q, method: :get do |f|
-  .input-group
+  .input-group{style: 'margin-bottom: 20px;'}
     = f.search_field :full_text_search, label: false, class: 'form-control'
     %span.input-group-btn
       %button.btn.btn-secondary{type: :submit} Search

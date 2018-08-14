@@ -17,6 +17,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
   has_many :uploads
+  has_many :non_hmis_uploads
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects

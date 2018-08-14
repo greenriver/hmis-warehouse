@@ -10,11 +10,12 @@ module Mail
       is_html, body = content_and_type mail
       subject       = ApplicationMailer.remove_prefix mail.subject
       from          = mail[:from].addresses.first || ENV['DEFAULT_FROM']
-      
+
       if from.nil?
         Rails.logger.fatal "no DEFAULT_FROM specified in .env; mail cannot be sent"
       end
 
+      # if we have a user, log the event
       User.where( email: mail[:to].addresses ).each do |user|
         # store the "email" in the database
         message = ::Message.create(
@@ -28,6 +29,16 @@ module Mail
           ::ImmediateMailer.immediate(message, user.email).deliver_now
           message.update(sent_at: Time.now, seen_at: Time.now)
         end
+      end
+      # for anyone else, just deliver the message
+      (mail[:to].addresses - User.where( email: mail[:to].addresses ).pluck(:email)).each do |email|
+        message = ::Message.new(
+          subject: subject,
+          body:    body,
+          from:    from,
+          html:    is_html,
+        )
+        ::ImmediateMailer.immediate(message, email).deliver_now
       end
     end
 

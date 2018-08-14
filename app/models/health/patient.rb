@@ -99,47 +99,7 @@ module Health
     # No Release Form
     # No CHA
     scope :not_engaged, -> do
-      # This lives in the warehouse DB and must be materialized
-      hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:client_id)
-      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
-      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
-
-      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
-
-      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
-      epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
-
-      pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
-      epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
-
-      where(
-        arel_table[:client_id].not_in(hmis_ssm_client_ids).
-        and(
-          arel_table[:id].not_in(Arel.sql ssm_patient_id_scope.to_sql)
-        ).
-        and(
-          arel_table[:id].not_in(Arel.sql epic_ssm_patient_id_scope.to_sql)
-        ).
-        or(
-          arel_table[:id].not_in(Arel.sql participation_form_patient_id_scope.to_sql)
-        ).
-        or(
-          arel_table[:id].not_in(Arel.sql release_form_patient_id_scope.to_sql)
-        ).
-        or(
-          arel_table[:id].not_in(Arel.sql cha_patient_id_scope.to_sql).
-          and(
-            arel_table[:id].not_in(Arel.sql epic_cha_patient_id_scope.to_sql)
-          )
-        ).
-        or(
-          arel_table[:id].not_in(Arel.sql pctp_signed_patient_id_scope.to_sql).
-          and(
-            arel_table[:id].not_in(Arel.sql epic_careplan_patient_id_scope.to_sql)
-          )
-        )
-      )
+      where.not(id: engaged.select(:id))
     end
 
     # all must be true
@@ -155,27 +115,32 @@ module Health
 
       participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
       release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
+
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
       epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
-        arel_table[:client_id].in(hmis_ssm_client_ids).
-        or(
-          arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql)
-        ).
-        or(
-          arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
-        ).
-        and(
-          arel_table[:id].in(Arel.sql participation_form_patient_id_scope.to_sql)
-        ).
+        arel_table[:id].in(Arel.sql participation_form_patient_id_scope.to_sql).
         and(
           arel_table[:id].in(Arel.sql release_form_patient_id_scope.to_sql)
         ).
         and(
-          arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql)
+          arel_table[:id].in(Arel.sql cha_patient_id_scope.to_sql).
+          or(
+            arel_table[:id].in(Arel.sql epic_cha_patient_id_scope.to_sql)
+          )
+        ).
+        and(
+          arel_table[:client_id].in(hmis_ssm_client_ids).
+          or(
+            arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql).
+            or(
+              arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
+            )
+          )
         ).
         and(
           arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql).

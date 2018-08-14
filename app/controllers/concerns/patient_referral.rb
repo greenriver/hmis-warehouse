@@ -14,13 +14,14 @@ module PatientReferral
   private
 
   def load_index_vars
-    @agencies = Health::Agency.all
-    if @patient_referrals.present?
+    @agencies ||= Health::Agency.all
+    if @patient_referrals&.exists?
       load_filters
       @patient_referrals = @patient_referrals.
         page(params[:page].to_i).per(20)
     else
-      @patient_referrals = Health::PatientReferral.where(id: nil).page(params[:page].to_i).per(20)
+      @patient_referrals = Health::PatientReferral.where(id: nil).
+        page(params[:page].to_i).per(20)
     end
     load_tabs
   end

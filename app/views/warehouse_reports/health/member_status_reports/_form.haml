@@ -1,4 +1,5 @@
 - if Health::Cp.sender.exists?
+  %p Includes Patients referred during the chosen range, or who received qualifying activities during the range.
   = simple_form_for @report, as: :report, url: warehouse_reports_health_member_status_reports_path do |f|
     .row
       .col-sm-3
