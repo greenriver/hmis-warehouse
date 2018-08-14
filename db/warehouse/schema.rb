@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180813144056) do
+ActiveRecord::Schema.define(version: 20180814144715) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -950,6 +950,17 @@ ActiveRecord::Schema.define(version: 20180813144056) do
   add_index "client_matches", ["destination_client_id"], name: "index_client_matches_on_destination_client_id", using: :btree
   add_index "client_matches", ["source_client_id"], name: "index_client_matches_on_source_client_id", using: :btree
   add_index "client_matches", ["updated_by_id"], name: "index_client_matches_on_updated_by_id", using: :btree
+
+  create_table "client_merge_histories", force: :cascade do |t|
+    t.integer  "merged_into", null: false
+    t.integer  "merged_from", null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+  end
+
+  add_index "client_merge_histories", ["created_at"], name: "index_client_merge_histories_on_created_at", using: :btree
+  add_index "client_merge_histories", ["merged_from"], name: "index_client_merge_histories_on_merged_from", using: :btree
+  add_index "client_merge_histories", ["updated_at"], name: "index_client_merge_histories_on_updated_at", using: :btree
 
   create_table "client_notes", force: :cascade do |t|
     t.integer  "client_id",         null: false
