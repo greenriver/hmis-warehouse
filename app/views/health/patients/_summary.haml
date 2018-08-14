@@ -1,0 +1,2 @@
+= render 'warehouse_reports/health/agency_performance/form'
+= render 'warehouse_reports/health/agency_performance/table', detail_path: [:detail, :health, :patients], permission: current_user.has_some_patient_access?

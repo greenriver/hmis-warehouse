@@ -10,7 +10,7 @@ module Health
     # has_many :team_members, through: :team, source: :members
     belongs_to :patient, class_name: Health::Patient.name
     belongs_to :user
-    
+
     has_one :health_file, class_name: 'Health::CareplanFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
@@ -47,6 +47,17 @@ module Health
     scope :sorted, -> do
       order(updated_at: :desc)
     end
+
+    scope :pcp_signed, -> do
+      where.not(provider_signed_on: nil)
+    end
+    scope :patient_signed, -> do
+      where.not(patient_signed_on: nil)
+    end
+    scope :fully_signed, -> do
+      pcp_signed.patient_signed
+    end
+
     # End Scopes
 
     def editable?
@@ -57,9 +68,9 @@ module Health
       patient.import_epic_team_members
     end
 
+    # We need both signatures, and one of must have just been assigned
     def just_signed?
-      self.patient_signed_on.present? && self.patient_signed_on_changed? ||
-      self.provider_signed_on.present? && self.provider_signed_on_changed?
+      (self.patient_signed_on.present? && self.provider_signed_on.present?) && (self.patient_signed_on_changed? || self.provider_signed_on_changed?)
     end
 
     def set_lock

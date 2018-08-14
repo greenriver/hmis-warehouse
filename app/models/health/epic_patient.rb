@@ -11,6 +11,9 @@ module Health
     has_many :epic_case_notes, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :epic_qualifying_activities, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
+    has_many :epic_careplans, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
+    has_many :epic_chas, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
+    has_many :epic_ssms, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }

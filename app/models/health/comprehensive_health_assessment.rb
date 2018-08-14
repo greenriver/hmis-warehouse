@@ -796,7 +796,7 @@ module Health
     belongs_to :patient
     belongs_to :user
     belongs_to :reviewed_by, class_name: 'User'
-    
+
     has_one :health_file, class_name: 'Health::ComprehensiveHealthAssessmentFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
@@ -806,6 +806,7 @@ module Health
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil)}
     scope :complete, -> { where.not(completed_at: nil) }
+    scope :completed, -> { complete }
 
     attr_accessor :reviewed_by_supervisor, :completed, :file
 

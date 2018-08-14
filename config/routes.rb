@@ -43,6 +43,9 @@ Rails.application.routes.draw do
       resources :team_members, controller: :patient_team_members
       resources :goals, controller: :patient_goals
       resources :epic_case_notes, only: [:show]
+      resources :epic_ssms, only: [:show]
+      resources :epic_chas, only: [:show]
+      resources :epic_careplans, only: [:show]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
@@ -243,6 +246,11 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :agency_performance, only: [:index] do
+        collection do
+          get :detail
+        end
+      end
       resources :member_status_reports, only: [:index, :show, :create, :destroy] do
         collection do
           get :running
@@ -394,6 +402,7 @@ Rails.application.routes.draw do
   resources :service_history_logs, only: [:index]
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
+    resources :non_hmis_uploads, except: [:update, :destroy, :edit]
   end
 
   resources :organizations, only: [:index, :show] do
@@ -432,7 +441,11 @@ Rails.application.routes.draw do
   end
 
   namespace :health do
-    resources :patients, only: [:index]
+    resources :patients, only: [:index] do
+      collection do
+        get :detail
+      end
+    end
     resources :my_patients, only: [:index]
   end
 

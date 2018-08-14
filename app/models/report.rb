@@ -3,7 +3,7 @@ class Report < ActiveRecord::Base
   include Rails.application.routes.url_helpers
   belongs_to :report_results_summary
   has_many :report_results
-  
+
   self.table_name = 'reports'
 
   def model_name
@@ -31,9 +31,9 @@ class Report < ActiveRecord::Base
 
   # override as necessary, default takes format
   # {
-  #   a1: {title: 'Title', value: 2}, 
-  #   a2: {title: 'Title 2', value: 5}, 
-  #   b1: {title: 'Title 3', value: 3}, 
+  #   a1: {title: 'Title', value: 2},
+  #   a2: {title: 'Title 2', value: 5},
+  #   b1: {title: 'Title 3', value: 3},
   #   b2: {title: 'Title 4', value: 4}
   # }
   # and converts it to a csv in format
@@ -68,13 +68,13 @@ class Report < ActiveRecord::Base
 
   # override as necessary, default takes format
   # {
-  #   a1: {title: 'Title', value: 2}, 
-  #   a2: {title: 'Title 2', value: 5}, 
-  #   b1: {title: 'Title 3', value: 3}, 
+  #   a1: {title: 'Title', value: 2},
+  #   a2: {title: 'Title 2', value: 5},
+  #   b1: {title: 'Title 3', value: 3},
   #   b2: {title: 'Title 4', value: 4}
   # }
   # and converts it to a csv in format
-  # 
+  #
   # 3,4
   def as_html results
 
@@ -120,6 +120,9 @@ class Report < ActiveRecord::Base
     false
   end
 
+  def has_race_options?
+    false
+  end
 end
 
 class ReportDatabaseStructureMissing < StandardError ; end

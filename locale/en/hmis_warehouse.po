@@ -3449,6 +3449,9 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
+msgid "Destination (Program Type)"
+msgstr ""
+
 msgid "Disability Verification on File"
 msgstr ""
 
@@ -3512,7 +3515,7 @@ msgstr ""
 msgid "Import queued to start."
 msgstr ""
 
-msgid "Import was successfully destroyed."
+msgid "Import was successfully removed."
 msgstr ""
 
 msgid "Import was successfully updated."
@@ -3569,7 +3572,7 @@ msgstr ""
 msgid "Report queued to start."
 msgstr ""
 
-msgid "Report successfully destroyed."
+msgid "Report successfully removed."
 msgstr ""
 
 msgid "Report successfully updated."

@@ -1,0 +1,9 @@
+= simple_form_for :filter, method: :get do |f|
+  .well
+    .row
+      .col-sm-4
+        = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
+      .col-sm-4
+        = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
+      .col-sm-4
+        = f.submit 'Update Date Range', class: 'btn btn-primary mt-no-label'

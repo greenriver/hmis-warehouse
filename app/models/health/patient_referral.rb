@@ -22,6 +22,7 @@ module Health
     scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
     scope :rejected, -> {where(rejected: true)}
+    scope :with_patient, -> { where.not patient_id: nil }
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true
@@ -100,13 +101,13 @@ module Health
     def outreach_status
       if patient&.death_date || patient&.epic_patients&.map(&:death_date)&.any? || (rejected && rejected_reason == 'Deceased')
          'Deceased'
-      elsif patient&.engaged?
-        'Engaged'
       elsif rejected && rejected_reason == 'Declined'
         'Declined Participation'
-      elsif rejected && rejected_reason.in?(['Unreachable'])
+       elsif rejected && rejected_reason.in?(['Unreachable'])
         'Unreachable/Unable to Contact'
-      elsif patient.present?
+      elsif patient&.engaged?
+        'Engaged'
+      elsif patient&.qualifying_activities&.exists?
         'In Process'
       else
         'Not Yet Started'

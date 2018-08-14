@@ -98,6 +98,7 @@ class CohortsController < ApplicationController
       :only_window,
       :active_cohort,
       :static_column_count,
+      :show_on_client_dashboard,
       user_ids: []
     )
   end

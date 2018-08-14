@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180809175415) do
+ActiveRecord::Schema.define(version: 20180810153634) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -293,6 +293,21 @@ ActiveRecord::Schema.define(version: 20180809175415) do
     t.datetime "updated_at"
   end
 
+  create_table "epic_careplans", force: :cascade do |t|
+    t.string   "patient_id"
+    t.string   "id_in_source"
+    t.string   "encounter_id"
+    t.string   "encounter_type"
+    t.datetime "careplan_updated_at"
+    t.string   "staff"
+    t.text     "part_1"
+    t.text     "part_2"
+    t.text     "part_3"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "data_source_id"
+  end
+
   create_table "epic_case_notes", force: :cascade do |t|
     t.string   "patient_id",                null: false
     t.string   "id_in_source",              null: false
@@ -316,6 +331,36 @@ ActiveRecord::Schema.define(version: 20180809175415) do
   end
 
   add_index "epic_case_notes", ["patient_id"], name: "index_epic_case_notes_on_patient_id", using: :btree
+
+  create_table "epic_chas", force: :cascade do |t|
+    t.string   "patient_id"
+    t.string   "id_in_source"
+    t.string   "encounter_id"
+    t.string   "encounter_type"
+    t.datetime "cha_updated_at"
+    t.string   "staff"
+    t.string   "provider_type"
+    t.string   "reviewer_name"
+    t.string   "reviewer_provider_type"
+    t.text     "part_1"
+    t.text     "part_2"
+    t.text     "part_3"
+    t.text     "part_4"
+    t.text     "part_5"
+    t.text     "part_6"
+    t.text     "part_7"
+    t.text     "part_8"
+    t.text     "part_9"
+    t.text     "part_10"
+    t.text     "part_11"
+    t.text     "part_12"
+    t.text     "part_13"
+    t.text     "part_14"
+    t.text     "part_15"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "data_source_id"
+  end
 
   create_table "epic_goals", force: :cascade do |t|
     t.string   "patient_id",                           null: false
@@ -369,6 +414,21 @@ ActiveRecord::Schema.define(version: 20180809175415) do
     t.string   "activity"
     t.string   "mode"
     t.string   "reached"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "data_source_id"
+  end
+
+  create_table "epic_ssms", force: :cascade do |t|
+    t.string   "patient_id"
+    t.string   "id_in_source"
+    t.string   "encounter_id"
+    t.string   "encounter_type"
+    t.datetime "ssm_updated_at"
+    t.string   "staff"
+    t.text     "part_1"
+    t.text     "part_2"
+    t.text     "part_3"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "data_source_id"

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180731125029) do
+ActiveRecord::Schema.define(version: 20180813144056) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1059,18 +1059,19 @@ ActiveRecord::Schema.define(version: 20180731125029) do
   add_index "cohort_clients", ["deleted_at"], name: "index_cohort_clients_on_deleted_at", using: :btree
 
   create_table "cohorts", force: :cascade do |t|
-    t.string   "name",                                    null: false
-    t.datetime "created_at",                              null: false
-    t.datetime "updated_at",                              null: false
+    t.string   "name",                                      null: false
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
     t.datetime "deleted_at"
     t.date     "effective_date"
     t.text     "column_state"
-    t.string   "default_sort_direction", default: "desc"
-    t.boolean  "only_window",            default: true,   null: false
-    t.boolean  "active_cohort",          default: true,   null: false
-    t.integer  "static_column_count",    default: 3,      null: false
+    t.string   "default_sort_direction",   default: "desc"
+    t.boolean  "only_window",              default: true,   null: false
+    t.boolean  "active_cohort",            default: true,   null: false
+    t.integer  "static_column_count",      default: 3,      null: false
     t.string   "short_name"
-    t.integer  "days_of_inactivity",     default: 90
+    t.integer  "days_of_inactivity",       default: 90
+    t.boolean  "show_on_client_dashboard", default: true,   null: false
   end
 
   add_index "cohorts", ["deleted_at"], name: "index_cohorts_on_deleted_at", using: :btree
@@ -1440,6 +1441,24 @@ ActiveRecord::Schema.define(version: 20180731125029) do
     t.boolean "individual_elder",                            default: false, null: false
     t.boolean "head_of_household",                           default: false, null: false
   end
+
+  create_table "non_hmis_uploads", force: :cascade do |t|
+    t.integer  "data_source_id"
+    t.integer  "user_id"
+    t.integer  "delayed_job_id"
+    t.string   "file",             null: false
+    t.float    "percent_complete"
+    t.json     "import_errors"
+    t.string   "content_type"
+    t.binary   "content"
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "deleted_at"
+  end
+
+  add_index "non_hmis_uploads", ["deleted_at"], name: "index_non_hmis_uploads_on_deleted_at", using: :btree
 
   create_table "project_data_quality", force: :cascade do |t|
     t.integer  "project_id"

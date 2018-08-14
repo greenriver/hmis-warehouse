@@ -162,15 +162,27 @@ module GrdaWarehouse::Hud
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
 
+    # do not include ineligible clients for Sync with CAS
     def active_cohorts
       cohort_clients.select do |cc|
+        # meta.inactive is related to days of inactivity in HMIS
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
         cc.active? && cc.cohort&.active? && ! meta.inactive && ! cc.ineligible?
       end.map(&:cohort).compact.uniq
     end
 
+    # do not include ineligible clients for Sync with CAS
     def active_cohort_ids
       active_cohorts.map(&:id)
+    end
+
+    # do include ineligible clients for client dashboard, but don't include cohorts excluded from
+    # client dashboard
+    def cohorts_for_dashboard
+      cohort_clients.select do |cc|
+        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
+        cc.active? && cc.cohort&.active? && cc.cohort.show_on_client_dashboard? && ! meta.inactive
+      end.map(&:cohort).compact.uniq
     end
 
     has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
@@ -414,6 +426,88 @@ module GrdaWarehouse::Hud
         distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
       end
     end
+
+    # Race & Ethnicity scopes
+    scope :race_am_ind_ak_native, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:AmIndAKNative].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_black_af_american, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:BlackAfAmerican].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_native_hi_other_pacific, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:NativeHIOtherPacific].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_white, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:White].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_none, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_non_hispanic_non_latino, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(0)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_hispanic_latino, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_unknown, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(8)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_refused, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(9)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_not_collected, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(99)).
+          select(:destination_id)
+      )
+    end
+
 
     ####################
     # Callbacks
