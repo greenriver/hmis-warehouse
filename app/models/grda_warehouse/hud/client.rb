@@ -1706,7 +1706,11 @@ module GrdaWarehouse::Hud
           self.update(current_cas_columns)
           self.save()
           prev_destination_client.force_full_service_history_rebuild
-          prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
+          if prev_destination_client.source_clients(true).empty?
+            # Create a client_merge_history record so we can keep links working
+            GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+            prev_destination_client.delete
+          end
 
           move_dependent_items(prev_destination_client.id, self.id)
 
