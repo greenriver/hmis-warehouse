@@ -15,15 +15,12 @@ module Health
     end
 
     def update
-      @ssm.class.transaction do 
-        if !@ssm.completed_at.present?
-          @ssm.completed_at = Time.current
-        end
-        @ssm.save!
-        if @ssm.completed_at.present?
+      @ssm.class.transaction do
+        if @ssm.completed_at_changed? && @ssm.completed_at_was == nil
           @qualifying_activity.source_id = @ssm.id
           @qualifying_activity.save
         end
+        @ssm.save!
       end
     end
 
