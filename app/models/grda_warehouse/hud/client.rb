@@ -427,7 +427,8 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :am_ind_ak_native, -> do
+    # Race & Ethnicity scopes
+    scope :race_am_ind_ak_native, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
           where(c_t[:AmIndAKNative].eq(1)).
@@ -435,14 +436,78 @@ module GrdaWarehouse::Hud
       )
     end
 
-    scope :black_af_american, -> do
+    scope :race_black_af_american, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
           where(c_t[:BlackAfAmerican].eq(1)).
           select(:destination_id)
       )
     end
-    # AmIndAKNative Asian BlackAfAmerican NativeHIOtherPacific White RaceNone
+
+    scope :race_native_hi_other_pacific, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:NativeHIOtherPacific].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_white, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:White].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_none, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_non_hispanic_non_latino, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(0)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_hispanic_latino, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_unknown, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(8)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_refused, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(9)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_not_collected, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(99)).
+          select(:destination_id)
+      )
+    end
+
 
     ####################
     # Callbacks
