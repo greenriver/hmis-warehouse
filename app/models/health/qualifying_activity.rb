@@ -186,7 +186,16 @@ module Health
     validates :mode_of_contact, inclusion: {in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s)}, allow_blank: true
     validates :reached_client, inclusion: {in: Health::QualifyingActivity.client_reached.keys.map(&:to_s)}, allow_blank: true
     validates :activity, inclusion: {in: Health::QualifyingActivity.activities.keys.map(&:to_s)}, allow_blank: true
-    validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity, :patient_id
+    validates_presence_of(
+      :user, 
+      :user_full_name, 
+      :source, :follow_up, 
+      :date_of_activity, 
+      :patient_id, 
+      :mode_of_contact, 
+      :reached_client, 
+      :activity
+    )
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 
@@ -218,9 +227,7 @@ module Health
     # end
 
     def self.load_string_collection(collection)
-      [['None', '']] + collection.map do |k, v|
-        [v, k]
-      end
+      collection.map{|k, v| [v, k]}
     end
 
     def self.mode_of_contact_collection
@@ -232,7 +239,11 @@ module Health
     end
 
     def self.activity_collection
-      self.load_string_collection(activities.map{|k, mode| [k, mode[:title]] })
+      suppress_from_view = [:pctp_signed]
+      self.load_string_collection(
+        activities.reject{|k| suppress_from_view.include?(k)}.
+        map{|k, mode| [k, mode[:title]] }
+      )
     end
 
     def activity_title key
