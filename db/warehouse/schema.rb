@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180814144715) do
+ActiveRecord::Schema.define(version: 20180815162429) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -469,16 +469,16 @@ ActiveRecord::Schema.define(version: 20180814144715) do
   create_table "Geography", force: :cascade do |t|
     t.string   "GeographyID"
     t.string   "ProjectID"
-    t.string   "CoCCode",         limit: 50
+    t.string   "CoCCode",                 limit: 50
     t.integer  "PrincipalSite"
-    t.string   "Geocode",         limit: 50
+    t.string   "Geocode",                 limit: 50
     t.string   "Address1"
     t.string   "City"
-    t.string   "State",           limit: 2
-    t.string   "ZIP",             limit: 10
+    t.string   "State",                   limit: 2
+    t.string   "ZIP",                     limit: 10
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",          limit: 100
+    t.string   "UserID",                  limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
@@ -486,6 +486,8 @@ ActiveRecord::Schema.define(version: 20180814144715) do
     t.string   "Address2"
     t.integer  "GeographyType"
     t.string   "source_hash"
+    t.string   "geocode_override",        limit: 6
+    t.integer  "geography_type_override"
   end
 
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
@@ -697,6 +699,8 @@ ActiveRecord::Schema.define(version: 20180814144715) do
     t.integer  "HousingType"
     t.string   "local_planning_group"
     t.string   "source_hash"
+    t.integer  "housing_type_override"
+    t.boolean  "uses_move_in_date",                  default: false, null: false
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
