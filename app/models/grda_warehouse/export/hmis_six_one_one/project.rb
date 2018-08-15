@@ -24,5 +24,24 @@ module GrdaWarehouse::Export::HMISSixOneOne
       )
     end
 
+    def apply_overrides row, data_source_id:
+      if override = housing_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+        row[:HousingType] = override
+      end
+      return row
+    end
+
+    def housing_type_override_for project_id:, data_source_id:
+      @housing_type_overrides ||= self.class.where.not(housing_type_override: nil).
+        pluck(:data_source_id, :id, :housing_type_override).
+        map do |data_source_id, project_id, housing_type_override|
+          if housing_type_override.present?
+            [[data_source_id, project_id], housing_type_override]
+          else
+            nil
+          end
+        end.compact.to_h
+      @housing_type_overrides[[data_source_id, project_id]]
+    end
   end
 end

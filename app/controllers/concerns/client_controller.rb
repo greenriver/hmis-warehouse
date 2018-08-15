@@ -1,6 +1,6 @@
 module ClientController
   extend ActiveSupport::Concern
-  
+
   included do
     include ArelHelper
 
@@ -108,13 +108,13 @@ module ClientController
       @existing_matches ||= []
       @client = client_source.new
     end
-  
+
     def create
       clean_params = client_create_params
       clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
       existing_matches = look_for_existing_match(clean_params)
       @bypass_search = false
-      # If we only have one authoritative data source, we don't bother sending it, just use it 
+      # If we only have one authoritative data source, we don't bother sending it, just use it
       clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id
       @client = client_source.new(clean_params)
 
@@ -158,7 +158,7 @@ module ClientController
           )
           if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
             flash[:notice] = "Client #{@client.full_name} created."
-            
+
             if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
               redirect_to polymorphic_path(client_path_generator + [:vispdats], {client_id: destination_client.id})
             else
@@ -200,7 +200,7 @@ module ClientController
           and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase))
         ).
         pluck(:id)
-      
+
       ssn_matches = []
       ssn = attr[:SSN].gsub('-','')
       if ::HUD.valid_social?(ssn)
@@ -274,9 +274,22 @@ module ClientController
         # end
       end
     end
-    
+
     protected def set_client
-      @client = client_scope.find(params[:id].to_i)
+      # Do we have this client?
+      # If not, attempt to redirect to the most recent version
+      # If there's not merge path, just force an active record not found
+      if client_scope.where(id: params[:id].to_i).exists?
+        @client = client_scope.find(params[:id].to_i)
+      else
+        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:id].to_i
+        if client_id
+          redirect_to controller: controller_name, action: action_name, id: client_id
+          # client_scope.find(client_id)
+        else
+          @client = client_scope.find(params[:id].to_i)
+        end
+      end
     end
 
     protected def set_client_start_date
@@ -312,4 +325,4 @@ module ClientController
       "%#{@query}%"
     end
   end
-end 
+end

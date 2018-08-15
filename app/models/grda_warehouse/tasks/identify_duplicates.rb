@@ -1,5 +1,7 @@
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
+    include ArelHelper
+
     def run!
       Rails.logger.info 'Loading unprocessed clients'
       started_at = DateTime.now
@@ -63,6 +65,78 @@ module GrdaWarehouse::Tasks
       Rails.logger.info 'Done'
     end
 
+    # look at all existing records for duplicates and merge destination clients
+    def match_existing!
+      @to_merge = find_merge_candidates
+      user = User.setup_system_user
+      merge_history = GrdaWarehouse::ClientMergeHistory.new
+      @to_merge.each do |destination_id, source_id|
+        # Detect a previous merge
+        destination_id = find_current_id_for(destination_id)
+        next unless destination_id.present?
+        # Detect a previous merge
+        source_id = find_current_id_for(source_id)
+        next unless source_id.present?
+        # This has already been fully merged
+        next if source_id == destination_id
+
+        destination = client_destinations.find(destination_id)
+        source = client_destinations.find(source_id)
+
+        destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
+        Rails.logger.info "merged #{source.id} into #{destination.id}"
+      end
+      Importing::RunAddServiceHistoryJob.perform_later
+    end
+
+    def find_current_id_for(id)
+      if ! client_destinations.where(id: id).exists?
+        return merge_history.current_destination(id)
+      end
+      return id
+    end
+
+    def find_merge_candidates
+      to_merge = Set.new
+      all_source_clients.each do |first_name, last_name, ssn, dob, dest_id|
+        matches_name = []
+        matches_dob = []
+        matches_ssn = []
+        if first_name && last_name
+          key = [first_name.downcase, last_name.downcase]
+          matches_name += source_clients_grouped_by_name[key].map(&:last).uniq - [dest_id]
+        end
+        if valid_social?(ssn)
+          matches_ssn += source_clients_grouped_by_ssn[ssn].map(&:last).uniq - [dest_id]
+        end
+        if dob
+          matches_dob += source_clients_grouped_by_dob[dob].map(&:last).uniq - [dest_id]
+        end
+        all_matching_dest_ids = matches_name + matches_ssn + matches_dob
+        to_merge_by_dest_id = all_matching_dest_ids.uniq.map{|num| [num, all_matching_dest_ids.count(num)]}.to_h.select{|_,v| v > 1}
+        if to_merge_by_dest_id.any?
+          to_merge += to_merge_by_dest_id.keys.map{ |source_id| [dest_id, source_id].sort }
+        end
+      end
+      return to_merge
+    end
+
+    def source_clients_grouped_by_name
+      @source_clients_grouped_by_name ||= all_source_clients.group_by{|first_name, last_name, ssn, dob, dest_id| [first_name.downcase, last_name.downcase]}
+    end
+
+    def source_clients_grouped_by_ssn
+      @source_clients_grouped_by_ssn ||= all_source_clients.group_by{|first_name, last_name, ssn, dob, dest_id| ssn }
+    end
+
+    def source_clients_grouped_by_dob
+      @source_clients_grouped_by_dob ||= all_source_clients.group_by{|first_name, last_name, ssn, dob, dest_id| dob }
+    end
+
+    def all_source_clients
+      @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.pluck(:FirstName, :LastName, :SSN, :DOB, wc_t[:destination_id].to_sql)
+    end
+
     # figure out who doesn't yet have an entry in warehouse clients
     private def load_unprocessed
       GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id)
@@ -79,7 +153,7 @@ module GrdaWarehouse::Tasks
     #   3. perfect name matches
     private def check_for_obvious_match client_id
       client = GrdaWarehouse::Hud::Client.find(client_id.to_i)
-      
+
       ssn_matches = []
       if valid_social?(client.SSN)
         ssn_matches = check_social client.SSN

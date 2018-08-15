@@ -14,7 +14,7 @@
         %tr
           %td= project[:project]
           %th= ::HUD.project_type_brief project[:project_type]
-          %td= yes_no(! @missing_data[:missing_project_type].include?(project))
+          %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
           %td= yes_no(! @missing_data[:missing_geocode].include?(project))
           %td= yes_no(! @missing_data[:missing_gepgraphy_type].include?(project))
 
