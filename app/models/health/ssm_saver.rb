@@ -30,7 +30,6 @@ module Health
             mode_of_contact: :in_person,
             patient_id: @ssm.patient_id
           )
-          Rails.logger.debug "DEBUG #{@qualifying_activity.inspect}"
         end
         @ssm.save!
       end
