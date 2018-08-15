@@ -106,7 +106,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
     Delayed::Worker.new.work_off(2)
   end
 

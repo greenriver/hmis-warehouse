@@ -37,7 +37,7 @@ module Window::Health
 
     def update
       @form.assign_attributes(form_params)
-      Health::SsmSaver.new(ssm: @form, user: current_user, complete: params[:commit]=='Save').update
+      Health::SsmSaver.new(ssm: @form, user: current_user).update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
 
@@ -101,7 +101,8 @@ module Window::Health
         :community_notes,
         :time_score,
         :time_notes,
-        :collection_location
+        :collection_location,
+        :completed_at
       )
     end
 
