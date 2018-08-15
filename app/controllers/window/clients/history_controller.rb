@@ -165,7 +165,20 @@ module Window::Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
+      # Do we have this client?
+      # If not, attempt to redirect to the most recent version
+      # If there's not merge path, just force an active record not found
+      if client_scope.where(id: params[:client_id].to_i).exists?
+        @client = client_scope.find(params[:client_id].to_i)
+      else
+        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:client_id].to_i
+        if client_id
+          redirect_to controller: controller_name, action: action_name, client_id: client_id
+          # client_scope.find(client_id)
+        else
+          @client = client_scope.find(params[:client_id].to_i)
+        end
+      end
     end
     alias_method :set_client_from_client_id, :set_client
 
