@@ -37,8 +37,8 @@
 
         %section.c-card
           .c-card__content
-            = f.input :completed_at, as: :date_picker
-            
+            = f.input :completed_at, as: :date_picker, label: 'Completed on'
+
         .form__actions.form__actions--right.mb-6
           = f.button :submit, 'Save'
 
