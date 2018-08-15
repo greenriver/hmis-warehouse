@@ -1,6 +1,9 @@
 .row
   .col-sm-12.text-right
     - if current_user.can_manage_cohorts?
+      = link_to new_cohort_copy_path(@cohort), title: 'Copy data from another cohort', class: 'btn btn-secondary btn-sm' do
+        %i.icon-download2
+        Copy
       = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'btn btn-secondary btn-sm' do
         %i.icon-pencil 
         Edit
