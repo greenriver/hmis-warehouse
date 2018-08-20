@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180813144056) do
+ActiveRecord::Schema.define(version: 20180815162429) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -469,16 +469,16 @@ ActiveRecord::Schema.define(version: 20180813144056) do
   create_table "Geography", force: :cascade do |t|
     t.string   "GeographyID"
     t.string   "ProjectID"
-    t.string   "CoCCode",         limit: 50
+    t.string   "CoCCode",                 limit: 50
     t.integer  "PrincipalSite"
-    t.string   "Geocode",         limit: 50
+    t.string   "Geocode",                 limit: 50
     t.string   "Address1"
     t.string   "City"
-    t.string   "State",           limit: 2
-    t.string   "ZIP",             limit: 10
+    t.string   "State",                   limit: 2
+    t.string   "ZIP",                     limit: 10
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",          limit: 100
+    t.string   "UserID",                  limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
@@ -486,6 +486,8 @@ ActiveRecord::Schema.define(version: 20180813144056) do
     t.string   "Address2"
     t.integer  "GeographyType"
     t.string   "source_hash"
+    t.string   "geocode_override",        limit: 6
+    t.integer  "geography_type_override"
   end
 
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
@@ -697,6 +699,8 @@ ActiveRecord::Schema.define(version: 20180813144056) do
     t.integer  "HousingType"
     t.string   "local_planning_group"
     t.string   "source_hash"
+    t.integer  "housing_type_override"
+    t.boolean  "uses_move_in_date",                  default: false, null: false
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
@@ -950,6 +954,17 @@ ActiveRecord::Schema.define(version: 20180813144056) do
   add_index "client_matches", ["destination_client_id"], name: "index_client_matches_on_destination_client_id", using: :btree
   add_index "client_matches", ["source_client_id"], name: "index_client_matches_on_source_client_id", using: :btree
   add_index "client_matches", ["updated_by_id"], name: "index_client_matches_on_updated_by_id", using: :btree
+
+  create_table "client_merge_histories", force: :cascade do |t|
+    t.integer  "merged_into", null: false
+    t.integer  "merged_from", null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+  end
+
+  add_index "client_merge_histories", ["created_at"], name: "index_client_merge_histories_on_created_at", using: :btree
+  add_index "client_merge_histories", ["merged_from"], name: "index_client_merge_histories_on_merged_from", using: :btree
+  add_index "client_merge_histories", ["updated_at"], name: "index_client_merge_histories_on_updated_at", using: :btree
 
   create_table "client_notes", force: :cascade do |t|
     t.integer  "client_id",         null: false

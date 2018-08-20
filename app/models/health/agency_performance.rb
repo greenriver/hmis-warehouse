@@ -9,7 +9,7 @@ module Health
     end
 
     def agency_counts
-      agencies.map do |id, name|
+      @agency_counts ||= agencies.map do |id, name|
         patient_ids = patient_referrals.select{ |_, agency_id| agency_id == id }.keys
 
         consented_patients = consent_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
@@ -45,6 +45,26 @@ module Health
           }
         )
       end
+    end
+
+    def total_counts
+      @total_counts ||= OpenStruct.new(
+        {
+          id: nil,
+          name: 'Totals',
+          patient_referrals: agency_counts.map(&:patient_referrals).reduce(&:+),
+          consented_patients: agency_counts.map(&:consented_patients).reduce(&:+),
+          unconsented_patients: agency_counts.map(&:unconsented_patients).reduce(&:+),
+          with_ssms: agency_counts.map(&:with_ssms).reduce(&:+),
+          without_ssms: agency_counts.map(&:without_ssms).reduce(&:+),
+          with_chas: agency_counts.map(&:with_chas).reduce(&:+),
+          without_chas: agency_counts.map(&:without_chas).reduce(&:+),
+          with_signed_careplans: agency_counts.map(&:with_signed_careplans).reduce(&:+),
+          without_signed_careplans: agency_counts.map(&:without_signed_careplans).reduce(&:+),
+          with_qualifying_activities_within_range: agency_counts.map(&:with_qualifying_activities_within_range).reduce(&:+),
+          without_qualifying_activities_within_range: agency_counts.map(&:without_qualifying_activities_within_range).reduce(&:+),
+        }
+      )
     end
 
     def agencies
