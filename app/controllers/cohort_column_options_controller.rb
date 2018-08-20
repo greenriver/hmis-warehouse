@@ -22,12 +22,12 @@ class CohortColumnOptionsController < ApplicationController
   end
 
   def update
-    @event.update(administrative_event_params)
-    respond_with(@event, location: admin_administrative_events_path)
+    @cohort_column_option.update(cohort_column_option_params)
+    respond_with(@cohort_column_option, location: cohort_column_options_path)
   end
 
   def set_cohort_column_option
-    @cohort_column_option = cohort_column_option_source.find(params[:cohort_column_option_id].to_i)
+    @cohort_column_option = cohort_column_option_source.find(params[:id].to_i)
   end
   
   def set_cohort_column_options

@@ -3,7 +3,7 @@
 .row
   .col-sm-6
     .form-inputs
-      = f.input :cohort_column, required: true
+      = f.input :cohort_column, required: true, collection: @cohort_column_option.cohort_columns, include_blank: false, include_hidden: false
       = f.input :value, as: :text
       = f.input :weight, as: :integer, required: true
       = f.input :active, required: true, as: :boolean
