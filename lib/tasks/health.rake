@@ -35,6 +35,10 @@ namespace :health do
       case file.type
       when "Health::SsmFile"
         form_id = Health::SelfSufficiencyMatrixForm.where(health_file_id: file.id).pluck(:id).first
+        if !form_id # re-classify any SSMFiles that were attached to care plans as CareplanFiles
+          form_id = Health::Careplan.where(health_file_id: file.id).maximum(:id)
+          file.assign_attributes( type: 'Health::CareplanFile')
+        end
       when "Health::ParticipationFormFile"
         form_id = Health::ParticipationForm.where(health_file_id: file.id).pluck(:id).first
       when "Health::ComprehensiveHealthAssessmentFile"
@@ -78,10 +82,10 @@ namespace :health do
       if args.reset.present?
         Rails.logger.info 'Removing all health data'
         Health::Base.known_sub_classes.each do |klass|
-          klass.delete_all
+          # klass.delete_all
         end
         Health::Claims::Base.known_sub_classes.each do |klass|
-          klass.delete_all
+          # klass.delete_all
         end
       end
       Health::Tasks::ImportEpic.new(load_locally: true).run!

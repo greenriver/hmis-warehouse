@@ -23,6 +23,7 @@ class DataSourcesController < ApplicationController
       joins(:projects).
       merge( p_t.engine.viewable_by current_user ).
       includes(:projects, projects: [:project_cocs, :geographies, :inventories]).
+      preload(:projects, projects: [:project_cocs, :geographies, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
 
@@ -58,10 +59,16 @@ class DataSourcesController < ApplicationController
           project = GrdaWarehouse::Hud::Project.find(id.to_i)
           project.act_as_project_type = act_as_project_type
           project.hud_continuum_funded = project_attributes[:hud_continuum_funded]
-          project.project_cocs.each do |coc|
-            coc.update(hud_coc_code: project_attributes[:hud_coc_code])
-          end
           project.confidential = project_attributes[:confidential] || false
+          project.housing_type_override = project_attributes[:housing_type_override].presence
+          project.uses_move_in_date = project_attributes[:uses_move_in_date].presence || false
+
+          project.project_cocs.update_all(hud_coc_code: project_attributes[:hud_coc_code])
+          project.geographies.update_all(
+            geocode_override: project_attributes[:geocode_override].presence,
+            geography_type_override: project_attributes[:geography_type_override].presence,
+          )
+
           if ! project.save
             error = true
           end
@@ -99,6 +106,10 @@ class DataSourcesController < ApplicationController
           :act_as_project_type,
           :hud_coc_code,
           :hud_continuum_funded,
+          :housing_type_override,
+          :uses_move_in_date,
+          :geocode_override,
+          :geography_type_override,
           :confidential,
         ]
       )

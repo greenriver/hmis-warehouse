@@ -1,19 +1,15 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
-- title = "Claims Download"
+- title = "Claims Processing"
 - content_for :title, title
 %h1= content_for :title
-= render 'form'
-.report-listing
-  = render 'table'
-
-= link_to 'Reports', running_warehouse_reports_health_claims_path, class: 'jReportBlock', remote: true
-
-= content_for :page_js do
-  :javascript
-    (function($) {
-      $('.jReportBlock').hide();
-      setInterval(function() {
-        $('.jReportBlock').click();
-      }, 30000);
-
-    })(jQuery);
+- case @state
+- when :precalculating
+  = render 'running'
+- when :precalculated
+  = render 'review'
+- when :running
+  = render 'running'
+- when :unsubmitted
+  = render 'download'
+- when :initial
+  = render 'initial'

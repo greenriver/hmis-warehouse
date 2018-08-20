@@ -17,18 +17,18 @@ module ReportGenerators::SystemPerformance::Fy2017
 
     def run!
       # Disable logging so we don't fill the disk
-      ActiveRecord::Base.logger.silence do
+      # ActiveRecord::Base.logger.silence do
         calculate()
-      end # End silence ActiveRecord Log
+      # end # End silence ActiveRecord Log
     end
-    
+
     def calculate
       if start_report(Reports::SystemPerformance::Fy2017::MeasureTwo.first)
         set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
 
         @answers = setup_questions()
-        @support = @answers.deep_dup 
+        @support = @answers.deep_dup
         # Overview: Calculate return to homelessness after exit to permanent housing
 
         # Relevant Project Types/Program Types
@@ -45,19 +45,19 @@ module ReportGenerators::SystemPerformance::Fy2017
         # 12: Homeless Prevention
         # 13: Rapid Re-Housing (PH)
         # 14: Coordinated Assessment
-        # 
-       
-        project_types = SO + ES + TH + SH + PH 
+        #
+
+        project_types = SO + ES + TH + SH + PH
         look_back_until =  LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days) ? LOOKBACK_STOP_DATE : (@report_start - 730.days).strftime('%Y-%m-%d')
         look_forward_until = (@report_end - 730.days).strftime('%Y-%m-%d')
 
         columns = {
-          client_id: :client_id, 
+          client_id: :client_id,
           destination: :destination,
           date: :date,
           first_date_in_program: :first_date_in_program,
           last_date_in_program: :last_date_in_program,
-          project_type: :computed_project_type, 
+          project_type: :computed_project_type,
           project_id: :project_id,
           project_name: :project_name,
         }
@@ -78,7 +78,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end
-        
+
 
         project_exits_to_ph = {}
         project_exists_from = {so: [], es: [], th: [], sh: [], ph: []}
@@ -86,7 +86,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         # If we find an exit with a destination in (3, 10, 11, 19, 20, 21, 22, 23, 26, 28)
         # log the earliest instance of each client (first exit to PH)
         project_exits_universe.each do |p_exit|
-          if PERMANENT_DESTINATIONS.include? p_exit[:destination] 
+          if PERMANENT_DESTINATIONS.include? p_exit[:destination]
             unless project_exits_to_ph[p_exit[:client_id]].present?
               project_exits_to_ph[p_exit[:client_id]] = p_exit
             end
@@ -97,7 +97,7 @@ module ReportGenerators::SystemPerformance::Fy2017
           case p_exit[:project_type]
             when *SO
               project_exists_from[:so] << p_exit
-            when *ES 
+            when *ES
               project_exists_from[:es] << p_exit
             when *TH
               project_exists_from[:th] << p_exit
@@ -123,32 +123,32 @@ module ReportGenerators::SystemPerformance::Fy2017
         update_report_progress(percent: 10)
 
         # Find anyone who has returned to homelessness after 14+ days
-        # Find their first return to homelessness and calculate the days between the 
+        # Find their first return to homelessness and calculate the days between the
         # time they exited to PH and returned to homelessness
         # Note: if the next entry is to a TH, the entry must be 14 days after the original
         # exit to count
-        # Note: if the next entry is to a PH, it is only counted if it occurs more than 14 
+        # Note: if the next entry is to a PH, it is only counted if it occurs more than 14
         # days after the original exit, or more than 14 days after a PH
         project_exit_counts = {
           c_0_180_days: {
-            so: {counts: [], support: []}, 
-            es: {counts: [], support: []}, 
-            th: {counts: [], support: []}, 
-            sh: {counts: [], support: []}, 
+            so: {counts: [], support: []},
+            es: {counts: [], support: []},
+            th: {counts: [], support: []},
+            sh: {counts: [], support: []},
             ph: {counts: [], support: []},
           },
           e_181_365_days: {
-            so: {counts: [], support: []}, 
-            es: {counts: [], support: []}, 
-            th: {counts: [], support: []}, 
-            sh: {counts: [], support: []}, 
+            so: {counts: [], support: []},
+            es: {counts: [], support: []},
+            th: {counts: [], support: []},
+            sh: {counts: [], support: []},
             ph: {counts: [], support: []},
-          }, 
+          },
           g_366_730_days: {
             so: {counts: [], support: []},
-            es: {counts: [], support: []}, 
-            th: {counts: [], support: []}, 
-            sh: {counts: [], support: []}, 
+            es: {counts: [], support: []},
+            th: {counts: [], support: []},
+            sh: {counts: [], support: []},
             ph: {counts: [], support: []},
           }
         }
@@ -167,7 +167,7 @@ module ReportGenerators::SystemPerformance::Fy2017
             pluck(*columns.values).map do |row|
               Hash[columns.keys.zip(row)]
             end
-          
+
           # Build a useful universe of entries
           # Make note of project type each day, PH will take priority over TH which is > else
           client_entries = {}
@@ -178,7 +178,7 @@ module ReportGenerators::SystemPerformance::Fy2017
             client_entries[entry[:first_date_in_program]] << case entry[:project_type]
               when *SO
                  'SO'
-              when *ES 
+              when *ES
                 'ES'
               when *TH
                 'TH'
@@ -188,11 +188,11 @@ module ReportGenerators::SystemPerformance::Fy2017
                 'PH'
             end
           end
-          # Priority PH > TH > Other 
-          # NOTE: we'll set a check-date for permanent housing.  If you exit PH within 14 days of this, we don't count it, 
+          # Priority PH > TH > Other
+          # NOTE: we'll set a check-date for permanent housing.  If you exit PH within 14 days of this, we don't count it,
           # but update the date.  If we ever have an exit from permanent housing longer than 14 days after the check
           # date, we count it
-          ph_check_date = p_exit[:last_date_in_program].to_date 
+          ph_check_date = p_exit[:last_date_in_program].to_date
           client_entries.each do |day, project_types|
             day_count = (day.to_date - p_exit[:last_date_in_program].to_date).to_i
             # If the entry doesn't contain PH or TH, count it and move on
@@ -260,7 +260,7 @@ module ReportGenerators::SystemPerformance::Fy2017
               if (day.to_date - ph_check_date.to_date).to_i < 14
                 next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
                   where(
-                    first_date_in_program: day, 
+                    first_date_in_program: day,
                     client_id: p_exit[:client_id]
                   ).
                   hud_project_type(PH)
@@ -433,7 +433,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         @answers[:two_c7][:value] = @answers[:two_c2][:value] + @answers[:two_c3][:value] + @answers[:two_c4][:value] + @answers[:two_c5][:value] + @answers[:two_c6][:value]
         @answers[:two_e7][:value] = @answers[:two_e2][:value] + @answers[:two_e3][:value] + @answers[:two_e4][:value] + @answers[:two_e5][:value] + @answers[:two_e6][:value]
         @answers[:two_g7][:value] = @answers[:two_g2][:value] + @answers[:two_g3][:value] + @answers[:two_g4][:value] + @answers[:two_g5][:value] + @answers[:two_g6][:value]
-        
+
         @answers[:two_d2][:value] = ((@answers[:two_c2][:value].to_f / @answers[:two_b2][:value]) * 100).round(2)
         @answers[:two_d3][:value] = ((@answers[:two_c3][:value].to_f / @answers[:two_b3][:value]) * 100).round(2)
         @answers[:two_d4][:value] = ((@answers[:two_c4][:value].to_f / @answers[:two_b4][:value]) * 100).round(2)
@@ -469,7 +469,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         @answers[:two_j6][:value] = ((@answers[:two_i6][:value].to_f / @answers[:two_b6][:value]) * 100).round(2)
         @answers[:two_j7][:value] = ((@answers[:two_i7][:value].to_f / @answers[:two_b7][:value]) * 100).round(2)
 
-        
+
         Rails.logger.info @answers.inspect
         finish_report()
       else
@@ -481,12 +481,12 @@ module ReportGenerators::SystemPerformance::Fy2017
       case answer
       when :two_b2, :two_b3, :two_b4, :two_b5, :two_b6
         add_support(
-          headers: ['Client ID', 'Project', 'Project Type', 'Destination', 'Start Date', 'Exit Date'], 
-          data: data.map do |m| 
+          headers: ['Client ID', 'Project', 'Project Type', 'Destination', 'Start Date', 'Exit Date'],
+          data: data.map do |m|
             [
-              m[:client_id], 
-              m[:project_name], 
-              HUD::project_type(m[:project_type]), 
+              m[:client_id],
+              m[:project_name],
+              HUD::project_type(m[:project_type]),
               HUD::destination(m[:destination]),
               m[:first_date_in_program],
               m[:last_date_in_program]
@@ -495,7 +495,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         )
       when :two_c2, :two_c3, :two_c4, :two_c5, :two_c6, :two_e2, :two_e3, :two_e4, :two_e5, :two_e6, :two_g2, :two_g3, :two_g4, :two_g5, :two_g6
         add_support(
-          headers: ['Client ID', 'Days'], 
+          headers: ['Client ID', 'Days'],
           data: data,
         )
       end

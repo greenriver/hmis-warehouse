@@ -35,7 +35,7 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name], # in use
         _prov_id:                         she_t[:project_id], # in use
         prog_type:                        she_t[model.project_type_column], # in use
-        coc_code:                         ec_t[:CoCCode], # in use
+        coc_code:                         p_t[:CoCCode], # in use
         entry_exit_entry_date:            she_t[:first_date_in_program], # in use
         entry_exit_exit_date:             she_t[:last_date_in_program], # in use
         client_age_at_entry:              she_t[:age], # in use
@@ -66,6 +66,7 @@ module Exporters::Tableau::EntryExit
         _date_to_street_es_sh:            nil, # in use
         prior_es_enrollment_last3_count:  nil, # in use
         local_planning_group:             p_t[:local_planning_group], # in use
+        confidential:                     p_t[:confidential], # in use
       }
     end
 
@@ -152,7 +153,11 @@ module Exporters::Tableau::EntryExit
           # when :rel_to_hoh
           #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id
-            "#{value} (#{row['_prov_id']})"
+            if row['confidential'] == 't'
+              "#{GrdaWarehouse::Hud::Project.confidential_project_name} (#{HUD.project_type_brief(row['prog_type']&.to_i)})"
+            else
+              "#{value} (#{row['_prov_id']})"
+            end
           # when :prog_type
           #   pt = value&.to_i
           #   if pt

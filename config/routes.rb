@@ -43,6 +43,9 @@ Rails.application.routes.draw do
       resources :team_members, controller: :patient_team_members
       resources :goals, controller: :patient_goals
       resources :epic_case_notes, only: [:show]
+      resources :epic_ssms, only: [:show]
+      resources :epic_chas, only: [:show]
+      resources :epic_careplans, only: [:show]
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
@@ -74,6 +77,7 @@ Rails.application.routes.draw do
           patch :upload
         end
       end
+      resources :metrics, only: [:index]
       namespace :pilot do
         resources :patient, only: [:index]
         resources :metrics, only: [:index]
@@ -242,16 +246,24 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :agency_performance, only: [:index] do
+        collection do
+          get :detail
+        end
+      end
       resources :member_status_reports, only: [:index, :show, :create, :destroy] do
         collection do
           get :running
         end
       end
-      resources :claims, only: [:index, :show, :create, :destroy] do
+      resources :claims, only: [:index, :show, :destroy] do
         collection do
           get :running
+          post :precalculate
+          post :qualifying_activities
         end
         member do
+          post :generate_claims_file
           post :revise
           post :submit
         end
@@ -395,6 +407,7 @@ Rails.application.routes.draw do
   resources :service_history_logs, only: [:index]
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
+    resources :non_hmis_uploads, except: [:update, :destroy, :edit]
   end
 
   resources :organizations, only: [:index, :show] do
@@ -433,7 +446,11 @@ Rails.application.routes.draw do
   end
 
   namespace :health do
-    resources :patients, only: [:index]
+    resources :patients, only: [:index] do
+      collection do
+        get :detail
+      end
+    end
     resources :my_patients, only: [:index]
   end
 

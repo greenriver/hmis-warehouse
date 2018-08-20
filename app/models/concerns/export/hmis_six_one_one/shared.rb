@@ -63,7 +63,15 @@ module Export::HMISSixOneOne::Shared
   end
 
   # Override as necessary
+  def apply_overrides row, data_source_id:
+    row
+  end
+
+  # Override as necessary
   def clean_row(row:, export:, data_source_id:)
+    # allow each class to cleanup it's own data
+    row = apply_overrides(row, data_source_id: data_source_id)
+
     # Override source IDs with WarehouseIDs where they come from other tables
 
     # EnrollmentID needs to go before PersonalID because it

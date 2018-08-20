@@ -162,15 +162,27 @@ module GrdaWarehouse::Hud
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
 
+    # do not include ineligible clients for Sync with CAS
     def active_cohorts
       cohort_clients.select do |cc|
+        # meta.inactive is related to days of inactivity in HMIS
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
         cc.active? && cc.cohort&.active? && ! meta.inactive && ! cc.ineligible?
       end.map(&:cohort).compact.uniq
     end
 
+    # do not include ineligible clients for Sync with CAS
     def active_cohort_ids
       active_cohorts.map(&:id)
+    end
+
+    # do include ineligible clients for client dashboard, but don't include cohorts excluded from
+    # client dashboard
+    def cohorts_for_dashboard
+      cohort_clients.select do |cc|
+        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
+        cc.active? && cc.cohort&.active? && cc.cohort.show_on_client_dashboard? && ! meta.inactive
+      end.map(&:cohort).compact.uniq
     end
 
     has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
@@ -415,6 +427,88 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # Race & Ethnicity scopes
+    scope :race_am_ind_ak_native, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:AmIndAKNative].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_black_af_american, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:BlackAfAmerican].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_native_hi_other_pacific, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:NativeHIOtherPacific].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_white, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:White].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :race_none, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:RaceNone].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_non_hispanic_non_latino, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(0)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_hispanic_latino, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(1)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_unknown, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(8)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_refused, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(9)).
+          select(:destination_id)
+      )
+    end
+
+    scope :ethnicity_not_collected, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Ethnicity].eq(99)).
+          select(:destination_id)
+      )
+    end
+
+
     ####################
     # Callbacks
     ####################
@@ -640,7 +734,7 @@ module GrdaWarehouse::Hud
     end
 
     def show_health_hpc_for?(user)
-      patient.present? && patient.hpc_patient? && patient.patient_referral.present? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
+      patient.present? && patient.hpc_patient? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     def show_window_demographic_to?(user)
@@ -1612,7 +1706,11 @@ module GrdaWarehouse::Hud
           self.update(current_cas_columns)
           self.save()
           prev_destination_client.force_full_service_history_rebuild
-          prev_destination_client.delete if prev_destination_client.source_clients(true).empty?
+          if prev_destination_client.source_clients(true).empty?
+            # Create a client_merge_history record so we can keep links working
+            GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+            prev_destination_client.delete
+          end
 
           move_dependent_items(prev_destination_client.id, self.id)
 
@@ -1981,6 +2079,8 @@ module GrdaWarehouse::Hud
             class: "client__service_type_#{entry.computed_project_type}",
             most_recent_service: most_recent_service,
             new_episode: new_episode,
+            enrollment_id: entry.enrollment.EnrollmentID,
+            data_source_id: entry.enrollment.data_source_id,
             # support: dates_served,
           }
         end
@@ -2032,6 +2132,58 @@ module GrdaWarehouse::Hud
 
     def total_months enrollments
       enrollments.map{|e| e[:months_served]}.flatten(1).uniq.size
+    end
+
+    def affiliated_residential_projects enrollment
+      @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
+        [
+          [affiliation.project&.ProjectID, affiliation.project&.data_source_id],
+          affiliation.residential_project&.ProjectName,
+        ]
+      end.group_by(&:first)
+      @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
+    end
+
+    def affiliated_projects enrollment
+      @project_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).
+        map do |affiliation|
+        [
+          [affiliation.residential_project&.ProjectID, affiliation.residential_project&.data_source_id],
+          affiliation.project&.ProjectName,
+        ]
+      end.group_by(&:first)
+      @project_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue []
+    end
+
+    def affiliated_projects_str_for_enrollment enrollment
+      project_names = affiliated_projects(enrollment)
+      if project_names.any?
+        "Affiliated with #{project_names.to_sentence}"
+      else
+        nil
+      end
+    end
+
+    def residential_projects_str_for_enrollment enrollment
+      project_names = affiliated_residential_projects(enrollment)
+      if project_names.any?
+        "Affiliated with #{project_names.to_sentence}"
+      else
+        nil
+      end
+    end
+
+    def program_tooltip_data_for_enrollment enrollment
+      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment)
+      residential_projects_str = residential_projects_str_for_enrollment(enrollment)
+
+      #only show tooltip if there are projects to list
+      if affiliated_projects_str.present? || residential_projects_str.present?
+        title = [affiliated_projects_str, residential_projects_str].compact.join("\n")
+        {toggle: :tooltip, title: "#{title}"}
+      else
+        {}
+      end
     end
 
     private def calculated_end_of_enrollment enrollment:, enrollments:

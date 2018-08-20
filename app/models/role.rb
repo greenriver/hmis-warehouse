@@ -72,6 +72,7 @@ class Role < ActiveRecord::Base
       :can_upload_deidentified_hud_hmis_files,
       :can_upload_whitelisted_hud_hmis_files,
       :can_edit_warehouse_alerts,
+      :can_upload_dashboard_extras,
     ]
     perms += self.health_permissions unless exclude_health
     return perms

@@ -257,6 +257,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         dob: c_t[:DOB].to_sql,
         dob_data_quality: c_t[:DOBDataQuality].to_sql,
         destination_id: she_t[:client_id].to_sql,
+        age: she_t[:age].to_sql,
+        head_of_household: she_t[:head_of_household].to_sql,
       }
     end
 
@@ -352,6 +354,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def missing?(value)
       return true if value.blank?
       [99].include?(value.to_i)
+    end
+
+    def adult?(age)
+      return true if age.blank?
+      age >= 18
+    end
+
+    def age dob
+      GrdaWarehouse::Hud::Client.age date: Date.today, dob: dob
     end
 
     def missing_disability? disabilities

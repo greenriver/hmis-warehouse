@@ -1,20 +1,111 @@
 module WarehouseReports::Health
   class ClaimsController < ApplicationController
+    include ArelHelper
+    include WindowClientPathGenerator
     before_action :require_can_administer_health!
-    before_action :set_reports, only: [:index, :running]
-    before_action :set_report, only: [:show, :destroy, :revise, :submit]
+    before_action :set_report, only: [:show, :destroy, :revise, :submit, :generate_claims_file]
     before_action :set_sender
 
     def index
-      if params[:report].present?
-        options = report_params
+      if Health::Claim.queued.exists?
+        @state = :precalculating
+        @report = Health::Claim.queued.last
+      elsif Health::Claim.precalculated.exists?
+        @state = :precalculated
+        @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
+        @report = Health::Claim.precalculated.last
+        @payable = {}
+        @unpayable = {}
+        @duplicate = {}
+        @report.qualifying_activities.joins(:patient).
+          order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
+          each do |qa|
+          # Bucket results
+          if qa.duplicate? && qa.naturally_payable?
+            @duplicate[qa.patient_id] ||= []
+            @duplicate[qa.patient_id] << qa
+          elsif ! qa.naturally_payable?
+            @unpayable[qa.patient_id] ||= []
+            @unpayable[qa.patient_id] << qa
+          else
+            @payable[qa.patient_id] ||= []
+            @payable[qa.patient_id] << qa
+          end
+        end
+      elsif Health::Claim.incomplete.exists?
+        @state = :running
+        @report = Health::Claim.incomplete.last || Health::Claim.queued.last
+      elsif Health::Claim.completed.unsubmitted.exists?
+        @state = :unsubmitted
+        @report = Health::Claim.completed.unsubmitted.last
       else
-        options = default_options
+        @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
+        @state = :initial
       end
-      @report = OpenStruct.new(options)
     end
 
-    def running
+    def qualifying_activities
+      force_list = []
+      no_force_list = []
+      params[:force_payable].each do |qa_id, force_payable|
+        if force_payable == "true"
+          force_list << qa_id.to_i
+        else
+          no_force_list << qa_id.to_i
+        end
+      end
+      Health::QualifyingActivity.unsubmitted.where(id: force_list).
+        update_all(force_payable: true)
+      Health::QualifyingActivity.unsubmitted.where(id: no_force_list).
+        update_all(force_payable: false)
+
+      redirect_to action: :index
+    end
+
+    def precalculate
+      @report = Health::Claim.new(report_params.merge(user_id: current_user.id))
+      begin
+        @report.save if @report.valid?
+        job = Delayed::Job.enqueue(
+          ::WarehouseReports::HealthQualifyingActivitiesPayabilityJob.new(
+            report_id: @report.id,
+            current_user_id: current_user.id,
+            max_date: @report.max_date
+          ),
+          queue: :low_priority
+        )
+        @report.update(job_id: job.id)
+        redirect_to action: :index
+      rescue
+        respond_with @report, location: warehouse_reports_health_claims_path
+      end
+    end
+
+    def qualifying_activities_for_patients
+      patient_ids = params[:patient_ids].split(',').compact.map(&:to_i)
+      qualifying_activities = Health::QualifyingActivity.unsubmitted.
+        where(patient_id: patient_ids).
+        order(date_of_activity: :asc, id: :asc).
+        preload(patient: :client)
+      @payable = {}
+      @unpayable = {}
+      @duplicate = {}
+      qualifying_activities.each do |qa|
+        # force re-calculation
+        qa.calculate_payability!
+        # Bucket results
+        if qa.duplicate? && qa.naturally_payable?
+          @duplicate[qa.patient_id] ||= []
+          @duplicate[qa.patient_id] << qa
+        elsif ! qa.naturally_payable?
+          @unpayable[qa.patient_id] ||= []
+          @unpayable[qa.patient_id] << qa
+        else
+          @payable[qa.patient_id] ||= []
+          @payable[qa.patient_id] << qa
+        end
+      end
+      render layout: false
     end
 
     def show
@@ -24,62 +115,45 @@ module WarehouseReports::Health
         page(params[:page]).per(100)
     end
 
-    def create
-      @report = Health::Claim.create!(report_params.merge(user_id: current_user.id))
+    def generate_claims_file
       job = Delayed::Job.enqueue(
         ::WarehouseReports::HealthClaimsJob.new(
-          report_params.merge(
-            report_id: @report.id, current_user_id: current_user.id
-          )
+          report_id: @report.id,
+          current_user_id: current_user.id,
+          max_date: @report.max_date
         ),
         queue: :low_priority
       )
-      @report.update(job_id: job.id)
+      @report.update(job_id: job.id, started_at: Time.now)
       respond_with @report, location: warehouse_reports_health_claims_path
     end
 
     def destroy
-
-    end
-
-    def revise
-      if @report.submitted?
-        respond_with @report, location: warehouse_reports_health_claim_path(@report)
-      end
+      Health::QualifyingActivity.where(claim_id: @report.id).update_all(claim_submitted_on: nil)
       @report.destroy
-      @report = Health::Claim.create!({max_date: @report.max_date, user_id: current_user.id})
-      job = Delayed::Job.enqueue(
-        ::WarehouseReports::HealthClaimsJob.new(
-          {
-            max_date: @report.max_date,
-            report_id: @report.id,
-            current_user_id: current_user.id,
-          }
-        ),
-        queue: :low_priority
-      )
-      @report.update(job_id: job.id)
-      respond_with @report, location: warehouse_reports_health_claims_path()
+      respond_with @report, location: warehouse_reports_health_claims_path
     end
 
     def submit
-      submitted_at = Time.now
+      sent_at = Time.now
       Health::Claim.transaction do
-        @report.qualifying_activities.update_all(claim_submitted_on: submitted_at)
-        @report.update(submitted_at: submitted_at)
+        @report.qualifying_activities.payable.update_all(sent_at: sent_at)
+        @report.qualifying_activities.unpayable.update_all(claim_submitted_on: nil, claim_id: nil)
+        @report.update(submitted_at: sent_at)
       end
-      redirect_to action: :show
-    end
-
-    def set_reports
-      @reports = report_scope.order(created_at: :desc).page(params[:page]).per(20)
+      redirect_to action: :index
     end
 
     def default_options
       {
-        max_date: 1.days.ago.to_date,
+        max_date: default_date,
       }
     end
+
+    def default_date
+      (Date.today - 1.months).end_of_month
+    end
+    helper_method :default_date
 
     def report_params
       params.require(:report).permit(

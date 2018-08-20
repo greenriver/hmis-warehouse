@@ -17,11 +17,11 @@ module Health
 
 
     def update
-      succss = true
+      success = true
       begin
         @careplan.class.transaction do
           if @careplan.just_signed?
-            @qualifying_activity.activity = 'Person-Centered Treatment Plan signed'
+            @qualifying_activity.activity = :pctp_signed
           end
           @careplan.save!
           @qualifying_activity.source_id = @careplan.id
@@ -40,10 +40,10 @@ module Health
         user_id: @user.id,
         user_full_name: @user.name_with_email,
         date_of_activity: Date.today,
-        activity: 'Care planning',
+        activity: :care_planning,
         follow_up: 'Implement Person-Centered Treatment Planning',
-        reached_client: 'Yes (face to face, phone call answered, response to email)',
-        mode_of_contact: 'In Person',
+        reached_client: :yes,
+        mode_of_contact: :in_person,
         patient_id: @careplan.patient_id
       )
     end

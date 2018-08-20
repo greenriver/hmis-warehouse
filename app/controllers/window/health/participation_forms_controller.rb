@@ -3,11 +3,14 @@ module Window::Health
 
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthFileController
+
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
     before_action :set_blank_form, only: [:edit, :new, :remove_file]
-
+    before_action :set_upload_object, only: [:edit, :update, :download, :remove_file]
+    
     def new
       # redirect to edit if there are any on-file
       if @patient.participation_forms.exists?
@@ -21,7 +24,7 @@ module Window::Health
 
     def create
       @participation_form = @patient.participation_forms.build(form_params)
-      
+      set_upload_object
       if @participation_form.health_file.present?
         @participation_form.health_file.set_calculated!(current_user.id, @client.id)
       end
@@ -64,21 +67,6 @@ module Window::Health
       end
     end
 
-    def download
-      @file = @participation_form.health_file
-      send_data @file.content,
-        type: @file.content_type,
-        filename: File.basename(@file.file.to_s)
-    end
-
-    def remove_file
-      if @participation_form.health_file.present?
-        @participation_form.health_file.destroy
-      end
-      @participation_form.build_health_file
-      respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-    end
-
     private
 
     def flash_interpolation_options
@@ -101,6 +89,16 @@ module Window::Health
       else
         local_params
       end
+    end
+
+    def set_upload_object
+      @upload_object = @participation_form
+      if action_name == 'remove_file'
+        @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      end
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ) : '#'
     end
 
     def set_form

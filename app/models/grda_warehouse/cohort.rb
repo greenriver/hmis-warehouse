@@ -42,20 +42,13 @@ module GrdaWarehouse
         cohort_clients.joins(:client).where(active: true)
       end
 
-      at = GrdaWarehouse::CohortClient.arel_table
-
       scope = case population&.to_sym
       when :housed
-        @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
-          where(ineligible: [nil, false])
+        housed_scope
       when :active
-        @client_search_scope.where(
-          at[:housed_date].eq(nil).
-          or(at[:destination].eq(nil).
-          or(at[:destination].eq('')))
-        ).where(ineligible: [nil, false])
+        active_scope
       when :ineligible
-        @client_search_scope.where(ineligible: true)
+        ineligible_scope
       else
         @client_search_scope.where(
           at[:housed_date].eq(nil).
@@ -78,17 +71,40 @@ module GrdaWarehouse
       raise "call #search_clients first; scope: #{@client_search_scope.present?}; results: #{@client_search_result.count}" unless @client_search_scope.present? && @client_search_result.present?
     end
 
+    private def at
+      @at ||= GrdaWarehouse::CohortClient.arel_table
+    end
+
+    def active_scope
+      @client_search_scope.where(
+          at[:housed_date].eq(nil).
+          or(at[:destination].eq(nil).
+          or(at[:destination].eq('')))
+        ).where(ineligible: [nil, false])
+    end
+
     # should we show the housed option for the last `client_search`
     def show_housed
       needs_client_search
-      @client_search_scope.where.not(housed_date: nil, destination: [nil, '']).
-        where(ineligible: [nil, false]).exists?
+      housed_scope.exists?
+    end
+
+    def housed_scope
+      @client_search_scope.where.not(housed_date: nil, destination: [nil, ''])
     end
 
     # should we show the inactive option for the last `client_search`
     def show_inactive
       needs_client_search
-      client_search_scope.where(ineligible: true).exists?
+      ineligible_scope.exists?
+    end
+
+    def ineligible_scope
+      @client_search_scope.where(ineligible: true).where(
+        at[:housed_date].eq(nil).
+        or(at[:destination].eq(nil).
+        or(at[:destination].eq('')))
+      )
     end
 
     # full un-paginated scope for the last `client_search`

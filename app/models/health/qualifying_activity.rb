@@ -1,5 +1,6 @@
 module Health
   class QualifyingActivity < HealthBase
+    include ArelHelper
 
     MODE_OF_CONTACT_OTHER = 'other'
     REACHED_CLIENT_OTHER = 'collateral'
@@ -18,15 +19,27 @@ module Health
     scope :in_range, -> (range) { where(date_of_activity: range)}
 
     scope :direct_contact, -> do
-      yes = client_reached[:yes][:title]
-      where(reached_client: yes)
+      where(reached_client: :yes)
     end
 
     scope :face_to_face, -> do
-      where(mode_of_contact: face_to_face_modes)
+      where(mode_of_contact: :in_person)
+    end
+
+    scope :payable, -> do
+      where(hqa_t[:naturally_payable].eq(true).or(hqa_t[:force_payable].eq(true)))
+    end
+
+    scope :unpayable, -> do
+      where(naturally_payable: false, force_payable: false)
+    end
+
+    scope :duplicate, -> do
+      where.not(duplicate_id: nil)
     end
 
     belongs_to :source, polymorphic: true
+    belongs_to :epic_source, polymorphic: true
     belongs_to :user
     belongs_to :patient
 
@@ -173,7 +186,16 @@ module Health
     validates :mode_of_contact, inclusion: {in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s)}, allow_blank: true
     validates :reached_client, inclusion: {in: Health::QualifyingActivity.client_reached.keys.map(&:to_s)}, allow_blank: true
     validates :activity, inclusion: {in: Health::QualifyingActivity.activities.keys.map(&:to_s)}, allow_blank: true
-    validates_presence_of :user, :user_full_name, :source, :follow_up, :date_of_activity, :patient_id
+    validates_presence_of(
+      :user, 
+      :user_full_name, 
+      :source, :follow_up, 
+      :date_of_activity, 
+      :patient_id, 
+      :mode_of_contact, 
+      :reached_client, 
+      :activity
+    )
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 
@@ -185,6 +207,10 @@ module Health
       !submitted?
     end
 
+    def duplicate?
+      duplicate_id.present?
+    end
+
     def empty?
       mode_of_contact.blank? &&
       reached_client.blank? &&
@@ -193,10 +219,15 @@ module Health
       follow_up.blank?
     end
 
+    # rules change, figure out what's currently payable and mark them as such
+    # def self.update_naturally_payable!
+    #   unsubmitted.each do |qa|
+    #     qa.update(naturally_payable: qa.procedure_valid? && qa.meets_restrictions?)
+    #   end
+    # end
+
     def self.load_string_collection(collection)
-      [['None', '']] + collection.map do |k, v|
-        [v, k]
-      end
+      collection.map{|k, v| [v, k]}
     end
 
     def self.mode_of_contact_collection
@@ -208,19 +239,26 @@ module Health
     end
 
     def self.activity_collection
-      self.load_string_collection(activities.map{|k, mode| [k, mode[:title]] })
+      suppress_from_view = [:pctp_signed]
+      self.load_string_collection(
+        activities.reject{|k| suppress_from_view.include?(k)}.
+        map{|k, mode| [k, mode[:title]] }
+      )
     end
 
     def activity_title key
-      self.class.activities[key.to_sym].try(:[], :title) || key
+      return '' unless key
+      self.class.activities[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_title key
-      self.class.modes_of_contact[key.to_sym].try(:[], :title) || key
+      return '' unless key
+      self.class.modes_of_contact[key&.to_sym].try(:[], :title) || key
     end
 
     def client_reached_title key
-      self.class.client_reached[key.to_sym].try(:[], :title) || key
+      return '' unless key
+      self.class.client_reached[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_is_other?
@@ -258,37 +296,38 @@ module Health
 
     def title_for_mode_of_contact
       if mode_of_contact.present?
-        self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :title)
+        self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :title)
       end
     end
 
     def title_for_client_reached
       if reached_client.present?
-        self.class.client_reached[reached_client.to_sym].try(:[], :title)
+        self.class.client_reached[reached_client&.to_sym].try(:[], :title)
       end
     end
 
     def title_for_activity
       if activity.present?
-        self.class.activities[activity.to_sym].try(:[], :title)
+        self.class.activities[activity&.to_sym].try(:[], :title)
       end
     end
 
     def procedure_code
       # ignore any modifiers
-      self.class.activities[activity.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
+      self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
     end
 
     def modifiers
       modifiers = []
       # attach modifiers from activity
-      modifiers << self.class.activities[activity.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-      modifiers << self.class.modes_of_contact[mode_of_contact.to_sym].try(:[], :code)
-      modifiers << self.class.client_reached[reached_client.to_sym].try(:[], :code)
+      modifiers << self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
+      modifiers << self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+      modifiers << self.class.client_reached[reached_client&.to_sym].try(:[], :code)
       return modifiers.reject(&:blank?).compact
     end
 
     def procedure_valid?
+      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
       procedure_code = self.procedure_code
       modifiers = self.modifiers
       # Some special cases
@@ -313,6 +352,82 @@ module Health
       (modifiers - valid_options[procedure_code]).empty?
     end
 
+    # Check for date restrictions (some QA must be completed within a set date range)
+    def meets_date_restrictions?
+      return true unless restricted_procedure_codes.include? procedure_code
+      if in_first_three_months_procedure_codes.include? procedure_code
+        return occurred_prior_to_engagement_date
+      end
+      return true
+    end
+
+    # Check duplicate rules (only first of some types per day is payable)
+    def meets_repeat_restrictions?
+      if once_per_day_procedure_codes.include? procedure_code
+        return first_of_type_for_day_for_patient?
+      end
+
+      return true
+    end
+
+    def first_of_type_for_day_for_patient?
+      same_of_type_for_day_for_patient.minimum(:id) == self.id
+    end
+
+    def same_of_type_for_day_for_patient
+      self.class.where(
+        activity: activity,
+        patient_id: patient_id,
+        date_of_activity: date_of_activity,
+      )
+    end
+
+    def first_of_type_for_day_for_patient_not_self
+      min_id = same_of_type_for_day_for_patient.minimum(:id)
+      return nil if min_id == id
+      return min_id
+    end
+
+    def calculate_payability!
+      # Meets general restrictions
+      self.naturally_payable = procedure_valid? && meets_date_restrictions?
+      if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
+        # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
+        self.duplicate_id = first_of_type_for_day_for_patient_not_self
+      else
+        self.duplicate_id = nil
+      end
+      self.save(validate: false) if self.changed?
+    end
+
+    def any_submitted_of_type_for_day_for_patient?
+      same_of_type_for_day_for_patient.submitted.exists?
+    end
+
+    def occurred_prior_to_engagement_date
+      date_of_activity.present? && patient&.engagement_date.present? && date_of_activity <= patient.engagement_date
+    end
+
+    def once_per_day_procedure_codes
+      [
+        'G0506',
+        'T2024',
+        'T2024>U4',
+        'T1023',
+        'T1023>U6',
+      ]
+    end
+
+    def in_first_three_months_procedure_codes
+      [
+        'G9011',
+      ]
+    end
+
+    def restricted_procedure_codes
+      once_per_day_procedure_codes + in_first_three_months_procedure_codes
+    end
+
     def valid_options
       @valid_options ||= {
         G9011: [
@@ -330,10 +445,12 @@ module Health
           'U1',
           'U2',
           'U3',
+          'UK',
         ],
         'T2024>U4' => [
           'U1',
           'U2',
+          'UK',
         ],
         G9005: [
           'U1',
@@ -355,6 +472,7 @@ module Health
           'U1',
           'U2',
           'U3',
+          'UK',
         ],
         G9006: [
           'U1',
@@ -365,6 +483,7 @@ module Health
           'U1',
           'U2',
           'U3',
+          'UK',
         ],
         T1023: [
           'U1',

@@ -7,7 +7,8 @@
   = f.input :effective_date, as: :date_picker
   = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?'
   = f.input :active_cohort, label: 'Active'
-  = f.input :static_column_count, label: 'Number of static columns'
+  = f.input :static_column_count, label: 'Number of static columns', input_html: {style: 'width: 6em;'}
+  = f.input :show_on_client_dashboard, label: 'Show cohort in client dashboard?'
   = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
   - hint = "The cohort will be sorted by the first column".html_safe
   - if @cohort.column_state.present?

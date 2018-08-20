@@ -8,10 +8,21 @@
         = link_to remove_path, class: 'btn btn-danger btn-icon-only' do
           %span.icon-cross{style: 'color: white;margin:0;'}
       - else
-        = link_to remove_path, class: 'btn btn-danger btn-icon-only', method: :delete, remote: true do
+        = link_to remove_path, class: 'btn btn-danger btn-icon-only', method: :delete, remote: true, data: {disable_with: 'Removing...'} do
           %span.icon-cross{style: 'color: white;margin:0;'}
 
--# allow delete if this is displayed because of validation error
+-# allow delete if this is displayed because of validation error || or allow then to edit file note
+- if remove_path == '#' || include_note
+  = f.simple_fields_for :health_file do |hf|
+    .j-existing-file__form{style: 'display:none;'}
+      = hf.input :file, as: :file
+      = hf.input :file_cache, as: :hidden
+    - if include_note
+      = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
+  - if include_submit
+    .d-flex
+      .ml-auto
+        = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }, style: 'background-color: #3c6776'
 - if remove_path == '#'
   - content_for :page_js do
     :javascript
@@ -20,8 +31,8 @@
           e.preventDefault();
           $('.j-existing-file-form-group').fadeOut('slow', function() {
             $(this).remove();
-            $('form').find('input[type="file"]').show();
-            $('form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
+            $('.j-existing-file__form').show()
+            $('.j-existing-file__form').find('input[name="form[health_file_attributes][file_cache]"]').val('');
           });
         });
       });

@@ -79,6 +79,8 @@ module HUD
     when '2.7.3' then :bed_type
     when '2.7.4' then :availability
     when '2.7.B' then :youth_age_group
+    when '2.8.7' then :geography_type
+    when '2.8.8' then :housing_type
     when '2.9.1' then :target_population
     when '3.1.5' then :name_data_quality
     when '3.2.2' then :ssn_data_quality
@@ -446,6 +448,37 @@ module HUD
     }
 
     _translate map, id, reverse
+  end
+
+  # 2.8.7
+  def geography_type(id, reverse=false)
+    map = geography_types
+
+    _translate map, id, reverse
+  end
+
+  def geography_types
+    {
+      1 => 'Urban',
+      2 => 'Suburban',
+      3 => 'Rural',
+      99 => 'Unknown / data not collected',
+    }
+  end
+
+  # 2.8.8
+  def housing_type(id, reverse=false)
+    map = housing_types
+
+    _translate map, id, reverse
+  end
+
+  def housing_types
+    {
+      1 => 'Site-based – single site',
+      2 => 'Site-based – clustered / multiple sites',
+      3 => 'Tenant-based - scattered site',
+    }
   end
 
   # 2.9.1

@@ -3,7 +3,7 @@
 %h1= @data_source.name
 = simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
   .row
-    .col-sm-6
+    .col-sm-8
       %table.table.table-condensed
         %tr
           %th Last Import Run
@@ -19,6 +19,11 @@
             %td
               = link_to data_source_uploads_path(@data_source) do
                 View
+        - if @data_source.non_hmis_uploads.any? && current_user.can_upload_dashboard_extras?
+          %tr
+            %th Dashboard Extras Uploads
+            %td
+              = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
         - if can_edit_data_sources?
           %tr
             %th
@@ -28,11 +33,17 @@
         %tr
           %th Viewable by the following users, regardless of visibility in window
           %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
-    .col-sm-6.text-right
+    .col-sm-4.text-right
       - if ! @data_source.authoritative? && can_upload_hud_zips?
-        = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
-          %span.icon-plus
-          Upload HUD HMIS ZIP
+        .data-source__upload-button.mb-4
+          = link_to new_data_source_upload_path(@data_source), class: 'btn btn-primary' do
+            %span.icon-plus
+            Upload HUD HMIS ZIP
+      - if can_upload_dashboard_extras?
+        .data-source__upload-button
+          = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-primary' do
+            %span.icon-plus
+            Upload Dashboard Extras
   - if @data_source.has_data?
     .row.table-utilities
       .col-sm-12
@@ -56,53 +67,73 @@
               %table.table.table-condensed
                 %thead
                   %tr
-                    %th{style: 'width:30%'} Name
-                    %th{style: 'width:15%'}
-                      Project Type
-                      %br
-                      %em.small
-                        Tracking Method
-                    %th{style: 'width:20%'} Act as Project Type
+                    %th{style: 'width:30%'}
+                      Project
                     %th{style: 'width:10%'}
-                      HUD CoC Code
-                      %br
                       CoC Code
                     %th{style: 'width:10%'}
                       HUD CoC Funded
                       %br
                       Continuum Project
-                    %th{style: 'width:5%'}
-                      Confidential?
-                    %th{style: 'width:5%'} Site?
-                    %th{style: 'width:5%'} Inventory?
+                    %th{style: 'width:15%'} Housing Type
+                    %th{style: 'width:5%'} Geocode
+                    %th{style: 'width:5%'} Geography Type
+                    %th{style: 'width:5%'} Inventory Record?
                 %tbody
                   = f.simple_fields_for :projects, org.projects do |proj|
                     - project = proj.object
                     %tr
                       %td
-                        = link_to project.name, project_path(project)
-                      %td
-                        = HUD.project_type project.ProjectType
-                        %br
-                        %em.small
-                          = HUD.tracking_method project.TrackingMethod
-                      %td
-                        = proj.input :act_as_project_type, collection: ::HUD.project_types.invert, include_blank: 'Use Actual Project Type', label: false
-                        =# select_tag("data_source[project_attributes][#{project.id}][act_as_project_type]", options_for_select(::HUD.project_types.invert, project.act_as_project_type), {prompt: 'Use Actual Project Type', style: 'width: 10em;'})
-                      %td
+                        .project__name.mb-2
+                          .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
+                            .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
+                              = HUD.project_type_brief project.ProjectType
+
+                          = link_to project.name, project_path(project)
+                        .project__tracking-method.mb-2
+                          %em.small
+                            Tracking Method:
+                            = HUD.tracking_method project.TrackingMethod
                         - unless @readonly
-                          = proj.input :hud_coc_code, label: false, input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}, wrapper_html: {class: 'mb-2'}
-                        %span.o-text--italic
+                          .project__project-type-override
+                            = proj.input :act_as_project_type, collection: ::HUD.project_types.invert, include_blank: 'Use Actual Project Type', label: false
+
+                          .project__confidential
+                            = proj.input :confidential, label: 'Confidential?'
+                          .project__uses-move-in-date
+                            = proj.input :uses_move_in_date, label: 'Uses move-in-date?'
+
+                      %td
+                        .o-text--italic.mb-2
                           = project.project_cocs.map(&:CoCCode).join(', ')
-                      %td
-                        = proj.input :hud_continuum_funded, label: false, wrapper_html: {class: 'mb-2'}
                         - unless @readonly
-                          = checkmark(project.ContinuumProject)
+                          = proj.input :hud_coc_code, label: 'Override', input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}, wrapper_html: {class: 'mb-2'}
+
                       %td
-                        = proj.input :confidential, label: false
+                        .mb-2
+                          = checkmark_or_x(project.ContinuumProject)
+                        - unless @readonly
+                          %label Override
+                          = proj.input :hud_continuum_funded, label: false
                       %td
-                        = checkmark(project.geographies.present? )
+                        .mb-2
+                          = HUD.housing_type(project.HousingType).presence || 'None'
+                        - unless @readonly
+                          .mb-4
+                            = proj.input :housing_type_override, label: 'Override', input_html: { value: project.housing_type_override}, collection: HUD.housing_types.invert, include_blank: true
                       %td
-                        = checkmark(project.inventories.present? )
+                        .mb-2
+                          = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
+                        - unless @readonly
+                          .mb-4
+                            = proj.input :geocode_override, label: 'Override', input_html: { value: project.geographies&.first&.geocode_override}
+                      %td
+                        .mb-2
+                          = project.geographies&.map{|m| HUD.geography_type(m.GeographyType)}&.join('; ').presence || 'None'
+                        - unless @readonly
+                          .mb-4
+                            = proj.input :geography_type_override, label: 'Override', selected: project.geographies&.first&.geography_type_override, collection: HUD.geography_types.invert, include_blank: true
+                      %td
+                        = checkmark_or_x(project.inventories.present? )
   - unless @readonly
     = f.button :submit, value: _('Update Data Source')

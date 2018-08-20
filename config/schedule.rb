@@ -56,7 +56,7 @@ if environment == 'production'
   end
 
   if ENV['HEALTH_SFTP_HOST'] != 'hostname'
-    every 1.day, at: '9:30 am' do
+    every 1.day, at: '10:00 am' do
       rake "health:daily"
     end
   end

@@ -96,7 +96,7 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }
 
-    attr_accessor :hud_coc_code
+    attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_belongs(Export), inverse_of: :projects
@@ -120,7 +120,13 @@ module GrdaWarehouse::Hud
     has_many :inventories, **hud_many(Inventory), inverse_of: :project
     has_many :clients, through: :enrollments, source: :client
     has_many :funders, class_name: 'GrdaWarehouse::Hud::Funder', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :projects
+
     has_many :affiliations, **hud_many(Affiliation), inverse_of: :project
+    has_many :residential_affiliations, class_name: 'GrdaWarehouse::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
+
+    has_many :affiliated_projects, through: :residential_affiliations, source: :project
+    has_many :residential_projects, through: :affiliations
+
     has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
     has_many :funders, **hud_many(Funder), inverse_of: :project
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'

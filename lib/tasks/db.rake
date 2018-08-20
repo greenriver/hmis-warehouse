@@ -2,9 +2,9 @@ namespace :db do
   namespace :migrate do
     desc "Call the db:migrate subvariant for all the different databases"
     task :all do
-      Rake::Task["db:migrate"].invoke
-      Rake::Task["warehouse:db:migrate"].invoke
-      Rake::Task["health:db:migrate"].invoke
+      puts `bin/rake db:migrate`
+      puts `bin/rake warehouse:db:migrate`
+      puts `bin/rake health:db:migrate`
     end
   end
 end

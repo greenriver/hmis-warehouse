@@ -5,7 +5,7 @@ module Importers::HMISSixOneOne
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id:,
-      logger: Rails.logger, 
+      logger: Rails.logger,
       debug: true,
       region:,
       access_key_id:,
@@ -15,16 +15,16 @@ module Importers::HMISSixOneOne
       file_password: nil
     )
       super(
-        file_path: file_path, 
-        data_source_id: data_source_id, 
-        logger: logger, 
+        file_path: file_path,
+        data_source_id: data_source_id,
+        logger: logger,
         debug: debug
       )
 
       @s3 = AwsS3.new(
-        region: region, 
-        bucket_name: bucket_name, 
-        access_key_id: access_key_id, 
+        region: region,
+        bucket_name: bucket_name,
+        access_key_id: access_key_id,
         secret_access_key: secret_access_key
       )
       @file_password = file_password
@@ -37,7 +37,7 @@ module Importers::HMISSixOneOne
       connections = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_s3.yml"))).result)[Rails.env]
       connections.select{|_,conn| conn['access_key_id'].present?}
     end
-        
+
     def import!
       file_path = copy_from_s3()
       # For local testing
@@ -47,7 +47,7 @@ module Importers::HMISSixOneOne
       end
       expand(file_path: file_path)
       super()
-      mark_upload_complete() 
+      mark_upload_complete()
     end
 
     def remove_import_files
@@ -66,12 +66,12 @@ module Importers::HMISSixOneOne
       target_path = "#{@local_path}/#{File.basename(file)}"
       log("Downloading to: #{target_path}")
       @s3.fetch(
-        file_name: file, 
+        file_name: file,
         target_path: target_path
       )
       file_path = force_standard_zip(target_path)
     end
-      
+
     def force_standard_zip file
       # puts file.inspect
       file_path = "#{Rails.root.to_s}/#{file}"
@@ -98,7 +98,7 @@ module Importers::HMISSixOneOne
         Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
          files.each do |filename|
           zipfile.add(
-            File.join(File.basename(tmp_folder), filename), 
+            File.join(File.basename(tmp_folder), filename),
             File.join(tmp_folder, filename)
           )
           end
@@ -124,10 +124,11 @@ module Importers::HMISSixOneOne
     end
 
     def upload file_path:
+      user = User.setup_system_user()
       @upload = GrdaWarehouse::Upload.new(
-        percent_complete: 0.0, 
-        data_source_id: @data_source.id, 
-        user_id: 1,
+        percent_complete: 0.0,
+        data_source_id: @data_source.id,
+        user_id: user.id,
       )
       @upload.file = Pathname.new(file_path).open
       @upload.content_type = @upload.file.content_type

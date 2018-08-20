@@ -3,16 +3,17 @@ require 'rubyXL'
 require 'net/sftp'
 module Health::Tasks
   class ImportPatientReferrals
+    include NotifierConfig
     FULL_STRING = 'ASSIGNMENT_FULL'
     SUMMARY_STRING = 'SUMMARY_FULL'
+    CHANGE_STRING = 'ASSIGNMENT_CHG'
+    SUMMARY_CHANGE_STRING = 'SUMMARY_CHG'
     attr_accessor :directory, :referrals_file
     def initialize(directory: 'var/health/referrals')
       @directory = directory
       @logger = Rails.logger
     end
 
-    # TODO: Add logic for partial files (if they don't include dis-enrollments, this logic should work with some
-    # tweaks to how it handles finding the files)
     def import!
       configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
       configs.each do |_, config|
@@ -24,6 +25,7 @@ module Health::Tasks
         end
         @unprocessed.each do |file_path|
           local_path = File.join(directory, file_path)
+          notify "Processing patient referrals in #{local_path}"
           file = load_file(local_path)
           validate_headers(file, file_path)
           headers = file.row(file.first_row)
@@ -31,6 +33,12 @@ module Health::Tasks
 
           (2..file.last_row).each do |i|
             row = Hash[db_headers.zip(file.row(i))]
+            # send a note, and skip if we found anything other than a new or active referral
+            # TODO: handle deletions and inactivations
+            if ! row[:record_status].in?(['A', 'N'])
+              notify 'Patient Referral Importer found a record that is not Active or New, please see import_patient_referrals.rb, skipping for now'
+              next
+            end
             patient_referral = Health::PatientReferral.where(medicaid_id: row[:medicaid_id]).
               first_or_initialize
             # attempt to find ACO ID
@@ -53,13 +61,18 @@ module Health::Tasks
       remove_files()
     end
 
-    # Are there any ASSIGNMENT_FULL files we have not yet processed?
+    # Are there any ASSIGNMENT_* files we have not yet processed?
     def load_unprocessed
       @unprocessed = available - processed
     end
 
     def available
-      Dir.glob("#{directory}/*/*#{FULL_STRING}*").map{|m| m.gsub(directory, '')}
+      Dir.glob(
+        [
+          "#{directory}/*/*#{FULL_STRING}*",
+          "#{directory}/*/*#{CHANGE_STRING}*",
+        ]
+      ).map{|m| m.gsub(directory, '')}
     end
 
     def processed
@@ -96,7 +109,8 @@ module Health::Tasks
     end
 
     def update_summary_receipt(local_path, header_count, row_count)
-      summary_file_path = local_path.gsub(FULL_STRING, SUMMARY_STRING)
+      summary_file_path = local_path.gsub(FULL_STRING, SUMMARY_STRING).gsub(CHANGE_STRING, SUMMARY_CHANGE_STRING)
+      notify "Updating summary file #{summary_file_path}"
       receipt_file_path = summary_file_path.gsub('.xlsx', "R.xlsx")
       summary_file = RubyXL::Parser.parse(summary_file_path)
       reply_sheet = 0

@@ -14,11 +14,20 @@ module Health
 
     def run!
       start_report
+      sender_cp = Health::Cp.sender.first
       patient_referrals.each do |pr|
         patient = pr.patient
-        most_recent_qualifying_activity = patient&.most_recent_direct_qualifying_activity
-        patient_updated_at = [patient&.updated_at, pr&.updated_at, patient&.qualifying_activities&.maximum(:updated_at)].compact.max
-        sender_cp = Health::Cp.sender.first
+
+        most_recent_qualifying_activity = patient&.most_recent_direct_qualifying_activity_in_range(report_range)
+        qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq || []
+        patient_change_dates = [ pr.enrollment_start_date ].compact&.map(&:to_date)
+        patient_updated_at = (report_range.to_a & (qa_activity_dates + patient_change_dates).compact).max
+        # We will only know the date requested for hello-sign signatures, default to the signed date
+        pcp_signature_requested = patient&.careplans&.maximum(:provider_signature_requested_at) || patient&.careplans&.maximum(:provider_signed_on)
+
+        # Leave off anyone who hasn't had an update within the range
+        next unless patient_updated_at.present?
+
         attributes = {
           medicaid_id: pr.medicaid_id,
           member_first_name: pr.first_name,
@@ -36,9 +45,9 @@ module Health
           cp_outreach_status: pr.outreach_status,
           cp_last_contact_date: most_recent_qualifying_activity&.date_of_activity,
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
-          cp_contact_face: any_face_to_face(patient),
+          cp_contact_face: any_face_to_face_for_patient_in_range(patient, report_range),
           cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on),
-          cp_care_plan_sent_pcp_date: patient&.careplans&.maximum(:provider_signature_requested_at),
+          cp_care_plan_sent_pcp_date: pcp_signature_requested,
           cp_care_plan_returned_pcp_date: patient&.careplans&.maximum(:provider_signed_on),
           key_contact_name_first: sender_cp.key_contact_first_name,
           key_contact_name_last: sender_cp.key_contact_last_name,
@@ -77,7 +86,7 @@ module Health
         cp_name_official: 'CP_Name_Official',
         cp_pid: 'CP_PID',
         cp_sl: 'CP_SL',
-        cp_outreach_status: 'Enrollment_Start_Date',
+        cp_outreach_status: 'CP_Outreach_Status',
         cp_last_contact_date: 'CP_Last_Contact_Date',
         cp_last_contact_face: 'CP_Last_Contact_Face',
         cp_contact_face: 'CP_Contact_Face',
@@ -100,7 +109,7 @@ module Health
       }
     end
 
-    def any_face_to_face patient
+    def any_face_to_face_for_patient_in_range patient, range
       if patient.present?
         if patient.face_to_face_contact_in_range? report_range
           'Y'

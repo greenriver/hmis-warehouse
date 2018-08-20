@@ -43,13 +43,13 @@ module Import::HMISSixOneOne::Shared
     def limit_to_hud_headers(row)
       row.to_h.slice(*hud_csv_headers)
     end
-    
+
     def clean_row_for_import(row)
       row = force_nulls(row)
       row = limit_to_hud_headers(row)
       # the batch import fails to correctly guess the timezone, force these into useful times
-      row[:DateUpdated] = row[:DateUpdated].to_time
-      row[:DateCreated] = row[:DateCreated].to_time
+      row[:DateUpdated] = row[:DateUpdated]&.to_time
+      row[:DateCreated] = row[:DateCreated]&.to_time
       row[:DateDeleted] = row[:DateDeleted]&.to_time
       row = translate_to_db_headers(row)
       row
@@ -68,7 +68,8 @@ module Import::HMISSixOneOne::Shared
 
     def needs_update? row:, existing:, soft_delete_time: nil
       # Incoming is newer
-      incoming_newer = row[:DateUpdated].to_time > existing.updated_at
+      return false if row[:DateUpdated].blank?
+      incoming_newer = row[:DateUpdated].to_time > existing.updated_at #MAYBE rescue return false
       if incoming_newer
         # puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
         return true

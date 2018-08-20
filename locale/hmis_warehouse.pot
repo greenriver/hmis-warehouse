@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-10 12:13-0600\n"
-"PO-Revision-Date: 2018-07-10 12:13-0600\n"
+"POT-Creation-Date: 2018-08-13 10:07-0400\n"
+"PO-Revision-Date: 2018-08-13 10:07-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3450,6 +3450,9 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
+msgid "Destination (Program Type)"
+msgstr ""
+
 msgid "Disability Verification on File"
 msgstr ""
 
@@ -3513,7 +3516,7 @@ msgstr ""
 msgid "Import queued to start."
 msgstr ""
 
-msgid "Import was successfully destroyed."
+msgid "Import was successfully removed."
 msgstr ""
 
 msgid "Import was successfully updated."
@@ -3570,7 +3573,7 @@ msgstr ""
 msgid "Report queued to start."
 msgstr ""
 
-msgid "Report successfully destroyed."
+msgid "Report successfully removed."
 msgstr ""
 
 msgid "Report successfully updated."

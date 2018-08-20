@@ -1,0 +1,15 @@
+%p
+  - if @report.precalculated_at
+    A claims file is queued for generation.  Please check back in a few minutes.
+  - if @report.started_at
+    A claims file is being generated, this usually takes a few minutes.  Generation started on #{@report.started_at.strftime('%b %e, %Y at %I:%M%P')}.
+  - else
+    Qualifying activities are being updated for payability.  Please check back in a few minutes.
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      // Refresh page every 30 seconds since a delayed job should be running
+      var timeoutPeriod = 30000
+      setTimeout("location.reload(true);", timeoutPeriod);
+    })(jQuery);

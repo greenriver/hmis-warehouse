@@ -3,10 +3,13 @@ module Window::Health
 
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthFileController
+
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
     before_action :set_blank_form, only: [:new, :edit]
+    before_action :set_upload_object, only: [:edit, :update, :download, :remove_file]
 
     def new
       # redirect to edit if there are any on-file
@@ -21,6 +24,7 @@ module Window::Health
 
     def create
       @release_form = @patient.release_forms.build(form_params)
+      set_upload_object
       if @release_form.health_file.present?
         @release_form.health_file.set_calculated!(current_user.id, @client.id)
       end
@@ -64,22 +68,17 @@ module Window::Health
       end
     end
 
-    def download
-      @file = @release_form.health_file
-      send_data @file.content,
-        type: @file.content_type,
-        filename: File.basename(@file.file.to_s)
-    end
-
-    def remove_file
-      if @release_form.health_file.present?
-        @release_form.health_file.destroy
-      end
-      @release_form.build_health_file
-      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-    end
-
     private
+
+    def set_upload_object
+      @upload_object = @release_form
+      if action_name == 'remove_file'
+        @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
+      end
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id ) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id ) : '#'
+    end
 
     def flash_interpolation_options
       { resource_name: 'Release Form' }
