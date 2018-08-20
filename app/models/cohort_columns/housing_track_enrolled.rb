@@ -5,18 +5,7 @@ module CohortColumns
 
 
     def available_options
-      [
-        '', 
-        'CoC', 
-        'ESG RRH', 
-        'Inactive', 
-        'Other - in notes', 
-        'RRHHI', 
-        'SSVF - NECHV', 
-        'SSVF - VOA', 
-        'VASH', 
-        'VWH'
-      ]
+      GrdaWarehouse::CohortColumnOption.where(cohort_column: "Housing Track Enrolled").map {|x| x.value}
     end
   end
 end
