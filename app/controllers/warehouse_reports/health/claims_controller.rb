@@ -113,7 +113,8 @@ module WarehouseReports::Health
 
       respond_to do |format|
         format.text do
-          response.headers['Content-Disposition'] = "attachment; filename=\"CLAIMS_#{Date.today.strftime('%Y%m%d')}.txt\""
+          date = @report.submitted_at || Date.today
+          response.headers['Content-Disposition'] = "attachment; filename=\"CLAIMS_#{date.strftime('%Y%m%d')}.txt\""
         end
         format.html do
           patient_t = Health::Patient.arel_table
