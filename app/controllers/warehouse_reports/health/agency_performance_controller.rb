@@ -12,6 +12,7 @@ module WarehouseReports::Health
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
 
       @agencies = @report.agency_counts()
+      @totals = @report.total_counts()
     end
 
     def detail
