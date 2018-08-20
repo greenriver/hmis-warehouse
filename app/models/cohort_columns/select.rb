@@ -1,7 +1,7 @@
 module CohortColumns
   class Select < Base
 
-
+    
     def default_input_type
       :select2
     end
@@ -20,6 +20,10 @@ module CohortColumns
 
     def display_read_only user
       value(cohort_client)
+    end
+    
+    def available_options
+      GrdaWarehouse::CohortColumnOption.where(cohort_column: self.title).map {|x| x.value}
     end
   end
 end
