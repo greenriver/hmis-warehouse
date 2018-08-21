@@ -70,6 +70,7 @@ class Rds
     create!
     wait!
     create_database!
+    wait_for_database!
   end
 
   def create!
