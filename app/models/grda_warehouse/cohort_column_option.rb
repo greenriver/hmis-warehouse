@@ -1,32 +1,33 @@
 module GrdaWarehouse
   class CohortColumnOption < GrdaWarehouseBase
-    validates_presence_of :cohort_column, :weight
+    validates_presence_of :cohort_column, :value
     
     def cohort_columns 
-      [
-        'Housing Track Suggested', 
-        'Housing Track Enrolled',
-        'Agency',
-        'Chapter 115',
-        'Criminal Record Status',
-        'Destination',
-        'Document Ready',
-        'Housing Opportunity',
-        'Housing Search Agency',
-        'Housing Track Enrolled',
-        'Housing Track Suggested',
-        'Legal Barriers',
-        'Location Type',
-        'Location',
-        'New Lease Referral',
-        'Not a Vet', 
-        'Primary Housing Track Suggested',
-        'Sensory Impaired',
-        'St. Francis House',
-        'Status',
-        'Subpopulation',
-        'VA Eligible',
+      @cohort_columns ||= [
+        ::CohortColumns::HousingSearchAgency.new(),
+        ::CohortColumns::HousingOpportunity.new(),
+        ::CohortColumns::LegalBarriers.new(),
+        ::CohortColumns::DocumentReady.new(),
+        ::CohortColumns::SensoryImpaired.new(),
+        ::CohortColumns::Destination.new(),
+        ::CohortColumns::SubPopulation.new(),
+        ::CohortColumns::StFrancisHouse.new(),
+        ::CohortColumns::HousingTrackSuggested.new(),
+        ::CohortColumns::PrimaryHousingTrackSuggested.new(),
+        ::CohortColumns::HousingTrackEnrolled.new(),
+        ::CohortColumns::VaEligible.new(),
+        ::CohortColumns::Chapter115.new(),
+        ::CohortColumns::LocationType.new(),
+        ::CohortColumns::Location.new(),
+        ::CohortColumns::Status.new(),
+        ::CohortColumns::NotAVet.new(),
+        ::CohortColumns::CriminalRecordStatus.new(),
+        ::CohortColumns::NewLeaseReferral.new(),
       ]
+    end
+    
+    def available_cohort_columns
+      cohort_columns.map(&:title).sort
     end
     
   end

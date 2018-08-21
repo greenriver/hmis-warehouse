@@ -3,10 +3,9 @@
 .row
   .col-sm-6
     .form-inputs
-      = f.input :cohort_column, required: true, collection: @cohort_column_option.cohort_columns, include_blank: false, include_hidden: false
-      = f.input :value, as: :text
-      = f.input :weight, as: :integer, required: true
-      = f.input :active, required: true, as: :boolean
+      = f.input :cohort_column, collection: @cohort_column_option.available_cohort_columns, include_blank: "Choose Column"
+      = f.input :value
+      = f.input :active, label: "Active?"
                 
 
     .form-actions

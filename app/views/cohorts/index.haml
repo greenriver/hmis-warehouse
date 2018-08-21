@@ -6,9 +6,10 @@
   .col-sm-4
     .row
       .col-sm-12
-        = link_to cohort_column_options_path, class: 'btn btn-primary pull-right margin-bottom-02' do
-          %span.icon-pencil
-          Edit Cohort Column Options
+        - if can_manage_cohorts?
+          = link_to cohort_column_options_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+            %span.icon-pencil
+            Edit Cohort Column Options
 
 %ul.nav.nav-tabs{role: :tablist}
   %li.active{role: :presentation}
