@@ -1,6 +1,6 @@
 module WarehouseReports
   class HashedOnlyHmisExportsController < HmisExportsController
-
+    include WarehouseReportAuthorization
     def create
       @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id, hash_status: "4"))
       if @filter.valid?

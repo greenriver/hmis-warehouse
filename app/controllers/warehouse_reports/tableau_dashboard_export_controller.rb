@@ -1,6 +1,6 @@
 module WarehouseReports
   class TableauDashboardExportController < ApplicationController
-    before_action :require_can_view_all_reports!
+    include WarehouseReportAuthorization
 
     def index
       @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)

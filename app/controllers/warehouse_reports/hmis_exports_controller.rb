@@ -1,5 +1,6 @@
 module WarehouseReports
   class HmisExportsController < ApplicationController
+    include WarehouseReportAuthorization
     before_action :require_can_export_hmis_data!
     before_action :set_export, only: [:show, :destroy]
     before_action :set_jobs, only: [:index, :running, :create]

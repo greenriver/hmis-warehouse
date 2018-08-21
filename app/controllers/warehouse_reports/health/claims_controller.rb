@@ -2,6 +2,7 @@ module WarehouseReports::Health
   class ClaimsController < ApplicationController
     include ArelHelper
     include WindowClientPathGenerator
+    include WarehouseReportAuthorization
     before_action :require_can_administer_health!
     before_action :set_report, only: [:show, :destroy, :revise, :submit, :generate_claims_file]
     before_action :set_sender
