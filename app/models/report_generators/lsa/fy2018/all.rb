@@ -76,7 +76,7 @@ module ReportGenerators::Lsa::Fy2018
       # return GrdaWarehouse::HmisExport.find(56)
 
       Exporters::HmisSixOneOne::Base.new(
-        start_date: @report_start,
+        start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
         projects: @project_ids,
         period_type: 3,
