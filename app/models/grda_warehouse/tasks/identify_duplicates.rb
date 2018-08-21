@@ -69,7 +69,7 @@ module GrdaWarehouse::Tasks
     def match_existing!
       @to_merge = find_merge_candidates
       user = User.setup_system_user
-      merge_history = GrdaWarehouse::ClientMergeHistory.new
+      @merge_history = GrdaWarehouse::ClientMergeHistory.new
       @to_merge.each do |destination_id, source_id|
         # Detect a previous merge
         destination_id = find_current_id_for(destination_id)
@@ -91,7 +91,7 @@ module GrdaWarehouse::Tasks
 
     def find_current_id_for(id)
       if ! client_destinations.where(id: id).exists?
-        return merge_history.current_destination(id)
+        return @merge_history.current_destination(id)
       end
       return id
     end
