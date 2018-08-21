@@ -114,11 +114,59 @@ SqlServerBase.connection.execute (<<~SQL);
     later.GeographyID is null
 
   SQL
+
 SqlServerBase.connection.execute (<<~SQL);
   /*************************************************************************
   4.7 Get Active Household IDs
   **********************************************************************/
   delete from active_Household
+
+  insert into active_Household (HouseholdID, HoHID, MoveInDate
+    , ProjectID, ProjectType, TrackingMethod)
+  select HouseholdID, HoHID, MoveInDate, ProjectID, ProjectType, TrackingMethod
+  from
+  (select ROW_NUMBER() over(partition by HouseholdID order by InformationDate desc) AS "row_number", HouseholdID, HoHID, MoveInDate, ProjectID, ProjectType, TrackingMethod
+  from
+  (select distinct hn.HouseholdID
+  , coalesce((select min(PersonalID)
+      from hmis_Enrollment
+      where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1)
+    , (select min(PersonalID)
+      from hmis_Enrollment
+      where HouseholdID = hn.HouseholdID and RelationshipToHoH <> 1)) as HoHID
+  , case when p.ProjectType in (3,13) then
+      (select min(MoveInDate)
+      from hmis_Enrollment
+      where HouseholdID = hn.HouseholdID) else null end as MoveInDate
+  , p.ProjectID, p.ProjectType, p.TrackingMethod,
+  (select top 1 coc.InformationDate
+    from hmis_EnrollmentCoC coc
+    where coc.HouseholdID = hn.HouseholdID
+      and coc.InformationDate <= rpt.ReportEnd
+      and coc.CoCCode = rpt.ReportCoC
+    order by coc.InformationDate desc) as InformationDate
+from lsa_Report rpt
+inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
+inner join lsa_Project p on p.ProjectID = hn.ProjectID
+left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
+  and x.ExitDate <= rpt.ReportEnd
+left outer join hmis_Services bn on bn.EnrollmentID = hn.EnrollmentID
+  and bn.DateProvided between rpt.ReportStart and rpt.ReportEnd
+  and bn.RecordType = 200
+where ((x.ExitDate > rpt.ReportStart and x.ExitDate > hn.EntryDate)
+    or x.ExitDate is null)
+  and p.ProjectType in (1,2,3,8,13)
+  and p.ContinuumProject = 1
+  and (coalesce(p.TrackingMethod, 0) <> 3 or bn.DateProvided is not null)
+  and (select top 1 coc.CoCCode
+    from hmis_EnrollmentCoC coc
+    where coc.EnrollmentID = hn.EnrollmentID
+      and coc.InformationDate <= rpt.ReportEnd
+    order by coc.InformationDate desc) = rpt.ReportCoC) as candidates
+  ) as ordered_candidates
+  where row_number = 1
+  /*
+   delete from active_Household
 
   insert into active_Household (HouseholdID, HoHID, MoveInDate
     , ProjectID, ProjectType, TrackingMethod)
@@ -152,7 +200,7 @@ SqlServerBase.connection.execute (<<~SQL);
       where coc.HouseholdID = hn.HouseholdID
         and coc.InformationDate <= rpt.ReportEnd
       order by coc.InformationDate desc) = rpt.ReportCoC
-
+*/
   SQL
 SqlServerBase.connection.execute (<<~SQL);
   /*************************************************************************

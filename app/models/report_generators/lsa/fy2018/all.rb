@@ -40,9 +40,13 @@ module ReportGenerators::Lsa::Fy2018
         @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
+          # Get this started immediately, it can take a long time to come up and
+          # we can export data while it does
+          setup_temporary_rds()
           @hmis_export = create_hmis_csv_export()
           # puts 'done exporting'
-          setup_temporary_rds()
+
+          wait_for_temporary_rds()
           # puts 'RDS setup done'
           setup_hmis_table_structure()
           setup_lsa_table_structure()
@@ -88,10 +92,14 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_temporary_rds
-      Rds.identifier = sql_server_identifier
-      Rds.timeout = 600_000
-      @rds = Rds.new
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 600_000
+      @rds = ::Rds.new
       @rds.setup!
+    end
+
+    def wait_for_temporary_rds
+      @rds.wait_for_database!
     end
 
     def unzip_path
@@ -194,7 +202,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_hmis_table_structure
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/hmis_table_structure.rb'
     end
 
@@ -232,20 +240,20 @@ module ReportGenerators::Lsa::Fy2018
 
 
     def setup_lsa_reference_tables
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/lsa_reference_table_structure.rb'
     end
 
     def setup_lsa_table_structure
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/lsa_table_structure.rb'
     end
 
 
 
     def run_lsa_queries
-      Rds.identifier = sql_server_identifier
-      Rds.timeout = 600_000
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 600_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
     end
   end
