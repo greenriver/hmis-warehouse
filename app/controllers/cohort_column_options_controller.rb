@@ -21,7 +21,7 @@ class CohortColumnOptionsController < ApplicationController
   
   def create
     @cohort_column_option = cohort_column_option_source.create(cohort_column_option_params)
-    Rails.cache.delete("available_options_for_#{to_snake_case(@cohort_column_option.cohort_column)}")
+    Rails.cache.delete("available_options_for_#{@cohort_column_option.cohort_column}")
     respond_with(@cohort_column_option, location: cohort_column_options_path)
   end
   
@@ -31,7 +31,7 @@ class CohortColumnOptionsController < ApplicationController
 
   def update
     @cohort_column_option.update(cohort_column_option_params)
-    Rails.cache.delete("available_options_for_#{to_snake_case(@cohort_column_option.cohort_column)}")
+    Rails.cache.delete("available_options_for_#{@cohort_column_option.cohort_column}")
     respond_with(@cohort_column_option, location: cohort_column_options_path)
   end
 
@@ -60,9 +60,6 @@ class CohortColumnOptionsController < ApplicationController
         :active,
       )
     end
-    
-    def to_snake_case str
-      str.downcase.tr(' ', '_')
-    end
+  
     
 end

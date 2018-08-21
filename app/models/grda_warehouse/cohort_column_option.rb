@@ -27,8 +27,8 @@ module GrdaWarehouse
     end
     
     def available_cohort_columns
-      cohort_columns.map(&:title).sort
+      cohort_columns.map{|c| [c.title, c.column]}.sort_by(&:first).to_h
     end
-    
+
   end
 end

@@ -17,17 +17,15 @@
   .col-sm-12
     .table-responsive
       - @cohort_column_options.group_by(&:cohort_column).each do |column, options|
-        %h3= column
+        %h3= options.first.available_cohort_columns.invert[column]
         %table.table.table-condensed
           %thead
-            %th{style: "width: 35%;"} Cohort Column
             %th{style: "width: 35%;"} Value
             %th{style: "width: 15%;"} Active? 
             %th{style: "width: 15%;"} 
           %tbody
             - options.each do |option|
               %tr
-                %td= option.cohort_column
                 %td= option.value
                 %td= checkmark_or_x option.active
                 %td
