@@ -85,7 +85,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       # only show record in window if the data source is visible in the window or
       # the record is a health record and the user has access to health..
       sql = arel_table[:visible_in_window].eq(true)
-      if user.has_some_patient_access?
+      if user&.has_some_patient_access?
         sql = sql.or(arel_table[:id].eq(health_id))
       end
       where(sql)
