@@ -40,9 +40,12 @@ module ReportGenerators::Lsa::Fy2018
         @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
+          # Get this started immediately, it can take a long time to come up and
+          # we can export data while it does
+          setup_temporary_rds()
           @hmis_export = create_hmis_csv_export()
           # puts 'done exporting'
-          setup_temporary_rds()
+
           wait_for_temporary_rds()
           # puts 'RDS setup done'
           setup_hmis_table_structure()
