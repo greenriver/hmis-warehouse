@@ -103,7 +103,7 @@ module GrdaWarehouse::Tasks
         matches_dob = []
         matches_ssn = []
         if first_name && last_name
-          key = [first_name.downcase, last_name.downcase]
+          key = [first_name.downcase.trim.gsub(/[^a-z]/i, ''), last_name.downcase.trim.gsub(/[^a-z]/i, '')]
           matches_name += source_clients_grouped_by_name[key].map(&:last).uniq - [dest_id]
         end
         if valid_social?(ssn)
