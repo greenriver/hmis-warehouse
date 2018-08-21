@@ -95,10 +95,12 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 600_000
       @rds = ::Rds.new
-      @rds.setup!
+      @rds.create!
     end
 
     def wait_for_temporary_rds
+      @rds.wait!
+      @rds.create_database!
       @rds.wait_for_database!
     end
 
