@@ -128,7 +128,7 @@ SqlServerBase.connection.execute (<<~SQL);
         where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1)
       , (select min(PersonalID)
         from hmis_Enrollment
-        where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1))
+        where HouseholdID = hn.HouseholdID and RelationshipToHoH <> 1))
     , case when p.ProjectType in (3,13) then
         (select min(MoveInDate)
         from hmis_Enrollment
@@ -149,7 +149,7 @@ SqlServerBase.connection.execute (<<~SQL);
     and (coalesce(p.TrackingMethod, 0) <> 3 or bn.DateProvided is not null)
     and (select top 1 coc.CoCCode
       from hmis_EnrollmentCoC coc
-      where coc.EnrollmentID = hn.EnrollmentID
+      where coc.HouseholdID = hn.HouseholdID
         and coc.InformationDate <= rpt.ReportEnd
       order by coc.InformationDate desc) = rpt.ReportCoC
 
