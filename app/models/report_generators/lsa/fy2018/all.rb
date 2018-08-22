@@ -228,6 +228,10 @@ module ReportGenerators::Lsa::Fy2018
         create index ch_enrollment_personal_id_idx ON [ch_Enrollment] ([PersonalID]);
 
         create index ch_episodes_personal_id_idx ON [ch_Episodes] ([PersonalID]);
+
+        create index tcd_start_date_idx ON [tmp_CohortDates] ([CohortStart]);
+        create index tcd_end_date_idx ON [tmp_CohortDates] ([CohortEnd]);
+
       SQL
     end
 
