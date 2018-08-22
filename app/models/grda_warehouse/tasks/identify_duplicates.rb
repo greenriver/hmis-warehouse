@@ -87,6 +87,7 @@ module GrdaWarehouse::Tasks
         Rails.logger.info "merged #{source.id} into #{destination.id}"
       end
       Importing::RunAddServiceHistoryJob.perform_later
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
     end
 
     def find_current_id_for(id)
