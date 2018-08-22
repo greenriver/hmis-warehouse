@@ -40,6 +40,7 @@ module ReportGenerators::Lsa::Fy2018
         @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
+
           @hmis_export = create_hmis_csv_export()
           # puts 'done exporting'
           setup_temporary_rds()
@@ -76,7 +77,7 @@ module ReportGenerators::Lsa::Fy2018
       # return GrdaWarehouse::HmisExport.find(56)
 
       Exporters::HmisSixOneOne::Base.new(
-        start_date: @report_start,
+        start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
         projects: @project_ids,
         period_type: 3,
@@ -88,9 +89,9 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_temporary_rds
-      Rds.identifier = sql_server_identifier
-      Rds.timeout = 600_000
-      @rds = Rds.new
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 6_000_000
+      @rds = ::Rds.new
       @rds.setup!
     end
 
@@ -190,11 +191,11 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      @rds.terminate!
+      @rds&.terminate!
     end
 
     def setup_hmis_table_structure
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/hmis_table_structure.rb'
     end
 
@@ -232,20 +233,20 @@ module ReportGenerators::Lsa::Fy2018
 
 
     def setup_lsa_reference_tables
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/lsa_reference_table_structure.rb'
     end
 
     def setup_lsa_table_structure
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/lsa_table_structure.rb'
     end
 
 
 
     def run_lsa_queries
-      Rds.identifier = sql_server_identifier
-      Rds.timeout = 600_000
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 600_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
     end
   end

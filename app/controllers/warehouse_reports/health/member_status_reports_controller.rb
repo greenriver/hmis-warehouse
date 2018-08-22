@@ -1,5 +1,6 @@
 module WarehouseReports::Health
   class MemberStatusReportsController < ApplicationController
+    include WarehouseReportAuthorization
     before_action :require_can_view_member_health_reports!
     before_action :set_reports, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy]

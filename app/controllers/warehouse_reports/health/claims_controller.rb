@@ -2,6 +2,7 @@ module WarehouseReports::Health
   class ClaimsController < ApplicationController
     include ArelHelper
     include WindowClientPathGenerator
+    include WarehouseReportAuthorization
     before_action :require_can_administer_health!
     before_action :set_report, only: [:show, :destroy, :revise, :submit, :generate_claims_file]
     before_action :set_sender
@@ -40,6 +41,7 @@ module WarehouseReports::Health
         @report = Health::Claim.completed.unsubmitted.last
       else
         @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
+        @completed_reports = Health::Claim.submitted.order(submitted_at: :desc).select(:id, :submitted_at)
         @state = :initial
       end
     end
@@ -109,10 +111,19 @@ module WarehouseReports::Health
     end
 
     def show
-      patient_t = Health::Patient.arel_table
-      @qualifying_activities = @report.qualifying_activities.joins(:patient).
-        order(patient_t[:last_name].asc, patient_t[:first_name].asc, date_of_activity: :desc).
-        page(params[:page]).per(100)
+
+      respond_to do |format|
+        format.text do
+          date = @report.submitted_at || Date.today
+          response.headers['Content-Disposition'] = "attachment; filename=\"CLAIMS_#{date.strftime('%Y%m%d')}.txt\""
+        end
+        format.html do
+          patient_t = Health::Patient.arel_table
+          @qualifying_activities = @report.qualifying_activities.joins(:patient).
+            order(patient_t[:last_name].asc, patient_t[:first_name].asc, date_of_activity: :desc).
+            page(params[:page]).per(100)
+        end
+      end
     end
 
     def generate_claims_file

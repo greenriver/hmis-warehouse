@@ -5,6 +5,8 @@
       %th CoC Code
       %th User
       %th Status
+      %th Started
+      %th Finished
       %th
     %tbody
       - @reports.each do |report|
@@ -12,6 +14,8 @@
           %td= report.display_coc_code
           %td= report.user_name
           %td= report.status
+          %td= report.created_at
+          %td= report.completed_at
           %td
             - if report.completed_at
               = link_to action: :show, id: report.id do

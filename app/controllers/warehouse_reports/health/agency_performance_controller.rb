@@ -3,6 +3,7 @@ module WarehouseReports::Health
     include ArelHelper
     include PjaxModalController
     include WindowClientPathGenerator
+    include WarehouseReportAuthorization
 
     before_action :require_can_view_aggregate_health!
     before_action :require_can_administer_health!

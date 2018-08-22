@@ -7,3 +7,14 @@
     .col-sm-4
       = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities on or before'
       = f.submit 'Calculate Payability', class: "btn btn-primary"
+
+- if @completed_reports.any?
+  %h2 Previously Submitted Claims Files
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Submitted On
+    %tbody
+      - @completed_reports.each do |report|
+        %tr
+          %td= link_to report.submitted_at.to_date, "#{warehouse_reports_health_claim_url(report)}.txt"
