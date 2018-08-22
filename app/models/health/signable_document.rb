@@ -61,7 +61,7 @@ module Health
 
         self.hs_initial_response = response.data
         self.hs_initial_response_at = Time.now
-        
+
         # Save a copy of this file to our health file
         @health_file = Health::SignableDocumentFile.new(
           user_id: self.user_id,
@@ -103,9 +103,10 @@ module Health
     end
 
     def update_careplan_and_health_file!(careplan)
-      if careplan.patient_signed_on.blank? && self.signed_by?('patient@openpath.biz')
-        careplan.patient_signed_on = self.signed_on('patient@openpath.biz')
-        careplan.save!
+      if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
+        user = User.setup_system_user
+        careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
+        Health::CareplanSaver.new(careplan: careplan, user: user).update
 
         #update_health_file_from_hello_sign
         # Need to wait for pdf to be ready

@@ -2,9 +2,9 @@
   = f.error_notification
   %section.row
     .col-sm-6.col-lg-4
-      = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }
+      = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.today }, disabled: @careplan.locked?
     .col-md-6.col-lg-4
-      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }, wrapper_html: {class: 'form-group--hanging-label'}
+      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.today + 6.months }, wrapper_html: {class: 'form-group--hanging-label'}, disabled: @careplan.locked?
   = render 'window/health/careplans/team', f: f
   = render 'window/health/careplans/about_me', f: f
   = render 'window/health/careplans/goals', f: f
@@ -21,8 +21,8 @@
     .c-card__content
       .row.careplan-signatures
         = render 'careplan_form_signatures', f: f
-  
-  .well.form__upload.j-file-upload
+
+  .well.form__upload.j-file-upload#upload_file
     = render 'upload', f: f
 
   .form__actions.mt-6.mb-8

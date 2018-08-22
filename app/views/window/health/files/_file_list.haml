@@ -12,5 +12,5 @@
           - @files.each do |file|
             %tr
               %td= link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
-              %td= file.created_at.to_date
+              %td= file.created_at&.strftime('%b %e, %Y at %l:%M %P')
               %td= file.user.name

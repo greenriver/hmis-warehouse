@@ -77,7 +77,7 @@ module Health
     end
 
     def set_lock
-      if self.patient_signed_on.present? && self.provider_signed_on.present?
+      if self.patient_signed_on.present? || self.provider_signed_on.present?
         self.locked = true
         archive_services
         archive_equipment

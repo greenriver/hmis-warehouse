@@ -1,5 +1,7 @@
-- # FIXME: if we have a HelloSign document, this should be a link to that instead of the locally generated PDF
 .patient__file-link.mb-2
-  = link_to polymorphic_path(careplan_path_generator, id: careplan) do
-    %i.icon-eye
-    View (local PDF)
+  - if doc.present? && doc.health_file_id
+    - url = polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: doc.health_file_id)
+  - else
+    - url = polymorphic_path(careplan_path_generator, id: careplan)
+  = link_to url do
+    PDF: Care Plan

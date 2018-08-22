@@ -18,7 +18,7 @@ module Window::Health
       @team = @careplan.team
 
       @signers = []
-      @signers << { 'email': 'patient@openpath.biz', 'name': @patient.name }
+      @signers << { 'email': @patient.current_email, 'name': @patient.name }
 
       @doc = @careplan.signable_documents.build(signers: @signers, primary: true, user_id: current_user.id)
 
@@ -34,7 +34,9 @@ module Window::Health
       else
         flash[:error] = "#{@doc.errors.full_messages.join('. ')}"
       end
-      redirect_to polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: @careplan.id, id: @doc.id, email: 'patient@openpath.biz', hash: @doc.signer_hash('patient@openpath.biz')})
+      url_params = {client_id: @client.id, careplan_id: @careplan.id, id: @doc.id, email: @patient.current_email, hash: @doc.signer_hash(@patient.current_email)}
+      url_params[:sign_out] = true if params[:sign_out].present?
+      redirect_to polymorphic_path([:signature] + careplan_path_generator + [:signable_document], url_params)
       # redirect_back fallback_location: client_health_careplans_path(@client)
     end
 
@@ -49,17 +51,17 @@ module Window::Health
     end
 
     def signature
+
       @doc = Health::SignableDocument.find(params[:id])
       if current_user.present?
         @doc.update(expires_at: Health::SignableDocument.patient_expiration_window)
       end
-      sign_out if params[:sign_out].present?
+      sign_out(:user) if params[:sign_out].present?
 
       if @doc.signer_hash(params[:email]) != params[:hash] || @doc.expired?
         not_authorized!
         return
       end
-
       @signature_request_url = @doc.signature_request_url(params[:email])
     rescue HelloSign::Error, HelloSign::Error::Conflict
       render 'error'

@@ -1,0 +1,42 @@
+.pctp__signature.mb-4
+  - if careplan.patient_signed_on
+    = checkmark(true)
+    Patient Signature (#{careplan.patient_signed_on&.to_date})
+  - else
+    - if doc.signature_request_id.blank?
+      - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
+      - method = :post
+    - else
+      - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: @patient.current_email, hash: doc.signer_hash(@patient.current_email), post_sign_path: url_for, sign_out: true})
+      - method = :get
+    = link_to url, method: method, class: 'btn btn-sm btn-secondary' do
+      Get Patient Signature
+.pctp__signature
+  - if careplan.provider_signed_on
+    = checkmark(true)
+    PCP Signature (#{careplan.provider_signed_on&.to_date})
+  - else
+    .btn-group
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
+        Get PCP Signature
+        %span.caret
+      %ul.dropdown-menu
+        %li
+          %a{href: '#'}
+            Send to PCP via email
+        %li
+          %a{href: '#'}
+            Send request to ACO Contact
+        %li
+          = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
+            Upload signed pdf
+
+      - if false
+        - if doc.signature_request_id.blank?
+          - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
+          - method = :post
+        - else
+          - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: @patient.current_email, hash: doc.signer_hash(@patient.current_email), post_sign_path: url_for, sign_out: true})
+          - method = :get
+        = link_to url, method: method, class: 'btn btn-sm btn-secondary' do
+          Get PCP Signature

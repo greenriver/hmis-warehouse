@@ -409,6 +409,10 @@ module Health
       recent_cha&.answer(:r_q1b).presence
     end
 
+    def current_email
+      @current_email||= email || client.email || 'patient@openpath.biz'
+    end
+
     def advanced_directive
       {
         name: recent_cha&.answer(:r_q6a),
