@@ -29,6 +29,7 @@
                 %td= option.value
                 %td= checkmark_or_x option.active
                 %td
+
                   - if !@cohort_column_options_in_use[column]&.include?(option.value)
                     = link_to action: :edit, id: option do
                       %span.icon-pencil

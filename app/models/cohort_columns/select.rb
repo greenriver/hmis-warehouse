@@ -24,7 +24,7 @@ module CohortColumns
     
     def available_options
       Rails.cache.fetch("available_options_for_#{self.column}", expires_in: 5.minutes) do
-        GrdaWarehouse::CohortColumnOption.where(cohort_column: self.title, active: true).order(value: :asc).pluck(:value) 
+        GrdaWarehouse::CohortColumnOption.where(cohort_column: self.column, active: true).order(value: :asc).pluck(:value) 
       end
     end
     

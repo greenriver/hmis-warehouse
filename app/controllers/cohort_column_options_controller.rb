@@ -8,7 +8,7 @@ class CohortColumnOptionsController < ApplicationController
     @cohort_column_options = @cohort_column_options.order(cohort_column: :desc, value: :asc).page(params[:page]).per(25)
     @cohort_column_options_in_use = GrdaWarehouse::CohortColumnOption.new.cohort_columns.map do |cohort_column|
        [
-         cohort_column.title,
+         cohort_column.column,
          GrdaWarehouse::CohortClient.where.not(cohort_column.column => nil).distinct.pluck(cohort_column.column)
        ]
     end.to_h 
