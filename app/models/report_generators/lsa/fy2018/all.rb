@@ -40,13 +40,10 @@ module ReportGenerators::Lsa::Fy2018
         @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
-          # Get this started immediately, it can take a long time to come up and
-          # we can export data while it does
-          setup_temporary_rds()
+
           @hmis_export = create_hmis_csv_export()
           # puts 'done exporting'
-
-          wait_for_temporary_rds()
+          setup_temporary_rds()
           # puts 'RDS setup done'
           setup_hmis_table_structure()
           setup_lsa_table_structure()
@@ -93,15 +90,9 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_temporary_rds
       ::Rds.identifier = sql_server_identifier
-      ::Rds.timeout = 600_000
+      ::Rds.timeout = 6_000_000
       @rds = ::Rds.new
-      @rds.create!
-    end
-
-    def wait_for_temporary_rds
-      @rds.wait!
-      @rds.create_database!
-      @rds.wait_for_database!
+      @rds.setup!
     end
 
     def unzip_path

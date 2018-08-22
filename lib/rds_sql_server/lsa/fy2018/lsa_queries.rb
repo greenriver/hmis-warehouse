@@ -127,13 +127,14 @@ SqlServerBase.connection.execute (<<~SQL);
   from
   (select ROW_NUMBER() over(partition by HouseholdID order by InformationDate desc) AS "row_number", HouseholdID, HoHID, MoveInDate, ProjectID, ProjectType, TrackingMethod
   from
-  (select distinct hn.HouseholdID
+  (select distinct coalesce(hn.HouseholdID, hn.PersonalID) as HouseholdID
   , coalesce((select min(PersonalID)
       from hmis_Enrollment
       where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1)
     , (select min(PersonalID)
       from hmis_Enrollment
-      where HouseholdID = hn.HouseholdID and RelationshipToHoH <> 1)) as HoHID
+      where HouseholdID = hn.HouseholdID and RelationshipToHoH <> 1)
+    , hn.PersonalID) as HoHID
   , case when p.ProjectType in (3,13) then
       (select min(MoveInDate)
       from hmis_Enrollment
