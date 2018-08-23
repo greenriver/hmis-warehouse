@@ -55,7 +55,7 @@ class CohortsController < ApplicationController
         end
       end
       format.xlsx do
-        headers['Content-Disposition'] = "attachment; filename=#{@cohort.name.gsub!(/^.*(\\|\/)/, '')}.xlsx"
+        headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
       end
     end
   end
