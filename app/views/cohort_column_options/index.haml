@@ -7,12 +7,12 @@
 
 .row
   .col-sm-8
-    %h1= content_for :title      
+    %h1= content_for :title
   .col-sm-4.text-right
     = link_to new_cohort_column_option_path, class: 'btn btn-primary pull-right margin-bottom-02' do
       %span.icon-plus
       Add a Cohort Column Option
-      
+
 .row
   .col-sm-12
     .table-responsive
@@ -21,8 +21,8 @@
         %table.table.table-condensed
           %thead
             %th{style: "width: 35%;"} Value
-            %th{style: "width: 15%;"} Active? 
-            %th{style: "width: 15%;"} 
+            %th{style: "width: 15%;"} Active?
+            %th{style: "width: 15%;"}
           %tbody
             - options.each do |option|
               %tr
@@ -34,5 +34,7 @@
                     = link_to action: :edit, id: option do
                       %span.icon-pencil
                       Edit
-                      
+                  - else
+                    in use
+
 %p= paginate @cohort_column_options
