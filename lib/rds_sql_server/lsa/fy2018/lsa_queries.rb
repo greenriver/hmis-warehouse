@@ -127,7 +127,7 @@ SqlServerBase.connection.execute (<<~SQL);
   from
   (select ROW_NUMBER() over(partition by HouseholdID order by InformationDate desc) AS "row_number", HouseholdID, HoHID, MoveInDate, ProjectID, ProjectType, TrackingMethod
   from
-  (select distinct coalesce(hn.HouseholdID, hn.PersonalID) as HouseholdID
+  (select distinct hn.HouseholdID as HouseholdID
   , coalesce((select min(PersonalID)
       from hmis_Enrollment
       where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1)
@@ -1865,6 +1865,7 @@ SqlServerBase.connection.execute (<<~SQL);
   from lsa_Report rpt
 
   SQL
+
 SqlServerBase.connection.execute (<<~SQL);
   /*****************************************************************
   4.40 Get Enrollments Relevant To Exit Cohorts

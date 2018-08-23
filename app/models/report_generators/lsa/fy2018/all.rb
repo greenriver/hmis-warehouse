@@ -74,7 +74,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      # return GrdaWarehouse::HmisExport.find(56)
+      return GrdaWarehouse::HmisExport.find(18)
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
@@ -191,7 +191,8 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      @rds&.terminate!
+      # Commented out for DEBUG
+      # @rds&.terminate!
     end
 
     def setup_hmis_table_structure
@@ -250,7 +251,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def run_lsa_queries
       ::Rds.identifier = sql_server_identifier
-      ::Rds.timeout = 600_000
+      ::Rds.timeout = 6_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
     end
   end
