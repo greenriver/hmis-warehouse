@@ -74,7 +74,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      return GrdaWarehouse::HmisExport.find(18)
+      # return GrdaWarehouse::HmisExport.find(18)
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
@@ -191,8 +191,8 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      # Commented out for DEBUG
-      # @rds&.terminate!
+      # Commented out for debuggin
+      @rds&.terminate!
     end
 
     def setup_hmis_table_structure

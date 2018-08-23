@@ -119,6 +119,7 @@ SqlServerBase.connection.execute (<<~SQL);
   /*************************************************************************
   4.7 Get Active Household IDs
   **********************************************************************/
+  -- CHANGED EAA
   delete from active_Household
 
   insert into active_Household (HouseholdID, HoHID, MoveInDate
@@ -3702,6 +3703,7 @@ SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   4.66 Set LSAReport Data Quality Values for Report Period
   **********************************************************************/
+  -- CHANGED EAA
   update rpt
     set UnduplicatedClient1 = (select count(distinct lp.PersonalID)
         from tmp_Person lp
@@ -3876,13 +3878,14 @@ SqlServerBase.connection.execute (<<~SQL);
         where lp.ReportID = rpt.ReportID
           and n.ExitDate is not null
           and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-    , NotOneHoH1 = coalesce((select count(distinct an.HouseholdID)
-        from tmp_Person lp
-        inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-        inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-        where lp.ReportID = rpt.ReportID
-        group by an.HouseholdID
-        having sum(case when hn.RelationshipToHoH = 1 then 1 else 0 end) <> 1), 0)
+    -- FIXME: the following isn't correctly counting
+    --, NotOneHoH1 = coalesce((select sum(count_hoh_id) from (select count(distinct an.HouseholdID) as count_hoh_id
+    --    from tmp_Person lp
+    --    inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+    --    inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+    --    where lp.ReportID = rpt.ReportID
+    --    group by an.HouseholdID
+    --    having sum(case when hn.RelationshipToHoH = 1 then 1 else 0 end) <> 1) as sub_query, 0)
     , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
         from tmp_Person lp
         inner join active_Enrollment n on n.PersonalID = lp.PersonalID
@@ -3898,11 +3901,16 @@ SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   4.67 Get Relevant Enrollments for Three Year Data Quality Checks
   **********************************************************************/
+  -- CHANGED EAA
   delete from dq_Enrollment
   insert into dq_Enrollment (EnrollmentID, PersonalID, HouseholdID, RelationshipToHoH
     , ProjectType, EntryDate, MoveInDate, ExitDate, Adult, SSNValid)
-
-  select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
+  select EnrollmentID, PersonalID, HouseholdID, RelationshipToHoH
+    , ProjectType, EntryDate, MoveInDate, ExitDate, Adult, SSNValid
+  from
+  (select ROW_NUMBER() over(partition by EnrollmentID order by Adult asc, SSNValid asc) AS "row_number", EnrollmentID, PersonalID, HouseholdID, RelationshipToHoH, ProjectType, EntryDate, MoveInDate, ExitDate , Adult, SSNValid
+  from
+  (select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
     , p.ProjectType, n.EntryDate, hhinfo.MoveInDate, ExitDate
     , case when c.DOBDataQuality in (8,9)
       or c.DOB is null
@@ -3913,7 +3921,7 @@ SqlServerBase.connection.execute (<<~SQL);
       or c.DOBDataQuality is null
       or c.DOBDataQuality not in (1,2) then 99
     when dateadd(yy, 18, c.DOB) <= n.EntryDate then 1
-    else 0 end
+    else 0 end as Adult
   , case when c.SSNDataQuality in (8,9) then null
       when SUBSTRING(c.SSN,1,3) in ('000','666')
           or LEN(c.SSN) <> 9
@@ -3925,7 +3933,7 @@ SqlServerBase.connection.execute (<<~SQL);
           or left(c.SSN,1) >= '9'
           or c.SSN in ('123456789','111111111','222222222','333333333','444444444'
               ,'555555555','777777777','888888888')
-        then 0 else 1 end
+        then 0 else 1 end as SSNValid
   from lsa_report rpt
   inner join hmis_Enrollment n on n.EntryDate <= rpt.ReportEnd
   inner join hmis_Project p on p.ProjectID = n.ProjectID
@@ -3940,7 +3948,9 @@ SqlServerBase.connection.execute (<<~SQL);
       and coc.CoCCode = rpt.ReportCoC
     where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
     group by hh.HouseholdID
-    ) hhinfo on hhinfo.HouseholdID = n.HouseholdID
+    ) hhinfo on hhinfo.HouseholdID = n.HouseholdID) as candidates
+  ) as ordered_candidates
+  where row_number = 1
 
   SQL
 SqlServerBase.connection.execute (<<~SQL);
