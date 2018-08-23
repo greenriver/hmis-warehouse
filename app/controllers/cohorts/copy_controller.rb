@@ -7,7 +7,7 @@ module Cohorts
     before_action :load_cohort
     before_action :load_new, only: [:new]
 
-    def new 
+    def new
     end
 
     def create
@@ -22,6 +22,7 @@ module Cohorts
       else
         load_new
         flash[:error] = "All fields are required."
+        load_new
         render :new
       end
     end
@@ -31,7 +32,7 @@ module Cohorts
     def load_new
       @cohorts_to_copy_from = cohort_scope.
         where.not(id: @cohort.id).
-        map{|cohort| [cohort.name, cohort.id]}
+        pluck(:name, :id)
       @ordered_columns = @cohort.column_state.
         select{|c| c.editable?}.
         map{|c| [c.title, c.column]}
