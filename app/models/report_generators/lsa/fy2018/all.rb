@@ -241,6 +241,10 @@ module ReportGenerators::Lsa::Fy2018
         create index tcd_start_date_idx ON [tmp_CohortDates] ([CohortStart]);
         create index tcd_end_date_idx ON [tmp_CohortDates] ([CohortEnd]);
 
+        create index report_report_start_idx ON [lsa_Report] ([ReportStart]);
+        create index report_report_end_idx ON [lsa_Report] ([ReportEnd]);
+        create index report_report_report_coc_idx ON [lsa_Report] ([ReportCoC]);
+
       SQL
     end
 
