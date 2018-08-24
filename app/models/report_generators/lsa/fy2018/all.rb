@@ -44,19 +44,24 @@ module ReportGenerators::Lsa::Fy2018
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
           @hmis_export = create_hmis_csv_export()
+          update_report_progress percent: 15
           # puts 'done exporting'
           setup_temporary_rds()
+          update_report_progress percent: 20
           # puts 'RDS setup done'
           setup_hmis_table_structure()
           setup_lsa_table_structure()
           setup_lsa_reference_tables()
           setup_lsa_table_indexes()
 
+          update_report_progress percent: 22
           setup_lsa_report()
 
           populate_hmis_tables()
+          update_report_progress percent: 30
 
           run_lsa_queries()
+          update_report_progress percent: 90
           fetch_results()
           fetch_summary_results()
           zip_report_folder()
