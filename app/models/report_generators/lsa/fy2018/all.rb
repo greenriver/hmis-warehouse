@@ -261,7 +261,10 @@ module ReportGenerators::Lsa::Fy2018
     def fetch_summary_results
       load 'lib/rds_sql_server/lsa_summary.rb'
       summary_data = LsaSqlServer::LSAReportSummary::fetch_results
-      @report.results = {summary: summary_data.to_a}
+      people = {headers: summary_data.columns.first, data: summary_data.rows.first}
+      enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
+      @report.results = {summary: {people: people, enrollments: enrollments}}
+      @report.save
     end
   end
 end
