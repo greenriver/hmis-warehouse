@@ -6,12 +6,15 @@
 # Conversion notes:
 # 1. Break table creation sections into their own methods
 # 2. Move lSA reference tables from the end to before the lsa queries method
-# 3. Break up the queries (submitting after each) to prevent timeouts (maybe increase timeout?)
-#   Replace "/*"" with
-#   "SQL
-#    SqlServerBase.connection.execute (<<~SQL);
-#    /*"
-# 4. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
+# 3. Take note of any queries in lsa_queries with a comment of CHANGED, these will need to be
+#    looked at, and potentially updated, prior to replacing
+# 4. Break up the queries (submitting after each) to prevent timeouts (maybe increase timeout?)
+#    Replace "/*"" with
+#    "SQL
+#     SqlServerBase.connection.execute (<<~SQL);
+#     /*"
+# 5. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
+
 
 # This check is a proxy for all the vars you really need in the rds.rb file
 # This if-statement prevents the lack of the vars from killing the app.
@@ -40,7 +43,6 @@ module ReportGenerators::Lsa::Fy2018
         @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
-
           @hmis_export = create_hmis_csv_export()
           # puts 'done exporting'
           setup_temporary_rds()
@@ -56,6 +58,7 @@ module ReportGenerators::Lsa::Fy2018
 
           run_lsa_queries()
           fetch_results()
+          fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
@@ -74,7 +77,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      # return GrdaWarehouse::HmisExport.find(18)
+      return GrdaWarehouse::HmisExport.find(18)
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
@@ -191,8 +194,8 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      # Commented out for debuggin
-      @rds&.terminate!
+      # Commented out for debugging
+      # @rds&.terminate!
     end
 
     def setup_hmis_table_structure
@@ -253,6 +256,12 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 6_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
+    end
+
+    def fetch_summary_results
+      load 'lib/rds_sql_server/lsa_summary.rb'
+      summary_data = LsaSqlServer::LSAReportSummary::fetch_results
+      @report.results = {summary: summary_data.to_a}
     end
   end
 end
