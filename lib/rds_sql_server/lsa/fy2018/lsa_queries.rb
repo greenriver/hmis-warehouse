@@ -3878,29 +3878,30 @@ SqlServerBase.connection.execute (<<~SQL);
         where lp.ReportID = rpt.ReportID
           and n.ExitDate is not null
           and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-    , NotOneHoH1 = select
+    , NotOneHoH1 = (select
       -- count of households with more than one client marked as HoH
       (select count(household_count)
       from (
-          select count(distinct an.HouseholdID) as household_count
+            select count(distinct an.HouseholdID) as household_count
           from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
           where lp.ReportID = rpt.ReportID and hn.RelationshipToHoH = 1
           group by an.HouseholdID
           having count(distinct an.PersonalID) > 1
-      ) as more_than_one)
-      +
-      -- count of households with no client marked as HoH
-      (select count(household_count)
+        ) as more_than_one)
+        +
+        -- count of households with no client marked as HoH
+        (select count(household_count)
       from (
-          select count(distinct an.HouseholdID) as household_count
+            select count(distinct an.HouseholdID) as household_count
           from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
           where lp.ReportID  = rpt.ReportID
-          group by an.HouseholdID having (sum(case when hn.RelationshipToHoH = 1 then 1 else 0 end) = 0)
-      ) as less_than_one)
+          group by an.HouseholdID
+          having (sum(case when hn.RelationshipToHoH = 1 then 1 else 0 end) = 0)
+        ) as less_than_one))
     , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
         from tmp_Person lp
         inner join active_Enrollment n on n.PersonalID = lp.PersonalID
@@ -4105,7 +4106,7 @@ SqlServerBase.connection.execute (<<~SQL);
         inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
         where n.ExitDate is not null
           and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-    , NotOneHoH3 = select
+    , NotOneHoH3 = (select
         -- count of households with more than one client marked as HoH
         (select count(household_count)
         from (
@@ -4124,7 +4125,7 @@ SqlServerBase.connection.execute (<<~SQL);
             from dq_Enrollment n
               inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
             group by n.HouseholdID having (sum(case when n.RelationshipToHoH = 1 then 1 else 0 end) = 0)
-        ) as less_than_one)
+        ) as less_than_one))
     , MoveInDate3 = coalesce((select count(distinct n.EnrollmentID)
         from dq_Enrollment n
         inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
