@@ -238,6 +238,7 @@ module Health
         self.housing_status = epic_patient.housing_status
         self.housing_status_timestamp = epic_patient.housing_status_timestamp
         self.death_date = epic_patient.death_date
+        self.pilot = epic_patient.pilot
       end
       self.save if self.changed?
       if client.present? && client.data_source_id == GrdaWarehouse::DataSource.health_authoritative_id

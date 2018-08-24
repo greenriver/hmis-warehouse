@@ -31,8 +31,8 @@
       %dd= @result.completed_in
       %dt Progress
       %dl= @result.last_run_status
-  .col-sm-4
-    - if @result.results.present? && @result.download_type.present?
+  .col-sm-4.text-right
+    - if @result.results.present? && @result.download_type.present? && @result.download_type != :zip
       = link_to({format: @result.download_type},{class: 'btn btn-primary'}) do
         %span.icon-download2
         Download
@@ -55,7 +55,6 @@
           %ul
             - errs.each do |group, notes|
               %li= notes
-
 - if @result.results.present?
   %dt Results
   %dl{class: 'report-result--results'}= render @result

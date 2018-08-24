@@ -161,9 +161,9 @@ module GrdaWarehouse::Hud
 
     # when we export, we always need to replace OrganizationID with the value of id
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers
+      attributes = self.hud_csv_headers.dup
       headers = attributes.clone
-      attributes[attributes.index('OrganizationID')] = 'id'
+      attributes[attributes.index(:OrganizationID)] = :id
 
 
       CSV.generate(headers: true) do |csv|

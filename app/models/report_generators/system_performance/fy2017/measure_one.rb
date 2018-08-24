@@ -366,7 +366,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         hud_project_type(ES + SO + SH).
         open_between(start_date: @report_start - 1.day, end_date: @report_end).
         with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-        where(client_id: client_id, id: enrollment_id).
+        where(she_t[:client_id].eq(client_id).and(she_t[:id].eq(enrollment_id))).
         distinct.
         select(:client_id)
 
@@ -381,7 +381,7 @@ module ReportGenerators::SystemPerformance::Fy2017
         hud_project_type(PH + TH).
         open_between(start_date: @report_start - 1.day, end_date: @report_end).
         with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-        where(client_id: client_id, id: enrollment_id).
+        where(she_t[:client_id].eq(client_id).and(she_t[:id].eq(enrollment_id))).
         joins(:enrollment).
         where(
           e_t[:LivingSituation].in(homeless_living_situations).

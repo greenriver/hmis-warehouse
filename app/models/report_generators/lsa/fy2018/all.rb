@@ -6,12 +6,15 @@
 # Conversion notes:
 # 1. Break table creation sections into their own methods
 # 2. Move lSA reference tables from the end to before the lsa queries method
-# 3. Break up the queries (submitting after each) to prevent timeouts (maybe increase timeout?)
-#   Replace "/*"" with
-#   "SQL
-#    SqlServerBase.connection.execute (<<~SQL);
-#    /*"
-# 4. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
+# 3. Take note of any queries in lsa_queries with a comment of CHANGED, these will need to be
+#    looked at, and potentially updated, prior to replacing
+# 4. Break up the queries (submitting after each) to prevent timeouts (maybe increase timeout?)
+#    Replace "/*"" with
+#    "SQL
+#     SqlServerBase.connection.execute (<<~SQL);
+#     /*"
+# 5. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
+
 
 # This check is a proxy for all the vars you really need in the rds.rb file
 # This if-statement prevents the lack of the vars from killing the app.
@@ -41,20 +44,26 @@ module ReportGenerators::Lsa::Fy2018
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
           @hmis_export = create_hmis_csv_export()
+          update_report_progress percent: 15
           # puts 'done exporting'
           setup_temporary_rds()
+          update_report_progress percent: 20
           # puts 'RDS setup done'
           setup_hmis_table_structure()
           setup_lsa_table_structure()
           setup_lsa_reference_tables()
           setup_lsa_table_indexes()
 
+          update_report_progress percent: 22
           setup_lsa_report()
 
           populate_hmis_tables()
+          update_report_progress percent: 30
 
           run_lsa_queries()
+          update_report_progress percent: 90
           fetch_results()
+          fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
@@ -73,10 +82,10 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      # return GrdaWarehouse::HmisExport.find(56)
+      # return GrdaWarehouse::HmisExport.find(18)
 
       Exporters::HmisSixOneOne::Base.new(
-        start_date: @report_start,
+        start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
         projects: @project_ids,
         period_type: 3,
@@ -88,9 +97,9 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_temporary_rds
-      Rds.identifier = sql_server_identifier
-      Rds.timeout = 600_000
-      @rds = Rds.new
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 6_000_000
+      @rds = ::Rds.new
       @rds.setup!
     end
 
@@ -190,11 +199,12 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      @rds.terminate!
+      # Commented out for debugging
+      @rds&.terminate!
     end
 
     def setup_hmis_table_structure
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/hmis_table_structure.rb'
     end
 
@@ -227,26 +237,39 @@ module ReportGenerators::Lsa::Fy2018
         create index ch_enrollment_personal_id_idx ON [ch_Enrollment] ([PersonalID]);
 
         create index ch_episodes_personal_id_idx ON [ch_Episodes] ([PersonalID]);
+
+        create index tcd_start_date_idx ON [tmp_CohortDates] ([CohortStart]);
+        create index tcd_end_date_idx ON [tmp_CohortDates] ([CohortEnd]);
+
       SQL
     end
 
 
     def setup_lsa_reference_tables
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/lsa_reference_table_structure.rb'
     end
 
     def setup_lsa_table_structure
-      Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2018/lsa_table_structure.rb'
     end
 
 
 
     def run_lsa_queries
-      Rds.identifier = sql_server_identifier
-      Rds.timeout = 600_000
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 6_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
+    end
+
+    def fetch_summary_results
+      load 'lib/rds_sql_server/lsa_summary.rb'
+      summary_data = LsaSqlServer::LSAReportSummary::fetch_results
+      people = {headers: summary_data.columns.first, data: summary_data.rows.first}
+      enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
+      @report.results = {summary: {people: people, enrollments: enrollments}}
+      @report.save
     end
   end
 end

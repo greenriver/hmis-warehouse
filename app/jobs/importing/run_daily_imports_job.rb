@@ -33,6 +33,7 @@ module Importing
 
       # Importers::Samba.new.run!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
       @notifier.ping('Duplicates identified') if @send_notifications
       # this keeps the computed project type columns in sync, previously
       # this was done with a coalesce query, but it ended up being too slow

@@ -69,7 +69,7 @@ module GrdaWarehouse::Tasks
     def match_existing!
       @to_merge = find_merge_candidates
       user = User.setup_system_user
-      merge_history = GrdaWarehouse::ClientMergeHistory.new
+
       @to_merge.each do |destination_id, source_id|
         # Detect a previous merge
         destination_id = find_current_id_for(destination_id)
@@ -87,6 +87,7 @@ module GrdaWarehouse::Tasks
         Rails.logger.info "merged #{source.id} into #{destination.id}"
       end
       Importing::RunAddServiceHistoryJob.perform_later
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
     end
 
     def find_current_id_for(id)
@@ -96,6 +97,10 @@ module GrdaWarehouse::Tasks
       return id
     end
 
+    def merge_history
+      @merge_history ||= GrdaWarehouse::ClientMergeHistory.new
+    end
+
     def find_merge_candidates
       to_merge = Set.new
       all_source_clients.each do |first_name, last_name, ssn, dob, dest_id|
@@ -103,7 +108,7 @@ module GrdaWarehouse::Tasks
         matches_dob = []
         matches_ssn = []
         if first_name && last_name
-          key = [first_name.downcase, last_name.downcase]
+          key = [first_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), last_name.downcase.strip.gsub(/[^a-z0-9]/i, '')]
           matches_name += source_clients_grouped_by_name[key].map(&:last).uniq - [dest_id]
         end
         if valid_social?(ssn)
@@ -134,7 +139,12 @@ module GrdaWarehouse::Tasks
     end
 
     def all_source_clients
-      @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.pluck(:FirstName, :LastName, :SSN, :DOB, wc_t[:destination_id].to_sql)
+      @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.
+        pluck(:FirstName, :LastName, :SSN, :DOB, wc_t[:destination_id].to_sql).
+        map do |first_name, last_name, ssn, dob, id|
+          [first_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), last_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), ssn, dob, id]
+        end
+
     end
 
     # figure out who doesn't yet have an entry in warehouse clients

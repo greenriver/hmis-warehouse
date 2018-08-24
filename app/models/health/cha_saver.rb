@@ -11,7 +11,7 @@ module Health
 
       @cha.completed_at = Time.current if @complete
       @cha.reviewed_by = @user if @reviewed
-      # if they check the checkbox 
+      # if they check the checkbox
       # and then uncheck before hitting save button
       # some of these values were sticking around
       # clear everything
@@ -35,7 +35,7 @@ module Health
       @cha.class.transaction do
         @cha.completed_at = nil unless @complete
         @cha.save!
-        if @complete || @reviewed
+        if @complete && @reviewed
           @qualifying_activity.source_id = @cha.id
           @qualifying_activity.save
         end

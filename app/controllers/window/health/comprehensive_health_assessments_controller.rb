@@ -28,7 +28,7 @@ module Window::Health
     def update
       @cha.assign_attributes(form_params)
       Health::ChaSaver.new(cha: @cha, user: current_user, complete: completed?, reviewed: reviewed?).update
-      respond_with @cha, location: polymorphic_path(careplans_path_generator)
+      respond_with @cha, location: polymorphic_path(careplans_path_generator) unless request.xhr?
     end
 
     def edit

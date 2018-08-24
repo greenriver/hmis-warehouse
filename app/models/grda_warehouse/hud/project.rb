@@ -509,16 +509,17 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace ProjectID with the value of id
     # and OrganizationID with the id of the related organization
     def self.to_csv(scope:, override_project_type:)
-      attributes = self.hud_csv_headers
+      attributes = self.hud_csv_headers.dup
       headers = attributes.clone
-      attributes[attributes.index('ProjectID')] = 'id'
-      attributes[attributes.index('OrganizationID')] = 'organization.id'
+      attributes[attributes.index(:ProjectID)] = :id
+      attributes[attributes.index(:OrganizationID)] = 'organization.id'
 
       CSV.generate(headers: true) do |csv|
         csv << headers
 
         scope.each do |i|
           csv << attributes.map do |attr|
+            attr = attr.to_s
             # we need to grab the appropriate id from the related organization
             if attr.include?('.')
               obj, meth = attr.split('.')

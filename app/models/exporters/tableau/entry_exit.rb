@@ -35,7 +35,7 @@ module Exporters::Tableau::EntryExit
         prov_id:                          she_t[:project_name], # in use
         _prov_id:                         she_t[:project_id], # in use
         prog_type:                        she_t[model.project_type_column], # in use
-        coc_code:                         p_t[:CoCCode], # in use
+        coc_code:                         pc_t[:CoCCode], # in use
         entry_exit_entry_date:            she_t[:first_date_in_program], # in use
         entry_exit_exit_date:             she_t[:last_date_in_program], # in use
         client_age_at_entry:              she_t[:age], # in use
@@ -77,8 +77,8 @@ module Exporters::Tableau::EntryExit
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
         joins( enrollment: :client).
-        includes(enrollment: [:exit, :enrollment_coc_at_entry, :project]).
-        references(enrollment: [:exit, :enrollment_coc_at_entry, :project]).
+        includes(enrollment: [:exit, :enrollment_coc_at_entry, project: :project_cocs]).
+        references(enrollment: [:exit, :enrollment_coc_at_entry, project: :project_cocs]).
         # for aesthetics
         order( she_t[:client_id].asc ).
         order( e_t[:id].asc ).
@@ -149,7 +149,12 @@ module Exporters::Tableau::EntryExit
           when :hh_config
             value == 't' ? 'Single' : 'Family'
           when :hh_uid
-            "#{value}_#{row['_prov_id']}_#{row['data_source']}"
+            # ServicePoint tends to send along a new HouseholdID for every enrollment, we'll collapse those for individuals
+            if row['hh_config'] == 't'
+              "c_#{row['client_uid']}"
+            else
+              "#{value}_#{row['data_source']}"
+            end
           # when :rel_to_hoh
           #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id

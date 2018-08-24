@@ -255,6 +255,7 @@ SqlServerBase.connection.execute (<<~SQL);
     create index enrollment_export_id ON [hmis_Enrollment] ([ExportID]);
     create index index_Enrollment_on_PersonalID ON [hmis_Enrollment] ([PersonalID]);
     create index index_Enrollment_on_ProjectID ON [hmis_Enrollment] ([ProjectID]);
+    create index index_Enrollment_on_HouseholdID ON [hmis_Enrollment] ([HouseholdID]);
     create unique index unk_Enrollment ON [hmis_Enrollment] ([EnrollmentID], [PersonalID]);
 
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_EnrollmentCoC' AND xtype='U')

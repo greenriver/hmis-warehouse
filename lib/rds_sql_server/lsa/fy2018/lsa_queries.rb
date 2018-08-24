@@ -114,11 +114,61 @@ SqlServerBase.connection.execute (<<~SQL);
     later.GeographyID is null
 
   SQL
+
 SqlServerBase.connection.execute (<<~SQL);
   /*************************************************************************
   4.7 Get Active Household IDs
   **********************************************************************/
+
   delete from active_Household
+
+  insert into active_Household (HouseholdID, HoHID, MoveInDate
+    , ProjectID, ProjectType, TrackingMethod)
+  select HouseholdID, HoHID, MoveInDate, ProjectID, ProjectType, TrackingMethod
+  from
+  (select ROW_NUMBER() over(partition by HouseholdID order by InformationDate desc) AS "row_number", HouseholdID, HoHID, MoveInDate, ProjectID, ProjectType, TrackingMethod
+  from
+  (select distinct hn.HouseholdID as HouseholdID
+  , coalesce((select min(PersonalID)
+      from hmis_Enrollment
+      where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1)
+    , (select min(PersonalID)
+      from hmis_Enrollment
+      where HouseholdID = hn.HouseholdID and RelationshipToHoH <> 1)
+    , hn.PersonalID) as HoHID
+  , case when p.ProjectType in (3,13) then
+      (select min(MoveInDate)
+      from hmis_Enrollment
+      where HouseholdID = hn.HouseholdID) else null end as MoveInDate
+  , p.ProjectID, p.ProjectType, p.TrackingMethod,
+  (select top 1 coc.InformationDate
+    from hmis_EnrollmentCoC coc
+    where coc.HouseholdID = hn.HouseholdID
+      and coc.InformationDate <= rpt.ReportEnd
+      and coc.CoCCode = rpt.ReportCoC
+    order by coc.InformationDate desc) as InformationDate
+from lsa_Report rpt
+inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
+inner join lsa_Project p on p.ProjectID = hn.ProjectID
+left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
+  and x.ExitDate <= rpt.ReportEnd
+left outer join hmis_Services bn on bn.EnrollmentID = hn.EnrollmentID
+  and bn.DateProvided between rpt.ReportStart and rpt.ReportEnd
+  and bn.RecordType = 200
+where ((x.ExitDate > rpt.ReportStart and x.ExitDate > hn.EntryDate)
+    or x.ExitDate is null)
+  and p.ProjectType in (1,2,3,8,13)
+  and p.ContinuumProject = 1
+  and (coalesce(p.TrackingMethod, 0) <> 3 or bn.DateProvided is not null)
+  and (select top 1 coc.CoCCode
+    from hmis_EnrollmentCoC coc
+    where coc.EnrollmentID = hn.EnrollmentID
+      and coc.InformationDate <= rpt.ReportEnd
+    order by coc.InformationDate desc) = rpt.ReportCoC) as candidates
+  ) as ordered_candidates
+  where row_number = 1
+  /*
+   delete from active_Household
 
   insert into active_Household (HouseholdID, HoHID, MoveInDate
     , ProjectID, ProjectType, TrackingMethod)
@@ -128,7 +178,7 @@ SqlServerBase.connection.execute (<<~SQL);
         where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1)
       , (select min(PersonalID)
         from hmis_Enrollment
-        where HouseholdID = hn.HouseholdID and RelationshipToHoH = 1))
+        where HouseholdID = hn.HouseholdID and RelationshipToHoH <> 1))
     , case when p.ProjectType in (3,13) then
         (select min(MoveInDate)
         from hmis_Enrollment
@@ -149,10 +199,10 @@ SqlServerBase.connection.execute (<<~SQL);
     and (coalesce(p.TrackingMethod, 0) <> 3 or bn.DateProvided is not null)
     and (select top 1 coc.CoCCode
       from hmis_EnrollmentCoC coc
-      where coc.EnrollmentID = hn.EnrollmentID
+      where coc.HouseholdID = hn.HouseholdID
         and coc.InformationDate <= rpt.ReportEnd
       order by coc.InformationDate desc) = rpt.ReportCoC
-
+*/
   SQL
 SqlServerBase.connection.execute (<<~SQL);
   /*************************************************************************
@@ -1816,6 +1866,7 @@ SqlServerBase.connection.execute (<<~SQL);
   from lsa_Report rpt
 
   SQL
+
 SqlServerBase.connection.execute (<<~SQL);
   /*****************************************************************
   4.40 Get Enrollments Relevant To Exit Cohorts
@@ -3652,6 +3703,7 @@ SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   4.66 Set LSAReport Data Quality Values for Report Period
   **********************************************************************/
+  -- CHANGED EAA
   update rpt
     set UnduplicatedClient1 = (select count(distinct lp.PersonalID)
         from tmp_Person lp
@@ -3826,13 +3878,29 @@ SqlServerBase.connection.execute (<<~SQL);
         where lp.ReportID = rpt.ReportID
           and n.ExitDate is not null
           and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-    , NotOneHoH1 = coalesce((select count(distinct an.HouseholdID)
-        from tmp_Person lp
-        inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-        inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-        where lp.ReportID = rpt.ReportID
-        group by an.HouseholdID
-        having sum(case when hn.RelationshipToHoH = 1 then 1 else 0 end) <> 1), 0)
+    , NotOneHoH1 = select
+      -- count of households with more than one client marked as HoH
+      (select count(household_count)
+      from (
+          select count(distinct an.HouseholdID) as household_count
+          from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+          where lp.ReportID = rpt.ReportID and hn.RelationshipToHoH = 1
+          group by an.HouseholdID
+          having count(distinct an.PersonalID) > 1
+      ) as more_than_one)
+      +
+      -- count of households with no client marked as HoH
+      (select count(household_count)
+      from (
+          select count(distinct an.HouseholdID) as household_count
+          from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+          where lp.ReportID  = rpt.ReportID
+          group by an.HouseholdID having (sum(case when hn.RelationshipToHoH = 1 then 1 else 0 end) = 0)
+      ) as less_than_one)
     , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
         from tmp_Person lp
         inner join active_Enrollment n on n.PersonalID = lp.PersonalID
@@ -3848,11 +3916,16 @@ SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   4.67 Get Relevant Enrollments for Three Year Data Quality Checks
   **********************************************************************/
+  -- CHANGED EAA
   delete from dq_Enrollment
   insert into dq_Enrollment (EnrollmentID, PersonalID, HouseholdID, RelationshipToHoH
     , ProjectType, EntryDate, MoveInDate, ExitDate, Adult, SSNValid)
-
-  select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
+  select EnrollmentID, PersonalID, HouseholdID, RelationshipToHoH
+    , ProjectType, EntryDate, MoveInDate, ExitDate, Adult, SSNValid
+  from
+  (select ROW_NUMBER() over(partition by EnrollmentID order by Adult asc, SSNValid asc) AS "row_number", EnrollmentID, PersonalID, HouseholdID, RelationshipToHoH, ProjectType, EntryDate, MoveInDate, ExitDate , Adult, SSNValid
+  from
+  (select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
     , p.ProjectType, n.EntryDate, hhinfo.MoveInDate, ExitDate
     , case when c.DOBDataQuality in (8,9)
       or c.DOB is null
@@ -3863,7 +3936,7 @@ SqlServerBase.connection.execute (<<~SQL);
       or c.DOBDataQuality is null
       or c.DOBDataQuality not in (1,2) then 99
     when dateadd(yy, 18, c.DOB) <= n.EntryDate then 1
-    else 0 end
+    else 0 end as Adult
   , case when c.SSNDataQuality in (8,9) then null
       when SUBSTRING(c.SSN,1,3) in ('000','666')
           or LEN(c.SSN) <> 9
@@ -3875,7 +3948,7 @@ SqlServerBase.connection.execute (<<~SQL);
           or left(c.SSN,1) >= '9'
           or c.SSN in ('123456789','111111111','222222222','333333333','444444444'
               ,'555555555','777777777','888888888')
-        then 0 else 1 end
+        then 0 else 1 end as SSNValid
   from lsa_report rpt
   inner join hmis_Enrollment n on n.EntryDate <= rpt.ReportEnd
   inner join hmis_Project p on p.ProjectID = n.ProjectID
@@ -3890,13 +3963,16 @@ SqlServerBase.connection.execute (<<~SQL);
       and coc.CoCCode = rpt.ReportCoC
     where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
     group by hh.HouseholdID
-    ) hhinfo on hhinfo.HouseholdID = n.HouseholdID
+    ) hhinfo on hhinfo.HouseholdID = n.HouseholdID) as candidates
+  ) as ordered_candidates
+  where row_number = 1
 
   SQL
 SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   4.68 Set LSAReport Data Quality Values for Three Year Period
   **********************************************************************/
+  -- CHANGED EAA
   update rpt
     set UnduplicatedClient3 = (select count(distinct n.PersonalID)
         from dq_Enrollment n)
@@ -4029,11 +4105,26 @@ SqlServerBase.connection.execute (<<~SQL);
         inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
         where n.ExitDate is not null
           and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-    , NotOneHoH3 = coalesce((select count(distinct n.HouseholdID)
-        from dq_Enrollment n
-        inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
-        group by n.HouseholdID
-        having sum(case when n.RelationshipToHoH = 1 then 1 else 0 end) <> 1), 0)
+    , NotOneHoH3 = select
+        -- count of households with more than one client marked as HoH
+        (select count(household_count)
+        from (
+            select count(distinct n.HouseholdID) as household_count
+            from dq_Enrollment n
+              inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
+            where n.RelationshipToHoH = 1
+            group by n.HouseholdID
+            having count(distinct n.PersonalID) > 1
+        ) as more_than_one)
+        +
+        -- count of households with no client marked as HoH
+        (select count(household_count)
+        from (
+            select count(distinct n.HouseholdID) as household_count
+            from dq_Enrollment n
+              inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
+            group by n.HouseholdID having (sum(case when n.RelationshipToHoH = 1 then 1 else 0 end) = 0)
+        ) as less_than_one)
     , MoveInDate3 = coalesce((select count(distinct n.EnrollmentID)
         from dq_Enrollment n
         inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
@@ -4391,446 +4482,448 @@ SqlServerBase.connection.execute (<<~SQL);
 
   SQL
 
-SqlServerBase.connection.execute (<<~SQL);
-  /**********************************************************************
-  5.2 Select LSA Summary
-  (Optional; no display of LSA summary data is required in HMIS applications at this time.)
-  **********************************************************************/
-  --active cohort
-  select 'All' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID)
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID)
-  from lsa_Report rpt
-  union all
-  select 'AO households' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and (cast(HHTypeEST as varchar) like '1%'
-          or cast(HHTypeRRH as varchar) like '1%'
-          or cast(HHTypePSH as varchar) like '1%'))
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 1)
-  from lsa_Report rpt
-  union all
-  select 'AC households' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and (cast(HHTypeEST as varchar) like '%2%'
-          or cast(HHTypeRRH as varchar) like '%2%'
-          or cast(HHTypePSH as varchar) like '%2%'))
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and (cast(HHTypeEST as varchar) like '%3%'
-          or cast(HHTypeRRH as varchar) like '%3%'
-          or cast(HHTypePSH as varchar) like '%3%'))
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 3)
-  from lsa_Report rpt
-  union all
-  select 'All in ES/SH/TH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and lp.HHTypeEST <> -1)
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.ESTDays > 0)
-  from lsa_Report rpt
-  union all
-  select 'AO households in ES/SH/TH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypeEST as varchar) like '1%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 1
-        and lh.ESTStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'AC households in ES/SH/TH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypeEST as varchar) like '%2%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 2
-        and lh.ESTStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households in ES/SH/TH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypeEST as varchar) like '%3%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 3
-        and lh.ESTStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'All in RRH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and lp.HHTypeRRH <> -1)
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.RRHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'AO households in RRH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypeRRH as varchar) like '1%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 1
-        and lh.RRHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'AC households in RRH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypeRRH as varchar) like '%2%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 2
-        and lh.RRHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households in RRH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypeRRH as varchar) like '%3%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 3
-        and lh.RRHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'All in PSH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and lp.HHTypePSH <> -1)
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.PSHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'AO households in PSH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypePSH as varchar) like '1%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 1
-        and lh.PSHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'AC households in PSH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypePSH as varchar) like '%2%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 2
-        and lh.PSHStatus > 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households in PSH' as Category
-  , People = (select coalesce (sum(lp.RowTotal), 0)
-      from lsa_Person lp
-      where lp.ReportID = rpt.ReportID
-        and cast(lp.HHTypePSH as varchar) like '%3%')
-  , Households = (select coalesce (sum(lh.RowTotal), 0)
-      from lsa_Household lh
-      where lh.ReportID = rpt.ReportID
-        and lh.HHType = 3
-        and lh.PSHStatus > 2)
-  from lsa_Report rpt
+# summary_data = SqlServerBase.connection.exec_query (<<~SQL);
+#   /**********************************************************************
+#   5.2 Select LSA Summary
+#   (Optional; no display of LSA summary data is required in HMIS applications at this time.)
+#   **********************************************************************/
+#   --active cohort
+#   select 'All' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID)
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and (cast(HHTypeEST as varchar) like '1%'
+#           or cast(HHTypeRRH as varchar) like '1%'
+#           or cast(HHTypePSH as varchar) like '1%'))
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and (cast(HHTypeEST as varchar) like '%2%'
+#           or cast(HHTypeRRH as varchar) like '%2%'
+#           or cast(HHTypePSH as varchar) like '%2%'))
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and (cast(HHTypeEST as varchar) like '%3%'
+#           or cast(HHTypeRRH as varchar) like '%3%'
+#           or cast(HHTypePSH as varchar) like '%3%'))
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 3)
+#   from lsa_Report rpt
+#   union all
+#   select 'All in ES/SH/TH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and lp.HHTypeEST <> -1)
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.ESTDays > 0)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households in ES/SH/TH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypeEST as varchar) like '1%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 1
+#         and lh.ESTStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households in ES/SH/TH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypeEST as varchar) like '%2%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 2
+#         and lh.ESTStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households in ES/SH/TH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypeEST as varchar) like '%3%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 3
+#         and lh.ESTStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'All in RRH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and lp.HHTypeRRH <> -1)
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.RRHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households in RRH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypeRRH as varchar) like '1%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 1
+#         and lh.RRHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households in RRH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypeRRH as varchar) like '%2%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 2
+#         and lh.RRHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households in RRH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypeRRH as varchar) like '%3%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 3
+#         and lh.RRHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'All in PSH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and lp.HHTypePSH <> -1)
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.PSHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households in PSH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypePSH as varchar) like '1%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 1
+#         and lh.PSHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households in PSH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypePSH as varchar) like '%2%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 2
+#         and lh.PSHStatus > 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households in PSH' as Category
+#   , People = (select coalesce (sum(lp.RowTotal), 0)
+#       from lsa_Person lp
+#       where lp.ReportID = rpt.ReportID
+#         and cast(lp.HHTypePSH as varchar) like '%3%')
+#   , Households = (select coalesce (sum(lh.RowTotal), 0)
+#       from lsa_Household lh
+#       where lh.ReportID = rpt.ReportID
+#         and lh.HHType = 3
+#         and lh.PSHStatus > 2)
+#   from lsa_Report rpt
 
-  --exit cohorts
-  select 'All - Report Period - 2 years' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -2)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.ReturnTime <> -1)
-  from lsa_Report rpt
-  union all
-  select 'AO households - Report Period - 2 years' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -2
-        and lx.HHType = 1)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.HHType = 1)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.ReturnTime <> -1
-        and lx.HHType = 1)
-  from lsa_Report rpt
-  union all
-  select 'AC households - Report Period - 2 years' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -2
-        and lx.HHType = 2)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.HHType = 2)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.ReturnTime <> -1
-        and lx.HHType = 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households - Report Period - 2 years' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -2
-        and lx.HHType = 3)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.HHType = 3)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -2
-        and lx.ReturnTime <> -1
-        and lx.HHType = 3)
-  from lsa_Report rpt
-  union all
-  select 'All - Report Period - 1 year' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -1)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.ReturnTime <> -1)
-  from lsa_Report rpt
-  union all
-  select 'AO households - Report Period - 1 year' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -1
-        and lx.HHType = 1)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.HHType = 1)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.ReturnTime <> -1
-        and lx.HHType = 1)
-  from lsa_Report rpt
-  union all
-  select 'AC households - Report Period - 1 year' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -1
-        and lx.HHType = 2)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.HHType = 2)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.ReturnTime <> -1
-        and lx.HHType = 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households - Report Period - 1 year' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = -1
-        and lx.HHType = 3)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.HHType = 3)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = -1
-        and lx.ReturnTime <> -1
-        and lx.HHType = 3)
-  from lsa_Report rpt
-  union all
-  select 'All - Report Period First Six Months' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = 0)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.ReturnTime <> -1)
-  from lsa_Report rpt
-  union all
-  select 'AO households - Report Period First Six Months' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = 0
-        and lx.HHType = 1)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.HHType = 1)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.ReturnTime <> -1
-        and lx.HHType = 1)
-  from lsa_Report rpt
-  union all
-  select 'AC households - Report Period First Six Months' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = 0
-        and lx.HHType = 2)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.HHType = 2)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.ReturnTime <> -1
-        and lx.HHType = 2)
-  from lsa_Report rpt
-  union all
-  select 'CO households - Report Period - 1 year' as Category
-  , Exits = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.Cohort = 0
-        and lx.HHType = 3)
-  , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.HHType = 3)
-  , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
-      from lsa_Exit lx
-      where lx.ReportID = rpt.ReportID
-        and lx.ExitTo between 1 and 6
-        and lx.Cohort = 0
-        and lx.ReturnTime <> -1
-        and lx.HHType = 3)
-  from lsa_Report rpt
+#   --exit cohorts
+#   select 'All - Report Period - 2 years' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -2)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.ReturnTime <> -1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households - Report Period - 2 years' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -2
+#         and lx.HHType = 1)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.HHType = 1)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households - Report Period - 2 years' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -2
+#         and lx.HHType = 2)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.HHType = 2)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households - Report Period - 2 years' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -2
+#         and lx.HHType = 3)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.HHType = 3)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -2
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 3)
+#   from lsa_Report rpt
+#   union all
+#   select 'All - Report Period - 1 year' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -1)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.ReturnTime <> -1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households - Report Period - 1 year' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -1
+#         and lx.HHType = 1)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.HHType = 1)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households - Report Period - 1 year' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -1
+#         and lx.HHType = 2)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.HHType = 2)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households - Report Period - 1 year' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = -1
+#         and lx.HHType = 3)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.HHType = 3)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = -1
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 3)
+#   from lsa_Report rpt
+#   union all
+#   select 'All - Report Period First Six Months' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = 0)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.ReturnTime <> -1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AO households - Report Period First Six Months' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = 0
+#         and lx.HHType = 1)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.HHType = 1)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 1)
+#   from lsa_Report rpt
+#   union all
+#   select 'AC households - Report Period First Six Months' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = 0
+#         and lx.HHType = 2)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.HHType = 2)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 2)
+#   from lsa_Report rpt
+#   union all
+#   select 'CO households - Report Period - 1 year' as Category
+#   , Exits = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.Cohort = 0
+#         and lx.HHType = 3)
+#   , ExitsToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.HHType = 3)
+#   , ReturnAfterExitToPH = (select coalesce (sum(lx.RowTotal), 0)
+#       from lsa_Exit lx
+#       where lx.ReportID = rpt.ReportID
+#         and lx.ExitTo between 1 and 6
+#         and lx.Cohort = 0
+#         and lx.ReturnTime <> -1
+#         and lx.HHType = 3)
+#   from lsa_Report rpt
 
-SQL
+# SQL
+# @report.results = {summary: summary_data.to_a}
+
 SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   5.3 Create Stored Procedure – Person-Level Demographics Report Output

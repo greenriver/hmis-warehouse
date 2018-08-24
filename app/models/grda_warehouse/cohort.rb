@@ -75,6 +75,10 @@ module GrdaWarehouse
       @at ||= GrdaWarehouse::CohortClient.arel_table
     end
 
+    def sanitized_name
+      name.gsub(/[\/\\]/, '-')
+    end
+
     def active_scope
       @client_search_scope.where(
           at[:housed_date].eq(nil).

@@ -1,5 +1,6 @@
 module WarehouseReports
   class ConfidentialTouchPointExportsController < TouchPointExportsController
+    include WarehouseReportAuthorization
     before_action :require_can_administer_health!
 
     def index

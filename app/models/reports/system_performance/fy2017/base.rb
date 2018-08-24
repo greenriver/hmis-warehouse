@@ -110,7 +110,7 @@ module Reports::SystemPerformance::Fy2017
 
     def race options
       if options['race_code'].present?
-        race = self.class.available_races.invert[options['race_code']]
+        race = self.class.available_races.invert[options['race_code']&.to_sym]
         return "; Race: #{race}"
       else
         ''

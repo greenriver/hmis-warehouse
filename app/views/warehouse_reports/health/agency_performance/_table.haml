@@ -42,15 +42,16 @@
         %td.text-right
           - title = "#{pluralize(agency.without_qualifying_activities_within_range.size, 'Patient')} without Qualifying Activities in Chosen Date Range"
           = link_to_if permission, agency.without_qualifying_activities_within_range.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_qualifying_activities_within_range), data: { loads_in_pjax_modal: true }
-  %tfoot
-    %tr
-      %td= @totals.name
-      %td.text-right= @totals.patient_referrals.size
-      %td.text-right= @totals.consented_patients.size
-      %td.text-right= @totals.with_chas.size
-      %td.text-right= @totals.without_chas.size
-      %td.text-right= @totals.with_ssms.size
-      %td.text-right= @totals.without_ssms.size
-      %td.text-right= @totals.with_signed_careplans.size
-      %td.text-right= @totals.without_signed_careplans.size
-      %td.text-right= @totals.without_qualifying_activities_within_range.size
+  - if @agencies.size > 1
+    %tfoot
+      %tr
+        %td= @totals.name
+        %td.text-right= @totals.patient_referrals.size
+        %td.text-right= @totals.consented_patients.size
+        %td.text-right= @totals.with_chas.size
+        %td.text-right= @totals.without_chas.size
+        %td.text-right= @totals.with_ssms.size
+        %td.text-right= @totals.without_ssms.size
+        %td.text-right= @totals.with_signed_careplans.size
+        %td.text-right= @totals.without_signed_careplans.size
+        %td.text-right= @totals.without_qualifying_activities_within_range.size
