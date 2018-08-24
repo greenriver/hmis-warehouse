@@ -7,15 +7,5 @@ module CohortColumns
       'Risk of becoming chronic'
     end
 
-    def available_options
-      [
-        '', 
-        'Chronic',
-        'Probable Chronic',
-        'At risk 180+ days',
-        'At risk 90-179 days',
-      ]
-    end
-
   end
 end

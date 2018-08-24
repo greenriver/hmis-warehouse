@@ -1073,6 +1073,15 @@ ActiveRecord::Schema.define(version: 20180815162429) do
   add_index "cohort_clients", ["cohort_id"], name: "index_cohort_clients_on_cohort_id", using: :btree
   add_index "cohort_clients", ["deleted_at"], name: "index_cohort_clients_on_deleted_at", using: :btree
 
+  create_table "cohort_column_options", force: :cascade do |t|
+    t.string   "cohort_column",                null: false
+    t.integer  "weight"
+    t.string   "value"
+    t.boolean  "active",        default: true
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "cohorts", force: :cascade do |t|
     t.string   "name",                                      null: false
     t.datetime "created_at",                                null: false

@@ -1,7 +1,7 @@
 module CohortColumns
   class Select < Base
 
-
+    
     def default_input_type
       :select2
     end
@@ -21,5 +21,12 @@ module CohortColumns
     def display_read_only user
       value(cohort_client)
     end
+    
+    def available_options
+      Rails.cache.fetch("available_options_for_#{self.column}", expires_in: 5.minutes) do
+        GrdaWarehouse::CohortColumnOption.where(cohort_column: self.column, active: true).order(value: :asc).pluck(:value) 
+      end
+    end
+    
   end
 end

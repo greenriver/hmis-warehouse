@@ -1,0 +1,12 @@
+= f.error_notification
+
+.row
+  .col-sm-6
+    .form-inputs
+      = f.input :cohort_column, collection: @cohort_column_option.available_cohort_columns, include_blank: "Choose Column"
+      = f.input :value
+      = f.input :active, label: "Active?"
+                
+
+    .form-actions
+      = f.button :submit, "Submit", class: 'btn btn-primary'
