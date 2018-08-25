@@ -68,8 +68,7 @@ module ReportGenerators::Lsa::Fy2018
           attach_report_zip()
           remove_report_files()
         ensure
-          # Commented for debugging
-          # remove_temporary_rds()
+          remove_temporary_rds()
         end
         finish_report()
       else
