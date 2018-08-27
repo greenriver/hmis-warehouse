@@ -55,7 +55,8 @@ Rails.application.routes.draw do
             get :signature
           end
         end
-
+        resources :pcp_signature_requests, except: [:index]
+        resources :aco_signature_requests, except: [:index]
 
         get :self_sufficiency_assessment
         get :print

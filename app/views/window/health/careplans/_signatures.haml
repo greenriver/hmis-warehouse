@@ -15,6 +15,12 @@
   - if careplan.provider_signed_on
     = checkmark(true)
     PCP Signature (#{careplan.provider_signed_on&.to_date})
+  - elsif careplan.pcp_signature_requests.outstanding.exists?
+    - oustanding_pcp_signature_request = careplan.pcp_signature_requests.outstanding.first
+    - if oustanding_pcp_signature_request.sent_at
+      PCP signature requested on #{oustanding_pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} from #{oustanding_pcp_signature_request.to_name} by #{oustanding_pcp_signature_request.requestor_name}.
+    - else
+      PCP signature request queued to send.
   - else
     .btn-group
       %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
@@ -22,7 +28,8 @@
         %span.caret
       %ul.dropdown-menu
         %li
-          %a{href: '#'}
+          - url = polymorphic_path([:new] + careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id})
+          = link_to url, data: {loads_in_pjax_modal: true} do
             Send to PCP via email
         %li
           %a{href: '#'}

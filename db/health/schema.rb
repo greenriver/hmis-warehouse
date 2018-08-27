@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180810153634) do
+ActiveRecord::Schema.define(version: 20180827181354) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 20180810153634) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "deleted_at"
+    t.string   "acceptable_domains"
   end
 
   create_table "agency_patient_referrals", force: :cascade do |t|
@@ -883,6 +884,27 @@ ActiveRecord::Schema.define(version: 20180810153634) do
   end
 
   add_index "signable_documents", ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree
+
+  create_table "signature_requests", force: :cascade do |t|
+    t.string   "type",            null: false
+    t.integer  "patient_id",      null: false
+    t.integer  "careplan_id",     null: false
+    t.string   "to_email",        null: false
+    t.string   "to_name",         null: false
+    t.string   "requestor_email", null: false
+    t.string   "requestor_name",  null: false
+    t.datetime "expires_at",      null: false
+    t.datetime "sent_at"
+    t.datetime "completed_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+  end
+
+  add_index "signature_requests", ["careplan_id"], name: "index_signature_requests_on_careplan_id", using: :btree
+  add_index "signature_requests", ["deleted_at"], name: "index_signature_requests_on_deleted_at", using: :btree
+  add_index "signature_requests", ["patient_id"], name: "index_signature_requests_on_patient_id", using: :btree
+  add_index "signature_requests", ["type"], name: "index_signature_requests_on_type", using: :btree
 
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false

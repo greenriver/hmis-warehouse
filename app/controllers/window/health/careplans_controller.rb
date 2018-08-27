@@ -31,13 +31,18 @@ module Window::Health
           if cp.primary_signable_document.present?
 
             doc = cp.primary_signable_document
-
-            # This is trying to ensure we run the same thing here as we do for the callback from HS
-            json = {signature_request: doc.fetch_signature_request}.to_json
-            response = HelloSignController::CallbackResponse.new(json)
+            begin
+              # This is trying to ensure we run the same thing here as we do for the callback from HS
+              json = {signature_request: doc.fetch_signature_request}.to_json
+              response = HelloSignController::CallbackResponse.new(json)
+            rescue HelloSign::Error::NotFound
+              Rails.logger.fatal "Ignoring a document we couldn't track down."
+            end
             begin
               response.process!
             rescue ActiveRecord::RecordNotFound
+              Rails.logger.fatal "Ignoring a document we couldn't track down."
+            rescue Exception => e
               Rails.logger.fatal "Ignoring a document we couldn't track down."
             end
 

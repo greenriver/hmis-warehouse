@@ -19,6 +19,9 @@ module Health
     has_many :team_members, through: :patient, class_name: Health::Team::Member.name
     has_many :hpc_goals, through: :patient, class_name: Health::Goal::Hpc.name
 
+    has_many :pcp_signature_requests, class_name: Health::SignatureRequests::PcpSignatureRequest.name
+    has_many :aco_signature_requests, class_name: Health::SignatureRequests::AcoSignatureRequest.name
+
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
     belongs_to :representative, class_name: Health::Team::Member.name
@@ -48,7 +51,7 @@ module Health
       where(status: :rejected)
     end
     scope :sorted, -> do
-      order(updated_at: :desc)
+      order(initial_date: :desc, updated_at: :desc)
     end
 
     scope :pcp_signed, -> do
