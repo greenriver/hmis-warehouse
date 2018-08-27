@@ -58,7 +58,6 @@ module Health
 
     def run!
       start_report
-      mark_qualifying_activites_as_submitted
       @isa_control_number = self.class.next_isa_control_number
       @group_control_number = self.class.next_group_control_number
       @st_control_number = self.class.next_st_control_number
@@ -90,7 +89,7 @@ module Health
       end
       self.claims_file += "#{trailer}\n"
       self.claims_file.upcase!
-
+      mark_qualifying_activites_as_submitted
       complete_report
     end
 
