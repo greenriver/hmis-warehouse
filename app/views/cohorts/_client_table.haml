@@ -1,6 +1,3 @@
-.table-wrapper
-  .cohort-client__table.jGrid.ag-theme-balham
-
 - size = :md
 - if params[:size] && [:md, :lg, :xl].include?(params[:size].to_sym)
   - size = params[:size].to_sym
@@ -21,4 +18,4 @@
           %a.disabled.jSearchForward.icon-arrow-right.btn.btn-sm.btn-secondary{href: '#forward'}
 
 
-  .cohort-client__table.datatable{class: size}
+  .cohort-client__table.ag-theme-balham.datatable{class: size}

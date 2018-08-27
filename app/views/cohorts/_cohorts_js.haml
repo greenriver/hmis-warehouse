@@ -1,35 +1,12 @@
 - if @cohort.cohort_clients.any?
   = content_for :page_js do
     :javascript
-      // specify the columns
-      var columnDefs = [
-        {headerName: "Make", field: "make"},
-        {headerName: "Model", field: "model"},
-        {headerName: "Price", field: "price"}
-      ];
-      // specify the data
-      var rowData = [
-        {make: "Toyota", model: "Celica", price: 35000},
-        {make: "Ford", model: "Mondeo", price: 32000},
-        {make: "Porsche", model: "Boxter", price: 72000}
-      ];
-      // let the grid know which columns and what data to use
-      var gridOptions = {
-        columnDefs: columnDefs,
-        rowData: rowData,
-        enableSorting: true,
-        enableFilter: true
-      };
-      // lookup the container we want the Grid to use
-      var eGridDiv = document.querySelector('.jGrid');
-      // create the grid passing in the div to use together with the columns & data we want to use
-      new agGrid.Grid(eGridDiv, gridOptions);
       (function($) {
         var cohort_options = {
           wrapper_selector: '.cohorts',
           table_selector: '.datatable',
           batch_size: 100,
-          static_column_count: #{@cohort.static_column_count + 1},
+          // static_column_count: #{@cohort.static_column_count + 1},
           client_count: #{@cohort.client_search_scope.count},
           sort_direction: '#{@cohort.default_sort_direction}',
           column_order: #{(@visible_columns.map(&:column)).to_json},
@@ -50,6 +27,6 @@
           search_actions_selector: '.jSearchActions',
           population: "#{@population}"
         }
-        //$('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
+        $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
 
       })(jQuery);

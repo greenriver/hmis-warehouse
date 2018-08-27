@@ -1,11 +1,9 @@
-#= require ./namespace
-
 class App.Cohorts.Cohort
   constructor: (options) ->
     @wrapper_selector = options['wrapper_selector']
     @table_selector = options['table_selector']
     @batch_size = options['batch_size']
-    @static_column_count = options['static_column_count']
+    # @static_column_count = options['static_column_count']
     @client_count = options['client_count']
     @sort_direction = options['sort_direction']
     @column_order = options['column_order']
@@ -35,33 +33,134 @@ class App.Cohorts.Cohort
     @current_page = 0
     @raw_data = []
 
-    @initialize_handsontable()
+    @initialize_grid()
 
     @load_pages()
-    @listen_for_page_resize()
+    @resize_columns()
+    # @listen_for_page_resize()
 
-  initialize_handsontable: () =>
+  initialize_grid: () =>
     direction = true
     if @sort_direction == 'desc'
       direction = false
     @initial_sort = {column: 1, sortOrder: direction}
     @current_sort = Object.assign({}, @initial_sort)
-    @add_sort_options()
-    @table = new Handsontable $(@table_selector)[0],
-      rowHeaders: true
-      colHeaders: @column_headers
-      correctFormat: true
-      dateFormat: 'll'
-      columns: @column_options
-      fixedColumnsLeft: @static_column_count
-      # manualColumnResize: @column_widths
-      manualColumnResize: true
-      rowHeights: 40
-      sortIndicator: true
-      search: true
-      comments: true
-      afterChange: @after_change
-      beforeChange: @before_change
+    @set_grid_column_headers()
+
+    @grid_options = {
+      columnDefs: @grid_column_headers,
+      enableSorting: true,
+      enableFilter: true,
+      singleClickEdit: true,
+      frameworkComponents:
+        htmlRenderer: @htmlRenderer,
+    }
+    @table = new agGrid.Grid($(@table_selector)[0], @grid_options)
+
+    # // specify the columns
+    #   var columnDefs = [
+    #     {headerName: "Make", field: "make"},
+    #     {headerName: "Model", field: "model"},
+    #     {headerName: "Price", field: "price"}
+    #   ];
+    #   // specify the data
+    #   var rowData = [
+    #     {make: "Toyota", model: "Celica", price: 35000},
+    #     {make: "Ford", model: "Mondeo", price: 32000},
+    #     {make: "Porsche", model: "Boxter", price: 72000}
+    #   ];
+    #   // let the grid know which columns and what data to use
+    #   var gridOptions = {
+    #     columnDefs: columnDefs,
+    #     rowData: rowData,
+    #     enableSorting: true,
+    #     enableFilter: true
+    #   };
+    #   // lookup the container we want the Grid to use
+    #   var eGridDiv = document.querySelector('.jGrid');
+    #   // create the grid passing in the div to use together with the columns & data we want to use
+    #   new agGrid.Grid(eGridDiv, gridOptions);
+    # @add_sort_options()
+    # @table = new Handsontable $(@table_selector)[0],
+    #   rowHeaders: true
+    #   colHeaders: @column_headers
+    #   correctFormat: true
+    #   dateFormat: 'll'
+    #   columns: @column_options
+    #   fixedColumnsLeft: @static_column_count
+    #   # manualColumnResize: @column_widths
+    #   manualColumnResize: true
+    #   rowHeights: 40
+    #   sortIndicator: true
+    #   search: true
+    #   comments: true
+    #   afterChange: @after_change
+    #   beforeChange: @before_change
+  resize_columns: =>
+    @grid_options.columnApi.autoSizeColumns(@grid_options.columnApi.getAllColumns())
+
+  set_grid_column_headers: =>
+    console.log(@column_headers)
+    @grid_column_headers = $.map @column_headers, (column) =>
+      header = {
+        headerName: column.headerName,
+        field: column.field,
+        editable: column.editable,
+        valueGetter: (params) ->
+          params.data[params.column.colId].value
+        onCellValueChanged: (params) ->
+          new_value = params.data[params.colDef.field]
+          old_value = params.oldValue
+          console.log 'changed', old_value, 'to', new_value
+      }
+      switch column.renderer
+        when 'checkbox'
+          header.cellRenderer = CheckboxCellRenderer
+        when 'date'
+          header.cellRenderer = DateCellRenderer
+        else
+          header.cellRenderer = (params) =>
+            params.getValue()
+
+      header.pinned = column.pinned if column.pinned?
+
+      switch column.renderer
+        when 'date'
+          header.cellEditor = DateCellEditor
+        when 'dropdown'
+          header.cellEditor = 'agSelectCellEditor'
+          header.cellEditorParams =
+            values: column.available_options,
+        when 'checkbox'
+          header.cellEditor = CheckboxCellEditor
+      if column.editable
+        header.editable = column.editable
+      else
+        header.editable = (params) ->
+          # console.log(params)
+          params.data[params.column.colId].editable
+
+      header
+
+  checkbox_renderer: (params) ->
+    console.log(params)
+    value = params.data[params.column.colId].value
+    editable = params.data[params.column.colId].editable
+    input = document.createElement("input")
+    input.type = "checkbox";
+    input.checked = params.value == true
+    input.disabled = params.editable == false
+    input
+
+    # console.log(input)
+
+    # html = '<input type="checkbox" value="1"'
+    # html += ' checked="checked" ' if value == true
+    # html += ' disabled="disabled" ' if editable == false
+    # html += ' />'
+    # html
+
+
 
   add_sort_options:  =>
     for column in @column_options
@@ -143,22 +242,30 @@ class App.Cohorts.Cohort
     @load_page().then(() =>
       # When we're all done fetching...
       $(@loading_selector).addClass('hidden')
-      @format_data_for_table()
+      # @format_data_for_table()
+      console.log @raw_data
+      @grid_options.api.setRowData(@raw_data)
+
+      # console.log(@table_data)
+
       # add the data to the table
-      @table.loadData(@raw_data)
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, @cell_metadata, @table)
-        columnSorting: @initial_sort
-      @enable_searching()
-      @refresh_rate = 10000
-      setInterval @check_for_new_data, @refresh_rate
+      # @table.loadData(@raw_data)
+      # @table.updateSettings
+      #   cells: (row, col, prop) =>
+      #     @format_cells(row, col, prop, @cell_metadata, @table)
+      #   columnSorting: @initial_sort
+      # @enable_searching()
+      # @refresh_rate = 10000
+      # setInterval @check_for_new_data, @refresh_rate
 
-      # console.log @raw_data
+      # # console.log @raw_data
 
-      @set_rank_order()
-      @table.render()
+      # @set_rank_order()
+      # @table.render()
     )
+
+  htmlRenderer: () ->
+    consol.log('html')
 
   format_cells: (row, col, prop, metadata, table) ->
     cellProperties ={}
@@ -206,9 +313,9 @@ class App.Cohorts.Cohort
     @table_data = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
         if row[column]['value'] == null
-          ''
+          {column: ''}
         else
-          row[column]['value']
+          {column: row[column]['value']}
       [client]
     @cell_metadata  = $.map @raw_data, (row) =>
       client = $.map @column_order, (column) =>
