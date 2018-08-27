@@ -111,7 +111,8 @@ class App.Cohorts.Cohort
         onCellValueChanged: (params) ->
           new_value = params.data[params.colDef.field]
           old_value = params.oldValue
-          console.log 'changed', old_value, 'to', new_value
+          cohort_client_id = params
+          console.log 'changed', old_value, 'to', new_value, params
       }
       switch column.renderer
         when 'checkbox'
