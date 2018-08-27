@@ -44,6 +44,9 @@ module Window::Health
       )
       if @signature_request.valid?
         @signature_request.save!
+        # TODO create signable document
+        # TODO queue email to PCP
+        # TODO view button to delete request
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
         render :new and return
