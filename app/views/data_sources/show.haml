@@ -84,7 +84,7 @@
                     - project = proj.object
                     %tr
                       %td
-                        .project__name.mb-2
+                        .project__name.mb-2{id: "project-#{project.id}"}
                           .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
                             .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
                               = HUD.project_type_brief project.ProjectType

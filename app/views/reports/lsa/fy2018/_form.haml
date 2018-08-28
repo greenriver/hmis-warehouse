@@ -12,7 +12,7 @@
     %tbody
       - @missing_projects.each do |project|
         %tr
-          %td= project[:project]
+          %td= link_to project[:project], data_source_path(project[:data_source_id], anchor: "project-#{project[:id]}")
           %th= ::HUD.project_type_brief project[:project_type]
           %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
           %td= yes_no(! @missing_data[:missing_geocode].include?(project))
