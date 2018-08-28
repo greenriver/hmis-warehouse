@@ -33,7 +33,7 @@ module Export::HMISSixOneOne::Shared
       # It is much faster to do the complicated query with correlated sub-queries once
       # and pluck the ids to conserve memory, and then go back and pull the correct records
       # by id, than it is to loop over batches that each have to re-calculate the sub-queries
-      ids = export_scope.pluck(:id)
+      ids = ids_to_export(export_scope: export_scope)
       ids.in_groups_of(100_000, false) do |id_group|
 
         batch = self.class.where(id: id_group).pluck(*columns)
@@ -46,6 +46,10 @@ module Export::HMISSixOneOne::Shared
         end
       end
     end
+  end
+
+  def ids_to_export export_scope:
+    export_scope.pluck(:id)
   end
 
   def reset_lookups

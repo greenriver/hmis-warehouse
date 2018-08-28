@@ -705,10 +705,10 @@ ActiveRecord::Schema.define(version: 20180810153634) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
+    t.datetime "deleted_at"
     t.integer  "data_source_id",           default: 1,     null: false
     t.date     "engagement_date"
     t.integer  "care_coordinator_id"
-    t.datetime "deleted_at"
     t.date     "death_date"
   end
 
