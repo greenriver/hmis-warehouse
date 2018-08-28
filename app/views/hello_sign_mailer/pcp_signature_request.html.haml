@@ -1,0 +1,11 @@
+Hello #{@name} --
+
+A Personal Care Treatment Plan has been created for one of your patients.
+Please click this link to review the plan and provide your signature:
+
+= link_to @url do
+  Click here to sign
+
+= @url
+
+If you're not #{@name} with email: #{@email}, please disregard this message.

@@ -12,4 +12,12 @@ class HelloSignMailer < DatabaseMailer
       subject: "Careplan Signature Requested"
     })
   end
+
+  def pcp_signature_request(doc:, email:, name:, careplan_id:, client_id: )
+    @url = signature_client_health_careplan_signable_document_url(client_id: client_id, careplan_id: careplan_id, id: @doc.id, email: @email, hash: @hash)
+    @doc = doc
+    @email = email
+    @name = name
+    @hash = @doc.signer_hash(email)
+  end
 end

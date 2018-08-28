@@ -1,5 +1,9 @@
 module Window::Health
   class PcpSignatureRequestsController < IndividualPatientController
+    include PjaxModalController
+    include WindowClientPathGenerator
+    include HealthCareplan
+    helper ChaHelper
 
     before_action :set_client
     before_action :set_hpc_patient
@@ -7,8 +11,6 @@ module Window::Health
     before_action :set_signature_request, only: [:edit, :destroy, :update]
     before_action :set_available_team_members, only: [:new, :create]
 
-    include PjaxModalController
-    include WindowClientPathGenerator
     def new
       @signature_request = signature_source.new
       @form_url = polymorphic_path(careplan_path_generator + [:pcp_signature_requests], {client_id: @client.id, careplan_id: @careplan.id})
@@ -44,13 +46,44 @@ module Window::Health
       )
       if @signature_request.valid?
         @signature_request.save!
-        # TODO create signable document
+        create_signable_document()
+        queue_pcp_email()
         # TODO queue email to PCP
         # TODO view button to delete request
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
         render :new and return
       end
+    end
+
+    def create_signable_document
+      @signers = []
+      @signers << { 'email': @signature_request.to_email, 'name': @signature_request.to_name }
+
+      @doc = @careplan.signable_documents.build(signers: @signers, primary: true, user_id: current_user.id)
+
+      @doc.pdf_content_to_upload = get_pdf
+
+      if @doc.valid?
+        @careplan.class.transaction do
+          @careplan.signable_documents.where.not(id: @doc.id).update_all(primary: false)
+          @doc.make_document_signable!
+        end
+
+        flash[:notice] = "Created a document (#{@doc.id}) for #{@doc.signers.map(&:email).join('; ')} to sign"
+      else
+        flash[:error] = "#{@doc.errors.full_messages.join('. ')}"
+      end
+    end
+
+    def queue_pcp_email
+      HelloSignMailer.pcp_signature_request(
+        doc: @doc,
+        email: @signature_request.to_email,
+        name: @signature_request.to_name,
+        careplan_id: @careplan.id,
+        client_id: @client.id
+      ).deliver_later
     end
 
     def destroy
@@ -97,6 +130,15 @@ module Window::Health
 
     def flash_interpolation_options
       { resource_name: 'PCP Signature Request' }
+    end
+
+    private
+
+    def get_pdf
+      pdf = careplan_combine_pdf_object
+      file_name = 'care_plan'
+      @pdf = pdf.to_pdf
+
     end
   end
 end
