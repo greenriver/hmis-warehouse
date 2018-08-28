@@ -306,7 +306,7 @@ module Exporters::Tableau::EntryExit
             end
           when :rrh_time_in_shelter
             # only calculate for RRH
-            if row['prog_type'] == 13 && row['_date_to_street_es_sh'].present?
+            if row['prog_type']&.to_i == 13 && row['_date_to_street_es_sh'].present?
               (row['entry_exit_entry_date'].to_date - row['_date_to_street_es_sh'].to_date).to_i rescue nil
             end
           when :prior_es_enrollment_last3_count
