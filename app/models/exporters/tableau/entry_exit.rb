@@ -63,7 +63,7 @@ module Exporters::Tableau::EntryExit
         chronic:                          nil, # at enrollment start # in use
         days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a # in use
         rrh_time_in_shelter:              nil, # in use
-        _date_to_street_es_sh:            nil, # in use
+        _date_to_street_es_sh:            e_t[:DateToStreetESSH], # in use
         prior_es_enrollment_last3_count:  nil, # in use
         local_planning_group:             p_t[:local_planning_group], # in use
         confidential:                     p_t[:confidential], # in use
