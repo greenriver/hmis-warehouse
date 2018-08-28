@@ -7,7 +7,7 @@
   @gmail.com).
 = simple_form_for @signature_request, as: :signature_request, url: @form_url do |f|
   .row
-    .col-sm-5
+    .col-sm-8
       = f.input :team_member_id, collection: @available_team_members, required: true, label: 'Primary Care Physician', input_html: {class: :select2, style: 'width: 100%;'}
   = link_to polymorphic_path([:new] + team_member_path_generator, {client_id: @client.id}), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true} do
     %span.icon-plus

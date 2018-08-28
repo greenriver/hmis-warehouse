@@ -15,10 +15,22 @@
   - if careplan.provider_signed_on
     = checkmark(true)
     PCP Signature (#{careplan.provider_signed_on&.to_date})
-  - elsif careplan.pcp_signature_requests.outstanding.exists?
-    - oustanding_pcp_signature_request = careplan.pcp_signature_requests.outstanding.first
-    - if oustanding_pcp_signature_request.sent_at
-      PCP signature requested on #{oustanding_pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} from #{oustanding_pcp_signature_request.to_name} by #{oustanding_pcp_signature_request.requestor_name}.
+  - elsif careplan.pcp_signature_requests.exists?
+    - pcp_signature_request = careplan.pcp_signature_requests.order(created_at: :desc).limit(1).first
+    - if pcp_signature_request.signed?
+      = checkmark(true)
+      PCP Signature (#{pcp_signature_request.completed_at.to_date})
+    - elsif pcp_signature_request.expired?
+      .pctp__signature-expired
+        PCP Signature request expired
+
+      = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
+        Cancel this PCP Signature Request
+    - elsif pcp_signature_request.outstanding? && pcp_signature_request.sent_at
+      .pctp__signature-pending
+        PCP signature requested on #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} from #{pcp_signature_request.to_name} by #{pcp_signature_request.requestor_name}.
+      = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
+        Cancel this PCP Signature Request
     - else
       PCP signature request queued to send.
   - else

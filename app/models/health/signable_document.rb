@@ -12,6 +12,9 @@ module Health
     belongs_to :signable, polymorphic: true
     # belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
     has_one :health_file, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
+    has_one :signature_request, class_name: Health::SignatureRequest.name
+
+    delegate :signed?, to: :signature_request
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
 
@@ -22,6 +25,7 @@ module Health
     def expired?
       expires_at.blank? || expires_at < Time.now
     end
+
 
     def make_document_signable!
       cc_email_addresses = (ENV['HELLO_SIGN_CC_EMAILS']||'').split(/;/)

@@ -33,7 +33,7 @@ module Window::Health
         @signature_request.errors.add(:team_member_id, 'Unable to assign PCP')
         render :new and return
       end
-      expires_at = Time.now + signature_source.expires_in
+      @expires_at = Time.now + signature_source.expires_in
 
       @signature_request.assign_attributes(
         patient_id: @patient.id,
@@ -42,13 +42,13 @@ module Window::Health
         to_name: @team_member.full_name,
         requestor_email: current_user.email,
         requestor_name: current_user.name,
-        expires_at: expires_at
+        expires_at: @expires_at
       )
+
       if @signature_request.valid?
         @signature_request.save!
         create_signable_document()
         queue_pcp_email()
-        # TODO queue email to PCP
         # TODO view button to delete request
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
@@ -60,19 +60,24 @@ module Window::Health
       @signers = []
       @signers << { 'email': @signature_request.to_email, 'name': @signature_request.to_name }
 
-      @doc = @careplan.signable_documents.build(signers: @signers, primary: true, user_id: current_user.id)
-
+      @doc = @careplan.signable_documents.build(
+        signers: @signers,
+        primary: true,
+        user_id: current_user.id,
+        expires_at: @expires_at
+      )
       @doc.pdf_content_to_upload = get_pdf
-
       if @doc.valid?
         @careplan.class.transaction do
+          @doc.save!
+          @signature_request.update(signable_document_id: @doc.id)
           @careplan.signable_documents.where.not(id: @doc.id).update_all(primary: false)
           @doc.make_document_signable!
         end
 
         flash[:notice] = "Created a document (#{@doc.id}) for #{@doc.signers.map(&:email).join('; ')} to sign"
       else
-        flash[:error] = "#{@doc.errors.full_messages.join('. ')}"
+        flash[:error] = @doc.errors.full_messages.join('. ')
       end
     end
 
@@ -84,10 +89,15 @@ module Window::Health
         careplan_id: @careplan.id,
         client_id: @client.id
       ).deliver_later
+      @signature_request.update(sent_at: Time.now)
     end
 
     def destroy
-
+      @signature_request.destroy
+      if signable_document = @signature_request.signable_document
+        signable_document.destroy
+      end
+      respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
     end
 
     def signature_params

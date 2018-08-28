@@ -4,15 +4,15 @@ module Window::Health
     include HealthCareplan
     helper ChaHelper
 
-    before_action :set_client, except: [:signature]
-    before_action :set_patient, except: [:signature]
-    before_action :set_careplan, except: [:signature]
-    before_action :set_medications, except: [:signature]
-    before_action :set_problems, except: [:signature]
+    before_action :set_client, except: [:signature, :signed]
+    before_action :set_patient, except: [:signature, :signed]
+    before_action :set_careplan, except: [:signature, :signed]
+    before_action :set_medications, except: [:signature, :signed]
+    before_action :set_problems, except: [:signature, :signed]
 
     # This supports signing without logging in:
-    skip_before_action :authenticate_user!, only: [:signature]
-    skip_before_action :require_some_patient_access!, only: [:signature]
+    skip_before_action :authenticate_user!, only: [:signature, :signed]
+    skip_before_action :require_some_patient_access!, only: [:signature, :signed]
 
     def create
       @team = @careplan.team
@@ -50,19 +50,48 @@ module Window::Health
       redirect_back fallback_location: client_health_careplans_path(@client)
     end
 
-    def signature
+    def signed
+      @doc = Health::SignableDocument.find(params[:id])
+      if @doc.signer_hash(params[:email]) == params[:hash] && ! @doc.expired?
+        if @doc.signature_request
+          signed_at = Time.now
+          @doc.signature_request.update(completed_at: signed_at)
+          @doc.signature_request.careplan.update(provider_signed_on: signed_at)
+        end
+      end
 
+      flash[:notice] = 'Thank you. Your Care Plan signature was submitted.'
+    end
+
+    def signature
+      @state = :valid
       @doc = Health::SignableDocument.find(params[:id])
       if current_user.present?
         @doc.update(expires_at: Health::SignableDocument.patient_expiration_window)
       end
       sign_out(:user) if params[:sign_out].present?
 
-      if @doc.signer_hash(params[:email]) != params[:hash] || @doc.expired?
+      if @doc.signer_hash(params[:email]) == params[:hash] && ! @doc.expired? && ! @doc.signed?
+        if @doc.signature_request && @doc.signature_request.is_a?(Health::SignatureRequests::PcpSignatureRequest)
+          params[:post_sign_path] = signed_client_health_careplan_signable_document_path(
+            client_id: params[:client_id],
+            careplan_id: params[:careplan_id],
+            id: @doc.id,
+            hash: params[:hash],
+            email: params[:email]
+          )
+        end
+        @signature_request_url = @doc.signature_request_url(params[:email])
+      elsif @doc.signed?
+        @state = :signed
+      elsif @doc.expired?
+        @doc = nil
+        @state = :expired
+      else
         not_authorized!
         return
       end
-      @signature_request_url = @doc.signature_request_url(params[:email])
+
     rescue HelloSign::Error, HelloSign::Error::Conflict
       render 'error'
     end

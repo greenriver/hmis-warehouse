@@ -53,6 +53,7 @@ Rails.application.routes.draw do
           member do
             post :remind
             get :signature
+            get :signed
           end
         end
         resources :pcp_signature_requests, except: [:index]
@@ -391,10 +392,10 @@ Rails.application.routes.draw do
       end
     end
   end
-  
-  
+
+
   resources :cohort_column_options, except: [:destroy]
-  
+
   resources :cohorts, except: [:new] do
     resource :columns, only: [:edit, :update], controller: 'cohorts/columns'
     resources :cohort_clients, controller: 'cohorts/clients' do
@@ -406,7 +407,7 @@ Rails.application.routes.draw do
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
-  
+
 
 
   resources :imports do
