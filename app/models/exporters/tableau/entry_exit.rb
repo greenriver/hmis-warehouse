@@ -149,7 +149,12 @@ module Exporters::Tableau::EntryExit
           when :hh_config
             value == 't' ? 'Single' : 'Family'
           when :hh_uid
-            "#{value}_#{row['_prov_id']}_#{row['data_source']}"
+            # ServicePoint tends to send along a new HouseholdID for every enrollment, we'll collapse those for individuals
+            if row['hh_config'] == 't'
+              "c_#{row['client_uid']}"
+            else
+              "#{value}_#{row['data_source']}"
+            end
           # when :rel_to_hoh
           #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id

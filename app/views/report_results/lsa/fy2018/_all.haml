@@ -1,0 +1,25 @@
+- if summary = @result.results.try(:[], 'summary')
+  - if people = summary.try(:[], 'people')
+    %h3 Client Summary
+    %table.table.table-consensed
+      %thead
+        %tr
+          - people['headers'].each do |header|
+            %th= header
+      %tbody
+        - people['data'].each do |row|
+          %tr
+            - row.each do |col|
+              %td= col
+  - if people = summary.try(:[], 'enrollments')
+    %h3 Recidivism
+    %table.table.table-consensed
+      %thead
+        %tr
+          - people['headers'].each do |header|
+            %th= header
+      %tbody
+        - people['data'].each do |row|
+          %tr
+            - row.each do |col|
+              %td= col

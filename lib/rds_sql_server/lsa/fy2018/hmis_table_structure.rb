@@ -255,7 +255,10 @@ SqlServerBase.connection.execute (<<~SQL);
     create index enrollment_export_id ON [hmis_Enrollment] ([ExportID]);
     create index index_Enrollment_on_PersonalID ON [hmis_Enrollment] ([PersonalID]);
     create index index_Enrollment_on_ProjectID ON [hmis_Enrollment] ([ProjectID]);
+    create index index_Enrollment_on_HouseholdID ON [hmis_Enrollment] ([HouseholdID]);
+    create index index_Enrollment_on_ProjectID_HouseholdID ON [hmis_Enrollment] ([ProjectID], [HouseholdID]);
     create unique index unk_Enrollment ON [hmis_Enrollment] ([EnrollmentID], [PersonalID]);
+    create unique index index_Enrollment_on_EnrollmentID_ProjectID_EntryDate ON [hmis_Enrollment] ([EnrollmentID], [ProjectID], [EntryDate]);
 
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_EnrollmentCoC' AND xtype='U')
     DROP TABLE [hmis_EnrollmentCoC]
@@ -280,6 +283,8 @@ SqlServerBase.connection.execute (<<~SQL);
     create index enrollment_coc_date_updated ON [hmis_EnrollmentCoC] ([DateUpdated]);
     create index index_EnrollmentCoC_on_EnrollmentCoCID ON [hmis_EnrollmentCoC] ([EnrollmentCoCID]);
     create index enrollment_coc_export_id ON [hmis_EnrollmentCoC] ([ExportID]);
+    create index index_EnrollmentCoC_on_CoCCode ON [hmis_EnrollmentCoC] ([CoCCode]);
+    create index index_EnrollmentCoC_on_EnrollmentID ON [hmis_EnrollmentCoC] ([EnrollmentID]);
     create index index_EnrollmentCoC_on_data_source_id_PersonalID ON [hmis_EnrollmentCoC] ([PersonalID]);
 
 

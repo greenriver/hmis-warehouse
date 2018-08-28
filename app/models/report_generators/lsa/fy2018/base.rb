@@ -1,6 +1,7 @@
 module ReportGenerators::Lsa::Fy2018
   class Base
   include ArelHelper
+    attr_accessor :report
 
     def setup_filters
       # convert various inputs to project ids for the HUD HMIS export
@@ -48,7 +49,6 @@ module ReportGenerators::Lsa::Fy2018
     def finish_report
       @report.update(
         percent_complete: 100,
-        results: @answers, # This will be a zip file
         completed_at: Time.now
       )
     end

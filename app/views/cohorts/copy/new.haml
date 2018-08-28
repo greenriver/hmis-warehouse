@@ -1,0 +1,19 @@
+- title = "Import data to #{@cohort.name}"
+- content_for :title, title
+= content_for :crumbs do
+  = link_to cohort_path(@cohort) do
+    &laquo; #{@cohort.name}
+%h1= content_for :title
+.alert.alert-danger
+  %p
+    %strong Note this action is destructive!
+  %p
+    Data from the chosen cohort will be imported for matching clients into
+    %strong #{@cohort.name}.
+    Cohort columns that you choose here will pull data from the chosen cohort and overwrite matching client columns in this cohort.
+.row
+  .col-xs-12.col-md-6
+    = simple_form_for :copy, url: cohort_copy_path(@cohort) do |f|
+      = f.input :cohort_id, collection: @cohorts_to_copy_from, label: 'Select a cohort to copy from'
+      = f.input :columns, as: :check_boxes, collection: @ordered_columns
+      = f.submit 'Copy', class: 'btn btn-primary', data: {disable_with: 'Copying'}

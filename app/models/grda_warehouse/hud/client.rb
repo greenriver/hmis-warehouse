@@ -598,7 +598,15 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # client has a disability response in the affirmative
+    # where they don't have a subsequent affirmative or negative
     def currently_disabled?
+      self.class.disabled_client_scope.where(id: id).exists?
+    end
+
+    # client has a disability response in the affirmative
+    # where they don't have a subsequent affirmative or negative
+    def self.disabled_client_scope
       d_t1 = GrdaWarehouse::Hud::Disability.arel_table
       d_t2 = Arel::Table.new(d_t1.table_name)
       d_t2.table_alias = 'disability2'
@@ -606,7 +614,6 @@ module GrdaWarehouse::Hud
       c_t2 = Arel::Table.new(c_t1.table_name)
       c_t2.table_alias = 'source_clients'
       GrdaWarehouse::Hud::Client.destination.
-        where(id: id).
         joins(:source_enrollment_disabilities).
         where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).
         where(
@@ -616,7 +623,10 @@ module GrdaWarehouse::Hud
             d_t2[:DisabilityType].eq(d_t1[:DisabilityType])
           ).where(
             d_t2[:InformationDate].gt(d_t1[:InformationDate])
-          ).join(e_t).on(
+          ).where(
+            d_t2[:DisabilityResponse].in([0, 1, 2, 3])
+          ).
+          join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
             and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
             and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
@@ -631,41 +641,13 @@ module GrdaWarehouse::Hud
             wc_t[:destination_id].eq(c_t1[:id])
           ).
           exists.not
-        ).distinct.exists?
+        ).distinct
     end
 
+    # client has a disability response in the affirmative
+    # where they don't have a subsequent affirmative or negative
     def self.disabled_client_ids
-      d_t1 = GrdaWarehouse::Hud::Disability.arel_table
-      d_t2 = Arel::Table.new(d_t1.table_name)
-      d_t2.table_alias = 'disability2'
-      c_t1 = GrdaWarehouse::Hud::Client.arel_table
-      c_t2 = Arel::Table.new(c_t1.table_name)
-      c_t2.table_alias = 'source_clients'
-      GrdaWarehouse::Hud::Client.destination.joins(:source_enrollment_disabilities).
-        where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).
-        where(
-          d_t2.project(Arel.star).where(
-            d_t2[:DateDeleted].eq(nil)
-          ).where(
-            d_t2[:DisabilityType].eq(d_t1[:DisabilityType])
-          ).where(
-            d_t2[:InformationDate].gt(d_t1[:InformationDate])
-          ).join(e_t).on(
-            e_t[:PersonalID].eq(d_t2[:PersonalID]).
-            and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
-            and(e_t[:DateDeleted].eq(nil))
-          ).join(c_t2).on(
-             e_t[:PersonalID].eq(c_t2[:PersonalID]).
-             and(e_t[:data_source_id].eq(c_t2[:data_source_id]))
-          ).join(wc_t).on(
-            c_t2[:id].eq(wc_t[:source_id]).
-            and(wc_t[:deleted_at].eq(nil))
-          ).where(
-            wc_t[:destination_id].eq(c_t1[:id])
-          ).
-          exists.not
-        ).distinct.pluck(:id)
+      disabled_client_scope.pluck(:id)
     end
 
     def deceased?

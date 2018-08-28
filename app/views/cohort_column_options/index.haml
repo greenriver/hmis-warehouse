@@ -1,0 +1,40 @@
+- title = 'Cohort Column Options'
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to cohorts_path do
+    &laquo; Return to Cohorts
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right
+    = link_to new_cohort_column_option_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+      %span.icon-plus
+      Add a Cohort Column Option
+
+.row
+  .col-sm-12
+    .table-responsive
+      - @cohort_column_options.group_by(&:cohort_column).each do |column, options|
+        %h3= options.first.available_cohort_columns.invert[column]
+        %table.table.table-condensed
+          %thead
+            %th{style: "width: 35%;"} Value
+            %th{style: "width: 15%;"} Active?
+            %th{style: "width: 15%;"}
+          %tbody
+            - options.each do |option|
+              %tr
+                %td= option.value
+                %td= checkmark_or_x option.active
+                %td
+
+                  - if !@cohort_column_options_in_use[column]&.include?(option.value)
+                    = link_to action: :edit, id: option do
+                      %span.icon-pencil
+                      Edit
+                  - else
+                    in use
+
+%p= paginate @cohort_column_options
