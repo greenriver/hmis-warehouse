@@ -100,9 +100,8 @@ module Health
     # Deceased
     def outreach_status
       # outreach status needs to include patient values including some from patients that may have been deleted
-      begin
-        patient = Health::Patient.only_deleted.find(self.patient_id) if patient.blank?
-      rescue
+      if patient.blank? && self.patient_id.present?
+        patient = Health::Patient.only_deleted.find(self.patient_id) rescue nil
       end
       if patient&.death_date || patient&.epic_patients&.map(&:death_date)&.any? || (rejected && rejected_reason == 'Deceased')
          'Deceased'
