@@ -520,7 +520,7 @@ module Health
     def self.clean_value key, value
       case key
       when :pilot
-        value == 'SDH Pilot'
+        value.inlude?('SDH')
       else
         value.presence
       end
