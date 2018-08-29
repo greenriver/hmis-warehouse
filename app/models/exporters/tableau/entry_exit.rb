@@ -118,6 +118,7 @@ module Exporters::Tableau::EntryExit
       data = model.connection.select_all(scope.to_sql)
       client_ids = data.map{|row| row['client_uid']}.uniq
       dobs = c_t.engine.where(id: client_ids).pluck(:id, :DOB).to_h
+      disabled_ids = GrdaWarehouse::Hud::Client.disabled_client_ids
       clients = GrdaWarehouse::Hud::Client.where( id: client_ids ).index_by(&:id)
       data_by_client = data.group_by do |row|
         row['client_uid']
@@ -229,11 +230,7 @@ module Exporters::Tableau::EntryExit
               ::HUD.race fields.first
             end
           when :disabling_condition
-            if [1,2,3].include? d_t.engine.where(
-              EnrollmentID: row['group_uid'],
-              PersonalID: row['personal_id'],
-              data_source_id: row['data_source_id'],
-            ).order(InformationDate: :desc).limit(1).pluck(:DisabilityResponse).first
+            if disabled_ids.include?(row['client_uid'].to_i)
               't'
             else
               'f'
