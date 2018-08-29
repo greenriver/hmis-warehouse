@@ -205,8 +205,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      # Commented out for debugging
-      @rds&.terminate! unless Rails.env.development?
+      @rds&.terminate! #unless Rails.env.development?
     end
 
     def setup_hmis_table_structure
