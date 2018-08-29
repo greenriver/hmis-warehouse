@@ -1,6 +1,6 @@
 wb = xlsx_package.workbook
 if params[:summary].present?
-  wb.add_worksheet(name: 'Summary') do |sheet|
+  wb.add_worksheet(name: 'Outreach') do |sheet|
     title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
     sheet.add_row(['Sender', 'Sent_Row_Num', 'Sent_Column_Num', 'Sent_Export_Time_Stamp', 'Receiver', 'Received_Row_Num', 'Received_Column_Num', 'Received_Export_Time_Stamp'], :style => title)
     receiver = @report.receiver.presence || @sender.receiver_name
@@ -14,7 +14,7 @@ if params[:summary].present?
     sheet.add_row(row)
   end
 else
-  wb.add_worksheet(name: 'Patients') do |sheet|
+  wb.add_worksheet(name: 'Outreach') do |sheet|
     title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
     sheet.add_row(Health::MemberStatusReport.spreadsheet_columns.values, :style => title)
     @patients.each do |patient|
