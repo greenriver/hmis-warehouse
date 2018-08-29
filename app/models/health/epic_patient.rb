@@ -85,7 +85,7 @@ module Health
     def self.clean_value key, value
       value = case key
       when :pilot
-        value.inlude?('SDH')
+        value.include?('SDH')
       else
         value.presence
       end
