@@ -5,6 +5,14 @@
   The PCP must be listed as a team member on the Care Plan and have an email address with their organization’s domain name. (e.g. @tuftsmedical.org
   %strong not
   @gmail.com).
+- if ! Health::Agency.email_valid?(@careplan.provider.email)
+  .alert.alert-warning
+    %p
+      Current PCP #{@careplan.provider.full_name} does not have an acceptable email.
+      %br
+      Email on file: #{@careplan.provider.email.presence || 'none'}.
+      %br
+      Please choose an alternate PCP.  The care plan will be updated to reflect the PCP selected below.
 = simple_form_for @signature_request, as: :signature_request, url: @form_url do |f|
   .row
     .col-sm-8

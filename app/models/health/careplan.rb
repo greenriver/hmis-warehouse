@@ -21,6 +21,7 @@ module Health
 
     has_many :pcp_signature_requests, class_name: Health::SignatureRequests::PcpSignatureRequest.name
     has_many :aco_signature_requests, class_name: Health::SignatureRequests::AcoSignatureRequest.name
+    has_many :patient_signature_requests, class_name: Health::SignatureRequests::PatientSignatureRequest.name
 
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
@@ -28,6 +29,10 @@ module Health
 
     has_many :signable_documents, as: :signable
     has_one :primary_signable_document, -> { where(signable_documents: {primary: true}) }, class_name: Health::SignableDocument.name, as: :signable
+    has_many :patient_signable_documents, through: :patient_signature_requests, source: :signable_document
+    has_many :pcp_signable_documents, through: :pcp_signature_requests, source: :signable_document
+    has_many :patient_signed_health_files, through: :patient_signable_documents, source: :health_file
+    has_many :pcp_signed_health_files, through: :pcp_signable_documents, source: :health_file
 
     serialize :service_archive, Array
     serialize :equipment_archive, Array
@@ -65,6 +70,17 @@ module Health
     end
 
     # End Scopes
+
+    # if the care plan has been signed, return the health file id associated with the most
+    # recent signature
+    # if it hasn't been signed at all, return nil
+    def most_appropriate_pdf_id
+      pcp_sig = pcp_signature_requests.complete.order(completed_at: :desc).limit(1).first
+      patient_sig = patient_signature_requests.complete.order(completed_at: :desc).limit(1).first
+      return nil if pcp_sig.blank? && patient_sig.blank?
+      most_recently_signed = [pcp_sig, patient_sig].compact.max{|a,b| a.completed_at <=> b.completed_at}
+      most_recently_signed&.signable_document&.health_file_id
+    end
 
     def editable?
       ! locked

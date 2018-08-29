@@ -28,6 +28,7 @@ module Window::Health
       # Callbacks don't work in development, so we have to do something like this
       if Rails.env.development?
         @careplans.each do |cp|
+          # FIXME: This probably needs to loop over all signable documents, not just the primary
           if cp.primary_signable_document.present?
 
             doc = cp.primary_signable_document

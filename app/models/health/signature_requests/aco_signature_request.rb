@@ -8,5 +8,15 @@ module Health
         3.days
       end
     end
+
+    def pcp_request?
+      false
+    end
+    def aco_request?
+      true
+    end
+    def patient_request?
+      false
+    end
   end
 end

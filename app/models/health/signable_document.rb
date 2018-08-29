@@ -13,8 +13,8 @@ module Health
     # belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
     has_one :health_file, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
     has_one :signature_request, class_name: Health::SignatureRequest.name
-
-    delegate :signed?, to: :signature_request
+    has_one :team_member, through: :signature_request
+    delegate :signed?, to: :signature_request, allow_nil: true
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
 
@@ -99,25 +99,30 @@ module Health
           )
         health_file.save(validate: false)
         self.health_file_id = health_file.id
-
-        #TDB: is this right?
-        self.signable.update_attribute(:health_file_id, health_file.id)
       end
       save!
     end
 
     def update_careplan_and_health_file!(careplan)
+      # Process patient signature
       if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
         user = User.setup_system_user
         careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
         Health::CareplanSaver.new(careplan: careplan, user: user).update
+        self.signature_request.update(completed_at: careplan.patient_signed_on)
 
         #update_health_file_from_hello_sign
         # Need to wait for pdf to be ready
         UpdateHealthFileFromHelloSignJob.
           set(wait: 30.seconds).
           perform_later(self.id)
+      elsif self.signed_by?(careplan.provider.email)
+        # process PCP signature, careplan has already been updated, we just need to fetch the file
+        UpdateHealthFileFromHelloSignJob.
+          set(wait: 30.seconds).
+          perform_later(self.id)
       end
+
     end
 
     def signature_request_url(email)

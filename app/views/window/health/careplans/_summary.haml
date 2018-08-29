@@ -30,9 +30,9 @@
                     Make Copy
               %td= careplan.created_at.to_date
               %td
-                = render 'signatures', careplan: careplan, doc: doc
+                = render 'signatures', careplan: careplan
               %td
-                = render "signable_document", careplan: careplan, doc: doc
+                = render "signable_document", careplan: careplan
               - if false
                 %td
                   - if careplan.patient_signed_on

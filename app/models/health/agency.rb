@@ -19,6 +19,10 @@ module Health
       whitelisted_domains.include? domain
     end
 
+    def self.email_valid?(email)
+      whitelisted_domain_regex.match(email)
+    end
+
     def self.whitelisted_domain_regex
       regex_string = whitelisted_domains.map do |domain|
         ".+#{domain}$"

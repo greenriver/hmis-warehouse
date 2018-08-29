@@ -3,12 +3,12 @@
     = checkmark(true)
     Patient Signature (#{careplan.patient_signed_on&.to_date})
   - else
-    - if doc.signature_request_id.blank?
-      - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
-      - method = :post
-    - else
-      - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: @patient.current_email, hash: doc.signer_hash(@patient.current_email), post_sign_path: url_for, sign_out: true})
-      - method = :get
+    -# - if doc.signature_request_id.blank?
+    - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
+    - method = :post
+    -# - else
+    -#   - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: @patient.current_email, hash: doc.signer_hash(@patient.current_email), post_sign_path: url_for, sign_out: true})
+    -#   - method = :get
     = link_to url, method: method, class: 'btn btn-sm btn-secondary' do
       Get Patient Signature
 .pctp__signature
@@ -21,14 +21,16 @@
       = checkmark(true)
       PCP Signature (#{pcp_signature_request.completed_at.to_date})
     - elsif pcp_signature_request.expired?
-      .pctp__signature-expired
+      .pctp__signature-expired.mb-2{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
         PCP Signature request expired
 
       = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
         Cancel this PCP Signature Request
     - elsif pcp_signature_request.outstanding? && pcp_signature_request.sent_at
-      .pctp__signature-pending
-        PCP signature requested on #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} from #{pcp_signature_request.to_name} by #{pcp_signature_request.requestor_name}.
+      .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
+        PCP signature requested
+        %br
+        from #{pcp_signature_request.to_name}
       = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
         Cancel this PCP Signature Request
     - else
@@ -49,13 +51,3 @@
         %li
           = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
             Upload signed pdf
-
-      - if false
-        - if doc.signature_request_id.blank?
-          - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
-          - method = :post
-        - else
-          - url = polymorphic_path([:signature] + careplan_path_generator + [:signable_document], {client_id: @client.id, careplan_id: careplan.id, id: doc.id, email: @patient.current_email, hash: doc.signer_hash(@patient.current_email), post_sign_path: url_for, sign_out: true})
-          - method = :get
-        = link_to url, method: method, class: 'btn btn-sm btn-secondary' do
-          Get PCP Signature

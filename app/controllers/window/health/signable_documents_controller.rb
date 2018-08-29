@@ -26,7 +26,21 @@ module Window::Health
 
       if @doc.valid?
         @careplan.class.transaction do
+          @doc.save
           @careplan.signable_documents.where.not(id: @doc.id).update_all(primary: false)
+          @signature_request = signature_source.new
+          @expires_at = Time.now + signature_source.expires_in
+          @signature_request.assign_attributes(
+            patient_id: @patient.id,
+            careplan_id: @careplan.id,
+            to_email: @patient.current_email,
+            to_name: "#{@patient.first_name} #{@patient.last_name}",
+            requestor_email: current_user.email,
+            requestor_name: current_user.name,
+            sent_at: Time.now,
+            expires_at: @expires_at,
+            signable_document_id: @doc.id
+          )
           @doc.make_document_signable!
         end
 
@@ -56,7 +70,16 @@ module Window::Health
         if @doc.signature_request
           signed_at = Time.now
           @doc.signature_request.update(completed_at: signed_at)
-          @doc.signature_request.careplan.update(provider_signed_on: signed_at)
+          careplan = @doc.signature_request.careplan
+          if @doc.signature_request.pcp_request?
+            # make sure the PCP listed on the careplan is the same one we collected the signature from
+            careplan.assign_attributes(
+              provider_id: @doc.team_member.id,
+              provider_signed_on: signed_at
+            )
+          end
+          # This gets called by a non-user, log this as a system user
+          Health::CareplanSaver.new(careplan: careplan, user: User.setup_system_user).update
         end
       end
 
@@ -72,7 +95,7 @@ module Window::Health
       sign_out(:user) if params[:sign_out].present?
 
       if @doc.signer_hash(params[:email]) == params[:hash] && ! @doc.expired? && ! @doc.signed?
-        if @doc.signature_request && @doc.signature_request.is_a?(Health::SignatureRequests::PcpSignatureRequest)
+        if @doc.signature_request && @doc.signature_request.pcp_request?
           params[:post_sign_path] = signed_client_health_careplan_signable_document_path(
             client_id: params[:client_id],
             careplan_id: params[:careplan_id],
@@ -97,6 +120,10 @@ module Window::Health
     end
 
     private
+
+    def signature_source
+      Health::SignatureRequests::PatientSignatureRequest
+    end
 
     def get_pdf
       pdf = careplan_combine_pdf_object

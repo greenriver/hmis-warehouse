@@ -24,6 +24,13 @@ module HealthCareplan
       @goal = Health::Goal::Base.new
       @readonly = false
       file_name = 'care_plan'
+      # If we already have a document with a signature, use that to try and avoid massive duplication
+      if health_file_id = @careplan.most_appropriate_pdf_id
+        if health_file = Health::HealthFile.find(health_file_id)
+          return pdf = CombinePDF.parse(health_file.content)
+        end
+      end
+      # If we haven't sent this for signatures, build out the PDF
       # make sure we have the most recent-services, DME, team members, and goals if
       # the plan is editable
       if @careplan.editable?
