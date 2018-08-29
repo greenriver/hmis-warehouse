@@ -15,6 +15,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
       if override = geocode_override_for(geography_id: row[:GeographyID].to_i, data_source_id: data_source_id)
         row[:Geocode] = override
       end
+      # Technical limit of HMIS spec is 50 characters
+      row[:Address1] = row[:Address1][0...50] if row[:Address1]
+      row[:Address2] = row[:Address2][0...50] if row[:Address2]
+      row[:City] = row[:City][0...50] if row[:City]
+      row[:ZIP] = row[:ZIP][0...5] if row[:ZIP]
       return row
     end
 

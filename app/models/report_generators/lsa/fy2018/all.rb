@@ -140,16 +140,22 @@ module ReportGenerators::Lsa::Fy2018
     def populate_hmis_tables
       load 'lib/rds_sql_server/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = @hmis_export.unzip_to(unzip_path)
+      read_rows = 10_000
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
-        arr_of_arrs = CSV.read(File.join(extract_path, file_name))
-        headers = arr_of_arrs.first
-        content = arr_of_arrs.drop(1)
-        if content.any?
-          # this fixes dates that default to 1900-01-01 if you send an empty string
-          content.map! do |row|
-            row = klass.new.clean_row_for_import(row: row, headers: headers)
+        # Read the file in batches to avoid over RAM usage
+        File.open(File.join(extract_path, file_name)) do |file|
+          headers = file.first
+          file.lazy.each_slice(read_rows) do |lines|
+            content = CSV.parse(lines.join, write_headers: true, headers: headers)
+            import_headers = content.first.headers
+            if content.any?
+              # this fixes dates that default to 1900-01-01 if you send an empty string
+              content = content.map do |row|
+                row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+              end
+              insert_batch(klass, import_headers, content, batch_size: 1000)
+            end
           end
-          insert_batch(klass, headers, content)
         end
       end
       FileUtils.rm_rf(extract_path)
@@ -199,8 +205,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      # Commented out for debugging
-      @rds&.terminate!
+      @rds&.terminate! #unless Rails.env.development?
     end
 
     def setup_hmis_table_structure
