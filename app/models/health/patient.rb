@@ -497,8 +497,10 @@ module Health
       qualifying_activities.in_range(range).direct_contact.order(date_of_activity: :desc).limit(1).first
     end
 
+    # these need to be direct as well (not collateral) since it must be with a member
+    # to count
     def face_to_face_contact_in_range? range
-      qualifying_activities.in_range(range).face_to_face.exists?
+      qualifying_activities.in_range(range).direct_contact.face_to_face.exists?
     end
 
     def consented? # Pilot
