@@ -147,13 +147,13 @@ module ReportGenerators::Lsa::Fy2018
           headers = file.first
           file.lazy.each_slice(read_rows) do |lines|
             content = CSV.parse(lines.join, write_headers: true, headers: headers)
+            import_headers = content.first.headers
             if content.any?
-              binding.pry
               # this fixes dates that default to 1900-01-01 if you send an empty string
               content = content.map do |row|
-                row = klass.new.clean_row_for_import(row: row, headers: headers)
+                row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
               end
-              insert_batch(klass, headers, content, batch_size: 1000)
+              insert_batch(klass, import_headers, content, batch_size: 1000)
             end
           end
         end
