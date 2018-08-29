@@ -5,7 +5,7 @@ module Health::Claims
 
     def initialize(patient, sdh_rosters)
       @patient = patient
-      @patient_roster = patient.claims_roster
+      @patient_roster = patient&.claims_roster
       @sdh_rosters = sdh_rosters
     end
 
