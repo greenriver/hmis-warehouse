@@ -39,6 +39,7 @@ module Reports::SystemPerformance::Fy2017
     def self.available_races
       {
         AmIndAKNative: :race_am_ind_ak_native,
+        Asian: :race_asian,
         BlackAfAmerican: :race_black_af_american,
         NativeHIOtherPacific: :race_native_hi_other_pacific,
         White: :race_white,
