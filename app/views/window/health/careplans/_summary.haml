@@ -28,7 +28,7 @@
                 - elsif ! @any_editable
                   = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
                     Make Copy
-              %td= careplan.created_at.to_date
+              %td= careplan.initial_date&.to_date
               %td
                 = render 'signatures', careplan: careplan
               %td
