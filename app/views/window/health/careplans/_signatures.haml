@@ -9,7 +9,10 @@
     = link_to url, method: method, class: 'btn btn-sm btn-secondary' do
       Get Patient Signature
 .pctp__signature
-  - if careplan.aco_signature_requests.outstanding.exists?
+  - if careplan.provider_signed_on
+    = checkmark(true)
+    PCP Signature (#{careplan.provider_signed_on&.to_date})
+  - elsif careplan.aco_signature_requests.outstanding.exists?
     .pcpt__signature-aco.mb-2
       - aco_signature_request = careplan.aco_signature_requests.order(created_at: :desc).limit(1).first
       - if aco_signature_request.expired?
@@ -22,9 +25,6 @@
           from #{aco_signature_request.to_name}
       = link_to polymorphic_path(careplan_path_generator + [:aco_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: aco_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
         Cancel this ACO Signature Request
-  - if careplan.provider_signed_on
-    = checkmark(true)
-    PCP Signature (#{careplan.provider_signed_on&.to_date})
   - elsif careplan.pcp_signature_requests.exists?
     - pcp_signature_request = careplan.pcp_signature_requests.order(created_at: :desc).limit(1).first
     - if pcp_signature_request.signed?

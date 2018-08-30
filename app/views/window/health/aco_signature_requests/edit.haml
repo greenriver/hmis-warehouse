@@ -1,6 +1,6 @@
 - title = 'PCP information needed for Care Plan Signature'
 - content_for :modal_title, title
-- if @status == :valid
+- if @state == :valid
   .well
     %p
       Please provide the primary care physician’s name and email address, so they can review and sign a care plan.
@@ -26,7 +26,7 @@
   .text-muted
     %p
       Known domains: #{Health::Agency.whitelisted_domains.join(', ')}.
-- elsif
+- elsif @state == :expired
   .alert.alert-danger
     This request has expired. Please contact #{mail_to Health::Cp.sender.first.key_contact_email, "#{Health::Cp.sender.first.key_contact_first_name} #{Health::Cp.sender.first.key_contact_last_name}"} if this is unexpected.
 - else

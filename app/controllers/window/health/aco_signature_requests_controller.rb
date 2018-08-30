@@ -88,7 +88,7 @@ module Window::Health
       @doc = @careplan.signable_documents.build(
         signers: @signers,
         primary: true,
-        user_id: current_user.id,
+        user_id: User.setup_system_user.id,
         expires_at: @expires_at
       )
       @doc.pdf_content_to_upload = get_pdf

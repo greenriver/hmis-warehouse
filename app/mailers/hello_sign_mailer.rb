@@ -33,7 +33,7 @@ class HelloSignMailer < DatabaseMailer
     # don't send if the request has already been canceled.
     return unless @doc.present?
     @request = @doc.signature_request
-    return unless @request.present
+    return unless @request.present?
     @email = email
     @name = name
     @hash = @doc.signer_hash(email)
