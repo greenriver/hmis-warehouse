@@ -436,6 +436,14 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :race_asian, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:Asian].eq(1)).
+          select(:destination_id)
+      )
+    end
+
     scope :race_black_af_american, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).

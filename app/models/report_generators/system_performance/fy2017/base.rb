@@ -49,6 +49,7 @@ module ReportGenerators::SystemPerformance::Fy2017
 
     def race_scope scope, race_code
       available_scopes = [
+        :race_asian,
         :race_am_ind_ak_native,
         :race_black_af_american,
         :race_native_hi_other_pacific,
