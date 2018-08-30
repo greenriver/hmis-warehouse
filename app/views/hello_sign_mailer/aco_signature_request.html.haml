@@ -1,0 +1,15 @@
+%p
+  Hello #{@name} --
+%p
+  A Personal Care Treatment Plan has been created for a patient.
+  %br
+  Please click this link to provide the patient's primary care physician’s name and email address so they can review and sign the care plan.
+%p
+  = link_to @url do
+    Click here to sign
+%p
+  Or copy and paste the following URL:
+  %br
+  = @url
+%p
+  If you're not #{@name} with email: #{@email}, please disregard this message.
