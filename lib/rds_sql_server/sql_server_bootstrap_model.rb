@@ -6,7 +6,7 @@ class SqlServerBootstrapModel < ActiveRecord::Base
     "adapter"       => "sqlserver",
     "host"          => rds.host,
     "pool"          => 5,
-    "timeout"       => 5000,
+    "timeout"       => 50_000,
     "port"          => 1433,
     "username"      => Rds::USERNAME,
     "password"      => Rds::PASSWORD,

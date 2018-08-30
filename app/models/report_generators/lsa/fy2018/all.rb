@@ -98,7 +98,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_temporary_rds
       ::Rds.identifier = sql_server_identifier
-      ::Rds.timeout = 6_000_000
+      ::Rds.timeout = 60_000_000
       @rds = ::Rds.new
       @rds.setup!
     end
@@ -268,7 +268,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def run_lsa_queries
       ::Rds.identifier = sql_server_identifier
-      ::Rds.timeout = 6_000_000
+      ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
     end
 
