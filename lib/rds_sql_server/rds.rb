@@ -33,7 +33,7 @@ class Rds
   end
 
   def self.timeout
-    @timeout || 5000
+    @timeout || 50_000_000
   end
 
   def initialize()
