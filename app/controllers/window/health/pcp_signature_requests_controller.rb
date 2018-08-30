@@ -83,7 +83,7 @@ module Window::Health
 
     def queue_pcp_email
       HelloSignMailer.pcp_signature_request(
-        doc: @doc,
+        doc_id: @doc.id,
         email: @signature_request.to_email,
         name: @signature_request.to_name,
         careplan_id: @careplan.id,

@@ -19,20 +19,38 @@ module Health
     has_many :team_members, through: :patient, class_name: Health::Team::Member.name
     has_many :hpc_goals, through: :patient, class_name: Health::Goal::Hpc.name
 
-    has_many :pcp_signature_requests, class_name: Health::SignatureRequests::PcpSignatureRequest.name
     has_many :aco_signature_requests, class_name: Health::SignatureRequests::AcoSignatureRequest.name
+
+    # PCP
+    has_many :pcp_signature_requests, class_name: Health::SignatureRequests::PcpSignatureRequest.name
+    has_many :pcp_signed_signature_requests, -> do
+      merge(Health::SignatureRequest.complete)
+    end, class_name: Health::SignatureRequests::PcpSignatureRequest.name
+    has_many :pcp_signable_documents, through: :pcp_signature_requests, source: :signable_document
+    has_many :pcp_signed_documents, -> do
+      merge(Health::SignableDocument.signed.with_document)
+    end, through: :pcp_signed_signature_requests, source: :signable_document
+    has_many :pcp_signed_health_files, through: :pcp_signed_documents, source: :health_files
+
+    # Patient
     has_many :patient_signature_requests, class_name: Health::SignatureRequests::PatientSignatureRequest.name
+    has_many :patient_signed_signature_requests, -> do
+      merge(Health::SignatureRequest.complete)
+    end, class_name: Health::SignatureRequests::PatientSignatureRequest.name
+    has_many :patient_signable_documents, through: :patient_signature_requests, source: :signable_document
+    has_many :patient_signed_documents, -> do
+      merge(Health::SignableDocument.signed.with_document)
+    end, through: :patient_signed_signature_requests, source: :signable_document
+    has_many :patient_signed_health_files, through: :patient_signed_documents, source: :health_files
 
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
     belongs_to :representative, class_name: Health::Team::Member.name
 
     has_many :signable_documents, as: :signable
-    has_one :primary_signable_document, -> { where(signable_documents: {primary: true}) }, class_name: Health::SignableDocument.name, as: :signable
-    has_many :patient_signable_documents, through: :patient_signature_requests, source: :signable_document
-    has_many :pcp_signable_documents, through: :pcp_signature_requests, source: :signable_document
-    has_many :patient_signed_health_files, through: :patient_signable_documents, source: :health_file
-    has_many :pcp_signed_health_files, through: :pcp_signable_documents, source: :health_file
+    has_one :primary_signable_document, -> do
+      where(signable_documents: {primary: true})
+    end, class_name: Health::SignableDocument.name, as: :signable
 
     serialize :service_archive, Array
     serialize :equipment_archive, Array
@@ -56,7 +74,7 @@ module Health
       where(status: :rejected)
     end
     scope :sorted, -> do
-      order(initial_date: :desc, updated_at: :desc)
+      order(id: :desc, initial_date: :desc, updated_at: :desc)
     end
 
     scope :pcp_signed, -> do

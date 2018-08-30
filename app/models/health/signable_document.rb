@@ -11,10 +11,27 @@ module Health
 
     belongs_to :signable, polymorphic: true
     # belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
-    has_one :health_file, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
+    has_many :health_files, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
     has_one :signature_request, class_name: Health::SignatureRequest.name
     has_one :team_member, through: :signature_request
     delegate :signed?, to: :signature_request, allow_nil: true
+
+    scope :signed, -> do
+      where.not(signed_by: '[]').
+      joins(:signature_request).merge(Health::SignatureRequest.complete)
+    end
+
+    scope :unsigned, -> do
+      where(signed_by: '[]')
+    end
+
+    scope :with_document, -> do
+      where.not(health_file_id: nil)
+    end
+
+    scope :un_fetched_document, -> do
+      where(health_file_id: nil)
+    end
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
 
@@ -95,7 +112,8 @@ module Health
             content_type: 'application/pdf',
             name: 'care_plan.pdf',
             size: Rails.root.join(file.path).size,
-            type: Health::SignableDocumentFile.name
+            type: Health::SignableDocumentFile.name,
+            parent_id: self.id
           )
         health_file.save(validate: false)
         self.health_file_id = health_file.id
@@ -185,10 +203,10 @@ module Health
     end
 
     # Can't send reminders through HS when doing embedded documents.
-    def remind!(email)
-      #TDB: change to deliver_later?
-      HelloSignMailer.careplan_signature_request(doc: self, email: email).deliver
-    end
+    # def remind!(email)
+    #   #TDB: change to deliver_later?
+    #   HelloSignMailer.careplan_signature_request(doc_id: self.id, email: email).deliver
+    # end
 
     def update_who_signed_from_hello_sign_callback!(callback_payload=fetch_signature_request)
       return if all_signed?

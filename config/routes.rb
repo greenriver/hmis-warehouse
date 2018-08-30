@@ -51,13 +51,17 @@ Rails.application.routes.draw do
         resources :goals, except: [:index, :show]
         resources :signable_documents, only: [:show, :create] do
           member do
-            post :remind
+            # post :remind
             get :signature
             get :signed
           end
         end
         resources :pcp_signature_requests, except: [:index]
-        resources :aco_signature_requests, except: [:index]
+        resources :aco_signature_requests, except: [:index] do
+          member do
+            get :download_careplan
+          end
+        end
 
         get :self_sufficiency_assessment
         get :print

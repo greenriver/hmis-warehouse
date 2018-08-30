@@ -28,10 +28,7 @@ module Window::Health
       # Callbacks don't work in development, so we have to do something like this
       if Rails.env.development?
         @careplans.each do |cp|
-          # FIXME: This probably needs to loop over all signable documents, not just the primary
-          if cp.primary_signable_document.present?
-
-            doc = cp.primary_signable_document
+          [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
             begin
               # This is trying to ensure we run the same thing here as we do for the callback from HS
               json = {signature_request: doc.fetch_signature_request}.to_json
