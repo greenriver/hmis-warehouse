@@ -259,6 +259,7 @@ SqlServerBase.connection.execute (<<~SQL);
     create index index_Enrollment_on_ProjectID_HouseholdID ON [hmis_Enrollment] ([ProjectID], [HouseholdID]);
     create unique index unk_Enrollment ON [hmis_Enrollment] ([EnrollmentID], [PersonalID]);
     create unique index index_Enrollment_on_EnrollmentID_ProjectID_EntryDate ON [hmis_Enrollment] ([EnrollmentID], [ProjectID], [EntryDate]);
+    create index index_Enrollment_on_RelationshipToHoH ON [hmis_Enrollment] ([RelationshipToHoH]);
 
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_EnrollmentCoC' AND xtype='U')
     DROP TABLE [hmis_EnrollmentCoC]
