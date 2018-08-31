@@ -84,16 +84,17 @@
                   - org.projects.each do |project|
                     %tr
                       %td
-                        .project__name.d-flex.mb-2{id: "project-#{project.id}"}
-                          .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
-                            .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
-                              = HUD.project_type_brief project.ProjectType
-                          .ml-2.mb-2
-                            = link_to project.name, project_path(project)
-                          - if can_edit_projects?
-                            .ml-auto
-                            = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-                              %i.icon-pencil
+                        .project__name.mb-2{id: "project-#{project.id}"}
+                          .d-flex
+                            .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
+                              .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
+                                = HUD.project_type_brief project.ProjectType
+                            .ml-2.mb-2.mr-2
+                              = link_to project.name, project_path(project)
+                            - if can_edit_projects?
+                              .ml-auto
+                              = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                                %i.icon-pencil
                           - if project.act_as_project_type.present? && project.act_as_project_type != project.ProjectType
                             .o-text--italic.mb-2
                               Acts as
@@ -108,16 +109,18 @@
                         = checkmark project.confidential
 
                       %td
-                        .mb-2
-                          = project.project_cocs.map(&:CoCCode).join(', ')
+                        .d-flex
+                          .mb-2.mr-2
+                            = project.project_cocs.map(&:CoCCode).join(', ')
+                          - if can_edit_projects? && project.project_cocs.any?
+                            .ml-auto
+                              = link_to edit_project_coc_path(project.project_cocs&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                                %i.icon-pencil
                         - if project.project_cocs.map(&:hud_coc_code).map(&:presence).any?
                           .o-text--italic.mb-2
                             Overridden as
                             = project.project_cocs.map(&:hud_coc_code).join(', ')
-                        - if can_edit_projects? && project.project_cocs.any?
-                          .ml-auto
-                            = link_to edit_project_coc_path(project.project_cocs&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-                              %i.icon-pencil
+
                       %td
                         .mb-2
                           = checkmark_or_x(project.ContinuumProject)
@@ -133,16 +136,18 @@
                             Overridden as
                             = HUD.housing_type project.housing_type_override
                       %td
-                        .mb-2
-                          = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
+                        .d-flex
+                          .mb-2.mr-2
+                            = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
+                          - if can_edit_projects? && project.geographies.any?
+                            .ml-auto
+                              = link_to edit_geography_path(project.geographies&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                                %i.icon-pencil
                         - if project.geographies&.map(&:geocode_override).present?
                           .o-text--italic.mb-2
                             Overridden as
                             = project.geographies.map(&:geocode_override).join(', ')
-                        - if can_edit_projects? && project.geographies.any?
-                          .ml-auto
-                            = link_to edit_geography_path(project.geographies&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-                              %i.icon-pencil
+
                       %td
                         .mb-2
                           = project.geographies&.map{|m| HUD.geography_type(m.GeographyType)}&.join('; ').presence || 'None'
