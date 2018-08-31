@@ -53,7 +53,6 @@ module Window::Health
         @state = :valid # force the form to show again
         render :edit and return
       end
-      console
       (first_name, last_name) = signature_params[:to_name].split(' ')
       email = signature_params[:to_email]
       team_member = Health::Team::Provider.new(
