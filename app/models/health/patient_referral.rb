@@ -23,6 +23,8 @@ module Health
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
     scope :rejected, -> {where(rejected: true)}
     scope :with_patient, -> { where.not patient_id: nil }
+    scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
+    scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true

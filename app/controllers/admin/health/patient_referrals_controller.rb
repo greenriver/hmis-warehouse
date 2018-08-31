@@ -35,6 +35,7 @@ module Admin::Health
       @patient_referrals = Health::PatientReferral.rejected.includes(:relationships).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       load_index_vars
+      @sender = Health::Cp.sender.first
       render 'index'
     end
 
@@ -69,6 +70,12 @@ module Admin::Health
         flash[:error] = 'Unable to add patient referral.'
         render 'index'
       end
+    end
+
+    def update
+      @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+      @patient_referral.update(patient_referral_params)
+      respond_with(@patient_referral)
     end
 
     def assign_agency
@@ -175,6 +182,10 @@ module Admin::Health
       else
         review_admin_health_patient_referrals_path
       end
+    end
+
+    def patient_referral_params
+      params.require(:health_patient_referral).permit(:removal_acknowledged)
     end
 
   end
