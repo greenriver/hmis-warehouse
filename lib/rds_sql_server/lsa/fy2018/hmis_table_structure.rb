@@ -636,8 +636,6 @@ SqlServerBase.connection.execute (<<~SQL);
     create index project_export_id ON [hmis_Project] ([ExportID]);
     create index index_proj_proj_id_org_id_ds_id ON [hmis_Project] ([ProjectID], [OrganizationID]);
     create index index_Project_on_ProjectType ON [hmis_Project] ([ProjectType]);
-    create index index_Project_on_computed_project_type ON [hmis_Project] ([computed_project_type]);
-
 
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_ProjectCoC' AND xtype='U')
     DROP TABLE [hmis_ProjectCoC]
