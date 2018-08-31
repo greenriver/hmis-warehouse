@@ -115,6 +115,11 @@ module Health
           code: 'T2024',
           weight: 20,
         },
+        med_rec: {
+          title: 'Supported Medication Reconciliation (NCM only)',
+          code: 'G8427',
+          weight: 21,
+        },
         care_coordination: {
           title: 'Care coordination',
           code: 'G9005',
