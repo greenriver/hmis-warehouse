@@ -14,8 +14,9 @@
           - if current_user.can_confirm_housing_release?
             %th.text-center
               = _('Available for matching in CAS') + '?'
-              %br
-              %input#jCasActive.jCheckAll{type: :checkbox}
+              - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
+                %br
+                %input#jCasActive.jCheckAll{type: :checkbox}
           %th.text-center Disability Verification
           %th.text-center
             Disability Verified?
@@ -44,7 +45,8 @@
                 - if client.active_in_cas?
                   = checkmark client.active_in_cas?
                 - else
-                  = f.input "[active_in_cas][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jCasActive'}
+                  - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
+                    = f.input "[active_in_cas][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jCasActive'}
             %td.text-center
               - file = client.client_files.tagged_with(['Disability Verification', 'Verification of Disability'], any: true).order(:created_at).last
               - if file.present?
