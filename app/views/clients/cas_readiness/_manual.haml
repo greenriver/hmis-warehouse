@@ -25,9 +25,9 @@
         %h3 Disability Verification
         .c-card.c-card--block.c-card--padded.c-card--flush
           .d-flex.flex-wrap
-            .mr-10.mb-4
+            .mr-10
               = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
-            .mr-10.mb-4.pt-2
+            .mr-10.pt-2
               - file = @client.client_files.tagged_with(['Disability Verification', 'Verification of Disability'], any: true).order(:created_at).last
               - if file.present?
                 File:

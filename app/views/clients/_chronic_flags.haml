@@ -1,4 +1,4 @@
-- if client.processed_service_history.present? && client.longterm_stayer? || client.sync_with_cas? || client.chronically_homeless_for_cas?
+- if client.processed_service_history.present? && client.longterm_stayer? || client.active_in_cas? || client.chronically_homeless_for_cas?
   %h3.mt-0 CAS
 - cas_id = client.cas_client&.id
 - if client.processed_service_history.present? && client.longterm_stayer?
@@ -9,7 +9,7 @@
       .c-tag__content
         %span Long-term Stayer
 
-- if client.sync_with_cas? && client.chronically_homeless_for_cas?
+- if client.active_in_cas? && client.chronically_homeless_for_cas?
   .c-tag.c-tag--info.client-flag
     .c-tag__wrapper
       .c-tag__icon
@@ -29,7 +29,7 @@
       .c-tag__content
         %span Chronically Homeless for CAS
 
-- elsif client.sync_with_cas?
+- elsif client.active_in_cas?
   .c-tag.c-tag--warning.client-flag
     .c-tag__wrapper
       .c-tag__icon
