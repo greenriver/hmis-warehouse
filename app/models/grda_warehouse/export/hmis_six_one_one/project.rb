@@ -28,6 +28,9 @@ module GrdaWarehouse::Export::HMISSixOneOne
       if override = housing_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
         row[:HousingType] = override
       end
+      if override = continuum_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+        row[:ContinuumProject] = override
+      end
       return row
     end
 
@@ -42,6 +45,19 @@ module GrdaWarehouse::Export::HMISSixOneOne
           end
         end.compact.to_h
       @housing_type_overrides[[data_source_id, project_id]]
+    end
+
+    def continuum_project_override_for project_id:, data_source_id:
+      @continuum_project_overrides ||= self.class.where.not(hud_continuum_funded: nil).
+        pluck(:data_source_id, :id, :hud_continuum_funded).
+        map do |data_source_id, project_id, hud_continuum_funded|
+          if hud_continuum_funded.present?
+            [[data_source_id, project_id], hud_continuum_funded]
+          else
+            nil
+          end
+        end.compact.to_h
+      @continuum_project_overrides[[data_source_id, project_id]]
     end
   end
 end

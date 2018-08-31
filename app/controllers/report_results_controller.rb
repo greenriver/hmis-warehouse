@@ -51,16 +51,16 @@ class ReportResultsController < ApplicationController
         distinct.
         merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        where(InformationDate: nil).
+        where(InformationDate: nil, information_date_override: nil).
         pluck(*columns).
         map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
       @missing_data[:missing_operating_start_date] = GrdaWarehouse::Hud::Project.joins(:organization).
         coc_funded.where(computed_project_type: [1,2,3,8,9,10,13]).
-        where(OperatingStartDate: nil).
+        where(OperatingStartDate: nil, operating_start_date_override: nil).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         pluck(*columns).
         map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
-      @missing_projects = @missing_data.values.flatten.uniq
+      @missing_projects = @missing_data.values.flatten.uniq.sort_by(&:first)
       @show_missing_data = @missing_projects.any?
     end
 

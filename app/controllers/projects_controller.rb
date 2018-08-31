@@ -1,7 +1,8 @@
 
 class ProjectsController < ApplicationController
   before_action :require_can_view_projects!
-  before_action :set_project, only: [:show]
+  before_action :require_can_edit_projects!, only: [:edit, :update]
+  before_action :set_project, only: [:show, :update, :edit]
 
   include ArelHelper
 
@@ -38,12 +39,32 @@ class ProjectsController < ApplicationController
       .page(params[:page]).per(25)
   end
 
+  def edit
+
+  end
+
+  def update
+    @project.update(project_params)
+    respond_with @project, location: project_path(@project)
+  end
+
+  private def project_params
+    params.require(:project).permit(
+      :act_as_project_type,
+      :hud_continuum_funded,
+      :housing_type_override,
+      :uses_move_in_date,
+      :confidential,
+      :operating_start_date_override,
+    )
+  end
+
   private def project_scope
-    project_source.all
+    project_source.viewable_by current_user
   end
 
   private def project_source
-    GrdaWarehouse::Hud::Project.viewable_by current_user
+    GrdaWarehouse::Hud::Project
   end
 
   private def set_project
@@ -63,4 +84,8 @@ class ProjectsController < ApplicationController
   def sort_direction
     %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
   end
+
+  def flash_interpolation_options
+      { resource_name: 'Project' }
+    end
 end

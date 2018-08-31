@@ -14,7 +14,7 @@
     %tbody
       - @missing_projects.each do |project|
         %tr
-          %td= link_to project[:project], data_source_path(project[:data_source_id], anchor: "project-#{project[:id]}")
+          %td= link_to project[:project], edit_project_path(project[:id])
           %th= ::HUD.project_type_brief project[:project_type]
           %td= yes_no(! @missing_data[:missing_operating_start_date].include?(project))
           %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
