@@ -566,7 +566,6 @@ SqlServerBase.connection.execute (<<~SQL);
       [CoCCode] varchar(50),
       [InformationDate] date,
       [HouseholdType] int,
-      [BedType] int,
       [Availability] int,
       [UnitInventory] int,
       [BedInventory] int,
