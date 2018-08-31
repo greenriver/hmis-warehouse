@@ -347,7 +347,7 @@ module HUD
     when 12
       'Homeless Prevention'
     when 13
-      'PH'
+      'PH-RRH'
     when 14
       'Coordinated Assessment'
     end
