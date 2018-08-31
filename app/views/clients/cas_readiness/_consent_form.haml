@@ -29,7 +29,7 @@
             %i.icon-calendar
             = signed_date
           - else
-            %i.fa.fa-times-circle.o-color--warning.inline-icon
+            = checkmark_or_x(false)
             Form Not Signed
     - if show_file_existence
       %p.o-text--semibold The following attributes are determined based exclusively on the existence of an uploaded file.

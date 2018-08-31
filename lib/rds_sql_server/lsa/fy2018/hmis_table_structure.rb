@@ -414,9 +414,11 @@ SqlServerBase.connection.execute (<<~SQL);
       [GeographyID] varchar(255),
       [ProjectID] varchar(255),
       [CoCCode] varchar(50),
-      [PrincipalSite] int,
+      [InformationDate] date,
       [Geocode] varchar(50),
+      [GeographyType] int,
       [Address1] varchar(255),
+      [Address2] varchar(255),
       [City] varchar(255),
       [State] varchar(2),
       [ZIP] varchar(10),
@@ -424,10 +426,7 @@ SqlServerBase.connection.execute (<<~SQL);
       [DateUpdated] datetime,
       [UserID] varchar(100),
       [DateDeleted] datetime,
-      [ExportID] varchar(255),
-      [InformationDate] date,
-      [Address2] varchar(255),
-      [GeographyType] int
+      [ExportID] varchar(255)
     );
 
     create index site_date_created ON [hmis_Geography] ([DateCreated]);
@@ -567,14 +566,13 @@ SqlServerBase.connection.execute (<<~SQL);
       [CoCCode] varchar(50),
       [InformationDate] date,
       [HouseholdType] int,
-      [BedType] int,
       [Availability] int,
       [UnitInventory] int,
       [BedInventory] int,
       [CHBedInventory] int,
       [VetBedInventory] int,
       [YouthBedInventory] int,
-      [YouthAgeGroup] int,
+      [BedType] int,
       [InventoryStartDate] date,
       [InventoryEndDate] date,
       [HMISParticipatingBeds] int,
@@ -616,22 +614,21 @@ SqlServerBase.connection.execute (<<~SQL);
       [OrganizationID] varchar(50),
       [ProjectName] varchar(255),
       [ProjectCommonName] varchar(255),
+      [OperatingStartDate] date,
+      [OperatingEndDate] date,
       [ContinuumProject] int,
       [ProjectType] int,
       [ResidentialAffiliation] int,
       [TrackingMethod] int,
       [TargetPopulation] int,
+      [VictimServicesProvider] int,
+      [HousingType] int,
       [PITCount] int,
       [DateCreated] datetime,
       [DateUpdated] datetime,
       [UserID] varchar(100),
       [DateDeleted] datetime,
-      [ExportID] varchar(255),
-      [computed_project_type] int,
-      [OperatingStartDate] date,
-      [OperatingEndDate] date,
-      [VictimServicesProvider] int,
-      [HousingType] int
+      [ExportID] varchar(255)
     );
 
     create index project_date_created ON [hmis_Project] ([DateCreated]);
@@ -639,8 +636,6 @@ SqlServerBase.connection.execute (<<~SQL);
     create index project_export_id ON [hmis_Project] ([ExportID]);
     create index index_proj_proj_id_org_id_ds_id ON [hmis_Project] ([ProjectID], [OrganizationID]);
     create index index_Project_on_ProjectType ON [hmis_Project] ([ProjectType]);
-    create index index_Project_on_computed_project_type ON [hmis_Project] ([computed_project_type]);
-
 
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_ProjectCoC' AND xtype='U')
     DROP TABLE [hmis_ProjectCoC]

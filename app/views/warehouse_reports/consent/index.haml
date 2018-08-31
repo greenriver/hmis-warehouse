@@ -17,6 +17,10 @@
               %br
               %input#jCasActive.jCheckAll{type: :checkbox}
           %th.text-center Disability Verification
+          %th.text-center
+            Disability Verified?
+            %br
+            %input#jDisabilityVerification.jCheckAll{type: :checkbox}
           %th Consent Form Signed on
           - if current_user.can_confirm_housing_release?
             %th.text-center Release Type
@@ -46,12 +50,17 @@
               - if file.present?
                 = link_to preview_client_file_path(client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.updated_at&.to_date
-            %td{colspan: 3}
+            %td.text-center
+              - if client.disability_verified_on
+                = client.disability_verified_on
+              - else
+                = f.input "[disability_verified_on][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jDisabilityVerification'}
+            %td{colspan: 4}
             - @cohorts_for_unconfirmed.each do |_,cohort|
               %td= checkmark cohort[:clients].include?(client.id)
           - unconfirmed_files.each do |file|
             %tr
-              %td{colspan: 3}
+              %td{colspan: 4}
               %td.text-center
                 = link_to preview_client_file_path(client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.consent_form_signed_on&.to_date || 'Not signed'
