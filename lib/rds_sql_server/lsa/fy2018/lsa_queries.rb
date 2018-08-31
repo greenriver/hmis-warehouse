@@ -119,7 +119,7 @@ SqlServerBase.connection.execute (<<~SQL);
   /*************************************************************************
   4.7 Get Active Household IDs
   **********************************************************************/
-
+  -- CHANGED EAA
   delete from active_Household
 
   insert into active_Household (HouseholdID, HoHID, MoveInDate
