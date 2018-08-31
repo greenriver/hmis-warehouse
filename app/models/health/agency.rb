@@ -12,7 +12,7 @@ module Health
     end
 
     def self.whitelisted_domains
-      self.pluck(:acceptable_domains).join(',').split(',').map(&:strip)
+      self.pluck(:acceptable_domains).join(',').split(',').map(&:strip).select(&:present?)
     end
 
     def self.acceptable_domain?(domain)
