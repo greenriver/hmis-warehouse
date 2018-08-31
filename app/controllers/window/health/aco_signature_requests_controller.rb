@@ -42,10 +42,18 @@ module Window::Health
     # Build and send a PCP signing request and team member based on the values submitted
     #
     def update
-      if signature_params[:to_name].blank? || signature_params[:to_email].blank? || ! Health::Agency.email_valid?(signature_params[:to_email])
-        flash[:error] = 'All fields are required.  PCP email must belong to a known agency.'
+
+      if signature_params[:to_name].blank?
+        @signature_request.errors.add(:to_name, 'PCP Name is required')
+      end
+      if signature_params[:to_email].blank? || ! Health::Agency.email_valid?(signature_params[:to_email])
+        @signature_request.errors.add(:to_email, 'PCP email must belong to a known agency. See list at the bottom of the page')
+      end
+      if @signature_request.errors.any?
+        @state = :valid # force the form to show again
         render :edit and return
       end
+      console
       (first_name, last_name) = signature_params[:to_name].split(' ')
       email = signature_params[:to_email]
       team_member = Health::Team::Provider.new(
@@ -77,7 +85,7 @@ module Window::Health
         queue_pcp_email()
         flash[:notice] = 'Thank you. The Care Plan Signature request will be sent to the PCP.'
       else
-        render :new and return
+        render :edit and return
       end
     end
 
