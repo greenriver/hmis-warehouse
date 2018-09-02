@@ -4,12 +4,17 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
     set_value_html_option
 
     if @builder.options[:wrapper] == :readonly
-      display_value = object.send(attribute_name) 
+      display_value = object.send(attribute_name)
       template.content_tag(:p, display_value, label_html_options)
     else
-      template.content_tag :div, class: 'input-group date datepicker', data: {provide: 'datepicker'} do
+      data = {provide: 'datepicker'}
+      if input_html_options[:disabled]
+        data = {}
+      end
+      template.content_tag :div, class: 'input-group date datepicker', data: data do
         input = super(wrapper_options)
-        input + input_button
+        input += input_button
+        input
       end
     end
   end

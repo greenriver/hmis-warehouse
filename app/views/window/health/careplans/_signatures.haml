@@ -3,11 +3,19 @@
     = checkmark(true)
     Patient Signature (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
-    - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
-    - method = :post
-
-    = link_to url, method: method, class: 'btn btn-sm btn-secondary' do
-      Get Patient Signature
+    .btn-group
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
+        Get Patient Signature
+        %span.caret
+      %ul.dropdown-menu
+        %li
+          - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
+          - method = :post
+          = link_to url, method: method do
+            Have Patient Sign using this device
+        %li
+          = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
+            Upload signed pdf
 .pctp__signature
   - if careplan.provider_signed_on
     = checkmark(true)

@@ -9,7 +9,9 @@
   = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed', disabled: @careplan.locked? && f.object.patient_signed_on.present?
 
   = f.input :provider_id, label: 'Primary Care Provider', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked? && f.object.provider_id.present?
+
   = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed', disabled: @careplan.locked? && f.object.provider_signed_on.present?
+
 .col-md-6
 
   = f.input :representative_id, label: 'Designated Representative', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked?
