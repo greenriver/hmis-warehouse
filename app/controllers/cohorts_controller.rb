@@ -35,7 +35,7 @@ class CohortsController < ApplicationController
           header = {
             headerName: col.title,
             field: col.column,
-            editable: col.editable,
+            editable: col.column_editable? && col.editable,
           }
           header[:pinned] = :left if index <= @cohort.static_column_count
           case col.renderer

@@ -11,7 +11,10 @@ DateCellEditor.prototype.init = function(params) {
   $(this.eInput).datepicker({
     dateFormat: "dd/mm/yy",
     changeMonth: true,
-    changeYear: true
+    changeYear: true,
+    autoclose: true
+  }).on('hide', function(e) {
+    params.stopEditing();
   });
 };
 
