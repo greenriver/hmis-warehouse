@@ -20,9 +20,20 @@ CheckboxCellEditor.prototype.afterGuiAttached = function() {
 };
 
 // returns the new value after editing
+CheckboxCellEditor.prototype.isCancelBeforeStart = function () {
+    return this.cancelBeforeStart;
+};
+
+// returns the new value after editing
 CheckboxCellEditor.prototype.getValue = function() {
-  console.log(this.eInput.checked);
-  return this.eInput.checked;
+  console.log(this.eInput.value, this.eInput.checked);
+  if(this.eInput.checked) {
+    return 1
+  }
+  else {
+    return 0
+  }
+  // return this.eInput.checked;
 };
 
 // any cleanup we need to be done here

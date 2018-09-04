@@ -39,9 +39,6 @@ module CohortColumns
       if cohort_client.ineligible?
         html += content_tag(:i, ' ', class: "icon-notification warning")
       end
-      if inactive || cohort_client.ineligible?
-        html = content_tag(:div, html.html_safe, data: {toggle: :tooltip, title: comments})
-      end
       return html
     end
 

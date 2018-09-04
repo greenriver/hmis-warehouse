@@ -116,6 +116,8 @@ class App.Cohorts.Cohort
         headerName: column.headerName,
         field: column.field,
         editable: column.editable,
+        tooltip: (params) ->
+          params.data[params.colDef.field].comments
         valueGetter: (params) ->
           params.data[params.column.colId].value
         valueSetter: (params) ->
@@ -260,7 +262,7 @@ class App.Cohorts.Cohort
       # @format_data_for_table()
       # console.log @raw_data
       @grid_options.api.setRowData(@raw_data)
-      @reinitialize_js()
+      # @reinitialize_js()
       # console.log(@table_data)
 
       # add the data to the table
@@ -354,9 +356,9 @@ class App.Cohorts.Cohort
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
-  reinitialize_js: () ->
-    console.log('reinitialize_js', $('[data-toggle="tooltip"]'))
-    $('[data-toggle="tooltip"]').tooltip()
+  # reinitialize_js: () ->
+  #   console.log('reinitialize_js', $('[data-toggle="tooltip"]'))
+  #   $('[data-toggle="tooltip"]').tooltip()
 
   # listen_for_page_resize: () =>
   #   $(window).resize () =>
