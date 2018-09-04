@@ -16,6 +16,9 @@
         %li
           = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
             Upload signed pdf
+  - else
+    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
+      Upload signed pdf or enter signature date
 .pctp__signature
   - if careplan.provider_signed_on
     = checkmark(true)
@@ -70,3 +73,6 @@
         %li
           = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
             Upload signed pdf
+  - else
+    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
+      Upload signed pdf or enter signature date
