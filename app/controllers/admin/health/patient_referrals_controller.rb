@@ -186,10 +186,5 @@ module Admin::Health
         review_admin_health_patient_referrals_path
       end
     end
-
-    def patient_referral_params
-      params.require(:health_patient_referral).permit(:removal_acknowledged)
-    end
-
   end
 end
