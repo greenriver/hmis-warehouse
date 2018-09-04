@@ -16,7 +16,7 @@ CheckboxCellRenderer.prototype.refresh = function(params) {
   var wrapper = document.createElement('div');
   wrapper.className = 'text-center'
   var checkmark =  document.createElement('span');
-  if (params.value) {
+  if (params.value != 'false' && params.value) {
     checkmark.className = 'icon-checkmark o-color--positive';
   }
   else {

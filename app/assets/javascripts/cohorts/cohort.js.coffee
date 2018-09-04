@@ -53,9 +53,9 @@ class App.Cohorts.Cohort
       enableFilter: true,
       singleClickEdit: true,
       onCellEditingStarted: (e) ->
-        console.log "cellEditingStarted", e
+        # console.log "cellEditingStarted", e
       onCellEditingStopped: (e) ->
-        console.log "cellEditingStopped", e
+        # console.log "cellEditingStopped", e
       # frameworkComponents:
       #   htmlRenderer: @htmlRenderer,
       components:
