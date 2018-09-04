@@ -164,6 +164,7 @@ module PatientReferral
       :snf_discharge,
       :identification,
       :record_status,
+      :removal_acknowledged,
       relationships_attributes: [:agency_id, :claimed]
     )
   end
