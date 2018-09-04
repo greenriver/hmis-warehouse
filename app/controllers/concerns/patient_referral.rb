@@ -109,7 +109,7 @@ module PatientReferral
 
   def clean_patient_referral_params
     clean_params = patient_referral_params
-    clean_params[:ssn] = clean_params[:ssn].gsub(/\D/, '')
+    clean_params[:ssn] = clean_params[:ssn]&.gsub(/\D/, '')
     clean_params
   end
 
