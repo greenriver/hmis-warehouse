@@ -115,6 +115,11 @@ module Health
           code: 'T2024',
           weight: 20,
         },
+        med_rec: {
+          title: 'Supported Medication Reconciliation (NCM only)',
+          code: 'G8427',
+          weight: 21,
+        },
         care_coordination: {
           title: 'Care coordination',
           code: 'G9005',
@@ -171,15 +176,16 @@ module Health
     end
 
     def self.face_to_face? value
-      face_to_face_modes.include?(value)
+      face_to_face_modes.include?(value&.to_sym)
     end
 
+    # Return the string and the key so we can check either
     def self.face_to_face_modes
       keys = [
         :in_person,
       ]
       Health::QualifyingActivity.modes_of_contact.select{ |k,_| keys.include? k }.
-        map{ |_,m| m[:title] }
+        map{ |_,m| m[:title] } + keys
     end
 
     # These validations must come after the above methods
@@ -187,13 +193,13 @@ module Health
     validates :reached_client, inclusion: {in: Health::QualifyingActivity.client_reached.keys.map(&:to_s)}, allow_blank: true
     validates :activity, inclusion: {in: Health::QualifyingActivity.activities.keys.map(&:to_s)}, allow_blank: true
     validates_presence_of(
-      :user, 
-      :user_full_name, 
-      :source, :follow_up, 
-      :date_of_activity, 
-      :patient_id, 
-      :mode_of_contact, 
-      :reached_client, 
+      :user,
+      :user_full_name,
+      :source, :follow_up,
+      :date_of_activity,
+      :patient_id,
+      :mode_of_contact,
+      :reached_client,
       :activity
     )
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?

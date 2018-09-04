@@ -53,12 +53,13 @@ module EtoApi::Tasks
         current_hmis_clients = GrdaWarehouse::HmisClient.count
         current_hmis_forms = GrdaWarehouse::HmisForm.count
         if @one_off
-          msg = "Importing #{cs.size} clients from the api, trigged by visiting the client in the UI."
+          msg = ''
+          # msg = "Importing #{cs.size} clients from the api, trigged by visiting the client in the UI."
         else
           msg = "Importing #{cs.size} clients from the api, restarting every #{time_ago_in_words(@batch_time.from_now)}, stopping after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
         end
-        Rails.logger.info msg
-        notifier.ping msg if send_notifications
+        Rails.logger.info msg if msg.present?
+        notifier.ping msg if send_notifications && msg.present?
         @clients = load_candidates(type: :demographic)
         @clients.find_in_batches(batch_size: 10) do |clients|
           clients.each do |client|

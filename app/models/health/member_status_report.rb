@@ -59,7 +59,7 @@ module Health
           care_coordinator_email: patient&.care_coordinator&.email,
           # report_start_date: report_start_date&.strftime('%Y%M%d'),
           # report_end_date: report_end_date&.strftime('%Y%M%d'),
-          record_status: 'A',
+          record_status: pr.record_status,
           record_update_date: patient_updated_at.to_date,
           export_date: Date.today,
         }
@@ -132,7 +132,7 @@ module Health
     end
 
     def patient_referrals
-      Health::PatientReferral.all
+      Health::PatientReferral.not_confirmed_rejected
     end
 
     def report_range

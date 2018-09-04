@@ -27,6 +27,8 @@ module WarehouseReports
       to_confirm = params[:clients].try(:[], :confirm_consent).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
       to_activate_in_cas = params[:clients].try(:[], :active_in_cas).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
 
+      to_confirm_disability = params[:clients].try(:[], :disability_verified_on).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
+
       if to_confirm.any?
         to_confirm.each do |file_id|
           form = consent_form_source.
@@ -38,6 +40,10 @@ module WarehouseReports
       if to_activate_in_cas.any?
         # update client.sync_with_cas
         client_source.where(id: to_activate_in_cas).update_all(sync_with_cas: true)
+      end
+
+      if to_confirm_disability.any?
+        client_source.where(id: to_confirm_disability).update_all(disability_verified_on: Time.now)
       end
 
       flash[:notice] = "Clients updated"

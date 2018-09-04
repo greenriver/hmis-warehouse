@@ -34,13 +34,28 @@ module GrdaWarehouse::Export::HMISSixOneOne
           join_tables[:enrollment] << :project
         end
       end
-      export_scope = export_scope.joins(join_tables)
+      # We'll need to index these on EnrollmentID to ensure we only get one exit per enrollment
+      # index_by chooses the last one, so sort by DateUpdated asc
+      export_scope = export_scope.joins(join_tables).order(DateUpdated: :desc)
 
       export_to_path(
         export_scope: export_scope,
         path: path,
         export: export
       )
+    end
+
+    # Limit exits to one per enrollment (sometimes we get data with more) and only export
+    # the most recently changed
+    def ids_to_export export_scope:
+      window = <<-SQL
+        row_number() OVER
+        (
+          PARTITION BY #{ex_t[:EnrollmentID].to_sql}
+          ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
+        ) as row_number
+      SQL
+      ids = export_scope.pluck(:id, window).select{|_, row_number| row_number == 1}.map(&:first)
     end
   end
 end

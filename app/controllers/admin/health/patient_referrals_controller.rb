@@ -9,8 +9,9 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
-      @patient_referrals = Health::PatientReferral.unassigned.includes(:relationships).
-        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
+      @patient_referrals = Health::PatientReferral.unassigned.
+        includes(:relationships, relationships_claimed: :agency).
+        preload(:assigned_agency, :aco, :relationships, :relationships_unclaimed, {patient: :client})
       respond_to do |format|
         format.html do
           load_index_vars
@@ -24,7 +25,8 @@ module Admin::Health
 
     def assigned
       @active_patient_referral_tab = 'assigned'
-      @patient_referrals = Health::PatientReferral.assigned.includes(:relationships).
+      @patient_referrals = Health::PatientReferral.assigned.
+        includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       load_index_vars
       render 'index'
@@ -32,9 +34,11 @@ module Admin::Health
 
     def rejected
       @active_patient_referral_tab = 'rejected'
-      @patient_referrals = Health::PatientReferral.rejected.includes(:relationships).
+      @patient_referrals = Health::PatientReferral.rejected.
+        includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       load_index_vars
+      @sender = Health::Cp.sender.first
       render 'index'
     end
 
@@ -69,6 +73,12 @@ module Admin::Health
         flash[:error] = 'Unable to add patient referral.'
         render 'index'
       end
+    end
+
+    def update
+      @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+      @patient_referral.update(patient_referral_params)
+      respond_with(@patient_referral)
     end
 
     def assign_agency
@@ -175,6 +185,10 @@ module Admin::Health
       else
         review_admin_health_patient_referrals_path
       end
+    end
+
+    def patient_referral_params
+      params.require(:health_patient_referral).permit(:removal_acknowledged)
     end
 
   end

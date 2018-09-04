@@ -1,2 +1,11 @@
 %p
-  Any client with a full or partial release (consent form) on file sync with CAS.
+  Any client with a
+  %strong confirmed
+  full or partial release (consent form) on file will sync with CAS.
+
+%p
+  Will
+  %strong= @client.name
+  sync with CAS?
+  %br
+  = yes_no @client.active_in_cas?

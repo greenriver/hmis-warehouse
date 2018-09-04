@@ -1,0 +1,9 @@
+= render 'projects/project_breadcrumbs'
+- content_for :title, "Edit Project CoC for #{@project.name} at #{@project.organization.name}"
+%h1= content_for :title
+= simple_form_for @project_coc, as: :project_coc, url: project_coc_path(@project_coc) do |f|
+  .row
+    .col-sm-6
+      = f.input :hud_coc_code, input_html: {maxlength: 6}, label: "Override CoC Code, currently: #{@project_coc.CoCCode || 'unset'}"
+      .form-actions
+        = f.submit 'Save', class: ['btn', 'btn-primary', 'ml-auto']

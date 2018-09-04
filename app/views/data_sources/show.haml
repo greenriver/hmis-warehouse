@@ -52,8 +52,7 @@
           &amp;
           = _('Projects')
         .table-responsive
-          = f.simple_fields_for :organizations, @organizations do |o|
-            - org = o.object
+          - @organizations.each do |org|
             .c-card--flush.mb-5
               %header.row.c-card__header
                 .col-sm-8
@@ -70,6 +69,8 @@
                     %th{style: 'width:30%'}
                       Project
                     %th{style: 'width:10%'}
+                      Confidential?
+                    %th{style: 'width:10%'}
                       CoC Code
                     %th{style: 'width:10%'}
                       HUD CoC Funded
@@ -80,60 +81,79 @@
                     %th{style: 'width:5%'} Geography Type
                     %th{style: 'width:5%'} Inventory Record?
                 %tbody
-                  = f.simple_fields_for :projects, org.projects do |proj|
-                    - project = proj.object
+                  - org.projects.each do |project|
                     %tr
                       %td
-                        .project__name.mb-2
-                          .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
-                            .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
-                              = HUD.project_type_brief project.ProjectType
+                        .project__name.mb-2{id: "project-#{project.id}"}
+                          .d-flex
+                            .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
+                              .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
+                                = HUD.project_type_brief project.ProjectType
+                            .ml-2.mb-2.mr-2
+                              = link_to project.name, project_path(project)
+                            - if can_edit_projects?
+                              .ml-auto
+                              = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                                %i.icon-pencil
+                          - if project.act_as_project_type.present? && project.act_as_project_type != project.ProjectType
+                            .o-text--italic.mb-2
+                              Acts as
+                              = HUD.project_type project.act_as_project_type
 
-                          = link_to project.name, project_path(project)
                         .project__tracking-method.mb-2
                           %em.small
                             Tracking Method:
                             = HUD.tracking_method project.TrackingMethod
-                        - unless @readonly
-                          .project__project-type-override
-                            = proj.input :act_as_project_type, collection: ::HUD.project_types.invert, include_blank: 'Use Actual Project Type', label: false
-
-                          .project__confidential
-                            = proj.input :confidential, label: 'Confidential?'
-                          .project__uses-move-in-date
-                            = proj.input :uses_move_in_date, label: 'Uses move-in-date?'
 
                       %td
-                        .o-text--italic.mb-2
-                          = project.project_cocs.map(&:CoCCode).join(', ')
-                        - unless @readonly
-                          = proj.input :hud_coc_code, label: 'Override', input_html: { value: project.project_cocs&.map(&:hud_coc_code).uniq.join(' ')}, wrapper_html: {class: 'mb-2'}
+                        = checkmark project.confidential
+
+                      %td
+                        .d-flex
+                          .mb-2.mr-2
+                            = project.project_cocs.map(&:CoCCode).join(', ')
+                          - if can_edit_projects? && project.project_cocs.any?
+                            .ml-auto
+                              = link_to edit_project_coc_path(project.project_cocs&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                                %i.icon-pencil
+                        - if project.project_cocs.map(&:hud_coc_code).map(&:presence).any?
+                          .o-text--italic.mb-2
+                            Overridden as
+                            = project.project_cocs.map(&:hud_coc_code).join(', ')
 
                       %td
                         .mb-2
                           = checkmark_or_x(project.ContinuumProject)
-                        - unless @readonly
-                          %label Override
-                          = proj.input :hud_continuum_funded, label: false
+                        - if project.hud_continuum_funded.present?
+                          .o-text--italic.mb-2
+                            Overridden
+                            = checkmark(project.hud_continuum_funded)
                       %td
                         .mb-2
                           = HUD.housing_type(project.HousingType).presence || 'None'
-                        - unless @readonly
-                          .mb-4
-                            = proj.input :housing_type_override, label: 'Override', input_html: { value: project.housing_type_override}, collection: HUD.housing_types.invert, include_blank: true
+                        - if project.housing_type_override.present?
+                          .o-text--italic.mb-2
+                            Overridden as
+                            = HUD.housing_type project.housing_type_override
                       %td
-                        .mb-2
-                          = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
-                        - unless @readonly
-                          .mb-4
-                            = proj.input :geocode_override, label: 'Override', input_html: { value: project.geographies&.first&.geocode_override}
+                        .d-flex
+                          .mb-2.mr-2
+                            = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
+                          - if can_edit_projects? && project.geographies.any?
+                            .ml-auto
+                              = link_to edit_geography_path(project.geographies&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+                                %i.icon-pencil
+                        - if project.geographies&.map(&:geocode_override).present?
+                          .o-text--italic.mb-2
+                            Overridden as
+                            = project.geographies.map(&:geocode_override).join(', ')
+
                       %td
                         .mb-2
                           = project.geographies&.map{|m| HUD.geography_type(m.GeographyType)}&.join('; ').presence || 'None'
-                        - unless @readonly
-                          .mb-4
-                            = proj.input :geography_type_override, label: 'Override', selected: project.geographies&.first&.geography_type_override, collection: HUD.geography_types.invert, include_blank: true
+                        - if project.geographies&.map(&:geocode_override).present?
+                          .o-text--italic.mb-2
+                            Overridden as
+                            = project.geographies.map{|m| HUD.geography_type m.geocode_override}.join(', ')
                       %td
                         = checkmark_or_x(project.inventories.present? )
-  - unless @readonly
-    = f.button :submit, value: _('Update Data Source')

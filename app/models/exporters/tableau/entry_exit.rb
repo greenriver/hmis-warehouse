@@ -63,7 +63,7 @@ module Exporters::Tableau::EntryExit
         chronic:                          nil, # at enrollment start # in use
         days_to_return:                   nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a # in use
         rrh_time_in_shelter:              nil, # in use
-        _date_to_street_es_sh:            nil, # in use
+        _date_to_street_es_sh:            e_t[:DateToStreetESSH], # in use
         prior_es_enrollment_last3_count:  nil, # in use
         local_planning_group:             p_t[:local_planning_group], # in use
         confidential:                     p_t[:confidential], # in use
@@ -118,6 +118,7 @@ module Exporters::Tableau::EntryExit
       data = model.connection.select_all(scope.to_sql)
       client_ids = data.map{|row| row['client_uid']}.uniq
       dobs = c_t.engine.where(id: client_ids).pluck(:id, :DOB).to_h
+      disabled_ids = GrdaWarehouse::Hud::Client.disabled_client_ids
       clients = GrdaWarehouse::Hud::Client.where( id: client_ids ).index_by(&:id)
       data_by_client = data.group_by do |row|
         row['client_uid']
@@ -229,11 +230,7 @@ module Exporters::Tableau::EntryExit
               ::HUD.race fields.first
             end
           when :disabling_condition
-            if [1,2,3].include? d_t.engine.where(
-              EnrollmentID: row['group_uid'],
-              PersonalID: row['personal_id'],
-              data_source_id: row['data_source_id'],
-            ).order(InformationDate: :desc).limit(1).pluck(:DisabilityResponse).first
+            if disabled_ids.include?(row['client_uid'].to_i)
               't'
             else
               'f'
@@ -306,7 +303,7 @@ module Exporters::Tableau::EntryExit
             end
           when :rrh_time_in_shelter
             # only calculate for RRH
-            if row['prog_type'] == 13 && row['_date_to_street_es_sh'].present?
+            if row['prog_type']&.to_i == 13 && row['_date_to_street_es_sh'].present?
               (row['entry_exit_entry_date'].to_date - row['_date_to_street_es_sh'].to_date).to_i rescue nil
             end
           when :prior_es_enrollment_last3_count

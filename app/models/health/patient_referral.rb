@@ -23,6 +23,8 @@ module Health
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
     scope :rejected, -> {where(rejected: true)}
     scope :with_patient, -> { where.not patient_id: nil }
+    scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
+    scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true
@@ -54,7 +56,7 @@ module Health
     end
 
     def relationship_to(agency)
-      relationships.where(agency_id: agency).last
+      relationships.select{|r| r.agency_id == agency.id}&.last
     end
 
     def assigned?
@@ -99,6 +101,12 @@ module Health
     # Declined Participation
     # Deceased
     def outreach_status
+      # outreach status needs to include patient values including some from patients that may have been deleted
+      if patient.blank? && self.patient_id.present?
+        patient = Health::Patient.only_deleted.find(self.patient_id) rescue nil
+      else
+        patient = self.patient
+      end
       if patient&.death_date || patient&.epic_patients&.map(&:death_date)&.any? || (rejected && rejected_reason == 'Deceased')
          'Deceased'
       elsif rejected && rejected_reason == 'Declined'
@@ -111,6 +119,22 @@ module Health
         'In Process'
       else
         'Not Yet Started'
+      end
+    end
+
+    def inactive_outreach_stati
+      [
+        'Deceased',
+        'Declined Participation',
+        'Unreachable/Unable to Contact',
+      ]
+    end
+
+    def record_status
+      if inactive_outreach_stati.include?(outreach_status)
+        'I'
+      else
+        'A'
       end
     end
 

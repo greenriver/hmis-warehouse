@@ -15,28 +15,52 @@ class ReportResultsController < ApplicationController
         missing_housing_type: [],
         missing_geocode: [],
         missing_gepgraphy_type: [],
+        missing_operating_start_date: [],
+        missing_gepgraphy_information_date: [],
       }
       range = ::Filters::DateRange.new(start: Date.today - 3.years, end: Date.today)
+      columns = [
+        p_t[:ProjectName].to_sql,
+        o_t[:OrganizationName].to_sql,
+        p_t[:computed_project_type].to_sql,
+        p_t[:id].to_sql,
+        p_t[:data_source_id].to_sql,
+      ]
       # There are a few required project descriptor fields.  Without these the report won't run cleanly
       @missing_data[:missing_housing_type] = GrdaWarehouse::Hud::Project.joins(:organization).
         coc_funded.where(computed_project_type: [1,2,3,8,9,10,13]).
         where(HousingType: nil, housing_type_override: nil).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
-        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
+        pluck(*columns).
+        map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
       @missing_data[:missing_geocode] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        distinct.
         merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         where(Geocode: nil, geocode_override: nil).
-        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
-        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
+        pluck(*columns).
+        map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
       @missing_data[:missing_gepgraphy_type] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        distinct.
         merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         where(GeographyType: nil, geography_type_override: nil).
-        pluck(p_t[:ProjectName].to_sql, o_t[:OrganizationName].to_sql, p_t[:computed_project_type].to_sql).
-        map{|p, o, p_type| {project: "#{o} - #{p}", project_type: p_type}}
-      @missing_projects = @missing_data.values.flatten.uniq
+        pluck(*columns).
+        map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
+      @missing_data[:missing_gepgraphy_information_date] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
+        distinct.
+        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+        where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
+        where(InformationDate: nil, information_date_override: nil).
+        pluck(*columns).
+        map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
+      @missing_data[:missing_operating_start_date] = GrdaWarehouse::Hud::Project.joins(:organization).
+        coc_funded.where(computed_project_type: [1,2,3,8,9,10,13]).
+        where(OperatingStartDate: nil, operating_start_date_override: nil).
+        where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
+        pluck(*columns).
+        map{|p, o, p_type, id, ds_id| {project: "#{o} - #{p}", project_type: p_type, id: id, data_source_id: ds_id}}
+      @missing_projects = @missing_data.values.flatten.uniq.sort_by(&:first)
       @show_missing_data = @missing_projects.any?
     end
 
@@ -78,7 +102,7 @@ class ReportResultsController < ApplicationController
           redirect_to action: :show
         end
         file = @result.file.first
-        send_data file.content, filename: "#{@report.name}-#{@result.created_at.strftime('%Y-%m-%dT%H%M ')}.zip", type: file.content_type, disposition: 'attachment'
+        send_data file.content, filename: "#{@report.name}-#{@result.created_at.strftime('%Y-%m-%dT%H%M')}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end

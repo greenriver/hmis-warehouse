@@ -82,6 +82,7 @@ module Health
 
     def patient_referrals
       @patient_referrals ||= Health::PatientReferral.assigned.
+        not_confirmed_rejected.
         with_patient.
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).
@@ -192,8 +193,9 @@ module Health
     def careplan_dates
       @careplan_dates ||= begin
         warehouse_dates = warehouse_careplan_dates_by_patient_id
-        epic_dates = epic_careplan_by_patient_id
-
+        # Ignore Epic care plans for now, 8/31/2018
+        # epic_dates = epic_careplan_by_patient_id
+        epic_dates = {}
         # determine most recent within range for each patient
         patients_with_dates_from_various_sources([warehouse_dates, epic_dates])
       end

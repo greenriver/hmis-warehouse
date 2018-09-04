@@ -1,5 +1,5 @@
 .c-card.sm-2
-  .c-card__content
+  .c-card__content{class: "pr-#{pr.id}"}
     .row
       .col-sm-2
         - if client = pr.client
@@ -21,4 +21,7 @@
           = pr.aco_name
           - if pr.accountable_care_organization_id.present?
             (matched)
+        %div
+          %strong Referral Date:
+          = pr.enrollment_start_date
       = render 'patient_referral_actions', pr: pr

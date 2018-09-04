@@ -15,6 +15,15 @@ module GrdaWarehouse::Export::HMISSixOneOne
       if override = geocode_override_for(geography_id: row[:GeographyID].to_i, data_source_id: data_source_id)
         row[:Geocode] = override
       end
+
+      if override = information_date_override_for(geography_id: row[:GeographyID].to_i, data_source_id: data_source_id)
+        row[:InformationDate] = override
+      end
+      # Technical limit of HMIS spec is 50 characters
+      row[:Address1] = row[:Address1][0...50] if row[:Address1]
+      row[:Address2] = row[:Address2][0...50] if row[:Address2]
+      row[:City] = row[:City][0...50] if row[:City]
+      row[:ZIP] = row[:ZIP][0...5] if row[:ZIP]
       return row
     end
 
@@ -42,6 +51,19 @@ module GrdaWarehouse::Export::HMISSixOneOne
           end
         end.compact.to_h
       @geocode_overrides[[data_source_id, geography_id]]
+    end
+
+    def information_date_override_for geography_id:, data_source_id:
+      @information_date_overrides ||= self.class.where.not(information_date_override: nil).
+        pluck(:data_source_id, :id, :information_date_override).
+        map do |data_source_id, geography_id, information_date_override|
+          if information_date_override.present?
+            [[data_source_id, geography_id], information_date_override]
+          else
+            nil
+          end
+        end.compact.to_h
+      @information_date_overrides[[data_source_id, geography_id]]
     end
   end
 end

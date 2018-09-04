@@ -16,11 +16,25 @@
 
             - if can_view_dmh_status?
               = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
-            = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
 
           .form-group.col-md-4
             = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
-
+  .row
+    .col-lg-8.col-xl-6
+      %section.o-section-card
+        %h3 Disability Verification
+        .c-card.c-card--block.c-card--padded.c-card--flush
+          .d-flex.flex-wrap
+            .mr-10
+              = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
+            .mr-10.pt-2
+              - file = @client.client_files.tagged_with(['Disability Verification', 'Verification of Disability'], any: true).order(:created_at).last
+              - if file.present?
+                File:
+                = link_to preview_client_file_path(@client, file), target: '_blank' do
+                  = file.effective_date&.to_date || file.updated_at&.to_date
+              - else
+                No file present
   .row
     .col-lg-8.col-xl-6
       = render 'consent_form', f: f, show_file_existence: false
