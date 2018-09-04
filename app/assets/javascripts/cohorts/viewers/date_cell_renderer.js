@@ -25,7 +25,7 @@ DateCellRenderer.prototype.getGui = function() {
 // gets called whenever the user gets the cell to refresh
 DateCellRenderer.prototype.refresh = function(params) {
   // set value into cell again
-  console.log('refresh', params);
+  // console.log('refresh', params);
 
   // this.eValue.innerHTML = params.valueFormatted ? params.valueFormatted : params.value;
   // return true to tell the grid we refreshed successfully

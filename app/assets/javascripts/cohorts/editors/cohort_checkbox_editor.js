@@ -2,11 +2,14 @@ function CheckboxCellEditor () {}
 
 // gets called once before the renderer is used
 CheckboxCellEditor.prototype.init = function(params) {
-    var input = document.createElement('input');
-    input.type = 'checkbox';
-    input.value = 1;
-    input.checked = params.value == '1';
-    this.eInput = input;
+  var wrapper = document.createElement('input');
+  wrapper.className = 'text-center';
+  var input = document.createElement('input');
+  input.type = 'checkbox';
+  input.value = 1;
+  input.checked = params.value == '1';
+  wrapper.appendChild(input);
+  this.eInput = input;
 };
 
 // gets called once when grid ready to insert the element
