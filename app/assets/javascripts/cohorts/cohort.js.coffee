@@ -52,8 +52,18 @@ class App.Cohorts.Cohort
       enableSorting: true,
       enableFilter: true,
       singleClickEdit: true,
-      frameworkComponents:
-        htmlRenderer: @htmlRenderer,
+      onCellEditingStarted: (e) ->
+        console.log "cellEditingStarted", e
+      onCellEditingStopped: (e) ->
+        console.log "cellEditingStopped", e
+      # frameworkComponents:
+      #   htmlRenderer: @htmlRenderer,
+      components:
+          dateCellEditor: DateCellEditor,
+          dateCellRenderer: DateCellRenderer,
+          checkboxCellEditor: CheckboxCellEditor,
+          checkboxCellRenderer: CheckboxCellRenderer
+
     }
     @table = new agGrid.Grid($(@table_selector)[0], @grid_options)
 
@@ -111,14 +121,14 @@ class App.Cohorts.Cohort
         onCellValueChanged: (params) ->
           new_value = params.data[params.colDef.field]
           old_value = params.oldValue
-          cohort_client_id = params
-          console.log 'changed', old_value, 'to', new_value, params
+          cohort_client_id = params.data[params.colDef.field]
+          console.log 'changed', old_value, 'to', new_value, cohort_client_id, params
       }
       switch column.renderer
         when 'checkbox'
-          header.cellRenderer = CheckboxCellRenderer
+          header.cellRenderer = 'checkboxCellRenderer'
         when 'date'
-          header.cellRenderer = DateCellRenderer
+          header.cellRenderer = 'dateCellRenderer'
         else
           header.cellRenderer = (params) =>
             params.getValue()
@@ -127,13 +137,13 @@ class App.Cohorts.Cohort
 
       switch column.renderer
         when 'date'
-          header.cellEditor = DateCellEditor
+          header.cellEditor = 'dateCellEditor'
         when 'dropdown'
           header.cellEditor = 'agSelectCellEditor'
           header.cellEditorParams =
             values: column.available_options,
         when 'checkbox'
-          header.cellEditor = CheckboxCellEditor
+          header.cellEditor = 'checkboxCellEditor'
       if column.editable
         header.editable = column.editable
       else
@@ -143,15 +153,15 @@ class App.Cohorts.Cohort
 
       header
 
-  checkbox_renderer: (params) ->
-    console.log(params)
-    value = params.data[params.column.colId].value
-    editable = params.data[params.column.colId].editable
-    input = document.createElement("input")
-    input.type = "checkbox";
-    input.checked = params.value == true
-    input.disabled = params.editable == false
-    input
+  # checkbox_renderer: (params) ->
+  #   console.log(params)
+  #   value = params.data[params.column.colId].value
+  #   editable = params.data[params.column.colId].editable
+  #   input = document.createElement("input")
+  #   input.type = "checkbox";
+  #   input.checked = params.value == true
+  #   input.disabled = params.editable == false
+  #   input
 
     # console.log(input)
 
@@ -299,31 +309,31 @@ class App.Cohorts.Cohort
     cellProperties.className = classes.join(' ')
     return cellProperties
 
-  deep_find: (obj, path) ->
-    paths = path.split('.')
-    current = obj
-    for i in [0...paths.length] by 1
-      # console.log current[paths[i]], paths[i]
-      if current[paths[i]] == undefined
-        undefined
-      else
-        current = current[paths[i]]
-    return current
+  # deep_find: (obj, path) ->
+  #   paths = path.split('.')
+  #   current = obj
+  #   for i in [0...paths.length] by 1
+  #     # console.log current[paths[i]], paths[i]
+  #     if current[paths[i]] == undefined
+  #       undefined
+  #     else
+  #       current = current[paths[i]]
+  #   return current
 
-  format_data_for_table: () =>
-    @table_data = $.map @raw_data, (row) =>
-      client = $.map @column_order, (column) =>
-        if row[column]['value'] == null
-          {column: ''}
-        else
-          {column: row[column]['value']}
-      [client]
-    @cell_metadata  = $.map @raw_data, (row) =>
-      client = $.map @column_order, (column) =>
-        m = row[column]
-        m['column'] = column
-        m
-      [client]
+  # format_data_for_table: () =>
+  #   @table_data = $.map @raw_data, (row) =>
+  #     client = $.map @column_order, (column) =>
+  #       if row[column]['value'] == null
+  #         {column: ''}
+  #       else
+  #         {column: row[column]['value']}
+  #     [client]
+  #   @cell_metadata  = $.map @raw_data, (row) =>
+  #     client = $.map @column_order, (column) =>
+  #       m = row[column]
+  #       m['column'] = column
+  #       m
+  #     [client]
 
   load_page: () =>
     @current_page += 1
@@ -343,12 +353,12 @@ class App.Cohorts.Cohort
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
-  reinitialize_js: () ->
-    $('[data-toggle="tooltip"]').tooltip();
+  # reinitialize_js: () ->
+  #   $('[data-toggle="tooltip"]').tooltip();
 
-  listen_for_page_resize: () =>
-    $(window).resize () =>
-      @table.render()
+  # listen_for_page_resize: () =>
+  #   $(window).resize () =>
+  #     @table.render()
 
   set_rank_order: () =>
     ids = for i in [0...@table.countRows()] by 1
