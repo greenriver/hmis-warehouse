@@ -56,7 +56,7 @@ module Health
     end
 
     def relationship_to(agency)
-      relationships.where(agency_id: agency).last
+      relationships.select{|r| r.agency_id == agency.id}&.last
     end
 
     def assigned?

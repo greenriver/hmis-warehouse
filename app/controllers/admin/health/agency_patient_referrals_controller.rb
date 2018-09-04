@@ -19,9 +19,10 @@ module Admin::Health
           delete_if{|k, v| v.size != @user_agencies.size}.
           keys
         @patient_referrals = Health::PatientReferral.
-          unassigned.includes(:relationships).
+          unassigned.
+          includes(relationships: :agency, relationships_claimed: :agency).
+          references(relationships: :agency, relationships_claimed: :agency).
           where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
-          references(:relationships).
           preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
       end
       respond_to do |format|
@@ -63,6 +64,8 @@ module Admin::Health
           where(agency_id: @user_agencies.map(&:id)).
           where(claimed: @active_patient_referral_group == 'our patient').
           where(patient_referrals: {agency_id: nil, rejected: false}).
+          includes(patient_referral: {relationships: :agency, relationships_claimed: :agency}).
+          references(patient_referral: {relationships: :agency, relationships_claimed: :agency}).
           preload(patient_referral: [:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client}]).
           group_by do |row|
             @user_agencies.select{|agency| agency.id == row.agency_id}.first
