@@ -43,7 +43,7 @@ class CohortsController < ApplicationController
             # header.merge!({type: col.renderer, source: col.available_header})
             # Be more forgiving of drop-down data
             header.merge!({
-              available_options: col.available_options,
+              available_options: [''] + col.available_options,
               renderer: col.renderer,
             })
           when 'date', 'checkbox', 'text', 'numeric'

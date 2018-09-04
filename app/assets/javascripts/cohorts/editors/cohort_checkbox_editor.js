@@ -38,6 +38,7 @@ CheckboxCellEditor.prototype.getValue = function() {
 
 // any cleanup we need to be done here
 CheckboxCellEditor.prototype.destroy = function() {
+  // console.log('destroying');
   // but this example is simple, no cleanup, we could
   // even leave this method out as it's optional
 };
