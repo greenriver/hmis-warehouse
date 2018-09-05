@@ -31,6 +31,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
       if override = continuum_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
         row[:ContinuumProject] = override
       end
+      if override = operating_start_date_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+        row[:OperatingStartDate] = override
+      end
+
       return row
     end
 
@@ -58,6 +62,19 @@ module GrdaWarehouse::Export::HMISSixOneOne
           end
         end.compact.to_h
       @continuum_project_overrides[[data_source_id, project_id]]
+    end
+
+    def operating_start_date_override_for project_id:, data_source_id:
+      @operating_start_date_overrides ||= self.class.where.not(operating_start_date_override: nil).
+        pluck(:data_source_id, :id, :operating_start_date_override).
+        map do |data_source_id, project_id, operating_start_date_override|
+          if operating_start_date_override.present?
+            [[data_source_id, project_id], operating_start_date_override]
+          else
+            nil
+          end
+        end.compact.to_h
+      @operating_start_date_overrides[[data_source_id, project_id]]
     end
   end
 end
