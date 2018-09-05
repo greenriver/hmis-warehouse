@@ -419,7 +419,9 @@ module GrdaWarehouse::Hud
 
     scope :with_unconfirmed_consent_or_disability_verification, -> do
       unconfirmed_consent = GrdaWarehouse::ClientFile.consent_forms.unconfirmed.distinct.pluck(:client_id)
-      unconfirmed_disability = GrdaWarehouse::ClientFile.verification_of_disability.unconfirmed.distinct.pluck(:client_id)
+      unconfirmed_disability = GrdaWarehouse::ClientFile.verification_of_disability.unconfirmed.
+        joins(:client).merge(GrdaWarehouse::Hud::Client.where(disability_verified_on: nil)).
+        distinct.pluck(:client_id)
       joins(:client_files).
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
     end
