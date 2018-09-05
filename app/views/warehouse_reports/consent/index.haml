@@ -2,7 +2,7 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
-
+%p This report includes all clients who have unconfirmed consent forms or unconfirmed disability verifications.
 .warehouse-reports__expiring-consent
   %h3
     Unconfirmed Consent
@@ -48,7 +48,7 @@
                   - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
                     = f.input "[active_in_cas][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jCasActive'}
             %td.text-center
-              - file = client.client_files.tagged_with(['Disability Verification', 'Verification of Disability'], any: true).order(:created_at).last
+              - file = client.client_files.verification_of_disability.order(:created_at).last
               - if file.present?
                 = link_to preview_client_file_path(client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.updated_at&.to_date
