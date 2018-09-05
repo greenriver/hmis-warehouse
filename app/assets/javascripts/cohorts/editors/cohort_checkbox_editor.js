@@ -23,12 +23,6 @@ CheckboxCellEditor.prototype.afterGuiAttached = function() {
 };
 
 // returns the new value after editing
-// CheckboxCellEditor.prototype.isCancelBeforeStart = function () {
-//   console.log(this.cancelBeforeStart);
-//   return this.cancelBeforeStart;
-// };
-
-// returns the new value after editing
 CheckboxCellEditor.prototype.getValue = function() {
   var checkbox = $(this.eGui).find('input[type="checkbox"]');
   // the onCellValueChanged callback isn't triggered if we return false, so stringify it.
