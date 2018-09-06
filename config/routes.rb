@@ -428,12 +428,16 @@ Rails.application.routes.draw do
   resources :organizations, only: [:index, :show] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
-  resources :projects, only: [:index, :show] do
+  resources :projects, only: [:index, :edit, :show, :update] do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
     end
   end
+
+  resources :inventory, only: [:edit, :update]
+  resources :geography, only: [:edit, :update]
+  resources :project_cocs, only: [:edit, :update]
 
   resources :project_groups, except: [:destroy, :show] do
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
@@ -512,7 +516,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
-      resources :patient_referrals, only: [:create] do
+      resources :patient_referrals, only: [:create, :update] do
         patch :reject
         collection do
           get :review

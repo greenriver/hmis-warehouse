@@ -1,5 +1,12 @@
 = render 'breadcrumbs'
-%h1= "#{@project.name} at #{@project.organization.name}"
+- content_for :title, "#{@project.name} at #{@project.organization.name}"
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right
+    = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
+      %i.icon-pencil
+      Edit Project
 .row
   .col-sm-8
     %table.table.table-condensed.table-hover
@@ -14,22 +21,42 @@
               = HUD.project_type @project.act_as_project_type
             for HUD Reports
       %tr
-        %th Tracking Method
-        %td= HUD.tracking_method(@project.TrackingMethod || 0)
-      %tr
-        %th PIT Count
-        %td= @project.PITCount
-      %tr
-        %th Target Population
-        %td= HUD.target_population @project.TargetPopulation
-      %tr
-        %th Household Type
-        %td
-          %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
-            = @project.main_population
+        %th Operating Start Date
+        %td.d-flex
+          .project__operating-start-date
+            = @project.OperatingStartDate&.to_date
+          - if @project.operating_start_date_override.present?
+            .ml-2
+              %em
+                Overridden as
+                = @project.operating_start_date_override.to_date
       %tr
         %th Continuum Project
-        %td= checkmark(@project.ContinuumProject == 1)
+        %td.d-flex
+          .project__continuum-project
+            = checkmark(@project.ContinuumProject == 1)
+          - if @project.hud_continuum_funded
+            .ml-2
+              %em
+                Overridden
+                = checkmark @project.hud_continuum_funded
+      %tr
+        %th Housing Type
+        %td.d-flex
+          .project__housing-type
+            - if @project.HousingType.present?
+              = HUD.housing_type(@project.HousingType)
+              (#{@project.HousingType})
+          - if @project.housing_type_override
+            .ml-2
+              %em
+                Overridden as
+                = HUD.housing_type(@project.housing_type_override)
+      %tr
+        %th
+          %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
+            Uses Move-in-Date
+        %td= checkmark(@project.uses_move_in_date)
       %tr
         %th Project Contacts
         %td= link_to 'View/Edit', project_contacts_path(@project)
@@ -54,6 +81,7 @@
             - @project.residential_projects.each do |project|
               = link_to project_path(project) do
                 = project.ProjectName
+
   .col-sm-4
     %h4 HMIS Info
     %table.table.table-condensed.table-hover
@@ -66,10 +94,27 @@
       %tr
         %th Data Source
         %td= @project.data_source.short_name
+      %tr
+        %th Tracking Method
+        %td= HUD.tracking_method(@project.TrackingMethod || 0)
+      %tr
+        %th Target Population
+        %td= HUD.target_population @project.TargetPopulation
+      %tr
+        %th Household Type
+        %td
+          %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
+            = @project.main_population
+      %tr
+        %th PIT Count
+        %td= @project.PITCount
+
 = render 'census'
 = render 'funders', funders: @project.funders
 = render 'geographies', geographies: @project.geographies
 = render 'inventories', inventories: @project.inventories
+= render 'project_cocs', project_cocs: @project.project_cocs
+
 = render 'clients'
 
 - content_for :page_js do

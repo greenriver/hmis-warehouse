@@ -1,0 +1,25 @@
+
+%h2 Project CoC Records
+- if project_cocs.count > 0
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th CoC Code
+        %th
+    %tbody
+      - project_cocs.all.each do |p_coc|
+        %tr
+          %td
+            = p_coc.CoCCode
+            - if p_coc.hud_coc_code.present?
+              %br
+              %em
+                Overridden as
+                = p_coc.hud_coc_code
+          %td
+            - if can_edit_projects?
+              = link_to edit_project_coc_path(p_coc), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                %i.icon-pencil
+                Edit
+- else
+  %p.text-center No sites

@@ -22,8 +22,8 @@ class DataSourcesController < ApplicationController
     @organizations = @data_source.organizations.
       joins(:projects).
       merge( p_t.engine.viewable_by current_user ).
-      includes(:projects, projects: [:project_cocs, :geographies, :inventories]).
-      preload(:projects, projects: [:project_cocs, :geographies, :inventories]).
+      includes(projects: [:project_cocs, :geographies, :inventories]).
+      references(projects: [:project_cocs, :geographies, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
   end
 

@@ -30,9 +30,9 @@ module GrdaWarehouse::Export::HMISSixOneOne
     # Also unique the HouseholdID to a data source
     def apply_overrides row, data_source_id:
       if row[:HouseholdID].blank?
-        row[:HouseholdID] = "p_#{client_export_id(row[:PersonalID])}"
+        row[:HouseholdID] = "p_#{client_export_id(row[:EnrollmentID])}"
       else
-        row[:HouseholdID] = "#{data_source_id}_#{(row[:HouseholdID])}"
+        row[:HouseholdID] = "#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}"
       end
       row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank?
       return row

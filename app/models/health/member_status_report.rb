@@ -132,7 +132,7 @@ module Health
     end
 
     def patient_referrals
-      Health::PatientReferral.all
+      Health::PatientReferral.not_confirmed_rejected
     end
 
     def report_range

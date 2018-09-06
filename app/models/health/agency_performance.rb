@@ -82,6 +82,7 @@ module Health
 
     def patient_referrals
       @patient_referrals ||= Health::PatientReferral.assigned.
+        not_confirmed_rejected.
         with_patient.
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).

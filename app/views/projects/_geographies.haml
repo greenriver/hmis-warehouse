@@ -1,24 +1,55 @@
-%h2 Sites
+
+%h2 Geography Records
 - if geographies.count > 0
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th Information Date
+        %th Geocode
+        %th Geography Type
         %th Principal Site?
-        %th CoC Code
         %th Address
         %th City
         %th State
         %th Zip
-        %th Geocode
+        %th
     %tbody
       - geographies.all.each do |geography|
         %tr
+          %td
+            = geography.InformationDate
+            - if geography.information_date_override.present?
+              %br
+              %em
+                Overridden as
+                = geography.information_date_override
+          %td
+            = geography.Geocode
+            - if geography.geocode_override.present?
+              %br
+              %em
+                Overridden as
+                = geography.geocode_override
+          %td
+            = HUD.geography_type geography.GeographyType
+            - if geography.geography_type_override.present?
+              %br
+              %em
+                Overridden as
+                = HUD.geography_type geography.geography_type_override
           %td= checkmark(geography.PrincipalSite && 1)
-          %td= geography.CoCCode
           %td= geography.Address1
           %td= geography.City
           %td= geography.State
           %td= geography.ZIP
-          %td= geography.Geocode
+
+
+
+
+          %td
+            - if can_edit_projects?
+              = link_to edit_geography_path(geography), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                %i.icon-pencil
+                Edit
 - else
   %p.text-center No sites

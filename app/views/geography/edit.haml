@@ -1,0 +1,11 @@
+= render 'projects/project_breadcrumbs'
+- content_for :title, "Edit Geography for #{@project.name} at #{@project.organization.name}"
+%h1= content_for :title
+= simple_form_for @geography, as: :geography, url: geography_path(@geography) do |f|
+  .row
+    .col-sm-6
+      = f.input :information_date_override, as: :date_picker, label: "Override the information date, currently: #{@geography.InformationDate&.to_date || 'unset'}"
+      = f.input :geocode_override, input_html: {maxlength: 6}, label: "Override the Geo Code, currently: #{@geography.Geocode || 'unset'}"
+      = f.input :geography_type_override, label: 'Geography Type Override', input_html: { value: @geography.geography_type_override}, collection: HUD.geography_types.invert, include_blank: "Use actual Geography Type: #{HUD.geography_type(@geography.GeographyType) || 'unset'}", input_html: {class: :select2}
+      .form-actions
+        = f.submit 'Save', class: ['btn', 'btn-primary', 'ml-auto']

@@ -30,21 +30,21 @@ module Health
       @patients = @patients.order(last_name: :asc, first_name: :asc).
         page(params[:page].to_i).per(25)
     end
-    
+
 
     def patient_scope
       if current_user.can_manage_care_coordinators?
         ids = [current_user.id] + current_user.user_care_coordinators.pluck(:care_coordinator_id)
-        patient_source.where(care_coordinator_id: ids)
+        patient_source.where(care_coordinator_id: ids).joins(:patient_referral).merge(Health::PatientReferral.not_confirmed_rejected)
       else
-        patient_source.where(care_coordinator_id: current_user.id)
+        patient_source.where(care_coordinator_id: current_user.id).joins(:patient_referral).merge(Health::PatientReferral.not_confirmed_rejected)
       end
     end
 
     def set_patients
       @patients = patient_scope
     end
-    
+
     def patient_source
       Health::Patient
     end
