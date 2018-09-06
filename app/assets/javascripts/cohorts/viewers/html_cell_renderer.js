@@ -15,11 +15,15 @@ HtmlCellRenderer.prototype.getGui = function() {
 // gets called whenever the user gets the cell to refresh
 HtmlCellRenderer.prototype.refresh = function(params) {
   var wrapper = document.createElement('div');
+  wrapper.className = 'text-center'
   wrapper.innerHTML = this.params.value;
-
   if(this.row.comments) {
     wrapper.setAttribute('data-toggle', "tooltip");
-    wrapper.setAttribute('data-tooltip', this.row.comments);
+    wrapper.setAttribute('data-title', this.row.comments);
+    wrapper.setAttribute('data-placement', 'auto');
+    wrapper.setAttribute('data-container', 'body');
+    $(wrapper).tooltip();
+
   }
   this.eGui = wrapper;
   return true;

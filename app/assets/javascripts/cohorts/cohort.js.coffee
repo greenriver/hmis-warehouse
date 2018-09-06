@@ -38,7 +38,6 @@ class App.Cohorts.Cohort
     @load_pages()
     @resize_columns()
     @enable_searching()
-    @re_enable_js()
 
   initialize_grid: () =>
     direction = true
@@ -58,10 +57,6 @@ class App.Cohorts.Cohort
       enableColResize: true,
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
-      onCellMouseOver: (params) ->
-        tooltip = params.data[params.colDef.field].comments
-        # instances = @grid_options.api.getCellRendererInstances(params)
-        # console.log instances[0]
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
@@ -75,16 +70,6 @@ class App.Cohorts.Cohort
   resize_columns: =>
     @grid_options.columnApi.autoSizeColumns(@grid_options.columnApi.getAllColumns())
 
-  re_enable_js: =>
-    @grid_options.api.addEventListener('rowDataChanged', @setup_tooltips)
-
-  setup_tooltips: (params) =>
-    console.log(params)
-    # $.each $('[data-toggle="tooltip"]'), (k, el) =>
-    #   cell = $(el).parent()
-    #   console.log(cell)
-    #   $(cell).on 'click', (e) =>
-    #     console.log e
   set_grid_column_headers: =>
     @grid_column_headers = $.map @column_headers, (column, index) =>
       header = {
