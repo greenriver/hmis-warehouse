@@ -40,7 +40,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
       if override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
         row[:ProjecType] = override
-      end)
+      end
 
       return row
     end
