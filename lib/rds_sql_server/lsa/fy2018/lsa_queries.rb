@@ -2023,6 +2023,8 @@ SqlServerBase.connection.execute (<<~SQL);
   /*****************************************************************
   4.43 Set ReturnTime for Exit Cohort Households
   *****************************************************************/
+  -- CHANGED EAA
+  -- Added case for blank ReturnDate, also set to -1, null isn't catching
   update ex
   set ex.ReturnDate = (select min(hn.EntryDate)
       from hmis_Enrollment hn
@@ -2067,7 +2069,9 @@ SqlServerBase.connection.execute (<<~SQL);
 
   update ex
   set ex.ReturnTime =
-    case when ex.ReturnDate is null then -1
+    case
+      when ex.ReturnDate is null then -1
+      when ex.ReturnDate = '' then -1
       else datediff(dd, ex.ExitDate, ex.ReturnDate) end
   from tmp_Exit ex
   SQL
@@ -4147,6 +4151,8 @@ SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************************
   4.70 Select Data for Export
   **********************************************************************/
+  -- CHANGED EAA
+  -- Added case for PSHHousedDays 0 -> -1
   -- LSAPerson
   delete from lsa_Person
   insert into lsa_Person (RowTotal
@@ -4313,6 +4319,7 @@ SqlServerBase.connection.execute (<<~SQL);
       when PSHHousedDays between 1826 and 2555 then 84
       when PSHHousedDays between 2556 and 3650 then 120
       when PSHHousedDays > 3650 then 121
+      when PSHHousedDays = 0 then -1
       else PSHHousedDays end
     , SystemPath, ReportID
   from tmp_Household
