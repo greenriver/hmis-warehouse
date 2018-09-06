@@ -52,6 +52,7 @@ class App.Cohorts.Cohort
       enableSorting: true,
       enableFilter: true,
       singleClickEdit: true,
+      rowSelection: 'multiple',
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
       components:
@@ -102,7 +103,7 @@ class App.Cohorts.Cohort
           header.getQuickFilterText = (params) =>
             params.value
         when 'dropdown'
-          header.cellEditor = 'agPopupSelectCellEditor'
+          header.cellEditor = 'agSelectCellEditor'
           header.cellEditorParams =
             values: column.available_options,
           header.cellRenderer = (params) =>
