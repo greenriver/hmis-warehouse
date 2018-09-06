@@ -38,6 +38,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
       end
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
 
+      if override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+        row[:ProjecType] = override
+      end)
+
       return row
     end
 
@@ -79,6 +83,20 @@ module GrdaWarehouse::Export::HMISSixOneOne
           end
         end.compact.to_h
       @operating_start_date_overrides[[data_source_id, project_id]]
+    end
+
+    def project_type_override_for project_id:, data_source_id:
+      return nil unless GrdaWarehouse::Config.get(:project_type_override)
+      @project_type_overrides ||= self.class.where.not(computed_project_type: nil).
+        pluck(:data_source_id, :id, :computed_project_type).
+        map do |data_source_id, project_id, computed_project_type|
+          if computed_project_type.present?
+            [[data_source_id, project_id], computed_project_type]
+          else
+            nil
+          end
+        end.compact.to_h
+      @project_type_overrides[[data_source_id, project_id]]
     end
   end
 end
