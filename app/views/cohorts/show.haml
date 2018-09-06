@@ -10,6 +10,7 @@
 - title = @cohort.name
 - content_for :title, title
 = render 'cohorts_js'
+= render 'cohorts_css'
 = render 'breadcrumbs'
 %h1= content_for :title
 - if @cohort.inactive?

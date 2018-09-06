@@ -38,6 +38,7 @@ class App.Cohorts.Cohort
     @load_pages()
     @resize_columns()
     @enable_searching()
+    @re_enable_js()
 
   initialize_grid: () =>
     direction = true
@@ -53,28 +54,45 @@ class App.Cohorts.Cohort
       enableFilter: true,
       singleClickEdit: true,
       rowSelection: 'multiple',
+      rowDeselection: true,
+      enableColResize: true,
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
+      onCellMouseOver: (params) ->
+        tooltip = params.data[params.colDef.field].comments
+        # instances = @grid_options.api.getCellRendererInstances(params)
+        # console.log instances[0]
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
           checkboxCellEditor: CheckboxCellEditor,
           checkboxCellRenderer: CheckboxCellRenderer,
           dropdownCellEditor: DropdownCellEditor,
+          htmlCellRenderer: HtmlCellRenderer,
     }
     @table = new agGrid.Grid($(@table_selector)[0], @grid_options)
 
   resize_columns: =>
     @grid_options.columnApi.autoSizeColumns(@grid_options.columnApi.getAllColumns())
 
+  re_enable_js: =>
+    @grid_options.api.addEventListener('rowDataChanged', @setup_tooltips)
+
+  setup_tooltips: (params) =>
+    console.log(params)
+    # $.each $('[data-toggle="tooltip"]'), (k, el) =>
+    #   cell = $(el).parent()
+    #   console.log(cell)
+    #   $(cell).on 'click', (e) =>
+    #     console.log e
   set_grid_column_headers: =>
     @grid_column_headers = $.map @column_headers, (column, index) =>
       header = {
         headerName: column.headerName,
         field: column.field,
         editable: column.editable,
-        tooltip: (params) ->
-          params.data[params.colDef.field].comments
+        # tooltip: (params) ->
+        #   params.data[params.colDef.field].comments
         valueGetter: (params) ->
           params.data[params.column.colId].value
         valueSetter: (params) ->
@@ -108,6 +126,8 @@ class App.Cohorts.Cohort
             values: column.available_options,
           header.cellRenderer = (params) =>
             params.getValue()
+        when 'html'
+          header.cellRenderer = 'htmlCellRenderer'
         else
           header.cellRenderer = (params) =>
             params.getValue()
