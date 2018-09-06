@@ -57,7 +57,6 @@ module Health
     end
 
     def run!
-      raise 'May need to select patients in the patients method so our summary counts are correct'
       start_report
       @isa_control_number = self.class.next_isa_control_number
       @group_control_number = self.class.next_group_control_number
