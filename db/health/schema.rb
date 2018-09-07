@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180828173902) do
+ActiveRecord::Schema.define(version: 20180907122443) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -300,6 +300,21 @@ ActiveRecord::Schema.define(version: 20180828173902) do
     t.string   "encounter_id"
     t.string   "encounter_type"
     t.datetime "careplan_updated_at"
+    t.string   "staff"
+    t.text     "part_1"
+    t.text     "part_2"
+    t.text     "part_3"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "data_source_id"
+  end
+
+  create_table "epic_case_note_qualifying_activities", force: :cascade do |t|
+    t.string   "patient_id"
+    t.string   "id_in_source"
+    t.string   "epic_case_note_source_id"
+    t.string   "encounter_type"
+    t.datetime "update_date"
     t.string   "staff"
     t.text     "part_1"
     t.text     "part_2"
@@ -681,6 +696,7 @@ ActiveRecord::Schema.define(version: 20180828173902) do
     t.string   "record_status"
     t.date     "updated_on"
     t.date     "exported_on"
+    t.boolean  "removal_acknowledged",             default: false
   end
 
   create_table "patients", force: :cascade do |t|

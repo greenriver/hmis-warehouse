@@ -22,6 +22,7 @@ module Health
       'careplan.csv' => Health::EpicCareplan,
       'CHA.csv' => Health::EpicCha,
       'SSM.csv' => Health::EpicSsm,
+      'QA_enc.csv' => Health::EpicCaseNoteQualifyingActivity,
     }.freeze
   end
 end
