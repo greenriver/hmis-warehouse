@@ -15,7 +15,7 @@ Delayed::Worker.queue_attributes = {
 root_folder = File.basename(Rails.root)
 # If the root folder is all digits, we're probably on a deployed server
 ENV['CURRENT_PATH'] = if /^\d+$/.match?(root_folder)
-  Rails.root.to_s.gsub(root_folder, 'current')
+  Rails.root.to_s.gsub(File.join('releases', root_folder), 'current')
 else
   Rails.root.to_s
 end
