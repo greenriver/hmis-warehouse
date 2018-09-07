@@ -29,5 +29,12 @@ module Health
         'BHC KIRKPATRICK HOUSE',
       ]
     end
+
+    def clean_row row:, data_source_id:
+      # these don't include timezone data, using Time.parse puts it in
+      # the local timezone with the correct time.
+      row['appointment_time'] = Time.parse(row['appointment_time'])
+      row
+    end
   end
 end
