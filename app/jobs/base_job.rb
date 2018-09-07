@@ -8,6 +8,7 @@ class BaseJob < ActiveJob::Base
       pid = Process.pid
       if original_job_pid && pid == original_job_pid
         Rails.logger.fatal "RESTARTING DELAYED JOB #{pid}"
+
         setup_new_job(original_job)
         original_job.destroy
         exec("kill #{pid}")
