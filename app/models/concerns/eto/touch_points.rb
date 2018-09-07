@@ -19,20 +19,18 @@ module Eto::TouchPoints
       merge(GrdaWarehouse::HmisForm.health)
     end, class_name: GrdaWarehouse::HmisForm.name, through: :source_clients, source: :hmis_forms
 
-
-
     def most_recent_coc_assessment_score
       assessment = coc_assessment_touch_points.newest_first.limit(1).first
-      return nil unless assessment.present?
-      score_section = assessment.answers[:sections].select do |m|
-        m[:section_title] == "Assessment Score"
+
+      relevant_section = assessment.answers[:sections].select do |section|
+        section[:section_title].downcase.include?('assessment score') && section[:questions].present?
       end&.first
-      return nil unless score_section.present?
-      total_score_question = score_section[:questions].select do |m|
-        m[:question] == "Boston Coordinated Entry Assessment Total Score"
-      end&.first
-      return nil unless total_score_question.present?
-      total_score_question.try(:[], :answer).to_i
+      return nil unless relevant_section.present?
+
+      relevant_question = relevant_section[:questions].select do |question|
+        question[:question].downcase == 'boston coordinated entry assessment total score'
+      end&.first.try(:[], :answer)
+      relevant_question&.to_i
     end
   end
 end

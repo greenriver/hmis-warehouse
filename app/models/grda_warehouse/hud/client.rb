@@ -797,7 +797,7 @@ module GrdaWarehouse::Hud
     end
 
     def score_for_rrh_assessment
-      rrh_assessment_score || 0
+      processed_service_history&.eto_coordinated_entry_assessment_score || 0
     end
 
     ##############################
