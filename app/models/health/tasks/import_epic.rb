@@ -55,6 +55,7 @@ module Health::Tasks
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h.except(nil).merge(data_source_id: @data_source_id)
       end
+      raise 'hi'
       count_incoming = clean_values.size
       count_existing = klass.count
       if above_acceptable_change_threshold(klass, count_incoming, count_existing)
