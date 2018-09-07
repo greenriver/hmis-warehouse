@@ -17,7 +17,7 @@ class BaseJob < ActiveJob::Base
   end
 
   def should_perform?
-    Rails.logger.fatal "RESTARTING #{ENV['GIT_REVISION']} #{ENV['CURRENT_PATH']} #{File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))}"
+    Rails.logger.fatal "RESTARTING #{ENV['GIT_REVISION']} #{ENV['CURRENT_PATH']} #{File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))} --"
     return true unless ENV['GIT_REVISION'].present?
     return true unless File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))
     current_revision = File.read(File.join(ENV['CURRENT_PATH'], 'REVISION'))&.strip
