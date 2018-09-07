@@ -4,7 +4,9 @@ class BaseJob < ActiveJob::Base
     if ! should_perform?
       a_t = Delayed::Job.arel_table
       original_job = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job.job_id}%")).first
-      if pid = get_pid_from_job(original_job)
+      original_job_pid = get_pid_from_job(original_job)
+      pid = Process.pid
+      if original_job_pid && pid == original_job_pid
         setup_new_job(original_job)
         original_job.destroy
         exec("kill #{pid}")
@@ -14,8 +16,8 @@ class BaseJob < ActiveJob::Base
 
   def should_perform?
     return true unless ENV['GIT_REVISION'].present?
-    return true unless File.exists?(File.join(Rails.root, 'REVISION'))
-    current_revision = File.read(File.join(Rails.root, 'REVISION'))&.strip
+    return true unless File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))
+    current_revision = File.read(File.join(ENV['CURRENT_PATH'], 'REVISION'))&.strip
     return current_revision == ENV['GIT_REVISION']
   end
 
