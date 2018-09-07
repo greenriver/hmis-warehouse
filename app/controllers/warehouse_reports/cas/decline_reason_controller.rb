@@ -9,6 +9,11 @@ module WarehouseReports::Cas
       @reasons = @raw_reasons.map do|row| 
         row[:decline_reason].squish.gsub(/Other.*/,'Other').strip
       end.each_with_object(Hash.new(0)) { |reason,counts| counts[reason] += 1 }
+      
+      @all_steps = report_source.
+        where(match_id: @raw_reasons.select(:match_id)).
+        order(decision_order: :asc).
+        group_by(&:match_id)
 
       @reasons.sort_by(&:last).reverse
       
