@@ -13,12 +13,11 @@ Delayed::Worker.queue_attributes = {
 }
 
 root_folder = File.basename(Rails.root)
-path = if root_folder.to_i.to_s == root_folder
+ENV['CURRENT_PATH'] = if root_folder.to_i.to_s == root_folder
   Rails.root.to_s.gsub(root_folder, 'current')
 else
-  Rails.root
+  Rails.root.to_s
 end
-ENV['CURRENT_PATH'] = path.to_s.gsub(File.basename(Rails.root), 'current')
 if File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))
-  ENV['GIT_REVISION'] = File.read(ENV['CURRENT_PATH'])&.strip
+  ENV['GIT_REVISION'] = File.read(File.join(ENV['CURRENT_PATH'], 'REVISION'))&.strip
 end
