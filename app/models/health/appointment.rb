@@ -33,10 +33,7 @@ module Health
     def clean_row row:, data_source_id:
       # these don't include timezone data, using Time.parse puts it in
       # the local timezone with the correct time.
-      puts row.inspect
-      row['appointment_time'] = Time.parse(row['appointment_time']) rescue nil
-      puts row.inspect
-
+      row['datetime'] = Time.parse(row['datetime']) rescue nil
       row
     end
   end
