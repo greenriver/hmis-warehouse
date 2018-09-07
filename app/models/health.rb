@@ -10,18 +10,18 @@ module Health
   module_function def models_by_health_filename
     # use an explicit whitelist as a security measure
     {
-      # 'appointments.csv' => Health::Appointment,
-      # 'medications.csv' => Health::Medication,
-      # 'patients.csv' => Health::EpicPatient,
-      # 'problems.csv' => Health::Problem,
-      # 'recent_visits.csv' => Health::Visit,
-      # 'goals.csv' => Health::EpicGoal,
-      # 'careteam.csv' => Health::EpicTeamMember,
-      # 'encounters.csv' => Health::EpicCaseNote,
-      # 'QA.csv' => Health::EpicQualifyingActivity,
-      # 'careplan.csv' => Health::EpicCareplan,
-      # 'CHA.csv' => Health::EpicCha,
-      # 'SSM.csv' => Health::EpicSsm,
+      'appointments.csv' => Health::Appointment,
+      'medications.csv' => Health::Medication,
+      'patients.csv' => Health::EpicPatient,
+      'problems.csv' => Health::Problem,
+      'recent_visits.csv' => Health::Visit,
+      'goals.csv' => Health::EpicGoal,
+      'careteam.csv' => Health::EpicTeamMember,
+      'encounters.csv' => Health::EpicCaseNote,
+      'QA.csv' => Health::EpicQualifyingActivity,
+      'careplan.csv' => Health::EpicCareplan,
+      'CHA.csv' => Health::EpicCha,
+      'SSM.csv' => Health::EpicSsm,
       'QA_enc.csv' => Health::EpicCaseNoteQualifyingActivity,
     }.freeze
   end
