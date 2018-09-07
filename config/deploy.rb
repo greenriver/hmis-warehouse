@@ -26,10 +26,6 @@ else
   }
 end
 
-unless ENV['SKIP_JOBS']=='true'
-  # after 'passenger:restart', 'delayed_job:restart'
-end
-
 set :ssh_port, ENV.fetch('SSH_PORT') { '22' }
 set :deploy_user , ENV.fetch('DEPLOY_USER')
 
