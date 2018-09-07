@@ -9,6 +9,7 @@ module Health
     has_many :visits, through: :epic_patients
     has_many :epic_goals, through: :epic_patients
     has_many :epic_case_notes, through: :epic_patients
+    has_many :epic_case_note_qualifying_activities, through: :epic_patients
     has_many :epic_team_members, through: :epic_patients
     has_many :epic_qualifying_activities, through: :epic_patients
     has_many :epic_careplans, through: :epic_patients
