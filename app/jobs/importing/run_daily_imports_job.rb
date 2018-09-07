@@ -1,5 +1,5 @@
 module Importing
-  class RunDailyImportsJob < ActiveJob::Base
+  class RunDailyImportsJob < BaseJob
     include ActionView::Helpers::DateHelper
     include NotifierConfig
     include ArelHelper

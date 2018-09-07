@@ -1,5 +1,5 @@
 module WarehouseReports
-  class DashboardReportJob < ActiveJob::Base
+  class DashboardReportJob < BaseJob
     include ArelHelper
 
     queue_as :dashboard_active_report
@@ -14,7 +14,7 @@ module WarehouseReports
       Rails.logger.info msg
       Rails.logger.info "="*msg.length if underline
     end
-    
-    
+
+
   end
 end

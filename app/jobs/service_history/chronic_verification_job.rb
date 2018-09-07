@@ -1,5 +1,5 @@
 module ServiceHistory
-  class ChronicVerificationJob < ActiveJob::Base
+  class ChronicVerificationJob < BaseJob
     include ArelHelper
     include Rails.application.routes.url_helpers
     queue_as :high_priority

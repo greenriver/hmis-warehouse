@@ -10,4 +10,8 @@ Delayed::Worker.queue_attributes = {
   high_priority: { priority: -5 },
   default_priority: { priority: 0 },
   low_priority: { priority: 5 },
-} 
+}
+
+if File.exists?(File.join(Rails.root, 'REVISION'))
+  ENV['GIT_REVISION'] = File.read(File.join(Rails.root, 'REVISION'))&.strip
+end

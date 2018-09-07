@@ -1,12 +1,12 @@
 module Confidence
-  class DaysHomelessJob < ActiveJob::Base
+  class DaysHomelessJob < BaseJob
     include ArelHelper
 
     def initialize client_ids:
       @client_ids = client_ids
     end
 
-    def perform 
+    def perform
       @client_ids.each do |id|
         GrdaWarehouse::Confidence::DaysHomeless.calculate_queued_for_client(id)
       end

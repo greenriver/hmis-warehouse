@@ -1,5 +1,5 @@
 module Reporting
-  class RunHudChronicJob < ActiveJob::Base
+  class RunHudChronicJob < BaseJob
 
     queue_as :low_priority
 

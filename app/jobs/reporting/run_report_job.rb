@@ -1,5 +1,5 @@
 module Reporting
-  class RunReportJob < ActiveJob::Base
+  class RunReportJob < BaseJob
     attr_accessor :result_id
     attr_accessor :report
 

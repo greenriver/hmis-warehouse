@@ -1,4 +1,4 @@
-class AddCohortClientsJob < ActiveJob::Base
+class AddCohortClientsJob < BaseJob
 
   queue_as :low_priority
 
@@ -41,7 +41,7 @@ class AddCohortClientsJob < ActiveJob::Base
       user_id: user_id,
       change: 'create',
       changed_at: Time.now,
-    }      
+    }
     cohort_client_changes_source.create(attributes)
   end
 

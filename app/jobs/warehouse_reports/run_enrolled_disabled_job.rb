@@ -1,5 +1,5 @@
 module WarehouseReports
-  class RunEnrolledDisabledJob < ActiveJob::Base
+  class RunEnrolledDisabledJob < BaseJob
 
     queue_as :enrolled_disabled_report
 

@@ -1,5 +1,5 @@
 module Importing::HudZip
-  class SixOneOneJob < ActiveJob::Base
+  class SixOneOneJob < BaseJob
     queue_as :low_priority
 
     def initialize upload_id:, data_source_id:, deidentified: false, project_whitelist: false
