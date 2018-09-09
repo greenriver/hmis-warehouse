@@ -2,9 +2,10 @@ module GrdaWarehouse::Tasks
   class UpdateClientsFromHmisForms
     include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize()
+    def initialize(client_ids: [])
       setup_notifier('HMIS Form -> Client Sync')
       self.logger = Rails.logger
+      @client_ids = client_ids
     end
 
     def run!
@@ -30,8 +31,16 @@ module GrdaWarehouse::Tasks
     end
 
     def clients_with_rrh_assessments
-      GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).
+      client_scope.joins(:source_hmis_forms).
         merge(GrdaWarehouse::HmisForm.rrh_assessment).distinct
+    end
+
+    def client_scope
+      if @client_ids.any?
+        GrdaWarehouse::Hud::Client.where(id: @client_ids)
+      else
+        GrdaWarehouse::Hud::Client
+      end
     end
 
     def most_recent_rrh_assessment(client)

@@ -79,13 +79,8 @@ module Health
     end
 
     def set_dates
-      @start_date = 1.months.ago.beginning_of_month.to_date
-      # for the first few months of the BH CP, the default date range is larger
-      if Date.today < '2018-09-01'.to_date
-        @end_date = (@start_date + 1.months).end_of_month
-      else
-        @end_date = @start_date.end_of_month
-      end
+      @start_date = Date.today.beginning_of_month.to_date
+      @end_date = @start_date.end_of_month
 
       @start_date = params[:filter].try(:[], :start_date).presence || @start_date
       @end_date = params[:filter].try(:[], :end_date).presence || @end_date

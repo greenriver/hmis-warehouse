@@ -11,6 +11,7 @@
   .o-filtration__container.dropdown-menu.dropdown-menu-left.options
     .o-filtration__header
       %h3.client__filter-header Patient Filter
+
     = form_tag(nil, method: "get") do
       %label Status
       -# preserve search for filtering
@@ -19,22 +20,22 @@
       .radio
         - active = params[:filter].blank? || params[:filter][:population] == 'all'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active}
           All
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'not_engaged'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active}
           Not engaged
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'no_activities'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active}
           0 Recent Qualifying Activities
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'engagement_ending'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active}
           Engagement Period Ending
 
       .o-filtration__actions.form__actions

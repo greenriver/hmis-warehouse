@@ -75,6 +75,9 @@ module Health
       self.claims_file += "#{billing_2010_aa_line}\n"
 
       patients.each do |patient|
+        # skip the patient if there are no QA that can be sent
+        next unless patient.qualifying_activities.unsubmitted.payable.
+          where(hqa_t[:date_of_activity].lteq(max_date)).map(&:procedure_code).map(&:present?).any?
         @lx = 0
         self.claims_file += "#{patient_header(patient)}\n"
         self.claims_file += "#{patient_payer(patient)}\n"

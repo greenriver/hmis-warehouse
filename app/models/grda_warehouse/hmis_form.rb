@@ -80,9 +80,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def veteran_score
-    return nil unless name == self.class.rrh_assessment_name
+    return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'assessment score'
+      section[:section_title].downcase.include?('assessment score') && section[:questions].present?
     end&.first
     return nil unless relevant_section.present?
 
@@ -93,7 +93,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def rrh_desired?
-    return false unless name == self.class.rrh_assessment_name
+    return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'housing resources'
     end&.first
@@ -105,9 +105,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def rrh_assessment_score
-    return nil unless name == self.class.rrh_assessment_name
+    return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'assessment score'
+      section[:section_title].downcase.include?('assessment score') && section[:questions].present?
     end&.first
     return nil unless relevant_section.present?
 
@@ -118,7 +118,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def youth_rrh_desired?
-    return false unless name == self.class.rrh_assessment_name
+    return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'housing resources'
     end&.first
@@ -131,7 +131,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def income_maximization_assistance_requested?
-    return false unless name == self.class.rrh_assessment_name
+    return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'housing resources'
     end&.first
@@ -144,7 +144,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def rrh_contact_info
-    return nil unless name == self.class.rrh_assessment_name
+    return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
     return nil unless income_maximization_assistance_requested?
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'next steps and contact information'

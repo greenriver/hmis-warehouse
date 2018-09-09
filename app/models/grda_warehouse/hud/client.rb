@@ -417,6 +417,15 @@ module GrdaWarehouse::Hud
       where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.pluck(:client_id))
     end
 
+    scope :with_unconfirmed_consent_or_disability_verification, -> do
+      unconfirmed_consent = GrdaWarehouse::ClientFile.consent_forms.unconfirmed.distinct.pluck(:client_id)
+      unconfirmed_disability = GrdaWarehouse::ClientFile.verification_of_disability.unconfirmed.
+        joins(:client).merge(GrdaWarehouse::Hud::Client.where(disability_verified_on: nil)).
+        distinct.pluck(:client_id)
+      joins(:client_files).
+      where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
+    end
+
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
@@ -788,7 +797,7 @@ module GrdaWarehouse::Hud
     end
 
     def score_for_rrh_assessment
-      rrh_assessment_score || 0
+      processed_service_history&.eto_coordinated_entry_assessment_score || 0
     end
 
     ##############################

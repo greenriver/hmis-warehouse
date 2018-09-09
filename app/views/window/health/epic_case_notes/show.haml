@@ -34,3 +34,10 @@
   %dd= @note.dx_2_name
   %dt Homeless Status
   %dd= @note.homeless_status
+- if @note.epic_case_note_qualifying_activities.exists?
+  - @note.epic_case_note_qualifying_activities.each do |qa|
+    %section.c-card.c-card--block.c-card--no-padding
+      .c-card__header.c-card__header--external
+        %h2 Epic Qualifying Activity &amp; Notes
+      .c-card__content
+        = simple_format qa.text

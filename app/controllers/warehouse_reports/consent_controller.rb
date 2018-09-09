@@ -5,7 +5,7 @@ module WarehouseReports
     before_action :require_can_confirm_housing_release!, only: [:update_clients]
     def index
 
-      @unconfirmed = client_source.distinct.with_unconfirmed_consent
+      @unconfirmed = client_source.distinct.with_unconfirmed_consent_or_disability_verification
 
       @cohorts_for_unconfirmed = begin
         cohorts = {}
