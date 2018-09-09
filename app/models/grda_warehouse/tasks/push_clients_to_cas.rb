@@ -109,6 +109,10 @@ module GrdaWarehouse::Tasks
         enrolled_in_sh: :enrolled_in_sh,
         enrolled_in_so: :enrolled_in_so,
         enrolled_in_es: :enrolled_in_es,
+        requires_ground_floor: :requires_ground_floor,
+        requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
+        required_number_of_bedrooms: :required_number_of_bedrooms,
+        required_minimum_occupancy: :required_minimum_occupancy,
       }
     end
   end
