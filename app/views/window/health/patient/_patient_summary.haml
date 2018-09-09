@@ -35,10 +35,10 @@
         .ho-patient__detail
           %span Phone:
           = phone
-      - if email = @patient.email
+      - if @patient.current_email != 'patient@openpath.biz'
         .ho-patient__detail
           %span Email
-          = mail_to email
+          = mail_to @patient.current_email
     .ho-patient__content
       %h4
         Demographics

@@ -6,7 +6,7 @@ module Window::Health
     include PjaxModalController
     include WindowClientPathGenerator
     def index
-      @files = @patient.health_files
+      @files = @patient.health_files.order(created_at: :desc)
       @blank_files = GrdaWarehouse::PublicFile.known_health_locations.to_a.map do |location, title|
         {title: title, url: GrdaWarehouse::PublicFile.url_for_location(location)}
       end

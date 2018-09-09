@@ -244,6 +244,10 @@ GEM
       multi_json (~> 1.0)
       sprockets (>= 2.0.0)
       tilt (>= 1.2)
+    hellosign-ruby-sdk (3.6.4)
+      faraday
+      mime-types
+      multi_json
     html2haml (2.2.0)
       erubis (~> 2.7.0)
       haml (>= 4.0, < 6)
@@ -602,6 +606,7 @@ DEPENDENCIES
   guard-rspec
   haml-rails
   handlebars_assets
+  hellosign-ruby-sdk
   html2haml
   htmlentities
   jquery-minicolors-rails

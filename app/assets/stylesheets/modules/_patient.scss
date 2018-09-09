@@ -1,3 +1,6 @@
+.patient__demographics {
+  flex-basis: 250px;
+}
 .patient__engagement
 {
   display: inline-block;
@@ -7,4 +10,18 @@
 .patient__engagement-countdown
 {
   color: $brand-warning-d;
+}
+
+.pctp__signature-expired
+{
+  color: $brand-danger;
+}
+
+.pctp__signature-pending
+{
+  color: $brand-warning;
+}
+.pctp__success
+{
+  color: $brand-success;
 }

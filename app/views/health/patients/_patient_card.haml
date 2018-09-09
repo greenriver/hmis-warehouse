@@ -1,19 +1,19 @@
 - url = window_client_health_patient_index_path(patient.client)
 .c-card.clients__client-card
-  .c-card__content
+  .c-card__content.d-flex.justify-content-between
     .patient__demographics
       %h4.patient__name.mt-0
         = link_to patient.name, url
       .patient__dob
         DOB:
         = patient.birthdate
-    .patient__care_coordinator.ml-4
+    .patient__care_coordinator
       = simple_form_for patient, as: :patient, url: window_client_health_patient_url(patient.client, patient), remote: true do |f|
         = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator]}
-    .ml-3
+    .patient__engagement-remaining-steps
       - if ! patient.engaged?
         = render 'window/health/patient/remaining_to_engage', patient: patient
-    .ml-auto
+    .patient__action-needed
       = render 'window/health/patient/engagement', patient: patient
       .patient__link.text-right.mt-4
         = link_to 'View', url, class: 'btn btn-sm btn-secondary'

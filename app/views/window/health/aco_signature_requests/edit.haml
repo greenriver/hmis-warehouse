@@ -1,0 +1,32 @@
+- title = 'PCP information needed for Care Plan Signature'
+- content_for :modal_title, title
+- if @state == :valid
+  .well
+    %p
+      Please provide the primary care physician’s name and email address, so they can review and sign a care plan.
+
+    %p
+      %strong Patient:
+      = @patient.name
+      %br
+      = link_to @careplan_link do
+        Personal Care Treatment Plan [PDF]
+
+    = simple_form_for @signature_request, as: :signature_request, url: @form_url do |f|
+      .row
+        .col-sm-4
+          = f.input :to_name, required: true, label: 'Primary Care Physician', input_html: {value: ''}
+          = f.input :to_email, required: true, label: 'Primary Care Physician Email Address', input_html: {value: ''}
+      .row
+        .col-sm-8.pctp__success
+          Need Assistance? Please contact #{mail_to Health::Cp.sender.first.key_contact_email, "#{Health::Cp.sender.first.key_contact_first_name} #{Health::Cp.sender.first.key_contact_last_name}"}
+        .col-sm-4
+          .text-right
+            = f.submit 'Send to PCP', class: ['btn', 'btn-primary', 'ml-2']
+  .text-muted
+    %p
+      Known domains: #{Health::Agency.whitelisted_domains.join(', ')}.
+- elsif @state == :expired
+  .alert.alert-danger
+    This request has expired. Please contact #{mail_to Health::Cp.sender.first.key_contact_email, "#{Health::Cp.sender.first.key_contact_first_name} #{Health::Cp.sender.first.key_contact_last_name}"} if this is unexpected.
+- else
