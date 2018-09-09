@@ -1232,17 +1232,21 @@ module GrdaWarehouse::Hud
         ha_eligible: _('Housing Authority Eligible'),
         cspech_eligible: _('CSPECH Eligible'),
         congregate_housing: _('Willing to live in congregate housing'),
-        sober_housing: _('Appropriate for sober supportive housing')
+        sober_housing: _('Appropriate for sober supportive housing'),
+        requires_ground_floor: _('Requires ground floor unit'),
+        requires_wheelchair_accessibility: _('Requires wheelchair accessible unit'),
+        required_number_of_bedrooms: _('Minimum number of bedrooms'),
+        required_minimum_occupancy: _('Minimum occupancy'),
       }
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy).
         keys
     end
 
     def self.file_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy).
         keys
     end
 
