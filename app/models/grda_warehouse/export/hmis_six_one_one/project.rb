@@ -31,6 +31,17 @@ module GrdaWarehouse::Export::HMISSixOneOne
       if override = continuum_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
         row[:ContinuumProject] = override
       end
+      row[:ContinuumProject] = row[:ContinuumProject].presence || 0
+
+      if override = operating_start_date_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+        row[:OperatingStartDate] = override
+      end
+      row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
+
+      if override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+        row[:ProjecType] = override
+      end
+
       return row
     end
 
@@ -57,7 +68,35 @@ module GrdaWarehouse::Export::HMISSixOneOne
             nil
           end
         end.compact.to_h
-      @continuum_project_overrides[[data_source_id, project_id]]
+      return 1 if @continuum_project_overrides[[data_source_id, project_id]]
+      return nil
+    end
+
+    def operating_start_date_override_for project_id:, data_source_id:
+      @operating_start_date_overrides ||= self.class.where.not(operating_start_date_override: nil).
+        pluck(:data_source_id, :id, :operating_start_date_override).
+        map do |data_source_id, project_id, operating_start_date_override|
+          if operating_start_date_override.present?
+            [[data_source_id, project_id], operating_start_date_override]
+          else
+            nil
+          end
+        end.compact.to_h
+      @operating_start_date_overrides[[data_source_id, project_id]]
+    end
+
+    def project_type_override_for project_id:, data_source_id:
+      return nil unless GrdaWarehouse::Config.get(:project_type_override)
+      @project_type_overrides ||= self.class.where.not(computed_project_type: nil).
+        pluck(:data_source_id, :id, :computed_project_type).
+        map do |data_source_id, project_id, computed_project_type|
+          if computed_project_type.present?
+            [[data_source_id, project_id], computed_project_type]
+          else
+            nil
+          end
+        end.compact.to_h
+      @project_type_overrides[[data_source_id, project_id]]
     end
   end
 end

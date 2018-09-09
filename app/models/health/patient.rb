@@ -9,6 +9,7 @@ module Health
     has_many :visits, through: :epic_patients
     has_many :epic_goals, through: :epic_patients
     has_many :epic_case_notes, through: :epic_patients
+    has_many :epic_case_note_qualifying_activities, through: :epic_patients
     has_many :epic_team_members, through: :epic_patients
     has_many :epic_qualifying_activities, through: :epic_patients
     has_many :epic_careplans, through: :epic_patients
@@ -120,7 +121,7 @@ module Health
       epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
-      epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
+      # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
         arel_table[:id].in(Arel.sql participation_form_patient_id_scope.to_sql).
@@ -143,10 +144,7 @@ module Health
           )
         ).
         and(
-          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql).
-          or(
-            arel_table[:id].in(Arel.sql epic_careplan_patient_id_scope.to_sql)
-          )
+          arel_table[:id].in(Arel.sql pctp_signed_patient_id_scope.to_sql)
         )
       )
     end

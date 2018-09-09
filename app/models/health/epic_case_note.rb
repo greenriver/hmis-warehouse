@@ -1,6 +1,7 @@
 module Health
   class EpicCaseNote < EpicBase
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_notes
+    has_many :epic_case_note_qualifying_activities, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note
 
     self.source_key = :PAT_ENC_CSN_ID
 

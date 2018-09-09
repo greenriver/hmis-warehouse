@@ -69,11 +69,12 @@ module Health::Tasks
       end
     end
 
-    # currently just a 10% change will prevent import/deletion
+    # currently just a 10% change will prevent deletion
     # always allow import if we don't have any in the warehouse
     def above_acceptable_change_threshold klass, incoming, existing
       return false unless @prevent_massive_change
       return false if existing == 0
+      return false if incoming > existing
       ((incoming - existing).abs.to_f / existing) > 0.1
     end
 
