@@ -2,11 +2,8 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   columns = [
-    # 'Match ID',
-    # 'Started On',
     'Declined On Step',
     'Declined On',
-    # 'Declined Reason',
     'Previous Step',
     'Previous Step Completed On',
     'Program',
@@ -16,15 +13,12 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
     'Link',
   ]
   sheet.add_row(GrdaWarehouse::CasReport.reason_attributes.values + columns, :style => title)
-  @raw_reasons.each do |match|
+  @matches.each do |match|
     previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
     row = match.attributes.values_at(*match.class.reason_attributes.keys.map(&:to_s))
     row += [
-      # match.match_id,
-      # match.match_started_at&.to_date,
       "(#{match.decision_order}) #{match.match_step}",
       match.updated_at&.to_date,
-      # match.decline_reason,
       previous_step&.match_step,
       previous_step&.updated_at&.to_date,
       match.program_name,
@@ -34,6 +28,6 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
       "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}"
     ]
   sheet.add_row(row)
-    
+
   end
 end

@@ -4,19 +4,19 @@ module WarehouseReports::Cas
     before_action :set_range
 
     def index
-      @raw_reasons = report_source.where.not( decline_reason: nil ).
+      @matches = report_source.where.not( decline_reason: nil ).
         started_between(start_date: @range.start, end_date: @range.end + 1.day)
-      @reasons = @raw_reasons.map do|row| 
+      @reasons = @matches.map do|row|
         row[:decline_reason].squish.gsub(/Other.*/,'Other').strip
       end.each_with_object(Hash.new(0)) { |reason,counts| counts[reason] += 1 }
-      
+
       @all_steps = report_source.
-        where(match_id: @raw_reasons.select(:match_id)).
+        where(match_id: @matches.select(:match_id)).
         order(decision_order: :asc).
         group_by(&:match_id)
 
       @reasons.sort_by(&:last).reverse
-      
+
       respond_to do |format|
         format.html
         format.xlsx
