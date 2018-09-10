@@ -3,18 +3,18 @@ require 'rails_helper'
 model = GrdaWarehouse::Hud::Geography
 RSpec.describe model, type: :model do
 
-  let! :admin_role { create :admin_role }
+  let!(:admin_role) { create :admin_role }
 
-  let! :user { create :user }
+  let!(:user) { create :user }
 
-  let! :ds1 { create :source_data_source, id: 1 }
-  let! :ds2 { create :source_data_source, id: 2 }
+  let!(:ds1) { create :source_data_source, id: 1 }
+  let!(:ds2) { create :source_data_source, id: 2 }
 
-  let! :pc1 { create :hud_project_coc, CoCCode: 'foo', data_source_id: ds1.id }
-  let! :pc2 { create :hud_project_coc, CoCCode: 'bar', data_source_id: ds2.id }
+  let!(:pc1) { create :hud_project_coc, CoCCode: 'foo', data_source_id: ds1.id }
+  let!(:pc2) { create :hud_project_coc, CoCCode: 'bar', data_source_id: ds2.id }
 
-  let! :s1 { create :hud_geography, data_source_id: pc1.data_source_id, ProjectID: pc1.ProjectID, CoCCode: pc1.CoCCode }
-  let! :s2 { create :hud_geography, data_source_id: pc2.data_source_id, ProjectID: pc2.ProjectID, CoCCode: pc2.CoCCode }
+  let!(:s1) { create :hud_geography, data_source_id: pc1.data_source_id, ProjectID: pc1.ProjectID, CoCCode: pc1.CoCCode }
+  let!(:s2) { create :hud_geography, data_source_id: pc2.data_source_id, ProjectID: pc2.ProjectID, CoCCode: pc2.CoCCode }
 
   user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
   ids      = -> (*sites) { sites.map(&:id).sort }

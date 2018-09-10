@@ -1,14 +1,14 @@
 require 'rails_helper'
 
 model = GrdaWarehouse::Hud::ProjectCoc
-RSpec.describe model, type: :model do  
+RSpec.describe model, type: :model do
 
-  let! :admin_role { create :admin_role }
+  let!(:admin_role) { create :admin_role }
 
-  let! :user { create :user }
+  let!(:user) { create :user }
 
-  let! :pc1 { create :hud_project_coc, CoCCode: 'foo' }
-  let! :pc2 { create :hud_project_coc, CoCCode: 'bar' }
+  let!(:pc1) { create :hud_project_coc, CoCCode: 'foo' }
+  let!(:pc2) { create :hud_project_coc, CoCCode: 'bar' }
 
   user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
   ids      = -> (*pcs) { pcs.map(&:id).sort }
