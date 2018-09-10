@@ -5,9 +5,9 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .row
   .col-sm-12
-
-.row
-  .col-sm-12
+    %p
+      %strong Please note:
+      The list of steps in the second drop-down are limited to those that proceed the steps in the first drop-down.  If you don't see the step in the second drop-down that you are looking for, you may need to change the first option and click update.
     = simple_form_for @step_range, as: :steps, url: warehouse_reports_cas_process_index_path, html: { method: :get } do |f|
       .form-group
         %p
