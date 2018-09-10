@@ -1,0 +1,7 @@
+.row.margin-bottom-02
+  .col-sm-12
+    .row
+      .col-sm-3
+        = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
+      .col-sm-3
+        = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
