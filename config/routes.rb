@@ -238,6 +238,7 @@ Rails.application.routes.draw do
       end
       resources :decline_reason, only: [:index]
       resources :canceled_matches, only: [:index]
+      resources :process, only: [:index]
       resources :chronic_reconciliation, only: [:index] do
         collection do
           patch :update

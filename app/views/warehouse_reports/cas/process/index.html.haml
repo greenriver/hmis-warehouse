@@ -1,0 +1,58 @@
+- title = 'CAS Match Process'
+- content_for :title, title
+
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
+.row
+  .col-sm-12
+
+.row
+  .col-sm-12
+    = simple_form_for @step_range, as: :steps, url: warehouse_reports_cas_process_index_path, html: { method: :get } do |f|
+      .form-group
+        %p
+          Limit to matches created within a date range.
+          = render 'filter', f: f
+        .row
+          .col-sm-5
+            = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
+          .col-sm-5
+            = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
+          .col-sm-2
+            = f.submit 'Update', class: 'btn btn-primary mt-no-label'
+
+- if @matches.any?
+  .row
+    .col-sm-10
+      %p
+        The following matches started between #{@range.start} and #{@range.end}.  Looking at the time between
+        %strong #{@step_range.first}
+        and
+        %strong #{@step_range.second}.
+    .col-sm-2
+      .pull-right
+        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+          Download Excel
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Program
+        %th Sub-Program
+        %th Days Between Steps
+        %th Terminal Step
+        %th Terminal Date
+        %th Result
+        %th Match
+    %tbody
+      - @matches.each do |_,match|
+        - terminal_step = @all_steps[match.id.to_i]&.last
+        %tr
+          %td= match.program_name
+          %td= match.sub_program_name
+          %td= match.days
+          %td= terminal_step&.match_step
+          %td= terminal_step&.updated_at&.to_date
+          %td= terminal_step&.terminal_status
+          %td
+            = link_to match.id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}", target: "_blank"
+
