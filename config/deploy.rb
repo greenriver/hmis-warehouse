@@ -34,7 +34,7 @@ set :ssh_port, ENV.fetch('SSH_PORT') { '22' }
 set :deploy_user , ENV.fetch('DEPLOY_USER')
 
 set :rvm_custom_path, ENV.fetch('RVM_CUSTOM_PATH') { '/usr/share/rvm' }
-set :rvm_ruby_version, File.read('.ruby-version').strip.split('-')[1]
+set :rvm_ruby_version, "#{File.read('.ruby-version').strip.split('-')[1]}@global"
 
 task :group_writable_and_owned_by_ubuntu do
   on roles(:web) do
