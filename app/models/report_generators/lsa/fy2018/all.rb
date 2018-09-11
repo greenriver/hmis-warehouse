@@ -146,7 +146,7 @@ module ReportGenerators::Lsa::Fy2018
         File.open(File.join(extract_path, file_name)) do |file|
           headers = file.first
           file.lazy.each_slice(read_rows) do |lines|
-            content = CSV.parse(lines.join, write_headers: true, headers: headers)
+            content = CSV.parse(lines.join, headers: headers)
             import_headers = content.first.headers
             if content.any?
               # this fixes dates that default to 1900-01-01 if you send an empty string

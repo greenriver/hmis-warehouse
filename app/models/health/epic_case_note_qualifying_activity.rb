@@ -30,5 +30,13 @@ module Health
       end
       super(key, value)
     end
+
+    def text
+      [
+        part_1,
+        part_2,
+        part_3,
+      ].join().gsub('  ', "\n")
+    end
   end
 end

@@ -1,14 +1,14 @@
 require 'rails_helper'
 
 model = GrdaWarehouse::Hud::EnrollmentCoc
-RSpec.describe model, type: :model do  
+RSpec.describe model, type: :model do
 
-  let! :admin_role { create :admin_role }
+  let!(:admin_role) { create :admin_role }
 
-  let! :user { create :user }
+  let!(:user) { create :user }
 
-  let! :ec1 { create :hud_enrollment_coc, CoCCode: 'foo' }
-  let! :ec2 { create :hud_enrollment_coc, CoCCode: 'bar' }
+  let!(:ec1) { create :hud_enrollment_coc, CoCCode: 'foo' }
+  let!(:ec2) { create :hud_enrollment_coc, CoCCode: 'bar' }
 
   user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
   ids      = -> (*ecs) { ecs.map(&:id).sort }

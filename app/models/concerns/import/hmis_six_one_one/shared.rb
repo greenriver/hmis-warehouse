@@ -142,7 +142,7 @@ module Import::HMISSixOneOne::Shared
         header_row = file.first
         file.lazy.each_slice(10_000) do |lines|
           to_add = []
-          csv_rows = CSV.parse(lines.join, write_headers: true, headers: header_row, header_converters: -> (h){h.to_sym})
+          csv_rows = CSV.parse(lines.join, headers: header_row, header_converters: -> (h){h.to_sym})
           csv_rows = csv_rows.map do |row|
             clean_row_for_import(row)
           end
@@ -169,6 +169,7 @@ module Import::HMISSixOneOne::Shared
             to_add = clean_to_add(to_add)
             stats = process_to_add(headers: headers, to_add: to_add, stats: stats)
           end
+
         end
       end
       stats
@@ -185,7 +186,7 @@ module Import::HMISSixOneOne::Shared
         file.lazy.each_slice(10_000) do |lines|
           to_add = []
           to_restore = []
-          csv_rows = CSV.parse(lines.join, write_headers: true, headers: header_row, header_converters: -> (h){h.to_sym})
+          csv_rows = CSV.parse(lines.join, headers: header_row, header_converters: -> (h){h.to_sym})
           csv_rows = csv_rows.map do |row|
             clean_row_for_import(row)
           end

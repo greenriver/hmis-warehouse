@@ -852,7 +852,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           where(date: filter.range).
           distinct.
           pluck(*client_columns)
-          counts[:average_daily] = total_count / filter.range.count
+          counts[:average_daily] = total_count / filter.range.count rescue 0
         data[:first_of_month] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).
@@ -924,7 +924,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       bed_coverage = 0
       bed_coverage_percent = 0
       if hmis_beds > 0
-        bed_coverage = "#{beds} / #{hmis_beds}"
+        bed_coverage = "#{beds} / #{hmis_beds}" rescue 0
         bed_coverage_percent = (beds.to_f/hmis_beds*100).round(2) || 0
       end
       add_answers({
@@ -1367,8 +1367,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         pluck(she_t[:client_id].as('client_id').to_sql, shs_t[:date].as('date').to_sql).
         count
       days_served = (self.end - self.start).to_i
-      average_usage = (total_services_provided.to_f/days_served).round(2)
-      average_stay_length = (total_services_provided.to_f/clients.size).round(2)
+      average_usage = (total_services_provided.to_f/days_served).round(2) rescue 0
+      average_stay_length = (total_services_provided.to_f/clients.size).round(2) rescue 0
       capacity = if beds > 0
         (average_usage.to_f/beds*100).round(2) rescue 0
       else

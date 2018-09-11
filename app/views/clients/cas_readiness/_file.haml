@@ -19,7 +19,8 @@
             - if can_view_dmh_status?
               - if GrdaWarehouse::Config.get(:client_details).include?('dmh_eligible')
                 = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
-
+            = f.input :required_number_of_bedrooms, collection: (1..5), include_blank: false
+            = f.input :required_minimum_occupancy, collection: (1..10), include_blank: false
           .form-group.mb-6.col-md-4
             - if GrdaWarehouse::Config.get(:client_details).include?('chronically_homeless_for_cas')
               = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
