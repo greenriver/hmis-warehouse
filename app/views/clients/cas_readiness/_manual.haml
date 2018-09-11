@@ -11,12 +11,18 @@
 
           .form-group.mb-6.col-md-4
             - if can_view_hiv_status?
-              = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
-              = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
+              - if GrdaWarehouse::Config.get(:client_details).include?('hiv_positive')
+                = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
+              - if GrdaWarehouse::Config.get(:client_details).include?('hues_eligible')
+                = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
 
             - if can_view_dmh_status?
-              = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
-
+              - if GrdaWarehouse::Config.get(:client_details).include?('dmh_eligible')
+                = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
+            - if GrdaWarehouse::Config.get(:client_details).include?('required_number_of_bedrooms')
+              = f.input :required_number_of_bedrooms, collection: (1..5), include_blank: false
+            - if GrdaWarehouse::Config.get(:client_details).include?('required_minimum_occupancy')
+              = f.input :required_minimum_occupancy, collection: (1..10), include_blank: false
           .form-group.col-md-4
             = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
   .row

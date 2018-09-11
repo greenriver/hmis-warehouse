@@ -3,13 +3,13 @@ require 'rails_helper'
 model = GrdaWarehouse::WarehouseReports::ReportDefinition
 RSpec.describe model, type: :model do
 
-  let! :admin_role { create :admin_role }
-  let! :assigned_report_viewer { create :assigned_report_viewer }
+  let!(:admin_role) { create :admin_role }
+  let!(:assigned_report_viewer) { create :assigned_report_viewer }
 
-  let! :user { create :user }
+  let!(:user) { create :user }
 
-  let! :r1 { create :touch_point_report }
-  let! :r2 { create :confidential_touch_point_report }
+  let!(:r1) { create :touch_point_report }
+  let!(:r2) { create :confidential_touch_point_report }
 
   user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
   ids      = -> (*reports) { reports.map(&:id).sort }

@@ -3,7 +3,9 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 = render 'form'
-
+.pull-right
+  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+    Download Excel
 %p
   The following clients have an open PH enrollment between
   = @filter.start

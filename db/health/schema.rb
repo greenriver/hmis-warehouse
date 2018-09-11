@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180831190828) do
+ActiveRecord::Schema.define(version: 20180907122443) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,7 +29,6 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "deleted_at"
-    t.string   "acceptable_domains"
   end
 
   create_table "agency_patient_referrals", force: :cascade do |t|
@@ -56,7 +55,7 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id",   default: 6, null: false
+    t.integer  "data_source_id",   default: 1, null: false
   end
 
   create_table "careplan_equipment", force: :cascade do |t|
@@ -309,6 +308,21 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.integer  "data_source_id"
   end
 
+  create_table "epic_case_note_qualifying_activities", force: :cascade do |t|
+    t.string   "patient_id"
+    t.string   "id_in_source"
+    t.string   "epic_case_note_source_id"
+    t.string   "encounter_type"
+    t.datetime "update_date"
+    t.string   "staff"
+    t.text     "part_1"
+    t.text     "part_2"
+    t.text     "part_3"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "data_source_id"
+  end
+
   create_table "epic_case_notes", force: :cascade do |t|
     t.string   "patient_id",                null: false
     t.string   "id_in_source",              null: false
@@ -373,7 +387,7 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.datetime "goal_created_at"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
-    t.integer  "data_source_id",           default: 6, null: false
+    t.integer  "data_source_id",           default: 1, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
@@ -400,7 +414,7 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 6,     null: false
+    t.integer  "data_source_id",           default: 1,     null: false
     t.datetime "deleted_at"
     t.date     "death_date"
   end
@@ -537,7 +551,7 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 6, null: false
+    t.integer  "data_source_id", default: 1, null: false
   end
 
   create_table "member_status_report_patients", force: :cascade do |t|
@@ -707,10 +721,10 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 6,     null: false
+    t.datetime "deleted_at"
+    t.integer  "data_source_id",           default: 1,     null: false
     t.date     "engagement_date"
     t.integer  "care_coordinator_id"
-    t.datetime "deleted_at"
     t.date     "death_date"
   end
 
@@ -724,7 +738,7 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 6, null: false
+    t.integer  "data_source_id", default: 1, null: false
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -863,51 +877,6 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.string   "status"
   end
 
-  create_table "signable_documents", force: :cascade do |t|
-    t.integer  "signable_id",                                                              null: false
-    t.string   "signable_type",                                                            null: false
-    t.boolean  "primary",                default: true,                                    null: false
-    t.integer  "user_id",                                                                  null: false
-    t.jsonb    "hs_initial_request"
-    t.jsonb    "hs_initial_response"
-    t.datetime "hs_initial_response_at"
-    t.jsonb    "hs_last_response"
-    t.datetime "hs_last_response_at"
-    t.string   "hs_subject",             default: "Signature Request",                     null: false
-    t.string   "hs_title",               default: "Signature Request",                     null: false
-    t.text     "hs_message",             default: "You've been asked to sign a document."
-    t.jsonb    "signers",                default: [],                                      null: false
-    t.jsonb    "signed_by",              default: [],                                      null: false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.datetime "expires_at"
-    t.integer  "health_file_id"
-  end
-
-  add_index "signable_documents", ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree
-
-  create_table "signature_requests", force: :cascade do |t|
-    t.string   "type",                 null: false
-    t.integer  "patient_id",           null: false
-    t.integer  "careplan_id",          null: false
-    t.string   "to_email",             null: false
-    t.string   "to_name",              null: false
-    t.string   "requestor_email",      null: false
-    t.string   "requestor_name",       null: false
-    t.datetime "expires_at",           null: false
-    t.datetime "sent_at"
-    t.datetime "completed_at"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.datetime "deleted_at"
-    t.integer  "signable_document_id"
-  end
-
-  add_index "signature_requests", ["careplan_id"], name: "index_signature_requests_on_careplan_id", using: :btree
-  add_index "signature_requests", ["deleted_at"], name: "index_signature_requests_on_deleted_at", using: :btree
-  add_index "signature_requests", ["patient_id"], name: "index_signature_requests_on_patient_id", using: :btree
-  add_index "signature_requests", ["type"], name: "index_signature_requests_on_type", using: :btree
-
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false
     t.string   "first_name",   null: false
@@ -969,7 +938,7 @@ ActiveRecord::Schema.define(version: 20180831190828) do
     t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
-    t.integer  "data_source_id",  default: 6, null: false
+    t.integer  "data_source_id",  default: 1, null: false
   end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"

@@ -4,15 +4,27 @@ style = {
   b: true,
   alignment: { horizontal: :center }
 }
-wb.add_worksheet name: 'Organization' do |sheet|
+wb.add_worksheet name: 'Recidivism' do |sheet|
   title = sheet.styles.add_style **style
-  sheet.add_row ['Organization Name', 'OrganizationID', 'Data Source', 'Start', 'End'], style: title
-  sheet.add_row [@filter.organization.name, @filter.organization.OrganizationID, @filter.organization.data_source.name, l(@filter.start), l(@filter.end) ]
-end
-wb.add_worksheet name: 'Length of Stay' do |sheet|
-  # title = sheet.styles.add_style **style
-  # sheet.add_row %w(Program) + @headers, style: title
-  # @data.each do |project, hash|
-  #   sheet.add_row [project] + @headers.map{ |h| hash[h] }
-  # end
+  sheet.add_row ['Client ID', 'First Name', 'Last Name', 'PH Project', 'PH Entry Date', 'PH Exit Date', 'ES/SO Project', 'ES/SO Entry Date', 'ES/SO Exit Date', 'ES/SO Last Service', 'ES/SO Days Served'], style: title
+  @clients.each do |client|
+    @ph_clients[client.id].each do |ph_enrollment|
+      @homeless_clients[client.id].each do |enrollment|
+        row = [
+          client.id,
+          client.FirstName,
+          client.LastName,
+          ph_enrollment[:project_name],
+          ph_enrollment[:first_date_in_program],
+          ph_enrollment[:last_date_in_program],
+          enrollment[:project_name],
+          enrollment[:first_date_in_program],
+          enrollment[:last_date_in_program],
+          @homeless_service_dates[enrollment[:id]],
+          @homeless_service[enrollment[:id]],
+        ]
+        sheet.add_row(row)
+      end
+    end
+  end
 end
