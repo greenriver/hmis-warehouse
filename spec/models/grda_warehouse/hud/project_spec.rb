@@ -14,33 +14,32 @@ RSpec.describe model, type: :model do
   #               |   |      |   |      |   |
   # project coc: pc1 pc2    pc3 pc4    pc5 pc6
 
-  let! :admin_role { create :admin_role }
+  let!(:admin_role) { create :admin_role }
 
-  let! :user { create :user }
+  let!(:user) { create :user }
 
-  let! :ds1 { create :source_data_source, id: 1 }
-  let! :ds2 { create :source_data_source, id: 2 }
+  let!(:ds1) { create :source_data_source, id: 1 }
+  let!(:ds2) { create :source_data_source, id: 2 }
 
-  let! :o1  { create :hud_organization, data_source_id: ds1.id }
-  let! :o2  { create :hud_organization, data_source_id: ds1.id }
-  let! :o3  { create :hud_organization, data_source_id: ds2.id }
-  let! :o4  { create :hud_organization, data_source_id: ds2.id }
+  let!(:o1) { create :hud_organization, data_source_id: ds1.id }
+  let!(:o2) { create :hud_organization, data_source_id: ds1.id }
+  let!(:o3) { create :hud_organization, data_source_id: ds2.id }
+  let!(:o4) { create :hud_organization, data_source_id: ds2.id }
+  let!(:p1) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
+  let!(:p2) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
+  let!(:p3) { create :hud_project, data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
+  let!(:p4) { create :hud_project, data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
+  let!(:p5) { create :hud_project, data_source_id: ds2.id, OrganizationID: o3.OrganizationID }
+  let!(:p6) { create :hud_project, data_source_id: ds2.id, OrganizationID: o3.OrganizationID }
+  let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
+  let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
 
-  let! :p1  { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
-  let! :p2  { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
-  let! :p3  { create :hud_project, data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
-  let! :p4  { create :hud_project, data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
-  let! :p5  { create :hud_project, data_source_id: ds2.id, OrganizationID: o3.OrganizationID }
-  let! :p6  { create :hud_project, data_source_id: ds2.id, OrganizationID: o3.OrganizationID }
-  let! :p7  { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
-  let! :p8  { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
-
-  let! :pc1 { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'foo' }
-  let! :pc2 { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'foo' }
-  let! :pc3 { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'foo' }
-  let! :pc4 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'foo' }
-  let! :pc5 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'foo', hud_coc_code: 'bar' }
-  let! :pc6 { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, hud_coc_code: 'bar' }
+  let!(:pc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'foo' }
+  let!(:pc2) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'foo' }
+  let!(:pc3) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'foo' }
+  let!(:pc4) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'foo' }
+  let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'foo', hud_coc_code: 'bar' }
+  let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, hud_coc_code: 'bar' }
 
   u = -> (user) { model.viewable_by(user).pluck(:id).sort }
   p = -> (*projects) { projects.map(&:id).sort }

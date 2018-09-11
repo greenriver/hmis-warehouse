@@ -33,7 +33,7 @@ gem 'acts-as-taggable-on', '~> 4.0'
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
 
-gem 'devise', '~> 3.5'
+gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'paper_trail'
 gem 'validates_email_format_of'
