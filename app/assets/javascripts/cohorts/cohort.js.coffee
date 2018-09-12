@@ -43,7 +43,7 @@ class App.Cohorts.Cohort
     direction = true
     if @sort_direction == 'desc'
       direction = false
-    @initial_sort = {column: 1, sortOrder: direction}
+    @initial_sort = {column: 2, sortOrder: direction}
     @current_sort = Object.assign({}, @initial_sort)
     @set_grid_column_headers()
 
@@ -57,6 +57,10 @@ class App.Cohorts.Cohort
       enableColResize: true,
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
+      onSortChanged: (data) ->
+        data.api.refreshCells()
+      onFilterChanged: (data) ->
+        data.api.refreshCells()
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
@@ -71,6 +75,15 @@ class App.Cohorts.Cohort
     @grid_options.columnApi.autoSizeColumns(@grid_options.columnApi.getAllColumns())
 
   set_grid_column_headers: =>
+    row_number = {
+      headerName: 'Row'
+      pinned: 'left'
+      valueGetter: (params) ->
+        params.node.rowIndex + 1
+      suppressMenu: true
+      suppressSorting: true
+      cellStyle: {color: 'rgba(0, 0, 0, 0.54)', 'background-color': '#f5f7f7'}
+    }
     @grid_column_headers = $.map @column_headers, (column, index) =>
       header = {
         headerName: column.headerName,
@@ -127,7 +140,7 @@ class App.Cohorts.Cohort
           params.data[params.column.colId].editable
 
       header
-
+    @grid_column_headers.unshift(row_number)
   # This is to work around a bug in sorting checkboxes
   sort_checkboxes: (a, b) =>
     if a == b
@@ -151,8 +164,6 @@ class App.Cohorts.Cohort
 
       @refresh_rate = 10000
       setInterval @check_for_new_data, @refresh_rate
-
-
 
     )
 

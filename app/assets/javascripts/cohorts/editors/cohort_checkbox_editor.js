@@ -2,12 +2,13 @@ function CheckboxCellEditor () {}
 
 // gets called once before the renderer is used
 CheckboxCellEditor.prototype.init = function(params) {
+  console.log(params.value);
   var wrapper = document.createElement('div');
   wrapper.className = 'text-center';
   var input = document.createElement('input');
   input.type = 'checkbox';
   input.value = '1';
-  input.checked = params.value == '1';
+  input.checked = params.value == '1' || params.value == true || params.value == 'true';
   wrapper.appendChild(input);
   this.eGui = wrapper;
 };
