@@ -70,7 +70,7 @@ module Reporting
           she_t[:client_id],
           "'ph-or-psh' as source"
         )
-      query = unionize([enrollment_based, move_in_based, ph_based])
+      query = unionize([enrollment_based.distinct, move_in_based.distinct, ph_based.distinct])
 
       summary_data = GrdaWarehouseBase.connection.exec_query(query.to_sql)
     end
