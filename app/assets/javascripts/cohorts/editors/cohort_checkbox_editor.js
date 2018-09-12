@@ -2,7 +2,6 @@ function CheckboxCellEditor () {}
 
 // gets called once before the renderer is used
 CheckboxCellEditor.prototype.init = function(params) {
-  console.log(params.value);
   var wrapper = document.createElement('div');
   wrapper.className = 'text-center';
   var input = document.createElement('input');
