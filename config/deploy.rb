@@ -93,28 +93,28 @@ namespace :deploy do
   after :migrating, :warehouse_migrations do
     on roles(:db)  do
       within release_path do
-        execute :rake, 'warehouse:db:migrate RAILS_ENV=staging'
+        execute :rake, "warehouse:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
   after :migrating, :health_migrations do
     on roles(:db)  do
       within release_path do
-        execute :rake, 'health:db:migrate RAILS_ENV=staging'
+        execute :rake, "health:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
   after :migrating, :report_seeds do
     on roles(:db)  do
       within release_path do
-        execute :rake, 'reports:seed RAILS_ENV=staging'
+        execute :rake, "reports:seed RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
   before :restart, :translations do
     on roles(:db)  do
       within release_path do
-        execute :rake, 'gettext:sync_to_po_and_db RAILS_ENV=staging'
+        execute :rake, "gettext:sync_to_po_and_db RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
