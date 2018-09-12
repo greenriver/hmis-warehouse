@@ -90,6 +90,37 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
 # set :keep_releases, 5
 
 namespace :deploy do
+  after :migrating, :warehouse_migrations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, 'warehouse:db:migrate RAILS_ENV=staging'
+      end
+    end
+  end
+  after :migrating, :health_migrations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, 'health:db:migrate RAILS_ENV=staging'
+      end
+    end
+  end
+  after :migrating, :report_seeds do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, 'reports:seed RAILS_ENV=staging'
+      end
+    end
+  end
+  before :restart, :translations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, 'gettext:sync_to_po_and_db RAILS_ENV=staging'
+      end
+    end
+  end
+end
+
+namespace :deploy do
   before 'assets:precompile', :touch_theme_variables do
     on roles(:app)  do
       within shared_path do
@@ -108,6 +139,14 @@ namespace :deploy do
     end
   end
 
+end
+
+after 'deploy:migrating', :check_for_bootability do
+  on roles(:app)  do
+    within release_path do
+      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "User.count"
+    end
+  end
 end
 
 task :echo_options do

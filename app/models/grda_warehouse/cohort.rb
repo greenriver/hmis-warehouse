@@ -246,6 +246,9 @@ module GrdaWarehouse
         ::CohortColumns::Reported.new(),
         ::CohortColumns::Race.new(),
         ::CohortColumns::Ethnicity.new(),
+        ::CohortColumns::Lgbtq.new(),
+        ::CohortColumns::SleepingLocation.new(),
+        ::CohortColumns::ExitDestination.new(),
       ]
     end
 

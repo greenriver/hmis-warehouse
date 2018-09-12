@@ -1054,7 +1054,7 @@ module GrdaWarehouse::Hud
       return File.read(Rails.root.join("public", "no_photo_on_file.jpg"))
     end
 
-    # finds an image for the client. there may be more then one availabe but this
+    # finds an image for the client. there may be more then one available but this
     # method will select one more or less at random. returns no_image_on_file_image
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
@@ -1237,6 +1237,7 @@ module GrdaWarehouse::Hud
         requires_wheelchair_accessibility: _('Requires wheelchair accessible unit'),
         required_number_of_bedrooms: _('Minimum number of bedrooms'),
         required_minimum_occupancy: _('Minimum occupancy'),
+        requires_elevator_access: _('Requires elevator access'),
       }
     end
 
