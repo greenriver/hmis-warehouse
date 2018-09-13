@@ -1,5 +1,7 @@
 class AlterUniqueEnrollmentConstraint < ActiveRecord::Migration
   def change
+    return
+
     model = GrdaWarehouse::Hud::Enrollment
     cols = [:data_source_id, model.hud_csv_headers.first].map(&:to_s)
     #remove_index model.table_name, name: "unk_#{model.table_name}"
