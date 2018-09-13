@@ -16,7 +16,7 @@ class AddHudTableUniqueKeys < ActiveRecord::Migration
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::Hud::ProjectCoc,
       GrdaWarehouse::Hud::Service,
-      GrdaWarehouse::Hud::Geography
+      #GrdaWarehouse::Hud::Geography
     ]
 
 
