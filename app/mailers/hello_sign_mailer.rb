@@ -1,5 +1,4 @@
 class HelloSignMailer < DatabaseMailer
-  default from: '"Boston Coordinated Care Hub" <cas-help@cas.boston.gov>'
   def careplan_signature_request(doc_id:, email:)
      @doc = Health::SignableDocument.where(id: doc_id)&.first
     # don't send if the request has already been canceled.
@@ -8,6 +7,7 @@ class HelloSignMailer < DatabaseMailer
     @email = email
 
     mail({
+      from: '"Boston Coordinated Care Hub" <cas-help@cas.boston.gov>',
       to: @email,
       subject: "Careplan Signature Requested"
     })
@@ -23,6 +23,7 @@ class HelloSignMailer < DatabaseMailer
     @url = signature_client_health_careplan_signable_document_url(client_id: client_id, careplan_id: careplan_id, id: @doc.id, email: @email, hash: @hash)
 
     mail({
+      from: '"Boston Coordinated Care Hub" <cas-help@cas.boston.gov>',
       to: @email,
       subject: _('BH CP Request for Care Plan Signature')
     })
@@ -41,6 +42,7 @@ class HelloSignMailer < DatabaseMailer
     @url = edit_window_client_health_careplan_aco_signature_request_url(client_id: client_id, careplan_id: careplan_id, id: @request.id, email: @email, hash: @hash)
 
     mail({
+      from: '"Boston Coordinated Care Hub" <cas-help@cas.boston.gov>',
       to: @email,
       subject: _('BH CP Request for Care Plan Signature')
     })
