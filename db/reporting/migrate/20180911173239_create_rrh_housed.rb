@@ -10,7 +10,7 @@ class CreateRrhHoused < ActiveRecord::Migration
       t.string :service_project
       t.string :residential_project
       t.integer :client_id, null: false, index: true
-      t.integer :source
+      t.string :source
       t.string :first_name
       t.string :last_name
       t.string :ssn
