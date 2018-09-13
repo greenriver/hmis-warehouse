@@ -237,7 +237,7 @@ module Health
     end
 
     def self.mode_of_contact_collection
-      self.load_string_collection(modes_of_contact.map{|k, mode| [k, mode[:title]] })
+      self.load_string_collection(modes_of_contact.select{ |k,_| k != :other }.map{|k, mode| [k, mode[:title]] })
     end
 
     def self.reached_client_collection
