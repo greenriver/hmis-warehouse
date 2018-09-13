@@ -1,4 +1,5 @@
 class HelloSignMailer < DatabaseMailer
+  default from: '"Boston Coordinated Care Hub" <cas-help@cas.boston.gov>'
   def careplan_signature_request(doc_id:, email:)
      @doc = Health::SignableDocument.where(id: doc_id)&.first
     # don't send if the request has already been canceled.
