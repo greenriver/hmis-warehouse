@@ -25,6 +25,8 @@ class AddHudTableUniqueKeys < ActiveRecord::Migration
   end
 
   def up
+    return
+
     # add unique indicies for each data_source_id and model key combo
     # remove any indicies made redundant by adding the new ones
     HUD_TABLES.each do |model|
