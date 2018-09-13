@@ -31,7 +31,28 @@ class CohortsController < ApplicationController
         if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
           @visible_columns << CohortColumns::Delete.new
         end
-        @column_headers = @visible_columns.map(&:title)
+        @column_headers = @visible_columns.each_with_index.map do |col, index|
+          header = {
+            headerName: col.title,
+            field: col.column,
+            editable: col.column_editable? && col.editable,
+          }
+          header[:pinned] = :left if index <= @cohort.static_column_count
+          case col.renderer
+          when 'dropdown'
+            # header.merge!({type: col.renderer, source: col.available_header})
+            # Be more forgiving of drop-down data
+            header.merge!({
+              available_options: [' '] + col.available_options,
+              renderer: col.renderer,
+            })
+          when 'date', 'checkbox', 'text', 'numeric'
+            header.merge!({renderer: col.renderer})
+          else
+            header.merge!({renderer: col.renderer})
+          end
+          header
+        end
         @column_options =  @visible_columns.map do |m|
           options = {
             data: "#{m.column}.value"
