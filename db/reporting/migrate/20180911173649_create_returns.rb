@@ -4,7 +4,7 @@ class CreateReturns < ActiveRecord::Migration
       t.integer :service_history_enrollment_id, null: false, index: true
       t.string :record_type, null: false, index: true
       t.date :date
-      t.integer :date
+      t.integer :age
       t.integer :service_type, index: true
       t.integer :client_id, null: false, index: true
       t.integer :project_type, index: true
@@ -16,6 +16,9 @@ class CreateReturns < ActiveRecord::Migration
       t.integer :organization_id
       t.boolean :unaccompaine_youth
       t.boolean :parenting_youth
+      t.date :start_date
+      t.date :end_date
+      t.integer :length_of_stay
     end
   end
 end
