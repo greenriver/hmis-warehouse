@@ -7,7 +7,7 @@ module Cohorts
     include CohortAuthorization
     include CohortClients
     include ActionView::Helpers::TextHelper
-    
+
     before_action :require_can_access_cohort!
     before_action :require_can_edit_cohort!, only: [:new, :create, :destroy]
     before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update]
@@ -68,7 +68,7 @@ module Cohorts
           editable = cohort_column.display_as_editable?(current_user, cohort_client) && cohort_column.column_editable?
           row[cohort_column.column] = {
             value: cohort_column.display_read_only(current_user),
-            renderer: cohort_column.renderer,
+            # renderer: cohort_column.renderer,
             cohort_client_id: cohort_client.id,
             comments: cohort_column.comments,
             editable: editable,

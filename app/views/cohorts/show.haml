@@ -1,10 +1,16 @@
-= stylesheet_link_tag 'handsontable.full.min.css'
+=# stylesheet_link_tag 'handsontable.full.min.css'
 = javascript_include_tag 'moment.min.js'
-= javascript_include_tag 'handsontable.full.js'
+=# javascript_include_tag 'handsontable.full.js'
+=# javascript_include_tag 'ag-grid/ag-grid.min.js'
+= stylesheet_link_tag 'https://unpkg.com/ag-grid/dist/styles/ag-grid.css'
+= stylesheet_link_tag 'https://unpkg.com/ag-grid/dist/styles/ag-theme-balham.css'
+= javascript_include_tag 'https://unpkg.com/ag-grid/dist/ag-grid.min.noStyle.js'
+
 
 - title = @cohort.name
 - content_for :title, title
 = render 'cohorts_js'
+= render 'cohorts_css'
 = render 'breadcrumbs'
 %h1= content_for :title
 - if @cohort.inactive?
@@ -12,7 +18,7 @@
     %i.icon-warning
     This cohort is inactive.  Changes will not be reflected on client dashboards.
 
-= render 'buttons'    
+= render 'buttons'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
 = render 'text_size_options'
 
@@ -33,5 +39,5 @@
   .col-sm-12
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'
-            
+
 = render 'cohort_client_form'

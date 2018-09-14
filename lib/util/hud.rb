@@ -197,8 +197,9 @@ module HUD
   def record_type(id, reverse=false)
     map = {
       12 => 'Contact',
+      13 => 'Contact',
       141 => 'PATH service',
-      142 => 'RHY service',
+      142 => 'RHY service connections',
       143 => 'HOPWA service',
       144 => 'SSVF service',
       151 => 'HOPWA financial assistance',
@@ -206,6 +207,7 @@ module HUD
       161 => 'PATH referral',
       162 => 'RHY referral',
       200 => 'Bed night',
+      210 => 'HUD-VASH OTH voucher tracking',
     }
 
     _translate map, id, reverse
@@ -395,12 +397,21 @@ module HUD
       26 => 'HHS: RHY – Demonstration Project**',
       27 => 'VA: Community Contract Emergency Housing',
       28 => 'VA: Community Contract Residential Treatment Program***',
-      29 => 'VA: Domiciliary Care***',
+      # 29 => 'VA: Domiciliary Care***',
       30 => 'VA: Community Contract Safe Haven Program***',
       31 => 'VA: Grant and Per Diem Program',
       32 => 'VA: Compensated Work Therapy Transitional Residence***',
       33 => 'VA: Supportive Services for Veteran Families',
       34 => 'N/A',
+      35 => 'HUD:  Pay for Success',
+      36 => 'HUD:  Public and Indian Housing (PIH) Programs',
+      37 => 'VA:  Grant Per Diem – Bridge Housing',
+      38 => 'VA:  Grant Per Diem – Low Demand',
+      39 => 'VA:  Grant Per Diem – Hospital to Housing',
+      40 => 'VA:  Grant Per Diem – Clinical Treatment',
+      41 => 'VA:  Grant Per Diem – Service Intensive Transitional Housing',
+      42 => 'VA:  Grant Per Diem – Transition in Place',
+      43 => 'HUD: CoC – Youth Homeless Demonstration Program (YHDP)',
     }
 
     _translate map, id, reverse

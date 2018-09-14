@@ -113,6 +113,7 @@ module GrdaWarehouse::Tasks
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
+        requires_elevator_access: :requires_elevator_access,
       }
     end
   end
