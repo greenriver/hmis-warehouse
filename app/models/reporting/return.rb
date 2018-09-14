@@ -1,5 +1,5 @@
 module Reporting
-  class Return < Reporting
+  class Return < ReportingBase
 
   end
 end
