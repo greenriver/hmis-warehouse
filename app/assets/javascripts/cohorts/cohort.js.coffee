@@ -56,6 +56,20 @@ class App.Cohorts.Cohort
         data.api.refreshCells()
       onFilterChanged: (data) ->
         data.api.refreshCells()
+      onCellEditingStarted: (params) =>
+        @editing_field_name = params.colDef.field
+        @editing_cohort_client_id = params.data[params.colDef.field].cohort_client_id
+        @editing_initial_value = params.value
+      onCellEditingStopped: (params) =>
+        console.log @editing_field_name, @editing_cohort_client_id, @editing_initial_value
+        cohort_client_id = params.data[params.colDef.field].cohort_client_id
+        # don't save anything if we had no change
+        if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id && @editing_initial_value == params.value
+          return
+        old_value = 'unknown'
+        if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id
+          old_value = @editing_initial_value
+        @after_edit(params.colDef.field, cohort_client_id, old_value, params.value)
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
@@ -93,10 +107,12 @@ class App.Cohorts.Cohort
             params.data[params.colDef.field].value = params.newValue
           else
             false
-        onCellValueChanged: (params) =>
-          cohort_client_id = params.data[params.colDef.field].cohort_client_id
-          # console.log 'changed', params.oldValue, 'to', params.newValue, cohort_client_id
-          @after_edit(params.colDef.field, cohort_client_id, params.oldValue, params.newValue)
+        # the onCellValueChanged callback doesn't get fired consistently, especially if you
+        # are clearing a value, instead we'll handle this in onCellEditingStopped
+        # onCellValueChanged: (params) =>
+        #   cohort_client_id = params.data[params.colDef.field].cohort_client_id
+        #   # console.log 'changed', params.oldValue, 'to', params.newValue, cohort_client_id
+        #   @after_edit(params.colDef.field, cohort_client_id, params.oldValue, params.newValue)
       }
       # Set the default sort on the second column
       if index == 1

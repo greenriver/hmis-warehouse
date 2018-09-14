@@ -9,10 +9,11 @@ DateCellEditor.prototype.init = function(params) {
 
   // https://jqueryui.com/datepicker/
   $(this.eInput).datepicker({
-    dateFormat: "dd/mm/yy",
+    dateFormat: "dd/mm/yyyy",
     changeMonth: true,
     changeYear: true,
-    autoclose: true
+    autoclose: true,
+    clearBtn: true
   }).on('hide', function(e) {
     params.stopEditing();
   });
@@ -31,7 +32,7 @@ DateCellEditor.prototype.afterGuiAttached = function() {
 
 // returns the new value after editing
 DateCellEditor.prototype.isCancelBeforeStart = function () {
-    return this.cancelBeforeStart;
+  return this.cancelBeforeStart;
 };
 
 // returns the new value after editing
