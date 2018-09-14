@@ -5,6 +5,6 @@ class HealthConsentChangeMailer < DatabaseMailer
     @revoked_consent = revoked_consent
     @new_patients = new_patients
     @unmatched = unmatched
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@cas.boston.gov>', to: user.email, subject: "Health Data Import Summary")
+    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: user.email, subject: "Health Data Import Summary")
   end
 end
