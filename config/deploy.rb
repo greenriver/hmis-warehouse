@@ -104,6 +104,13 @@ namespace :deploy do
       end
     end
   end
+  after :migrating, :reporting_migrations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "reporting:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
   after :migrating, :report_seeds do
     on roles(:db)  do
       within release_path do
