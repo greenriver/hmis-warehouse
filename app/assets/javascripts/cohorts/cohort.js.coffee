@@ -40,11 +40,6 @@ class App.Cohorts.Cohort
     @enable_searching()
 
   initialize_grid: () =>
-    direction = true
-    if @sort_direction == 'desc'
-      direction = false
-    @initial_sort = {column: 2, sortOrder: direction}
-    @current_sort = Object.assign({}, @initial_sort)
     @set_grid_column_headers()
 
     @grid_options = {
@@ -105,7 +100,7 @@ class App.Cohorts.Cohort
       }
       # Set the default sort on the second column
       if index == 1
-        header.sort = 'desc'
+        header.sort = @sort_direction
 
       switch column.renderer
         when 'checkbox'
