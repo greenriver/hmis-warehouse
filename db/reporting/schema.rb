@@ -48,7 +48,6 @@ ActiveRecord::Schema.define(version: 20180911173649) do
   create_table "returns", force: :cascade do |t|
     t.integer "service_history_enrollment_id", null: false
     t.string  "record_type",                   null: false
-    t.date    "date"
     t.integer "age"
     t.integer "service_type"
     t.integer "client_id",                     null: false
@@ -59,7 +58,7 @@ ActiveRecord::Schema.define(version: 20180911173649) do
     t.integer "destination"
     t.string  "project_name"
     t.integer "organization_id"
-    t.boolean "unaccompaine_youth"
+    t.boolean "unaccompanied_youth"
     t.boolean "parenting_youth"
     t.date    "start_date"
     t.date    "end_date"
