@@ -61,7 +61,7 @@ class App.Cohorts.Cohort
         @editing_cohort_client_id = params.data[params.colDef.field].cohort_client_id
         @editing_initial_value = params.value
       onCellEditingStopped: (params) =>
-        console.log @editing_field_name, @editing_cohort_client_id, @editing_initial_value
+        # console.log @editing_field_name, @editing_cohort_client_id, @editing_initial_value
         cohort_client_id = params.data[params.colDef.field].cohort_client_id
         # don't save anything if we had no change
         if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id && @editing_initial_value == params.value
