@@ -1233,7 +1233,6 @@ module GrdaWarehouse::Hud
         cspech_eligible: _('CSPECH Eligible'),
         congregate_housing: _('Willing to live in congregate housing'),
         sober_housing: _('Appropriate for sober supportive housing'),
-        requires_ground_floor: _('Requires ground floor unit'),
         requires_wheelchair_accessibility: _('Requires wheelchair accessible unit'),
         required_number_of_bedrooms: _('Minimum number of bedrooms'),
         required_minimum_occupancy: _('Minimum occupancy'),
