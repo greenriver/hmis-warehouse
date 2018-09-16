@@ -160,3 +160,8 @@
     background-color: lighten($brand-danger, 40);
   }
 }
+
+.qa-valid-unpayable
+{
+  border-left: 4px solid $brand-warning;
+}

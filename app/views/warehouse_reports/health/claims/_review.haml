@@ -21,68 +21,14 @@
           %i.icon-cross
           Allow Edits to Qualifying Activities
 
-%ul.nav.nav-tabs
-  %li.nav-item.active
-    %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
-      Un-Payable
-  %li.nav-item
-    %a.nav-link{href: '#duplicate', role: "presentation", data: {toggle: :tab}}
-      Duplicate
-  %li.nav-item
-    %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
-      Payable
-
-.tab-content
-  .tab-pane.active#unpayable
-    %p
-      The following qualifying activities are un-payable per the
-      %strong #{@sender.receiver_name} Community Partners Manual: Qualifying Activity Reporting.
-    %p
-      Any qualifying activities marked
-      %strong force payable: yes
-      will be included in the submission, any marked
-      %strong no,
-      will remain on this list until they are adjusted such that they are payable, or until they are 6 months old.
-    = simple_form_for :force_payable, url: qualifying_activities_warehouse_reports_health_claims_path do |f|
-      .d-flex
-        .form-actions.ml-auto
-          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
-      .unpayable-wrapper.overflow-scroll
-        %p Found #{pluralize(@unpayable.count, 'client')} with #{pluralize(@unpayable.values.flatten.count, 'unpayable qualifying activity')}.
-        = render 'unpayable', qa_group: @unpayable
-      .d-flex
-        .form-actions.ml-auto
-          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
-  .tab-pane#duplicate
-    %p
-      The following qualifying activities are payable once per day, the procedure codes are valid, but the qualifying activities have occurred more than once per day per patient.  One of each of the qualifying activities below has either been submitted to #{@sender.receiver_name} or will be included in this claims file.
-    .duplicate-wrapper.overflow-scroll
-      %p Found #{pluralize(@duplicate.count, 'client')} with #{pluralize(@duplicate.values.flatten.count, 'duplicate qualifying activity')}.
-      = render 'payable', qa_group: @duplicate
-  .tab-pane#payable
-    %p
-      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked
-      %strong force payable
-      on the
-      %strong Un-Payable
-      tab will be included.
-    .payable-wrapper.overflow-scroll
-      %p Found #{pluralize(@payable.count, 'client')} with #{pluralize(@payable.values.flatten.count, 'payable qualifying activity')}.
-      = render 'payable', qa_group: @payable
-
+#jPrecalculated
+  .alert.alert-info.jLoading
+    %p.text-center Loading claims...
 = content_for :page_js do
   :javascript
-    (function($) {
-      // manage some button classes manually to get the colors we want
-      $(document).on('change', '.jForcePayable input', function(e) {
-        var cell = $(e.currentTarget).closest('.jForcePayable');
-        var checked_no_label = $(cell).find('.jNo input:checked').closest('label');
-        var unchecked_no_label = $(cell).find('.jNo input:not(:checked)').closest('label');
-        var checked_yes_label = $(cell).find('.jYes input:checked').closest('label');
-        var unchecked_yes_label = $(cell).find('.jYes input:not(:checked)').closest('label');
-        checked_no_label.removeClass('btn-secondary').addClass('btn-danger');
-        unchecked_no_label.removeClass('btn-danger').addClass('btn-secondary');
-        checked_yes_label.removeClass('btn-secondary').addClass('btn-success');
-        unchecked_yes_label.removeClass('btn-success').addClass('btn-secondary');
-      });
-    })(jQuery);
+    $.get('#{precalculated_warehouse_reports_health_claims_path}', function(data){
+      $('#jPrecalculated').append(data);
+      $('#jPrecalculated').find('.jLoading').remove();
+    });
+
+= render 'precalculated_js'
