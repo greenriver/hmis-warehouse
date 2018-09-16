@@ -276,6 +276,7 @@ Rails.application.routes.draw do
           get :running
           post :precalculate
           post :qualifying_activities
+          get :precalculated
         end
         member do
           post :generate_claims_file

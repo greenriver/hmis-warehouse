@@ -1,3 +1,4 @@
+= render 'window/health/qualifying_activities/payability_key'
 .o-card-grid
   - qa_group.each do |_, qas|
     - sample_qa = qas.first
@@ -17,10 +18,7 @@
                 %th Procedure Code
             %tbody
               - qas.each do |qa|
-                - validity_class = 'qa-invalid'
-                - if qa.procedure_valid?
-                  - validity_class = 'qa-valid'
-                %tr{class: validity_class, data: {id: qa.id}}
+                %tr{class: qa.validity_class, data: {id: qa.id}}
                   %td.nobr= qa.date_of_activity
                   %td= qa.user_full_name
                   %td= qa.source_type
@@ -29,7 +27,7 @@
                   %td= qa.client_reached_title(qa.reached_client)
                   %td.qa__procedure-code
                     - if qa.procedure_valid?
-                      = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
+                      = qa.procedure_with_modifiers
                     - else
-                      %span{data: {toggle: :tooltip, title: "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s} is not a valid Procedure Code"}}
-                        = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
+                      %span{data: {toggle: :tooltip, title: "#{qa.procedure_with_modifiers} is not a valid Procedure Code"}}
+                        = qa.procedure_with_modifiers
