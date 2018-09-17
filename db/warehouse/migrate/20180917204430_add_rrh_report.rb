@@ -1,10 +1,10 @@
-class AddAgencyPerformanceReport < ActiveRecord::Migration
+class AddRrhReport < ActiveRecord::Migration
   REPORTS = {
-    'Health' => [
+    'Operational Reports' => [
       {
-        url: 'warehouse_reports/health/agency_performance',
-        name: 'Agency Performance',
-        description: 'Summary data on agency performance in the BH CP.',
+        url: 'warehouse_reports/rrh',
+        name: 'Rapid Rehousing Dashboard',
+        description: '',
       },
     ],
   }
