@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180912154937) do
+ActiveRecord::Schema.define(version: 20180914235727) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -113,7 +113,6 @@ ActiveRecord::Schema.define(version: 20180912154937) do
     t.datetime "rrh_assessment_collected_at"
     t.string   "source_hash"
     t.boolean  "generate_manual_history_pdf",                        default: false, null: false
-    t.boolean  "requires_ground_floor",                              default: false
     t.boolean  "requires_wheelchair_accessibility",                  default: false
     t.integer  "required_number_of_bedrooms",                        default: 1
     t.integer  "required_minimum_occupancy",                         default: 1

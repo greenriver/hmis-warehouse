@@ -3,9 +3,11 @@
 .o-page
   .o-page__header
     %h1= content_for :title
-  .o-page__controls
-    .o-page__search
+  .row
+    .col-sm-8
       = render 'filter', data: {placement: 'bottom'}
+    .col-sm-4.mt-4
+      = render 'payability_key'
   .table-utilities
     %p.mr-5= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
 
@@ -24,7 +26,7 @@
           %th Modifiers
       %tbody
         - @qualifying_activities.each do |qa|
-          %tr
+          %tr{class: qa.validity_class}
             %td= qa.date_of_activity.to_date
             %td= qa.claim_submitted_on
             %td= qa.title_for_activity
@@ -32,7 +34,7 @@
             %td= qa.title_for_client_reached
             %td= qa.follow_up
             %td= qa.user_full_name
-            %td= qa.procedure_code
+            %td.qa__procedure-code= qa.procedure_code
             %td= qa.modifiers.join('>')
       %p= paginate @qualifying_activities
   - else

@@ -46,6 +46,31 @@ module WarehouseReports::Health
       end
     end
 
+    def precalculated
+      @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
+      @report = Health::Claim.precalculated.last
+      @payable = {}
+      @unpayable = {}
+      @duplicate = {}
+      @report.qualifying_activities.joins(:patient).
+        order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
+        each do |qa|
+        # Bucket results
+        if qa.duplicate? && qa.naturally_payable?
+          @duplicate[qa.patient_id] ||= []
+          @duplicate[qa.patient_id] << qa
+        elsif ! qa.naturally_payable?
+          @unpayable[qa.patient_id] ||= []
+          @unpayable[qa.patient_id] << qa
+        else
+          @payable[qa.patient_id] ||= []
+          @payable[qa.patient_id] << qa
+        end
+      end
+
+      render layout: false if request.xhr?
+    end
+
     def qualifying_activities
       force_list = []
       no_force_list = []
