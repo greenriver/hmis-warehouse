@@ -406,6 +406,32 @@ module Health
       self.save(validate: false) if self.changed?
     end
 
+    # Some procedure modifier/client_reached combinations are technically valid,
+    # but obviously un-payable
+    # For example: U3 (phone call) with client_reached "did not reach"
+    # Flag these for possibly ignoring in the future
+    def valid_unpayable?
+      if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
+        return true
+      end
+
+      return false
+    end
+
+    def validity_class
+      if valid_unpayable?
+        return 'qa-valid-unpayable'
+      elsif procedure_valid?
+        return 'qa-valid'
+      else
+        return 'qa-invalid'
+      end
+    end
+
+    def procedure_with_modifiers
+      ([procedure_code] + modifiers).join('>').to_s
+    end
+
     def any_submitted_of_type_for_day_for_patient?
       same_of_type_for_day_for_patient.submitted.exists?
     end

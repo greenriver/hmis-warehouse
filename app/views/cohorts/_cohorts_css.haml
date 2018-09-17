@@ -1,0 +1,62 @@
+= content_for :page_js do
+  :css
+    .ag-theme-balham .ag-cell {
+      border-right: 1px solid #dbdbdb;
+    }
+-# .ag-column-hover.ag-cell {
+-# overflow: visible;
+-# }
+-# /* Tooltip styling */
+-# [data-tooltip] {
+-# display: inline-block;
+-# position: relative;
+-# padding: 0px 2px 15px 2px;
+-# }
+-# /* Tooltip styling */
+-# [data-tooltip]:before {
+-# content: attr(data-tooltip);
+-# display: none;
+-# position: fixed;
+-# margin: 2em 2em 2em 2em;
+-# background: white;
+-# color: #27394F;
+-# padding: 4px 8px;
+-# font-size: 12px;
+-# line-height: 1.4;
+-# min-width: 100px;
+-# text-align: center;
+-# border-radius: 2px;
+-# border: 1px solid black;
+-# }
+-# /* Dynamic horizontal centering */
+-# [data-tooltip-position="top"]:before,
+
+-# [data-tooltip-position="top"]:before {
+-# bottom: 100%;
+-# margin-bottom: 6px;
+-# }
+-# /* Tooltip arrow styling/placement */
+-# [data-tooltip]:after {
+-# content: '';
+-# display: none;
+-# position: absolute;
+-# width: 0;
+-# height: 0;
+-# top:100%;
+-# border-color: 1px solid black;
+
+-# }
+-# /* Dynamic horizontal centering for the tooltip */
+-# [data-tooltip-position="top"]:after,
+
+-# [data-tooltip-position="top"]:after {
+-# bottom: 100%;
+-# border-width: 6px 6px 0;
+-# border-top-color: #000;
+-# }
+-# /* Show the tooltip when hovering */
+-# [data-tooltip]:hover:before,
+-# [data-tooltip]:hover:after {
+-# display: block;
+-# z-index: 50;
+-# }
