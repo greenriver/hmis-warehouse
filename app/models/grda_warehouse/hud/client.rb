@@ -1523,6 +1523,37 @@ module GrdaWarehouse::Hud
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
+    # call this on GrdaWarehouse::Hud::new() instead of self, to take
+    # advantage of caching
+    def race_string scope_limit: self.class.destination, destination_id:
+      limited_scope = self.class.destination.merge(scope_limit)
+
+      @race_am_ind_ak_native ||= limited_scope.where(
+        id: self.class.race_am_ind_ak_native.select(:id)
+      ).distinct.pluck(:id)
+      @race_asian ||= limited_scope.where(
+        id: self.class.race_asian.select(:id)
+      ).distinct.pluck(:id)
+      @race_black_af_american ||= limited_scope.where(
+        id: self.class.race_black_af_american.select(:id)
+      ).distinct.pluck(:id)
+      @race_native_hi_other_pacific ||= limited_scope.where(
+        id: self.class.race_native_hi_other_pacific.select(:id)
+      ).distinct.pluck(:id)
+      @race_white ||= limited_scope.where(
+        id: self.class.race_white.select(:id)
+      ).distinct.pluck(:id)
+      if (@race_am_ind_ak_native + @race_asian + @race_black_af_american + @race_native_hi_other_pacific + @race_white).count(destination_id) > 1
+        return 'MultiRacial'
+      end
+      return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
+      return 'Asian' if @race_asian.include?(destination_id)
+      return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
+      return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
+      return 'White' if @race_white.include?(destination_id)
+      return 'RaceNone'
+    end
+
     def self_and_sources
       if destination?
         [ self, *self.source_clients ]
