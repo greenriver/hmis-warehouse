@@ -46,7 +46,7 @@ module PatientReferralImporter
         dmh: 'DMH_FLAG',
         dds: 'DDS_FLAG',
         eoea: 'EOEA_FLAG',
-        ed_visits: 'EOEA_FLAG',
+        ed_visits: 'ED_VISITS',
         snf_discharge: 'SNF_DISCHARGE',
         identification: 'Identification_Flag',
         record_status: 'RECORD_STATUS',
