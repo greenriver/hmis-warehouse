@@ -1,8 +1,7 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var links = $('a[data-behavior="claim patient"]');
-      links.on('click', function(e) {
+      $('.jAgencyPatientReferrals').on('click', 'a[data-behavior="claim patient"]', function(e) {
         e.preventDefault();
         var value = $(this).data('value');
         var form = $(this).parents('form');

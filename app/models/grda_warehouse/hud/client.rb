@@ -1236,7 +1236,7 @@ module GrdaWarehouse::Hud
         requires_wheelchair_accessibility: _('Requires wheelchair accessible unit'),
         required_number_of_bedrooms: _('Minimum number of bedrooms'),
         required_minimum_occupancy: _('Minimum occupancy'),
-        requires_elevator_access: _('Requires elevator access'),
+        requires_elevator_access: _('Requires ground floor unit or elevator access'),
       }
     end
 

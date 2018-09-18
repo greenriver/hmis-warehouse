@@ -55,9 +55,10 @@ module Admin::Health
           flash[:notice] = "Patient rejection removed."
         end
       else
-        flash[:error] = 'An error occurred, please try again.'
+        @error = 'An error occurred, please try again.'
+        flash[:error] = @error
       end
-      redirect_to rejected_admin_health_patient_referrals_path
+      redirect_to rejected_admin_health_patient_referrals_path unless request.xhr?
     end
 
     def create
@@ -85,16 +86,27 @@ module Admin::Health
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes(assign_agency_params)
         @patient_referral.convert_to_patient()
-        if @patient_referral.assigned_agency.present?
-          flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
-          redirect_to assigned_admin_health_patient_referrals_path
+        if request.xhr?
+          if @patient_referral.assigned_agency.present?
+            @success = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
+          else
+            @success = 'Patient unassigned.'
+          end
         else
-          flash[:notice] = 'Patient unassigned.'
-          redirect_to review_admin_health_patient_referrals_path
+          if @patient_referral.assigned_agency.present?
+            flash[:notice] = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
+            redirect_to assigned_admin_health_patient_referrals_path
+          else
+            flash[:notice] = 'Patient unassigned.'
+            redirect_to review_admin_health_patient_referrals_path
+          end
         end
       else
-        flash[:error] = 'Patient could not be assigned.'
-        redirect_to review_admin_health_patient_referrals_path
+        @error = 'Patient could not be assigned.'
+        unless request.xhr?
+          flash[:error] = @error
+          redirect_to review_admin_health_patient_referrals_path
+        end
       end
     end
 
