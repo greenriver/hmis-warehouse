@@ -118,6 +118,11 @@ namespace :grda_warehouse do
     end
   end
 
+  desc "Seed Grades"
+  task seed_grades: [:environment] do
+    GrdaWarehouse::Grades::Base.install_default_grades!
+  end
+
   desc "Import Many HUD CSVs for development"
   task import_dev_hud_csvs: [:environment, "log:info_to_stdout"] do
     # FIXME: this no longer works with the new importer, we need a new exporter first

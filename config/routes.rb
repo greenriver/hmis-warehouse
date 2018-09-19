@@ -515,6 +515,7 @@ Rails.application.routes.draw do
         post :assign_agency
       end
       resources :agency_patient_referrals, only: [:create, :update] do
+        get :claim_buttons
         collection do
           get :review
           get :reviewed

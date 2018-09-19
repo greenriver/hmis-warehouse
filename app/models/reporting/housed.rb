@@ -1,5 +1,6 @@
 module Reporting
   class Housed < ReportingBase
+    self.table_name = :warehouse_houseds
     include ArelHelper
     include TsqlImport
 
@@ -119,9 +120,9 @@ module Reporting
     def client_columns
       {
         id: :id,
-        FirstName: :first_name,
-        LastName: :last_name,
-        SSN: :ssn,
+        # FirstName: :first_name,
+        # LastName: :last_name,
+        # SSN: :ssn,
         DOB: :dob,
         Ethnicity: :ethnicity,
         Gender: :gender,

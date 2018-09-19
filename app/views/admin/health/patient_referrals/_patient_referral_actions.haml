@@ -6,8 +6,8 @@
   %div
     - unclaimed = pr.display_unclaimed_by
     - if unclaimed.size > 0
-      %strong 
-        Unknown By 
+      %strong
+        Unknown By
         = unclaimed.size
       .inline-icon.inline-icon--left{data: {toggle: 'tooltip', placement: 'right', title: unclaimed.map{|uc| "<div style='white-space:nowrap;text-align:left;'>#{uc}</div>"}.join(''), html: 'true'}}
         %i.icon-info

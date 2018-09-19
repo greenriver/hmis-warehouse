@@ -1,10 +1,10 @@
-- url = window_client_health_qualifying_activities_path(client_id: patient.client.id)
+- url = window_client_health_qualifying_activities_path(client_id: patient.client.id)  rescue ''
 - if current_user.can_edit_clients?
-  - url = client_health_qualifying_activities_path(client_id: patient.client.id)
+  - url = client_health_qualifying_activities_path(client_id: patient.client.id)  rescue ''
 
 .patient__engagement.mr-2.text-right
   - if ! patient.engaged?
     .patient__engagement-countdown
       = "#{pluralize(patient.days_to_engage, 'day')} remaining to obtain PCTP signatures"
   .patient__engagement-engaged
-    = link_to "#{pluralize(patient.qualified_activities_since(date: Date.today.beginning_of_month).count, 'Qualifying Activities')} in #{Date.today.strftime('%B')}", url
+    = link_to_if patient.client.present?, "#{pluralize(patient.qualified_activities_since(date: Date.today.beginning_of_month).count, 'Qualifying Activities')} in #{Date.today.strftime('%B')}", url

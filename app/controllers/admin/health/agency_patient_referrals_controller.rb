@@ -3,7 +3,7 @@ module Admin::Health
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     # before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
-    before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral]
+    before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral, :claim_buttons]
     before_action :load_new_patient_referral, only: [:review, :reviewed]
 
     include PatientReferral
@@ -13,12 +13,12 @@ module Admin::Health
       @active_patient_referral_tab = 'review'
       @display_claim_buttons_for = @user_agencies
       if @user_agencies.any?
-        @agency_patient_referral_ids = Health::AgencyPatientReferral.
+        @agency_patient_referral_ids = agency_patient_referral_source.
           where(agency_id: @user_agencies.map(&:id)).
           group_by(&:patient_referral_id).
           delete_if{|k, v| v.size != @user_agencies.size}.
           keys
-        @patient_referrals = Health::PatientReferral.
+        @patient_referrals = patient_referral_source.
           unassigned.
           includes(relationships: :agency, relationships_claimed: :agency).
           references(relationships: :agency, relationships_claimed: :agency).
@@ -52,14 +52,14 @@ module Admin::Health
         }
       ]
       if @user_agencies.any?
-        # @patient_referrals = Health::PatientReferral.
+        # @patient_referrals = patient_referral_source.
         #   unassigned.
         #   joins(:relationships).
         #   where(agency_patient_referrals: {agency_id: @user_agencies.map(&:id)}).
         #   where(agency_patient_referrals: {claimed: @active_patient_referral_group == 'our patient'}).
         #   preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
         load_index_vars
-        @relationships = Health::AgencyPatientReferral.
+        @relationships = agency_patient_referral_source.
           joins(:patient_referral).
           where(agency_id: @user_agencies.map(&:id)).
           where(claimed: @active_patient_referral_group == 'our patient').
@@ -77,31 +77,52 @@ module Admin::Health
 
     # update relationship between patient referral and agency
     def update
-      @relationship = Health::AgencyPatientReferral.find(params[:id])
+      @relationship = agency_patient_referral_source.find(params[:id].to_i)
       build_relationship(@relationship)
     end
 
     # create relationship between patient referral and agency
     def create
-      @new_relationship = Health::AgencyPatientReferral.new(relationship_params)
+      @new_relationship = agency_patient_referral_source.new(relationship_params)
       build_relationship(@new_relationship)
+    end
+
+    def claim_buttons
+      @display_claim_buttons_for = @user_agencies
+      @patient_referral = patient_referral_source.find(params[:agency_patient_referral_id].to_i)
+      render layout: false if request.xhr?
     end
 
     private
 
     def build_relationship(relationship)
+      if request.xhr?
+        @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id].to_i)
+      end
       # aka agency_patient_referral
       path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path
       success = relationship.new_record? ? relationship.save : relationship.update_attributes(relationship_params)
       if success
         r = relationship.claimed? ? 'Our Patient' : 'Not Our Patient'
-        flash[:notice] = "Patient marked as '#{r}'"
-        redirect_to path
+        @success = "Patient marked as '#{r}'"
+        unless request.xhr?
+          flash[:notice] = @success
+          redirect_to path
+        end
       else
         load_index_vars
-        flash[:error] = "An error occurred, please try again."
-        render 'index'
+        @error = "An error occurred, please try again."
+        flash[:error] = @error
+        render 'index' unless request.xhr?
       end
+    end
+
+    def agency_patient_referral_source
+      Health::AgencyPatientReferral
+    end
+
+    def patient_referral_source
+      Health::PatientReferral
     end
 
     def relationship_params

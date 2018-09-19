@@ -6,5 +6,10 @@ module GrdaWarehouse::Grades
     def self.grade_from_score score
       raise 'Implement in sub-class'
     end
+
+    def self.install_default_grades!
+      GrdaWarehouse::Grades::Missing.install_default_grades!
+      GrdaWarehouse::Grades::Utilization.install_default_grades!
+    end
   end
 end
