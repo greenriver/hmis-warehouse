@@ -19,9 +19,9 @@
 
                 %h4= group_name
                 - group.each do |item|
-                  - selected = params['tag_list'] == item.name
                   .radio
-                    - selected = f.object.tag_list.to_s == item.name
+                    - selected = params[:grda_warehouse_client_file].try(:[], :tag_list) == item.name
+                    - selected = f.object.tag_list.to_s == item.name || selected
                     - options = {class: 'jFileTag'}
                     - data = {}
                     - if item.note.present?
