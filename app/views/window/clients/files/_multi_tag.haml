@@ -1,0 +1,3 @@
+- selected = params[:grda_warehouse_client_file].try(:[], :tag_list) == item.name
+- selected = f.object.tag_list.to_s == item.name || selected
+= check_box_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)

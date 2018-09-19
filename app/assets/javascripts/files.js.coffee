@@ -14,7 +14,7 @@ $('.jThumb').each (e) ->
 
 $(document).on 'change', '.jFileTag', (e) ->
   # Show notes
-  if $(this).data('toggle') == 'popover'
+  if $(this).data('toggle') == 'popover' && $(this).is(':checked')
     $('.jFileTag').not(this).popover('hide')
     $(this).popover('show')
   else
@@ -25,6 +25,14 @@ $(document).on 'change', '.jFileTag', (e) ->
     $('.consent-form-fields').removeClass('hidden')
   else
     $('.consent-form-fields').addClass('hidden')
+  if $(this).data('requires-effective-date')
+    $('.jEffectiveDate').show()
+  else
+    $('.jEffectiveDate').hide()
+  if $(this).data('requires-expiration-date')
+    $('.jExpirationDate').show()
+  else
+    $('.jExpirationDate').hide()
 
 $(document).on 'change', '.jDownload', (e) ->
   ids = $('.jDownload:checked').map ->

@@ -5,8 +5,8 @@
     .alert.alert-danger
       %p Failed to upload file. Please review the errors below
       %ul.error_list
-        - @file.errors.messages.values.first.uniq.each do |msg|
-          %li= msg
+        - @file.errors.messages.values.uniq.each do |msg|
+          %li= msg.first
   .form-inputs
     %h3 What Does This File Contain?
     .c-card.c-card--flush.client-file.mb-6
@@ -19,27 +19,32 @@
 
                 %h4= group_name
                 - group.each do |item|
-                  .radio
-                    - selected = params[:grda_warehouse_client_file].try(:[], :tag_list) == item.name
-                    - selected = f.object.tag_list.to_s == item.name || selected
-                    - options = {class: 'jFileTag'}
-                    - data = {}
-                    - if item.note.present?
-                      - data.merge!({toggle: :popover, trigger: :manual, title: item.name, content: item.note})
-                    - if item.consent_form
-                      - data.merge!({consent: true})
-                    - if item.requires_effective_date
-                      - data.merge!({requires_effective_date: true})
-                      - @requires_effective_date = true
-                    - if item.requires_expiration_date
-                      - data.merge!({requires_expiration_date: true})
-                      - @requires_expiration_date = true
-                    - options.merge!({data: data})
-                    = radio_button_tag('grda_warehouse_client_file[tag_list]', item.name, selected, options)
-                    = label_tag("grda_warehouse_client_file[tag_list_#{item.name}]", item.name)
-                    - if item.included_info.present?
-                      %p.margin-left-04
-                        %em= "(includes: #{item.included_info})"
+                  - options = {class: 'jFileTag'}
+                  - data = {}
+                  - if item.note.present?
+                    - data.merge!({toggle: :popover, trigger: :manual, title: item.name, content: item.note})
+                  - if item.consent_form
+                    - data.merge!({consent: true})
+                  - if item.requires_effective_date
+                    - data.merge!({requires_effective_date: true})
+                    - @requires_effective_date = true
+                  - if item.requires_expiration_date
+                    - data.merge!({requires_expiration_date: true})
+                    - @requires_expiration_date = true
+                  - options.merge!({data: data})
+                  - if GrdaWarehouse::Config.get(:allow_multiple_file_tags)
+                    .checkbox
+                      %label
+                        = render 'multi_tag', item: item, f: f, options: options
+                        = item.name
+                  - else
+                    .radio
+                      %label
+                        = render 'single_tag', item: item, f: f, options: options
+                        = item.name
+                  - if item.included_info.present?
+                    %p.margin-left-04
+                      %em= "(includes: #{item.included_info})"
     .row.jEffectiveDate
       .col-sm-4
         = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }, label: 'Effective date or date signed'
@@ -61,20 +66,3 @@
     %button.btn.btn-default.ml-4{type: :submit}
       %i.icon-upload2
       Upload File
-
-= content_for :page_js do
-  :javascript
-    $('.jFileTag').on('change', function(e){
-      if($(this).data('requires-effective-date')) {
-        $('.jEffectiveDate').show();
-      }
-      else {
-        $('.jEffectiveDate').hide();
-      }
-      if($(this).data('requires-expiration-date')) {
-        $('.jExpirationDate').show();
-      }
-      else {
-        $('.jExpirationDate').hide();
-      }
-    });

@@ -27,10 +27,11 @@
     .col-sm-4
       = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
       = f.input :continuum_name, as: :string, label: 'Continuum Name'
+      = f.input :allow_multiple_file_tags, label: 'Should client files be allowed to have more than one tag?'
       -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zipcodes', hint: 'comma separated.  eg. 02108, 02109'
       = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS'
       = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?'
       = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)'
       = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
-  
+
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
