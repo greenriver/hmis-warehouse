@@ -16,12 +16,13 @@ module Health
       where.not(email: [nil, ''])
     end
 
-    scope :health_sendable, -> do
-      domain_query = Health::Agency.whitelisted_domains.map do |domain|
-        nf('LOWER', [arel_table[:email]]).matches("%#{domain}")
-      end.reduce(&:or)
-      with_email.where(domain_query)
-    end
+    # Disabled in favor of using some gems to blacklist some domains.  This might come back
+    # scope :health_sendable, -> do
+    #   domain_query = Health::Agency.whitelisted_domains.map do |domain|
+    #     nf('LOWER', [arel_table[:email]]).matches("%#{domain}")
+    #   end.reduce(&:or)
+    #   with_email.where(domain_query)
+    # end
 
     def self.member_type_name
       raise 'Implement in sub-class'
@@ -88,7 +89,7 @@ module Health
 
     def email_domain_if_present
       return if email.blank?
-      unless Health::Agency.whitelisted_domain_regex.match(email)
+      unless Health::Agency.email_valid?(email)
         errors.add(:email ,'address must match a provider organization domain (e.g. @tuftsmedical.org — can\'t be @gmail.com or other generic domain)')
       end
     end

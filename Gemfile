@@ -38,6 +38,8 @@ gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'paper_trail'
 gem 'validates_email_format_of'
+gem 'ruby-mailchecker'
+gem "email_check"
 gem 'text'
 
 gem "lograge"

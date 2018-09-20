@@ -119,7 +119,7 @@ module Window::Health
     end
 
     def team_member_scope
-      @patient.team_members.with_email.health_sendable
+      @patient.team_members.with_email#.health_sendable # This has been moved to the add team member screen
     end
 
     def signature_source

@@ -11,16 +11,19 @@ module Health
       User.where(id: (agency_users||[]).map{|au| au.user_id})
     end
 
-    def self.whitelisted_domains
-      self.pluck(:acceptable_domains).join(',').split(',').map(&:strip).select(&:present?)
-    end
+    # def self.whitelisted_domains
+    #   self.pluck(:acceptable_domains).join(',').split(',').map(&:strip).select(&:present?)
+    # end
 
-    def self.acceptable_domain?(domain)
-      whitelisted_domains.include? domain
-    end
+    # def self.acceptable_domain?(domain)
+    #   whitelisted_domains.include? domain
+    # end
 
     def self.email_valid?(email)
-      whitelisted_domain_regex.match(email)
+      # whitelisted_domain_regex.match(email)
+      # Check that the email is not from a free or disposable or invalid email provider
+      email_address =  ::EmailCheck::EmailAddress.new(email)
+      ! email_address.free_email_provider? && ! email_address.blacklisted_domain? && MailChecker.valid?(email)
     end
 
     def self.whitelisted_domain_regex

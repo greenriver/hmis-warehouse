@@ -23,9 +23,10 @@
         .col-sm-4
           .text-right
             = f.submit 'Send to PCP', class: ['btn', 'btn-primary', 'ml-2']
-  .text-muted
-    %p
-      Known domains: #{Health::Agency.whitelisted_domains.join(', ')}.
+  - if false # we are currently using a blacklist instead of a whitelist, so don't show this for now.
+    .text-muted
+      %p
+        Known domains: #{Health::Agency.whitelisted_domains.join(', ')}.
 - elsif @state == :expired
   .alert.alert-danger
     This request has expired. Please contact #{mail_to Health::Cp.sender.first.key_contact_email, "#{Health::Cp.sender.first.key_contact_first_name} #{Health::Cp.sender.first.key_contact_last_name}"} if this is unexpected.
