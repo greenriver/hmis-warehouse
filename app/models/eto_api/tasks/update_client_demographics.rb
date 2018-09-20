@@ -246,6 +246,7 @@ module EtoApi::Tasks
         hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
         begin
           hmis_form.save
+          hmis_form.create_qualifying_activity!
         rescue Exception => e
           # msg = "Failed to save, probably dirty: #{e.message}"
           # notifier.ping msg if send_notifications
