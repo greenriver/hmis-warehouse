@@ -1,5 +1,8 @@
 class CareHubPermissions < ActiveRecord::Migration
   def up
+    # This only applies to Boston
+    return
+
     Role.ensure_permissions_exist
     Role.reset_column_information
     # Create role structure, but only if health is enabled
