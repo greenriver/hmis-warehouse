@@ -6,7 +6,7 @@
       %strong Known by:
       %div= cb
 .col-sm-4
-  %div
+  %div.jClaimButtons
     - @display_claim_buttons_for.each do |a|
       = render 'claim_buttons', agency: a, pr: pr
 

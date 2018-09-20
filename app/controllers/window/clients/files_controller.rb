@@ -33,9 +33,13 @@ module Window::Clients
 
     def create
       @file = file_source.new
-
+      if file_params[:tag_list].blank?
+        @file.errors.add :tag_list, 'You must specify file contents'
+      end
       if !file_params[:file]
         @file.errors.add :file, "No uploaded file found"
+      end
+      if @file.errors.any?
         render :new
         return
       end
@@ -59,17 +63,17 @@ module Window::Clients
 
         @file.assign_attributes(attrs)
         @file.tag_list.add(tag_list)
-        
+
         requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?{|x| x.requires_effective_date}
         requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?{|x| x.requires_expiration_date}
-      
+
         if requires_effective_date && requires_expiration_date
           @file.save!(context: :requires_expiration_and_effective_dates)
         elsif requires_effective_date
           @file.save!(context: :requires_effective_date)
         elsif requires_expiration_date
           @file.save!(context: :requires_expiration_date)
-        else 
+        else
           @file.save!
         end
 

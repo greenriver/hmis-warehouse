@@ -173,9 +173,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return true unless has_eto_qualifying_activities?
     # prevent duplication creation
     return true if Health::QualifyingActivity.where(source_type: self.class.name, source_id: id).exists?
-    # Don't add qualifying activities if we can't determine the patient
-    return true unless patient = client&.destination_client&.patient
 
+    return true unless client&.destination_client.present?
+    # Don't add qualifying activities if we can't find a patient with a referral
+    return true unless patient = Health::Patient.joins(:patient_referral).where(client_id: client.destination_client.id)&.first
 
     user = User.setup_system_user()
     Health::QualifyingActivity.transaction do

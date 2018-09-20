@@ -11,12 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180911173649) do
+ActiveRecord::Schema.define(version: 20180917194028) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "houseds", force: :cascade do |t|
+  create_table "ea_test", id: false, force: :cascade do |t|
+    t.integer "id"
+  end
+
+  create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"
     t.date    "search_end"
     t.date    "housed_date"
@@ -27,9 +31,6 @@ ActiveRecord::Schema.define(version: 20180911173649) do
     t.string  "residential_project"
     t.integer "client_id",           null: false
     t.string  "source"
-    t.string  "first_name"
-    t.string  "last_name"
-    t.string  "ssn"
     t.date    "dob"
     t.string  "race"
     t.integer "ethnicity"
@@ -39,13 +40,13 @@ ActiveRecord::Schema.define(version: 20180911173649) do
     t.string  "ph_destination"
   end
 
-  add_index "houseds", ["client_id"], name: "index_houseds_on_client_id", using: :btree
-  add_index "houseds", ["housed_date"], name: "index_houseds_on_housed_date", using: :btree
-  add_index "houseds", ["housing_exit"], name: "index_houseds_on_housing_exit", using: :btree
-  add_index "houseds", ["search_end"], name: "index_houseds_on_search_end", using: :btree
-  add_index "houseds", ["search_start"], name: "index_houseds_on_search_start", using: :btree
+  add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree
+  add_index "warehouse_houseds", ["housed_date"], name: "index_warehouse_houseds_on_housed_date", using: :btree
+  add_index "warehouse_houseds", ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit", using: :btree
+  add_index "warehouse_houseds", ["search_end"], name: "index_warehouse_houseds_on_search_end", using: :btree
+  add_index "warehouse_houseds", ["search_start"], name: "index_warehouse_houseds_on_search_start", using: :btree
 
-  create_table "returns", force: :cascade do |t|
+  create_table "warehouse_returns", force: :cascade do |t|
     t.integer "service_history_enrollment_id", null: false
     t.string  "record_type",                   null: false
     t.integer "age"
@@ -65,11 +66,11 @@ ActiveRecord::Schema.define(version: 20180911173649) do
     t.integer "length_of_stay"
   end
 
-  add_index "returns", ["client_id"], name: "index_returns_on_client_id", using: :btree
-  add_index "returns", ["first_date_in_program"], name: "index_returns_on_first_date_in_program", using: :btree
-  add_index "returns", ["project_type"], name: "index_returns_on_project_type", using: :btree
-  add_index "returns", ["record_type"], name: "index_returns_on_record_type", using: :btree
-  add_index "returns", ["service_history_enrollment_id"], name: "index_returns_on_service_history_enrollment_id", using: :btree
-  add_index "returns", ["service_type"], name: "index_returns_on_service_type", using: :btree
+  add_index "warehouse_returns", ["client_id"], name: "index_warehouse_returns_on_client_id", using: :btree
+  add_index "warehouse_returns", ["first_date_in_program"], name: "index_warehouse_returns_on_first_date_in_program", using: :btree
+  add_index "warehouse_returns", ["project_type"], name: "index_warehouse_returns_on_project_type", using: :btree
+  add_index "warehouse_returns", ["record_type"], name: "index_warehouse_returns_on_record_type", using: :btree
+  add_index "warehouse_returns", ["service_history_enrollment_id"], name: "index_warehouse_returns_on_service_history_enrollment_id", using: :btree
+  add_index "warehouse_returns", ["service_type"], name: "index_warehouse_returns_on_service_type", using: :btree
 
 end
