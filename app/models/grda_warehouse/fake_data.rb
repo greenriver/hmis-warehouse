@@ -38,7 +38,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       DOB: -> (value) {
         Faker::Date.between(70.years.ago, 1.years.ago) if value.present?
       },
-      PersonalID: -> (value) { SecureRandom.uuid.gsub('-', '') },
+      PersonalID: -> (value) { Digest::MD5.hexdigest(value) },
       UserID: -> (value) { Faker::Internet.user_name(5..8) },
       CoCCode: -> (value) { "#{Faker::Address.state_abbr}-#{Faker::Number.number(3)}" },
       ProjectName: -> (value) { fake_location },
