@@ -35,7 +35,7 @@ module WarehouseReports::Health
     end
 
     def set_dates
-      @start_date = 1.months.ago.beginning_of_month.to_date
+      @start_date = Date.today.beginning_of_month.to_date
       @end_date = @start_date.end_of_month
 
       @start_date = params[:filter].try(:[], :start_date).presence || @start_date
