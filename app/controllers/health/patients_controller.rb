@@ -85,6 +85,11 @@ module Health
       @start_date = params[:filter].try(:[], :start_date).presence || @start_date
       @end_date = params[:filter].try(:[], :end_date).presence || @end_date
 
+      if @start_date.to_date > @end_date.to_date
+        new_start = @end_date
+        @end_date = @start_date
+        @start_date = new_start
+      end
     end
 
     def require_user_has_health_agency!
