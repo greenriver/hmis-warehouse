@@ -1832,7 +1832,9 @@ module GrdaWarehouse::Hud
       vispdat_score = most_recent_vispdat_score
       vispdat_length_homeless_in_days ||= 0
       vispdat_score ||= 0
-      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 730
+      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
+        1095
+      elsif vispdat_length_homeless_in_days >= 730
         730
       elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
         365
