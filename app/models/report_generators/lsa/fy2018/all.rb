@@ -270,6 +270,15 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
+
+      rep = LsaSqlServer::LSAReport.new
+      report_steps = rep.steps
+      # This starts at 30%, ends at 90%
+      step_percent = 60 / rep.steps.count
+      rep.steps.each_with_index do |meth, i|
+        update_report_progress percent: 30 + i * step_percent
+        rep.public_send(meth)
+      end
     end
 
     def fetch_summary_results
