@@ -1,9 +1,8 @@
-- title = "Assigned Relationships for #{@client.name}"
+- title = "Assigned Relationships"
 - content_for :title, title
 = render 'clients/breadcrumbs'
-        
-.row
-  .col-sm-12
-    = render 'clients/tab_navigation', current: client_users_path(@client)
-  
-    = render 'relationship_list'
+
+= render 'window/clients/aliases'
+= render 'clients/tab_navigation', current: client_users_path(@client)
+
+= render 'relationship_list'
