@@ -9,7 +9,7 @@
     - aliases.each do |name|
       - sn = name[:ds]
       - full_name = name[:name]
-      %li
+      %li.client__client-name
         %span{class: "ds-#{sn.downcase}"}
           = sn
         = full_name

@@ -1,6 +1,7 @@
-require_relative 'sql_server_base'
+# require_relative 'sql_server_base'
+require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s
 module LsaSqlServer
-  class LSAReport
+  class LSAQueries
 
     def steps
       @steps ||= [
@@ -26,7 +27,7 @@ module LsaSqlServer
         :four_twenty,
         :four_twenty_one,
         :four_twenty_two,
-        :four_twenty_thee,
+        :four_twenty_three,
         :four_twenty_four_and_five,
         :four_twenty_six,
         :four_twenty_seven,
@@ -43,7 +44,6 @@ module LsaSqlServer
         :four_thirty_eight,
         :four_thirty_nine,
         :four_forty,
-        :four_forty_one,
         :four_forty_one_and_two,
         :four_forty_three,
         :four_forty_four,
@@ -252,6 +252,7 @@ module LsaSqlServer
             order by coc.InformationDate desc) = rpt.ReportCoC
       SQL
     end
+
     def four_eight
       SqlServerBase.connection.execute (<<~SQL);
         /*************************************************************************
@@ -4475,6 +4476,7 @@ module LsaSqlServer
         update lsa_Report set ReportDate = getdate()
       SQL
     end
+
     def four_seventy_three
       SqlServerBase.connection.execute (<<~SQL);
         /**********************************************************************
@@ -4822,128 +4824,7 @@ module LsaSqlServer
           , HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
           , HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
       SQL
+      end
     end
   end
 end
-# SqlServerBase.connection.execute (<<~SQL);
-# /**********************************************************************
-# 5.3 Create Stored Procedure – Person-Level Demographics Report Output
-# (Optional; no display of LSA summary data is required in HMIS applications at this time.)
-# **********************************************************************/
-# /*
-# DATE:  5/30/2018
-
-# This will produce the following demographic report tables,
-# depending on the @rptTable parameter:
-# Age, Gender, Race, Ethnicity, VetStatus, DVStatus
-
-# It will generate results for the following populations,
-# depending on the @popID and @hhtype parameters:
-
-# PopID HHType  Population
-# 0 0   All
-# 0 1   AO Households
-# 0 2   AC Households
-# 0 3   CO Households
-# 1 1   AO Youth Household 18-21
-# 2 1   AO Youth Household 22-24
-# 3 1   AO Veteran Household
-# 3 2   AC Veteran Household
-# 4 1   AO Non-Veteran 25+ Household
-# 6 1-3   Household with Chronically Homeless Adult/HoH
-# 9 2   AC Parenting Youth Household 18-24
-# 10  3   Parenting Child Household
-# */
-# DROP PROCEDURE IF EXISTS [dbo].[sp_lsaPersonDemographics];
-# SQL
-# SqlServerBase.connection.execute (<<~SQL);
-# CREATE PROCEDURE [dbo].[sp_lsaPersonDemographics]
-# @popID int
-# , @hhtype int
-# , @rptTable varchar(12)
-# AS
-# BEGIN
-# select val.textValue as Category
-# , EST = coalesce((select sum(RowTotal)
-# from lsa_Person est
-# where est.HHTypeEST <> -1
-# and (@hhtype = 0
-#   or cast(est.HHTypeEST as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 1 or est.HHAdultAge = 18)
-# and (@popID <> 2 or est.HHAdultAge = 24)
-# and (@popID <> 3
-#   or cast(est.HHVet as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 4 or (est.HHAdultAge in (25,55)
-#   and cast(est.HHVet as varchar) not like '%' + cast(@hhtype as varchar) + '%'))
-# and (@popID <> 6
-#   or cast(est.HHChronic as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 9 or (est.HHAdultAge in (18,24)
-#   and cast(est.HHParent as varchar) like '%' + cast(@hhtype as varchar) + '%'))
-# and (@popID <> 10
-#   or cast(est.HHParent as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and val.intValue = case when @rptTable = 'Age' then est.Age
-#     when @rptTable = 'Gender' then est.Gender
-#     when @rptTable = 'Race' then est.Race
-#     when @rptTable = 'Ethnicity' then est.Ethnicity
-#     when @rptTable = 'VeteranStatus' then est.VetStatus
-#     when @rptTable = 'DVStatus' then est.DVStatus
-#     else null end), 0)
-# , RRH = coalesce((select sum(RowTotal)
-# from lsa_Person rrh
-# where rrh.HHTypeRRH <> -1
-# and (@hhtype = 0
-#   or cast(rrh.HHTypeRRH as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 1 or rrh.HHAdultAge = 18)
-# and (@popID <> 2 or rrh.HHAdultAge = 24)
-# and (@popID <> 3
-#   or cast(rrh.HHVet as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 4 or (rrh.HHAdultAge in (25,55)
-#   and cast(rrh.HHVet as varchar) not like '%' + cast(@hhtype as varchar) + '%'))
-# and (@popID <> 6
-#   or cast(rrh.HHChronic as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 9 or (rrh.HHAdultAge in (18,24)
-#   and cast(rrh.HHParent as varchar) like '%' + cast(@hhtype as varchar) + '%'))
-# and (@popID <> 10
-#   or cast(rrh.HHParent as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and val.intValue = case when @rptTable = 'Age' then rrh.Age
-#     when @rptTable = 'Gender' then rrh.Gender
-#     when @rptTable = 'Race' then rrh.Race
-#     when @rptTable = 'Ethnicity' then rrh.Ethnicity
-#     when @rptTable = 'VeteranStatus' then rrh.VetStatus
-#     when @rptTable = 'DVStatus' then rrh.DVStatus
-#     else null end), 0)
-# , PSH = coalesce((select sum(RowTotal)
-# from lsa_Person psh
-# where psh.HHTypePSH <> -1
-# and (@hhtype = 0
-#   or cast(psh.HHTypePSH as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 1 or psh.HHAdultAge = 18)
-# and (@popID <> 2 or psh.HHAdultAge = 24)
-# and (@popID <> 3
-#   or cast(psh.HHVet as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 4 or (psh.HHAdultAge in (25,55)
-#   and cast(psh.HHVet as varchar) not like '%' + cast(@hhtype as varchar) + '%'))
-# and (@popID <> 6
-#   or cast(psh.HHChronic as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and (@popID <> 9 or (psh.HHAdultAge in (18,24)
-#   and cast(psh.HHParent as varchar) like '%' + cast(@hhtype as varchar) + '%'))
-# and (@popID <> 10
-#   or cast(psh.HHParent as varchar) like '%' + cast(@hhtype as varchar) + '%')
-# and val.intValue = case when @rptTable = 'Age' then psh.Age
-#     when @rptTable = 'Gender' then psh.Gender
-#     when @rptTable = 'Race' then psh.Race
-#     when @rptTable = 'Ethnicity' then psh.Ethnicity
-#     when @rptTable = 'VeteranStatus' then psh.VetStatus
-#     when @rptTable = 'DVStatus' then psh.DVStatus
-#     else null end), 0)
-# from ref_lsaValues val
-# inner join ref_lsaColumns col on col.ColumnNumber = val.ColumnNumber
-# and col.FileNumber = val.FileNumber
-# inner join ref_lsaFiles f on f.FileNumber = val.FileNumber
-# where col.ColumnName = @rptTable
-# and f.FileName = 'LSAPerson'
-# and val.intValue <> -1
-# order by val.intValue
-
-# END
-# SQL

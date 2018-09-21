@@ -33,7 +33,8 @@ SqlServerBase.connection.execute (<<~SQL);
     LOTH bit NULL,
     ReturnSummary bit NULL,
     ProjectTypeCount bit NULL,
-    ProjectLevelCount bit NULL
+    ProjectLevelCount bit NULL,
+    SystemPath int NULL
   )
   ;
 SQL
