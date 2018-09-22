@@ -1947,5 +1947,5 @@ SqlServerBase.connection.execute (<<~SQL);
 
 
   END
-  GO
+
 SQL
