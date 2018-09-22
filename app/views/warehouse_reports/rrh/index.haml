@@ -2,3 +2,25 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+
+%h2 Overview
+.row
+  .col-xs-12.col-md-6
+    .d3-chart#d3-overview-1
+  .col-xs-12.col-md-6
+    .d3-chart#d3-overview-2
+%h2 Time in Program
+%h2 Outcomes
+
+- charts = Reporting::D3Charts.new(nil, '1995 SRA (F2)')
+- overview = charts.overview
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var chart1 = new App.D3Chart.RapidRehousingChart('#d3-overview-1', #{overview[:program_1]}, #{overview[:both]});
+      chart1.draw();
+
+      var chart2 = new App.D3Chart.RapidRehousingChart('#d3-overview-2', #{overview[:program_2]}, #{overview[:both]});
+      chart2.draw();
+    })
