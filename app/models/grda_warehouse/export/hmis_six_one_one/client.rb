@@ -64,6 +64,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
         end
       end
       CSV.open(export_path, 'wb', {force_quotes: true}) do |csv|
+        csv << clean_clients.first.headers
         clean_clients.each{|row| csv << row}
       end
     end
