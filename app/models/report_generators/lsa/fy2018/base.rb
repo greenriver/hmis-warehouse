@@ -52,5 +52,14 @@ module ReportGenerators::Lsa::Fy2018
         completed_at: Time.now
       )
     end
+
+    def household_types
+      @household_types ||= {
+        nil: 'All',
+        1 => 'AO',
+        2 => 'AC',
+        3 => 'CO',
+      }
+    end
   end
 end
