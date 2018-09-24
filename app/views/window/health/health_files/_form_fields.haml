@@ -6,7 +6,7 @@
     = hf.input :file, as: :file
     = hf.input :file_cache, as: :hidden
     - if include_note
-      = hf.input :note, as: :text, input_html: {rows: 10}, label: 'File description'
+      = hf.input :note, as: :string, label: 'File description or name'
   - if include_submit
     .d-flex
       .ml-auto

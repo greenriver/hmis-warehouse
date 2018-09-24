@@ -11,6 +11,14 @@
         %tbody
           - @files.each do |file|
             %tr
-              %td= link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
+              %td
+                .health-file__title
+                  = link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
+                - if file.note.present?
+                  .health-file__description
+                    = simple_format(file.note)
+                .health-file__file-name.d
+                  %em.text-small (#{file.name})
+
               %td= file.created_at.to_date
               %td= file.user.name

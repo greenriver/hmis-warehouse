@@ -1,6 +1,8 @@
 - title = 'Track Issues'
-- content_for :modal_title, title
+- content_for :title, title
 = render 'breadcrumbs'
+= render 'window/clients/aliases'
+%h1= content_for :title
 = render 'form'
 - if @anomalies.any?
   %ul.nav.nav-tabs{role: :tablist}

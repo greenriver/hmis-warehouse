@@ -82,7 +82,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      # return GrdaWarehouse::HmisExport.find(18)
+      # return GrdaWarehouse::HmisExport.find(102)
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
@@ -270,6 +270,15 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
+
+      rep = LsaSqlServer::LSAQueries.new
+      report_steps = rep.steps
+      # This starts at 30%, ends at 90%
+      step_percent = 60 / rep.steps.count
+      rep.steps.each_with_index do |meth, i|
+        update_report_progress percent: 30 + i * step_percent
+        rep.public_send(meth)
+      end
     end
 
     def fetch_summary_results

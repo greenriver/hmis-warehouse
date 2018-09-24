@@ -1,15 +1,16 @@
 
-- aliases = @client.client_names(window: true, user: current_user).uniq.select{|m| m[:name].downcase != @client.full_name.downcase}
+- aliases = @client.client_names(window: true, user: current_user).uniq
 - if @client.deceased?
   .alert.alert-danger
     = "Marked deceased on: #{@client.deceased_on}"
 
 - if aliases.any?
-  %ul.client__aliases.d-flex.list-unstyled
+  %ul.client__aliases.d-flex.list-unstyled.mt-6
     - aliases.each do |name|
       - sn = name[:ds]
       - full_name = name[:name]
-      %li
+      %li.client__client-name
         %span{class: "ds-#{sn.downcase}"}
           = sn
-        = full_name
+        %span.client__client-name-title
+          = full_name
