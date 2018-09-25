@@ -54,7 +54,7 @@ class WarehouseReport::InitiativeBarCharts
     PERIODS.each do |period|
       data = {
         data: chart_data[:counts][period],
-        types: chart_data[:types], 
+        types: chart_data[:types],
         values: chart_data[:values],
         keys: chart_data[:keys],
         labels: chart_data[:labels],
@@ -161,7 +161,7 @@ class WarehouseReport::InitiativeBarCharts
       GrdaWarehouse::Hud::IncomeBenefit.income_ranges.
         select{|i_key, i_bucket| i_key.to_s == key}.
         map{|i_key, i_bucket| i_bucket[:name]}.
-        first 
+        first
     elsif data_type == :destination_breakdowns
       ::HUD.valid_destinations.select{|id, value| key == id.to_s}.
         map{|id, value| value}.first
@@ -177,13 +177,13 @@ class WarehouseReport::InitiativeBarCharts
   def build_data_by_project_type(data_type)
     period_data = PERIODS.map{|p| select_data(data_type, :project_type, p)}
     chart_data = chart_data_template
-    stack_keys = stack_keys(data_type, :project_type)
+    stack_keys = stack_keys(data_type, :project_type).reject(&:blank?)
     @project_types.each do |k|
       period_data.each_with_index do |data, index|
         period = PERIODS[index]
         d = {type: k}
         stack_keys.each do |sk|
-          
+
           d[sk.parameterize] = (data["#{k}__#{sk}"]||0)
           chart_data[:values].push(d[sk.parameterize])
           chart_data[:support_keys][k] ||= {}
@@ -205,7 +205,7 @@ class WarehouseReport::InitiativeBarCharts
   def build_data_by_project(data_type)
     period_data = PERIODS.map{|p| select_data(data_type, :project, p)}
     chart_data = chart_data_template
-    stack_keys = stack_keys(data_type, :project)
+    stack_keys = stack_keys(data_type, :project).reject(&:blank?)
     @projects.each do |p_id, p_name|
       period_data.each_with_index do |data, index|
         period = PERIODS[index]

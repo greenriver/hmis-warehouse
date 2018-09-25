@@ -46,6 +46,9 @@ module Export::HMISSixOneOne::Shared
         end
       end
     end
+
+    # Do any appropriate cleanup, currently only implemented for clients
+    post_process_export_file(export_path)
   end
 
   def ids_to_export export_scope:
@@ -69,6 +72,10 @@ module Export::HMISSixOneOne::Shared
   # Override as necessary
   def apply_overrides row, data_source_id:
     row
+  end
+
+  # Override as necessary
+  def post_process_export_file export_path
   end
 
   # Override as necessary

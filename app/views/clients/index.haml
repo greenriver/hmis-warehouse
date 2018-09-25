@@ -36,8 +36,10 @@
         .clients__client-card.clients__client.c-card.c-card--linked.js-client{data: {id: client.id, href: client_path(client)}}
           .c-card__content
             .client__details.client__details--identity
-              .clients__client-name.h4= main_client_name
               .clients__client-additional-names
+                .client__client-name
+                  .client-aka
+                    = main_client_name
                 - akas.each_with_index do | aka, i |
                   .client__client-name
                     .client-aka

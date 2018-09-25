@@ -1,5 +1,6 @@
-- title = "CAS Readiness Form for #{@client.full_name}"
+- title = "CAS Readiness Form"
 - content_for :title, title
+= render 'window/clients/aliases'
 = render 'clients/tab_navigation', current: edit_client_cas_readiness_path(@client)
 
 %section.o-tabs__content

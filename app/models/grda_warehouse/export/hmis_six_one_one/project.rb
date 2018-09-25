@@ -39,7 +39,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
 
       if override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
-        row[:ProjecType] = override
+        row[:ProjectType] = override
       end
 
       return row

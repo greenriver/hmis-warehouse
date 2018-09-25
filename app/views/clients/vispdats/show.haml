@@ -2,9 +2,8 @@
 
 = render 'clients/breadcrumbs'
 
-.row
-  .col-sm-12
-    = render 'clients/tab_navigation', current: client_vispdats_path(@client)
+= render 'window/clients/aliases'
+= render 'clients/tab_navigation', current: client_vispdats_path(@client)
 
 .client__vispdat
   %h1

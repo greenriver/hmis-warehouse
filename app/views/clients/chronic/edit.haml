@@ -1,5 +1,6 @@
-- title = "Chronic Details for #{@client.full_name}"
+- title = "Chronic Details"
 - content_for :title, title
+= render 'window/clients/aliases'
 = render 'clients/tab_navigation', current: edit_client_chronic_path(@client)
 %h1= content_for :title
 = render 'clients/breadcrumbs'

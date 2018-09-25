@@ -34,7 +34,7 @@ module ReportGenerators::Lsa::Fy2018
       # end # End silence ActiveRecord Log
     end
 
-    private
+    # private
 
     def calculate
       if start_report(Reports::Lsa::Fy2018::All.first)
@@ -82,7 +82,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      # return GrdaWarehouse::HmisExport.find(18)
+      # return GrdaWarehouse::HmisExport.find(102)
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
@@ -270,15 +270,28 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
+
+      rep = LsaSqlServer::LSAQueries.new
+      report_steps = rep.steps
+      # This starts at 30%, ends at 90%
+      step_percent = 60 / rep.steps.count
+      rep.steps.each_with_index do |meth, i|
+        update_report_progress percent: 30 + i * step_percent
+        rep.public_send(meth)
+      end
     end
 
     def fetch_summary_results
       load 'lib/rds_sql_server/lsa_summary.rb'
-      summary_data = LsaSqlServer::LSAReportSummary::fetch_results
+      summary = LsaSqlServer::LSAReportSummary.new
+      summary_data = summary.fetch_results
       people = {headers: summary_data.columns.first, data: summary_data.rows.first}
       enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
-      @report.results = {summary: {people: people, enrollments: enrollments}}
+      demographics = summary.fetch_demographics
+      @report.results = {summary: {people: people, enrollments: enrollments, demographics: demographics}}
       @report.save
     end
+
+
   end
 end
