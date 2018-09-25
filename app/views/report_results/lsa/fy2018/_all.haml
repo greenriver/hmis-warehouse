@@ -23,3 +23,20 @@
           %tr
             - row.each do |col|
               %td= col
+  - if demographics = summary.try(:[], 'demographics')
+    %h3 Demographics
+    - demographics.each do |pop, hh_types|
+      - hh_types.each do |hh_type, params|
+        - params.each do |param_name, data|
+          %h4 #{pop} #{hh_type} #{param_name}
+          .well
+            %table.table.table-consensed
+              %thead
+                %tr
+                  - data['headers'].each do |header|
+                    %th= header
+              %tbody
+                - data['data'].each do |row|
+                  %tr
+                    - row.each do |col|
+                      %td= col

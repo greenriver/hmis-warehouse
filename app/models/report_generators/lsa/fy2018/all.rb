@@ -34,7 +34,7 @@ module ReportGenerators::Lsa::Fy2018
       # end # End silence ActiveRecord Log
     end
 
-    private
+    # private
 
     def calculate
       if start_report(Reports::Lsa::Fy2018::All.first)
@@ -283,11 +283,15 @@ module ReportGenerators::Lsa::Fy2018
 
     def fetch_summary_results
       load 'lib/rds_sql_server/lsa_summary.rb'
-      summary_data = LsaSqlServer::LSAReportSummary::fetch_results
+      summary = LsaSqlServer::LSAReportSummary.new
+      summary_data = summary.fetch_results
       people = {headers: summary_data.columns.first, data: summary_data.rows.first}
       enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
-      @report.results = {summary: {people: people, enrollments: enrollments}}
+      demographics = summary.fetch_demographics
+      @report.results = {summary: {people: people, enrollments: enrollments, demographics: demographics}}
       @report.save
     end
+
+
   end
 end
