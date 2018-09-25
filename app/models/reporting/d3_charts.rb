@@ -19,8 +19,6 @@ module Reporting
 
     def outcomes
       # TODO: this is placeholder data
-      outcome_1_data = [{outcome: 'exited to other institution', count: 839}, {outcome: 'returned to shelter', count: 1112}, {outcome: 'successful exit to PH', count: 2814}, {outcome: 'unknown outcome', count: 4044}]
-      outcome_2_data = [{outcome: 'exited to other institution', count: 34}, {outcome: 'returned to shelter', count: 9}, {outcome: 'successful exit to PH', count: 72}, {outcome: 'unknown outcome', count: 74}]
       {
         program_1: outcome_1_data.to_json,
         program_2: outcome_2_data.to_json
@@ -28,8 +26,6 @@ module Reporting
     end
 
     def shelter_returns
-      sr_1_data = [{discrete: 'Less than 1 week', count: 154}, {discrete: '1 week to one month', count: 63}, {discrete: '1 month to 3 months', count: 133}, {discrete: '3 months to 6 months', count: 107}, {discrete: '3 months to 1 year', count: 105}, {discrete: '1 year to 2 years', count: 47}]
-      sr_2_data = [{discrete: 'Less than 1 week', count: 1}, {discrete: '1 month to 3 months', count: 1}, {discrete: '3 months to 6 months', count: 1}]
       x_bands = ['Less than 1 week', '1 week to one month', '1 month to 3 months', '3 months to 6 months', '3 months to 1 year', '1 year to 2 years', '2 years or more']
       {
         program_1: sr_1_data,
@@ -37,6 +33,22 @@ module Reporting
         both: (sr_1_data + sr_2_data),
         x_bands: x_bands
       }.to_json
+    end
+
+    def sr_1_data
+     [{discrete: 'Less than 1 week', count: 154}, {discrete: '1 week to one month', count: 63}, {discrete: '1 month to 3 months', count: 133}, {discrete: '3 months to 6 months', count: 107}, {discrete: '3 months to 1 year', count: 105}, {discrete: '1 year to 2 years', count: 47}]
+    end
+
+    def sr_2_data
+      [{discrete: 'Less than 1 week', count: 1}, {discrete: '1 month to 3 months', count: 1}, {discrete: '3 months to 6 months', count: 1}]
+    end
+
+    def outcome_1_data
+      [{outcome: 'exited to other institution', count: 839}, {outcome: 'returned to shelter', count: 1112}, {outcome: 'successful exit to PH', count: 2814}, {outcome: 'unknown outcome', count: 4044}]
+    end
+
+    def outcome_2_data
+      [{outcome: 'exited to other institution', count: 34}, {outcome: 'returned to shelter', count: 9}, {outcome: 'successful exit to PH', count: 72}, {outcome: 'unknown outcome', count: 74}]
     end
 
     private
@@ -47,7 +59,7 @@ module Reporting
       housed_scope(program).order('housed_date').
         where('month_year > ?', start_date).
         where('month_year < ?', end_date).
-        group_by(&:month_year).map do |k, v| 
+        group_by(&:month_year).map do |k, v|
           {month_year: k, n_clients: v.uniq(&:client_id).size}
         end
     end
