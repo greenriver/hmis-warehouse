@@ -81,14 +81,20 @@ module Reporting
           distinct(client_id, .keep_all=TRUE) %>%
           select(client_id, housing_exit)
 
+        print(first_housed_dates)
+
         services_with_housed_dates <- returns %>%
           filter(client_id %in% first_housed_dates$client_id) %>%
           left_join(first_housed_dates, on = c("client_id" = "client_id"))
+
+        print(services_with_housed_dates)
 
         post_housing <- services_with_housed_dates %>%
           filter(start_date > housing_exit) %>%
           filter(project_type %in% c(1,2,4)) %>%
           arrange(client_id, start_date)
+
+        print(post_housing)
 
         post_housing <- post_housing[!is.na(post_housing$start_date),]
         post_housing <- post_housing[!is.na(post_housing$end_date),]
