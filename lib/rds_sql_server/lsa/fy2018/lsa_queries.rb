@@ -1862,6 +1862,13 @@ module LsaSqlServer
         group by lhh.HoHID, lhh.HHType
           ) lastDay on lastDay.HoHID = lhh.HoHID and lastDay.HHType = lhh.HHType
       SQL
+
+      SqlServerBase.connection.execute (<<~SQL);
+        -- CHANGED EAA added because the above is supposed to coalesce but because of the complexity of the join, it does not catch everyone
+        update tmp_Household
+        set LastInactive = '9/30/2012'
+        where LastInactive is NULL
+      SQL
     end
 
     def four_thirty_four
