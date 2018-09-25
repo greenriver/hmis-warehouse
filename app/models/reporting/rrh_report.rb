@@ -42,18 +42,14 @@ module Reporting
       R.program_2 = program_2_name
 
       R.eval <<~REOF
-        require(dplyr)
-        require(magrittr)
-        library(jsonlite)
-        library("rjson")
+        require('dplyr')
+        require('magrittr')
+        library('jsonlite')
 
-        print(housed_json)
-        print(returns_json)
-
-        housed <- fromJSON(file=#{housed_file.path})
+        housed <- fromJSON(txt='#{housed_file.path}')
         print(housed)
 
-        returns <- fromJSON(file=#{returns_file.path})
+        returns <- fromJSON(txt='#{returns_file.path}')
         print(returns)
 
         if(program_1=="All")
@@ -77,34 +73,70 @@ module Reporting
         print(housed_1)
         print(housed_2)
 
-        # first_housed_dates <- housed_1() %>%
-        #   #filter(ph_destination=="ph") %>%
-        #   arrange(client_id, housing_exit) %>%
-        #   group_by(client_id) %>%
-        #   distinct(client_id, .keep_all=TRUE) %>%
-        #   select(client_id, housing_exit)
+        #retrieve post-housing ES or SO records for clients housed through the first program
+        first_housed_dates <- housed_1 %>%
+          #filter(ph_destination=="ph") %>%
+          arrange(client_id, housing_exit) %>%
+          group_by(client_id) %>%
+          distinct(client_id, .keep_all=TRUE) %>%
+          select(client_id, housing_exit)
 
-        # services_with_housed_dates <- returns %>%
-        #   filter(client_id %in% first_housed_dates$client_id) %>%
-        #   left_join(first_housed_dates, on = c("client_id" = "client_id"))
+        services_with_housed_dates <- returns %>%
+          filter(client_id %in% first_housed_dates$client_id) %>%
+          left_join(first_housed_dates, on = c("client_id" = "client_id"))
 
-        # post_housing <- services_with_housed_dates %>%
-        #   filter(start_date > housing_exit) %>%
-        #   filter(project_type %in% c(1,2,4)) %>%
-        #   arrange(client_id, start_date)
+        post_housing <- services_with_housed_dates %>%
+          filter(start_date > housing_exit) %>%
+          filter(project_type %in% c(1,2,4)) %>%
+          arrange(client_id, start_date)
 
-        # post_housing <- post_housing[!is.na(post_housing$start_date),]
-        # post_housing <- post_housing[!is.na(post_housing$end_date),]
-        # l <- mapply(seq.Date, post_housing$start_date, post_housing$end_date, 1)
-        # df2 <- data.frame(group = rep(post_housing$client_id,sapply(l,length)),
-        #                   dates = unlist(l))
-        # unique_dates = aggregate(dates ~ group, df2, function(x) length(unique(x)))
-        # post_housing = left_join(post_housing, unique_dates, by=c("client_id"="group"))
-        # post_housing %<>% mutate(
-        #   adjusted_days_homeless = dates
-        # ) %>%
-        #   select(-dates)
-        # post_housing_1 <- post_housing
+        post_housing <- post_housing[!is.na(post_housing$start_date),]
+        post_housing <- post_housing[!is.na(post_housing$end_date),]
+
+        l <- mapply(seq.Date, post_housing$start_date, post_housing$end_date, 1)
+        df2 <- data.frame(group = rep(post_housing$client_id,sapply(l,length)),
+                          dates = unlist(l))
+        unique_dates = aggregate(dates ~ group, df2, function(x) length(unique(x)))
+        post_housing = left_join(post_housing, unique_dates, by=c("client_id"="group"))
+        post_housing %<>% mutate(
+          adjusted_days_homeless = dates
+        ) %>%
+          select(-dates)
+        post_housing_1 <- post_housing
+
+        print(post_housing_1)
+
+        #retrieve post-housing ES or SO records for clients housed through the second program
+        first_housed_dates <- housed_2 %>%
+          #filter(ph_destination=="ph") %>%
+          arrange(client_id, housing_exit) %>%
+          group_by(client_id) %>%
+          distinct(client_id, .keep_all=TRUE) %>%
+          select(client_id, housing_exit)
+
+        services_with_housed_dates <- returns %>%
+          filter(client_id %in% first_housed_dates$client_id) %>%
+          left_join(first_housed_dates, on = c("client_id" = "client_id"))
+
+        post_housing <- services_with_housed_dates %>%
+          filter(start_date > housing_exit) %>%
+          filter(project_type %in% c(1,2,4)) %>%
+          arrange(client_id, start_date)
+
+        post_housing <- post_housing[!is.na(post_housing$start_date),]
+        post_housing <- post_housing[!is.na(post_housing$end_date),]
+        l <- mapply(seq.Date, post_housing$start_date, post_housing$end_date, 1)
+        df2 <- data.frame(group = rep(post_housing$client_id,sapply(l,length)),
+                          dates = unlist(l))
+        unique_dates = aggregate(dates ~ group, df2, function(x) length(unique(x)))
+        post_housing = left_join(post_housing, unique_dates, by=c("client_id"="group"))
+        post_housing %<>% mutate(
+          adjusted_days_homeless = dates
+        ) %>%
+          select(-dates)
+        post_housing_2 <-post_housing
+
+        print(post_housing_2)
 
       REOF
 
