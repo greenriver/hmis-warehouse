@@ -98,7 +98,6 @@ module Reporting
         library('jsonlite')
 
         housed <- read.csv("#{housed_file.path}")
-        # housed <- fromJSON(txt='#{housed_file.path}')
 
         housed$month_year <- as.Date(housed$month_year)
         housed$search_start <- as.Date(housed$search_start)
@@ -109,7 +108,6 @@ module Reporting
         # print(housed)
 
         returns <- read.csv("#{returns_file.path}")
-        # returns <- fromJSON(txt='#{returns_file.path}')
 
         returns$start_date <- as.Date(returns$start_date)
         returns$end_date <- as.Date(returns$end_date)
@@ -135,7 +133,6 @@ module Reporting
 
         #retrieve post-housing ES or SO records for clients housed through the first program
         first_housed_dates <- housed_1 %>%
-          #filter(ph_destination=="ph") %>%
           arrange(client_id, housing_exit) %>%
           group_by(client_id) %>%
           distinct(client_id, .keep_all=TRUE) %>%
@@ -175,7 +172,6 @@ module Reporting
 
         #retrieve post-housing ES or SO records for clients housed through the second program
         first_housed_dates <- housed_2 %>%
-          #filter(ph_destination=="ph") %>%
           arrange(client_id, housing_exit) %>%
           group_by(client_id) %>%
           distinct(client_id, .keep_all=TRUE) %>%

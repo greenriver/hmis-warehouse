@@ -121,7 +121,18 @@ module Reporting
             p_t[:id].as('project_id'),
             "'ph-or-psh' as source"
           )
-        query = unionize([enrollment_based.distinct, move_in_based.distinct, ph_based.distinct])
+        # Remove ph_based section, deemed not relevant
+        # query = unionize([enrollment_based.distinct, move_in_based.distinct, ph_based.distinct])
+        query = unionize([enrollment_based.distinct, move_in_based.distinct])
+
+        # TODO:
+        #remove all likely duplicates and rename programs that are actually the same program
+
+        # Client would enter and exit multiple times and would exit on two different dates, keep first housing exit by date for each client
+        # group by client_id, housing_exit, destination, keep first (aka index_by)
+        #
+        # housed %<>% arrange(client_id, housing_exit, destination) %>% distinct(search_start, search_end, housed_date, client_id, service_project, residential_project, fromLast=FALSE, .keep_all = TRUE)
+
         results = GrdaWarehouseBase.connection.exec_query(query.to_sql)
         keys = results.columns.map(&:to_sym)
         results.cast_values.map do |row|
