@@ -120,7 +120,7 @@ module Health
             select{|m| m.procedure_code.present?}
           # batch services by month
           valid_qa.group_by{|qa| qa.date_of_activity.strftime('%Y%m')}.each do |group, qas|
-            puts "QA Count: #{qas.count} in #{group} for patient: #{patient.id}"
+            # puts "QA Count: #{qas.count} in #{group} for patient: #{patient.id}"
 
             # never put more than 20 services in any given claim
             qas.each_slice(20) do |qa_batch|
