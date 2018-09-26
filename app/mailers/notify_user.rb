@@ -138,4 +138,10 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: "Qualifying Activity Payability has been calculated")
   end
 
+  def hud_report_finished user_id, report_id, report_result_id
+    @user = User.find(user_id)
+    @report_url = report_report_result_url(report_id: report_id, id: report_result_id)
+    mail(to: @user.email, subject: "Your HUD Report has finished")
+  end
+
 end
