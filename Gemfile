@@ -70,6 +70,8 @@ gem 'htmlentities'
 gem "rest-client", "~> 2.0"
 gem "gmail", require: false
 
+gem 'stupidedi', require: false
+
 # for de-duping clients
 gem 'redcarpet'
 
