@@ -111,7 +111,7 @@ module GrdaWarehouse::Vispdat
     scope :completed, -> { where.not(submitted_at: nil) }
     scope :active, -> { where(active: true) }
     scope :scores, -> { order(submitted_at: :desc).select(:score, :priority_score) }
-    scope :high_vulnerability, -> { 
+    scope :high_vulnerability, -> {
       where(priority_score: 731..Float::INFINITY)
     }
     scope :medium_vulnerability, -> {
@@ -148,7 +148,7 @@ module GrdaWarehouse::Vispdat
     end
 
     def show_as_readonly?
-      ! changed? && (migrated? || completed?) 
+      ! changed? && (migrated? || completed?)
     end
 
     def visible_by?(user)
@@ -206,7 +206,9 @@ module GrdaWarehouse::Vispdat
     def calculate_priority_score
       homeless = days_homeless
       begin
-        self.priority_score = if score >= 8 && homeless > 730
+        self.priority_score = if score >= 8 && homeless >= 1095
+          score + 1095
+         elsif score >= 8 && homeless >= 730
           score + 730
         elsif score >= 8 && homeless >= 365
           score + 365
@@ -491,7 +493,7 @@ module GrdaWarehouse::Vispdat
       sleep_other: "Other (specify)",
       housing: "How long has it been since you lived in permanent stable housing?",
       homeless: "In the last three years, how many times have you been homeless?",
-      
+
       # Risks
       past_six_months: "In the past six months, how many times have you...",
       received_healthcare: "Received health care at an emergency department/room?",
