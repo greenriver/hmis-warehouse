@@ -35,28 +35,132 @@ module Reporting
       @returns ||= Reporting::Return.all
     end
 
-    def program_1_selected
-      @program_1_selected ||= program_selected(program_1_name)
-    end
-
-    def program_2_selected
-      @program_2_selected ||= program_selected(program_2_name)
-    end
-
-    def housed_1
-      @housed_1 ||= housed.where(residential_project: program_1_selected)
-    end
-
-
-    def housed_2
-      @housed_2 ||= housed.where(residential_project: program_2_selected)
-    end
-
     def program_selected program_name
       if program_name == 'All'
         housed.distinct.pluck(:residential_project)
       else
         housed.distinct.where(residential_project: program_name).pluck(:residential_project)
+      end
+    end
+
+    def num_housed_1
+      @num_housed_1 ||= begin
+        set_r_variables
+        @num_housed_1
+      end
+    end
+    def num_housed_2
+      @num_housed_2 ||= begin
+        set_r_variables
+        @num_housed_2
+      end
+    end
+    def housedPlot_1
+      @housedPlot_1 ||= begin
+        set_r_variables
+        @housedPlot_1
+      end
+    end
+    def housedPlot_2
+      @housedPlot_2 ||= begin
+        set_r_variables
+        @housedPlot_2
+      end
+    end
+    def time_to_housing_1
+      @time_to_housing_1 ||= begin
+        set_r_variables
+        @time_to_housing_1
+      end
+    end
+    def time_to_housing_2
+      @time_to_housing_2 ||= begin
+        set_r_variables
+        @time_to_housing_2
+      end
+    end
+    def time_in_housing_1
+      @time_in_housing_1 ||= begin
+        set_r_variables
+        @time_in_housing_1
+      end
+    end
+    def time_in_housing_2
+      @time_in_housing_2 ||= begin
+        set_r_variables
+        @time_in_housing_2
+      end
+    end
+    def success_failure_1
+      @success_failure_1 ||= begin
+        set_r_variables
+        @success_failure_1
+      end
+    end
+    def success_failure_2
+      @success_failure_2 ||= begin
+        set_r_variables
+        @success_failure_2
+      end
+    end
+    def ph_exits_1
+      @ph_exits_1 ||= begin
+        set_r_variables
+        @ph_exits_1
+      end
+    end
+    def shelter_exits_1
+      @shelter_exits_1 ||= begin
+        set_r_variables
+        @shelter_exits_1
+      end
+    end
+    def ph_exits_2
+      @ph_exits_2 ||= begin
+        set_r_variables
+        @ph_exits_2
+      end
+    end
+    def shelter_exits_2
+      @shelter_exits_2 ||= begin
+        set_r_variables
+        @shelter_exits_2
+      end
+    end
+    def return_1
+      @return_1 ||= begin
+        set_r_variables
+        @return_1
+      end
+    end
+    def return_2
+      @return_2 ||= begin
+        set_r_variables
+        @return_2
+      end
+    end
+    def return_length_1
+      @return_length_1 ||= begin
+        set_r_variables
+        @return_length_1
+      end
+    end
+    def return_length_2
+      @return_length_2 ||= begin
+        set_r_variables
+        @return_length_2
+      end
+    end
+    def demographic_plot_1
+      @demographic_plot_1 ||= begin
+        set_r_variables
+        @demographic_plot_1
+      end
+    end
+    def demographic_plot_2
+      @demographic_plot_2 ||= begin
+        set_r_variables
+        @demographic_plot_2
       end
     end
 
@@ -69,26 +173,18 @@ module Reporting
           csv << m.attributes.values
         end
       end
-      # housed_file.write(housed.to_json)
-      # housed_file.rewind
-      # puts housed_file.path
 
-      returns_file = Tempfile.new('housed')
+      returns_file = Tempfile.new('returns')
       CSV.open(returns_file, 'wb') do |csv|
         csv << returns.first.attributes.keys
         returns.each do |m|
           csv << m.attributes.values
         end
       end
-      # returns_file.write(returns.to_json)
-      # returns_file.rewind
-      # puts returns_file.path
 
-      # R.housed_json = housed.first(100).to_json
-      # R.returns_json = returns.first(100).to_json
       R.program_1 = program_1_name
       R.program_2 = program_2_name
-      # For debugging
+      # For debugging, an R REPL in a Ruby REPL!
       # R.prompt
       R.eval <<~REOF
         library(lubridate)
@@ -212,7 +308,7 @@ module Reporting
         # print(num_housed_1)
         # print(num_housed_2)
 
-        housedPlot_1 <- housed_1 %>%
+        housedPlot_1 <- as.character(toJSON(housed_1 %>%
           arrange(desc(housed_date)) %>%
           group_by(month_year) %>%
           summarise(
@@ -222,11 +318,11 @@ module Reporting
             cumsum = cumsum(n_clients)
           ) %>%
           filter(month_year > as.Date('2012-01-01')) %>%
-          filter(month_year < as.Date('2018-08-01'))
+          filter(month_year < as.Date('2018-08-01'))))
 
-        print(housedPlot_1)
+        # print(housedPlot_1)
 
-        housedPlot_2 <- housed_2 %>%
+        housedPlot_2 <- as.character(toJSON(housed_2 %>%
           arrange(desc(housed_date)) %>%
           group_by(month_year) %>%
           summarise(
@@ -236,20 +332,20 @@ module Reporting
             cumsum = cumsum(n_clients)
           ) %>%
           filter(month_year > as.Date('2012-01-01')) %>%
-          filter(month_year < as.Date('2018-08-01'))
+          filter(month_year < as.Date('2018-08-01'))))
 
-        print(housedPlot_2)
+        # print(housedPlot_2)
 
         time_to_housing_1 <- paste(round(mean(housed_1$search_end - housed_1$search_start, na.rm=TRUE), digits=2), "days to find housing", sep=" ")
 
         time_to_housing_2 <- paste(round(mean(housed_2$search_end - housed_2$search_start, na.rm = TRUE), digits = 2), "days to find housing", sep=" ")
 
-        time_in_housing_1 <- paste(round(mean(housed_1$housing_exit - housed_1$housed_date, na.rm = TRUE), digits=2), "days in program", sep=" ")
+        time_in_housing_1 <- paste(round(mean(housed_1$housing_exit - housed_1$housed_date, na.rm = TRUE), digits = 2), "days in program", sep=" ")
 
         time_in_housing_2 <- paste(round(mean(housed_2$housing_exit - housed_2$housed_date, na.rm = TRUE), digits = 2), "days in program", sep=" ")
       REOF
       R.eval <<~REOF
-        success_failure_1 <- rbind(housed_1 %>%
+        success_failure_1 <- as.character(toJSON(rbind(housed_1 %>%
           filter(ph_destination=='ph') %>%
           distinct(client_id) %>%
           filter(!client_id %in% post_housing_1$client_id) %>%
@@ -285,9 +381,9 @@ module Reporting
           group_by(outcome) %>%
           summarise(
             count = n_distinct(client_id)
-          )
+          )))
 
-        success_failure_2 <- rbind(housed_2 %>%
+        success_failure_2 <- as.character(toJSON(rbind(housed_2 %>%
           filter(ph_destination=='ph') %>%
           distinct(client_id) %>%
           filter(!client_id %in% post_housing_2$client_id) %>%
@@ -323,7 +419,7 @@ module Reporting
             group_by(outcome) %>%
             summarise(
               count = n_distinct(client_id)
-            )
+            )))
         # print(success_failure_2)
 
         # exits to PH and shelter
@@ -346,18 +442,18 @@ module Reporting
         return_2 <- paste(length(unique(post_ph_return$client_id)), " (", percent(length(unique(post_ph_return$client_id))/length(unique(housed_2$client_id[housed_2$ph_destination=="ph"]))), ") clients returned to shelter", sep="")
 
         post_housing_1[post_housing_1$client_id %in% housed_1$client_id[housed_1$ph_destination=='ph'],]
-        return_length_1 <- post_housing_1 %>% distinct(client_id, .keep_all=TRUE) %>%
+        return_length_1 <- as.character(toJSON(post_housing_1 %>% distinct(client_id, .keep_all=TRUE) %>%
          select(client_id, adjusted_days_homeless) %>%
          transform(Discrete=cut(as.numeric(adjusted_days_homeless),
                                 breaks = c(0, 7, 30, 91,182, 364, 728, Inf))) %>%
          group_by(Discrete) %>%
          summarise(
            clients = n_distinct(client_id)
-         )
+         )))
 
 
         # post_ph_return = post_housing_2[post_housing_2$client_id %in% housed_2$client_id[housed_2$ph_destination=='ph'],]
-        return_length_2 <- post_ph_return %>%
+        return_length_2 <- as.character(toJSON(post_ph_return %>%
            filter(project_type %in% c(1,2,4)) %>%
            distinct(client_id, .keep_all=TRUE) %>%
            select(client_id, adjusted_days_homeless) %>%
@@ -366,9 +462,9 @@ module Reporting
            group_by(Discrete) %>%
            summarise(
              clients = n_distinct(client_id)
-           )
+           )))
 
-        demographic_plot_1 <- rbind(housed_1 %>%
+        demographic_plot_1 <-  as.character(toJSON(rbind(housed_1 %>%
          group_by(
            race
          ) %>%
@@ -391,9 +487,9 @@ module Reporting
              freq = count / sum(count),
              type='housed'
            )
-         )
+         )))
 
-         demographic_plot_2 <- rbind(housed_2 %>%
+         demographic_plot_2 <- as.character(toJSON(rbind(housed_2 %>%
           group_by(
             race
           ) %>%
@@ -415,8 +511,7 @@ module Reporting
           mutate(
             freq = count / sum(count),
             type='housed'
-          ))
-
+          ))))
       REOF
 
       housed_file.close
@@ -424,6 +519,28 @@ module Reporting
       returns_file.close
       returns_file.unlink
       reset_time_format
+
+      @num_housed_1 = R.num_housed_1
+      @num_housed_2 = R.num_housed_2
+      @housedPlot_1 = JSON.parse R.housedPlot_1
+      @housedPlot_2 = JSON.parse R.housedPlot_2
+      @time_to_housing_1 = R.time_to_housing_1
+      @time_to_housing_2 = R.time_to_housing_2
+      @time_in_housing_1 = R.time_in_housing_1
+      @time_in_housing_2 = R.time_in_housing_2
+      @success_failure_1 = JSON.parse R.success_failure_1
+      @success_failure_2 = JSON.parse R.success_failure_2
+      @ph_exits_1 = R.ph_exits_1
+      @shelter_exits_1 = R.shelter_exits_1
+      @ph_exits_2 = R.ph_exits_2
+      @shelter_exits_2 = R.shelter_exits_2
+      @return_1 = R.return_1
+      @return_2 = R.return_2
+      @return_length_1 = JSON.parse R.return_length_1
+      @return_length_2 = JSON.parse R.return_length_2
+      @demographic_plot_1 = JSON.parse R.demographic_plot_1
+      @demographic_plot_2 = JSON.parse R.demographic_plot_2
+
     end
   end
 end
