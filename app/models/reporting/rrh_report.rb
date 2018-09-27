@@ -9,6 +9,7 @@ module Reporting
       self.program_2_name = program_2_name
     end
 
+    # mostly for debugging, allow external access
     def r
       R
     end
@@ -59,10 +60,6 @@ module Reporting
       end
     end
 
-    def r
-      @r ||= Rserve::Simpler.new
-    end
-
     def set_r_variables
       set_time_format
       housed_file = Tempfile.new('housed')
@@ -91,12 +88,16 @@ module Reporting
       # R.returns_json = returns.first(100).to_json
       R.program_1 = program_1_name
       R.program_2 = program_2_name
-
+      # For debugging
+      # R.prompt
       R.eval <<~REOF
-        library('dplyr')
-        library('magrittr')
-        library('jsonlite')
-
+        library(lubridate)
+        require(dplyr)
+        require(magrittr)
+        require(scales)
+        library(jsonlite)
+      REOF
+      R.eval <<~REOF
         housed <- read.csv("#{housed_file.path}")
 
         housed$month_year <- as.Date(housed$month_year)
@@ -206,7 +207,8 @@ module Reporting
         #number housed
         num_housed_1 <- paste(length(unique(housed_1$client_id)), "total clients", sep=" ")
         num_housed_2 <- paste(length(unique(housed_2$client_id)), "total clients", sep=" ")
-
+      REOF
+      R.eval <<~REOF
         # print(num_housed_1)
         # print(num_housed_2)
 
@@ -242,17 +244,185 @@ module Reporting
 
         time_to_housing_2 <- paste(round(mean(housed_2$search_end - housed_2$search_start, na.rm = TRUE), digits = 2), "days to find housing", sep=" ")
 
-        time_in_housing_1 <- paste(round(mean(housed_1$housing_exit - housed_1$housed_date, na.rm=TRUE), digits=2), "days in program", sep=" ")
+        time_in_housing_1 <- paste(round(mean(housed_1$housing_exit - housed_1$housed_date, na.rm = TRUE), digits=2), "days in program", sep=" ")
 
         time_in_housing_2 <- paste(round(mean(housed_2$housing_exit - housed_2$housed_date, na.rm = TRUE), digits = 2), "days in program", sep=" ")
+      REOF
+      R.eval <<~REOF
+        success_failure_1 <- rbind(housed_1 %>%
+          filter(ph_destination=='ph') %>%
+          distinct(client_id) %>%
+          filter(!client_id %in% post_housing_1$client_id) %>%
+          mutate(
+            outcome = 'successful exit to PH'
+          ),
+        #clients that ended up back in shelter
+        post_housing_1 %>%
+          distinct(client_id) %>%
+          mutate(
+            outcome = 'returned to shelter'
+          ),
+        #clients that exited to an unknown destination and did not return to shelter
+        housed_1 %>%
+          filter(!is.na(housing_exit)) %>%
+          filter(is.na(destination)) %>%
+          filter(!client_id %in% post_housing_1$client_id) %>%
+          distinct(client_id) %>%
+          mutate(
+            outcome = 'unknown outcome'
+          ),
+        #clients that exited to other institutions and never came back to shelter
+        housed_1 %>%
+          filter(!is.na(housing_exit)) %>%
+          filter(destination != '1') %>%
+          filter(destination != '16') %>%
+          filter(ph_destination != 'ph') %>%
+          filter(!client_id %in% post_housing_1$client_id) %>%
+          distinct(client_id) %>%
+          mutate(
+            outcome = 'exited to other institution'
+          ) )%>%
+          group_by(outcome) %>%
+          summarise(
+            count = n_distinct(client_id)
+          )
 
-        success_failure_1 <-
+        success_failure_2 <- rbind(housed_2 %>%
+          filter(ph_destination=='ph') %>%
+          distinct(client_id) %>%
+          filter(!client_id %in% post_housing_2$client_id) %>%
+          mutate(
+            outcome = 'successful exit to PH'
+          ),
+        #clients that ended up back in shelter
+        post_housing_2 %>%
+          distinct(client_id) %>%
+          mutate(
+            outcome = 'returned to shelter'
+          ),
+        #clients that exited to an unknown destination and did not return to shelter
+        housed_2 %>%
+          filter(!is.na(housing_exit)) %>%
+          filter(is.na(destination)) %>%
+          filter(!client_id %in% post_housing_2$client_id) %>%
+          distinct(client_id) %>%
+          mutate(
+            outcome = 'unknown outcome'
+          ),
+        #clients that exited to other institutions and never came back to shelter
+        housed_2 %>%
+          filter(!is.na(housing_exit)) %>%
+          filter(destination != '1') %>%
+          filter(destination != '16') %>%
+          filter(ph_destination != 'ph') %>%
+          filter(!client_id %in% post_housing_2$client_id) %>%
+          distinct(client_id) %>%
+          mutate(
+            outcome = 'exited to other institution'
+          ))  %>%
+            group_by(outcome) %>%
+            summarise(
+              count = n_distinct(client_id)
+            )
+        # print(success_failure_2)
+
+        # exits to PH and shelter
+        ph_exits_1 <- paste(length(unique(housed_1$client_id[housed_1$ph_destination=="ph"])), "clients (", percent(length(housed_1$client_id[housed_1$ph_destination=="ph"])/length(housed_1$client_id[!is.na(housed_1$housing_exit)])), ") exited to permanent housing", sep=" ")
+
+        shelter_exits_1 <- paste(length(unique(housed_1$client_id[housed_1$destination %in% c('1')])), "clients (", percent(length(housed_1$client_id[housed_1$destination %in% c('1')])/length(housed_1$client_id[!is.na(housed_1$housing_exit)])), ") exited to Shelter", sep=" ")
+
+
+        ph_exits_2 <- paste(length(unique(housed_2$client_id[housed_2$ph_destination=="ph"])), "clients (", percent(length(housed_2$client_id[housed_2$ph_destination=="ph"])/length(housed_2$client_id[!is.na(housed_2$housing_exit)])), ") exited to permanent housing", sep=" ")
+
+
+        shelter_exits_2 <- paste(length(unique(housed_2$client_id[housed_2$destination %in% c('1')])), "clients (", percent(length(housed_2$client_id[housed_2$destination %in% c('1')])/length(housed_2$client_id[!is.na(housed_2$housing_exit)])), ") exited to Shelter", sep=" ")
+
+
+        # # returns to shelter from PH exits
+        post_ph_return = post_housing_1[post_housing_1$client_id %in% housed_1$client_id[housed_1$ph_destination=='ph'],]
+        return_1 <- paste(length(unique(post_ph_return$client_id)), " (", percent(length(unique(post_ph_return$client_id))/length(unique(housed_1$client_id[housed_1$ph_destination=="ph"]))), ") clients returned to shelter", sep="")
+
+        post_ph_return = post_housing_2[post_housing_2$client_id %in% housed_2$client_id[housed_2$ph_destination=='ph'],]
+        return_2 <- paste(length(unique(post_ph_return$client_id)), " (", percent(length(unique(post_ph_return$client_id))/length(unique(housed_2$client_id[housed_2$ph_destination=="ph"]))), ") clients returned to shelter", sep="")
+
+        post_housing_1[post_housing_1$client_id %in% housed_1$client_id[housed_1$ph_destination=='ph'],]
+        return_length_1 <- post_housing_1 %>% distinct(client_id, .keep_all=TRUE) %>%
+         select(client_id, adjusted_days_homeless) %>%
+         transform(Discrete=cut(as.numeric(adjusted_days_homeless),
+                                breaks = c(0, 7, 30, 91,182, 364, 728, Inf))) %>%
+         group_by(Discrete) %>%
+         summarise(
+           clients = n_distinct(client_id)
+         )
+
+
+        # post_ph_return = post_housing_2[post_housing_2$client_id %in% housed_2$client_id[housed_2$ph_destination=='ph'],]
+        return_length_2 <- post_ph_return %>%
+           filter(project_type %in% c(1,2,4)) %>%
+           distinct(client_id, .keep_all=TRUE) %>%
+           select(client_id, adjusted_days_homeless) %>%
+           transform(Discrete=cut(as.numeric(adjusted_days_homeless),
+                                  breaks = c(0, 7, 30, 91,182, 364, 728, Inf))) %>%
+           group_by(Discrete) %>%
+           summarise(
+             clients = n_distinct(client_id)
+           )
+
+        demographic_plot_1 <- rbind(housed_1 %>%
+         group_by(
+           race
+         ) %>%
+         summarise(
+           count = n_distinct(client_id)
+         ) %>%
+         mutate(
+           freq = count / sum(count),
+           type='full-population'
+         ),
+         housed_1 %>%
+           filter(ph_destination=="ph") %>%
+           group_by(
+             race
+           ) %>%
+           summarise(
+             count = n_distinct(client_id)
+           ) %>%
+           mutate(
+             freq = count / sum(count),
+             type='housed'
+           )
+         )
+
+         demographic_plot_2 <- rbind(housed_2 %>%
+          group_by(
+            race
+          ) %>%
+          summarise(
+            count = n_distinct(client_id)
+          ) %>%
+          mutate(
+            freq = count / sum(count),
+            type='full-population'
+          ),
+        housed_2 %>%
+          filter(ph_destination=="ph") %>%
+          group_by(
+            race
+          ) %>%
+          summarise(
+            count = n_distinct(client_id)
+          ) %>%
+          mutate(
+            freq = count / sum(count),
+            type='housed'
+          ))
+
       REOF
 
-      # housed_file.close
-      # housed_file.unlink
-      # returns_file.close
-      # returns_file.unlink
+      housed_file.close
+      housed_file.unlink
+      returns_file.close
+      returns_file.unlink
       reset_time_format
     end
   end

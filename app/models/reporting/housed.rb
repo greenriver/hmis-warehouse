@@ -125,18 +125,18 @@ module Reporting
         # query = unionize([enrollment_based.distinct, move_in_based.distinct, ph_based.distinct])
         query = unionize([enrollment_based.distinct, move_in_based.distinct])
 
-        # TODO:
-        #remove all likely duplicates and rename programs that are actually the same program
-
-        # Client would enter and exit multiple times and would exit on two different dates, keep first housing exit by date for each client
-        # group by client_id, housing_exit, destination, keep first (aka index_by)
-        #
-        # housed %<>% arrange(client_id, housing_exit, destination) %>% distinct(search_start, search_end, housed_date, client_id, service_project, residential_project, fromLast=FALSE, .keep_all = TRUE)
-
         results = GrdaWarehouseBase.connection.exec_query(query.to_sql)
         keys = results.columns.map(&:to_sym)
         results.cast_values.map do |row|
           Hash[keys.zip(row)]
+        end.group_by do |row|
+          [row[:client_id], row[:housing_exit], row[:destination]]
+        end.map do |_, enrollments|
+          # Client would enter and exit multiple times and would exit on two different dates, keep first housing exit by date for each client
+          # group by client_id, housing_exit, destination, keep first (aka index_by)
+          #
+          # housed %<>% arrange(client_id, housing_exit, destination) %>% distinct(search_start, search_end, housed_date, client_id, service_project, residential_project, fromLast=FALSE, .keep_all = TRUE)
+          enrollments.sort_by{|row| row[:housing_exit]}.first
         end
       end
     end
