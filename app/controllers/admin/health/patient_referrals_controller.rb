@@ -65,6 +65,7 @@ module Admin::Health
 
     def create
       @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
+      @new_patient_referral.enrollment_start_date = @new_patient_referral.effective_date
       if @new_patient_referral.save
         if clean_patient_referral_params[:agency_id].present?
           @new_patient_referral.convert_to_patient()

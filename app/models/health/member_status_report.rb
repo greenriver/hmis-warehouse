@@ -27,7 +27,9 @@ module Health
 
         # Leave off anyone who hasn't had an update within the range
         next unless patient_updated_at.present?
-
+        aco_mco_name = pr.aco_name || pr.aco&.name
+        aco_mco_pid = pr.aco_mco_pid || pr.aco&.mco_pid
+        aco_mco_sl = pr.aco_mco_sl || pr.aco&.mco_sl
         attributes = {
           medicaid_id: pr.medicaid_id,
           member_first_name: pr.first_name,
@@ -36,9 +38,9 @@ module Health
           member_suffix: pr.suffix,
           member_date_of_birth: pr.birthdate,
           member_sex: pr.gender,
-          aco_mco_name: pr.aco_name,
-          aco_mco_pid: pr.aco_mco_pid,
-          aco_mco_sl: pr.aco_mco_sl,
+          aco_mco_name: aco_mco_name,
+          aco_mco_pid: aco_mco_pid,
+          aco_mco_sl: aco_mco_sl,
           cp_name_official: pr.cp_name_official,
           cp_pid: pr.cp_pid,
           cp_sl: pr.cp_sl,
@@ -100,7 +102,7 @@ module Health
         care_coordinator_first_name: 'Care_Coordinator_Name_First',
         care_coordinator_last_name: 'Care_Coordinator_Name_Last',
         care_coordinator_phone: 'Care_Coordinator_Phone',
-        care_coordinator_email: 'Care_Coordinator Email',
+        care_coordinator_email: 'Care_Coordinator_Email',
         report_start_date: 'Report_Start_Date',
         report_end_date: 'Report_End_Date',
         record_status: 'Record_Status',
