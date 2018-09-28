@@ -3,55 +3,35 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
-%h2 Overview
-.row
-  .col-xs-12.col-md-6
-    .d3-chart#d3-overview-1
-  .col-xs-12.col-md-6
-    .d3-chart#d3-overview-2
-%h2 Time in Program
-%h2 Outcomes
-%h4 Overview
-.row
-  .col-xs-12.col-md-6
-    .d3-chart#d3-outcome-1
-  .col-xs-12.col-md-6
-    .d3-chart#d3-outcome-2
-%h4 Exits to Permanent Housing
-%p Clients that exited Rapid Rehousing Programs to a permanent housing destination
-%h4 Returns to Shelter from Permanent Housing
-%p Clients that returned to shelter some point after successfully exiting Rapid Rehousing to a permanent housing destination.
-.row
-  .col-xs-12.col-md-6
-    .d3-chart#d3-return-1
-  .col-xs-12.col-md-6
-    .d3-chart#d3-return-2
-%h2 Racial Disparities
-%h4 Proportion of clients exiting to permanent housing by race versus proportion of full population by race
+- @charts = Reporting::D3Charts.new(nil, 44)
+- outcome = @charts.outcomes
+- shelter_returns = @charts.shelter_returns
 
-- charts = Reporting::D3Charts.new(nil, '1995 SRA (F2)')
-- overview = charts.overview
-- outcome = charts.outcomes
-- shelter_returns = charts.shelter_returns
+= render 'overview'
+= render 'time_in_program'
+= render 'outcomes'
+= render 'exits'
+= render 'returns'
+= render 'demographics'
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var chart1 = new App.D3Chart.RRHOverview('#d3-overview-1', #{overview[:program_1]}, #{overview[:both]});
+      var chart1 = new App.D3Chart.RRHOverview('#d3-overview-1', #{@charts.overview[:program_1]}, #{@charts.overview[:both]});
       chart1.draw();
 
-      var chart2 = new App.D3Chart.RRHOverview('#d3-overview-2', #{overview[:program_2]}, #{overview[:both]});
+      var chart2 = new App.D3Chart.RRHOverview('#d3-overview-2', #{@charts.overview[:program_2]}, #{@charts.overview[:both]});
       chart2.draw();
 
-      var outcomeChart1 = new App.D3Chart.RRHOutcome('#d3-outcome-1', #{outcome[:program_1]})
+      var outcomeChart1 = new App.D3Chart.RRHOutcome('#d3-outcome-1', #{@charts.outcomes[:program_1]})
       outcomeChart1.draw();
 
-      var outcomeChart2 = new App.D3Chart.RRHOutcome('#d3-outcome-2', #{outcome[:program_2]})
+      var outcomeChart2 = new App.D3Chart.RRHOutcome('#d3-outcome-2', #{@charts.outcomes[:program_2]})
       outcomeChart2.draw();
 
-      var returnChart1 = new App.D3Chart.RRHReturns('#d3-return-1', #{shelter_returns}, 'program_1')
+      var returnChart1 = new App.D3Chart.RRHReturns('#d3-return-1', #{@charts.shelter_returns}, 'program_1')
       returnChart1.draw();
 
-      var returnChart2 = new App.D3Chart.RRHReturns('#d3-return-2', #{shelter_returns}, 'program_2')
+      var returnChart2 = new App.D3Chart.RRHReturns('#d3-return-2', #{@charts.shelter_returns}, 'program_2')
       returnChart2.draw();
     })

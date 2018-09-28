@@ -3,10 +3,10 @@ require 'rinruby'
 module Reporting
   class RrhReport
 
-    attr_accessor :program_1_name, :program_2_name
-    def initialize program_1_name:, program_2_name:
-      self.program_1_name = program_1_name
-      self.program_2_name = program_2_name
+    attr_accessor :program_1_id, :program_2_id
+    def initialize program_1_id:, program_2_id:
+      self.program_1_id = program_1_id || ''
+      self.program_2_id = program_2_id || ''
     end
 
     # mostly for debugging, allow external access
@@ -35,14 +35,6 @@ module Reporting
       @returns ||= Reporting::Return.all
     end
 
-    def program_selected program_name
-      if program_name == 'All'
-        housed.distinct.pluck(:residential_project)
-      else
-        housed.distinct.where(residential_project: program_name).pluck(:residential_project)
-      end
-    end
-
     def num_housed_1
       @num_housed_1 ||= begin
         set_r_variables
@@ -55,13 +47,13 @@ module Reporting
         @num_housed_2
       end
     end
-    def housedPlot_1
+    def housed_plot_1
       @housedPlot_1 ||= begin
         set_r_variables
         @housedPlot_1
       end
     end
-    def housedPlot_2
+    def housed_plot_2
       @housedPlot_2 ||= begin
         set_r_variables
         @housedPlot_2
@@ -164,6 +156,18 @@ module Reporting
       end
     end
 
+    def length_of_time_buckets
+      @length_of_time_buckets ||= {
+        '(0,7]' => 'Less than 1 week',
+        '(7,30]' => '1 week to one month',
+        '(30,91]' => '1 month to 3 months',
+        '(91,182]' => '3 months to 6 months',
+        '(182,364]' => '3 months to 1 year',
+        '(364,728]' => '1 year to 2 years',
+        '(728,Inf]' => '2 years or more',
+      }
+    end
+
     def set_r_variables
       set_time_format
       housed_file = Tempfile.new('housed')
@@ -182,8 +186,8 @@ module Reporting
         end
       end
 
-      R.program_1 = program_1_name
-      R.program_2 = program_2_name
+      R.program_1 = program_1_id
+      R.program_2 = program_2_id
       # For debugging, an R REPL in a Ruby REPL!
       # R.prompt
       R.eval <<~REOF
@@ -210,19 +214,19 @@ module Reporting
         returns$end_date <- as.Date(returns$end_date)
         # print(returns)
 
-        if(program_1=="All")
+        if(program_1=='')
         {
           housed_1 <- housed
         } else
         {
-          housed_1 <- housed %>% filter(residential_project == program_1)
+          housed_1 <- housed %>% filter(project_id == program_1)
         }
-        if(program_2=="All")
+        if(program_2=='')
         {
           housed_2 <- housed
         } else
         {
-          housed_2 <- housed %>% filter(residential_project == program_2)
+          housed_2 <- housed %>% filter(project_id == program_2)
         }
 
         # print(head(housed_1, n=5))
@@ -524,10 +528,10 @@ module Reporting
       @num_housed_2 = R.num_housed_2
       @housedPlot_1 = JSON.parse R.housedPlot_1
       @housedPlot_2 = JSON.parse R.housedPlot_2
-      @time_to_housing_1 = R.time_to_housing_1
-      @time_to_housing_2 = R.time_to_housing_2
-      @time_in_housing_1 = R.time_in_housing_1
-      @time_in_housing_2 = R.time_in_housing_2
+      @time_to_housing_1 = R.time_to_housing_1 || 'unknown days to find housing' # prevent re-running if we recive no answer
+      @time_to_housing_2 = R.time_to_housing_2 || 'unknown days to find housing'
+      @time_in_housing_1 = R.time_in_housing_1 || 'unknown days in find housing'
+      @time_in_housing_2 = R.time_in_housing_2 || 'unknown days in find housing'
       @success_failure_1 = JSON.parse R.success_failure_1
       @success_failure_2 = JSON.parse R.success_failure_2
       @ph_exits_1 = R.ph_exits_1
@@ -536,8 +540,16 @@ module Reporting
       @shelter_exits_2 = R.shelter_exits_2
       @return_1 = R.return_1
       @return_2 = R.return_2
-      @return_length_1 = JSON.parse R.return_length_1
-      @return_length_2 = JSON.parse R.return_length_2
+      @return_length_1 = (JSON.parse R.return_length_1).map do |row|
+        row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
+        row[:count] = row['clients']
+        row
+      end
+      @return_length_2 = (JSON.parse R.return_length_2).map do |row|
+        row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
+        row[:count] = row['clients']
+        row
+      end
       @demographic_plot_1 = JSON.parse R.demographic_plot_1
       @demographic_plot_2 = JSON.parse R.demographic_plot_2
 
