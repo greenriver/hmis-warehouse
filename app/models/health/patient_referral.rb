@@ -238,8 +238,8 @@ module Health
     end
 
     def create_patient destination_client
-      patient = Health::Patient.where(medicaid_id: medicaid_id).first_or_create
-      patient.update(
+      patient = Health::Patient.where(medicaid_id: medicaid_id).first_or_initialize
+      patient.assign_attributes(
         id_in_source: id,
         first_name: first_name,
         last_name: last_name,
@@ -251,6 +251,7 @@ module Health
         engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
+      patient.save!
       patient.import_epic_team_members
       if rejected?
         # soft delete
