@@ -48,7 +48,9 @@ module Admin::Health
         patient = Health::Patient.with_deleted.
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
-          patient.destroy if patient.present?
+          # Don't destroy the patient, we'll limit patients
+          # to patient_referrals.not_confirmed_rejected
+          # patient.destroy if patient.present?
           flash[:notice] = "Patient has been rejected."
         else
           patient.restore if patient.present?
