@@ -41,6 +41,10 @@ module ReportGenerators::Lsa::Fy2018
         report: report,
         percent_complete: 0
       ).first
+
+      # Debugging
+      # @report = ReportResult.find(902)
+
       return unless @report.present?
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)

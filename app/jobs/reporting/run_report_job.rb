@@ -24,6 +24,9 @@ module Reporting
       else
         report_generator = @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new.run!
       end
+
+      user_id = ReportResult.where(id: @result_id).pluck(:user_id)&.first
+      NotifyUser.hud_report_finished(user_id, @report.id, @result_id).deliver_later if user_id
     end
 
     def enqueue(job)

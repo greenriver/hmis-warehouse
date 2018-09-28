@@ -52,7 +52,7 @@ module Export::HMISSixOneOne::Shared
   end
 
   def ids_to_export export_scope:
-    export_scope.pluck(:id)
+    export_scope.distinct.pluck(:id)
   end
 
   def reset_lookups

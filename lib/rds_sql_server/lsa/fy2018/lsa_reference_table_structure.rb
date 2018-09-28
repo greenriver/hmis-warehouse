@@ -1865,7 +1865,7 @@ SqlServerBase.connection.execute (<<~SQL);
 
   */
 
-  CREATE PROCEDURE [dbo].[sp_lsaPersonDemographics]
+  CREATE OR ALTER PROCEDURE [dbo].[sp_lsaPersonDemographics]
       @popID int  --value in ref_Populations where popType = 1
     , @hhtype int
     , @rptTable varchar(12)

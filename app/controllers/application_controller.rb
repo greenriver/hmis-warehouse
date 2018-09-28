@@ -14,6 +14,7 @@ class ApplicationController < ActionController::Base
 
   before_filter :set_paper_trail_whodunnit
   before_filter :set_notification
+  before_filter :set_hostname
 
   around_filter :cache_grda_warehouse_base_queries
   before_action :compose_activity, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
@@ -144,4 +145,8 @@ class ApplicationController < ActionController::Base
     false
   end
   helper_method :pjax_request?
+
+  def set_hostname
+    @op_hostname ||= `hostname`
+  end
 end

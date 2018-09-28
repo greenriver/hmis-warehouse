@@ -1961,6 +1961,32 @@ module LsaSqlServer
           , lhh.LastInactive))
         from tmp_Household lhh
 
+        -- CHANGED EAA For clients continuously enrolled since prior to 10/1/2012,
+        -- calculate days in prior living situation based on first enrollment data
+        update lhh
+        set lhh.Other3917Days = (select datediff (dd,
+            (select top 1 hn.DateToStreetESSH
+            from sys_Enrollment sn
+            inner join hmis_Enrollment hn on hn.EnrollmentID = sn.EnrollmentID
+            where sn.HHType = lhh.HHType
+              and sn.HoHID = lhh.HoHID
+              and lhh.LastInactive > hn.EntryDate
+            order by hn.DateToStreetESSH asc)
+          ,
+          (select top 1 hn.EntryDate
+            from sys_Enrollment sn
+            inner join hmis_Enrollment hn on hn.EnrollmentID = sn.EnrollmentID
+            where sn.HHType = lhh.HHType
+              and sn.HoHID = lhh.HoHID
+              and lhh.LastInactive > hn.EntryDate
+            order by hn.DateToStreetESSH asc)))
+        from tmp_Household lhh
+          where lhh.Other3917Days is NULL
+
+        -- CHANGED EAA For clients with no date to street, set Other3917Days = 0
+        update tmp_Household
+        set Other3917Days = 0
+        where Other3917Days is null
 
         insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
         select distinct sn.HoHID, sn.HHType, cal.theDate, 7
@@ -1979,6 +2005,7 @@ module LsaSqlServer
           or (hn.LivingSituation in (4,5,6,7,15,24)
             and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
       SQL
+    end
 
     def four_thirty_six
       SqlServerBase.connection.execute (<<~SQL);
@@ -2666,6 +2693,7 @@ module LsaSqlServer
           ) lastDay on lastDay.HoHID = ex.HoHID and lastDay.HHType = ex.HHType
             and lastDay.Cohort = ex.Cohort
       SQL
+
       SqlServerBase.connection.execute (<<~SQL);
         /*****************************************************************
         4.46 Set SystemPath for Exit Cohort Households
@@ -4831,7 +4859,6 @@ module LsaSqlServer
           , HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
           , HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
       SQL
-      end
     end
   end
 end
