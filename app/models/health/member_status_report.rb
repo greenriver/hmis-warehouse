@@ -20,13 +20,15 @@ module Health
 
         most_recent_qualifying_activity = patient&.most_recent_direct_qualifying_activity_in_range(report_range)
         qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq || []
-        patient_change_dates = [ pr.enrollment_start_date ].compact&.map(&:to_date)
-        patient_updated_at = (report_range.to_a & (qa_activity_dates + patient_change_dates).compact).max
+
+        # only include patients referred before the report end date
+        next if pr.enrollment_start_date.blank? || pr.enrollment_start_date > report_range.end
+
+        # Get the most recent modification date based on QA dates and referral date
+        patient_updated_at = (qa_activity_dates + [pr.enrollment_start_date]).compact.max
+
         # We will only know the date requested for hello-sign signatures, default to the signed date
         pcp_signature_requested = patient&.careplans&.maximum(:provider_signature_requested_at) || patient&.careplans&.maximum(:provider_signed_on)
-
-        # Leave off anyone who hasn't had an update within the range
-        next unless patient_updated_at.present?
         aco_mco_name = pr.aco_name || pr.aco&.name
         aco_mco_pid = pr.aco_mco_pid || pr.aco&.mco_pid
         aco_mco_sl = pr.aco_mco_sl || pr.aco&.mco_sl
@@ -66,7 +68,6 @@ module Health
           export_date: Date.today,
         }
 
-        next unless report_range.include? patient_updated_at.to_date
         next if receiver.present? && attributes[:aco_mco_name] != receiver
         report_patient = member_status_report_patients.create!(attributes)
       end
