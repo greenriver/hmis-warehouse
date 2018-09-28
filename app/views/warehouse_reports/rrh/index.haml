@@ -3,9 +3,8 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
+-# TODO: Move this to the controller; load the report via ajax because it runs R each time and will probably be slow
 - @charts = Reporting::D3Charts.new(nil, 44)
-- outcome = @charts.outcomes
-- shelter_returns = @charts.shelter_returns
 
 = render 'overview'
 = render 'time_in_program'
