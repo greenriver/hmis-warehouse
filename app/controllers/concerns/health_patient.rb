@@ -44,7 +44,15 @@ module HealthPatient
     # For now, all patients are visible to all health users
     # BUT, all patients must have a referral
     protected def set_hpc_patient
-      @patient = Health::Patient.joins(:patient_referral).find_by(client_id: params[:client_id].to_i)
+      # Allow admins to see confirmed rejected patients
+      if can_administer_health?
+        @patient = Health::Patient.joins(:patient_referral).
+          find_by(client_id: params[:client_id].to_i)
+      else
+        @patient = Health::Patient.joins(:patient_referral).
+          merge(Health::PatientReferral.not_confirmed_rejected).
+          find_by(client_id: params[:client_id].to_i)
+      end
     end
   end
 end
