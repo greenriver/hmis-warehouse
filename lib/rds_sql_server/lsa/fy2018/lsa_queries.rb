@@ -2,7 +2,7 @@
 require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s
 module LsaSqlServer
   class LSAQueries
-    attr_accessor @project_ids
+    attr_accessor :project_ids
 
     def steps
       @steps ||= [
@@ -109,7 +109,7 @@ module LsaSqlServer
             --include only projects that were operating during the report period
             and (hp.OperatingEndDate is null or hp.OperatingEndDate >= rpt.ReportStart)
             and hp.ProjectType in (1,2,3,8,9,10,13)
-            and hp.ProjectID in(#{project_ids}.join(','))
+            and hp.ProjectID in('#{project_ids}')
         SQL
       else
         SqlServerBase.connection.execute (<<~SQL);

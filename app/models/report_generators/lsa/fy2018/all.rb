@@ -294,10 +294,11 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
-      rep = if @lsa_scope == 1 # System wide
-        LsaSqlServer::LSAQueries.new
+      if @lsa_scope == 1 # System wide
+        rep = LsaSqlServer::LSAQueries.new
       else # Selected projects
-        LsaSqlServer::LSAQueries.new(project_ids: @project_ids)
+        rep = LsaSqlServer::LSAQueries.new
+        rep.project_ids = @project_ids
       end
       report_steps = rep.steps
       # This starts at 30%, ends at 90%
