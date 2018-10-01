@@ -249,6 +249,7 @@ module GrdaWarehouse
         ::CohortColumns::Lgbtq.new(),
         ::CohortColumns::SleepingLocation.new(),
         ::CohortColumns::ExitDestination.new(),
+        ::CohortColumns::ActiveInCasMatch.new(),
       ]
     end
 

@@ -84,10 +84,23 @@ module ReportGenerators::Lsa::Fy2018
       # debugging
       # return GrdaWarehouse::HmisExport.find(95)
 
+      # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
+      existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
+        where(
+          created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
+          start_date: '2012-10-01',
+          period_type: 3,
+          directive: 2,
+          hash_status:1,
+          include_deleted: false,
+        ).where("project_ids @> ?", system_wide_project_ids.to_json)
+        &.first
+      return existing_export if existing_export.present?
+
       Exporters::HmisSixOneOne::Base.new(
-        start_date: '2012-10-01', # @report_end # using 10/1/2012 so we can determine continuous homelessness
+        start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
-        projects: @project_ids,
+        projects: system_wide_project_ids,
         period_type: 3,
         directive: 2,
         hash_status:1,
@@ -163,6 +176,9 @@ module ReportGenerators::Lsa::Fy2018
 
     def fetch_results
       load 'lib/rds_sql_server/lsa_sql_server.rb'
+      # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
+      # There will only ever be one of these.
+      LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
       LsaSqlServer.models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
         # for some reason the example files are quoted, except the LSA files, which are not
@@ -278,8 +294,11 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
-
-      rep = LsaSqlServer::LSAQueries.new
+      rep = if @lsa_scope == 1 # System wide
+        LsaSqlServer::LSAQueries.new
+      else # Selected projects
+        LsaSqlServer::LSAQueries.new(project_ids: @project_ids)
+      end
       report_steps = rep.steps
       # This starts at 30%, ends at 90%
       step_percent = 60 / rep.steps.count

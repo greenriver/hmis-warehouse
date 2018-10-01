@@ -2,6 +2,7 @@
 require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s
 module LsaSqlServer
   class LSAQueries
+    attr_accessor @project_ids
 
     def steps
       @steps ||= [
@@ -86,27 +87,53 @@ module LsaSqlServer
     end
 
     def insert_projects
-      SqlServerBase.connection.execute (<<~SQL);
-        insert into lsa_Project
-          (ProjectID, OrganizationID, ProjectName
-           , OperatingStartDate, OperatingEndDate
-           , ContinuumProject, ProjectType, TrackingMethod
-           , TargetPopulation, VictimServicesProvider, HousingType
-           , DateCreated, DateUpdated, ExportID)
-        select distinct
-          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
-          , hp.OperatingStartDate, hp.OperatingEndDate
-          , hp.ContinuumProject, hp.ProjectType, hp.TrackingMethod
-          , hp.TargetPopulation, hp.VictimServicesProvider, hp.HousingType
-          , hp.DateCreated, hp.DateUpdated, convert(varchar,rpt.ReportID)
-        from hmis_Project hp
-        inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
-        inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
-        where hp.ContinuumProject = 1
-          --include only projects that were operating during the report period
-          and (hp.OperatingEndDate is null or hp.OperatingEndDate >= rpt.ReportStart)
-          and hp.ProjectType in (1,2,3,8,9,10,13)
-      SQL
+      # Limit the projects that are reported to those selected
+      if project_ids.present?
+        SqlServerBase.connection.execute (<<~SQL);
+          insert into lsa_Project
+            (ProjectID, OrganizationID, ProjectName
+             , OperatingStartDate, OperatingEndDate
+             , ContinuumProject, ProjectType, TrackingMethod
+             , TargetPopulation, VictimServicesProvider, HousingType
+             , DateCreated, DateUpdated, ExportID)
+          select distinct
+            hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
+            , hp.OperatingStartDate, hp.OperatingEndDate
+            , hp.ContinuumProject, hp.ProjectType, hp.TrackingMethod
+            , hp.TargetPopulation, hp.VictimServicesProvider, hp.HousingType
+            , hp.DateCreated, hp.DateUpdated, convert(varchar,rpt.ReportID)
+          from hmis_Project hp
+          inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
+          inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
+          where hp.ContinuumProject = 1
+            --include only projects that were operating during the report period
+            and (hp.OperatingEndDate is null or hp.OperatingEndDate >= rpt.ReportStart)
+            and hp.ProjectType in (1,2,3,8,9,10,13)
+            and hp.ProjectID in(#{project_ids}.join(','))
+        SQL
+      else
+        SqlServerBase.connection.execute (<<~SQL);
+          insert into lsa_Project
+            (ProjectID, OrganizationID, ProjectName
+             , OperatingStartDate, OperatingEndDate
+             , ContinuumProject, ProjectType, TrackingMethod
+             , TargetPopulation, VictimServicesProvider, HousingType
+             , DateCreated, DateUpdated, ExportID)
+          select distinct
+            hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
+            , hp.OperatingStartDate, hp.OperatingEndDate
+            , hp.ContinuumProject, hp.ProjectType, hp.TrackingMethod
+            , hp.TargetPopulation, hp.VictimServicesProvider, hp.HousingType
+            , hp.DateCreated, hp.DateUpdated, convert(varchar,rpt.ReportID)
+          from hmis_Project hp
+          inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
+          inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
+          where hp.ContinuumProject = 1
+            --include only projects that were operating during the report period
+            and (hp.OperatingEndDate is null or hp.OperatingEndDate >= rpt.ReportStart)
+            and hp.ProjectType in (1,2,3,8,9,10,13)
+        SQL
+      end
     end
 
     def four_three
