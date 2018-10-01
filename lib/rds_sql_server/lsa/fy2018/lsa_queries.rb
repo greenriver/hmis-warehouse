@@ -109,7 +109,7 @@ module LsaSqlServer
             --include only projects that were operating during the report period
             and (hp.OperatingEndDate is null or hp.OperatingEndDate >= rpt.ReportStart)
             and hp.ProjectType in (1,2,3,8,9,10,13)
-            and hp.ProjectID in('#{project_ids}')
+            and hp.ProjectID in(#{project_ids.join(',')})
         SQL
       else
         SqlServerBase.connection.execute (<<~SQL);
