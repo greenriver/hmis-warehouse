@@ -201,7 +201,15 @@ module ReportGenerators::Lsa::Fy2018
         VendorEmail: 'elliot@greenriver.org',
         LSAScope: @lsa_scope
       )
-      # INSERT [dbo].[lsa_Report] ([ReportID], [ReportDate], [ReportStart], [ReportEnd], [ReportCoC], [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail], [LSAScope]) VALUES (1009, CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date), CAST(N'2017-09-30' AS Date), N'XX-500', N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com', 1)
+      # INSERT [dbo].[lsa_Report] ([ReportID]
+        # , [ReportDate], [ReportStart], [ReportEnd], [ReportCoC]
+        # , [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail]
+        # , [LSAScope])
+      # VALUES (1009
+        # , CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date)
+          # , CAST(N'2017-09-30' AS Date), N'XX-500'
+        # , N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com'
+        # , 1)
     end
 
     def remove_temporary_rds
