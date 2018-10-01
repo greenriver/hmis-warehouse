@@ -48,7 +48,9 @@ module Admin::Health
         patient = Health::Patient.with_deleted.
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
-          patient.destroy if patient.present?
+          # Don't destroy the patient, we'll limit patients
+          # to patient_referrals.not_confirmed_rejected
+          # patient.destroy if patient.present?
           flash[:notice] = "Patient has been rejected."
         else
           patient.restore if patient.present?
@@ -63,6 +65,7 @@ module Admin::Health
 
     def create
       @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
+      @new_patient_referral.enrollment_start_date = @new_patient_referral.effective_date
       if @new_patient_referral.save
         if clean_patient_referral_params[:agency_id].present?
           @new_patient_referral.convert_to_patient()

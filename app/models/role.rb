@@ -67,6 +67,7 @@ class Role < ActiveRecord::Base
       :can_view_assigned_reports,
       :can_view_project_data_quality_client_details,
       :can_manage_organization_users,
+      :can_view_all_user_client_assignments, # Administrative permission to see all assignments
       :can_add_administrative_event,
       :can_see_clients_in_window_for_assigned_data_sources,
       :can_upload_deidentified_hud_hmis_files,
