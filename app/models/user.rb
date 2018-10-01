@@ -213,6 +213,10 @@ class User < ActiveRecord::Base
 
   def subordinates
     return [] unless can_manage_organization_users?
+    # Administrative permission to see all assignments
+    if can_view_all_user_client_assignments?
+      return User.all
+    end
     uve_source = GrdaWarehouse::UserViewableEntity
     uve_t = uve_source.arel_table
 
