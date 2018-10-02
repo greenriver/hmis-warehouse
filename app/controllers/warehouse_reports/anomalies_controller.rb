@@ -14,7 +14,7 @@ module WarehouseReports
     end
 
     def anomaly_scope
-      if can_edit_anything_super_user?
+      if can_track_anomalies?
         anomaly_source
       else
         anomaly_source.where(submitted_by: current_user.id)
