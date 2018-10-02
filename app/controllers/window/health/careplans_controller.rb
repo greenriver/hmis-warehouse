@@ -4,7 +4,9 @@ module Window::Health
     helper ChaHelper
     include PjaxModalController
     include WindowClientPathGenerator
+    include HealthCareplan
     include HealthFileController
+
 
     before_action :set_client
     before_action :set_hpc_patient
@@ -17,71 +19,39 @@ module Window::Health
     def index
       @goal = Health::Goal::Base.new
       @readonly = false
-      @careplans = @patient.careplans
+      @careplans = @patient.careplans.sorted
       # most-recent careplan
-      @careplan = @careplans.sorted.first
+      @careplan = @careplans.first
       @disable_goal_actions = true
-      @goals = @patient.hpc_goals
+      @goals = @careplan&.hpc_goals
+
+      # Callbacks don't work in development, so we have to do something like this
+      if Rails.env.development?
+        @careplans.each do |cp|
+          [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
+            begin
+              # This is trying to ensure we run the same thing here as we do for the callback from HS
+              json = {signature_request: doc.fetch_signature_request}.to_json
+              response = HelloSignController::CallbackResponse.new(json)
+            rescue HelloSign::Error::NotFound
+              Rails.logger.fatal "Ignoring a document we couldn't track down."
+            end
+            begin
+              response.process!
+            rescue ActiveRecord::RecordNotFound
+              Rails.logger.fatal "Ignoring a document we couldn't track down."
+            rescue Exception => e
+              Rails.logger.fatal "Ignoring a document we couldn't track down."
+            end
+
+          end
+        end
+      end
     end
 
     def show
-      @goal = Health::Goal::Base.new
-      @readonly = false
+      pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      # make sure we have the most recent-services, DME, team members, and goals if
-      # the plan is editable
-      if @careplan.editable?
-        @careplan.archive_services
-        @careplan.archive_equipment
-        @careplan.archive_goals
-        @careplan.archive_team_members
-        @careplan.save
-      end
-
-      # Include most-recent SSM & CHA
-      # @form = @patient.self_sufficiency_matrix_forms.recent.first
-      @form = @patient.ssms.last
-      if @form.is_a? Health::SelfSufficiencyMatrixForm
-        @ssm_partial = 'window/health/self_sufficiency_matrix_forms/show'
-      elsif @form.is_a? GrdaWarehouse::HmisForm
-        @ssm_partial = 'clients/assessment_form'
-      end
-      @cha = @patient.comprehensive_health_assessments.recent.first
-      # debugging
-      # render layout: false
-
-      # render(
-      #   pdf: file_name,
-      #   layout: false,
-      #   encoding: "UTF-8",
-      #   page_size: 'Letter',
-      #   header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-      #   footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-      #   # Show table of contents by providing the 'toc' property
-      #   # toc: {}
-      # )
-
-      pctp = render_to_string(
-        pdf: file_name,
-        template: 'window/health/careplans/show',
-        layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter',
-        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-        # Show table of contents by providing the 'toc' property
-        # toc: {}
-      )
-      pdf = CombinePDF.parse(pctp)
-      if @careplan.health_file.present?
-        pdf << CombinePDF.parse(@careplan.health_file.content)
-      end
-      if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
-        pdf << CombinePDF.parse(@form.health_file.content)
-      end
-      if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-        pdf << CombinePDF.parse(@cha.health_file.content)
-      end
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
     end
 

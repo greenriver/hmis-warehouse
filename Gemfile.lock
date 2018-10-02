@@ -181,6 +181,7 @@ GEM
     dotenv-rails (2.2.1)
       dotenv (= 2.2.1)
       railties (>= 3.2, < 5.2)
+    email_check (1.0.1)
     equalizer (0.0.11)
     erubis (2.7.0)
     exception_notification (4.2.1)
@@ -244,6 +245,10 @@ GEM
       multi_json (~> 1.0)
       sprockets (>= 2.0.0)
       tilt (>= 1.2)
+    hellosign-ruby-sdk (3.6.4)
+      faraday
+      mime-types
+      multi_json
     html2haml (2.2.0)
       erubis (~> 2.7.0)
       haml (>= 4.0, < 6)
@@ -450,6 +455,7 @@ GEM
     rspec-support (3.5.0)
     ruby-filemagic (0.7.2)
     ruby-graphviz (1.2.2)
+    ruby-mailchecker (3.2.7)
     ruby-ole (1.2.12.1)
     ruby-prof (0.16.2)
     ruby-progressbar (1.8.1)
@@ -592,6 +598,7 @@ DEPENDENCIES
   devise (~> 4)
   devise_invitable
   dotenv-rails
+  email_check
   exception_notification
   execjs
   factory_girl_rails
@@ -607,6 +614,7 @@ DEPENDENCIES
   guard-rspec
   haml-rails
   handlebars_assets
+  hellosign-ruby-sdk
   html2haml
   htmlentities
   jquery-minicolors-rails
@@ -646,6 +654,7 @@ DEPENDENCIES
   rspec-mocks
   rspec-rails
   ruby-filemagic
+  ruby-mailchecker
   ruby-prof
   ruby-progressbar
   rubyXL

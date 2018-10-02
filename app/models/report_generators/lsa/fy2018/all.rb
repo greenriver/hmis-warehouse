@@ -248,7 +248,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      @rds&.terminate! #unless Rails.env.development?
+      @rds&.terminate! unless Rails.env.development?
     end
 
     def setup_hmis_table_structure
@@ -338,10 +338,10 @@ module ReportGenerators::Lsa::Fy2018
       end
       report_steps = rep.steps
       # This starts at 30%, ends at 90%
-      step_percent = 60 / rep.steps.count
+      step_percent = 60.0 / rep.steps.count
       rep.steps.each_with_index do |meth, i|
         percent = 30 + i * step_percent
-        update_report_progress percent: percent
+        update_report_progress percent: percent.round(2)
         rep.public_send(meth)
         log_and_ping("LSA Query #{meth} complete")
       end

@@ -1,0 +1,14 @@
+%p
+  Hello #{@name} --
+%p
+  A Person-Centered Treatment Plan has been created for one of your patients.
+  Please click this link to review the plan and provide your signature:
+%p
+  = link_to @url do
+    Click here to sign
+%p
+  Or copy and paste the following URL:
+  %br
+  = @url
+%p
+  If you're not #{@name} with email: #{@email}, please disregard this message.

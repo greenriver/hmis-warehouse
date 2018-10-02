@@ -1,6 +1,6 @@
 - url = window_client_health_patient_index_path(patient.client) rescue ''
 .c-card.clients__client-card
-  .c-card__content
+  .c-card__content.d-flex.justify-content-between
     .patient__demographics
       %h4.patient__name.mt-0
         = link_to_if patient.client.present?, patient.name, url
@@ -16,7 +16,7 @@
     .ml-3
       - if ! patient.engaged?
         = render 'window/health/patient/remaining_to_engage', patient: patient
-    .ml-auto
+    .patient__action-needed
       = render 'window/health/patient/engagement', patient: patient
       .patient__link.text-right.mt-4
         - if patient.client.present?
