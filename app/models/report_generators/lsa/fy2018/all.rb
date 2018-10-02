@@ -263,6 +263,9 @@ module ReportGenerators::Lsa::Fy2018
         create index active_household_ho_hid_idx ON [active_Household] ([HoHID]);
         create index active_household_hh_type_idx ON [active_Household] ([HHType]);
 
+        create index tmp_household_ho_hid_idx ON [tmp_Household] ([HoHID]);
+        create index tmp_household_hh_type_idx ON [tmp_Household] ([HHType]);
+
         create index ch_enrollment_personal_id_idx ON [ch_Enrollment] ([PersonalID]);
 
         create index ch_episodes_personal_id_idx ON [ch_Episodes] ([PersonalID]);
@@ -304,7 +307,8 @@ module ReportGenerators::Lsa::Fy2018
       # This starts at 30%, ends at 90%
       step_percent = 60 / rep.steps.count
       rep.steps.each_with_index do |meth, i|
-        update_report_progress percent: 30 + i * step_percent
+        percent = 30 + i * step_percent
+        update_report_progress percent: percent
         rep.public_send(meth)
       end
     end
