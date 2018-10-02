@@ -147,6 +147,6 @@ class ApplicationController < ActionController::Base
   helper_method :pjax_request?
 
   def set_hostname
-    @op_hostname ||= `hostname`
+    @op_hostname ||= `hostname` rescue 'test-server'
   end
 end
