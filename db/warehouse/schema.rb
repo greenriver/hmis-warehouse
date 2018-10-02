@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181001180812) do
+ActiveRecord::Schema.define(version: 20181001193048) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2938,6 +2938,7 @@ ActiveRecord::Schema.define(version: 20181001180812) do
     t.integer  "client_count"
     t.json     "support"
     t.string   "token"
+    t.integer  "user_id"
   end
 
   create_table "weather", force: :cascade do |t|
