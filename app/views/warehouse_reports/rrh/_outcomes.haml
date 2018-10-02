@@ -1,7 +1,10 @@
-%h2 Outcomes
-%h4 Overview
-.row
-  .col-xs-12.col-md-6
-    .d3-chart#d3-outcome-1
-  .col-xs-12.col-md-6
-    .d3-chart#d3-outcome-2
+%h1 Outcomes
+.ho-container.rrh
+  %h3.ho-container__header Overview
+  = render 'program_titles'
+  .row.rrh-row
+    .col-xs-12.col-md-6
+      .d3-chart#d3-outcome-1
+    .col-xs-12.col-md-6
+      .d3-chart#d3-outcome-2
+  

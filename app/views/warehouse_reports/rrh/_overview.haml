@@ -1,16 +1,10 @@
-%h2 Overview
-.row
-  .col-xs-12.col-md-6
-    %h3= @charts.program_1_name
-    %p.rrh__overview.callout
-      = @charts.report.num_housed_1
-      .sub_header
-        participated in the reference program
-    .d3-chart#d3-overview-1
-  .col-xs-12.col-md-6
-    %h3= @charts.program_2_name
-    %p.rrh__overview.callout
-      = @charts.report.num_housed_2
-      .sub_header
-        participated in the comparison program
-    .d3-chart#d3-overview-2
+.ho-container.rrh
+  %h3.ho-container__header Overview
+  = render 'program_titles'
+  .row.rrh-row
+    .col-xs-12.col-md-6
+      %p.ho-cart__title.text-center= "<strong>#{@charts.report.num_housed_1}</strong> participated in the reference program".html_safe
+      .d3-chart#d3-overview-1
+    .col-xs-12.col-md-6
+      %p.text-center= "<strong>#{@charts.report.num_housed_2}</strong> participated in the comparison program".html_safe
+      .d3-chart#d3-overview-2

@@ -1,2 +1,9 @@
-%h2 Racial Disparities
-%h4 Proportion of clients exiting to permanent housing by race versus proportion of full population by race
+.ho-container.rrh
+  %h3.ho-container__header Racial Disparities
+  %p Proportion of clients exiting to permanent housing by race versus proportion of full population by race
+  = render 'program_titles'
+  .row.rrh-row
+    .col-xs-12.col-md-6
+      .d3-chart#d3-demographics-1
+    .col-xs-12.col-md-6
+      .d3-chart#d3-demographics-2

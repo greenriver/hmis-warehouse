@@ -2,35 +2,24 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+.row
+  .col-xs-6
+    .ho-container.rrh
+      %h4.ho-container__header Reference Program
+      .form-group
+        = select_tag :program_1, options_for_select(@programs_for_select), include_blank: 'All', class: 'form-control', id: 'program-1-filter', data: {path: program_data_warehouse_reports_rrh_index_path()}
+  .col-xs-6
+    .ho-container.rrh
+      %h4.ho-container__header Comparison Program
+      .form-group
+        = select_tag :program_2, options_for_select(@programs_for_select), include_blank: 'All', class: 'form-control', id: 'program-2-filter', data: {path: program_data_warehouse_reports_rrh_index_path()}
 
--# TODO: Move this to the controller; load the report via ajax because it runs R each time and will probably be slow
-- @charts = Reporting::D3Charts.new(nil, 44)
-
-= render 'overview'
-= render 'time_in_program'
-= render 'outcomes'
-= render 'exits'
-= render 'returns'
-= render 'demographics'
-
+#rrh-report__container
+  Loading...
+#d3-tooltip
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var chart1 = new App.D3Chart.RRHOverview('#d3-overview-1', #{@charts.overview[:program_1]}, #{@charts.overview[:both]});
-      chart1.draw();
-
-      var chart2 = new App.D3Chart.RRHOverview('#d3-overview-2', #{@charts.overview[:program_2]}, #{@charts.overview[:both]});
-      chart2.draw();
-
-      var outcomeChart1 = new App.D3Chart.RRHOutcome('#d3-outcome-1', #{@charts.outcomes[:program_1]})
-      outcomeChart1.draw();
-
-      var outcomeChart2 = new App.D3Chart.RRHOutcome('#d3-outcome-2', #{@charts.outcomes[:program_2]})
-      outcomeChart2.draw();
-
-      var returnChart1 = new App.D3Chart.RRHReturns('#d3-return-1', #{@charts.shelter_returns}, 'program_1')
-      returnChart1.draw();
-
-      var returnChart2 = new App.D3Chart.RRHReturns('#d3-return-2', #{@charts.shelter_returns}, 'program_2')
-      returnChart2.draw();
+      var charts = new App.D3Chart.RRHCharts('#rrh-report__container','#program-1-filter', '#program-2-filter', {});
+      charts.load();
     })

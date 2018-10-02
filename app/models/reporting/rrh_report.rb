@@ -540,16 +540,17 @@ module Reporting
       @shelter_exits_2 = R.shelter_exits_2
       @return_1 = R.return_1
       @return_2 = R.return_2
-      @return_length_1 = (JSON.parse R.return_length_1).map do |row|
-        row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
-        row[:count] = row['clients']
-        row
-      end
-      @return_length_2 = (JSON.parse R.return_length_2).map do |row|
-        row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
-        row[:count] = row['clients']
-        row
-      end
+      # TODO: @elliot I get an error here
+      # @return_length_1 = (JSON.parse R.return_length_1).map do |row|
+      #   row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
+      #   row[:count] = row['clients']
+      #   row
+      # end
+      # @return_length_2 = (JSON.parse R.return_length_2).map do |row|
+      #   row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
+      #   row[:count] = row['clients']
+      #   row
+      # end
       @demographic_plot_1 = JSON.parse R.demographic_plot_1
       @demographic_plot_2 = JSON.parse R.demographic_plot_2
 

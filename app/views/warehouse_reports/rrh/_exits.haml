@@ -1,21 +1,23 @@
-%h4 Exits to Permanent Housing
-%p Clients that exited Rapid Rehousing Programs to a permanent housing destination
-.row
-  .col-xs-12.col-md-6
-    %p.rrh__exits-to-ph.callout
-      = @charts.report.ph_exits_1
-      .sub_header
-        of those who exited the reference program
-    %p.rrh__exits-to-shelter.callout
-      = @charts.report.shelter_exits_1
-      .sub_header
-        of those who exited the reference program
-  .col-xs-12.col-md-6
-    %p.rrh__exits-to-ph.callout
-      = @charts.report.ph_exits_2
-      .sub_header
-        of those who exited the comparison program
-    %p.rrh__exits-to-shelter.callout
-      = @charts.report.shelter_exits_2
-      .sub_header
-        of those who exited the comparison program
+.ho-container.rrh
+  %h3.ho-container__header Exits to Permanent Housing
+  %p Clients that exited Rapid Rehousing Programs to a permanent housing destination
+  = render 'program_titles'
+  .row.rrh-row
+    .col-xs-12.col-md-6
+      %p.rrh__exits-to-ph.callout
+        = @charts.report.ph_exits_1
+        .sub_header
+          of those who exited the reference program
+      %p.rrh__exits-to-shelter.callout
+        = @charts.report.shelter_exits_1
+        .sub_header
+          of those who exited the reference program
+    .col-xs-12.col-md-6
+      %p.rrh__exits-to-ph.callout
+        = @charts.report.ph_exits_2
+        .sub_header
+          of those who exited the comparison program
+      %p.rrh__exits-to-shelter.callout
+        = @charts.report.shelter_exits_2
+        .sub_header
+          of those who exited the comparison program

@@ -91,6 +91,14 @@ h2.ho-sub__h2 {
   margin-bottom: $ho-padding;
 }
 
+.ho-container.rrh .ho-container__header {
+  margin-top: 0px;
+}
+
+.rrh-row .col-md-6:first-child {
+  border-right: 1px solid $ho-color-2;
+}
+
 .ho-hints {
   margin-top: $ho-padding * 2;
 }
