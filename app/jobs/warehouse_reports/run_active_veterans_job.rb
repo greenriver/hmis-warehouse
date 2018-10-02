@@ -37,7 +37,6 @@ module WarehouseReports
           Hash[service_history_columns.keys.zip(row)]
         end.compact.
         group_by{|m| m[:client_id]}
-      binding.pry
       # remove anyone who doesn't actually have an open enrollment during the time (these can be added by extrapolated SO or poor data where we have service on the exit date)
       clients = clients.select{|c| enrollments.keys.include?(c.id)}
 

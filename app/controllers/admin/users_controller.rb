@@ -36,6 +36,7 @@ module Admin
         User.transaction do
           @user.skip_reconfirmation!
           @user.update(user_params)
+
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
           @user.set_viewables viewable_params
@@ -70,7 +71,8 @@ module Admin
     end
 
     private def user_params
-      params.require(:user).permit(
+      base_params = params[:user] || ActionController::Parameters.new
+      base_params.permit(
         :last_name,
         :first_name,
         :email,
@@ -83,13 +85,14 @@ module Admin
         role_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
-      )
+      ).tap do |result|
+        result[:coc_codes] ||= []
+      end
     end
 
     private def viewable_params
       params.require(:user).permit(
         data_sources: [],
-        coc_codes: [],
         organizations: [],
         projects: [],
         reports: [],
