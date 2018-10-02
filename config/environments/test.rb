@@ -47,7 +47,7 @@ Rails.application.configure do
   # config.action_view.raise_on_missing_translations = true
 
   # Devise requires a default URL
-  config.action_mailer.default_url_options = { host: 'openpath.host', port: 80 }
+  config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], port: ENV['PORT'] }
 
   config.active_record.raise_in_transactional_callbacks = true
 end
