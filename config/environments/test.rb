@@ -19,7 +19,7 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = false
-  
+
   # time zone
   config.time_zone = 'Eastern Time (US & Canada)'
 
@@ -33,7 +33,7 @@ Rails.application.configure do
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
-  
+
   # Randomize the order test cases are executed.
   config.active_support.test_order = :random
 
@@ -47,7 +47,7 @@ Rails.application.configure do
   # config.action_view.raise_on_missing_translations = true
 
   # Devise requires a default URL
-  config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], port: ENV['PORT'] }
+  config.action_mailer.default_url_options = { host: 'openpath.host', port: 443 }
 
   config.active_record.raise_in_transactional_callbacks = true
 end
