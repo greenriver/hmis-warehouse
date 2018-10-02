@@ -47,13 +47,84 @@ class App.D3Chart.RRHCharts
       console.log('Loading charts')
     )
 
-class App.D3Chart.RRHOverview extends App.D3Chart.Base
+class App.D3Chart.RRHBase extends App.D3Chart.Base
+  constructor: (container_selector) ->
+    super(container_selector, @margin)
+    @tooltip = d3.select('#d3-tooltip')
+
+  _customizeXAxis: ->
+    @chart.selectAll('g.x-axis .domain').remove()
+    ticks = @chart.selectAll('g.x-axis g.tick text')
+    ticks.each((tick) ->
+      tickEle = d3.select(this)
+      tickEle.style('font-family', "'Open Sans Condensed', sans-serif")
+        .style('font-weight', '700')
+        .style('font-size', '12px')
+        .attr('fill', '#777777')
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-65)");  
+    )
+
+  _customizeYAxis: ->
+    step1 = @scale.x.step()-@scale.x.bandwidth()
+    step2 = @scale.x.step()+@scale.x.bandwidth()
+    generateLine = d3.line()
+    @chart.selectAll('g.y-axis .domain').remove()
+    @chart.selectAll('g.y-axis .tick:first-child text').remove()
+    ticks = @chart.selectAll('g.y-axis g.tick')
+    scale = @scale
+    domain = @domain
+    console.log('domain', domain)
+    ticks.each((tick) ->
+      tickEle = d3.select(this)
+      tickEle.selectAll('line').remove()
+      tickEle.selectAll('text')
+        .style('font-family', "'Open Sans Condensed', sans-serif")
+        .style('font-weight', '500')
+        .style('font-size', '12px')
+        .attr('fill', '#777777')
+      tickEle.append('path')
+        .attr('d', generateLine([[(scale.x(domain.x[0])-step1), 0], [scale.x(domain.x[domain.x.length-1])+step2, 0]]))
+        .attr('stroke', '#d2d2d2')
+        .attr('stroke-width', '0.5px')
+    )
+
+  _drawBackground: () ->
+    @chart.append('rect')
+      .attr('x', @scale.x(@domain.x[0]) - (@scale.x.step()-@scale.x.bandwidth()))
+      .attr('y', @scale.y(@domain.y[1]))
+      .attr('width', @dimensions.width)
+      .attr('height', @dimensions.height)
+      .attr('fill', '#f1f1f1')
+
+  _showTooltip: (data) ->
+    event = d3.event
+    @tooltip
+      .style('left', event.pageX+'px')
+      .style('top', event.pageY+'px')
+      .style('display', 'block')
+    @_drawTooltip(data)
+    @tooltip.transition()
+      .duration(50)
+      .style('opacity', 1)
+
+  _removeTooltip: (data) ->
+    @tooltip.transition()
+      .duration(500)
+      .style('opacity', 0)
+      .on('end', () ->
+        d3.select(@)
+          .style('display', 'none')
+      )
+
+class App.D3Chart.RRHOverview extends App.D3Chart.RRHBase
   constructor: (container_selector, data, allData) ->
     @margin = {top: 10, right: 0, bottom: 60, left: 30}
     @_initData(data, allData)
-    super(container_selector, @margin)
+    super(container_selector)
     @_initScale()
-    @tooltip = d3.select('#d3-tooltip')
 
   _initData: (data, allData) ->
     @data = @_to_date(data)
@@ -89,45 +160,6 @@ class App.D3Chart.RRHOverview extends App.D3Chart.Base
       y: [0, d3.max(@allData, (d) -> d.n_clients)]
     }
 
-  _customizeYAxis: ->
-    step1 = @scale.x.step()-@scale.x.bandwidth()
-    step2 = @scale.x.step()+@scale.x.bandwidth()
-    generateLine = d3.line()
-    @chart.selectAll('g.y-axis .domain').remove()
-    @chart.selectAll('g.y-axis .tick:first-child text').remove()
-    ticks = @chart.selectAll('g.y-axis g.tick')
-    scale = @scale
-    domain = @domain
-    ticks.each((tick) ->
-      tickEle = d3.select(this)
-      tickEle.selectAll('line').remove()
-      tickEle.selectAll('text')
-        .style('font-family', "'Open Sans Condensed', sans-serif")
-        .style('font-weight', '500')
-        .style('font-size', '12px')
-        .attr('fill', '#777777')
-      tickEle.append('path')
-        .attr('d', generateLine([[(scale.x(domain.x[0])-step1), 0], [scale.x(domain.x[domain.x.length-1])+step2, 0]]))
-        .attr('stroke', '#d2d2d2')
-        .attr('stroke-width', '0.5px')
-    )
-
-  _customizeXAxis: ->
-    @chart.selectAll('g.x-axis .domain').remove()
-    ticks = @chart.selectAll('g.x-axis g.tick text')
-    ticks.each((tick) ->
-      tickEle = d3.select(this)
-      tickEle.style('font-family', "'Open Sans Condensed', sans-serif")
-        .style('font-weight', '700')
-        .style('font-size', '12px')
-        .attr('fill', '#777777')
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", ".15em")
-        .attr("transform", "rotate(-65)");  
-    )
-
-
   _drawAxes: ->
     xAxis = d3.axisBottom()
       .tickFormat(d3.timeFormat("%m-%Y")).scale(@scale.x)
@@ -144,21 +176,7 @@ class App.D3Chart.RRHOverview extends App.D3Chart.Base
     @_customizeYAxis()
     @_customizeXAxis()
 
-  _drawBackground: () ->
-    @chart.append('rect')
-      .attr('x', @scale.x(@domain.x[0]) - (@scale.x.step()-@scale.x.bandwidth()))
-      .attr('y', @scale.y(@domain.y[1]))
-      .attr('width', @dimensions.width)
-      .attr('height', @dimensions.height)
-      .attr('fill', '#f1f1f1')
-
-  _showTooltip: (data) ->
-    console.log('tooltip data: ', data)
-    event = d3.event
-    @tooltip
-      .style('left', event.pageX+'px')
-      .style('top', event.pageY+'px')
-      .style('display', 'block')
+  _drawTooltip: (data) ->
     date = @_loadMonthName(data.month_year)+' '+data.month_year.getFullYear()
     n_clients = data.n_clients + ' clients'
     currentItems = @tooltip
@@ -170,19 +188,6 @@ class App.D3Chart.RRHOverview extends App.D3Chart.Base
       .attr('class', 'd3-tooltip__item d3-tooltip__label')
     items = newItems.merge(currentItems)
       .text((d) => d)
-    @tooltip.transition()
-      .duration(50)
-      .style('opacity', 1)
-
-
-  _removeTooltip: (data) ->
-    @tooltip.transition()
-      .duration(500)
-      .style('opacity', 0)
-      .on('end', () ->
-        d3.select(@)
-          .style('display', 'none')
-      )
 
   _draw: (chart) ->
     chart.enter()
@@ -205,16 +210,14 @@ class App.D3Chart.RRHOverview extends App.D3Chart.Base
     @_draw(chart)
 
 
-class App.D3Chart.RRHOutcome extends App.D3Chart.Base
+class App.D3Chart.RRHOutcome extends App.D3Chart.RRHBase
   constructor: (container_selector, data) ->
-    # @margin = {top: 10, right: 0, bottom: 60, left: 30}
     @margin = {top: 0, right: 0, bottom: 40, left: 0}
     @data = data
-    super(container_selector, @margin)
+    super(container_selector)
     @range = @_loadRange()
     @domain = @_loadDomain()
     @scale = @_loadScale()
-    @tooltip = d3.select('#d3-tooltip')
 
   _loadScale: ->
     {
@@ -234,13 +237,7 @@ class App.D3Chart.RRHOutcome extends App.D3Chart.Base
       color: ["#288be4", "#091f2f", "#fb4d42", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
     }
 
-  _showTooltip: (data) ->
-    console.log('tooltip data: ', data)
-    event = d3.event
-    @tooltip
-      .style('left', event.pageX+'px')
-      .style('top', event.pageY+'px')
-      .style('display', 'block')
+  _drawTooltip: (data) ->
     currentItems = @tooltip
       .selectAll('.d3-tooltip__item')
       .data([data.data.outcome, data.data.count+' clients'])
@@ -257,13 +254,8 @@ class App.D3Chart.RRHOutcome extends App.D3Chart.Base
       ).append('div')
         .attr('class', 'd3-tooltip__swatch')
         .style('background-color', (d, i) =>
-          console.log('d', d)
-          console.log('i', i)
           if i == 0 then @scale.color(d) else 'transparent'  
         )
-    @tooltip.transition()
-      .duration(50)
-      .style('opacity', 1)
 
   _removeTooltip: (data) ->
     @tooltip.transition()
@@ -288,21 +280,15 @@ class App.D3Chart.RRHOutcome extends App.D3Chart.Base
           .on('mouseover', (d) => @_showTooltip(d))
           .on('mouseout', (d) => @_removeTooltip(d))
 
-class App.D3Chart.RRHDemographics extends App.D3Chart.Base
+class App.D3Chart.RRHDemographics extends App.D3Chart.RRHBase
   constructor: (container_selector, data, allData) ->
-    @margin = {top: 10, right: 0, bottom: 60, left: 30}
+    @margin = {top: 10, right: 0, bottom: 120, left: 30}
     @data = data
     @allData = allData
-    console.log('demo graphics: ', @data)
-    super(container_selector, @margin)
-
+    super(container_selector)
     @range = @_loadRange()
     @domain = @_loadDomain()
     @scale = @_loadScale()
-
-    console.log('range', @range)
-    console.log('domain', @domain)
-    console.log('scale', @scale)
 
   _loadScale: ->
     {
@@ -312,8 +298,6 @@ class App.D3Chart.RRHDemographics extends App.D3Chart.Base
     }
 
   _loadDomain: ->
-    test = d3.set(@allData.map((d) -> d.race))
-    console.log(test)
     {
       x: @allData.map((d) -> d.race),
       y:[0, d3.max(@allData, (d) -> d.freq)],
@@ -337,8 +321,34 @@ class App.D3Chart.RRHDemographics extends App.D3Chart.Base
     @chart.append('g')
       .attr('class', 'y-axis')
       .call(yAxis)
+    @_customizeYAxis()
+    @_customizeXAxis()
+
+  _drawTooltip: (data) ->
+    race = data.race
+    label = data.type
+    freq = data.freq
+    currentItems = @tooltip
+      .selectAll('.d3-tooltip__item')
+      .data([race+': '+freq, label])
+    currentItems.exit().remove()
+    newItems = currentItems.enter()
+      .append('div')
+    items = newItems.merge(currentItems)
+      .text((d) => d)
+      .attr('class', (d, i) ->
+        if i == 1
+          'd3-tooltip__item'
+        else
+          'd3-tooltip__item d3-tooltip__label'
+      ).append('div')
+        .attr('class', 'd3-tooltip__swatch')
+        .style('background-color', (d, i) =>
+          if i == 1 then @scale.color(d) else 'transparent'  
+        )
 
   draw: ->
+    @_drawBackground()
     @_drawAxes()
     @chart.selectAll('rect.bar')
       .data(@data)
@@ -346,6 +356,7 @@ class App.D3Chart.RRHDemographics extends App.D3Chart.Base
       .append('rect')
         .attr('class', 'bar')
         .attr('fill', (d) => @scale.color(d.type))
+        .attr('opacity', 0.8)
         .attr('x', (d) => 
           if(d.type == 'full-population')
             @scale.x(d.race)
@@ -357,16 +368,17 @@ class App.D3Chart.RRHDemographics extends App.D3Chart.Base
           @scale.x.bandwidth()/2
         )
         .attr('height', (d) => @scale.y(0) - @scale.y(d.freq))
+        .on('mouseover', (d) => @_showTooltip(d))
+        .on('mouseout', (d) => @_removeTooltip(d))
 
 
-class App.D3Chart.RRHReturns extends App.D3Chart.Base
+class App.D3Chart.RRHReturns extends App.D3Chart.RRHBase
   constructor: (container_selector, data, program) ->
-    @margin = {top: 10, right: 0, bottom: 60, left: 30}
+    @margin = {top: 10, right: 0, bottom: 120, left: 30}
     @bands = data['x_bands']
     @data = data[program]
     @allData = data['both']
-    console.log(@data)
-    super(container_selector, @margin)
+    super(container_selector)
     @range = @_loadRange()
     @domain = @_loadDomain()
     @scale = @_loadScale()
@@ -399,8 +411,24 @@ class App.D3Chart.RRHReturns extends App.D3Chart.Base
     @chart.append('g')
       .attr('class', 'y-axis')
       .call(yAxis)
+    @_customizeYAxis()
+    @_customizeXAxis()
+
+  _drawTooltip: (data) ->
+    time = data.discrete
+    n_clients = data.count + ' clients'
+    currentItems = @tooltip
+      .selectAll('.d3-tooltip__item')
+      .data([time, n_clients])
+    currentItems.exit().remove()
+    newItems = currentItems.enter()
+      .append('div')
+    items = newItems.merge(currentItems)
+      .attr('class', 'd3-tooltip__item d3-tooltip__label')
+      .text((d) => d)
 
   draw: ->
+    @_drawBackground()
     @_drawAxes()
     @chart.selectAll('rect.bar')
       .data(@data)
@@ -408,10 +436,13 @@ class App.D3Chart.RRHReturns extends App.D3Chart.Base
       .append('rect')
         .attr('class', 'bar')
         .attr('fill', '#091f2f')
+        .attr('opacity', 0.8)
         .attr('x', (d) => @scale.x(d.discrete))
         .attr('y', (d) => @scale.y(d.count))
         .attr('width', (d) => @scale.x.bandwidth())
         .attr('height', (d) => @scale.y(0) - @scale.y(d.count))
+        .on('mouseover', (d) => @_showTooltip(d))
+        .on('mouseout', (d) => @_removeTooltip(d))
 
 
 
