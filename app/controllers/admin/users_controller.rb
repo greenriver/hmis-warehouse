@@ -89,6 +89,7 @@ module Admin
     private def viewable_params
       params.require(:user).permit(
         data_sources: [],
+        coc_codes: [],
         organizations: [],
         projects: [],
         reports: [],

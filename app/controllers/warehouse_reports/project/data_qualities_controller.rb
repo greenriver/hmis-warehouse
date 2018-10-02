@@ -27,7 +27,7 @@ module WarehouseReports::Project
       begin
         @project_ids = project_params rescue []
         # filter by viewability
-        @project_ids = current_user.projects.where( id: @project_ids ).pluck(:id)   
+        @project_ids = current_user.projects.where( id: @project_ids ).pluck(:id)
         @project_group_ids = project_group_params rescue []
         if @project_ids.empty? && @project_group_ids.empty?
           raise ActionController::ParameterMissing, 'Parameters missing'
@@ -41,7 +41,7 @@ module WarehouseReports::Project
       else
         # kick off report generation
         queue_report(id_column: :project_id, keys: @project_ids)
-        queue_report(id_column: :project_group_id, keys: @project_group_ids) 
+        queue_report(id_column: :project_group_id, keys: @project_group_ids)
         redirect_to action: :show
       end
     end
@@ -50,8 +50,8 @@ module WarehouseReports::Project
       keys.each do |id|
         if @generate
           report = report_scope.create(
-            id_column => id, 
-            start: @range.start, 
+            id_column => id,
+            start: @range.start,
             end: @range.end
           )
         else
@@ -69,11 +69,11 @@ module WarehouseReports::Project
         joins(:organization).
         preload(:contacts, :current_data_quality_report).
         order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)
-        
-      @project_groups = project_group_scope.includes(projects: :organization, projects: :data_source).
+
+      @project_groups = project_group_scope.includes(projects: [:organization, :data_source]).
         joins(projects: :organization).
         preload(:contacts, :current_data_quality_report).
-        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)        
+        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)
       @projects.each do |project|
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
@@ -141,7 +141,7 @@ module WarehouseReports::Project
       @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
         select(report_base_class.column_names - ['report', 'support']).
         order(started_at: :asc).
-        index_by(&:project_group_id) 
+        index_by(&:project_group_id)
     end
 
     def related_report
