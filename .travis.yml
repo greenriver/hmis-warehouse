@@ -18,9 +18,11 @@ script:
   - bundle exec rake db:create
   - bundle exec rake warehouse:db:create
   - bundle exec rake health:db:create
+  - bundle exec rake reporting:db:create
   - bundle exec rake db:schema:load
   - bundle exec rake warehouse:db:schema:load
   - bundle exec rake health:db:schema:load
+  - bundle exec rake reporting:db:schema:load
   - bundle exec rspec
 
 addons:
