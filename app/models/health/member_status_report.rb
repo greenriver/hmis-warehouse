@@ -18,7 +18,7 @@ module Health
       patient_referrals.each do |pr|
         patient = pr.patient
 
-        most_recent_qualifying_activity = patient&.most_recent_direct_qualifying_activity_in_range(report_range)
+        most_recent_qualifying_activity = patient.qualifying_activities.direct_contact.order(date_of_activity: :desc).limit(1)&.first
         qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq || []
 
         # only include patients referred before the report end date
