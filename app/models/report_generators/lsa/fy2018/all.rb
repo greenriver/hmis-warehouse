@@ -26,7 +26,10 @@ end
 module ReportGenerators::Lsa::Fy2018
   class All < Base
     include TsqlImport
+    include NotifierConfig
+    attr_accessor :send_notifications, :notifier_config
     def run!
+      setup_notifier('LSA')
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
         calculate()
@@ -45,35 +48,51 @@ module ReportGenerators::Lsa::Fy2018
         begin
           @hmis_export = create_hmis_csv_export()
           update_report_progress percent: 15
+          log_and_ping('HMIS Export complete')
           # puts 'done exporting'
           setup_temporary_rds()
           update_report_progress percent: 20
+          log_and_ping('RDS DB Setup')
           # puts 'RDS setup done'
           setup_hmis_table_structure()
+          log_and_ping('HMIS Table Structure')
           setup_lsa_table_structure()
+          log_and_ping('LSA Table Structure')
           setup_lsa_reference_tables()
+          log_and_ping('LSA Reference Table Structure')
           setup_lsa_table_indexes()
+          log_and_ping('LSA Indexes')
 
           update_report_progress percent: 22
           setup_lsa_report()
+          log_and_ping('LSA Report Setup')
 
           populate_hmis_tables()
           update_report_progress percent: 30
+          log_and_ping('HMIS tables populated')
 
           run_lsa_queries()
           update_report_progress percent: 90
+          log_and_ping('LSA Queries complete')
           fetch_results()
           fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
+          log_and_ping('LSA Complete')
         ensure
           remove_temporary_rds()
         end
         finish_report()
       else
-        Rails.logger.info 'No Report Queued'
+        log_and_ping('No LSA Report Queued')
       end
+    end
+
+    def log_and_ping msg
+      msg = "#{msg} (ReportResult: #{@report&.id}, percent_complete: #{@report&.percent_complete})"
+      Rails.logger.info msg
+      @notifier.ping(msg) if @send_notifications
     end
 
     def sql_server_identifier
@@ -266,7 +285,17 @@ module ReportGenerators::Lsa::Fy2018
         create index tmp_household_ho_hid_idx ON [tmp_Household] ([HoHID]);
         create index tmp_household_hh_type_idx ON [tmp_Household] ([HHType]);
 
+        create index tmp_Person_ch_start ON [tmp_Person] ([CHStart]);
+        create index tmp_Person_last_active ON [tmp_Person] ([LastActive]);
+        create index tmp_Person_personal_id ON [tmp_Person] ([PersonalID]);
+
         create index ch_enrollment_personal_id_idx ON [ch_Enrollment] ([PersonalID]);
+        create index ch_enrollment_enrollment_id_idx ON [ch_Enrollment] ([EnrollmentID]);
+        create index ch_enrollment_start_date_idx ON [ch_Enrollment] ([StartDate]);
+        create index ch_enrollment_stop_date_idx ON [ch_Enrollment] ([StopDate]);
+        create index ch_enrollment_project_type_idx ON [ch_Enrollment] ([ProjectType]);
+
+        create index ch_exclude_excludeDate_idx ON [ch_Exclude] ([excludeDate]);
 
         create index ch_episodes_personal_id_idx ON [ch_Episodes] ([PersonalID]);
 
@@ -276,6 +305,10 @@ module ReportGenerators::Lsa::Fy2018
         create index report_report_start_idx ON [lsa_Report] ([ReportStart]);
         create index report_report_end_idx ON [lsa_Report] ([ReportEnd]);
         create index report_report_report_coc_idx ON [lsa_Report] ([ReportCoC]);
+
+        create index ref_cal_the_date_idx ON [ref_Calendar] ([theDate]);
+
+        create index ch_Time_personal_id_ch_date_idx ON [ch_Time] ([chDate], [PersonalID]);
 
       SQL
     end
@@ -310,6 +343,7 @@ module ReportGenerators::Lsa::Fy2018
         percent = 30 + i * step_percent
         update_report_progress percent: percent
         rep.public_send(meth)
+        log_and_ping("LSA Query #{meth} complete")
       end
     end
 
