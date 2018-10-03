@@ -2056,10 +2056,10 @@ module LsaSqlServer
           and bn.RecordType = 200
         inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
         inner join ref_Calendar cal on cal.theDate = bn.DateProvided
-        where bn.DateProvided <= @RptReportEnd
         left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
           and other.sysDate = cal.theDate
         where (cal.theDate > lhh.LastInactive)
+          and bn.DateProvided <= @RptReportEnd
           and other.sysDate is null and sn.ProjectType = 1
 
         --Homeless (Time prior to Move-In) in PSH or RRH (sys_Time.sysStatus = 5 or 6)
