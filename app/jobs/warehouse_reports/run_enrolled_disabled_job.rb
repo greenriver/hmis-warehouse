@@ -8,6 +8,14 @@ module WarehouseReports
       report.started_at = DateTime.now
       report.parameters = params
 
+      @user = User.find(params[:current_user_id])
+      report.user_id = @user.id
+      report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?
+        [:all, 'All']
+      else
+          GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
+      end
+
       filter_params = params[:filter]
 
       clients = []
@@ -41,7 +49,7 @@ module WarehouseReports
     end
 
     def project_source
-      GrdaWarehouse::Hud::Project
+      GrdaWarehouse::Hud::Project.viewable_by(@user)
     end
 
     def service_history_enrollment_source
