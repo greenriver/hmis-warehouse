@@ -258,57 +258,65 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_lsa_table_indexes
       SqlServerBase.connection.execute (<<~SQL);
-        create index ref_populations_HHType_idx ON [ref_Populations] ([HHType]);
-        create index ref_populations_HHAdultAge_idx ON [ref_Populations] ([HHAdultAge]);
-        create index ref_populations_HHVet_idx ON [ref_Populations] ([HHVet]);
-        create index ref_populations_HHDisability_idx ON [ref_Populations] ([HHDisability]);
-        create index ref_populations_HHChronic_idx ON [ref_Populations] ([HHChronic]);
-        create index ref_populations_HHFleeingDV_idx ON [ref_Populations] ([HHFleeingDV]);
-        create index ref_populations_HHParent_idx ON [ref_Populations] ([HHParent]);
-        create index ref_populations_HHChild_idx ON [ref_Populations] ([HHChild]);
-        create index ref_populations_Stat_idx ON [ref_Populations] ([Stat]);
-        create index ref_populations_PSHMoveIn_idx ON [ref_Populations] ([PSHMoveIn]);
-        create index ref_populations_HoHRace_idx ON [ref_Populations] ([HoHRace]);
-        create index ref_populations_HoHEthnicity_idx ON [ref_Populations] ([HoHEthnicity]);
+        create index ref_Populations_HHType_idx ON [ref_Populations] ([HHType]);
+        create index ref_Populations_HHAdultAge_idx ON [ref_Populations] ([HHAdultAge]);
+        create index ref_Populations_HHVet_idx ON [ref_Populations] ([HHVet]);
+        create index ref_Populations_HHDisability_idx ON [ref_Populations] ([HHDisability]);
+        create index ref_Populations_HHChronic_idx ON [ref_Populations] ([HHChronic]);
+        create index ref_Populations_HHFleeingDV_idx ON [ref_Populations] ([HHFleeingDV]);
+        create index ref_Populations_HHParent_idx ON [ref_Populations] ([HHParent]);
+        create index ref_Populations_HHChild_idx ON [ref_Populations] ([HHChild]);
+        create index ref_Populations_Stat_idx ON [ref_Populations] ([Stat]);
+        create index ref_Populations_PSHMoveIn_idx ON [ref_Populations] ([PSHMoveIn]);
+        create index ref_Populations_HoHRace_idx ON [ref_Populations] ([HoHRace]);
+        create index ref_Populations_HoHEthnicity_idx ON [ref_Populations] ([HoHEthnicity]);
 
-        create index active_enrollment_personal_id_idx ON [active_Enrollment] ([PersonalID]);
-        create index active_enrollment_household_id_idx ON [active_Enrollment] ([HouseholdID]);
-        create index active_enrollment_entry_date_idx ON [active_Enrollment] ([EntryDate]);
-        create index active_enrollment_project_type_idx ON [active_Enrollment] ([ProjectType]);
-        create index active_enrollment_project_id_idx ON [active_Enrollment] ([ProjectID]);
-        create index active_enrollment_relationship_to_hoh_idx ON [active_Enrollment] ([RelationshipToHoH]);
+        create index active_Enrollment_PersonalID_idx ON [active_Enrollment] ([PersonalID]);
+        create index active_Enrollment_HouseholdID_idx ON [active_Enrollment] ([HouseholdID]);
+        create index active_Enrollment_EntryDate_idx ON [active_Enrollment] ([EntryDate]);
+        create index active_Enrollment_ProjectType_idx ON [active_Enrollment] ([ProjectType]);
+        create index active_Enrollment_ProjectID_idx ON [active_Enrollment] ([ProjectID]);
+        create index active_Enrollment_RelationshipToHoH_idx ON [active_Enrollment] ([RelationshipToHoH]);
 
-        create index active_household_household_id_idx ON [active_Household] ([HouseholdID]);
-        create index active_household_ho_hid_idx ON [active_Household] ([HoHID]);
-        create index active_household_hh_type_idx ON [active_Household] ([HHType]);
+        create index active_Household_HouseholdID_idx ON [active_Household] ([HouseholdID]);
+        create index active_Household_HoHID_idx ON [active_Household] ([HoHID]);
+        create index active_Household_HHType_idx ON [active_Household] ([HHType]);
 
-        create index tmp_household_ho_hid_idx ON [tmp_Household] ([HoHID]);
-        create index tmp_household_hh_type_idx ON [tmp_Household] ([HHType]);
+        create index tmp_Household_HoHID_idx ON [tmp_Household] ([HoHID]);
+        create index tmp_Household_HHType_idx ON [tmp_Household] ([HHType]);
 
-        create index tmp_Person_ch_start ON [tmp_Person] ([CHStart]);
-        create index tmp_Person_last_active ON [tmp_Person] ([LastActive]);
-        create index tmp_Person_personal_id ON [tmp_Person] ([PersonalID]);
+        create index tmp_Person_CHStart_idx ON [tmp_Person] ([CHStart]);
+        create index tmp_Person_LastActive_idx ON [tmp_Person] ([LastActive]);
+        create index tmp_Person_PersonalID_idx ON [tmp_Person] ([PersonalID]);
 
-        create index ch_enrollment_personal_id_idx ON [ch_Enrollment] ([PersonalID]);
-        create index ch_enrollment_enrollment_id_idx ON [ch_Enrollment] ([EnrollmentID]);
-        create index ch_enrollment_start_date_idx ON [ch_Enrollment] ([StartDate]);
-        create index ch_enrollment_stop_date_idx ON [ch_Enrollment] ([StopDate]);
-        create index ch_enrollment_project_type_idx ON [ch_Enrollment] ([ProjectType]);
+        create index ch_Enrollment_PersonalID_idx ON [ch_Enrollment] ([PersonalID]);
+        create index ch_Enrollment_EnrollmentID_idx ON [ch_Enrollment] ([EnrollmentID]);
+        create index ch_Enrollment_StartDate_idx ON [ch_Enrollment] ([StartDate]);
+        create index ch_Enrollment_StopDate_idx ON [ch_Enrollment] ([StopDate]);
+        create index ch_Enrollment_ProjectType_idx ON [ch_Enrollment] ([ProjectType]);
 
-        create index ch_exclude_excludeDate_idx ON [ch_Exclude] ([excludeDate]);
+        create index ch_Exclude_excludeDate_idx ON [ch_Exclude] ([excludeDate]);
 
-        create index ch_episodes_personal_id_idx ON [ch_Episodes] ([PersonalID]);
+        create index ch_Episodes_PersonalID_idx ON [ch_Episodes] ([PersonalID]);
 
-        create index tcd_start_date_idx ON [tmp_CohortDates] ([CohortStart]);
-        create index tcd_end_date_idx ON [tmp_CohortDates] ([CohortEnd]);
+        create index tmp_CohortDates_CohortStart_idx ON [tmp_CohortDates] ([CohortStart]);
+        create index tmp_CohortDates_CohortEnd_idx ON [tmp_CohortDates] ([CohortEnd]);
 
-        create index report_report_start_idx ON [lsa_Report] ([ReportStart]);
-        create index report_report_end_idx ON [lsa_Report] ([ReportEnd]);
-        create index report_report_report_coc_idx ON [lsa_Report] ([ReportCoC]);
+        create index ref_Calendar_theDate_idx ON [ref_Calendar] ([theDate]);
 
-        create index ref_cal_the_date_idx ON [ref_Calendar] ([theDate]);
+        create index ch_Time_chDate_idx ON [ch_Time] ([chDate]);
+        create index ch_Time_PersonalID_idx ON [ch_Time] ([PersonalID]);
 
-        create index ch_Time_personal_id_ch_date_idx ON [ch_Time] ([chDate], [PersonalID]);
+        create index sys_Time_HoHID_idx ON [sys_Time] ([HoHID]);
+        create index sys_Time_HHType_idx ON [sys_Time] ([HHType]);
+        create index sys_Time_sysDate_idx ON [sys_Time] ([sysDate]);
+        create index sys_Time_sysStatus_idx ON [sys_Time] ([sysStatus]);
+
+        create index sys_Enrollment_EnrollmentID_idx ON [sys_Enrollment] ([EnrollmentID]);
+        create index sys_Enrollment_HoHID_idx ON [sys_Enrollment] ([HoHID]);
+        create index sys_Enrollment_HHType_idx ON [sys_Enrollment] ([HHType]);
+        create index sys_Enrollment_EntryDate_idx ON [sys_Enrollment] ([EntryDate]);
+        create index sys_Enrollment_ProjectType_idx ON [sys_Enrollment] ([ProjectType]);
 
       SQL
     end
