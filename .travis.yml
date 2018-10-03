@@ -11,16 +11,18 @@ before_script:
   - cp .rspec.travis .rspec
 
 env:
-  - RAILS_ENV=test DATABASE_ADAPTER=postgresql WAREHOUSE_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_ADAPTER=postgresql DATABASE_APP_DB_TEST=boston_hmis_test WAREHOUSE_DATABASE_DB_TEST=warehouse_test HEALTH_DATABASE_DB_TEST=health_test DEFAULT_FROM=greenriver.testing@mailinator.com
+  - RAILS_ENV=test DATABASE_ADAPTER=postgresql WAREHOUSE_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_ADAPTER=postgresql DATABASE_APP_DB_TEST=boston_hmis_test WAREHOUSE_DATABASE_DB_TEST=warehouse_test HEALTH_DATABASE_DB_TEST=health_test DEFAULT_FROM=greenriver.testing@mailinator.com HOSTNAME=openpath.host PORT=80 REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_DB_TEST=test_boston_reporting
 
 script:
   - date
   - bundle exec rake db:create
   - bundle exec rake warehouse:db:create
   - bundle exec rake health:db:create
+  - bundle exec rake reporting:db:create
   - bundle exec rake db:schema:load
   - bundle exec rake warehouse:db:schema:load
   - bundle exec rake health:db:schema:load
+  - bundle exec rake reporting:db:schema:load
   - bundle exec rspec
 
 addons:

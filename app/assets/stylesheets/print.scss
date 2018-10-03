@@ -1,3 +1,5 @@
+@import
+  'settings/colors';
 .cha__section .cha__help-text,
 .cha__section .client__assessment-question,
 .cha__section h5,
@@ -495,4 +497,10 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .col-sm-4
 {
   width: 30%;
+}
+
+.health__care-hub-note
+{
+  padding: 1em;
+  background-color: $gray-025;
 }

@@ -16,7 +16,7 @@ Rails.application.routes.draw do
     match 'timeout' => 'users/sessions#timeout', via: :get
   end
 
-  def healthcare_routes
+  def healthcare_routes(window:)
     namespace :health do
       resources :patient, only: [:index, :update]
       resources :utilization, only: [:index]
@@ -49,6 +49,20 @@ Rails.application.routes.draw do
       resources :careplans, except: [:create] do
         resources :team_members, except: [:index, :show]
         resources :goals, except: [:index, :show]
+        resources :signable_documents, only: [:show, :create] do
+          member do
+            # post :remind
+            get :signature
+            get :signed
+          end
+        end
+        resources :pcp_signature_requests, except: [:index]
+        resources :aco_signature_requests, except: [:index] do
+          member do
+            get :download_careplan
+          end
+        end
+
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
@@ -317,7 +331,7 @@ Rails.application.routes.draw do
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
-    healthcare_routes()
+    healthcare_routes(window: false)
   end
 
   namespace :window do
@@ -328,7 +342,7 @@ Rails.application.routes.draw do
     end
     resources :clients do
       resources :print, only: [:index]
-      healthcare_routes()
+      healthcare_routes(window: true)
       get :rollup
       get :assessment
       get :image
@@ -546,6 +560,8 @@ Rails.application.routes.draw do
   end
   resource :account, only: [:edit, :update]
   resources :public_files, only: [:show]
+
+  post 'hello-sign' => 'hello_sign#callback'
 
   unless Rails.env.production?
     resource :style_guide, only: :none do

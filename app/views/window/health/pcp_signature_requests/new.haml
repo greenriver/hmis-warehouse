@@ -1,0 +1,30 @@
+- title = 'Send Care Plan Signature Request to PCP'
+- content_for :modal_title, title
+%p
+  Select a primary care physician to send the Care Plan for signature.
+  The PCP must be listed as a team member on the Care Plan and have an email address with their organization’s domain name. (e.g. @tuftsmedical.org
+  %strong not
+  @gmail.com).
+- if @careplan.provider.present? && ! Health::Agency.email_valid?(@careplan.provider.email)
+  .alert.alert-warning
+    %p
+      Current PCP #{@careplan.provider.full_name} does not have an acceptable email.
+      %br
+      Email on file: #{@careplan.provider.email.presence || 'none'}.
+      %br
+      Please choose an alternate PCP.  The care plan will be updated to reflect the PCP selected below.
+= simple_form_for @signature_request, as: :signature_request, url: @form_url do |f|
+  .row
+    .col-sm-8
+      = f.input :team_member_id, collection: @available_team_members, selected: @careplan.provider_id, required: true, label: 'Primary Care Physician', input_html: {class: :select2, style: 'width: 100%;'}
+  = link_to polymorphic_path([:new] + team_member_path_generator, {client_id: @client.id}), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true} do
+    %span.icon-plus
+    Add Team Member
+  .d-flex
+    = link_to polymorphic_path(careplans_path_generator, {client_id: @client.id, careplan_id: @careplan.id}), class: ['ml-auto', 'btn', 'btn-secondary'] do
+      Cancel
+    = f.submit 'Send to PCP', class: ['btn', 'btn-primary', 'ml-2']
+
+= content_for :page_js do
+  :javascript
+    $('.select2').select2();
