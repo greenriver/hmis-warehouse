@@ -10,7 +10,11 @@ module WarehouseReports
 
       user = User.find(params[:current_user_id])
       report.user_id = user.id
-      report.parameters[:visible_projects] = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
+      report.parameters[:visible_projects] = if user.can_edit_anything_super_user?
+        [:all, 'All']
+      else
+          GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
+      end
 
       range = ::Filters::DateRangeAndProject.new(params['range'])
       scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))

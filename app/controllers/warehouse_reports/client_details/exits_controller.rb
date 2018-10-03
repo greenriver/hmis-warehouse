@@ -2,7 +2,7 @@ module WarehouseReports::ClientDetails
   class ExitsController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
-    
+
     def index
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
@@ -20,9 +20,9 @@ module WarehouseReports::ClientDetails
       end
       columns = {
         client_id: she_t[:client_id].as('client_id').to_sql,
-        date: she_t[:date].as('date').to_sql, 
-        destination: she_t[:destination].as('destination').to_sql, 
-        first_name: c_t[:FirstName].as('first_name').to_sql, 
+        date: she_t[:date].as('date').to_sql,
+        destination: she_t[:destination].as('destination').to_sql,
+        first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
         project_name: she_t[:project_name].as('project_name').to_sql,
       }
@@ -75,7 +75,7 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
   end
 end

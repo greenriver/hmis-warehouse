@@ -2,7 +2,7 @@ module WarehouseReports
   class BedUtilizationController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
-    
+
     def index
       options = {}
       if params[:mo].present?
@@ -13,14 +13,15 @@ module WarehouseReports
         options[:end] = end_date
       end
       @mo = ::Filters::MonthAndOrganization.new options
+      @mo.user = current_user
       if @mo.valid?
-        @projects_with_counts = GrdaWarehouse::Hud::Organization.bed_utilization_by_project(filter: @mo)
+        @projects_with_counts = organization_scope.bed_utilization_by_project(filter: @mo)
       else
-        @projects_with_counts = ( @mo.organization.projects.map{ |p| [ p, [] ] } rescue {} )
+        @projects_with_counts = ( @mo.organization.projects.viewable_by(current_user).map{ |p| [ p, [] ] } rescue {} )
       end
       respond_to :html, :xlsx
     end
-    
+
     def info project, projects_by_date, date
       ri = relevant_inventory project.inventories, date
       capacity = ri.try(&:BedInventory)
@@ -56,6 +57,10 @@ module WarehouseReports
       GrdaWarehouse::Hud::Inventory.relevant_inventory(inventories: inventories, date: date)
     end
     helper_method :relevant_inventory
+
+    def organization_scope
+      GrdaWarehouse::Hud::Organization.viewable_by(current_user)
+    end
 
   end
 end

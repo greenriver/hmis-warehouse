@@ -4,7 +4,7 @@
   .col-sm-8
     %h1= title
   .col-sm-4.text-right
-    - if  can_view_clients?
+    - if can_view_clients?
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
 = render '/warehouse_reports/breadcrumbs'
@@ -14,12 +14,12 @@
 .row
   .col-sm-12
     %h2 Summary
-    %p 
+    %p
       The following is exit data for veteran who exited homelessness between
       = @range.start
       and
       = "#{@range.end}."
-      During that time there were 
+      During that time there were
       = @clients.count
       exits consisting of
       = @clients.map{ |row| row[:client_id]}.uniq.count
@@ -74,5 +74,5 @@
 -#     %p= page_entries_info @clients, entry_name: _('client')
 -#     %p= paginate @clients
 -#   = render 'veteran_table'
-                  
+
 -# %p= paginate @clients
