@@ -39,6 +39,26 @@ h2.ho-sub__h2 {
   }
 }
 
+#rrh-report__loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 5000;
+  display: none;
+}
+
+#rrh-report__container .c-spinner {
+  display: inline-block;
+  &::before {
+    width: 50px;
+    height: 50px;
+    margin-right: 0px;
+  }
+}
+
 #d3-tooltip {
   position: absolute;
   display: none;
@@ -91,7 +111,7 @@ h2.ho-sub__h2 {
   margin-bottom: $ho-padding;
 }
 
-.ho-container.rrh .ho-container__header {
+.ho-container.rrh .ho-container__header h3 {
   margin-top: 0px;
 }
 
@@ -101,6 +121,12 @@ h2.ho-sub__h2 {
 
 .ho-hints {
   margin-top: $ho-padding * 2;
+}
+
+#d3-outcome__legend .ho-hint,
+#d3-demographics__legend .ho-hint {
+  float: right;
+  margin-right: 10px;
 }
 
 .ho-hint {

@@ -5,6 +5,8 @@ module WarehouseReports
     respond_to :html, :js
     
     def index
+      @program_1_id = params[:program_1_id]
+      @program_2_id = params[:program_2_id]
       @programs_for_select = Reporting::D3Charts.programs_for_select
     end
 

@@ -1,17 +1,19 @@
 .ho-container.rrh
-  %h3.ho-container__header Returns to Shelter from Permanent Housing
-  %p Clients that returned to shelter some point after successfully exiting Rapid Rehousing to a permanent housing destination.
-  = render 'program_titles'
+  .ho-container__header 
+    %h3.margin-bottom-00 Returns to Shelter from Permanent Housing
+    %p.margin-top-01 Clients that returned to shelter some point after successfully exiting Rapid Rehousing to a permanent housing destination.
   .row.rrh-row
     .col-xs-12.col-md-6
-      %p.rrh__retuns-to-shelter.callout
-        = @charts.report.return_1
-        .sub_header
-          of those who exited to permanent housing from the reference program
+      = content_for :program_1_title
+      .ho-cart__title.text-center
+        %strong= @charts.report.return_1
+        %br
+        of those who exited to permanent housing from the reference program
       .d3-chart#d3-return-1{style: 'height: 500px'}
     .col-xs-12.col-md-6
-      %p.rrh__retuns-to-shelter.callout
-        = @charts.report.return_2
-        .sub_header
-          of those who exited to permanent housing from the comparison program
+      = content_for :program_2_title
+      .ho-cart__title.text-center
+        %strong= @charts.report.return_2
+        %br
+        of those who exited to permanent housing from the comparison program
       .d3-chart#d3-return-2{style: 'height: 500px'}

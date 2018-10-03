@@ -4,17 +4,28 @@
 class App.D3Chart.RRHCharts
   constructor: (container, program_1_selector, program_2_selector, data) ->
     @container = $(container)
+    @button = $('[data-behavior="update charts"]')
     @program_1 = $(program_1_selector)
     @program_2 = $(program_2_selector)
     @chartTypes = ['overview', 'outcomes', 'shelter_returns', 'demographics']
     @data = data
     @charts = {}
+    @legends = {}
 
   load: -> @_getProgramData()
 
   listen: ->
-    @program_1.change((e) => @_getProgramData())
-    @program_2.change((e) => @_getProgramData())
+    @program_1.change((e) =>
+      @container.html('')
+    )
+    @program_2.change((e) =>
+      @container.html('')
+    )
+    @button.click((e) =>
+      console.log('compare programs')
+      e.preventDefault()
+      @_getProgramData()
+    )
 
   draw: () -> 
     @_loadCharts()
@@ -28,24 +39,52 @@ class App.D3Chart.RRHCharts
         if type == 'overview'
           @charts[type].push(new App.D3Chart.RRHOverview(selector, d.overview.data['program_'+(i+1)], d.overview.data.both))
         else if type == 'outcomes'
-          @charts[type].push(new App.D3Chart.RRHOutcome(selector, d.outcomes.data['program_'+(i+1)]))
+          @charts[type].push(new App.D3Chart.RRHOutcome(selector, d.outcomes.data['program_'+(i+1)], d.outcomes.data.both))
         else if type == 'shelter_returns'
           @charts[type].push(new App.D3Chart.RRHReturns(selector, d.shelter_returns.data, 'program_'+(i+1)))
         else if type == 'demographics'
           @charts[type].push(new App.D3Chart.RRHDemographics(selector, d.demographics.data['program_'+(i+1)], d.demographics.data.both))
+      if @data[type].legend
+        @legends[type] = new App.D3Chart.RRHLegend(@data[type].legend, @charts[type][0])
+
 
   _drawCharts: () ->
     for type, index in @chartTypes
       if @charts[type]
         for chart, i in @charts[type]
           chart.draw()
+      if @legends[type]
+        @legends[type].draw()
 
   _getProgramData: () ->
-    path = @program_1.data('path')
-    @container.html('Loading...')
+    path = @button.data('path')
+    @container.html("<div class='text-center margin-top-04'><div class='c-spinner c-spinner--gray'></div></div>")
+    $('#rrh-report__loading').show()
     $.get(path, {program_1_id: @program_1.val(), program_2_id: @program_2.val()}, (response) =>
       console.log('Loading charts')
+      $('#rrh-report__loading').hide()
     )
+
+class App.D3Chart.RRHLegend
+  constructor: (container_selector, chart) ->
+    @container = d3.select(container_selector)
+    @chart = chart
+    @keys = @chart.domain.color
+
+  draw: ->
+    keys = @container.selectAll('.ho-hint')
+      .data(@keys)
+      .enter()
+      .append('div')
+        .attr('class', 'ho-hint')
+    keys.selectAll('div')
+      .data((d) => [['color', @chart.scale.color(d)], ['key', d]])
+      .enter()
+      .append('div')
+        .attr('class', (d) => if d[0] == 'key' then 'ho-hint__swatch-text' else 'ho-hint__swatch')
+        .style('background-color', (d) => if d[0] == 'color' then d[1] else 'transparent')
+        .html((d) => if d[0] == 'key' then ('<small>'+d[1]+'</small>') else '')
+
 
 class App.D3Chart.RRHBase extends App.D3Chart.Base
   constructor: (container_selector) ->
@@ -76,7 +115,6 @@ class App.D3Chart.RRHBase extends App.D3Chart.Base
     ticks = @chart.selectAll('g.y-axis g.tick')
     scale = @scale
     domain = @domain
-    console.log('domain', domain)
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
@@ -144,7 +182,7 @@ class App.D3Chart.RRHOverview extends App.D3Chart.RRHBase
 
   _loadScale: ->
     {
-      x: d3.scaleBand().domain(@domain.x).range(@range.x).padding(0.3),
+      x: d3.scaleBand().domain(@domain.x).range(@range.x).padding(0.1),
       y: d3.scaleLinear().domain(@domain.y).range(@range.y)
     }
 
@@ -155,16 +193,32 @@ class App.D3Chart.RRHOverview extends App.D3Chart.RRHBase
     }
 
   _loadDomain: ->
-    {
-      x: @allData.map((d) -> d.month_year),
+    years = d3.nest()
+      .key((d) -> d.month_year.getFullYear())
+      .entries(@allData)
+      .map((d) -> new Date(d.key, 0, 1))
+      .sort((a, b) -> (b - a) * -1)
+      .map((d) -> d.getFullYear())
+    domain = {
+      years: years,
+      x: [],
       y: [0, d3.max(@allData, (d) -> d.n_clients)]
-    }
+    } 
+    domain.years.forEach((year) ->
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].forEach((month) ->
+        domain.x.push(new Date(year, month, 1))
+      )
+    )
+    domain
+    
 
   _drawAxes: ->
+    yearTicks = @domain.years.map((y) -> new Date(y, 0, 1))
     xAxis = d3.axisBottom()
-      .tickFormat(d3.timeFormat("%m-%Y")).scale(@scale.x)
+      .tickFormat(d3.timeFormat("%Y"))
+      .tickValues(yearTicks)
+      .scale(@scale.x)
     yAxis = d3.axisLeft().scale(@scale.y)
-      .ticks(@domain.y[1])
       .tickFormat(d3.format('d'))
     @chart.append('g')
       .attr('transform', 'translate(0, '+@dimensions.height+')')
@@ -211,9 +265,10 @@ class App.D3Chart.RRHOverview extends App.D3Chart.RRHBase
 
 
 class App.D3Chart.RRHOutcome extends App.D3Chart.RRHBase
-  constructor: (container_selector, data) ->
+  constructor: (container_selector, data, allData) ->
     @margin = {top: 0, right: 0, bottom: 40, left: 0}
     @data = data
+    @allData = allData
     super(container_selector)
     @range = @_loadRange()
     @domain = @_loadDomain()
@@ -228,7 +283,10 @@ class App.D3Chart.RRHOutcome extends App.D3Chart.RRHBase
 
   _loadDomain: ->
     {
-      color: @data.map((d) -> d.outcome)
+      color: d3.nest()
+        .key((d) -> d.outcome)
+        .entries(@allData)
+        .map((d) -> d.key)
     }
 
   _loadRange: () ->
@@ -299,7 +357,10 @@ class App.D3Chart.RRHDemographics extends App.D3Chart.RRHBase
 
   _loadDomain: ->
     {
-      x: @allData.map((d) -> d.race),
+      x: d3.nest()
+        .key((d) -> d.race)
+        .entries(@allData)
+        .map((d) -> d.key)
       y:[0, d3.max(@allData, (d) -> d.freq)],
       color: ['full-population', 'housed']
     }

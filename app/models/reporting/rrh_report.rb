@@ -551,6 +551,24 @@ module Reporting
       #   row[:count] = row['clients']
       #   row
       # end
+      @return_length_1 = begin
+        (JSON.parse R.return_length_1).map do |row|
+          row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
+          row[:count] = row['clients']
+          row
+        end
+      rescue
+        []
+      end
+      @return_length_2 = begin
+        (JSON.parse R.return_length_2).map do |row|
+          row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
+          row[:count] = row['clients']
+          row
+        end
+      rescue
+        []
+      end
       @demographic_plot_1 = JSON.parse R.demographic_plot_1
       @demographic_plot_2 = JSON.parse R.demographic_plot_2
 

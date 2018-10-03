@@ -1,9 +1,13 @@
 .ho-container.rrh
-  %h3.ho-container__header Racial Disparities
-  %p Proportion of clients exiting to permanent housing by race versus proportion of full population by race
-  = render 'program_titles'
+  .ho-container__header.clearfix
+    .pull-left
+      %h3.margin-bottom-00 Racial Disparities
+      %p.margin-top-01 Proportion of clients exiting to permanent housing by race versus proportion of full population by race
+    #d3-demographics__legend.pull-right
   .row.rrh-row
     .col-xs-12.col-md-6
+      = content_for :program_1_title
       .d3-chart#d3-demographics-1{style: 'height: 500px'}
     .col-xs-12.col-md-6
+      = content_for :program_2_title
       .d3-chart#d3-demographics-2{style: 'height: 500px'}

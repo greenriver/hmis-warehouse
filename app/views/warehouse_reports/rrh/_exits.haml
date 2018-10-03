@@ -1,23 +1,26 @@
 .ho-container.rrh
-  %h3.ho-container__header Exits to Permanent Housing
-  %p Clients that exited Rapid Rehousing Programs to a permanent housing destination
-  = render 'program_titles'
+  .ho-container__header 
+    %h3.margin-bottom-00 
+      Exits to Permanent Housing
+    %p.margin-top-01 Clients that exited Rapid Rehousing Programs to a permanent housing destination
   .row.rrh-row
-    .col-xs-12.col-md-6
-      %p.rrh__exits-to-ph.callout
+    .col-xs-12.col-md-6.text-center
+      = content_for :program_1_title
+      %h3
         = @charts.report.ph_exits_1
-        .sub_header
-          of those who exited the reference program
-      %p.rrh__exits-to-shelter.callout
+        %br
+        %small of those who exited the reference program
+      %h3
         = @charts.report.shelter_exits_1
-        .sub_header
-          of those who exited the reference program
-    .col-xs-12.col-md-6
-      %p.rrh__exits-to-ph.callout
+        %br
+        %small of those who exited the reference program
+    .col-xs-12.col-md-6.text-center
+      = content_for :program_2_title
+      %h3
         = @charts.report.ph_exits_2
-        .sub_header
-          of those who exited the comparison program
-      %p.rrh__exits-to-shelter.callout
+        %br
+        %small of those who exited the comparison program
+      %h3
         = @charts.report.shelter_exits_2
-        .sub_header
-          of those who exited the comparison program
+        %br
+        %small of those who exited the comparison program
