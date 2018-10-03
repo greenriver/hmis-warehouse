@@ -1,4 +1,7 @@
 %p
+  - if @report.error.present?
+    .alert.alert-danger
+      = @report.error
   - if @report.precalculated_at
     A claims file is queued for generation.  Please check back in a few minutes.
   - if @report.started_at
