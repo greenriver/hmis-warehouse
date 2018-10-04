@@ -1,45 +1,33 @@
 class BaseJob < ActiveJob::Base
+  STARTING_PATH = File.realpath(FileUtils.pwd)
 
   before_perform do |job|
-    if ! should_perform?
-      a_t = Delayed::Job.arel_table
-      original_job = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job.job_id}%")).first
-      original_job_pid = get_pid_from_job(original_job)
-      pid = Process.pid
-      if original_job_pid && pid == original_job_pid
-        Rails.logger.fatal "RESTARTING DELAYED JOB #{pid}"
+    if STARTING_PATH != expected_path
+      Rails.logger.info "Started dir is `#{STARTING_PATH}`"
+      Rails.logger.info "Current dir is `#{expected_path}`"
+      Rails.logger.info "Exiting in order to let systemd restart me in the correct directory."
 
-        setup_new_job(original_job)
-        original_job.destroy
-        exec("kill #{pid}")
-      end
+      unlock_job!(job)
+
+      # Exit, ignoring signal handlers which would prevent the process from dieing
+      exit!(0)
     end
   end
 
-  def should_perform?
-    Rails.logger.fatal "RESTARTING #{ENV['GIT_REVISION']} #{ENV['CURRENT_PATH']} #{File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))} --"
-    return true unless ENV['GIT_REVISION'].present?
-    return true unless File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))
-    current_revision = File.read(File.join(ENV['CURRENT_PATH'], 'REVISION'))&.strip
-    return current_revision == ENV['GIT_REVISION']
+  private
+
+  def expected_path
+    Rails.cache.fetch('deploy-dir') do 
+      # A default for the first deployment and local development
+      # This should be set on deployment.
+      File.realpath(FileUtils.pwd)
+    end
   end
 
-  def setup_new_job old_job
-    new_job = old_job.dup
-    new_job.assign_attributes(
-      id: nil,
-      attempts: 0,
-      locked_at: nil,
-      locked_by: nil,
-      last_error: nil,
-      failed_at: nil,
-    )
-    new_job.save!
-  end
+  def unlock_job!(job)
+    a_t = Delayed::Job.arel_table
+    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job.job_id}%")).first
 
-  # NOTE: Do we need to check our hostname?
-  def get_pid_from_job job
-    /pid:(\d+)/.match(job.locked_by).try(:[], 1)&.to_i
+    job_object.update_attributes(locked_by: nil, locked_at: nil)
   end
-
 end
