@@ -431,6 +431,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    rinruby (2.1.0)
     roo (2.7.1)
       nokogiri (~> 1)
       rubyzip (~> 1.1, < 2.0.0)
@@ -438,6 +439,9 @@ GEM
       nokogiri
       roo (>= 2.0.0, < 3)
       spreadsheet (> 0.9.0)
+    rserve-client (0.3.5)
+    rserve-simpler (0.0.6)
+      rserve-client (~> 0.3.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -653,8 +657,10 @@ DEPENDENCIES
   redis-rails
   responders
   rest-client (~> 2.0)
+  rinruby
   roo
   roo-xls
+  rserve-simpler
   rspec-mocks
   rspec-rails
   ruby-filemagic
