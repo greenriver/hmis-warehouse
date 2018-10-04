@@ -522,14 +522,14 @@ module Reporting
 
       @num_housed_1 = R.num_housed_1
       @num_housed_2 = R.num_housed_2
-      @housedPlot_1 = JSON.parse R.housedPlot_1
-      @housedPlot_2 = JSON.parse R.housedPlot_2
+      @housedPlot_1 = JSON.parse(R.housedPlot_1) rescue '[]'
+      @housedPlot_2 = JSON.parse(R.housedPlot_2) rescue '[]'
       @time_to_housing_1 = R.time_to_housing_1 || 'unknown days to find housing' # prevent re-running if we receive no answer
       @time_to_housing_2 = R.time_to_housing_2 || 'unknown days to find housing'
       @time_in_housing_1 = R.time_in_housing_1 || 'unknown days in find housing'
       @time_in_housing_2 = R.time_in_housing_2 || 'unknown days in find housing'
-      @success_failure_1 = JSON.parse R.success_failure_1
-      @success_failure_2 = JSON.parse R.success_failure_2
+      @success_failure_1 = JSON.parse(R.success_failure_1) rescue '[]'
+      @success_failure_2 = JSON.parse(R.success_failure_2) rescue '[]'
       @ph_exits_1 = R.ph_exits_1
       @shelter_exits_1 = R.shelter_exits_1
       @ph_exits_2 = R.ph_exits_2
