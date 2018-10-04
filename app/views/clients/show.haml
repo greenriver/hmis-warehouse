@@ -6,20 +6,18 @@
   }
 
 = render 'breadcrumbs'
-= render 'tab_navigation', current: client_path(@client)
+
 .o-page
   .o-page__header.d-block
     .row
-      .col-sm-8
-        %h1.mt-0= title
-      .col-sm-4.text-right
+      .col-sm-10
+        = render 'window/clients/aliases'
+      .col-sm-2.text-right
         .o-page__action.d-block
           - if can_track_anomalies?
             = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
               Track Issues
-
-    = render 'window/clients/aliases'
-
+  = render 'tab_navigation', current: client_path(@client)
   %section.o-dashboard__block--primary.client__summary
     = render 'client_summary'
 

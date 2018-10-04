@@ -32,11 +32,14 @@ gem 'acts-as-taggable-on', '~> 4.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
+gem 'hellosign-ruby-sdk'
 
-gem 'devise', '~> 3.5'
+gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'paper_trail'
 gem 'validates_email_format_of'
+gem 'ruby-mailchecker'
+gem "email_check"
 gem 'text'
 
 gem "lograge"
@@ -69,6 +72,8 @@ gem 'htmlentities'
 # ETO API related
 gem "rest-client", "~> 2.0"
 gem "gmail", require: false
+
+gem 'stupidedi', require: false
 
 # for de-duping clients
 gem 'redcarpet'

@@ -25,7 +25,8 @@ module Reports::Lsa::Fy2018
     end
 
     def self.available_projects
-      GrdaWarehouse::Hud::Project.all
+      # Project types are integral to LSA business logic; only ES, SH, TH, RRH, and PSH projects should be available to select as parameters.
+      GrdaWarehouse::Hud::Project.coc_funded.with_hud_project_type([1, 2, 3, 8, 13])
     end
 
     def self.available_data_sources

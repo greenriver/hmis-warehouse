@@ -25,13 +25,13 @@ SqlServerBase.connection.execute (<<~SQL);
       PRIMARY KEY (EnrollmentID)
   )
   ;
-
+  -- CHANGE 9/17/2018 – correct data type for ProjectID from int to varchar(32)
   if object_id ('active_Household') is not null drop table active_Household
   CREATE TABLE dbo.active_Household(
     HouseholdID varchar(32) NOT NULL,
     HoHID varchar(32) NULL,
     HHType int NULL,
-    ProjectID int NULL,
+    ProjectID varchar(32) NULL,
     ProjectType int NULL,
     TrackingMethod int NULL,
     MoveInDate date NULL,
@@ -399,7 +399,17 @@ SqlServerBase.connection.execute (<<~SQL);
     MoveInDate3 int NULL
   )
   ;
-  --INSERT [dbo].[lsa_Report] ([ReportID], [ReportDate], [ReportStart], [ReportEnd], [ReportCoC], [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail], [LSAScope]) VALUES (1009, CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date), CAST(N'2017-09-30' AS Date), N'XX-500', N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com', 1)
+
+  --CHANGE 9/17/2018 - NOTE: set production values based on system / user parameters
+  --INSERT [dbo].[lsa_Report] ([ReportID]
+  --  , [ReportDate], [ReportStart], [ReportEnd], [ReportCoC]
+  --  , [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail]
+  --  , [LSAScope])
+  --VALUES (1009
+  --  , CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date)
+  --    , CAST(N'2017-09-30' AS Date), N'XX-500'
+  --  , N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com'
+  --  , 1)
 
   if object_id ('sys_Enrollment') is not null drop table sys_Enrollment
   CREATE TABLE dbo.sys_Enrollment(

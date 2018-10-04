@@ -21,7 +21,7 @@ module WarehouseReports
           Hash[columns.zip(row)]
         end.
         group_by{|row| row[:client_id]}
-      
+
       # Throw away the homeless client if all homeless enrollments start before all PH enrollments
       # or start after all PH enrollments close
       @homeless_clients.delete_if do |client_id, enrollments|
@@ -63,6 +63,14 @@ module WarehouseReports
       enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
       @homeless_service = service_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
       @homeless_service_dates = service_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "Recidivism-#{@filter.start.strftime('%Y-%m-%d')}-to-#{@filter.end.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def ph_source

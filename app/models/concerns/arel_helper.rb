@@ -116,6 +116,9 @@ module ArelHelper
   def i_t
     GrdaWarehouse::Hud::Inventory.arel_table
   end
+  def af_t
+    GrdaWarehouse::Hud::Affiliation.arel_table
+  end
   def ch_t
     GrdaWarehouse::Chronic.arel_table
   end
@@ -342,6 +345,9 @@ module ArelHelper
     end
     def i_t
       GrdaWarehouse::Hud::Inventory.arel_table
+    end
+    def af_t
+      GrdaWarehouse::Hud::Affiliation.arel_table
     end
     def ch_t
       GrdaWarehouse::Chronic.arel_table

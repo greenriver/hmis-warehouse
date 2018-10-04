@@ -6,7 +6,7 @@
           wrapper_selector: '.cohorts',
           table_selector: '.datatable',
           batch_size: 100,
-          static_column_count: #{@cohort.static_column_count + 1},
+          // static_column_count: #{@cohort.static_column_count + 1},
           client_count: #{@cohort.client_search_scope.count},
           sort_direction: '#{@cohort.default_sort_direction}',
           column_order: #{(@visible_columns.map(&:column)).to_json},

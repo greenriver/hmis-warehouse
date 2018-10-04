@@ -71,10 +71,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'window visibility' do
       model = GrdaWarehouse::Hud::Client
-      let! :c1 { create :grda_warehouse_hud_client }
-      let! :user { create :user }
-      let! :role { create :assigned_ds_viewer }
-      let :data_source { c1.data_source }
+      let!(:c1) { create :grda_warehouse_hud_client }
+      let!(:user) { create :user }
+      let!(:role) { create :assigned_ds_viewer }
+      let(:data_source) { c1.data_source }
       it 'user cannot see client' do
         expect(model.visible_in_window_to(user).pluck(:id)).not_to include(c1.id)
       end
@@ -103,14 +103,14 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'viewability' do
       model = GrdaWarehouse::Hud::Client
-      let  :c1 { create :grda_warehouse_hud_client }
-      let  :c2 { create :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday}
-      let  :admin_role { create :admin_role }
-      let  :user { create :user }
-      let! :e1  { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID }
-      let! :e2  { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID }
-      let! :ec1 { create :hud_enrollment_coc, CoCCode: 'foo', data_source_id: e1.data_source_id, PersonalID: e1.PersonalID, EnrollmentID: e1.EnrollmentID }
-      let! :ec2 { create :hud_enrollment_coc, CoCCode: 'bar', data_source_id: e2.data_source_id, PersonalID: e2.PersonalID, EnrollmentID: e2.EnrollmentID }
+      let(:c1) { create :grda_warehouse_hud_client }
+      let(:c2) { create :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday}
+      let(:admin_role) { create :admin_role }
+      let(:user) { create :user }
+      let!(:e1)  { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID }
+      let!(:e2)  { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID }
+      let!(:ec1) { create :hud_enrollment_coc, CoCCode: 'foo', data_source_id: e1.data_source_id, PersonalID: e1.PersonalID, EnrollmentID: e1.EnrollmentID }
+      let!(:ec2) { create :hud_enrollment_coc, CoCCode: 'bar', data_source_id: e2.data_source_id, PersonalID: e2.PersonalID, EnrollmentID: e2.EnrollmentID }
 
       user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
       ids      = -> (*clients) { clients.map(&:id).sort }

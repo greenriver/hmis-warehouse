@@ -66,6 +66,7 @@ module Exporters::HmisSixOneOne
         build_export_file()
         zip_archive()
         upload_zip()
+        save_fake_data()
       ensure
         remove_export_files()
         reset_time_format()
@@ -84,6 +85,11 @@ module Exporters::HmisSixOneOne
     def reset_time_format
       Date::DATE_FORMATS[:default] = @default_date_format
       Time::DATE_FORMATS[:default] = @default_time_format
+    end
+
+    def save_fake_data
+      return unless @faked_pii
+      @export.fake_data.save
     end
 
     def zip_path

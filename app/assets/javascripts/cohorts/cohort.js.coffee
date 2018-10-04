@@ -1,11 +1,9 @@
-#= require ./namespace
-
 class App.Cohorts.Cohort
   constructor: (options) ->
     @wrapper_selector = options['wrapper_selector']
     @table_selector = options['table_selector']
     @batch_size = options['batch_size']
-    @static_column_count = options['static_column_count']
+    # @static_column_count = options['static_column_count']
     @client_count = options['client_count']
     @sort_direction = options['sort_direction']
     @column_order = options['column_order']
@@ -35,187 +33,150 @@ class App.Cohorts.Cohort
     @current_page = 0
     @raw_data = []
 
-    @initialize_handsontable()
+    @initialize_grid()
 
     @load_pages()
-    @listen_for_page_resize()
+    @resize_columns()
+    @enable_searching()
 
-  initialize_handsontable: () =>
-    direction = true
-    if @sort_direction == 'desc'
-      direction = false
-    @initial_sort = {column: 1, sortOrder: direction}
-    @current_sort = Object.assign({}, @initial_sort)
-    @add_sort_options()
-    @table = new Handsontable $(@table_selector)[0],
-      rowHeaders: true
-      colHeaders: @column_headers
-      correctFormat: true
-      dateFormat: 'll'
-      columns: @column_options
-      fixedColumnsLeft: @static_column_count
-      # manualColumnResize: @column_widths
-      manualColumnResize: true
-      rowHeights: 40
-      sortIndicator: true
-      search: true
-      comments: true
-      afterChange: @after_change
-      beforeChange: @before_change
+  initialize_grid: () =>
+    @set_grid_column_headers()
 
-  add_sort_options:  =>
-    for column in @column_options
-      if column.type == 'checkbox'
-        column.sortFunction = (sortOrder) =>
-          (a, b) =>
-            @sort_checkboxes(a, b, sortOrder)
+    @grid_options = {
+      columnDefs: @grid_column_headers,
+      enableSorting: true,
+      enableFilter: true,
+      singleClickEdit: true,
+      rowSelection: 'multiple',
+      rowDeselection: true,
+      enableColResize: true,
+      getRowNodeId: (data) ->
+        data.meta.cohort_client_id
+      onSortChanged: (data) ->
+        data.api.refreshCells()
+      onFilterChanged: (data) ->
+        data.api.refreshCells()
+      onCellEditingStarted: (params) =>
+        @editing_field_name = params.colDef.field
+        @editing_cohort_client_id = params.data[params.colDef.field].cohort_client_id
+        @editing_initial_value = params.value
+      onCellEditingStopped: (params) =>
+        # console.log @editing_field_name, @editing_cohort_client_id, @editing_initial_value
+        cohort_client_id = params.data[params.colDef.field].cohort_client_id
+        # don't save anything if we had no change
+        if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id && @editing_initial_value == params.value
+          return
+        old_value = 'unknown'
+        if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id
+          old_value = @editing_initial_value
+        @after_edit(params.colDef.field, cohort_client_id, old_value, params.value)
+      components:
+          dateCellEditor: DateCellEditor,
+          dateCellRenderer: DateCellRenderer,
+          checkboxCellEditor: CheckboxCellEditor,
+          checkboxCellRenderer: CheckboxCellRenderer,
+          dropdownCellEditor: DropdownCellEditor,
+          htmlCellRenderer: HtmlCellRenderer,
+    }
+    @table = new agGrid.Grid($(@table_selector)[0], @grid_options)
 
-  # This is to work around a bug in handsontable
-  # https://github.com/handsontable/handsontable/issues/4047
-  sort_checkboxes: (a, b, sort_order) =>
-    ret = if a[1] > b[1] then 1 else -1
-    if sort_order
-      if a[1] > b[1] then 1 else -1
-    else
-      if b[1] > a[1] then 1 else -1
+  resize_columns: =>
+    @grid_options.columnApi.autoSizeColumns(@grid_options.columnApi.getAllColumns())
 
-  after_change: (changes, source) =>
-    if source == 'edit'
-      @after_edit(changes)
+  set_grid_column_headers: =>
+    row_number = {
+      headerName: 'Row'
+      pinned: 'left'
+      valueGetter: (params) ->
+        params.node.rowIndex + 1
+      suppressMenu: true
+      suppressSorting: true
+      cellStyle: {color: 'rgba(0, 0, 0, 0.54)', 'background-color': '#f5f7f7'}
+    }
+    @grid_column_headers = $.map @column_headers, (column, index) =>
+      header = {
+        headerName: column.headerName,
+        field: column.field,
+        editable: column.editable,
+        # tooltip: (params) ->
+        #   params.data[params.colDef.field].comments
+        valueGetter: (params) ->
+          params.data[params.column.colId].value
+        valueSetter: (params) ->
+          if params.oldValue != params.newValue
+            params.data[params.colDef.field].value = params.newValue
+          else
+            false
+        # the onCellValueChanged callback doesn't get fired consistently, especially if you
+        # are clearing a value, instead we'll handle this in onCellEditingStopped
+        # onCellValueChanged: (params) =>
+        #   cohort_client_id = params.data[params.colDef.field].cohort_client_id
+        #   # console.log 'changed', params.oldValue, 'to', params.newValue, cohort_client_id
+        #   @after_edit(params.colDef.field, cohort_client_id, params.oldValue, params.newValue)
+      }
+      # Set the default sort on the second column
+      if index == 1
+        header.sort = @sort_direction
 
-  before_change: (changes, source) =>
-    if source == 'edit'
-      @before_edit(changes)
+      switch column.renderer
+        when 'checkbox'
+          header.cellRenderer = 'checkboxCellRenderer'
+          header.cellEditor = 'checkboxCellEditor'
+          header.getQuickFilterText = ''
+          header.comparator = @sort_checkboxes
+        when 'date'
+          header.cellRenderer = 'dateCellRenderer'
+          header.cellEditor = 'dateCellEditor'
+          header.getQuickFilterText = (params) =>
+            params.value
+        when 'dropdown'
+          header.cellEditor = 'agSelectCellEditor'
+          header.cellEditorParams =
+            values: column.available_options,
+          header.cellRenderer = (params) =>
+            params.getValue()
+        when 'html'
+          header.cellRenderer = 'htmlCellRenderer'
+        else
+          header.cellRenderer = (params) =>
+            params.getValue()
 
-  initialize_search_buttons: () =>
-    $search_actions = $(@search_actions_selector)
-    $back = $search_actions.find('.jSearchBack')
-    $forward = $search_actions.find('.jSearchForward')
-    $back.on 'click', (e) =>
-      e.preventDefault()
-      if @current_result == 0
-        @current_result = @search_results.length - 1
+      header.pinned = column.pinned if column.pinned?
+
+      if column.editable
+        header.editable = column.editable
       else
-        prev = @current_result - 1
-        @current_result = prev % @search_results.length
-      @set_search_position()
-    $forward.on 'click', (e) =>
-      e.preventDefault()
-      next = @current_result + 1
-      @current_result = next % @search_results.length
-      @set_search_position()
+        header.editable = (params) ->
+          # console.log(params)
+          params.data[params.column.colId].editable
 
-  move_to_current_result: () =>
-    current = @search_results[@current_result]
-    @table.scrollViewportTo(current.row, current.col)
-
-  set_search_position: () =>
-    $search_actions = $(@search_actions_selector)
-    $search_status = $search_actions.find('.jSearchStatus')
-    $search_status.text("#{@current_result + 1} of #{@search_results.length}")
-    @move_to_current_result()
-
-  update_search_navigation: () =>
-    $search_actions = $(@search_actions_selector)
-    $search_status = $search_actions.find('.jSearchStatus')
-    @current_result = 0
-    if @search_results? && @search_results.length > 0
-      $search_actions.find('a').removeClass('disabled')
-      $search_status.removeClass('hide')
-      @set_search_position()
-    else
-      $search_actions.find('a').addClass('disabled')
-      $search_status.addClass('hide')
+      header
+    @grid_column_headers.unshift(row_number)
+  # This is to work around a bug in sorting checkboxes
+  sort_checkboxes: (a, b) =>
+    if a == b
+      return 0
+    if a then 1 else -1
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]
     $(searchField).removeAttr('disabled')
-    @initialize_search_buttons()
-    Handsontable.dom.addEvent searchField, 'keyup', (e) =>
-      search_string = '' + $(e.target).val()
-      search_string = '' unless search_string.length > 2 # Don't match until we have 3 characters
-      @search_results = @table.search.query(search_string)
-      @update_search_navigation()
-      @table.render()
+    $(searchField).on 'keyup', (e) =>
+      @grid_options.api.setQuickFilter($(searchField).val());
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
     @load_page().then(() =>
       # When we're all done fetching...
       $(@loading_selector).addClass('hidden')
-      @format_data_for_table()
-      # add the data to the table
-      @table.loadData(@raw_data)
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, @cell_metadata, @table)
-        columnSorting: @initial_sort
-      @enable_searching()
+      # console.log @raw_data
+      @grid_options.api.setRowData(@raw_data)
+      @set_rank_order()
+
       @refresh_rate = 10000
       setInterval @check_for_new_data, @refresh_rate
 
-      # console.log @raw_data
-
-      @set_rank_order()
-      @table.render()
     )
-
-  format_cells: (row, col, prop, metadata, table) ->
-    cellProperties ={}
-    # console.log row, col, prop,  metadata[row][col]
-    return unless metadata? and metadata[row]?
-    meta = metadata[row][col]
-    row_meta = @raw_data[row].meta
-
-    classes = []
-
-    # mark read-only cells as such
-    if meta?.editable == false
-      cellProperties.readOnly = 'true'
-
-    if meta.comments != null
-      cellProperties.comment = {value: meta.comments}
-
-    if meta.renderer == 'checkbox' || meta.column == 'notes' || meta.column == 'meta'
-      classes.push('htCenter')
-      classes.push('htMiddle')
-
-    # mark inactive clients
-    # if row_meta.activity == 'homeless_inactive'
-    #   classes.push(row_meta.activity)
-
-    # mark ineligible clients
-    # if row_meta.ineligible == true
-    #   classes.push('cohort_client_ineligible')
-
-    cellProperties.className = classes.join(' ')
-    return cellProperties
-
-  deep_find: (obj, path) ->
-    paths = path.split('.')
-    current = obj
-    for i in [0...paths.length] by 1
-      # console.log current[paths[i]], paths[i]
-      if current[paths[i]] == undefined
-        undefined
-      else
-        current = current[paths[i]]
-    return current
-
-  format_data_for_table: () =>
-    @table_data = $.map @raw_data, (row) =>
-      client = $.map @column_order, (column) =>
-        if row[column]['value'] == null
-          ''
-        else
-          row[column]['value']
-      [client]
-    @cell_metadata  = $.map @raw_data, (row) =>
-      client = $.map @column_order, (column) =>
-        m = row[column]
-        m['column'] = column
-        m
-      [client]
 
   load_page: () =>
     @current_page += 1
@@ -235,92 +196,46 @@ class App.Cohorts.Cohort
     percent_complete = Math.round(@current_page/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
-  reinitialize_js: () ->
-    $('[data-toggle="tooltip"]').tooltip();
-
-  listen_for_page_resize: () =>
-    $(window).resize () =>
-      @table.render()
-
   set_rank_order: () =>
-    ids = for i in [0...@table.countRows()] by 1
-      physical_index = @table.sortIndex[i][0]
-      meta = @raw_data[physical_index].meta
-      cohort_client_id = meta.cohort_client_id
+    ids = []
+    @grid_options.api.forEachNodeAfterFilterAndSort((data) =>
+      ids.push(data.data.meta.cohort_client_id)
+    )
     $('#rank_order').val(ids.join(','));
     $('.jReRank').removeClass('disabled');
 
-  before_edit: (changes, source) =>
-    # an array of changes (only ever one for us)
-    # changes[0][3] holds new value
-    [row, col, original, current] = changes[0]
-    return if original == current
-    physical_index = @table.sortIndex[row][0]
-    meta = @raw_data[physical_index].meta
-    # We need the containing metadata for the column and our pattern always uses value
-    cohort_column_column = col.replace('.value', '')
-    column = @deep_find(@raw_data[physical_index], cohort_column_column)
-    # If this is a date field, attempt to catch some common formats
-    console.log
-    if column.renderer == 'date' && current.length > 0
-       current = moment(current).format('ll')
-       @table.setDataAtRowProp(row, col, current)
-       changes[0][3] = current
 
-  after_edit: (changes) =>
-    [row, col, original, current] = changes[0]
-    return if original == current
-    # translate the logical index (based on current sort order) to
-    # the physical index (the row it was originally)
-    physical_index = @table.sortIndex[row][0]
-    meta = @raw_data[physical_index].meta
-    # We need the containing metadata for the column and our pattern always uses value
-    cohort_column_column = col.replace('.value', '')
-    column = @deep_find(@raw_data[physical_index], cohort_column_column)
+  after_edit: (column, cohort_client_id, old_value, new_value) =>
+    # console.log column, cohort_client_id, old_value, new_value
 
-    return unless column.editable
-    @table.validateRows [row], (valid) =>
-      if ! valid
-        alert = "<div class='alert alert-danger' style='position: fixed; top: 0; width: 20em;'>Failed to save. <br /> There is an invalid value in at least one column in the row.  Please check for any red cells.  <br/>You will have to re-enter your last change, after fixing any invalid cells.</div>"
-        $('.utility .alert').remove()
-        $('.utility').append(alert)
-        $('.utility .alert').delay(20000).fadeOut(250)
+    field_name = "cohort_client[#{column}]"
+    $form = $(@cohort_client_form_selector)
+    proxy_field = $form.find('.proxy_field')
+    $(proxy_field).attr('name', field_name).attr('value', new_value)
+    url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
+    method = $form.attr("method");
+    data = $form.serialize();
+    options = {
+      url : "#{url}.js",
+      type: method,
+      data: data,
+      dataType: 'json'
+    }
 
-        console.log 'invalid column in row! (may not be the column you just changed)'
-      else
-        field_name = "cohort_client[#{column.column}]"
-        cohort_client_id = meta.cohort_client_id
-        # console.log row, column, meta, cohort_client_id
-        $form = $(@cohort_client_form_selector)
-        proxy_field = $form.find('.proxy_field')
-        $(proxy_field).attr('name', field_name).attr('value', current)
-        url = $form.attr('action').replace('cohort_client_id', cohort_client_id)
-        method = $form.attr("method");
-        data = $form.serialize();
-        options = {
-          url : "#{url}.js",
-          type: method,
-          data: data,
-          dataType: 'json'
-        }
+    $.ajax(options).complete (jqXHR) =>
+      response = JSON.parse(jqXHR.responseText)
+      alert_class = response.alert
+      alert_text = response.message
+      updated_at = response.updated_at
+      cohort_client_id = response.cohort_client_id
 
-        $.ajax(options).complete (jqXHR) =>
-          response = JSON.parse(jqXHR.responseText)
-          alert_class = response.alert
-          alert_text = response.message
-          updated_at = response.updated_at
-          cohort_client_id = response.cohort_client_id
+      # Make note of successful update
+      @updated_ats[cohort_client_id] = updated_at
 
-          # Make note of successful update
-          @updated_ats[cohort_client_id] = updated_at
-          physical_index = @table.sortIndex[row][0]
-          @table_data[physical_index][col] = current
-          # console.log "saved", row, col, original, current, physical_index
-
-          alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 70px; z-index: 1500;'>#{alert_text}</div>"
-          $('.utility .alert').remove()
-          $('.utility').append(alert)
-          $('.utility .alert').delay(2000).fadeOut(250)
+      alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 70px; z-index: 1500;'>#{alert_text}</div>"
+      $('.utility .alert').remove()
+      $('.utility').append(alert)
+      $('.utility .alert').delay(2000).fadeOut(250)
 
   check_for_new_data: =>
     $.get @check_url, (data) =>
@@ -340,22 +255,5 @@ class App.Cohorts.Cohort
     url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
     $.get url, (data) =>
       client = data[0]
-      # console.log client
-      $.each @cell_metadata, (i, row) =>
-        $.each row, (j, col) =>
-          if col.cohort_client_id == +cohort_client_id
-            if col.value != client[col.column].value
-              # console.log i,j, client[col.column].value, @table_data[i][1], @raw_data[i][@column_order[j]]
-              @cell_metadata[i][j].comments = client[col.column].comments
-              @table_data[i][j] = client[col.column].value
-              @raw_data[i][@column_order[j]].value = client[col.column].value
-      # Preserve the sort order
-      sort_column = @table.sortColumn
-      sort_direction = @table.sortOrder
-      sorting = {column: sort_column, sortOrder: sort_direction}
-
-      @table.updateSettings
-        cells: (row, col, prop) =>
-          @format_cells(row, col, prop, @cell_metadata, @table)
-        columnSorting: sorting
-      @table.render()
+      rowNode = @grid_options.api.getRowNode(client.meta.cohort_client_id)
+      rowNode.setData(client)

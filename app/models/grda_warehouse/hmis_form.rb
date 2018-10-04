@@ -95,7 +95,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def rrh_desired?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'housing resources'
+      section[:section_title].downcase == 'Section 8: Housing Resource Assessment'.downcase
     end&.first
     return false unless relevant_section.present?
     relevant_question = relevant_section[:questions].select do |question|
@@ -120,7 +120,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def youth_rrh_desired?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'housing resources'
+      section[:section_title].downcase == 'Section 8: Housing Resource Assessment'.downcase
     end&.first
     return false unless relevant_section.present?
 
@@ -133,7 +133,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def income_maximization_assistance_requested?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'housing resources'
+      section[:section_title].downcase == 'Section 8: Housing Resource Assessment'.downcase
     end&.first
     return false unless relevant_section.present?
 
@@ -147,7 +147,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
     return nil unless income_maximization_assistance_requested?
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'next steps and contact information'
+      section[:section_title].downcase == 'next steps and contact information' && section[:questions].present?
     end&.first
     return nil unless relevant_section.present?
     relevant_section[:questions].map do |question|
@@ -173,9 +173,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return true unless has_eto_qualifying_activities?
     # prevent duplication creation
     return true if Health::QualifyingActivity.where(source_type: self.class.name, source_id: id).exists?
-    # Don't add qualifying activities if we can't determine the patient
-    return true unless patient = client&.destination_client&.patient
 
+    return true unless client&.destination_client.present?
+    # Don't add qualifying activities if we can't find a patient with a referral
+    return true unless patient = Health::Patient.joins(:patient_referral).where(client_id: client.destination_client.id)&.first
 
     user = User.setup_system_user()
     Health::QualifyingActivity.transaction do

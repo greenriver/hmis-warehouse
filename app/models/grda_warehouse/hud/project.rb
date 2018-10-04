@@ -178,6 +178,19 @@ module GrdaWarehouse::Hud
       r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
       where(self.project_type_override.in(r_non_homeless))
     end
+
+    scope :with_hud_project_type, -> (project_types) do
+      where(self.project_type_override.in(project_types))
+    end
+    scope :with_project_type, -> (project_types) do
+      where(project_type_column => project_types)
+    end
+
+    scope :in_coc, -> (coc_code:) do
+      joins(:project_cocs).
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
+    end
+
     scope :night_by_night, -> do
       where(TrackingMethod: 3)
     end

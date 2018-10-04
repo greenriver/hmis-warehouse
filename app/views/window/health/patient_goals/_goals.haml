@@ -3,9 +3,10 @@
     .c-card
       .c-card__header.c-card__header--external
         %h3 Goals
-        = link_to new_goal_path, class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
-          %i.icon-plus
-          Add Goal
+        - if enabled
+          = link_to new_goal_path, class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+            %i.icon-plus
+            Add Goal
       .c-card__content.health-care-plan__goal-list
         - if @patient.hpc_goals.any?
           - @patient.hpc_goals.each_with_index do |goal, index|
@@ -14,6 +15,7 @@
           .jEmpty
             %p.jEmpty
               No goals currently.
-            = link_to new_goal_path, class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
-              %i.icon-plus
-              Add Goal
+            - if enabled
+              = link_to new_goal_path, class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+                %i.icon-plus
+                Add Goal

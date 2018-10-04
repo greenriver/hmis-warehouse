@@ -1,0 +1,7 @@
+= content_for(:modal_title, "Add Patient Referral")
+
+= simple_form_for @patient_referral, url: admin_health_patient_referral_path(@patient_referral) do |f|
+  .jNewForm
+    = render 'form', f: f
+    .form__actions.form__actions--right
+      = f.submit 'Save Patient Referral', class: 'btn btn-secondary'

@@ -14,7 +14,7 @@ RSpec.feature "Accounts", type: :feature do
       fill_in 'Email', with: 'noreply@example.com'
       fill_in 'Password', with: 'password'
       click_button 'Log in'
-      expect( page ).to have_content 'Invalid email or password'
+      expect( page ).to have_content 'Invalid Email or password'
     end
 
     scenario "with correct password" do
@@ -24,8 +24,8 @@ RSpec.feature "Accounts", type: :feature do
       click_button 'Log in'
       expect( page ).to have_content 'You have successfully signed in.'
     end
-    
-    feature "Devise lockable" do      
+
+    feature "Devise lockable" do
       scenario "account locks after maximum failed attempts" do
         # Account should lock after a certain number of failed attempts
         click_link 'Sign In'
@@ -48,7 +48,7 @@ RSpec.feature "Accounts", type: :feature do
           fill_in 'Password', with: 'password'
           click_button 'Log in'
         end
-        Timecop.travel(Time.now + Devise.unlock_in - 1.minute) do 
+        Timecop.travel(Time.now + Devise.unlock_in - 1.minute) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Log in'
@@ -64,7 +64,7 @@ RSpec.feature "Accounts", type: :feature do
           fill_in 'Password', with: 'password'
           click_button 'Log in'
         end
-        Timecop.travel(Time.now + Devise.unlock_in) do 
+        Timecop.travel(Time.now + Devise.unlock_in) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Log in'

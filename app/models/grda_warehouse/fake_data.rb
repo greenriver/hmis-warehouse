@@ -14,7 +14,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
     else
       fake_value = fake_patterns[field_name.to_sym].call(real_value)
       add_fake_value(
-        field_name: field_name, 
+        field_name: field_name,
         real_value: real_value,
         fake_value: fake_value
       )
@@ -38,10 +38,11 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       DOB: -> (value) {
         Faker::Date.between(70.years.ago, 1.years.ago) if value.present?
       },
-      PersonalID: -> (value) { SecureRandom.uuid.gsub('-', '') },
+      PersonalID: -> (value) { Digest::MD5.hexdigest(value&.to_s) },
       UserID: -> (value) { Faker::Internet.user_name(5..8) },
       CoCCode: -> (value) { "#{Faker::Address.state_abbr}-#{Faker::Number.number(3)}" },
       ProjectName: -> (value) { fake_location },
+      ProjectCommonName: -> (value) { fake_location },
       OrganizationName: -> (value) { fake_location },
       OrganizationCommonName: -> (value) { fake_location },
       SourceContactEmail: -> (value) { Faker::Internet.safe_email},

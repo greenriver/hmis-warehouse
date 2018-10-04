@@ -1054,7 +1054,7 @@ module GrdaWarehouse::Hud
       return File.read(Rails.root.join("public", "no_photo_on_file.jpg"))
     end
 
-    # finds an image for the client. there may be more then one availabe but this
+    # finds an image for the client. there may be more then one available but this
     # method will select one more or less at random. returns no_image_on_file_image
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
@@ -1232,17 +1232,21 @@ module GrdaWarehouse::Hud
         ha_eligible: _('Housing Authority Eligible'),
         cspech_eligible: _('CSPECH Eligible'),
         congregate_housing: _('Willing to live in congregate housing'),
-        sober_housing: _('Appropriate for sober supportive housing')
+        sober_housing: _('Appropriate for sober supportive housing'),
+        requires_wheelchair_accessibility: _('Requires wheelchair accessible unit'),
+        required_number_of_bedrooms: _('Minimum number of bedrooms'),
+        required_minimum_occupancy: _('Minimum occupancy'),
+        requires_elevator_access: _('Requires ground floor unit or elevator access'),
       }
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy).
         keys
     end
 
     def self.file_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy).
         keys
     end
 
@@ -1517,6 +1521,37 @@ module GrdaWarehouse::Hud
     def cas_primary_race_code
       race_text = ::HUD::race(race_fields.first)
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
+    end
+
+    # call this on GrdaWarehouse::Hud::new() instead of self, to take
+    # advantage of caching
+    def race_string scope_limit: self.class.destination, destination_id:
+      limited_scope = self.class.destination.merge(scope_limit)
+
+      @race_am_ind_ak_native ||= limited_scope.where(
+        id: self.class.race_am_ind_ak_native.select(:id)
+      ).distinct.pluck(:id)
+      @race_asian ||= limited_scope.where(
+        id: self.class.race_asian.select(:id)
+      ).distinct.pluck(:id)
+      @race_black_af_american ||= limited_scope.where(
+        id: self.class.race_black_af_american.select(:id)
+      ).distinct.pluck(:id)
+      @race_native_hi_other_pacific ||= limited_scope.where(
+        id: self.class.race_native_hi_other_pacific.select(:id)
+      ).distinct.pluck(:id)
+      @race_white ||= limited_scope.where(
+        id: self.class.race_white.select(:id)
+      ).distinct.pluck(:id)
+      if (@race_am_ind_ak_native + @race_asian + @race_black_af_american + @race_native_hi_other_pacific + @race_white).count(destination_id) > 1
+        return 'MultiRacial'
+      end
+      return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
+      return 'Asian' if @race_asian.include?(destination_id)
+      return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
+      return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
+      return 'White' if @race_white.include?(destination_id)
+      return 'RaceNone'
     end
 
     def self_and_sources
@@ -1797,7 +1832,9 @@ module GrdaWarehouse::Hud
       vispdat_score = most_recent_vispdat_score
       vispdat_length_homeless_in_days ||= 0
       vispdat_score ||= 0
-      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 730
+      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
+        1095
+      elsif vispdat_length_homeless_in_days >= 730
         730
       elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
         365

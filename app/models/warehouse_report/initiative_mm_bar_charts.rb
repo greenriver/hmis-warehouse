@@ -115,10 +115,10 @@ class WarehouseReport::InitiativeMmBarCharts
   def build_data_by_project_type(data_type)
     period_data = PERIODS.map{|p| select_data(data_type, :project_type, p)}
     chart_data = chart_data_template
-    stack_keys = stack_keys(data_type, :project_type)
+    stack_keys = stack_keys(data_type, :project_type).reject(&:blank?)
     TYPES.each do |type|
       period_data.each_with_index do |data, index|
-        p = PERIODS[index] 
+        p = PERIODS[index]
         d = {type: p.to_s}
         stack_keys.each do |sk|
           d[sk] = 0
@@ -143,10 +143,10 @@ class WarehouseReport::InitiativeMmBarCharts
   def build_data_by_project(data_type)
     period_data = PERIODS.map{|p| select_data(data_type, :project, p)}
     chart_data = chart_data_template
-    stack_keys = stack_keys(data_type, :project)
+    stack_keys = stack_keys(data_type, :project).reject(&:blank?)
     TYPES.each do |type|
       period_data.each_with_index do |data, index|
-        p = PERIODS[index] 
+        p = PERIODS[index]
         d = {type: p.to_s}
         @projects.each do |p_id, p_name|
           values = data[p_id] || [0]

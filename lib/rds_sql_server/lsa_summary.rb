@@ -3,7 +3,7 @@ module LsaSqlServer
 
   class LSAReportSummary
 
-    def self.fetch_results
+    def fetch_results
       SqlServerBase.connection.exec_query (<<~SQL);
       /**********************************************************************
       5.2 Select LSA Summary
@@ -445,5 +445,101 @@ module LsaSqlServer
       SQL
 
     end
+
+    def fetch_demographics
+      # Demographic summaries
+      # dbo.sp_lsaPersonDemographics <popid>, <HHType>, <parameter>
+      #
+      # Available Parameters:
+      #   Age, Gender, Race, Ethnicity, VetStatus, DVStatus
+      #
+      # popid popname           HHType
+      # 1 Youth Household 18-21 HHType 1
+      # 2 Youth Household 22-24 HHType 1
+      # 3 Veteran Household HHType 1
+      # 3 Veteran Household HHType 2
+      # 4 Non-Veteran Household 25+ HHType 1
+      # 5 Household with Disabled Adult/HoH HHType NULL,1,2, or 3
+      # 6 Household with Chronically Homeless HHType NULL,1,2, or 3
+      # 7 Household Fleeing Domestic Violence HHType NULL,1,2, or 3
+      # 8 Senior Household 55+  HHType 1
+      # 9 Parenting Youth Household 18-24 HHType 2
+      # 10  Parenting Child Household HHType 3
+      # 11  Household with 3+ Children  HHType 2
+      demographic_summary = {}
+      available_populations.each do |pop|
+        pop[:hh_types].each do |hh_type|
+          hh_type = 'NULL' if hh_type.nil?
+          demographic_parameters.each do |param|
+            pop_name = population_name(pop[:pop_id])
+            hh_type_name = household_type_name(hh_type)
+            demographic_summary[pop_name] ||= {}
+            demographic_summary[pop_name][hh_type_name] ||= {}
+
+            results = SqlServerBase.connection.exec_query("dbo.sp_lsaPersonDemographics #{pop[:pop_id]}, #{hh_type}, '#{param}'");
+            demographic_summary[pop_name][hh_type_name][param] ||= {headers: results.columns, data: results.rows}
+          end
+        end
+      end
+
+      return demographic_summary
+    end
+
+    def household_type_name hh_id
+      available_household_types.try(:[], hh_id)
+    end
+
+    def available_household_types
+      @available_household_types ||= ReportGenerators::Lsa::Fy2018::Base.new.household_types
+    end
+
+    def demographic_parameters
+      @demographic_parameters ||= [
+        'Age',
+        'Gender',
+        'Race',
+        'Ethnicity',
+        'VetStatus',
+        'DVStatus',
+      ]
+    end
+
+    def population_name pop_id
+      population_names.try(:[], pop_id)
+    end
+
+    def available_populations
+      @available_populations ||= [
+        {pop_id: 1, hh_types: [1]},
+        {pop_id: 2, hh_types: [1]},
+        {pop_id: 3, hh_types: [1, 2]},
+        {pop_id: 4, hh_types: [1]},
+        {pop_id: 5, hh_types: [nil, 1, 2, 3]},
+        {pop_id: 6, hh_types: [nil, 1, 2, 3]},
+        {pop_id: 7, hh_types: [nil, 1, 2, 3]},
+        {pop_id: 8, hh_types: [1]},
+        {pop_id: 9, hh_types: [2]},
+        {pop_id: 10, hh_types: [3]},
+        {pop_id: 11, hh_types: [2]},
+      ]
+    end
+
+    def population_names
+      @population_names ||= {
+        1 => 'Youth Household 18-21',
+        2 => 'Youth Household 22-24',
+        3 => 'Veteran Household',
+        3 => 'Veteran Household',
+        4 => 'Non-Veteran Household 25+',
+        5 => 'Household with Disabled Adult/HoH HHType',
+        6 => 'Household with Chronically Homeless',
+        7 => 'Household Fleeing Domestic Violence',
+        8 => 'Senior Household 55+',
+        9 => 'Parenting Youth Household 18-24',
+        10 => 'Parenting Child Household',
+        11 => 'Household with 3+ Children',
+      }
+    end
+
   end
 end

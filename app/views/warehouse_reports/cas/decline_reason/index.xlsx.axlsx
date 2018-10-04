@@ -1,8 +1,33 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(GrdaWarehouse::CasReport.reason_attributes.values, :style => title)
-  @raw_reasons.each do |reason|
-    sheet.add_row(reason.attributes.values_at(*reason.class.reason_attributes.keys.map(&:to_s)))
+  columns = [
+    'Declined On Step',
+    'Declined On',
+    'Previous Step',
+    'Previous Step Completed On',
+    'Program',
+    'Sub-Program',
+    "#{_('Shelter Agency Contacts')}",
+    "#{_('HSA Contacts')}",
+    'Link',
+  ]
+  sheet.add_row(GrdaWarehouse::CasReport.reason_attributes.values + columns, :style => title)
+  @matches.each do |match|
+    previous_step = @all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
+    row = match.attributes.values_at(*match.class.reason_attributes.keys.map(&:to_s))
+    row += [
+      "(#{match.decision_order}) #{match.match_step}",
+      match.updated_at&.to_date,
+      previous_step&.match_step,
+      previous_step&.updated_at&.to_date,
+      match.program_name,
+      match.sub_program_name,
+      match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.join('; '),
+      match.hsa_contacts.map{|contact| contact.values.join(' ')}.join('; '),
+      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}"
+    ]
+  sheet.add_row(row)
+
   end
 end

@@ -1,5 +1,7 @@
 class NurseCareManagerRoleAndPermissions < ActiveRecord::Migration
   def change
+    return
+
     Role.ensure_permissions_exist
     Role.reset_column_information
 

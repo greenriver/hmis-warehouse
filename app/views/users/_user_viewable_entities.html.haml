@@ -13,16 +13,33 @@
     Clients with records in specified data sources will be visible
     in the window to this user, regardless of data source visibility settings if they belong to a role with the
     %strong "Can see clients in window for assigned data sources"
-    permission.
+    permission
+  .d-flex
+    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jDataSources'}} Clear Data Sources
   = f.input :data_sources,  **data_source_viewability(base)
+  .d-flex
+    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jOrganizations'}} Clear Organizations
   = f.input :organizations, **organization_viewability(base)
+  .d-flex
+    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jProjects'}} Clear Projects
   = f.input :projects,      **project_viewability(base)
+  .d-flex
+    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jCocCodes'}} Clear CoC Codes
   = f.input :coc_codes,     **coc_viewability(base)
+  .d-flex
+    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jReports'}} Clear Reports
   = f.input :reports,       **reports_viewability(base)
+  .d-flex
+    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jCohorts'}} Clear Cohorts
   = f.input :cohorts,       **cohort_viewability(base)
 
 - content_for :page_js do
   :coffeescript
+    $('.jClearSelect').on 'click', (e) ->
+      e.preventDefault()
+      select_class = $(e.currentTarget).data('input-class')
+      $("select." + select_class).find('option:selected').prop("selected", false)
+      $("select." + select_class).trigger('change')
     $('.jUserViewable').each ->
       $t = $(@)
       values = ( $(i).val() for i in $t.find('option[selected]') )

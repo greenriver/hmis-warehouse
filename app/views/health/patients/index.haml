@@ -1,6 +1,7 @@
 - content_for(:title, "Patients for #{@active_agency.name}")
-
-%h1= content_for(:title)
+.o-page
+  .o-page__header
+    %h1= content_for(:title)
 
 .btn-group.btn-group-action-2.btn-group-xs.mb-4{role: 'group'}
   - current_user.health_agencies.each do |agency|
@@ -21,13 +22,12 @@
     = render 'filter'
 
 %p.mr-5= page_entries_info @patients, entry_name: _('patient')
-= paginate @patients
 
 - if @patients.any?
+  = paginate @patients
   - @patients.each do |patient|
     = render 'patient_card', patient: patient
-
-= paginate @patients
+  = paginate @patients
 
 = content_for :page_js do
   :javascript

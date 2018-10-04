@@ -10,7 +10,28 @@ module Health
     validate :sane_number_signed
 
     belongs_to :signable, polymorphic: true
-    belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
+    # belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
+    has_many :health_files, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
+    has_one :signature_request, class_name: Health::SignatureRequest.name
+    has_one :team_member, through: :signature_request
+    delegate :signed?, to: :signature_request, allow_nil: true
+
+    scope :signed, -> do
+      where.not(signed_by: '[]').
+      joins(:signature_request).merge(Health::SignatureRequest.complete)
+    end
+
+    scope :unsigned, -> do
+      where(signed_by: '[]')
+    end
+
+    scope :with_document, -> do
+      where.not(health_file_id: nil)
+    end
+
+    scope :un_fetched_document, -> do
+      where(health_file_id: nil)
+    end
 
     EMAIL_REGEX = /[\w.+]+@[\w.+]+/
 
@@ -22,8 +43,11 @@ module Health
       expires_at.blank? || expires_at < Time.now
     end
 
+
     def make_document_signable!
       cc_email_addresses = (ENV['HELLO_SIGN_CC_EMAILS']||'').split(/;/)
+
+      raise "Must save first before making a document signable (so we have the id)" if new_record?
 
       request = {
         test_mode: (ENV.fetch('HELLO_SIGN_TEST_MODE') { Rails.env.production? ? 0 : 1}),
@@ -60,7 +84,7 @@ module Health
         self.hs_initial_response_at = Time.now
 
         # Save a copy of this file to our health file
-        @health_file = Health::HealthFile.new(
+        @health_file = Health::SignableDocumentFile.new(
           user_id: self.user_id,
           client_id: signable.patient.client.id,
           file: Rails.root.join(file.path).open,
@@ -68,11 +92,10 @@ module Health
           content_type: 'application/pdf',
           name: 'care_plan.pdf',
           size: Rails.root.join(file.path).size,
-          type: Health::SignableDocumentFile.name
+          parent_id: self.id
         )
         # There are issues with saving this that doesn't come through an upload form
         @health_file.save(validate: false)
-        self.health_file_id = @health_file.id
       end
       save!
     end
@@ -89,7 +112,8 @@ module Health
             content_type: 'application/pdf',
             name: 'care_plan.pdf',
             size: Rails.root.join(file.path).size,
-            type: Health::SignableDocumentFile.name
+            type: Health::SignableDocumentFile.name,
+            parent_id: self.id
           )
         health_file.save(validate: false)
         self.health_file_id = health_file.id
@@ -97,17 +121,34 @@ module Health
       save!
     end
 
-    def update_signers(careplan)
-      if careplan.patient_signed_on.blank? && self.signed_by?('patient@openpath.biz')
-        careplan.patient_signed_on = self.signed_on('patient@openpath.biz')
-        # ensure we capture the signed document
-        # TODO: sometimes this is too soon and gets an unsigned version
-        update_health_file_from_hello_sign
+    def update_careplan_and_health_file!(careplan)
+      # Process patient signature
+      if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
+        user = User.setup_system_user
+        careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
+        Health::CareplanSaver.new(careplan: careplan, user: user).update
+        self.signature_request.update(completed_at: careplan.patient_signed_on)
+
+        #update_health_file_from_hello_sign
+        # Need to wait for pdf to be ready
+        UpdateHealthFileFromHelloSignJob.
+          set(wait: 30.seconds).
+          perform_later(self.id)
+      elsif self.signed_by?(careplan.provider.email)
+        # process PCP signature, careplan has already been updated, we just need to fetch the file
+        UpdateHealthFileFromHelloSignJob.
+          set(wait: 30.seconds).
+          perform_later(self.id)
       end
+
     end
 
     def signature_request_url(email)
       if !email.match(EMAIL_REGEX)
+        return nil
+      end
+
+      if signed_by?(email)
         return nil
       end
 
@@ -162,27 +203,16 @@ module Health
     end
 
     # Can't send reminders through HS when doing embedded documents.
-    def remind!(email)
-      #TDB: change to deliver_later?
-      HelloSignMailer.careplan_signature_request(doc: self, email: email).deliver
-    end
+    # def remind!(email)
+    #   #TDB: change to deliver_later?
+    #   HelloSignMailer.careplan_signature_request(doc_id: self.id, email: email).deliver
+    # end
 
-    #TDB: Hook to a HelloSign callback
-    # signature_request_all_signed
-    # Store the signed document in Health Files and attach
-    def post_completion_hook
-      return unless all_signed?
-
-
-    end
-
-    #TDB: Hook to a HelloSign callback
-    def refresh_signers!
+    def update_who_signed_from_hello_sign_callback!(callback_payload=fetch_signature_request)
       return if all_signed?
-      # return false if self.hs_last_response.blank?
 
       self.hs_last_response_at = Time.now
-      self.hs_last_response = hs_client.get_signature_request(signature_request_id: self.signature_request_id).data
+      self.hs_last_response = callback_payload
       sig_hashes = self.hs_last_response['signatures'].select { |sig| sig['status_code'] == 'signed' }
       new_signers = sig_hashes.map { |sig| sig['signer_email_address']  }
       self.signed_by = new_signers
@@ -197,6 +227,10 @@ module Health
       return false if signers.length == 0
 
       signers.all? { |signer| signed_by?(signer.email) }
+    end
+
+    def fetch_signature_request
+      hs_client.get_signature_request(signature_request_id: self.signature_request_id).data
     end
 
     private
@@ -221,7 +255,7 @@ module Health
     end
 
     def hs_client
-      @client ||= HelloSign::Client.new(api_key: ENV['HELLO_SIGN_API_KEY'])
+      @client ||= ::HelloSign::Client.new(api_key: ENV['HELLO_SIGN_API_KEY'])
     end
 
     def sane_number_signed

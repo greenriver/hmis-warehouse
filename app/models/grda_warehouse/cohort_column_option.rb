@@ -1,31 +1,13 @@
 module GrdaWarehouse
   class CohortColumnOption < GrdaWarehouseBase
     validates_presence_of :cohort_column, :value
-    
-    def cohort_columns 
-      @cohort_columns ||= [
-        ::CohortColumns::HousingSearchAgency.new(),
-        ::CohortColumns::HousingOpportunity.new(),
-        ::CohortColumns::LegalBarriers.new(),
-        ::CohortColumns::DocumentReady.new(),
-        ::CohortColumns::SensoryImpaired.new(),
-        ::CohortColumns::Destination.new(),
-        ::CohortColumns::SubPopulation.new(),
-        ::CohortColumns::StFrancisHouse.new(),
-        ::CohortColumns::HousingTrackSuggested.new(),
-        ::CohortColumns::PrimaryHousingTrackSuggested.new(),
-        ::CohortColumns::HousingTrackEnrolled.new(),
-        ::CohortColumns::VaEligible.new(),
-        ::CohortColumns::Chapter115.new(),
-        ::CohortColumns::LocationType.new(),
-        ::CohortColumns::Location.new(),
-        ::CohortColumns::Status.new(),
-        ::CohortColumns::NotAVet.new(),
-        ::CohortColumns::CriminalRecordStatus.new(),
-        ::CohortColumns::NewLeaseReferral.new(),
-      ]
+
+    def cohort_columns
+      @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select do |m|
+        m.is_a? CohortColumns::Select
+      end
     end
-    
+
     def self.add_initial_cohort_column_options
       where(cohort_column: :chapter_115, value: '', active: 1).first_or_create
       where(cohort_column: :chapter_115, value: 'Receiving', active: 1).first_or_create
@@ -119,7 +101,7 @@ module GrdaWarehouse
 
       where(cohort_column: :not_a_vet, value: '', active: 1).first_or_create
       where(cohort_column: :not_a_vet, value: 'Unchecked in HMIS', active: 1).first_or_create
-      
+
       where(cohort_column: :primary_housing_track_suggested, value: '', active: 1).first_or_create
       where(cohort_column: :primary_housing_track_suggested, value: 'CoC', active: 1).first_or_create
       where(cohort_column: :primary_housing_track_suggested, value: 'DMH Group Home', active: 1).first_or_create
@@ -137,25 +119,25 @@ module GrdaWarehouse
       where(cohort_column: :primary_housing_track_suggested, value: 'Public Housing or Project Based Voucher', active: 1).first_or_create
       where(cohort_column: :primary_housing_track_suggested, value: 'SSVF', active: 1).first_or_create
       where(cohort_column: :primary_housing_track_suggested, value: 'VASH', active: 1).first_or_create
-      
+
       where(cohort_column: :sensory_impaired , value: '', active: 1).first_or_create
       where(cohort_column: :sensory_impaired , value: 'No', active: 1).first_or_create
       where(cohort_column: :sensory_impaired , value: 'Sight', active: 1).first_or_create
       where(cohort_column: :sensory_impaired , value: 'Hearing', active: 1).first_or_create
       where(cohort_column: :sensory_impaired , value: 'Sight and Hearing', active: 1).first_or_create
       where(cohort_column: :sensory_impaired , value: 'Other: Must be in Notes', active: 1).first_or_create
-      
+
       where(cohort_column: :st_francis_house , value: '', active: 1).first_or_create
       where(cohort_column: :st_francis_house , value: 'Infrequent Visitor', active: 1).first_or_create
       where(cohort_column: :st_francis_house , value: 'Frequent Visitor', active: 1).first_or_create
       where(cohort_column: :st_francis_house , value: 'Case Management', active: 1).first_or_create
-      
+
       where(cohort_column: :status, value: '', active: 1).first_or_create
       where(cohort_column: :status, value: 'Chronic', active: 1).first_or_create
       where(cohort_column: :status, value: 'Probable Chronic', active: 1).first_or_create
       where(cohort_column: :status, value: 'At risk 180+ days', active: 1).first_or_create
       where(cohort_column: :status, value: 'At risk 90-179 days', active: 1).first_or_create
-      
+
       where(cohort_column: :sub_population, value: '', active: 1).first_or_create
       where(cohort_column: :sub_population, value: 'Veteran', active: 1).first_or_create
       where(cohort_column: :sub_population, value: 'HUES', active: 1).first_or_create
@@ -164,7 +146,7 @@ module GrdaWarehouse
       where(cohort_column: :sub_population, value: 'Veteran + Street sleeper', active: 1).first_or_create
       where(cohort_column: :sub_population, value: 'Veteran + HUES', active: 1).first_or_create
       where(cohort_column: :sub_population, value: 'Veteran + HUES + Street sleeper', active: 1).first_or_create
-      
+
       where(cohort_column: :va_eligible, value: '', active: 1).first_or_create
       where(cohort_column: :va_eligible, value: 'Yes', active: 1).first_or_create
       where(cohort_column: :va_eligible, value: 'No', active: 1).first_or_create
@@ -173,8 +155,28 @@ module GrdaWarehouse
       where(cohort_column: :va_eligible, value: "No - Nat'l Guard", active: 1).first_or_create
       where(cohort_column: :va_eligible, value: 'No - Reserves', active: 1).first_or_create
       where(cohort_column: :va_eligible, value: 'No - Time', active: 1).first_or_create
+
+      where(cohort_column: :sleeping_location, value: '', active: 1).first_or_create
+      where(cohort_column: :sleeping_location, value: 'Outdoors', active: 1).first_or_create
+      where(cohort_column: :sleeping_location, value: 'Shelter', active: 1).first_or_create
+      where(cohort_column: :sleeping_location, value: 'Transitional housing', active: 1).first_or_create
+      where(cohort_column: :sleeping_location, value: 'Couch surfing', active: 1).first_or_create
+      where(cohort_column: :sleeping_location, value: 'Other', active: 1).first_or_create
+      where(cohort_column: :sleeping_location, value: 'Unknown', active: 1).first_or_create
+
+      where(cohort_column: :exit_destination, value: '', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Family Reunification', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Market Rate/Rental by Client', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Permanent Supportive Housing', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Public Housing', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Rapid Rehousing', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Treatment', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Transitional Housing', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Moved to Inactive', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Other', active: 1).first_or_create
+      where(cohort_column: :exit_destination, value: 'Unknown', active: 1).first_or_create
     end
-    
+
     def available_cohort_columns
       cohort_columns.map{|c| [c.title, c.column]}.sort_by(&:first).to_h
     end

@@ -1,5 +1,5 @@
 # config valid only for current version of Capistrano
-lock '3.10.2'
+lock '3.11.0'
 
 set :application, 'boston_hmis'
 set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
@@ -30,6 +30,7 @@ set :ssh_port, ENV.fetch('SSH_PORT') { '22' }
 set :deploy_user , ENV.fetch('DEPLOY_USER')
 
 set :rvm_custom_path, ENV.fetch('RVM_CUSTOM_PATH') { '/usr/share/rvm' }
+set :rvm_ruby_version, "#{File.read('.ruby-version').strip.split('-')[1]}@global"
 
 task :group_writable_and_owned_by_ubuntu do
   on roles(:web) do
@@ -85,6 +86,44 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
 # set :keep_releases, 5
 
 namespace :deploy do
+  after :migrating, :warehouse_migrations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "warehouse:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+  after :migrating, :health_migrations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "health:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+  after :migrating, :reporting_migrations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "reporting:db:migrate RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+  after :migrating, :report_seeds do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "reports:seed RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+  before :restart, :translations do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "gettext:sync_to_po_and_db RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+end
+
+namespace :deploy do
   before 'assets:precompile', :touch_theme_variables do
     on roles(:app)  do
       within shared_path do
@@ -103,6 +142,14 @@ namespace :deploy do
     end
   end
 
+end
+
+after 'deploy:migrating', :check_for_bootability do
+  on roles(:app)  do
+    within release_path do
+      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "User.count"
+    end
+  end
 end
 
 task :echo_options do

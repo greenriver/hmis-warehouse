@@ -37,9 +37,13 @@ Dir.chdir APP_ROOT do
   system "bundle exec rake health:db:create"
   system "bundle exec rake health:db:migrate"
 
+  puts "\n== Preparing Reporting Database =="
+  system "bundle exec rake reporting:db:create"
+  system "bundle exec rake reporting:db:migrate"
+
   puts "\n== Seeding Database =="
   system "bundle exec rake db:seed"
-  system "bundle exec rake warehouse:db:seed"
+  system "bundle exec rake grda_warehouse:seed_grades"
 
   puts "\n== Removing old logs and tempfiles =="
   FileUtils.rm_f Dir.glob(File.join('log', '*'))

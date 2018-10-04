@@ -290,12 +290,18 @@ $client-image-height: 200px;
   display: flex;
   align-items: center;
   margin-bottom: 0.25rem;
+  font-weight: 800;
 }
 
 .clients__client-name {
   font-size: 1.2rem;
   font-size: 1.35rem;
   margin-bottom: .45rem;
+}
+
+.client__client-name-title
+{
+  font-size: 1.4rem;
 }
 
 .clients__users {
