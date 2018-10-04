@@ -524,7 +524,7 @@ module Reporting
       @num_housed_2 = R.num_housed_2
       @housedPlot_1 = JSON.parse R.housedPlot_1
       @housedPlot_2 = JSON.parse R.housedPlot_2
-      @time_to_housing_1 = R.time_to_housing_1 || 'unknown days to find housing' # prevent re-running if we recive no answer
+      @time_to_housing_1 = R.time_to_housing_1 || 'unknown days to find housing' # prevent re-running if we receive no answer
       @time_to_housing_2 = R.time_to_housing_2 || 'unknown days to find housing'
       @time_in_housing_1 = R.time_in_housing_1 || 'unknown days in find housing'
       @time_in_housing_2 = R.time_in_housing_2 || 'unknown days in find housing'
@@ -536,17 +536,6 @@ module Reporting
       @shelter_exits_2 = R.shelter_exits_2
       @return_1 = R.return_1
       @return_2 = R.return_2
-      # TODO: @elliot I get an error here
-      # @return_length_1 = (JSON.parse R.return_length_1).map do |row|
-      #   row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
-      #   row[:count] = row['clients']
-      #   row
-      # end
-      # @return_length_2 = (JSON.parse R.return_length_2).map do |row|
-      #   row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']
-      #   row[:count] = row['clients']
-      #   row
-      # end
       @return_length_1 = begin
         (JSON.parse R.return_length_1).map do |row|
           row[:discrete] = length_of_time_buckets.try(:[], row['Discrete']) || row['Discrete']

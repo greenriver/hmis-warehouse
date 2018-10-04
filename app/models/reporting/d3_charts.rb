@@ -2,18 +2,23 @@ module Reporting
   class D3Charts
 
     attr_reader :report
-    def initialize(program_1, program_2)
+    def initialize(user, program_1, program_2)
+      @user = user
       @program_1 = program_1
       @program_2 = program_2
       @report = Reporting::RrhReport.new(program_1_id: program_1, program_2_id: program_2)
     end
 
     def programs
-      @programs ||= Reporting::Housed.pluck(:project_id, :residential_project).to_h
+      @programs ||= housed_scope(@user).pluck(:project_id, :residential_project).to_h
     end
 
-    def self.programs_for_select
-      Reporting::Housed.pluck(:residential_project, :project_id).to_a.uniq
+    def self.programs_for_select(user)
+      Reporting::Housed.viewable_by(user).pluck(:residential_project, :project_id).to_a.uniq
+    end
+
+    def housed_scope user
+      Reporting::Housed.viewable_by(user)
     end
 
     def program_1_name

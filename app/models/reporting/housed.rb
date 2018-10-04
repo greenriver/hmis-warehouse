@@ -4,6 +4,11 @@ module Reporting
     include ArelHelper
     include TsqlImport
 
+    scope :viewable_by, -> (user) do
+      # need to pluck project ids from the warehouse database
+      where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id))
+    end
+
     def populate!
       return unless source_data.present?
       headers = source_data.first.keys
