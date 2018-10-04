@@ -1,4 +1,10 @@
 GIT
+  remote: https://github.com/greenriver/select2-rails.git
+  revision: dc2ce7b7719e1626ba2243260a4b2f28aad2e96f
+  specs:
+    select2-rails (4.0.6.pre.rc.1)
+
+GIT
   remote: https://github.com/randym/axlsx.git
   revision: c593a08b2a929dac7aa8dc418b55e26b4c49dc34
   specs:
@@ -480,8 +486,6 @@ GEM
     sdoc (0.4.2)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    select2-rails (4.0.3)
-      thor (~> 0.14)
     seven_zip_ruby (1.2.5)
     sexp_processor (4.9.0)
     shellany (0.0.1)
@@ -663,7 +667,7 @@ DEPENDENCIES
   sass-rails
   scenic
   sdoc (~> 0.4.0)
-  select2-rails
+  select2-rails!
   seven_zip_ruby
   shoulda
   simple_form
