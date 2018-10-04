@@ -11,9 +11,13 @@ module WarehouseReports
     end
 
     def program_data
-      @program_1_id = project_source.where(id: params[:program_1_id]).pluck(:id)&.first || nil
-      @program_2_id = project_source.where(id: params[:program_2_id]).pluck(:id)&.first || nil
-      @charts = Reporting::D3Charts.new(current_user, @program_1_id, @program_2_id)
+      respond_to do |format|
+        format.js do
+          @program_1_id = project_source.where(id: params[:program_1_id]).pluck(:id)&.first || nil
+          @program_2_id = project_source.where(id: params[:program_2_id]).pluck(:id)&.first || nil
+          @charts = Reporting::D3Charts.new(current_user, @program_1_id, @program_2_id)
+        end
+      end
     end
 
     private def project_source
