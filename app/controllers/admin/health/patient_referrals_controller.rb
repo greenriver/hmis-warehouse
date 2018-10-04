@@ -3,9 +3,17 @@ module Admin::Health
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
-    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
+    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :new]
 
     include PatientReferral
+    include PjaxModalController
+
+    def new
+    end
+
+    def edit
+      @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+    end
 
     def review
       @active_patient_referral_tab = 'review'
@@ -70,19 +78,14 @@ module Admin::Health
         if clean_patient_referral_params[:agency_id].present?
           @new_patient_referral.convert_to_patient()
         end
-        flash[:notice] = create_patient_referral_notice
-        redirect_to create_patient_referral_success_path
-      else
-        load_index_vars
-        flash[:error] = 'Unable to add patient referral.'
-        render 'index'
       end
+      respond_with(@new_patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
     def update
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
       @patient_referral.update(patient_referral_params)
-      respond_with(@patient_referral)
+      respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
     def assign_agency
