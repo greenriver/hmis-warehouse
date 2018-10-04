@@ -2,10 +2,14 @@
   .c-card__content.jPatientReferral{class: "pr-#{pr.id}"}
     .row
       .col-sm-2
-        - if client = pr.client
-          = link_to pr.name, window_client_health_patient_index_path(client)
-        - else
-          = pr.name
+        .patient-name.mb-2
+          - if client = pr.client
+            = link_to pr.name, window_client_health_patient_index_path(client)
+          - else
+            = pr.name
+        .edit-button
+          = link_to edit_admin_health_patient_referral_path(pr), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+            %i.icon-pencil
       .col-sm-3
         %div
           %strong DOB:

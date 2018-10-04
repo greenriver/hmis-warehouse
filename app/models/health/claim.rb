@@ -109,11 +109,15 @@ module Health
         @hl += 1
         pr = patient.patient_referral
 
+        city_state_zip = [pr.address_city, pr.address_state, pr.address_zip]
+        if city_state_zip.compact.empty?
+          city_state_zip = [@sender.city, @sender.state, @sender.zip]
+        end
         b.HL @hl, '1', '22', '0'
           b.SBR 'P', '18', nil, nil, nil, nil, nil, nil, 'MC'
           b.NM1 'IL', '1', pr.last_name, pr.first_name, nil, nil, nil, 'MI', pr.medicaid_id
-          b.N3 pr.address_line_1 || @sender.address_1
-          b.N4 pr.address_city || @sender.city, pr.address_state || @sender.state, pr.address_zip || @sender.zip
+          b.N3 pr.address_line_1.presence || @sender.address_1
+          b.N4 city_state_zip.join(', ')
           b.DMG 'D8', pr.birthdate&.strftime('%Y%m%d'), pr.gender || 'U'
           b.NM1 'PR', '2', @sender.receiver_name, nil, nil, nil, nil, 'PI', @sender.receiver_id
           valid_qa = patient_qa.where(hqa_t[:date_of_activity].lteq(max_date)).
