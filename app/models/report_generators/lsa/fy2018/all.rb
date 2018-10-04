@@ -172,7 +172,7 @@ module ReportGenerators::Lsa::Fy2018
     def populate_hmis_tables
       load 'lib/rds_sql_server/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = @hmis_export.unzip_to(unzip_path)
-      read_rows = 10_000
+      read_rows = 50_000
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
         # Read the file in batches to avoid over RAM usage
         File.open(File.join(extract_path, file_name)) do |file|
@@ -185,7 +185,7 @@ module ReportGenerators::Lsa::Fy2018
               content = content.map do |row|
                 row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
               end
-              insert_batch(klass, import_headers, content, batch_size: 1000)
+              insert_batch(klass, import_headers, content, batch_size: 10_000)
             end
           end
         end
