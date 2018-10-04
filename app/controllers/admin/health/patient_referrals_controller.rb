@@ -3,9 +3,17 @@ module Admin::Health
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
-    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected]
+    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :new]
 
     include PatientReferral
+    include PjaxModalController
+
+    def new
+    end
+
+    def edit
+      @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+    end
 
     def review
       @active_patient_referral_tab = 'review'
@@ -48,7 +56,9 @@ module Admin::Health
         patient = Health::Patient.with_deleted.
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
-          patient.destroy if patient.present?
+          # Don't destroy the patient, we'll limit patients
+          # to patient_referrals.not_confirmed_rejected
+          # patient.destroy if patient.present?
           flash[:notice] = "Patient has been rejected."
         else
           patient.restore if patient.present?
@@ -63,23 +73,19 @@ module Admin::Health
 
     def create
       @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
+      @new_patient_referral.enrollment_start_date = @new_patient_referral.effective_date
       if @new_patient_referral.save
         if clean_patient_referral_params[:agency_id].present?
           @new_patient_referral.convert_to_patient()
         end
-        flash[:notice] = create_patient_referral_notice
-        redirect_to create_patient_referral_success_path
-      else
-        load_index_vars
-        flash[:error] = 'Unable to add patient referral.'
-        render 'index'
       end
+      respond_with(@new_patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
     def update
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
       @patient_referral.update(patient_referral_params)
-      respond_with(@patient_referral)
+      respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
     def assign_agency

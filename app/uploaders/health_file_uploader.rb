@@ -7,70 +7,11 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # we will use mini magics API to process attachments
   include CarrierWave::MiniMagick
 
-  # Include RMagick or MiniMagick support:
-  # include CarrierWave::RMagick
-  # include CarrierWave::MiniMagick
-
   # Choose what kind of storage to use for this uploader:
   storage :file
-  # storage :fog
 
-  # Override the directory where uploaded files will be stored.
-  # This is a sensible default for uploaders that are meant to be mounted:
-  # def store_dir
-  #   "uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
-  # end
-  #
-  # def cache_dir
-  #   "#{Rails.root}/tmp/uploads-cache/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
-  # end
-
-  # Provide a default URL as a default if there hasn't been a file uploaded:
-  # def default_url
-  #   # For Rails 3.1+ asset pipeline compatibility:
-  #   # ActionController::Base.helpers.asset_path("fallback/" + [version_name, "default.png"].compact.join('_'))
-  #
-  #   "/images/fallback/" + [version_name, "default.png"].compact.join('_')
-  # end
-
-  # Process files as they are uploaded:
-  # process :scale => [200, 300]
-  #
-  # def scale(width, height)
-  #   # do something
-  # end
-
-  # Create different versions of your uploaded files:
-  # version :thumb do
-  #   process :resize_to_fit => [50, 50]
-  # end
-  #
   process :extract_file_metadata!
 
-  version :preview do
-    process :create_preview
-  end
-  version :thumb, from_version: :preview do
-    process :create_thumb
-  end
-
-  def create_thumb
-    create_preview(size: '400x400')
-  end
-
-  def create_preview size: '1920x1080'
-    return unless MANIPULATEABLE.include?(content_type)
-    # https://github.com/carrierwaveuploader/carrierwave/wiki/How-to:-Efficiently-converting-image-formats#changing-the-format
-    manipulate! do |img|
-      img.format('jpg') do |c|
-        c.auto_orient
-        c.auto_level #FIXME: we probably only want to do this for DICOM images.
-      end
-      img.strip
-      img.resize size
-      img
-    end
-  end
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
   WHITELIST = IceNine.deep_freeze(%w(
@@ -121,9 +62,9 @@ class HealthFileUploader < CarrierWave::Uploader::Base
 
   # Add a white list of extensions which are allowed to be uploaded.
   # For images you might use something like this:
-  # def extension_white_list
-  #   %w(pdf jpg jpeg doc docx xls xlsx gif png txt rtf)
-  # end
+  def extension_white_list
+    %w(pdf)
+  end
 
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING

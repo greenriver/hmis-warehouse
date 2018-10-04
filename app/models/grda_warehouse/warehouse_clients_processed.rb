@@ -287,7 +287,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         open_enrollments: open_enrollments,
         rrh_desired: client.rrh_desired,
         vispdat_priority_score: client.calculate_vispdat_priority_score,
-        vispdat_score: client.most_recent_vispdat_score
+        vispdat_score: client.most_recent_vispdat_score,
+        active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
       }
     end
 

@@ -260,6 +260,8 @@ SqlServerBase.connection.execute (<<~SQL);
     create unique index unk_Enrollment ON [hmis_Enrollment] ([EnrollmentID], [PersonalID]);
     create unique index index_Enrollment_on_EnrollmentID_ProjectID_EntryDate ON [hmis_Enrollment] ([EnrollmentID], [ProjectID], [EntryDate]);
     create index index_Enrollment_on_RelationshipToHoH ON [hmis_Enrollment] ([RelationshipToHoH]);
+    create index index_Enrollment_on_LivingSituation ON [hmis_Enrollment] ([LivingSituation]);
+    create index index_Enrollment_on_PreviousStreetESSH_LengthOfStay ON [hmis_Enrollment] ([PreviousStreetESSH], [LengthOfStay]);
 
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_EnrollmentCoC' AND xtype='U')
     DROP TABLE [hmis_EnrollmentCoC]
@@ -682,11 +684,15 @@ SqlServerBase.connection.execute (<<~SQL);
     create index services_date_created ON [hmis_Services] ([DateCreated]);
     create index index_Services_on_DateDeleted ON [hmis_Services] ([DateDeleted]);
     create index index_Services_on_DateProvided ON [hmis_Services] ([DateProvided]);
+    create index services_RecordType ON [hmis_Services] ([RecordType]);
+    create index index_Services_on_record_type_DateProvided ON [hmis_Services] ([RecordType], [DateProvided]);
     create index services_date_updated ON [hmis_Services] ([DateUpdated]);
+    create index index_serv_on_enrollment_id_ds_id ON [hmis_Services] ([EnrollmentID]);
     create index index_serv_on_proj_entry_per_id_ds_id ON [hmis_Services] ([EnrollmentID], [PersonalID]);
     create index services_export_id ON [hmis_Services] ([ExportID]);
     create index index_Services_on_PersonalID ON [hmis_Services] ([PersonalID]);
     create index index_services_ds_id_p_id_type_entry_id_date ON [hmis_Services] ([PersonalID], [RecordType], [EnrollmentID], [DateProvided]);
+
     create unique index unk_Services ON [hmis_Services] ([ServicesID]);
 
 SQL

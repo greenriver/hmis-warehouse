@@ -86,6 +86,7 @@ module Health
         with_patient.
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).
+        where(hpr_t[:enrollment_start_date].lt(@range.last)).
         pluck(:patient_id, :agency_id).to_h
     end
 

@@ -14,6 +14,7 @@ class ApplicationController < ActionController::Base
 
   before_filter :set_paper_trail_whodunnit
   before_filter :set_notification
+  before_filter :set_hostname
 
   around_filter :cache_grda_warehouse_base_queries
   before_action :compose_activity, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
@@ -42,6 +43,17 @@ class ApplicationController < ActionController::Base
   end
 
   protected
+
+  def redirect_back(*args)
+    argsdup = args.dup
+    fallback = argsdup.delete(:fallback_location) || root_path
+
+    if request.env['HTTP_REFERER'].present?
+      redirect_to request.env['HTTP_REFERER'], *argsdup
+    else
+      redirect_to fallback, *argsdup
+    end
+  end
 
   def locale
     default_locale = 'en'
@@ -138,4 +150,8 @@ class ApplicationController < ActionController::Base
     false
   end
   helper_method :pjax_request?
+
+  def set_hostname
+    @op_hostname ||= `hostname` rescue 'test-server'
+  end
 end
