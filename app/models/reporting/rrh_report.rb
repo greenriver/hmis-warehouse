@@ -442,9 +442,6 @@ module Reporting
         post_ph_return = post_housing_1[post_housing_1$client_id %in% housed_1$client_id[housed_1$ph_destination=='ph'],]
         return_1 <- paste(length(unique(post_ph_return$client_id)), " (", percent(length(unique(post_ph_return$client_id))/length(unique(housed_1$client_id[housed_1$ph_destination=="ph"]))), ") clients returned to shelter", sep="")
 
-        post_ph_return = post_housing_2[post_housing_2$client_id %in% housed_2$client_id[housed_2$ph_destination=='ph'],]
-        return_2 <- paste(length(unique(post_ph_return$client_id)), " (", percent(length(unique(post_ph_return$client_id))/length(unique(housed_2$client_id[housed_2$ph_destination=="ph"]))), ") clients returned to shelter", sep="")
-
         post_housing_1[post_housing_1$client_id %in% housed_1$client_id[housed_1$ph_destination=='ph'],]
         return_length_1 <- as.character(toJSON(post_housing_1 %>% distinct(client_id, .keep_all=TRUE) %>%
          select(client_id, adjusted_days_homeless) %>%
@@ -455,18 +452,17 @@ module Reporting
            clients = n_distinct(client_id)
          )))
 
+        post_ph_return = post_housing_2[post_housing_2$client_id %in% housed_2$client_id[housed_2$ph_destination=='ph'],]
+        return_2 <- paste(length(unique(post_ph_return$client_id)), " (", percent(length(unique(post_ph_return$client_id))/length(unique(housed_2$client_id[housed_2$ph_destination=="ph"]))), ") clients returned to shelter", sep="")
+        return_length_2 <- as.character(toJSON(post_housing_1 %>% distinct(client_id, .keep_all=TRUE) %>%
+         select(client_id, adjusted_days_homeless) %>%
+         transform(Discrete=cut(as.numeric(adjusted_days_homeless),
+                                breaks = c(0, 7, 30, 91,182, 364, 728, Inf))) %>%
+         group_by(Discrete) %>%
+         summarise(
+           clients = n_distinct(client_id)
+         )))
 
-        # post_ph_return = post_housing_2[post_housing_2$client_id %in% housed_2$client_id[housed_2$ph_destination=='ph'],]
-        return_length_2 <- as.character(toJSON(post_ph_return %>%
-           filter(project_type %in% c(1,2,4)) %>%
-           distinct(client_id, .keep_all=TRUE) %>%
-           select(client_id, adjusted_days_homeless) %>%
-           transform(Discrete=cut(as.numeric(adjusted_days_homeless),
-                                  breaks = c(0, 7, 30, 91,182, 364, 728, Inf))) %>%
-           group_by(Discrete) %>%
-           summarise(
-             clients = n_distinct(client_id)
-           )))
 
         demographic_plot_1 <-  as.character(toJSON(rbind(housed_1 %>%
          group_by(
