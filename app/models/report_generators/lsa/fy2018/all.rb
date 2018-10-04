@@ -185,7 +185,7 @@ module ReportGenerators::Lsa::Fy2018
               content = content.map do |row|
                 row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
               end
-              insert_batch(klass, import_headers, content, batch_size: 10_000)
+              insert_batch(klass, import_headers, content, batch_size: 1_000)
             end
           end
         end

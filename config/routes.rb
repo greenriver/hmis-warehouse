@@ -157,6 +157,11 @@ Rails.application.routes.draw do
     resources :entry_exit_service, only: [:index]
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
+    resources :rrh, only: [:index] do
+      collection do
+        get :program_data
+      end
+    end
     resources :consent, only: [:index] do
       post :update_clients, on: :collection
     end

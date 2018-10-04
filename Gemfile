@@ -22,6 +22,8 @@ gem 'with_advisory_lock'
 # gem 'schema_plus_views'
 gem 'scenic'
 gem 'memoist', require: false
+gem 'rinruby', require: false
+gem 'rserve-simpler', require: false
 
 # File processing
 gem 'carrierwave'
@@ -59,7 +61,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets-es6'
-gem 'select2-rails'
+gem 'select2-rails', git: 'https://github.com/greenriver/select2-rails.git'
 gem 'font-awesome-sass'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'

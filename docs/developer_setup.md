@@ -23,6 +23,21 @@ brew reinstall node
 gem install charlock_holmes --version 0.7.6 -- --with-icu-dir=/usr/local/opt/icu4c --with-cxxflags=-std=c++11
 bundle
 ```
+Install R and Rserve
+Download and install the latest package from here:
+https://cran.r-project.org/bin/macosx/
+Open an R terminal and install Rserve
+```shell
+r
+install.packages("Rserve")
+q()
+```
+Set Rserve to start when R starts
+Place the following in `~.Rprofile`
+```shell
+useDynLib(Rserve)
+export(Rserve, self.ctrlEval, self.ctrlSource, self.oobSend, self.oobMessage, run.Rserve)
+```
 
 3. Create a `.env` file and add values for each of the variables in the `config/*.yml` files.
 

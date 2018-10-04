@@ -139,6 +139,11 @@ class ApplicationController < ActionController::Base
     all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
     migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
     raise ActiveRecord::MigrationError.new "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
+
+    # Reporting
+    all = ActiveRecord::Migrator.migrations(['db/reporting/migrate']).collect(&:version)
+    migrated = ReportingBase.connection.select_rows(query).flatten(1).map(&:to_i)
+    raise ActiveRecord::MigrationError.new "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
   end
 
   def pjax_request?

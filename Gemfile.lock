@@ -1,4 +1,10 @@
 GIT
+  remote: https://github.com/greenriver/select2-rails.git
+  revision: dc2ce7b7719e1626ba2243260a4b2f28aad2e96f
+  specs:
+    select2-rails (4.0.6.pre.rc.1)
+
+GIT
   remote: https://github.com/randym/axlsx.git
   revision: c593a08b2a929dac7aa8dc418b55e26b4c49dc34
   specs:
@@ -425,6 +431,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    rinruby (2.1.0)
     roo (2.7.1)
       nokogiri (~> 1)
       rubyzip (~> 1.1, < 2.0.0)
@@ -432,6 +439,9 @@ GEM
       nokogiri
       roo (>= 2.0.0, < 3)
       spreadsheet (> 0.9.0)
+    rserve-client (0.3.5)
+    rserve-simpler (0.0.6)
+      rserve-client (~> 0.3.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -480,8 +490,6 @@ GEM
     sdoc (0.4.2)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    select2-rails (4.0.3)
-      thor (~> 0.14)
     seven_zip_ruby (1.2.5)
     sexp_processor (4.9.0)
     shellany (0.0.1)
@@ -649,8 +657,10 @@ DEPENDENCIES
   redis-rails
   responders
   rest-client (~> 2.0)
+  rinruby
   roo
   roo-xls
+  rserve-simpler
   rspec-mocks
   rspec-rails
   ruby-filemagic
@@ -663,7 +673,7 @@ DEPENDENCIES
   sass-rails
   scenic
   sdoc (~> 0.4.0)
-  select2-rails
+  select2-rails!
   seven_zip_ruby
   shoulda
   simple_form
