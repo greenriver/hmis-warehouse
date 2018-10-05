@@ -11,10 +11,10 @@ puts "Allowable hosts: #{ENV['HOSTS']}"
 puts "Hosts specified for deployment: #{ENV['HOST1']} #{ENV['HOST2']} #{ENV['HOST3']}"
 
 server ENV['HOST1'], user: ENV['DEPLOY_USER'], roles: %w{app db web job cron}, port: fetch(:ssh_port)
-if ENV['HOST2'].present?
+if ENV['HOST2'] != nil
   server ENV['HOST2'], user: ENV['DEPLOY_USER'], roles: %w{app web job}, port: fetch(:ssh_port)
 end
-if ENV['HOST3'].present?
+if ENV['HOST3'] != nil
   server ENV['HOST3'], user: ENV['DEPLOY_USER'], roles: %w{app web job}, port: fetch(:ssh_port)
 end
 
