@@ -37,7 +37,7 @@
       .o-filtration__option.row.mb-4
         .col-sm-4.mb-3
           %label Data Source
-          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.importable.each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
+          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.source.each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
 
         - if can_view_vspdat?
           .col-sm-4.mb-3
