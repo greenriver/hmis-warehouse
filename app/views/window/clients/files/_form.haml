@@ -47,7 +47,7 @@
                       %em= "(includes: #{item.included_info})"
     .row.jEffectiveDate
       .col-sm-4
-        = f.input :effective_date, as: :date_picker, input_html: { class: 'enable-on-load', disabled: true }, label: 'Effective date or date signed'
+        = f.input :effective_date, as: :date_picker, label: 'Effective date or date signed'
     - if can_confirm_housing_release?
       .consent-form-fields.hidden
         = f.input :consent_form_confirmed, as: :boolean

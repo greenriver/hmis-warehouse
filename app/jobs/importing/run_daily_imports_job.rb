@@ -144,6 +144,8 @@ module Importing
       SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
       @notifier.ping('New matches generated') if @send_notifications
 
+      update_reporting_db
+
       @notifier.ping('Rebuilding reporting tables...') if @send_notifications
       GrdaWarehouse::Report::Base.update_fake_materialized_views
       @notifier.ping('...done rebuilding reporting tables') if @send_notifications
@@ -178,6 +180,12 @@ module Importing
     def last_saturday_of_month(month, year)
       end_of_month = Date.new(year, month, 1).end_of_month
       end_of_month.downto(0).find(&:saturday?)
+    end
+
+    def update_reporting_db
+      @notifier.ping('Updating reporting database') if @send_notifications
+      Reporting::Housed.new.populate!
+      Reporting::Return.new.populate!
     end
   end
 end
