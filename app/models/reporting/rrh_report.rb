@@ -190,13 +190,7 @@ module Reporting
       R.program_2 = program_2_id
       # For debugging, an R REPL in a Ruby REPL!
       # R.prompt
-      R.eval <<~REOF
-        library(lubridate)
-        require(dplyr)
-        require(magrittr)
-        require(scales)
-        library(jsonlite)
-      REOF
+      install_missing_r_packages()
       R.eval <<~REOF
         housed <- read.csv("#{housed_file.path}")
 
@@ -557,6 +551,19 @@ module Reporting
       @demographic_plot_1 = JSON.parse R.demographic_plot_1
       @demographic_plot_2 = JSON.parse R.demographic_plot_2
 
+    end
+
+    def install_missing_r_packages
+      R.eval <<~REOF
+        list.of.packages <- c("lubridate", "dplyr", "magrittr", "scales", "jsonlite")
+        new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+        if(length(new.packages)) install.packages(new.packages)
+        library(lubridate)
+        require(dplyr)
+        require(magrittr)
+        require(scales)
+        library(jsonlite)
+      REOF
     end
   end
 end
