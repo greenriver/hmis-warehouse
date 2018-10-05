@@ -1,6 +1,7 @@
 # NOTE: to use this in development, you'll need to do the following
 # R
 # pkg_url <- "https://cran.r-project.org/bin/macosx/el-capitan/contrib/3.5/Rserve_1.7-3.tgz"
+# pkg_url <- "https://www.rforge.net/Rserve/snapshot/Rserve_1.8-6.tar.gz"
 # install.packages(pkg_url, repos = NULL)
 # library(Rserve)
 # Rserve(args="--no-save")
