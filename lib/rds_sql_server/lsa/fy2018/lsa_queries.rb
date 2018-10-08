@@ -1009,17 +1009,19 @@ module LsaSqlServer
             inner join active_Enrollment n on n.PersonalID = lp.PersonalID
             inner join active_Household hh on hh.HouseholdID = n.HouseholdID
             where n.HouseholdID = ahh.HouseholdID)
+          --CHANGE 10/5/2018 - more corrections to HHAdultAge
           , ahh.HHAdultAge = coalesce((select
               --HHTypes 3 and 99 are excluded by the CASE statement
               case when max(n.AgeGroup) >= 98 then -1
-                when max(n.AgeGroup) <= 17 then -1
-                when max(n.AgeGroup) = 21 then 18
-                when max(n.AgeGroup) = 24 then 24
-                when min(n.AgeGroup) between 64 and 65 then 55
-                else 25 end
-            from active_Enrollment n
-            where n.HouseholdID = ahh.HouseholdID), -1)
-          --CHANGE 9/28/2018 -- set HHParent in separate statement below
+                  when max(n.AgeGroup) <= 17 then -1
+                  when min(n.AgeGroup) between 18 and 25
+                    and max(n.AgeGroup) between 25 and 55 then 25
+                  when max(n.AgeGroup) = 21 then 18
+                  when max(n.AgeGroup) = 24 then 24
+                  when min(n.AgeGroup) between 64 and 65 then 55
+                  else -1 end
+              from active_Enrollment n
+              where n.HouseholdID = ahh.HouseholdID and n.HHType in (1,2)), -1)
           , ahh.AC3Plus = (select case sum(case when n.AgeGroup <= 17 and hh.HHType = 2 then 1
                       else 0 end)
                     when 0 then 0
@@ -1057,15 +1059,19 @@ module LsaSqlServer
         4.23 Set tmp_Person Population Identifiers from Active Households
         **********************************************************************/
         update lp
-        set lp.HHAdultAge = coalesce ((select case
-                when min(hhid.HHAdultAge) in (18,24)
-                  then min(hhid.HHAdultAge)
-                when max(hhid.HHAdultAge) = 55 then 55
-                else 25 end
-              from active_Household hhid
-              inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
-              where hhid.HHAdultAge between 18 and 55
-                and n.PersonalID = lp.PersonalID), -1)
+          --CHANGE 10/5/2018 - more corrections to HHAdultAge
+        set lp.HHAdultAge = coalesce((select
+              --HHTypes 3 and 99 are excluded by the CASE statement
+              case when max(n.AgeGroup) >= 98 then -1
+                when max(n.AgeGroup) <= 17 then -1
+                when min(n.AgeGroup) between 18 and 25
+                  and max(n.AgeGroup) between 25 and 55 then 25
+                when max(n.AgeGroup) = 21 then 18
+                when max(n.AgeGroup) = 24 then 24
+                when min(n.AgeGroup) between 64 and 65 then 55
+                else -1 end
+            from active_Enrollment n
+            where n.PersonalID = lp.PersonalID and n.HHType in (1,2)), -1)
            , lp.AC3Plus = (select max(hhid.AC3Plus)
             from active_Household hhid
             inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
@@ -1207,6 +1213,13 @@ module LsaSqlServer
               where hhid.HHAdultAge between 18 and 55
                 and hhid.HoHID = hh.HoHID and hhid.HHType = hh.HHType), -1)
         from tmp_Household hh
+
+        --CHANGE 10/5/2018 - general cleanup for any HHAdultAge not set
+        update hh
+        set hh.HHAdultAge = -1
+        from tmp_Household hh
+        where hh.HHAdultAge is null
+
       SQL
     end
 
