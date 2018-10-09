@@ -15,6 +15,7 @@ git clone git@github.com:greenriver/hmis-warehouse.git
 brew install freetds
 brew install icu4c
 brew install openssl
+brew install libmagic
 ```
 Sometimes icu4c and charlock_holmes give us issues.  Here's a relatively complete fix.
 ```shell
