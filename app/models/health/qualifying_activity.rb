@@ -38,6 +38,14 @@ module Health
       where.not(duplicate_id: nil)
     end
 
+    scope :valid_unpayable, -> do
+      where(reached_client: :no, mode_of_contact: [:phone_call, :video_call])
+    end
+
+    scope :not_valid_unpayable, -> do
+      where.not(reached_client: :no, mode_of_contact: [:phone_call, :video_call])
+    end
+
     belongs_to :source, polymorphic: true
     belongs_to :epic_source, polymorphic: true
     belongs_to :user
