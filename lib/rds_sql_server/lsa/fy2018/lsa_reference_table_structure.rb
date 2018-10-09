@@ -1,39 +1,39 @@
 SqlServerBase.connection.execute (<<~SQL);
   /**********************************************************
-    Update 9/28/2018
-      Remove INSERT statements for rows in ref_lsaValues for unknown HHType
-      in LSAPerson for HHChronic, HHVet, HHDisability, HHFleeingDV
-    ************************************************************
+  Update 10/5/2018 - v1.22
+      DROP and CREATE for sp_lsaPersonDemographics was inadvertently
+      omitted from v1.21 -- it has been restored.
+  ************************************************************
 
-    This script drops (if table already exists), creates, and populates the following LSA
-    reference tables:
-      ref_Calendar - updated 5/10/2018
-        a table of dates between 10/1/2012 - integral to running LSA sample code
+  This script drops (if table already exists), creates, and populates the following LSA
+  reference tables:
+    ref_Calendar - updated 5/10/2018
+      a table of dates between 10/1/2012 - integral to running LSA sample code
 
-      ref_Populations - updated 9/20/2018
-         -Table of LSA household types/household populations/person-level populations
-        with columns that can be used to match population identifiers in LSAPerson,
-        LSAHousehold, and LSAExit with population IDs used in LSACalculated.
-         -Required to run sample code related to populating LSACalculated.
+    ref_Populations - updated 9/20/2018
+       -Table of LSA household types/household populations/person-level populations
+      with columns that can be used to match population identifiers in LSAPerson,
+      LSAHousehold, and LSAExit with population IDs used in LSACalculated.
+       -Required to run sample code related to populating LSACalculated.
 
-    The following are reference tables; they are not required to run the sample code,
-    but are useful in validating values in LSA upload files and producing traditional
-    report tables.  They are essentially the LSA Dictionary in db tables instead of Excel.
+  The following are reference tables; they are not required to run the sample code,
+  but are useful in validating values in LSA upload files and producing traditional
+  report tables.  They are essentially the LSA Dictionary in db tables instead of Excel.
 
-      ref_lsaFiles - updated 9/20/2018
-        FileID, FileName (includes HMIS CSV PDDE files and LSA files)
-      ref_lsaColumns - updated 9/20/2018
-        FileID, ColumnID, ColumnName, DataType,
-        Nullable (can the column have a null value when uploaded?),
-        and List (does the column have a limited list of valid predefined values?)
-      ref_lsaValues - updated 9/28/2018
-        FileID, ColumnID, intValue (valid upload value),
-        and textValue (identifies what the intValue signifies in the upload for the column)
+    ref_lsaFiles - updated 9/20/2018
+      FileID, FileName (includes HMIS CSV PDDE files and LSA files)
+    ref_lsaColumns - updated 9/20/2018
+      FileID, ColumnID, ColumnName, DataType,
+      Nullable (can the column have a null value when uploaded?),
+      and List (does the column have a limited list of valid predefined values?)
+    ref_lsaValues - updated 9/28/2018
+      FileID, ColumnID, intValue (valid upload value),
+      and textValue (identifies what the intValue signifies in the upload for the column)
 
-    It will also create a stored procedure (all reference tables required)
-    to generate demographic report output from LSAPerson for 11 populations.
+  It will also create a stored procedure (all reference tables required)
+  to generate demographic report output from LSAPerson for 11 populations.
 
-    ***********************************************************/
+  ***********************************************************/
 
   if object_id ('ref_Calendar') is not null drop table ref_Calendar
   create table ref_Calendar (
@@ -1361,9 +1361,9 @@ SqlServerBase.connection.execute (<<~SQL);
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (3, 22,23, 'AC and CO')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (3, 23,0, 'Not served in AC HH with 3+ children')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (3, 23,1, 'Served in AC household with 3+ children')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 2,-2, 'Exit in period (ReportStart - 2 years) to (ReportEnd ñ 2 years)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 2,-1, 'Exit in period (ReportStart - 1 year) to (ReportEnd ñ 1 year)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 2,0, 'Exit in period (ReportStart) to (ReportEnd ñ 6 months). If ReportEnd ñ 6 months < ReportStart, use ReportEnd. ')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 2,-2, 'Exit in period (ReportStart - 2 years) to (ReportEnd – 2 years)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 2,-1, 'Exit in period (ReportStart - 1 year) to (ReportEnd – 1 year)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 2,0, 'Exit in period (ReportStart) to (ReportEnd – 6 months). If ReportEnd – 6 months < ReportStart, use ReportEnd. ')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 3,1, 'Engage with continuum for first time or after at least 730 days inactive')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 3,2, 'Return to continuum 15-730 days after exit to permanent destination')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 3,3, 'Re-engage with continuum 15-730 days after exit to temporary destination')
@@ -1444,9 +1444,9 @@ SqlServerBase.connection.execute (<<~SQL);
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 17,10, 'ES/SH + RRH + PSH only')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 17,11, 'RRH + PSH only')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 17,12, 'All other combinations')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,-2, 'Exit in period (ReportStart - 2 years) to (ReportEnd ñ 2 years)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,-1, 'Exit in period (ReportStart - 1 year) to (ReportEnd ñ 1 year)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,0, 'Exit in period ReportStart to the later of (ReportEnd ñ 6 months) or ReportEnd')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,-2, 'Exit in period (ReportStart - 2 years) to (ReportEnd – 2 years)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,-1, 'Exit in period (ReportStart - 1 year) to (ReportEnd – 1 year)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,0, 'Exit in period ReportStart to the later of (ReportEnd – 6 months) or ReportEnd')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,1, 'Active in the current report period')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,10, 'Active October 31')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (5, 2,11, 'Active January 31')
@@ -1701,35 +1701,35 @@ SqlServerBase.connection.execute (<<~SQL);
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 11,4, 'Not applicable')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 12,0, 'No')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 12,1, 'Yes')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 13,1, 'Site-based ñ single site')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 13,2, 'Site-based ñ clustered / multiple sites')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 13,1, 'Site-based – single site')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 13,2, 'Site-based – clustered / multiple sites')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (11, 13,3, 'Tenant-based - scattered site')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,1, 'HUD:  CoC ñ Homelessness Prevention (High Performing Comm.  Only)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,2, 'HUD:  CoC ñ Permanent Supportive Housing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,3, 'HUD:  CoC ñ Rapid Re-Housing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,4, 'HUD:  CoC ñ Supportive Services Only')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,5, 'HUD:  CoC ñ Transitional Housing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,6, 'HUD:  CoC ñ Safe Haven')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,7, 'HUD:  CoC ñ Single Room Occupancy (SRO)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,8, 'HUD:  ESG ñ Emergency Shelter (operating and/or essential services)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,9, 'HUD:  ESG ñ Homelessness Prevention')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,10, 'HUD:  ESG ñ Rapid Rehousing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,11, 'HUD:  ESG ñ Street Outreach')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,1, 'HUD:  CoC – Homelessness Prevention (High Performing Comm.  Only)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,2, 'HUD:  CoC – Permanent Supportive Housing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,3, 'HUD:  CoC – Rapid Re-Housing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,4, 'HUD:  CoC – Supportive Services Only')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,5, 'HUD:  CoC – Transitional Housing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,6, 'HUD:  CoC – Safe Haven')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,7, 'HUD:  CoC – Single Room Occupancy (SRO)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,8, 'HUD:  ESG – Emergency Shelter (operating and/or essential services)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,9, 'HUD:  ESG – Homelessness Prevention')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,10, 'HUD:  ESG – Rapid Rehousing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,11, 'HUD:  ESG – Street Outreach')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,12, 'HUD:  Rural Housing Stability Assistance Program')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,13, 'HUD:  HOPWA ñ Hotel/Motel Vouchers')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,14, 'HUD:  HOPWA ñ Housing Information')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,15, 'HUD:  HOPWA ñ Permanent Housing (facility based or TBRA)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,16, 'HUD:  HOPWA ñ Permanent Housing Placement ')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,17, 'HUD:  HOPWA ñ Short-Term Rent, Mortgage, Utility assistance')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,18, 'HUD:  HOPWA ñ Short-Term Supportive Facility')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,19, 'HUD:  HOPWA ñ Transitional Housing (facility based or TBRA)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,13, 'HUD:  HOPWA – Hotel/Motel Vouchers')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,14, 'HUD:  HOPWA – Housing Information')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,15, 'HUD:  HOPWA – Permanent Housing (facility based or TBRA)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,16, 'HUD:  HOPWA – Permanent Housing Placement ')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,17, 'HUD:  HOPWA – Short-Term Rent, Mortgage, Utility assistance')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,18, 'HUD:  HOPWA – Short-Term Supportive Facility')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,19, 'HUD:  HOPWA – Transitional Housing (facility based or TBRA)')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,20, 'HUD:  HUD/VASH')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,21, 'HHS:  PATH ñ Street Outreach & Supportive Services Only')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,22, 'HHS:  RHY ñ Basic Center Program (prevention and shelter)')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,23, 'HHS:  RHY ñ Maternity Group Home for Pregnant and Parenting Youth')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,24, 'HHS:  RHY ñ Transitional Living Program')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,25, 'HHS:  RHY ñ Street Outreach Project')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,26, 'HHS:  RHY ñ Demonstration Project**')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,21, 'HHS:  PATH – Street Outreach & Supportive Services Only')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,22, 'HHS:  RHY – Basic Center Program (prevention and shelter)')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,23, 'HHS:  RHY – Maternity Group Home for Pregnant and Parenting Youth')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,24, 'HHS:  RHY – Transitional Living Program')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,25, 'HHS:  RHY – Street Outreach Project')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,26, 'HHS:  RHY – Demonstration Project**')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,27, 'VA:  CRS Contract Residential Services')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,29, 'VA:  Domiciliary Care')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,30, 'VA:  Community Contract Safe Haven Program')
@@ -1738,12 +1738,12 @@ SqlServerBase.connection.execute (<<~SQL);
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,34, 'Not applicable')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,35, 'HUD:  Pay for Success')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,36, 'HUD:  Public and Indian Housing (PIH) Programs')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,37, 'VA:  Grant Per Diem ñ Bridge Housing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,38, 'VA:  Grant Per Diem ñ Low Demand')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,39, 'VA:  Grant Per Diem ñ Hospital to Housing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,40, 'VA:  Grant Per Diem ñ Clinical Treatment')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,41, 'VA:  Grant Per Diem ñ Service Intensive Transitional Housing')
-  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,42, 'VA:  Grant Per Diem ñ Transition in Place')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,37, 'VA:  Grant Per Diem – Bridge Housing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,38, 'VA:  Grant Per Diem – Low Demand')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,39, 'VA:  Grant Per Diem – Hospital to Housing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,40, 'VA:  Grant Per Diem – Clinical Treatment')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,41, 'VA:  Grant Per Diem – Service Intensive Transitional Housing')
+  insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (12, 3,42, 'VA:  Grant Per Diem – Transition in Place')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (13, 5,1, 'Households without children')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (13, 5,3, 'Households with at least one adult and one child')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (13, 5,4, 'Households with only children')
@@ -1838,9 +1838,16 @@ SqlServerBase.connection.execute (<<~SQL);
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (99, 2,6, 'More than one adult with one or two children (3 or more)')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (99, 2,7, 'More than one adult with 3 or more children (5 or more)')
   insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (99, 2,8, 'Other ')
-
 SQL
 SqlServerBase.connection.execute (<<~SQL);
+  if object_id ('sp_lsaPersonDemographics') is not null drop procedure sp_lsaPersonDemographics
+SQL
+SqlServerBase.connection.execute (<<~SQL);
+  CREATE proc [dbo].[sp_lsaPersonDemographics]
+      @popID int  --value in ref_Populations where popType = 1
+    , @hhtype int
+    , @rptTable varchar(12)
+
   /*
     5/30/2018 - First version
     9/21/2018 - Update to use table ref_Populations to produce results for
@@ -1852,26 +1859,21 @@ SqlServerBase.connection.execute (<<~SQL);
 
     It will generate results for these HHTypes / Populations:
 
-  popid popname           HHType
-    1 Youth Household 18-21 HHType 1
-    2 Youth Household 22-24 HHType 1
-    3 Veteran Household HHType 1
-    3 Veteran Household HHType 2
-    4 Non-Veteran Household 25+ HHType 1
-    5 Household with Disabled Adult/HoH HHType NULL,1,2, or 3
-    6 Household with Chronically Homeless HHType NULL,1,2, or 3
-    7 Household Fleeing Domestic Violence HHType NULL,1,2, or 3
-    8 Senior Household 55+  HHType 1
-    9 Parenting Youth Household 18-24 HHType 2
-    10  Parenting Child Household HHType 3
-    11  Household with 3+ Children  HHType 2
+  popid popname               HHType
+    1 Youth Household 18-21       1
+    2 Youth Household 22-24       1
+    3 Veteran Household         1
+    3 Veteran Household         2
+    4 Non-Veteran Household 25+     1
+    5 Household with Disabled Adult/HoH NULL,1,2, or 3
+    6 Household with Chronically Homeless NULL,1,2, or 3
+    7 Household Fleeing Domestic Violence NULL,1,2, or 3
+    8 Senior Household 55+        1
+    9 Parenting Youth Household 18-24   2
+    10  Parenting Child Household     3
+    11  Household with 3+ Children      2
 
   */
-
-  CREATE OR ALTER PROCEDURE [dbo].[sp_lsaPersonDemographics]
-      @popID int  --value in ref_Populations where popType = 1
-    , @hhtype int
-    , @rptTable varchar(12)
   AS
   BEGIN
   select t.Category, t.EST, t.RRH, t.PSH
@@ -1947,7 +1949,6 @@ SqlServerBase.connection.execute (<<~SQL);
     and f.FileName = 'LSAPerson'
     and val.intValue <> -1
   order by val.intValue) t
-
 
   END
 

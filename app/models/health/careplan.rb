@@ -162,5 +162,13 @@ module Health
       attributes['review_date'] = Date.today + 6.months
       return attributes
     end
+
+    def expires_on
+      return unless provider_signed_on && patient_signed_on
+      ([
+        provider_signed_on,
+        patient_signed_on
+      ].compact.max + 6.months).to_date
+    end
   end
 end
