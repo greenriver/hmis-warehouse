@@ -2,19 +2,19 @@ module Clients
   class FilesController < Window::Clients::FilesController
     include ClientPathGenerator
     before_action :require_can_manage_client_files!
-    
+
     def window_visible? visibility
       visibility
     end
-    
+
     def consent_editable?
       can_confirm_housing_release?
     end
 
     def update
       attrs = if current_user.can_confirm_housing_release?
-        file_params 
-      else 
+        file_params
+      else
         file_params.except(:consent_form_confirmed)
       end
 
@@ -23,7 +23,7 @@ module Clients
       end
       @file.update(attrs)
     end
-    
+
     def all_file_scope
       file_source.where(client_id: @client.id)
     end
@@ -40,9 +40,14 @@ module Clients
     def set_window
       @window = false
     end
-    
+
     def require_can_manage_these_client_files!
       require_can_manage_client_files!
+    end
+
+    def editable_scope
+      file_source.where(client_id: @client.id).
+        editable_by?(current_user)
     end
   end
 end
