@@ -44,11 +44,11 @@ module Reporting
     end
 
     def housed
-      @housed ||= Reporting::Housed.all
+      @housed ||= Reporting::Housed.where(project_type: 13)
     end
 
     def returns
-      @returns ||= Reporting::Return.all
+      @returns ||= Reporting::Return.where(client_id: housed.select(:client_id))
     end
 
     def num_housed_1
@@ -184,45 +184,50 @@ module Reporting
       }
     end
 
+    def cache_key_for_program program_id
+      ['r', 'rrh-report', program_id.to_s].to_s
+    end
+
+    def should_rebuild?
+      ! (Rails.cache.exist?(cache_key_for_program(program_1_id)) && Rails.cache.exist?(cache_key_for_program(program_2_id)))
+    end
+
+
     def set_r_variables
-      set_time_format
-      housed_file = Tempfile.new('housed')
-      CSV.open(housed_file, 'wb') do |csv|
-        csv << housed.first.attributes.keys
-        housed.each do |m|
-          csv << m.attributes.values
+      # Don't bother building things if we've already cached them both
+      if should_rebuild?
+        set_time_format
+        housed_file = Tempfile.new('housed')
+        CSV.open(housed_file, 'wb') do |csv|
+          csv << housed.first.attributes.keys
+          housed.each do |m|
+            csv << m.attributes.values
+          end
+        end
+
+        returns_file = Tempfile.new('returns')
+        CSV.open(returns_file, 'wb') do |csv|
+          csv << returns.first.attributes.keys
+          returns.each do |m|
+            csv << m.attributes.values
+          end
         end
       end
 
-      returns_file = Tempfile.new('returns')
-      CSV.open(returns_file, 'wb') do |csv|
-        csv << returns.first.attributes.keys
-        returns.each do |m|
-          csv << m.attributes.values
-        end
+      @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
+      @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
+
+      if should_rebuild?
+        housed_file.close
+        housed_file.unlink
+        returns_file.close
+        returns_file.unlink
+        reset_time_format
       end
-
-      housed_hash = {}
-      housed.each do |h|
-        h.attributes.each do |k,v|
-          housed_hash[k] ||= []
-          housed_hash[k] << v
-        end
-      end
-
-      @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file.path, returns_file_path: returns_file.path)
-      @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file.path, returns_file_path: returns_file.path)
-
-
-      housed_file.close
-      housed_file.unlink
-      returns_file.close
-      returns_file.unlink
-      reset_time_format
     end
 
     def fetch_from_r program_id:, housed_file_path:, returns_file_path:
-      Rails.cache.fetch(['r', 'rrh-report', program_id], expires_in: 4.minutes) do
+      Rails.cache.fetch(cache_key_for_program(program_id), expires_in: 10.minutes) do
         r.converse(
           program_1: program_id,
           housed_file_path: housed_file_path,
