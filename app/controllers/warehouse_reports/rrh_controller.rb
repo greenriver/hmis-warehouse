@@ -21,11 +21,13 @@ module WarehouseReports
     end
 
     private def project_source
-      GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      # GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      GrdaWarehouse::Hud::Project.all
     end
 
     private def housed_source
-      Reporting::Housed.viewable_by(current_user)
+      # Reporting::Housed.viewable_by(current_user)
+      Reporting::Housed.all
     end
 
     private def returns_source
