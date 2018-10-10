@@ -458,7 +458,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def presented_as_individual?
       @presented_as_individual ||= begin
         if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-          @presented_as_individual = part_of_a_family?
+          @presented_as_individual = ! part_of_a_family?
         else
           @presented_as_individual = project.serves_only_individuals?
         end
