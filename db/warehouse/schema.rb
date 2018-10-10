@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181005172849) do
+ActiveRecord::Schema.define(version: 20181010193431) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1130,6 +1130,7 @@ ActiveRecord::Schema.define(version: 20181005172849) do
     t.boolean "so_day_as_month",                           default: true
     t.text    "client_details"
     t.boolean "allow_multiple_file_tags",                  default: false,                    null: false
+    t.boolean "infer_family_from_household_id",            default: false,                    null: false
   end
 
   create_table "contacts", force: :cascade do |t|

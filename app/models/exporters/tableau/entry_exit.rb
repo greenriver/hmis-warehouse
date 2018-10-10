@@ -77,8 +77,8 @@ module Exporters::Tableau::EntryExit
         open_between( start_date: start_date, end_date: end_date ).
         with_service_between( start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
         joins( enrollment: :client).
-        includes(enrollment: [:exit, :enrollment_coc_at_entry, project: :project_cocs]).
-        references(enrollment: [:exit, :enrollment_coc_at_entry, project: :project_cocs]).
+        includes(enrollment: [:exit, project: :project_cocs]).
+        references(enrollment: [:exit, project: :project_cocs]).
         # for aesthetics
         order( she_t[:client_id].asc ).
         order( e_t[:id].asc ).
@@ -86,7 +86,7 @@ module Exporters::Tableau::EntryExit
         order( she_t[:last_date_in_program].desc )
 
       if coc_code.present?
-        scope = scope.merge( ec_t.engine.in_coc coc_code: coc_code )
+        scope = scope.merge( pc_t.engine.in_coc coc_code: coc_code )
       end
 
       spec.each do |header, selector|
@@ -148,9 +148,10 @@ module Exporters::Tableau::EntryExit
           value = row[h.to_s].presence
           value = case h
           when :hh_config
-            value == 't' ? 'Single' : 'Family'
+            if value == 't' then 'Single' else 'Family' end
           when :hh_uid
-            # ServicePoint tends to send along a new HouseholdID for every enrollment, we'll collapse those for individuals
+            # HUD Spec specifies a new HouseholdID for every enrollment, we'll collapse those for individuals
+            # to keep the noise down in the dashboard
             if row['hh_config'] == 't'
               "c_#{row['client_uid']}"
             else

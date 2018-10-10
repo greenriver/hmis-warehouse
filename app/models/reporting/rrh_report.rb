@@ -37,25 +37,25 @@ module Reporting
       @r ||= Rserve::Simpler.new
     end
 
-    def set_time_format
-      # We need this for exporting to the appropriate format
-      @default_date_format = Date::DATE_FORMATS[:default]
-      @default_time_format = Time::DATE_FORMATS[:default]
-      Date::DATE_FORMATS[:default] = "%Y-%m-%d"
-      Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
-    end
+    # def set_time_format
+    #   # We need this for exporting to the appropriate format
+    #   @default_date_format = Date::DATE_FORMATS[:default]
+    #   @default_time_format = Time::DATE_FORMATS[:default]
+    #   Date::DATE_FORMATS[:default] = "%Y-%m-%d"
+    #   Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
+    # end
 
-    def reset_time_format
-      Date::DATE_FORMATS[:default] = @default_date_format
-      Time::DATE_FORMATS[:default] = @default_time_format
-    end
+    # def reset_time_format
+    #   Date::DATE_FORMATS[:default] = @default_date_format
+    #   Time::DATE_FORMATS[:default] = @default_time_format
+    # end
 
-    def with_formatted_time
-      set_time_format
-      yield
-    ensure
-      reset_time_format
-    end
+    # def with_formatted_time
+    #   set_time_format
+    #   yield
+    # ensure
+    #   reset_time_format
+    # end
 
     def housed
       @housed ||= Reporting::Housed.where(project_type: 13)
@@ -208,36 +208,37 @@ module Reporting
 
 
     def set_r_variables
-      with_formatted_time do
-        # Don't bother building things if we've already cached them both
-        set_time_format
-        if should_rebuild?
-          housed_file = Tempfile.new('housed')
-          CSV.open(housed_file, 'wb') do |csv|
-            csv << housed.first.attributes.keys
-            housed.each do |m|
-              csv << m.attributes.values
-            end
-          end
-
-          returns_file = Tempfile.new('returns')
-          CSV.open(returns_file, 'wb') do |csv|
-            csv << returns.first.attributes.keys
-            returns.each do |m|
-              csv << m.attributes.values
+      # Don't bother building things if we've already cached them both
+      if should_rebuild?
+        housed_file = Tempfile.new('housed')
+        CSV.open(housed_file, 'wb') do |csv|
+          csv << housed.first.attributes.keys
+          housed.each do |m|
+            csv << m.attributes.values.map do |v|
+              if v.respond_to?(:iso8601) then v.iso8601 else v end
             end
           end
         end
 
-        @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
-        @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
-
-        if should_rebuild?
-          housed_file.close
-          housed_file.unlink
-          returns_file.close
-          returns_file.unlink
+        returns_file = Tempfile.new('returns')
+        CSV.open(returns_file, 'wb') do |csv|
+          csv << returns.first.attributes.keys
+          returns.each do |m|
+            csv << m.attributes.values.map do |v|
+              if v.respond_to?(:iso8601) then v.iso8601 else v end
+            end
+          end
         end
+      end
+
+      @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
+      @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
+
+      if should_rebuild?
+        housed_file.close
+        housed_file.unlink
+        returns_file.close
+        returns_file.unlink
       end
     end
 
