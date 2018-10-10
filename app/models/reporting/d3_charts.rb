@@ -14,7 +14,9 @@ module Reporting
     end
 
     def self.programs_for_select(user)
-      Reporting::Housed.viewable_by(user).pluck(:residential_project, :project_id).to_a.uniq
+      Reporting::Housed.where(project_type: 13).
+        viewable_by(user).
+        pluck(:residential_project, :project_id).to_a.uniq
     end
 
     def housed_scope user

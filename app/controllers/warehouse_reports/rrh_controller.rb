@@ -25,7 +25,7 @@ module WarehouseReports
     end
 
     private def housed_source
-      Reporting::Housed.viewable_by(current_user)
+      Reporting::Housed.where(project_type: 13).viewable_by(current_user)
     end
 
     private def returns_source
