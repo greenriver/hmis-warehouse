@@ -6,7 +6,7 @@ module ControllerAuthorization
   # This builds useful methods in the form:
   # require_permission!
   # such as require_can_edit_users!
-  # It then checks the appropriate permission against the current user throwing up 
+  # It then checks the appropriate permission against the current user throwing up
   # an alert if access is blocked
   Role.permissions.each do |permission|
     define_method("require_#{permission}!") do
@@ -16,24 +16,24 @@ module ControllerAuthorization
 
   def require_can_assign_or_view_users_to_clients!
     can_view = can_assign_users_to_clients? || can_view_client_user_assignments?
-    return true if can_view    
+    return true if can_view
     not_authorized!
   end
 
   def require_can_view_clients_or_window!
     can_view = current_user.can_view_client_window? || current_user.can_view_clients?
-    return true if can_view    
+    return true if can_view
     not_authorized!
   end
 
   def require_window_file_access!
     can_view = current_user.can_see_own_file_uploads? || current_user.can_manage_window_client_files?
-    return true if can_view    
+    return true if can_view
     not_authorized!
   end
 
   def require_can_access_vspdat_list!
-    return true if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)    
+    return true if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
     not_authorized!
   end
 
@@ -71,7 +71,7 @@ module ControllerAuthorization
   end
 
   def not_authorized!
-    redirect_to root_path, alert: 'Sorry you are not authorized to do that.'
+    redirect_to(root_path, alert: 'Sorry you are not authorized to do that.')
   end
 
   def check_release

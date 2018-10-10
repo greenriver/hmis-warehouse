@@ -50,6 +50,13 @@ module Reporting
       Time::DATE_FORMATS[:default] = @default_time_format
     end
 
+    def with_formatted_time
+      set_time_format
+      yield
+    ensure
+      reset_time_format
+    end
+
     def housed
       @housed ||= Reporting::Housed.where(project_type: 13)
     end
@@ -201,35 +208,36 @@ module Reporting
 
 
     def set_r_variables
-      # Don't bother building things if we've already cached them both
-      if should_rebuild?
+      with_formatted_time do
+        # Don't bother building things if we've already cached them both
         set_time_format
-        housed_file = Tempfile.new('housed')
-        CSV.open(housed_file, 'wb') do |csv|
-          csv << housed.first.attributes.keys
-          housed.each do |m|
-            csv << m.attributes.values
+        if should_rebuild?
+          housed_file = Tempfile.new('housed')
+          CSV.open(housed_file, 'wb') do |csv|
+            csv << housed.first.attributes.keys
+            housed.each do |m|
+              csv << m.attributes.values
+            end
+          end
+
+          returns_file = Tempfile.new('returns')
+          CSV.open(returns_file, 'wb') do |csv|
+            csv << returns.first.attributes.keys
+            returns.each do |m|
+              csv << m.attributes.values
+            end
           end
         end
 
-        returns_file = Tempfile.new('returns')
-        CSV.open(returns_file, 'wb') do |csv|
-          csv << returns.first.attributes.keys
-          returns.each do |m|
-            csv << m.attributes.values
-          end
+        @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
+        @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
+
+        if should_rebuild?
+          housed_file.close
+          housed_file.unlink
+          returns_file.close
+          returns_file.unlink
         end
-      end
-
-      @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
-      @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
-
-      if should_rebuild?
-        housed_file.close
-        housed_file.unlink
-        returns_file.close
-        returns_file.unlink
-        reset_time_format
       end
     end
 
