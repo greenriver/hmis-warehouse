@@ -14,6 +14,13 @@
 # install.packages(pkg_url, repos = NULL)
 # library(Rserve)
 # Rserve(args="--no-save")
+#
+#
+# NOTE for linux
+# wget https://www.rforge.net/Rserve/snapshot/Rserve_1.8-6.tar.gz
+# R CMD INSTALL Rserve_1.8-6.tar.gz
+# Figure out how to link installed version correctly https://stackoverflow.com/questions/24370980/how-to-specify-r-cmd-exec-directory
+# R CMD Rserve
 require 'rserve/simpler'
 # require 'rinruby'
 module Reporting
