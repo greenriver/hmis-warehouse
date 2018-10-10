@@ -38,6 +38,7 @@ module Admin
         :so_day_as_month,
         :ahar_psh_includes_rrh,
         :allow_multiple_file_tags,
+        :infer_family_from_household_id,
         client_details: []
       )
     end

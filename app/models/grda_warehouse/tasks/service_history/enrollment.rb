@@ -458,20 +458,20 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def presented_as_individual?
       @presented_as_individual ||= begin
         if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-          @presented_as_individual = part_of_a_family?(self.HouseholdID, self.ProjectID, self.data_source_id)
+          @presented_as_individual = part_of_a_family?
         else
           @presented_as_individual = project.serves_only_individuals?
         end
       end
     end
 
-    def part_of_a_family? household_id, project_id, data_source_id
+    def part_of_a_family?
       @families ||= Rails.cache.fetch('family-households', expires_in: 8.hours) do
         self.class.where.not(HouseholdID: nil).
           group(:HouseholdID, :ProjectID, :data_source_id).
           having('COUNT(DISTINCT("PersonalID")) > 1').count
       end
-      @families.key? [household_id, project_id, data_source_id]
+      @families.key? [self.HouseholdID, self.ProjectID, self.data_source_id]
     end
 
     # Client is over 65 and everyone else is an adult
