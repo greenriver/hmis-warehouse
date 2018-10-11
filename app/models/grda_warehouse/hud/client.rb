@@ -2106,6 +2106,7 @@ module GrdaWarehouse::Hud
             confidential_project: project.confidential,
             entry_date: entry.first_date_in_program,
             living_situation: entry.enrollment.LivingSituation,
+            move_in_date: entry.enrollment.MoveInDate,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
             days: dates_served.count,

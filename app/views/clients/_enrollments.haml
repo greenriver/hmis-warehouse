@@ -68,7 +68,11 @@
           - living_situation = HUD.living_situation(e[:living_situation])
           - if living_situation == e[:living_situation]
             - living_situation = 'Unknown'
-          %span{data: {toggle: :tooltip, title: "Prior Living Situation: #{living_situation}"}}
+          - title = "Prior Living Situation: #{living_situation}"
+          - if move_in_date = e[:move_in_date]
+            - title += "<br /><br />Move-in-Date: #{move_in_date}"
+
+          %span{data: {toggle: :tooltip, title: title, html: :true}}
             = e[:entry_date]
         %td
           - destination = HUD.destination(e[:destination])
