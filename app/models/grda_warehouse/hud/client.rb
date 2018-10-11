@@ -1946,9 +1946,13 @@ module GrdaWarehouse::Hud
     end
 
     # PH
+    # https://www.hudexchange.info/resources/documents/HMIS-Data-Standards-Manual.pdf
+    # For clients who entered a non-RRH permanent housing project (or an RRH project not previously required to collect housing move-in data) prior to October 1, 2017, the Housing Move-in Date will be automatically populated with the value from the client's Project Start Date, but projects can edit these dates to reflect the actual Project Start Date (if information on when the client was first assisted by the PH program is available) or actual housing status (if the client is still in the process of being housed).
     def self.dates_in_ph_residential_scope client_id:
       GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
+      joins(service_history_enrollment: :enrollment).
       where(client_id: client_id).
+      where(e_t[:MoveInDate].lteq(shs_t[:date])).
         select(:date).distinct
     end
 
