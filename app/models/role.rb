@@ -17,11 +17,13 @@ class Role < ActiveRecord::Base
 
   def self.permissions(exclude_health: false)
     perms = [
+      :can_edit_anything_super_user,
       :can_view_clients,
       :can_edit_clients,
       :can_view_censuses,
       :can_view_census_details,
       :can_edit_users,
+      :can_audit_users,
       :can_view_full_ssn,
       :can_view_full_dob,
       :can_view_hiv_status,
@@ -39,7 +41,6 @@ class Role < ActiveRecord::Base
       :can_upload_hud_zips,
       :can_edit_translations,
       :can_manage_assessments,
-      :can_edit_anything_super_user,
       :can_manage_client_files,
       :can_manage_window_client_files,
       :can_see_own_file_uploads,

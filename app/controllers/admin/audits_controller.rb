@@ -1,6 +1,6 @@
 module Admin
   class AuditsController < ::ApplicationController
-    before_action :require_can_edit_users!
+    before_action :require_can_audit_users!
 
     def show
       @user = User.find params[:user_id]

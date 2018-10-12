@@ -1,8 +1,11 @@
-= render :partial => 'menus/admin_tabs'
+= content_for :crumbs do
+  = link_to clients_path do
+    &laquo; Client search
 - content_for :title, t('.title')
+%h1= content_for :title
+= render :partial => 'menus/admin_tabs'
 .o-page
   .o-page__header
-    %h1.mt-0= content_for :title
     .o-page__action.o-page__action--stacked
       = link_to new_user_invitation_path, class: 'btn btn-primary pull-right margin-bottom-02' do
         %span.icon-plus

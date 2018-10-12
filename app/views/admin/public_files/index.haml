@@ -1,11 +1,10 @@
 - title = "Public Files"
 - content_for :title, title
-
+%h1= content_for :title
 = render :partial => 'menus/admin_tabs'
 
 .row
   .col-sm-8
-    %h1= content_for :title
     - if @files.present?
       %table.table.table-condensed
         %thead

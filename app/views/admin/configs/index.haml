@@ -1,10 +1,8 @@
 - title = "Site Configuration"
 - content_for :title, title
 
-= render :partial => 'menus/admin_tabs'
-
 %h1= content_for :title
-
+= render :partial => 'menus/admin_tabs'
 = simple_form_for @config, url: admin_configs_path do |f|
   .row
     .col-sm-3
