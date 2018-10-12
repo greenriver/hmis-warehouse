@@ -2270,6 +2270,7 @@ module GrdaWarehouse::Hud
     # If we haven't been in a homeless project type in the last 30 days, this is a new episode
     # If we don't currently have a non-homeless residential and we have had one for the past 90 days
     # residential_dates in this context is PH ONLY
+    # FIXME: this should be updated to handle move-in-date
     def new_episode? enrollments:, enrollment:
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
       entry_date = enrollment.first_date_in_program
