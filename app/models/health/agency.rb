@@ -20,6 +20,7 @@ module Health
     # end
 
     def self.email_valid?(email)
+      return false unless email
       # whitelisted_domain_regex.match(email)
       # Check that the email is not from a free or disposable or invalid email provider
       email_address =  ::EmailCheck::EmailAddress.new(email)
