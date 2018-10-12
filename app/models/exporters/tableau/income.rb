@@ -7,7 +7,7 @@ module Exporters::Tableau::Income
 
       model = ib_t.engine
 
-      spec = {
+      columns = {
         grouping_variable:       she_t[:id],
         entry_exit_uid:          e_t[:EnrollmentID],
         entry_exit_client_id:    she_t[:client_id],
@@ -35,24 +35,24 @@ module Exporters::Tableau::Income
       end
       incomes = scope
 
-      spec.each do |header, selector|
+      columns.each do |header, selector|
         incomes = incomes.select selector.as(header.to_s)
       end
 
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, incomes, csv
+          export model, columns, incomes, csv
         end
         return true
       else
         CSV.generate headers: true do |csv|
-          export model, spec, incomes, csv
+          export model, columns, incomes, csv
         end
       end
     end
 
-    def export model, spec, incomes, csv
-      headers = spec.keys - [:grouping_variable]
+    def export model, columns, incomes, csv
+      headers = columns.keys - [:grouping_variable]
       csv << headers
 
       incomes = model.connection.select_all(incomes.to_sql)

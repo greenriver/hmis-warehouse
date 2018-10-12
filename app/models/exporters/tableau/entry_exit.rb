@@ -9,19 +9,19 @@ module Exporters::Tableau::EntryExit
 
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, scope, start_date, end_date, csv
+          export(model, columns, scope, start_date, end_date, csv)
         end
         return true
       else
         CSV.generate headers: true do |csv|
-          export model, spec, scope, start_date, end_date, csv
+          export(model, columns, scope, start_date, end_date, csv)
         end
       end
     end
 
-    def spec
+    def columns
       model = she_t.engine
-      spec = {
+      @columns ||= {
         data_source:                      she_t[:data_source_id],
         personal_id:                      c_t[:PersonalID],
         client_uid:                       she_t[:client_id], # in use
@@ -89,16 +89,17 @@ module Exporters::Tableau::EntryExit
         scope = scope.merge( pc_t.engine.in_coc coc_code: coc_code )
       end
 
-      spec.each do |header, selector|
+      columns.each do |header, selector|
         next if selector.nil?
+        # tell arel what columns to pluck
         scope = scope.select selector.as(header.to_s)
       end
       return scope
     end
 
-    def export model, spec, scope, start_date, end_date, csv
+    def export model, columns, scope, start_date, end_date, csv
       # cleanup headers
-      headers = spec.keys.map do |header|
+      headers = columns.keys.map do |header|
         case header
         when :data_source, :personal_id, :id
           next
@@ -150,7 +151,7 @@ module Exporters::Tableau::EntryExit
           when :hh_config
             if value == 't' then 'Single' else 'Family' end
           when :hh_uid
-            # HUD Spec specifies a new HouseholdID for every enrollment, we'll collapse those for individuals
+            # HUD Spec columnsifies a new HouseholdID for every enrollment, we'll collapse those for individuals
             # to keep the noise down in the dashboard
             if row['hh_config'] == 't'
               "c_#{row['client_uid']}"
@@ -237,9 +238,13 @@ module Exporters::Tableau::EntryExit
               'f'
             end
           when :chronic
-            client = clients[row['client_uid'].to_i]
-            client.hud_chronic?( on_date: row['entry_exit_entry_date'].to_date ) ? 't' : 'f'
-
+            # you can't be chronic if you aren't disabled
+            if disabled_ids.include?(row['client_uid'].to_i)
+              client = clients[row['client_uid'].to_i]
+              if client.hud_chronic?( on_date: row['entry_exit_entry_date'].to_date ) then 't' else 'f' end
+            else
+              'f'
+            end
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
               where(

@@ -4,7 +4,7 @@ module Exporters::Tableau::Vispdat
 
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
-      spec = {
+      columns = {
         client_uid:               e_t[:PersonalID],
         vispdat_1_recordset_id:   null,
         vispdat_1_provider:       null,
@@ -42,24 +42,24 @@ module Exporters::Tableau::Vispdat
         scope = scope.where( ec_t[:CoCCode].eq coc_code )
       end
       vispdats = scope
-      spec.each do |header, selector|
+      columns.each do |header, selector|
         vispdats = vispdats.select selector.as(header.to_s)
       end
 
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, vispdats, csv
+          export model, columns, vispdats, csv
         end
         return true
       else
         CSV.generate headers: true do |csv|
-          export model, spec, vispdats, csv
+          export model, columns, vispdats, csv
         end
       end
     end
 
-    def export model, spec, vispdats, csv
-      headers = spec.keys.reject{ |k| k.to_s.starts_with? '_' }
+    def export model, columns, vispdats, csv
+      headers = columns.keys.reject{ |k| k.to_s.starts_with? '_' }
       csv << headers
 
       model.connection.select_all(vispdats.to_sql).each do |vispdat|
